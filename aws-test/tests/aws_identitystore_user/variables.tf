@@ -12,13 +12,13 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
 variable "aws_region_alternate" {
   type        = string
-  default     = "us-east-2"
+  default     = "us-east-1"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -48,12 +48,19 @@ data "null_data_source" "resource" {
 
 data "aws_ssoadmin_instances" "main" {}
 
-data "aws_identitystore_user" "main" {
+resource "aws_identitystore_user" "main" {
   identity_store_id = tolist(data.aws_ssoadmin_instances.main.identity_store_ids)[0]
 
-  filter {
-    attribute_path  = "UserName"
-    attribute_value = "TestUser"
+  display_name = "turbot-integration-test"
+  user_name    = var.resource_name
+
+  name {
+    given_name  = "John"
+    family_name = "Doe"
+  }
+
+  emails {
+    value = "john@example.com"
   }
 }
 
@@ -70,13 +77,13 @@ output "aws_partition" {
 }
 
 output "resource_id" {
-  value = data.aws_identitystore_user.main.id
+  value = resource.aws_identitystore_user.main.user_id
 }
 
 output "resource_name" {
-  value = data.aws_identitystore_user.main.user_name
+  value = resource.aws_identitystore_user.main.user_name
 }
 
 output "identity_store_id" {
-  value = data.aws_identitystore_user.main.identity_store_id
+  value = resource.aws_identitystore_user.main.identity_store_id
 }

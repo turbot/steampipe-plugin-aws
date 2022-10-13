@@ -2,10 +2,13 @@ package aws
 
 import (
 	"context"
+	"errors"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/kms/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -23,7 +26,7 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getKmsKey,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException", "InvalidParameter"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -182,55 +185,66 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 
 func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.listKmsKeys", "connection_error", err)
 		return nil, err
 	}
 
-	input := &kms.ListKeysInput{
-		Limit: aws.Int64(1000),
-	}
+	maxItems := int32(1000)
+	input := &kms.ListKeysInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.Limit = limit
+				maxItems = int32(limit)
+			}
+		}
+	}
+	input.Limit = aws.Int32(maxItems)
+	paginator := kms.NewListKeysPaginator(svc, input, func(o *kms.ListKeysPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_kms_key.listKmsKeys", "api_error", err)
+			return nil, err
+		}
+
+		for _, key := range output.Keys {
+			d.StreamListItem(ctx, key)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	err = svc.ListKeysPages(
-		input,
-		func(page *kms.ListKeysOutput, lastPage bool) bool {
-			for _, key := range page.Keys {
-				d.StreamListItem(ctx, key)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !lastPage
-		},
-	)
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getKmsKey")
-
 	keyID := d.KeyColumnQuals["id"].GetStringValue()
 
+	// Empty id check
+	if strings.TrimSpace(keyID) == "" {
+		return nil, nil
+	}
+
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getKmsKey", "connection_error", err)
 		return nil, err
 	}
 
@@ -238,13 +252,13 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		KeyId: aws.String(keyID),
 	}
 
-	keyData, err := svc.DescribeKey(params)
+	keyData, err := svc.DescribeKey(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getIamUser__", "ERROR", err)
+		plugin.Logger(ctx).Debug("aws_kms_key.getKmsKey", "api_error", err)
 		return nil, err
 	}
 
-	rowData := &kms.KeyListEntry{
+	rowData := types.KeyListEntry{
 		KeyArn: keyData.KeyMetadata.Arn,
 		KeyId:  keyData.KeyMetadata.KeyId,
 	}
@@ -253,12 +267,12 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 }
 
 func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsKmsKeyData")
-	key := h.Item.(*kms.KeyListEntry)
+	key := h.Item.(types.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyData", "connection_error", err)
 		return nil, err
 	}
 
@@ -266,8 +280,9 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		KeyId: key.KeyId,
 	}
 
-	keyData, err := svc.DescribeKey(params)
+	keyData, err := svc.DescribeKey(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyData", "api_error", err)
 		return nil, err
 	}
 
@@ -275,12 +290,12 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsKmsKeyRotationStatus")
-	key := h.Item.(*kms.KeyListEntry)
+	key := h.Item.(types.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyRotationStatus", "connection_error", err)
 		return nil, err
 	}
 
@@ -288,26 +303,28 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 		KeyId: key.KeyId,
 	}
 
-	keyData, err := svc.GetKeyRotationStatus(params)
+	keyData, err := svc.GetKeyRotationStatus(ctx, params)
 	if err != nil {
 		// For AWS managed KMS keys GetKeyRotationStatus API generates exceptions
-		if a, ok := err.(awserr.Error); ok {
-			if helpers.StringSliceContains([]string{"AccessDeniedException", "UnsupportedOperationException"}, a.Code()) {
-				return kms.GetKeyRotationStatusOutput{}, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if helpers.StringSliceContains([]string{"AccessDeniedException", "UnsupportedOperationException"}, ae.ErrorCode()) {
+				return &kms.GetKeyRotationStatusOutput{}, nil
 			}
+			return nil, err
 		}
-		return nil, err
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyRotationStatus", "api_error", err)
 	}
 	return keyData, nil
 }
 
 func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsKmsKeyTagging")
-	key := h.Item.(*kms.KeyListEntry)
+	key := h.Item.(types.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyTagging", "connection_error", err)
 		return nil, err
 	}
 
@@ -316,26 +333,19 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		KeyId: key.KeyId,
 	}
 
-	pagesLeft := true
-	tags := []*kms.Tag{}
-	for pagesLeft {
-		keyTags, err := svc.ListResourceTags(params)
+	tags := []types.Tag{}
+
+	paginator := kms.NewListResourceTagsPaginator(svc, params, func(o *kms.ListResourceTagsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// For AWS managed KMS keys ListResourceTags API generates AccessDeniedException
-			if a, ok := err.(awserr.Error); ok {
-				if a.Code() == "AccessDeniedException" {
-					return tagsData, nil
-				}
-			}
+			plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyTagging", "api_error", err)
 			return nil, err
 		}
-		tags = append(tags, keyTags.Tags...)
-
-		if keyTags.NextMarker != nil {
-			params.Marker = keyTags.NextMarker
-		} else {
-			pagesLeft = false
-		}
+		tags = append(tags, output.Tags...)
 	}
 
 	if tags != nil {
@@ -352,28 +362,31 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsKmsKeyAliases")
-	key := h.Item.(*kms.KeyListEntry)
+	key := h.Item.(types.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyAliases", "connection_error", err)
 		return nil, err
 	}
 
 	params := &kms.ListAliasesInput{
 		KeyId: key.KeyId,
 	}
-	keyData := []*kms.AliasListEntry{}
-	err = svc.ListAliasesPages(
-		params,
-		func(page *kms.ListAliasesOutput, lastPage bool) bool {
-			keyData = append(keyData, page.Aliases...)
-			return !lastPage
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("getAwsKmsKeyAliases", "ListAliasesPages_error", err)
+
+	keyData := []types.AliasListEntry{}
+	paginator := kms.NewListAliasesPaginator(svc, params, func(o *kms.ListAliasesPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyAliases", "api_error", err)
+			return nil, err
+		}
+		keyData = append(keyData, output.Aliases...)
 	}
 
 	return keyData, nil
@@ -381,28 +394,28 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func kmsKeyTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	// Use the first alias if one is set, else fallback to the key ID
-	key := d.HydrateItem.([]*kms.AliasListEntry)
+	key := d.HydrateItem.([]types.AliasListEntry)
 	if len(key) > 0 {
 		return key[0].AliasName, nil
 	}
 
 	var keyID string
 	if d.HydrateResults["listKmsKeys"] != nil {
-		keyID = *(d.HydrateResults["listKmsKeys"]).(*kms.KeyListEntry).KeyId
+		keyID = *(d.HydrateResults["listKmsKeys"]).(types.KeyListEntry).KeyId
 	} else if d.HydrateResults["getKmsKey"] != nil {
-		keyID = *(d.HydrateResults["getKmsKey"]).(*kms.KeyListEntry).KeyId
+		keyID = *(d.HydrateResults["getKmsKey"]).(types.KeyListEntry).KeyId
 	}
 
 	return keyID, nil
 }
 
 func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsKmsKeyPolicy")
-	key := h.Item.(*kms.KeyListEntry)
+	key := h.Item.(types.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyPolicy", "connection_error", err)
 		return nil, err
 	}
 
@@ -411,13 +424,15 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		PolicyName: aws.String("default"),
 	}
 
-	keyPolicy, err := svc.GetKeyPolicy(params)
+	keyPolicy, err := svc.GetKeyPolicy(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "NotFoundException" {
-				return kms.GetKeyPolicyOutput{}, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "NotFoundException" {
+				return &kms.GetKeyPolicyOutput{}, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyPolicy", "apin_error", err)
 		return nil, err
 	}
 	return keyPolicy, nil

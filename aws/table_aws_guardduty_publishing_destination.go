@@ -3,15 +3,25 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/guardduty"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
+
+type DestinationInfo = struct {
+	DestinationId                   *string
+	DestinationType                 types.DestinationType
+	DestinationArn                  *string
+	KmsKeyArn                       *string
+	Status                          types.PublishingStatus
+	PublishingFailureStartTimestamp *int64
+	DetectorId                      string
+}
 
 func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -20,7 +30,7 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"detector_id", "destination_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyPublishingDestination,
 		},
@@ -72,6 +82,7 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 				Description: "The time, in epoch millisecond format, at which GuardDuty was first unable to publish findings to the destination.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getGuardDutyPublishingDestination,
+				Transform:   transform.FromField("PublishingFailureStartTimestamp").Transform(transform.UnixMsToTimestamp),
 			},
 			{
 				Name:        "status",
@@ -97,96 +108,82 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 	}
 }
 
-type DestinationInfo = struct {
-	DestinationId                   *string
-	DestinationType                 *string
-	DestinationArn                  *string
-	KmsKeyArn                       *string
-	Status                          *string
-	PublishingFailureStartTimestamp *int64
-	DetectorId                      string
-}
-
 //// LIST FUNCTION
 
 func listGuardDutyPublishingDestinations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_publishing_destination.listGuardDutyPublishingDestinations", "get_client_error", err)
 		return nil, err
 	}
 
 	equalQuals := d.KeyColumnQuals
-
 	// Minimize the API call with the given detector_id
 	if equalQuals["detector_id"] != nil {
-		if equalQuals["detector_id"].GetStringValue() != "" {
-			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != id {
-				return nil, nil
-			}
-		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), id) {
-				return nil, nil
-			}
+		if equalQuals["detector_id"].GetStringValue() != id {
+			return nil, nil
 		}
 	}
 
+	maxItems := int32(50)
 	input := &guardduty.ListPublishingDestinationsInput{
 		DetectorId: &id,
-		MaxResults: aws.Int64(50),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			input.MaxResults = limit
+		}
+	}
+
+	paginator := guardduty.NewListPublishingDestinationsPaginator(svc, input, func(o *guardduty.ListPublishingDestinationsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_guardduty_publishing_destination.listGuardDutyPublishingDestinations", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.Destinations {
+			d.StreamListItem(ctx, DestinationInfo{
+				DestinationId:   item.DestinationId,
+				DestinationType: item.DestinationType,
+				Status:          item.Status,
+				DetectorId:      id,
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListPublishingDestinationsPages(
-		input,
-		func(page *guardduty.ListPublishingDestinationsOutput, isLast bool) bool {
-			for _, destination := range page.Destinations {
-				d.StreamLeafListItem(ctx, DestinationInfo{
-					DestinationId:   destination.DestinationId,
-					DestinationType: destination.DestinationType,
-					Status:          destination.Status,
-					DetectorId:      id,
-				})
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTION
 
 func getGuardDutyPublishingDestination(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getGuardDutyPublishingDestination")
-
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_publishing_destination.getGuardDutyPublishingDestination", "get_client_error", err)
 		return nil, err
 	}
+
 	var detectorID string
 	var id string
+
 	if h.Item != nil {
 		detectorID = h.Item.(DestinationInfo).DetectorId
 		id = *h.Item.(DestinationInfo).DestinationId
@@ -207,9 +204,9 @@ func getGuardDutyPublishingDestination(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// Get call
-	data, err := svc.DescribePublishingDestination(params)
+	data, err := svc.DescribePublishingDestination(ctx, params)
 	if err != nil {
-		logger.Error("getGuardDutyPublishingDestination", "err", err)
+		plugin.Logger(ctx).Error("aws_guardduty_publishing_destination.getPublishingDestinationArn", "api_error", err)
 		return nil, err
 	}
 
@@ -219,7 +216,7 @@ func getGuardDutyPublishingDestination(ctx context.Context, d *plugin.QueryData,
 		DestinationArn:                  data.DestinationProperties.DestinationArn,
 		KmsKeyArn:                       data.DestinationProperties.KmsKeyArn,
 		Status:                          data.Status,
-		PublishingFailureStartTimestamp: data.PublishingFailureStartTimestamp,
+		PublishingFailureStartTimestamp: aws.Int64(data.PublishingFailureStartTimestamp),
 		DetectorId:                      detectorID,
 	}, nil
 }
@@ -231,10 +228,11 @@ func getPublishingDestinationArn(ctx context.Context, d *plugin.QueryData, h *pl
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_publishing_destination.getPublishingDestinationArn", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorId + "/publishingDestination" + "/" + *data.DestinationId
+	aka := fmt.Sprintf("arn:%s:guardduty:%s:%s:detector/%s/publishingDestination/%s", commonColumnData.Partition, region, commonColumnData.AccountId, data.DetectorId, *data.DestinationId)
 
 	return aka, nil
 }

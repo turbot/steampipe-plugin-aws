@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -97,74 +98,74 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSsmManagedInstanceCompliances")
-
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_managed_instance_compliance.listSsmManagedInstanceCompliances", "connection_error", err)
 		return nil, err
 	}
 
 	instanceId := d.KeyColumnQuals["resource_id"].GetStringValue()
 
 	// Build the params
-	params := &ssm.ListComplianceItemsInput{
-		ResourceIds: []*string{aws.String(instanceId)},
-		MaxResults:  aws.Int64(50),
+	maxItems := int32(50)
+	input := &ssm.ListComplianceItemsInput{
+		ResourceIds: []string{instanceId},
 	}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["resource_type"] != nil {
-		if equalQuals["resource_type"].GetStringValue() != "" {
-			params.ResourceTypes = []*string{aws.String(equalQuals["resource_type"].GetStringValue())}
-		} else {
-			params.ResourceTypes = getListValues(equalQuals["resource_type"].GetListValue())
-		}
+		input.ResourceTypes = []string{equalQuals["resource_type"].GetStringValue()}
 	}
 
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			if *limit < 1 {
-				params.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 5 {
+				maxItems = int32(5)
 			} else {
-				params.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListComplianceItemsPages(
-		params,
-		func(page *ssm.ListComplianceItemsOutput, isLast bool) bool {
-			for _, item := range page.ComplianceItems {
-				d.StreamListItem(ctx, item)
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := ssm.NewListComplianceItemsPaginator(svc, input, func(o *ssm.ListComplianceItemsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssm_managed_instance_compliance.listSsmManagedInstanceCompliances", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.ComplianceItems {
+			d.StreamListItem(ctx, item)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Trace("listSsmManagedInstanceCompliances", "ListComplianceItemsPages_error", err)
+		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getSSMManagedInstanceComplianceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSSMInstanceComplianceAkas")
-	data := h.Item.(*ssm.ComplianceItem)
+	data := h.Item.(types.ComplianceItem)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_managed_instance_compliance.getSSMInstanceComplianceAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -177,7 +178,7 @@ func getSSMManagedInstanceComplianceAkas(ctx context.Context, d *plugin.QueryDat
 //// TRANSFORM FUNCTIONS
 
 func ssmManagedInstanceComplianceTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ssm.ComplianceItem)
+	data := d.HydrateItem.(types.ComplianceItem)
 
 	title := *data.Id
 	if len(*data.Title) > 0 {

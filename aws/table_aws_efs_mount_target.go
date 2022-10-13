@@ -2,13 +2,15 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/efs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/efs"
+	"github.com/aws/aws-sdk-go-v2/service/efs/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -109,34 +111,41 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 
 func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_mount_target.listAwsEfsMountTargets", "connection_error", err)
 		return nil, err
 	}
 
-	data := h.Item.(*efs.FileSystemDescription)
-	params := &efs.DescribeMountTargetsInput{
-		FileSystemId: data.FileSystemId,
-		MaxItems:     aws.Int64(100),
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
+	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxItems {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				params.MaxItems = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				params.MaxItems = limit
+				maxLimit = int32(*limit)
 			}
 		}
+	}
+
+	data := h.Item.(types.FileSystemDescription)
+	params := &efs.DescribeMountTargetsInput{
+		FileSystemId: data.FileSystemId,
+		MaxItems:     aws.Int32(maxLimit),
 	}
 
 	// List call
 	pagesLeft := true
 	for pagesLeft {
-		result, err := svc.DescribeMountTargets(params)
+		result, err := svc.DescribeMountTargets(ctx, params)
 		if err != nil {
-			plugin.Logger(ctx).Error("listAwsEfsMountTargets", "DescribeMountTargets_error", err)
+			plugin.Logger(ctx).Error("aws_efs_mount_target.listAwsEfsMountTargets", "api_error", err)
 			return nil, err
 		}
 		for _, mountTarget := range result.MountTargets {
@@ -147,6 +156,7 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 				pagesLeft = false
 			}
 		}
+
 		if result.NextMarker != nil {
 			params.Marker = result.NextMarker
 		} else {
@@ -160,23 +170,31 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEfsMountTarget")
+	mountTargetID := d.KeyColumnQuals["mount_target_id"].GetStringValue()
+
+	if strings.TrimSpace(mountTargetID) == "" {
+		return nil, nil
+	}
 
 	// Create service
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTarget", "connection_error", err)
 		return nil, err
 	}
 
-	mountTargetID := d.KeyColumnQuals["mount_target_id"].GetStringValue()
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
 
 	params := &efs.DescribeMountTargetsInput{
 		MountTargetId: aws.String(mountTargetID),
 	}
 
-	op, err := svc.DescribeMountTargets(params)
+	op, err := svc.DescribeMountTargets(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getAwsEfsMountTarget", "DescribeMountTargets_error", err)
+		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTarget", "api_error", err)
 		return nil, err
 	}
 
@@ -188,21 +206,27 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 }
 
 func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEfsMountTargetSecurityGroup")
+	data := h.Item.(types.MountTargetDescription)
 
 	// Create service
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTargetSecurityGroup", "connection_error", err)
 		return nil, err
 	}
 
-	data := h.Item.(*efs.MountTargetDescription)
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	params := &efs.DescribeMountTargetSecurityGroupsInput{
 		MountTargetId: aws.String(*data.MountTargetId),
 	}
 
-	op, err := svc.DescribeMountTargetSecurityGroups(params)
+	op, err := svc.DescribeMountTargetSecurityGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTargetSecurityGroup", "api_error", err)
 		return nil, err
 	}
 
@@ -212,12 +236,12 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 //// TRANSFORM FUNCTION
 
 func getAwsEfsMountTargetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEfsMountTargetAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	data := h.Item.(*efs.MountTargetDescription)
+	data := h.Item.(types.MountTargetDescription)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTargetAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
