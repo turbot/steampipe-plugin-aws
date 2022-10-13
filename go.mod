@@ -46,6 +46,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.15
 	github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14
 	github.com/aws/aws-sdk-go-v2/service/glue v1.32.0
+	github.com/aws/aws-sdk-go-v2/service/guardduty v1.15.9
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/inspector v1.12.15
@@ -67,6 +68,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/waf v1.11.17
+	github.com/aws/aws-sdk-go-v2/service/wafregional v1.12.18
 	github.com/aws/smithy-go v1.13.3
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2

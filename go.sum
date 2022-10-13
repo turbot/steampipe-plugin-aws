@@ -175,6 +175,8 @@ github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14 h1:81m+pUui8TrxAjrhSXweBt6G2G9
 github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14/go.mod h1:pjzNrKeJc+qRfGYCPsFuPc7/P5zM3DL1dpxtGbrTfWs=
 github.com/aws/aws-sdk-go-v2/service/glue v1.32.0 h1:7Kacs7LCbDmMSwW5nHk4OExP9JlYK5P9r3iQ853yoOE=
 github.com/aws/aws-sdk-go-v2/service/glue v1.32.0/go.mod h1:aupHsCJmK66t1MQ542c6qBSuJYEA2IwKmwi4M3jdT1M=
+github.com/aws/aws-sdk-go-v2/service/guardduty v1.15.9 h1:c4cDiLROLNl0glOnn4ywlvKhN5KIoWHEZJiHI+mw3I8=
+github.com/aws/aws-sdk-go-v2/service/guardduty v1.15.9/go.mod h1:+yj8D0vZZYAQQzeMR7Mv1ZPmNReqbnNVGdov8cd//UE=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9 h1:pVHvEz+KIsTwRKufwvGZr90X/YJ7swVshaBZNY4ESIY=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9/go.mod h1:ARVuo+lYC2ibYxny/PKC3maaWKLAg25KSq0dkSkE2WE=
 github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5 h1:FjeDPNsb1ihheLCMVBnTk69lPzfsmkNB9UxVNeCkTGY=
@@ -235,6 +237,8 @@ github.com/aws/aws-sdk-go-v2/service/sts v1.16.19 h1:9pPi0PsFNAGILFfPCk8Y0iyEBGc
 github.com/aws/aws-sdk-go-v2/service/sts v1.16.19/go.mod h1:h4J3oPZQbxLhzGnk+j9dfYHi5qIOVJ5kczZd658/ydM=
 github.com/aws/aws-sdk-go-v2/service/waf v1.11.17 h1:uppvIS/ForUF0VgXzzXRO+eAWMPZaDwLQaifGIPFVk4=
 github.com/aws/aws-sdk-go-v2/service/waf v1.11.17/go.mod h1:lD+RVRUK7ARvACBBnPcFY9Np7OBAIlVqHPHCfDFezZ0=
+github.com/aws/aws-sdk-go-v2/service/wafregional v1.12.18 h1:E/tfURfCZL7/GhMOkz7Q1ZmILwXi28C1Ym0OCL6/h3c=
+github.com/aws/aws-sdk-go-v2/service/wafregional v1.12.18/go.mod h1:uaMDHcgMHW8RnU2OGHCihT8f9XB4oHEXdzU76E9SLPQ=
 github.com/aws/smithy-go v1.12.0/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
 github.com/aws/smithy-go v1.12.1/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
 github.com/aws/smithy-go v1.13.0/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
