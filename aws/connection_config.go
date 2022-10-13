@@ -1,8 +1,6 @@
 package aws
 
 import (
-	"fmt"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/schema"
 )
@@ -65,12 +63,5 @@ func GetConfig(connection *plugin.Connection) awsConfig {
 		return awsConfig{}
 	}
 	config, _ := connection.Config.(awsConfig)
-
-	// Setting "regions = []" in the connection config is not valid
-	if len(config.Regions) == 0 {
-		errorMessage := fmt.Sprintf("\nconnection %s has invalid value for \"regions\", it must contain at least 1 region.", connection.Name)
-		panic(errorMessage)
-	}
-
 	return config
 }
