@@ -49,6 +49,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticsearchservice"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
@@ -75,6 +76,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 
 	"github.com/turbot/go-kit/helpers"
@@ -452,6 +454,14 @@ func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancin
 	return elasticloadbalancingv2.NewFromConfig(*cfg), nil
 }
 
+func ElasticsearchClient(ctx context.Context, d *plugin.QueryData) (*elasticsearchservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return elasticsearchservice.NewFromConfig(*cfg), nil
+}
+
 func EventBridgeClient(ctx context.Context, d *plugin.QueryData) (*eventbridge.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -648,6 +658,14 @@ func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.C
 		return nil, err
 	}
 	return wafregional.NewFromConfig(*cfg), nil
+}
+
+func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
+	cfg, err := getClientForRegion(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	return wafv2.NewFromConfig(*cfg), nil
 }
 
 func GuardDutyClient(ctx context.Context, d *plugin.QueryData) (*guardduty.Client, error) {

@@ -169,6 +169,8 @@ github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12 h1:y97T4mPCBD
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12/go.mod h1:VrUvYb3ZCeUcJMIYmCJUjfwfyIFKOnXhdyfue/MSCIE=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12 h1:jemAfH91rYzeDdNPDNdZHLSXxaXW5l1fcUT1+nRQ8cM=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12/go.mod h1:X2UdAVE3dDmC83sWf9gXW3EL2mVjDCS4vRUctHz8GjM=
+github.com/aws/aws-sdk-go-v2/service/elasticsearchservice v1.16.10 h1:R8edMXNKBaic58L371826hNQanJSjirStcIAkXNe/bQ=
+github.com/aws/aws-sdk-go-v2/service/elasticsearchservice v1.16.10/go.mod h1:VPuMdyWzqCRgv5qTww9yeauwGsOxVbtP2OyqXVyZB8g=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.15 h1:Gfz/Tb8RVsqJ/Djq8y+be/aN/XzcgRgeSovFZKq1vqM=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.15/go.mod h1:Z3NK4pbNBv7d+lzo2TGOMZG87eSddtbrgdzktAwzZpY=
 github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14 h1:81m+pUui8TrxAjrhSXweBt6G2G9him4S8la+yH9YBq4=
@@ -239,6 +241,8 @@ github.com/aws/aws-sdk-go-v2/service/waf v1.11.17 h1:uppvIS/ForUF0VgXzzXRO+eAWMP
 github.com/aws/aws-sdk-go-v2/service/waf v1.11.17/go.mod h1:lD+RVRUK7ARvACBBnPcFY9Np7OBAIlVqHPHCfDFezZ0=
 github.com/aws/aws-sdk-go-v2/service/wafregional v1.12.18 h1:E/tfURfCZL7/GhMOkz7Q1ZmILwXi28C1Ym0OCL6/h3c=
 github.com/aws/aws-sdk-go-v2/service/wafregional v1.12.18/go.mod h1:uaMDHcgMHW8RnU2OGHCihT8f9XB4oHEXdzU76E9SLPQ=
+github.com/aws/aws-sdk-go-v2/service/wafv2 v1.22.9 h1:n7rgRjxSPyarsD4U8VVzRgbFBjkpBgt8To0R0sHWaqc=
+github.com/aws/aws-sdk-go-v2/service/wafv2 v1.22.9/go.mod h1:7XEbBNQvBzac0W9X2MTFMYqs/MBqlUGS1eLYIsPDPfc=
 github.com/aws/smithy-go v1.12.0/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
 github.com/aws/smithy-go v1.12.1/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
 github.com/aws/smithy-go v1.13.0/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
