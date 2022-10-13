@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/glue"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/glue"
+	"github.com/aws/aws-sdk-go-v2/service/glue/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -80,47 +81,46 @@ func tableAwsGlueSecurityConfiguration(_ context.Context) *plugin.Table {
 
 func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_security_configuration.listGlueSecurityConfigurations", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_security_configuration.listGlueSecurityConfigurations", "connection_error", err)
 		return nil, err
 	}
-
-	input := &glue.GetSecurityConfigurationsInput{
-		MaxResults: aws.Int64(100),
-	}
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
+	maxLimit := int32(1000)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
+	input := &glue.GetSecurityConfigurationsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 
 	// List call
-	err = svc.GetSecurityConfigurationsPages(
-		input,
-		func(page *glue.GetSecurityConfigurationsOutput, isLast bool) bool {
-			for _, configuration := range page.SecurityConfigurations {
-				d.StreamListItem(ctx, configuration)
+	paginator := glue.NewGetSecurityConfigurationsPaginator(svc, input, func(o *glue.GetSecurityConfigurationsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_glue_security_configuration.listGlueSecurityConfigurations", "api_error", err)
+			return nil, err
+		}
+		for _, configuration := range output.SecurityConfigurations {
+			d.StreamListItem(ctx, configuration)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_security_configuration.listGlueSecurityConfigurations", "api_error", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -137,9 +137,9 @@ func getGlueSecurityConfiguration(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_security_configuration.getGlueSecurityConfiguration", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_security_configuration.getGlueSecurityConfiguration", "connection_error", err)
 		return nil, err
 	}
 
@@ -149,22 +149,23 @@ func getGlueSecurityConfiguration(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// Get call
-	data, err := svc.GetSecurityConfiguration(params)
+	data, err := svc.GetSecurityConfiguration(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_security_configuration.getGlueSecurityConfiguration", "api_error", err)
 		return nil, err
 	}
-	return data.SecurityConfiguration, nil
+	return *data.SecurityConfiguration, nil
 }
 
 func getGlueSecurityConfigurationArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	data := h.Item.(*glue.SecurityConfiguration)
+	data := h.Item.(types.SecurityConfiguration)
 
 	// Get common columns
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_security_configuration.getGlueSecurityConfigurationArn", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

@@ -116,7 +116,7 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 
 func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DynamoDbClient(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dynamodb_backup.listDynamodbBackups", "service_connection_error", err)
 		return nil, err
@@ -180,9 +180,9 @@ func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create Session
-	svc, err := DynamoDbClient(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_dynamodb_backup.getDynamodbBackup", "service_client_error", err)
+		plugin.Logger(ctx).Error("aws_dynamodb_backup.getDynamodbBackup", "connection_error", err)
 		return nil, err
 	}
 
