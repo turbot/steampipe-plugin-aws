@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +20,7 @@ func tableAwsElastiCacheReservedCacheNode(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("reserved_cache_node_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ReservedCacheNodeNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ReservedCacheNodeNotFound"}),
 			},
 			Hydrate: getElastiCacheReservedCacheNode,
 		},
@@ -149,6 +148,7 @@ func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData,
 	if d.KeyColumnQuals["reserved_cache_nodes_offering_id"] != nil {
 		input.ReservedCacheNodesOfferingId = aws.String(d.KeyColumnQuals["reserved_cache_nodes_offering_id"].GetStringValue())
 	}
+
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < *input.MaxRecords {

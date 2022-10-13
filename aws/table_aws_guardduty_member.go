@@ -2,8 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
@@ -23,7 +21,7 @@ func tableAwsGuardDutyMember(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"member_account_id", "detector_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyMember,
 		},
@@ -95,16 +93,10 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	detectorId := h.Item.(detectorInfo).DetectorID
 	equalQuals := d.KeyColumnQuals
 
-	// Minimize the API call with the given detector_id
+	// Minimize the API call with the given detector id
 	if equalQuals["detector_id"] != nil {
-		if equalQuals["detector_id"].GetStringValue() != "" {
-			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != detectorId {
-				return nil, nil
-			}
-		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), detectorId) {
-				return nil, nil
-			}
+		if equalQuals["detector_id"].GetStringValue() != detectorId {
+			return nil, nil
 		}
 	}
 
@@ -115,51 +107,43 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
-	input := &guardduty.ListMembersInput{
-		MaxResults:     int32(50),
+	maxItems := int32(50)
+	params := &guardduty.ListMembersInput{
 		DetectorId:     aws.String(detectorId),
 		OnlyAssociated: aws.String("false"),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < int64(input.MaxResults) {
-			input.MaxResults = int32(*limit)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			params.MaxResults = limit
 		}
 	}
 
-	pagesLeft := true
-	for pagesLeft {
-		response, err := svc.ListMembers(ctx, input)
+	paginator := guardduty.NewListMembersPaginator(svc, params, func(o *guardduty.ListMembersPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_guardduty_member.listGuardDutyMembers", "api_error", err)
+			plugin.Logger(ctx).Error("aaws_guardduty_member.listGuardDutyMembers", "api_error", err)
 			return nil, err
 		}
 
-		for _, item := range response.Members {
+		for _, item := range output.Members {
 			d.StreamListItem(ctx, memberInfo{item, detectorId})
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
-		if response.NextToken != nil {
-			pagesLeft = true
-			input.NextToken = response.NextToken
-		} else {
-			pagesLeft = false
-		}
 	}
 
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_guardduty_member.listGuardDutyMembers", "api_error", err)
-		return nil, err
-	}
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS

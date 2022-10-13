@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
@@ -21,13 +22,13 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("rule_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFNonexistentItemException"}),
 			},
 			Hydrate: getAwsWAFRegionalRule,
 		},
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFNonexistentItemException"}),
 			},
 			Hydrate: listAwsWAFRegionalRules,
 		},
@@ -42,7 +43,7 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "Amazon Resource Name (ARN) of the Rule.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWAFRegionalRuleAkas,
+				Hydrate:     getAwsWAFRegionalRuleArn,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -74,7 +75,7 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsWAFRegionalRuleAkas,
+				Hydrate:     getAwsWAFRegionalRuleArn,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -92,20 +93,20 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	// List call
-	params := &wafregional.ListRulesInput{
-		Limit: int32(2),
-	}
+	maxItems := int32(100)
+	params := &wafregional.ListRulesInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	// Minimunm limit is 0
 	// https://docs.aws.amazon.com/wafregional/latest/APIReference/API_waf_ListRules.html
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < int64(params.Limit) {
-			params.Limit = int32(*limit)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			params.Limit = limit
 		}
 	}
 
+	// API doesn't support aws-sdk-go-v2 paginator as of date
 	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.ListRules(ctx, params)
@@ -173,19 +174,19 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	return data.Rule, nil
 }
 
-func getAwsWAFRegionalRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsWAFRegionalRuleArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := regionalRuleData(h.Item)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRuleAkas", "api_error", err)
+		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRuleArn", "api_error", err)
 		return nil, err
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":waf-regional:" + region + ":" + commonColumnData.AccountId + ":rule" + "/" + id
+	aka := fmt.Sprintf("arn:%s:waf-regional:%s:%s:rule/%s", commonColumnData.Partition, region, commonColumnData.AccountId, id)
 
 	return aka, nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -24,7 +23,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("detector_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyDetector,
 		},
@@ -125,42 +124,42 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	maxItems := int32(50)
 	params := &guardduty.ListDetectorsInput{
-		MaxResults: int32(50),
+		MaxResults: maxItems,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < int64(params.MaxResults) {
-			params.MaxResults = int32(*limit)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			params.MaxResults = limit
 		}
 	}
 
-	pagesLeft := true
-	for pagesLeft {
-		response, err := svc.ListDetectors(ctx, params)
+	paginator := guardduty.NewListDetectorsPaginator(svc, params, func(o *guardduty.ListDetectorsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_guardduty_detector.listGuardDutyDetectors", "api_error", err)
 			return nil, err
 		}
-		for _, item := range response.DetectorIds {
+
+		for _, item := range output.DetectorIds {
 			d.StreamListItem(ctx, detectorInfo{DetectorID: item})
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-		if response.NextToken != nil {
-			pagesLeft = true
-			params.NextToken = response.NextToken
-		} else {
-			pagesLeft = false
-		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS

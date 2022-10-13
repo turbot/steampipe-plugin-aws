@@ -3,10 +3,8 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -105,6 +103,14 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 
 func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := h.Item.(detectorInfo).DetectorID
+	equalQuals := d.KeyColumnQuals
+
+	// Minimize the API call with the given detector id
+	if equalQuals["detector_id"] != nil {
+		if equalQuals["detector_id"].GetStringValue() != id {
+			return nil, nil
+		}
+	}
 
 	// Create session
 	svc, err := GuardDutyClient(ctx, d)
@@ -113,62 +119,45 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
-	equalQuals := d.KeyColumnQuals
-
-	// Minimize the API call with the given detector_id
-	if equalQuals["detector_id"] != nil {
-		if equalQuals["detector_id"].GetStringValue() != "" {
-			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != id {
-				return nil, nil
-			}
-		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), id) {
-				return nil, nil
-			}
-		}
-	}
-
-	input := &guardduty.ListIPSetsInput{
+	maxItems := int32(50)
+	params := &guardduty.ListIPSetsInput{
 		DetectorId: &id,
-		MaxResults: int32(50),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < int64(input.MaxResults) {
-			input.MaxResults = int32(*limit)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			params.MaxResults = limit
 		}
 	}
 
-	pagesLeft := true
-	for pagesLeft {
-		response, err := svc.ListIPSets(ctx, input)
+	paginator := guardduty.NewListIPSetsPaginator(svc, params, func(o *guardduty.ListIPSetsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_guardduty_detector.listGuardDutyDetectors", "api_error", err)
+			plugin.Logger(ctx).Error("aws_guardduty_ipset.getAwsGuardDutyIPSet", "api_error", err)
 			return nil, err
 		}
-		for _, item := range response.IpSetIds {
-			d.StreamListItem(ctx, ipsetInfo{
+
+		for _, item := range output.IpSetIds {
+			d.StreamListItem(ctx, ctx, ipsetInfo{
 				IPSetID:    item,
 				DetectorID: id,
 			})
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
-		if response.NextToken != nil {
-			pagesLeft = true
-			input.NextToken = response.NextToken
-		} else {
-			pagesLeft = false
-		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTION
@@ -221,7 +210,7 @@ func getAwsGuardDutyIPSetAkas(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorID + "/ipset" + "/" + data.IPSetID
+	aka := fmt.Sprintf("arn:%s:guardduty:%s:%s:detector/%s/ipset/%s", commonColumnData.Partition, region, commonColumnData.AccountId, data.DetectorID, data.IPSetID)
 
 	return []string{aka}, nil
 }

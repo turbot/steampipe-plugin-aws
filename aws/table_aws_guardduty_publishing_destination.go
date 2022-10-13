@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
@@ -31,7 +30,7 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"detector_id", "destination_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyPublishingDestination,
 		},
@@ -122,41 +121,39 @@ func listGuardDutyPublishingDestinations(ctx context.Context, d *plugin.QueryDat
 	}
 
 	equalQuals := d.KeyColumnQuals
-
 	// Minimize the API call with the given detector_id
 	if equalQuals["detector_id"] != nil {
-		if equalQuals["detector_id"].GetStringValue() != "" {
-			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != id {
-				return nil, nil
-			}
-		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), id) {
-				return nil, nil
-			}
+		if equalQuals["detector_id"].GetStringValue() != id {
+			return nil, nil
 		}
 	}
 
+	maxItems := int32(50)
 	input := &guardduty.ListPublishingDestinationsInput{
 		DetectorId: &id,
-		MaxResults: int32(50),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < int64(input.MaxResults) {
-			input.MaxResults = int32(*limit)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			input.MaxResults = limit
 		}
 	}
 
-	pagesLeft := true
-	for pagesLeft {
-		response, err := svc.ListPublishingDestinations(ctx, input)
+	paginator := guardduty.NewListPublishingDestinationsPaginator(svc, input, func(o *guardduty.ListPublishingDestinationsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_guardduty_publishing_destination.listGuardDutyPublishingDestinations", "api_error", err)
 			return nil, err
 		}
-		for _, item := range response.Destinations {
+
+		for _, item := range output.Destinations {
 			d.StreamListItem(ctx, DestinationInfo{
 				DestinationId:   item.DestinationId,
 				DestinationType: item.DestinationType,
@@ -164,20 +161,14 @@ func listGuardDutyPublishingDestinations(ctx context.Context, d *plugin.QueryDat
 				DetectorId:      id,
 			})
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-		if response.NextToken != nil {
-			pagesLeft = true
-			input.NextToken = response.NextToken
-		} else {
-			pagesLeft = false
-		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTION
@@ -241,7 +232,7 @@ func getPublishingDestinationArn(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorId + "/publishingDestination" + "/" + *data.DestinationId
+	aka := fmt.Sprintf("arn:%s:guardduty:%s:%s:detector/%s/publishingDestination/%s", commonColumnData.Partition, region, commonColumnData.AccountId, data.DetectorId, *data.DestinationId)
 
 	return aka, nil
 }

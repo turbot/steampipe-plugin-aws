@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
@@ -23,7 +24,7 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"web_acl_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			},
 			Hydrate: getWafWebAcl,
 		},
@@ -117,19 +118,19 @@ func listWafWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 
-	pagesLeft := true
-	params := &waf.ListWebACLsInput{
-		Limit: int32(100),
-	}
+	maxItems := int32(100)
+	params := &waf.ListWebACLsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < int64(params.Limit) {
-			params.Limit = int32(*limit)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			params.Limit = limit
 		}
 	}
 
+	// API doesn't support aws-sdk-go-v2 paginator as of date
+	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {
@@ -241,6 +242,7 @@ func getClassicLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h 
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_waf_web_acl.getClassicLoggingConfiguration", "api_error", err)
 		return nil, err
 	}
 	return op, nil
@@ -283,7 +285,7 @@ func classicWebAclData(item interface{}, ctx context.Context, d *plugin.QueryDat
 			return nil
 		}
 		commonColumnData := commonData.(*awsCommonColumnData)
-		data["Arn"] = "arn:aws:waf::" + commonColumnData.AccountId + ":webacl/" + (*aws.String(*item.WebACLId))
+		data["Arn"] = fmt.Sprintf("arn:aws:waf::%s:webacl/%s", commonColumnData.AccountId, *item.WebACLId)
 		data["Name"] = *item.Name
 	}
 	return data
