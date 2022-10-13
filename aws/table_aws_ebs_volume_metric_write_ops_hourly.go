@@ -3,7 +3,7 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -33,6 +33,6 @@ func tableAwsEbsVolumeMetricWriteOpsHourly(_ context.Context) *plugin.Table {
 }
 
 func listEbsVolumeMetricWriteOpsHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	volume := h.Item.(*ec2.Volume)
+	volume := h.Item.(types.Volume)
 	return listCWMetricStatistics(ctx, d, "HOURLY", "AWS/EBS", "VolumeWriteOps", "VolumeId", *volume.VolumeId)
 }
