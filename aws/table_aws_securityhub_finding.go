@@ -287,6 +287,10 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Handle error for accounts that are not subscribed to AWS Security Hub
+			if strings.Contains(err.Error(), "not subscribed") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_securityhub_finding.listSecurityHubFindings", "api_error", err)
 			return nil, err
 		}
@@ -298,14 +302,6 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
-		}
-	}
-
-	// End if
-	if err != nil {
-		// Handle error for accounts that are not subscribed to AWS Security Hub
-		if strings.Contains(err.Error(), "not subscribed") {
-			return nil, nil
 		}
 	}
 
@@ -345,12 +341,11 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	// Get call
 	op, err := svc.GetFindings(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSecurityHubFinding", "ERROR", err)
 		// Handle error for unsupported or inactive regions
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-
+		plugin.Logger(ctx).Debug("aws_securityhub_finding.getSecurityHubFinding", "api_error", err)
 		return nil, err
 	}
 	if len(op.Findings) > 0 {

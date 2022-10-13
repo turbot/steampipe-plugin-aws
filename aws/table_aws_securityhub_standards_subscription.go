@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
-	"strings"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
+	"github.com/aws/smithy-go"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -159,8 +160,11 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	standardsSubscriptions, err := svc.GetEnabledStandards(ctx, input)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.GetEnabledStandards", "api_error", err)
-		if strings.Contains(err.Error(), "InvalidAccessException") {
-			return nil, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "InvalidAccessException" {
+				return nil, nil
+			}
 		}
 	}
 

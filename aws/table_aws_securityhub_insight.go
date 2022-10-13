@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -27,7 +27,7 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubInsights,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -107,6 +107,10 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Handle error for accounts that are not subscribed to AWS Security Hub
+			if strings.Contains(err.Error(), "not subscribed") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_securityhub_insight.listSecurityHubInsights", "api_error", err)
 			return nil, err
 		}
@@ -120,14 +124,7 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 			}
 		}
 	}
-	// End if
-	if err != nil {
-		// Handle error for accounts that are not subscribed to AWS Security Hub
-		if strings.Contains(err.Error(), "not subscribed") {
-			return nil, nil
-		}
-		plugin.Logger(ctx).Error("aws_securityhub_insight.listSecurityHubInsights", "list", err)
-	}
+
 	return nil, nil
 }
 

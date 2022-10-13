@@ -22,7 +22,7 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsRoute53ResolverRule,
 		},

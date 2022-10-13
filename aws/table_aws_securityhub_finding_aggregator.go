@@ -101,6 +101,10 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Handle error for accounts that are not subscribed to AWS Security Hub
+			if strings.Contains(err.Error(), "not subscribed") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.listSecurityHubFindingAggregators", "api_error", err)
 			return nil, err
 		}
@@ -115,14 +119,6 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 		}
 	}
 
-	// End if
-	if err != nil {
-		// Handle error for accounts that are not subscribed to AWS Security Hub
-		if strings.Contains(err.Error(), "not subscribed") {
-			return nil, nil
-		}
-	}
-
 	return nil, nil
 }
 
@@ -132,7 +128,6 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 
 	var aggregatorArn string
 	if h.Item != nil {
-		// aggregatorArn = *h.Item.(*securityhub.FindingAggregator).FindingAggregatorArn
 		aggregatorArn = *h.Item.(types.FindingAggregator).FindingAggregatorArn
 	} else {
 		aggregatorArn = d.KeyColumnQuals["arn"].GetStringValue()
@@ -158,10 +153,10 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 	// Get call
 	op, err := svc.GetFindingAggregator(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.getSecurityHubFindingAggregator", "api_error", err)
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
+		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.getSecurityHubFindingAggregator", "api_error", err)
 		return nil, err
 	}
 	return op, nil

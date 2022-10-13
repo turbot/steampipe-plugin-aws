@@ -23,7 +23,7 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsRoute53ResolverEndpoint,
 		},
@@ -141,7 +141,6 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsRoute53ResolverEndpoint")
 
 	// Create session
 	svc, err := Route53ResolverClient(ctx, d)

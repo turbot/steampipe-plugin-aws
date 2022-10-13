@@ -5,10 +5,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +20,7 @@ func tableAwsSecurityHubActionTarget(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getSecurityHubActionTarget,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -101,10 +100,10 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_securityhub_action_target.go.listSecurityHubActionTargets", "api_error", err)
 			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "not subscribed") {
 				return nil, nil
 			}
+			plugin.Logger(ctx).Error("aws_securityhub_action_target.go.listSecurityHubActionTargets", "api_error", err)
 			return nil, err
 		}
 
@@ -142,12 +141,12 @@ func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, h *plu
 	// Get call
 	data, err := svc.DescribeActionTargets(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_securityhub_action_target.getSecurityHubActionTarget", "api_error", err)
 		// Handle unsupported and inactive region exceptions
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-		return nil, nil
+		plugin.Logger(ctx).Error("aws_securityhub_action_target.getSecurityHubActionTarget", "api_error", err)
+		return nil, err
 	}
 
 	if len(data.ActionTargets) > 0 {

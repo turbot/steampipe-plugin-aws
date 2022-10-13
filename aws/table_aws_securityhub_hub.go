@@ -88,7 +88,7 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	resp, err := svc.DescribeHub(ctx, &securityhub.DescribeHubInput{})
 
 	if err != nil {
-		plugin.Logger(ctx).Error("listSecurityHubs", "query_error", err)
+		plugin.Logger(ctx).Error("aws_securityhub_hub.listSecurityHubs", "query_error", err)
 		return nil, nil
 	}
 

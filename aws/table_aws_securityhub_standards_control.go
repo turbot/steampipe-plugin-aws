@@ -6,10 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 //// TABLE DEFINITION
@@ -157,10 +156,10 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProducts", "api_error", err)
 			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "not subscribed") {
 				return nil, nil
 			}
+			plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProducts", "api_error", err)
 			return nil, err
 		}
 
