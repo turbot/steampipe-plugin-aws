@@ -237,8 +237,13 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	// Create session
 	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
@@ -271,7 +276,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 		}
 	}
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "ListExecutionsPages_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
 		return nil, err
 	}
 
@@ -291,7 +296,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	close(errorCh)
 
 	for err := range errorCh {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "getRowDataForExecutionHistoryAsync_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
 		return nil, err
 	}
 
@@ -314,6 +319,7 @@ func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData
 
 	rowData, err := getRowDataForExecutionHistory(ctx, d, arn)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistoryAsync", "api_error", 
 		errorCh <- err
 	} else if rowData != nil {
 		executionCh <- rowData
@@ -324,8 +330,13 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 	// Create session
 	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	params := &sfn.GetExecutionHistoryInput{
@@ -336,7 +347,7 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 
 	listHistory, err := svc.GetExecutionHistory(ctx,params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "GetExecutionHistory_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error", err)
 		return nil, err
 	}
 
@@ -350,7 +361,6 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 //// Transform Function
 
 func executionHistoryArn(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("executionHistoryArn")
 	history := d.HydrateItem.(historyInfo)
 
 	// For State Machine, ARN format is arn:aws:states:us-east-1:632902152528:stateMachine:HelloWorld

@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 
-	// "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
 
@@ -117,9 +116,15 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 	// Create session
 	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateManchines", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateManchines", "connection_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	maxLimit := int32(1000)
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
@@ -140,6 +145,7 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 	for paginator.HasMorePages(){
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateManchines", "api_error", err)
 			return nil, err
 		}
 		for _, stateMachine := range output.StateMachines {
@@ -153,7 +159,7 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 	}
 	
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateManchines", "Error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateManchines", "api_error", err)
 		return nil, err
 	}
 
@@ -163,9 +169,6 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 //// HYDRATE FUNCTIONS
 
 func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getStepFunctionsStateMachine")
-
 	var arn string
 	if h.Item != nil {
 		arn = *h.Item.(types.StateMachineListItem).StateMachineArn
@@ -180,8 +183,13 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 	// Create Session
 	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachine", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.getStepFunctionsStateMachine", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -192,7 +200,7 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 	// Get call
 	data, err := svc.DescribeStateMachine(ctx,params)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachine", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.getStepFunctionsStateMachine", "api_error", err)
 		return nil, err
 	}
 
@@ -200,7 +208,6 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 }
 
 func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getBucketTagging")
 	stateMachineArn := getStateMachineArn(h.Item)
 
 	// Empty Check
@@ -211,8 +218,13 @@ func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h
 	// Create Session
 	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getStepFunctionStateMachineTags", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.getStepFunctionStateMachineTags", "connection_error", err)
 		return nil, err
+	}
+	
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	params := &sfn.ListTagsForResourceInput{
@@ -221,7 +233,7 @@ func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h
 
 	tags, err := svc.ListTagsForResource(ctx,params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getStepFunctionStateMachineTags", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.getStepFunctionStateMachineTags", "api_error", err)
 		return nil, err
 	}
 
@@ -231,7 +243,6 @@ func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h
 //// TRANSFORM FUNCTIONS
 
 func stateMachineTagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("stateMachineTagsToTurbotTags")
 	tags := d.HydrateItem.([]types.Tag)
 
 	if tags == nil {

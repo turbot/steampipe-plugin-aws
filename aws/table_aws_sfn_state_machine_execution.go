@@ -118,8 +118,13 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 	// Create session
 	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.listStepFunctionsStateMachineExecutions", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	arn := h.Item.(types.StateMachineListItem).StateMachineArn
@@ -162,6 +167,7 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 	for paginator.HasMorePages(){
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.listStepFunctionsStateMachineExecutions", "api_error", err)
 			return nil, err
 		}
 		for _, execution := range output.Executions {
@@ -175,7 +181,7 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 	}
 
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "ListExecutionsPages_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.listStepFunctionsStateMachineExecutions", "api_error", err)
 		return nil, err
 	}
 
@@ -185,9 +191,6 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 //// HYDRATE FUNCTIONS
 
 func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getStepFunctionsStateMachineExecution")
-
 	var arn string
 	if h.Item != nil {
 		arn = *h.Item.(types.ExecutionListItem).ExecutionArn
@@ -198,8 +201,13 @@ func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryD
 	// Create Session
 	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachineExecution", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.getStepFunctionsStateMachineExecution", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -210,7 +218,7 @@ func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryD
 	// Get call
 	data, err := svc.DescribeExecution(ctx,params)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachineExecution", "DescribeExecution_error", err)
+		plugin.Logger(ctx)Error("aws_sfn_state_machine_execution.getStepFunctionsStateMachineExecution", "api_error", err)
 		return nil, err
 	}
 
