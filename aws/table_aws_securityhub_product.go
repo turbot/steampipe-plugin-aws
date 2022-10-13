@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -18,7 +19,7 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("product_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAccessException", "InvalidInputException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException"}),
 			},
 			Hydrate: getSecurityHubProduct,
 		},
@@ -127,6 +128,10 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Handle error for accounts that are not subscribed to AWS Security Hub
+			if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProducts", "api_error", err)
 			return nil, err
 		}
@@ -164,6 +169,10 @@ func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	// Get call
 	op, err := svc.DescribeProducts(ctx, params)
 	if err != nil {
+		// Handle error for accounts that are not subscribed to AWS Security Hub
+		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_securityhub_product.getSecurityHubProduct", "api_error", err)
 		return nil, err
 	}
