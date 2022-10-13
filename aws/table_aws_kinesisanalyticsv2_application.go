@@ -156,6 +156,7 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 	params := &kinesisanalyticsv2.ListApplicationsInput{
 		Limit: aws.Int32(maxLimit),
 	}
+	//paginator function not available
 	for pagesLeft {
 		result, err := svc.ListApplications(ctx, params)
 		if err != nil {

@@ -167,6 +167,8 @@ github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.14.18 h1:ZK/kSPWlk2wR
 github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.14.18/go.mod h1:w70FF4Ovn8aPIDDwBh5MCGcGC0FfwNAZTbd+X0320IU=
 github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.12.14 h1:Do9v0z8mbL/l9r+mHp6f1m4UnoqMB/FAjTFuS1w0urc=
 github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.12.14/go.mod h1:q5IILMsqlpWO+aBSLKhTVwGAiBUZuNEeCN9/ovjomOo=
+github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10 h1:YCqIdYDeOYrrvSxSJGWDI9GW6JPypISUQP+dg2k6T3s=
+github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10/go.mod h1:28S5BnLe/L5tAa/O+HUehabvkxDxxVKiz6X0ztVwcCY=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8 h1:ay2kKjWoadTWcvMBmvpnsrzQxf/Ic+yYDeyPK8HN3Dk=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8/go.mod h1:2LqaphiwM7jerVTmN/7Yv5fSaobVKqX1BSwgMFE9rmA=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9 h1:YamSUuJG+iaOUfZE4WCJOnesdhf4Lx9MENcXS384/4w=

@@ -169,7 +169,7 @@ func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *pl
 	param := &firehose.ListDeliveryStreamsInput{
 		Limit: aws.Int32(maxLimit),
 	}
-
+	//paginator function not availablable
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["delivery_stream_type"] != nil {
 		param.DeliveryStreamType = types.DeliveryStreamType(equalQuals["delivery_stream_type"].GetStringValue())

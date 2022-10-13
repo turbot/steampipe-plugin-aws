@@ -177,6 +177,7 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	input := &kinesis.ListStreamsInput{
 		Limit: aws.Int32(maxLimit),
 	}
+	//paginator function not available
 	for pagesLeft {
 		result, err := svc.ListStreams(ctx, input)
 		if err != nil {

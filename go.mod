@@ -36,6 +36,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.15.19
 	github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.12.14
+	github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
