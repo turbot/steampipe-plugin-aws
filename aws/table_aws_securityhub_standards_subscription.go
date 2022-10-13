@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
+	"github.com/aws/smithy-go"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -89,56 +90,66 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSecurityHubStandardsSubcriptions")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.listSecurityHubStandardsSubcriptions", "client_error", err)
 		return nil, err
 	}
 
-	input := &securityhub.DescribeStandardsInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.DescribeStandardsPages(
-		input,
-		func(page *securityhub.DescribeStandardsOutput, isLast bool) bool {
-			for _, standards := range page.Standards {
-				d.StreamListItem(ctx, standards)
+	input := &securityhub.DescribeStandardsInput{
+		MaxResults: maxLimit,
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := securityhub.NewDescribeStandardsPaginator(svc, input, func(o *securityhub.DescribeStandardsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.listSecurityHubStandardsSubcriptions", "api_error", err)
+			return nil, err
+		}
+
+		for _, standards := range output.Standards {
+			d.StreamListItem(ctx, standards)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("GetEnabledStandards")
 
-	standardArn := *h.Item.(*securityhub.Standard).StandardsArn
-	// get service
-	svc, err := SecurityHubService(ctx, d)
+	standardArn := *h.Item.(types.Standard).StandardsArn
+
+	// Create session
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.GetEnabledStandards", "client_error", err)
 		return nil, err
 	}
 
@@ -146,13 +157,14 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	input := &securityhub.GetEnabledStandardsInput{}
 
 	// Get call
-	standardsSubscriptions, err := svc.GetEnabledStandards(input)
+	standardsSubscriptions, err := svc.GetEnabledStandards(ctx, input)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidAccessException" {
+		plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.GetEnabledStandards", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "InvalidAccessException" {
 				return nil, nil
 			}
-			return nil, err
 		}
 	}
 
@@ -161,5 +173,5 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			return item, nil
 		}
 	}
-	return nil, err
+	return nil, nil
 }

@@ -12,6 +12,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
+// AWS SDK Migration from V1 to V2 blocked
+// due to https://github.com/aws/aws-sdk-go-v2/issues/1884
+
 //// TABLE DEFINITION
 
 func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
@@ -77,11 +80,10 @@ func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSecurityHubMembers")
-
 	// Create session
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_member.listSecurityHubMembers", "service_error", err)
 		return nil, err
 	}
 
@@ -123,7 +125,7 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("listSecurityHubMembers", "list", err)
+		plugin.Logger(ctx).Error("aws_securityhub_member.listSecurityHubMembers", "api_error", err)
 	}
 	return nil, err
 }

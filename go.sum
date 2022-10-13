@@ -219,12 +219,16 @@ github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2 h1:xxCS9CIRNBaXVxeRk6Oa54o1
 github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2/go.mod h1:kBlmUeN2zAmSUU2/5Zubr9SzeSin/z1AfdlfO1bWpQg=
 github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17 h1:Y/ay2+KWFoPBWP5p4VnWi7uCnZe+C6kdTlYUZC1w30U=
 github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17/go.mod h1:8kD6U3g33wPkjgM8boZrrVeXT6kmaWKf0nHquE2wWVU=
+github.com/aws/aws-sdk-go-v2/service/route53resolver v1.15.19 h1:B1fZ2fA237KZ4FQPWG+iFQK7u3CbOLYP6txZCCSQCDQ=
+github.com/aws/aws-sdk-go-v2/service/route53resolver v1.15.19/go.mod h1:FeJ5NwZ1jMijicuaPyZEjgz9sN+yPzjtz6vZb1If9wg=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1 h1:OKQIQ0QhEBmGr2LfT952meIZz3ujrPYnxH+dO/5ldnI=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1/go.mod h1:NffjpNsMUFXp6Ok/PahrktAncoekWrywvmIK83Q2raE=
 github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9 h1:yfGZ8K1dRY1R+dUEGkgQgZsDkK77aRSHTNjFbXvsFVg=
 github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9/go.mod h1:vPwuVXdRx9Gnh/te/OoV5ni89EyJEqjn5Uyx879i9fQ=
 github.com/aws/aws-sdk-go-v2/service/sagemaker v1.46.0 h1:ckNKwWh7wz0FqU3lKQO/If2ygyJfYsdMVSTkXlIaV2o=
 github.com/aws/aws-sdk-go-v2/service/sagemaker v1.46.0/go.mod h1:399X+P/GvxXrwvZStU+rIyRGUAOnaYFeVwmZQ8+nuaM=
+github.com/aws/aws-sdk-go-v2/service/securityhub v1.23.5 h1:jA6VOKxMvwEZSbUmidVkubHxEd5/CllfpdUSPQ7wwv4=
+github.com/aws/aws-sdk-go-v2/service/securityhub v1.23.5/go.mod h1:2nUG9O81bApzrD7ixZ//VGGXXwooek/N+EQqeXb9208=
 github.com/aws/aws-sdk-go-v2/service/sns v1.17.9 h1:fc11hvtWgpXUhMlnfvB/D/dB0kkYdva1REpUZipVHIc=
 github.com/aws/aws-sdk-go-v2/service/sns v1.17.9/go.mod h1:maJ5I+CMzzSxfREF1r8mefJL8iafTiqph/NNd62iFfE=
 github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10 h1:Y4civ9pg5cbQkSf/YGMfFZaIPAAAK61JV+NIzO8Ri4k=
