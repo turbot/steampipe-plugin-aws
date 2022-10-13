@@ -55,6 +55,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
@@ -503,6 +504,17 @@ func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, err
 		return nil, nil
 	}
 	return lambda.NewFromConfig(*cfg), nil
+}
+
+func Macie2Client(ctx context.Context, d *plugin.QueryData) (*macie2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "macie2")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return macie2.NewFromConfig(*cfg), nil
 }
 
 func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {

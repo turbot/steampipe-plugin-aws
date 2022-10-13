@@ -49,6 +49,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.24.6
+	github.com/aws/aws-sdk-go-v2/service/macie2 v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/ram v1.16.18
