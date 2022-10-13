@@ -18,7 +18,7 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("domain_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsElasticsearchDomain,
 		},
@@ -227,6 +227,7 @@ func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *pl
 	// List call
 	params := &elasticsearchservice.ListDomainNamesInput{}
 
+	// API doesn't support pagination as of date
 	op, err := svc.ListDomainNames(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_elasticsearch_domain.listAwsElasticsearchDomain", "api_error", err)

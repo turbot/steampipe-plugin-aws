@@ -25,7 +25,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			},
 			Hydrate: getAwsWafv2WebAcl,
 		},
@@ -212,6 +212,7 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		Limit: aws.Int32(maxLimit),
 	}
 
+	// ListWebACLs API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
 		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {

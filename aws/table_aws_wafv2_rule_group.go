@@ -21,7 +21,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAwsWafv2RuleGroup,
 		},
@@ -181,6 +181,7 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		Limit: aws.Int32(maxLimit),
 	}
 
+	// ListRuleGroups API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
 		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {

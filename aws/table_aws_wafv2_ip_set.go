@@ -21,7 +21,7 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
 			},
 			Hydrate: getAwsWafv2IpSet,
 		},
@@ -153,9 +153,10 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// List all IP sets
 	pagesLeft := true
 	maxLimit := int32(100)
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
+		limit := d.QueryContext.Limit
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
 				maxLimit = 1
@@ -169,6 +170,7 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		Limit: aws.Int32(maxLimit),
 	}
 
+	// ListIPSets API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
 		response, err := svc.ListIPSets(ctx, params)
 		if err != nil {
