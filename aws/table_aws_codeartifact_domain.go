@@ -140,7 +140,10 @@ func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	serviceId := "codeartifact"
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	validRegions, err := SupportedRegionsForService(ctx, d, serviceId)
+	if err != nil {
+		return nil, err
+	}
 	if !helpers.StringSliceContains(validRegions, region) {
 		return nil, nil
 	}
@@ -207,7 +210,10 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	logger := plugin.Logger(ctx)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	serviceId := "codeartifact"
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	validRegions, err := SupportedRegionsForService(ctx, d, serviceId)
+	if err != nil {
+		return nil, err
+	}
 	if !helpers.StringSliceContains(validRegions, region) {
 		return nil, nil
 	}
@@ -255,7 +261,10 @@ func getCodeArtifactDomainTags(ctx context.Context, d *plugin.QueryData, h *plug
 	data := h.Item.(*types.DomainDescription)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	serviceId := "codeartifact"
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	validRegions, err := SupportedRegionsForService(ctx, d, serviceId)
+	if err != nil {
+		return nil, err
+	}
 	if !helpers.StringSliceContains(validRegions, region) {
 		return nil, nil
 	}
@@ -286,7 +295,10 @@ func getCodeArtifactDomainPermissionsPolicy(ctx context.Context, d *plugin.Query
 	data := h.Item.(*types.DomainDescription)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	serviceId := "codeartifact"
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	validRegions, err := SupportedRegionsForService(ctx, d, serviceId)
+	if err != nil {
+		return nil, err
+	}
 	if !helpers.StringSliceContains(validRegions, region) {
 		return nil, nil
 	}
