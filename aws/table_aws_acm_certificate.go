@@ -367,7 +367,7 @@ func certificateTurbotTags(_ context.Context, d *transform.TransformData) (inter
 }
 
 func certificateArnToTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	item := d.Value.(string)
+	item := *d.HydrateItem.(*types.CertificateDetail).CertificateArn
 
 	// Get the resource title
 	title := item[strings.LastIndex(item, "/")+1:]
