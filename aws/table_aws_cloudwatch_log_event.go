@@ -179,13 +179,6 @@ func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, _ *plugin
 				return nil, nil
 			}
 		}
-		// Abort if we've been cancelled, which probably means we've reached the requested limit
-		select {
-		case <-ctx.Done():
-			return false, nil
-		default:
-			return true, nil
-		}
 	}
 
 	return nil, err

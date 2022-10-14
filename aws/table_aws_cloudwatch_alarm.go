@@ -179,7 +179,7 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 				Description: "The list of tag keys and values associated with alarm.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsCloudWatchAlarmTags,
-				Transform:   transform.FromField("Tags").Transform(handleCloudWatchAlarmEmptyTags),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Standard columns
@@ -338,13 +338,4 @@ func getAwsCloudWatchAlarmTurbotTags(_ context.Context, d *transform.TransformDa
 	}
 
 	return turbotTagsMap, nil
-}
-
-func handleCloudWatchAlarmEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags, ok := d.Value.([]types.Tag)
-	if !ok || len(tags) == 0 {
-		return nil, nil
-	}
-
-	return tags, nil
 }
