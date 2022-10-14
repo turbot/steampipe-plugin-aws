@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -93,7 +94,7 @@ func tableAwsCloudwatchLogSubscriptionFilter(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
+	logGroup := h.Item.(types.LogGroup)
 
 	// Create session
 	svc, err := CloudWatchLogsService(ctx, d)
