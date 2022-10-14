@@ -143,7 +143,7 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 
@@ -235,7 +235,7 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 

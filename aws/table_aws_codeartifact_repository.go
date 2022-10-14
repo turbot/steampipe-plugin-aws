@@ -155,7 +155,7 @@ func listCodeArtifactRepositories(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 
@@ -246,7 +246,7 @@ func getCodeArtifactRepository(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 
@@ -286,7 +286,7 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 			return nil, err
 		}
 		if svc == nil {
-			// un-supported region check
+			// unsupported region check
 			return nil, nil
 		}
 
@@ -314,7 +314,7 @@ func getCodeArtifactRepositoryTags(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 
@@ -343,7 +343,7 @@ func getCodeArtifactRepositoryPermissionsPolicy(ctx context.Context, d *plugin.Q
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 

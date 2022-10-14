@@ -132,7 +132,7 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 
@@ -197,7 +197,7 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 
@@ -241,7 +241,7 @@ func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 

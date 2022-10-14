@@ -181,7 +181,7 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 
@@ -310,7 +310,7 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 	if svc == nil {
-		// un-supported region check
+		// unsupported region check
 		return nil, nil
 	}
 
