@@ -208,7 +208,7 @@ func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *pl
 	// Create session
 	svc, err := NetworkFirewallClient(ctx, d)
 	if err != nil {
-			plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.getNetworkFirewallRuleGroup", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.getNetworkFirewallRuleGroup", "connection_error", err)
 		return nil, err
 	}
 

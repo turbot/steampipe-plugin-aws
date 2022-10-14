@@ -166,7 +166,7 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 		return nil, nil
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(25)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -200,11 +200,10 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 		}
 	}
 
-		paginator := workspaces.NewDescribeWorkspacesPaginator(svc, input, func(o *workspaces.DescribeWorkspacesPaginatorOptions) {
+	paginator := workspaces.NewDescribeWorkspacesPaginator(svc, input, func(o *workspaces.DescribeWorkspacesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
-
 
 	// List call
 	for paginator.HasMorePages() {

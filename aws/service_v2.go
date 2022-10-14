@@ -54,10 +54,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
-	"github.com/aws/aws-sdk-go-v2/service/mediastore"
-	"github.com/aws/aws-sdk-go-v2/service/networkfirewall"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/mediastore"
+	"github.com/aws/aws-sdk-go-v2/service/networkfirewall"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
@@ -71,12 +71,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
-	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -441,7 +441,7 @@ func EmrClient(ctx context.Context, d *plugin.QueryData) (*emr.Client, error) {
 
 func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
-  if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return efs.NewFromConfig(*cfg), nil
@@ -498,13 +498,13 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 
 func MediaStoreClient(ctx context.Context, d *plugin.QueryData) (*mediastore.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, "mediastore")
-  if err != nil {
+	if err != nil {
 		return nil, err
 	}
-  if cfg == nil {
+	if cfg == nil {
 		return nil, nil
 	}
-  return mediastore.NewFromConfig(*cfg), nil
+	return mediastore.NewFromConfig(*cfg), nil
 }
 
 func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
@@ -515,7 +515,7 @@ func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
 	if cfg == nil {
 		return nil, nil
 	}
-  return kms.NewFromConfig(*cfg), nil
+	return kms.NewFromConfig(*cfg), nil
 }
 
 func NetworkFirewallClient(ctx context.Context, d *plugin.QueryData) (*networkfirewall.Client, error) {

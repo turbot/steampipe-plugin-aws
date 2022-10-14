@@ -58,7 +58,7 @@ func listSsoAdminInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -75,12 +75,12 @@ func listSsoAdminInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-		paginator := ssoadmin.NewListInstancesPaginator(svc, input, func(o *ssoadmin.ListInstancesPaginatorOptions) {
+	paginator := ssoadmin.NewListInstancesPaginator(svc, input, func(o *ssoadmin.ListInstancesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
 
-		// List call
+	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {

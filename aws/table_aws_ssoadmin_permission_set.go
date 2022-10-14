@@ -212,7 +212,7 @@ func getSsoAdminPermissionSet(ctx context.Context, d *plugin.QueryData, h *plugi
 	item := &PermissionSetItem{
 		InstanceArn:      &instanceArn,
 		PermissionSetArn: &arn,
-		PermissionSet:    *detail.PermissionSet ,
+		PermissionSet:    *detail.PermissionSet,
 	}
 	return item, nil
 }

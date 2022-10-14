@@ -72,7 +72,7 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 		return nil, err
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -106,10 +106,10 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 
 		for _, items := range output.AttachedManagedPolicies {
 			d.StreamListItem(ctx, &ManagedPolicyAttachment{
-					InstanceArn:           &instanceArn,
-					PermissionSetArn:      &permissionSetArn,
-					AttachedManagedPolicy: items,
-				})
+				InstanceArn:           &instanceArn,
+				PermissionSetArn:      &permissionSetArn,
+				AttachedManagedPolicy: items,
+			})
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
