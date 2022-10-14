@@ -2,15 +2,15 @@ package aws
 
 import (
 	"context"
-	"strconv"
-	"strings"
-	"sync"
-  "github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"strconv"
+	"strings"
+	"sync"
 )
 
 func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugin.Table {
@@ -261,7 +261,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 		MaxResults:      int32(maxLimit),
 		StateMachineArn: stateMachineArn,
 	}
-  paginator:=sfn.NewListExecutionsPaginator(svc,input,func(o *sfn.ListExecutionsPaginatorOptions) {
+	paginator := sfn.NewListExecutionsPaginator(svc, input, func(o *sfn.ListExecutionsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
@@ -269,6 +269,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
 			return nil, err
 		}
 		for _, execution := range output.Executions {
@@ -319,7 +320,7 @@ func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData
 
 	rowData, err := getRowDataForExecutionHistory(ctx, d, arn)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistoryAsync", "api_error", 
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistoryAsync", "api_error", err)
 		errorCh <- err
 	} else if rowData != nil {
 		executionCh <- rowData
@@ -340,12 +341,12 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 	}
 
 	params := &sfn.GetExecutionHistoryInput{
-		ExecutionArn:aws.String(arn),
+		ExecutionArn: aws.String(arn),
 	}
 
 	var items []historyInfo
 
-	listHistory, err := svc.GetExecutionHistory(ctx,params)
+	listHistory, err := svc.GetExecutionHistory(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error", err)
 		return nil, err

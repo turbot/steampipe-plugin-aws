@@ -139,7 +139,6 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 
-
 	if svc == nil {
 		// unsupported region check
 		return nil, nil
@@ -168,12 +167,12 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 	input := &glacier.ListVaultsInput{
 		AccountId: aws.String(accountID),
-		Limit:    aws.Int32(maxLimit),
+		Limit:     aws.Int32(maxLimit),
 	}
-paginator:=glacier.NewListVaultsPaginator(svc,input,func(o *glacier.ListVaultsPaginatorOptions) {
-o.Limit=maxLimit
-o.StopOnDuplicateToken=true
-})
+	paginator := glacier.NewListVaultsPaginator(svc, input, func(o *glacier.ListVaultsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
@@ -226,7 +225,7 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		AccountId: aws.String(accountID),
 	}
 
-	op, err := svc.DescribeVault(ctx,params)
+	op, err := svc.DescribeVault(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVault", "api_error", err)
 		return nil, err
@@ -236,7 +235,7 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 }
 
 func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := test(h.Item)
+	data := glacierVaultData(h.Item)
 	accountID := strings.Split(data["Arn"], ":")[4]
 
 	// Create session
@@ -257,7 +256,7 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 		AccountId: aws.String(accountID),
 	}
 
-	vaultAccessPolicy, err := svc.GetVaultAccessPolicy(ctx,param)
+	vaultAccessPolicy, err := svc.GetVaultAccessPolicy(ctx, param)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultAccessPolicy", "api_error", err)
 		var ae smithy.APIError
@@ -271,7 +270,7 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 }
 
 func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := test(h.Item)
+	data := glacierVaultData(h.Item)
 	accountID := strings.Split(data["Arn"], ":")[4]
 
 	// Create session
@@ -292,7 +291,7 @@ func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 		AccountId: aws.String(accountID),
 	}
 
-	vaultLock, err := svc.GetVaultLock(ctx,param)
+	vaultLock, err := svc.GetVaultLock(ctx, param)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultLockPolicy", "api_error", err)
 		var ae smithy.APIError
@@ -306,7 +305,7 @@ func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 func getGlacierVaultNotifications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := test(h.Item)
+	data := glacierVaultData(h.Item)
 	accountID := strings.Split(data["Arn"], ":")[4]
 
 	// Create session
@@ -327,7 +326,7 @@ func getGlacierVaultNotifications(ctx context.Context, d *plugin.QueryData, h *p
 		AccountId: aws.String(accountID),
 	}
 
-	vaultNotifications, err := svc.GetVaultNotifications(ctx,param)
+	vaultNotifications, err := svc.GetVaultNotifications(ctx, param)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultNotifications", "api_error", err)
 		var ae smithy.APIError
@@ -341,7 +340,7 @@ func getGlacierVaultNotifications(ctx context.Context, d *plugin.QueryData, h *p
 }
 
 func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := test(h.Item)
+	data := glacierVaultData(h.Item)
 	accountID := strings.Split(data["Arn"], ":")[4]
 
 	// Create session
@@ -362,7 +361,7 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 		AccountId: aws.String(accountID),
 	}
 
-	vaultTags, err := svc.ListTagsForVault(ctx,param)
+	vaultTags, err := svc.ListTagsForVault(ctx, param)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glacier_vault.listTagsForGlacierVault", "api_error", err)
 		return nil, err
@@ -370,15 +369,15 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 	return vaultTags, nil
 }
 
-func test(item interface{}) map[string]string{
+func glacierVaultData(item interface{}) map[string]string {
 	data := map[string]string{}
-	switch item:=item.(type){
+	switch item := item.(type) {
 	case types.DescribeVaultOutput:
-		data["Arn"]=*item.VaultARN
-		data["Name"]=*item.VaultName
+		data["Arn"] = *item.VaultARN
+		data["Name"] = *item.VaultName
 	case *glacier.DescribeVaultOutput:
-		data["Arn"]=*item.VaultARN
-		data["Name"]=*item.VaultName
+		data["Arn"] = *item.VaultARN
+		data["Name"] = *item.VaultName
 	}
 	return data
 }

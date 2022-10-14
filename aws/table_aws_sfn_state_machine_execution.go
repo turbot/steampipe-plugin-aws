@@ -154,17 +154,17 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 	}
 	input := &sfn.ListExecutionsInput{
 		StateMachineArn: arn,
-		MaxResults:  int32(maxLimit),
+		MaxResults:      int32(maxLimit),
 	}
 	if equalQuals["status"] != nil {
 		input.StatusFilter = types.ExecutionStatus(equalQuals["status"].GetStringValue())
 	}
-	paginator:=sfn.NewListExecutionsPaginator(svc,input,func(o *sfn.ListExecutionsPaginatorOptions) {
-		o.Limit=maxLimit
-		o.StopOnDuplicateToken=true
+	paginator := sfn.NewListExecutionsPaginator(svc, input, func(o *sfn.ListExecutionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
 	})
 
-	for paginator.HasMorePages(){
+	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.listStepFunctionsStateMachineExecutions", "api_error", err)
@@ -175,7 +175,7 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil,nil
+				return nil, nil
 			}
 		}
 	}
@@ -216,9 +216,9 @@ func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryD
 	}
 
 	// Get call
-	data, err := svc.DescribeExecution(ctx,params)
+	data, err := svc.DescribeExecution(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx)Error("aws_sfn_state_machine_execution.getStepFunctionsStateMachineExecution", "api_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.getStepFunctionsStateMachineExecution", "api_error", err)
 		return nil, err
 	}
 

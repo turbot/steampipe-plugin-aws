@@ -137,12 +137,12 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 	input := &sfn.ListStateMachinesInput{
 		MaxResults: int32(maxLimit),
 	}
-  paginator:=sfn.NewListStateMachinesPaginator(svc,input,func(o *sfn.ListStateMachinesPaginatorOptions) {
-		o.Limit=maxLimit
-		o.StopOnDuplicateToken=true
+	paginator := sfn.NewListStateMachinesPaginator(svc, input, func(o *sfn.ListStateMachinesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
 	})
 	//list call
-	for paginator.HasMorePages(){
+	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateManchines", "api_error", err)
@@ -153,11 +153,11 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil,nil
+				return nil, nil
 			}
 		}
 	}
-	
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateManchines", "api_error", err)
 		return nil, err
@@ -198,7 +198,7 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Get call
-	data, err := svc.DescribeStateMachine(ctx,params)
+	data, err := svc.DescribeStateMachine(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sfn_state_machine.getStepFunctionsStateMachine", "api_error", err)
 		return nil, err
@@ -221,7 +221,7 @@ func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h
 		plugin.Logger(ctx).Error("aws_sfn_state_machine.getStepFunctionStateMachineTags", "connection_error", err)
 		return nil, err
 	}
-	
+
 	if svc == nil {
 		// unsupported region check
 		return nil, nil
@@ -231,7 +231,7 @@ func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h
 		ResourceArn: stateMachineArn,
 	}
 
-	tags, err := svc.ListTagsForResource(ctx,params)
+	tags, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sfn_state_machine.getStepFunctionStateMachineTags", "api_error", err)
 		return nil, err
