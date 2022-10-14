@@ -191,6 +191,11 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
 	maxItems := int32(1000)
 	input := &kms.ListKeysInput{}
 
@@ -248,6 +253,11 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	params := &kms.DescribeKeyInput{
 		KeyId: aws.String(keyID),
 	}
@@ -276,6 +286,11 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	params := &kms.DescribeKeyInput{
 		KeyId: key.KeyId,
 	}
@@ -297,6 +312,11 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyRotationStatus", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &kms.GetKeyRotationStatusInput{
@@ -326,6 +346,11 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyTagging", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	tagsData := map[string]interface{}{}
@@ -369,6 +394,11 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyAliases", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &kms.ListAliasesInput{
@@ -417,6 +447,11 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyPolicy", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &kms.GetKeyPolicyInput{

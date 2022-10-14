@@ -77,7 +77,14 @@ import (
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
 	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
 	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
+	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
+	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
+	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
+	dlmEndpoint "github.com/aws/aws-sdk-go/service/dlm"
+	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
+	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
+	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 )
 
@@ -292,9 +299,12 @@ func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Cli
 
 // CodePipelineClient returns the service connection for AWS CodePipeline service
 func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codepipelineEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return codepipeline.NewFromConfig(*cfg), nil
 }
@@ -317,25 +327,34 @@ func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databas
 }
 
 func DAXClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, daxEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return dax.NewFromConfig(*cfg), nil
 }
 
 func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*directoryservice.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, directoryserviceEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return directoryservice.NewFromConfig(*cfg), nil
 }
 
 func DLMClient(ctx context.Context, d *plugin.QueryData) (*dlm.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, dlmEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return dlm.NewFromConfig(*cfg), nil
 }
@@ -405,9 +424,12 @@ func Ec2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (
 }
 
 func ElasticBeanstalkClient(ctx context.Context, d *plugin.QueryData) (*elasticbeanstalk.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, elasticbeanstalkEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return elasticbeanstalk.NewFromConfig(*cfg), nil
 }
@@ -478,9 +500,12 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 }
 
 func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspectorEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return inspector.NewFromConfig(*cfg), nil
 }
@@ -497,7 +522,7 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 }
 
 func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "kms")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kmsEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -699,7 +724,12 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-	validRegions := SupportedRegionsForService(ctx, d, serviceID)
+
+	validRegions, err := SupportedRegionsForService(ctx, d, serviceID)
+	if err != nil {
+		return nil, err
+	}
+
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather

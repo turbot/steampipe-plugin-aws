@@ -100,6 +100,11 @@ func listLambdaLayers(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Set MaxItems to the maximum number allowed
 	maxItems := int32(50)
 	input := lambda.ListLayersInput{}

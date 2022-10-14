@@ -188,6 +188,11 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	equalQuals := d.KeyColumnQuals
 
 	// Minimize the API call with the given function name
@@ -261,6 +266,11 @@ func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	input := &lambda.ListVersionsByFunctionInput{
 		FunctionName: aws.String(functionName),
 	}
@@ -295,6 +305,11 @@ func getFunctionVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_lambda_function.getFunctionVersionPolicy", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	input := &lambda.GetPolicyInput{
