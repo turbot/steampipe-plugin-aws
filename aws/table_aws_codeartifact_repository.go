@@ -154,6 +154,10 @@ func listCodeArtifactRepositories(ctx context.Context, d *plugin.QueryData, h *p
 		logger.Error("aws_codeartifact_repository.listCodeArtifactRepositories", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(500)
@@ -241,6 +245,10 @@ func getCodeArtifactRepository(ctx context.Context, d *plugin.QueryData, h *plug
 		logger.Error("aws_codeartifact_repository.getCodeArtifactRepository", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	// Get call
 	data, err := svc.DescribeRepository(ctx, params)
@@ -277,6 +285,10 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 			logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryEndpoints", "service_creation_error", err)
 			return nil, err
 		}
+		if svc == nil {
+			// un-supported region check
+			return nil, nil
+		}
 
 		// Get call
 		data, err := svc.GetRepositoryEndpoint(ctx, params)
@@ -300,6 +312,10 @@ func getCodeArtifactRepositoryTags(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryTags", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -325,6 +341,10 @@ func getCodeArtifactRepositoryPermissionsPolicy(ctx context.Context, d *plugin.Q
 	if err != nil {
 		logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryPermissionsPolicy", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
 	}
 
 	// Build the params

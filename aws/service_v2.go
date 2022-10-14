@@ -73,6 +73,9 @@ import (
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
+	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
+	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
+	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 )
@@ -147,7 +150,7 @@ func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Clien
 }
 
 func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "auditmanager")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, auditmanagerEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -197,9 +200,12 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 }
 
 func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, backupEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return backup.NewFromConfig(*cfg), nil
 }
@@ -251,7 +257,7 @@ func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudforma
 }
 
 func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codeartifact")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codeartifactEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

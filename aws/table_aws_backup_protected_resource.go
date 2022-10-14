@@ -67,6 +67,10 @@ func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, _
 		plugin.Logger(ctx).Error("aws_backup_protected_resource.listAwsBackupProtectedResources", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -120,6 +124,10 @@ func getAwsBackupProtectedResource(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_backup_protected_resource.getAwsBackupProtectedResource", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
 	}
 
 	var arn string

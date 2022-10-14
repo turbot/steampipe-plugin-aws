@@ -151,6 +151,10 @@ func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 		logger.Error("aws_codeartifact_domain.listCodeArtifactDomains", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(100)
@@ -240,6 +244,10 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomain", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	// Get call
 	data, err := svc.DescribeDomain(ctx, params)
@@ -265,6 +273,10 @@ func getCodeArtifactDomainTags(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomainTags", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -296,6 +308,10 @@ func getCodeArtifactDomainPermissionsPolicy(ctx context.Context, d *plugin.Query
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomainPermissionsPolicy", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
 	}
 
 	// Build the params

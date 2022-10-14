@@ -142,6 +142,10 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		plugin.Logger(ctx).Error("aws_auditmanager_framework.listAuditManagerFrameworks", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	maxItems := int32(100)
 	params := &auditmanager.ListAssessmentFrameworksInput{
@@ -229,6 +233,10 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_auditmanager_framework.getAuditManagerFramework", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
 	}
 
 	var id string

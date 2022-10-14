@@ -131,6 +131,10 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 		plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworks", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -192,6 +196,10 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		plugin.Logger(ctx).Error("aws_backup_framework.getAwsBackupFramework", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	var name string
 	if h.Item != nil {
@@ -231,6 +239,10 @@ func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworkTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
 	}
 
 	var arn *string

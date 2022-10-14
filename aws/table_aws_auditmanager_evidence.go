@@ -180,6 +180,10 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 		plugin.Logger(ctx).Error("aws_auditmanager_evidence.listAuditManagerEvidences", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	var evidenceFolders []types.AssessmentEvidenceFolder
 	maxItems := int32(100)
@@ -304,6 +308,10 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_auditmanager_evidence.getAuditManagerEvidence", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
 	}
 
 	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()

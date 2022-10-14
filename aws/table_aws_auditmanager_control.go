@@ -142,6 +142,10 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		plugin.Logger(ctx).Error("aws_auditmanager_control.listAuditManagerControls", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
+	}
 
 	maxItems := int32(100)
 	params := &auditmanager.ListControlsInput{
@@ -231,6 +235,10 @@ func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_auditmanager_control.listAuditManagerControls", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// un-supported region check
+		return nil, nil
 	}
 
 	var id string
