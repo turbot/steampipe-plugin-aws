@@ -74,9 +74,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
-	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
-	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
+	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
+	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -467,7 +467,7 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 }
 
 func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspector.EndpointsID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspectorEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
