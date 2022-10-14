@@ -111,7 +111,7 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 	}
 
 	input := &cloudwatchlogs.DescribeMetricFiltersInput{
-		Limit: aws.Int32(4),
+		Limit: aws.Int32(50),
 	}
 
 	// Additonal Filter

@@ -84,7 +84,7 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// execute list call
 	input := &ses.ListIdentitiesInput{
-		MaxItems:     aws.Int32(1),
+		MaxItems:     aws.Int32(1000),
 		IdentityType: types.IdentityTypeEmailAddress,
 	}
 

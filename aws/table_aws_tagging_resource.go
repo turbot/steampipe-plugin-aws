@@ -106,8 +106,8 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < *input.ResourcesPerPage {
-			if limit < 20 {
-				input.ResourcesPerPage = aws.Int32(20)
+			if limit < 1 {
+				input.ResourcesPerPage = aws.Int32(1)
 			} else {
 				input.ResourcesPerPage = aws.Int32(limit)
 			}
