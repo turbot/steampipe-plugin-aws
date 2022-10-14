@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	go_kit_pack "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -110,7 +109,7 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 	region := h.Item.(types.Region)
 
 	// If a region is not opted-in, we cannot list the availability zones
-	if go_kit_pack.SafeString(region.OptInStatus) == "not-opted-in" {
+	if *region.OptInStatus == "not-opted-in" {
 		return nil, nil
 	}
 
