@@ -1,3 +1,13 @@
+## v0.7x.x [TBD]
+
+_Enhancements_
+  
+- Updated `status` column type from JSON to String in table `aws_ssm_association`.
+
+_Bug fixes_
+
+- `aws_ssm_document` did not work properly when `owner` column was used in where clause. Also now `owner` works as API input column while `owner_output` column will display API output.(**NOTE:** This change was required as the API input value for `owner` differ from output value)
+
 ## v0.78.0 [2022-09-23]
 
 _What's new?_
