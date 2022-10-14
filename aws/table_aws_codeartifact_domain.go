@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
@@ -138,21 +137,15 @@ func tableAwsCodeArtifactDomain(_ context.Context) *plugin.Table {
 func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceId := "codeartifact"
-	validRegions, err := SupportedRegionsForService(ctx, d, serviceId)
-	if err != nil {
-		return nil, err
-	}
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	// Create session
 	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.listCodeArtifactDomains", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -208,15 +201,6 @@ func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceId := "codeartifact"
-	validRegions, err := SupportedRegionsForService(ctx, d, serviceId)
-	if err != nil {
-		return nil, err
-	}
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	var name, owner string
 	if h.Item != nil {
@@ -246,6 +230,10 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomain", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Get call
 	data, err := svc.DescribeDomain(ctx, params)
@@ -259,21 +247,16 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func getCodeArtifactDomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	data := h.Item.(*types.DomainDescription)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceId := "codeartifact"
-	validRegions, err := SupportedRegionsForService(ctx, d, serviceId)
-	if err != nil {
-		return nil, err
-	}
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create Session
 	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomainTags", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -293,21 +276,16 @@ func getCodeArtifactDomainTags(ctx context.Context, d *plugin.QueryData, h *plug
 func getCodeArtifactDomainPermissionsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	data := h.Item.(*types.DomainDescription)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceId := "codeartifact"
-	validRegions, err := SupportedRegionsForService(ctx, d, serviceId)
-	if err != nil {
-		return nil, err
-	}
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create Session
 	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomainPermissionsPolicy", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

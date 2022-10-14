@@ -68,11 +68,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
+	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
+	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
+	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
+	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
+	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
 	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
 	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
@@ -130,9 +134,12 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 }
 
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, apigatewayv2Endpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
@@ -154,7 +161,7 @@ func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Clien
 }
 
 func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "auditmanager")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, auditmanagerEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -204,9 +211,12 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 }
 
 func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, backupEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return backup.NewFromConfig(*cfg), nil
 }
@@ -258,7 +268,7 @@ func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudforma
 }
 
 func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codeartifact")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codeartifactEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -269,9 +279,12 @@ func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact
 }
 
 func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, endpoints.CodebuildServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codebuildEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return codebuild.NewFromConfig(*cfg), nil
 }
