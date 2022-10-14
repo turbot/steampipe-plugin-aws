@@ -75,6 +75,8 @@ import (
 
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
+	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
+	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -465,7 +467,7 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 }
 
 func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspector.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -484,7 +486,7 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 }
 
 func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "kms")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kmsEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
