@@ -387,7 +387,7 @@ func TaggingResourceClient(ctx context.Context, d *plugin.QueryData) (*resourceg
 	return resourcegroupstaggingapi.NewFromConfig(*cfg), nil
 }
 
-func EksClient(ctx context.Context, d *plugin.QueryData) (*eks.Client, error) {
+func EKSClient(ctx context.Context, d *plugin.QueryData) (*eks.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err

@@ -82,7 +82,7 @@ type addonVersion struct {
 
 func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EksClient(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_addon_version.listEksAddonVersions", "get_client_error", err)
 		return nil, err

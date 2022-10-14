@@ -140,7 +140,7 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 
 func listEksClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EksClient(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_cluster.listEksClusters", "get_client_error", err)
 		return nil, err
@@ -199,7 +199,7 @@ func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// create service
-	svc, err := EksClient(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_cluster.getEksCluster", "get_client_error", err)
 		return nil, err

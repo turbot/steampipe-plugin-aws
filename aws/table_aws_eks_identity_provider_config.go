@@ -144,7 +144,7 @@ func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 	cluster := h.Item.(types.Cluster)
 
 	// Create service
-	svc, err := EksClient(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_identity_provider_config.listEksIdentityProviderConfigs", "get_client_error", err)
 		return nil, err
@@ -200,7 +200,7 @@ func getEksIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// create service
-	svc, err := EksClient(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_identity_provider_config.getEksIdentityProviderConfig", "get_client_error", err)
 		return nil, err
