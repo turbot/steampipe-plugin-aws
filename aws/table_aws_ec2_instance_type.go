@@ -2,11 +2,12 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -21,7 +22,7 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("instance_type"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInstanceType"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInstanceType"}),
 			},
 			Hydrate: describeInstanceType,
 		},
@@ -34,147 +35,128 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Description: "The instance type. For more information, see [ Instance Types ](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html) in the Amazon Elastic Compute Cloud User Guide.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].InstanceType"),
 			},
 			{
 				Name:        "auto_recovery_supported",
 				Description: "Indicates whether auto recovery is supported.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].AutoRecoverySupported"),
 			},
 			{
 				Name:        "bare_metal",
 				Description: "Indicates whether the instance is a bare metal instance type.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].BareMetal"),
 			},
 			{
 				Name:        "burstable_performance_supported",
 				Description: "Indicates whether the instance type is a burstable performance instance type.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].BurstablePerformanceSupported"),
 			},
 			{
 				Name:        "current_generation",
 				Description: "Indicates whether the instance type is current generation.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].CurrentGeneration"),
 			},
 			{
 				Name:        "dedicated_hosts_supported",
 				Description: "Indicates whether Dedicated Hosts are supported on the instance type.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].DedicatedHostsSupported"),
 			},
 			{
 				Name:        "free_tier_eligible",
 				Description: "Indicates whether the instance type is eligible for the free tier.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].FreeTierEligible"),
 			},
 			{
 				Name:        "hibernation_supported",
 				Description: "Indicates whether On-Demand hibernation is supported.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].HibernationSupported"),
 			},
 			{
 				Name:        "hypervisor",
 				Description: "The hypervisor for the instance type.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].Hypervisor"),
 			},
 			{
 				Name:        "instance_storage_supported",
 				Description: "Describes the instance storage for the instance type.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].InstanceStorageSupported"),
 			},
 			{
 				Name:        "ebs_info",
 				Description: "Describes the Amazon EBS settings for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].EbsInfo"),
 			},
 			{
 				Name:        "memory_info",
 				Description: "Describes the memory for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].MemoryInfo"),
 			},
 			{
 				Name:        "network_info",
 				Description: "Describes the network settings for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].NetworkInfo"),
 			},
 			{
 				Name:        "placement_group_info",
 				Description: "Describes the placement group settings for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].PlacementGroupInfo"),
 			},
 			{
 				Name:        "processor_info",
 				Description: "Describes the processor.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].ProcessorInfo"),
 			},
 			{
 				Name:        "supported_root_device_types",
 				Description: "The supported root device types.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].SupportedRootDeviceTypes"),
 			},
 			{
 				Name:        "supported_usage_classes",
 				Description: "Indicates whether the instance type is offered for spot or On-Demand.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].SupportedUsageClasses"),
 			},
 			{
 				Name:        "supported_virtualization_types",
 				Description: "The supported virtualization types.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].SupportedVirtualizationTypes"),
 			},
 			{
 				Name:        "v_cpu_info",
 				Description: "Describes the vCPU configurations for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].VCpuInfo"),
+				Transform:   transform.FromField("VCpuInfo"),
 			},
 			{
 				Name:        "gpu_info",
 				Description: "Describes the GPU accelerator settings for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].GpuInfo"),
 			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     describeInstanceType,
-				Transform:   transform.FromField("InstanceTypes[0].InstanceType"),
+				Transform:   transform.FromField("InstanceType"),
 			},
 			{
 				Name:        "akas",
@@ -211,51 +193,59 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := Ec2RegionsClient(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance_type.listAwsInstanceTypesOfferings", "connection_error", err)
 		return nil, err
 	}
-
-	// First get all the types of instance
-	input := &ec2.DescribeInstanceTypeOfferingsInput{
-		LocationType: aws.String("region"),
-		MaxResults:   aws.Int64(1000),
+	if svc == nil {
+		return nil, nil
 	}
 
-	var filters []*ec2.Filter
-	filters = append(filters, &ec2.Filter{Name: aws.String("location"), Values: []*string{&region}})
-	input.Filters = filters
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
+	// First get all the types of instance
+	input := &ec2.DescribeInstanceTypeOfferingsInput{
+		LocationType: types.LocationTypeRegion,
+		MaxResults:   aws.Int32(maxLimit),
+	}
+
+	var filters []types.Filter
+	filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{region}})
+	input.Filters = filters
+
+	paginator := ec2.NewDescribeInstanceTypeOfferingsPaginator(svc, input, func(o *ec2.DescribeInstanceTypeOfferingsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
 	// List call
-	err = svc.DescribeInstanceTypeOfferingsPages(
-		input,
-		func(page *ec2.DescribeInstanceTypeOfferingsOutput, isLast bool) bool {
-			for _, instanceTypeOffering := range page.InstanceTypeOfferings {
-				d.StreamListItem(ctx, instanceTypeOffering)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_instance_type.listAwsInstanceTypesOfferings", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.InstanceTypeOfferings {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("listAwsInstanceTypesOfferings", "InstanceType_DescribeInstanceTypeOfferingsPages", err)
+		}
 	}
 
 	return nil, err
@@ -264,12 +254,12 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 //// HYDRATE FUNCTIONS
 
 func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var instanceType string
+	var instanceType types.InstanceType
 	if h.Item != nil {
-		data := h.Item.(*ec2.InstanceTypeOffering)
-		instanceType = types.SafeString(data.InstanceType)
+		data := h.Item.(types.InstanceTypeOffering)
+		instanceType = data.InstanceType
 	} else {
-		instanceType = d.KeyColumnQuals["instance_type"].GetStringValue()
+		instanceType = types.InstanceType(d.KeyColumnQuals["instance_type"].GetStringValue())
 	}
 
 	// get the primary region for aws based on its partition
@@ -288,34 +278,42 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := Ec2RegionsClient(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance_type.describeInstanceType", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
 	}
 
 	// First get all the types of
 	params := &ec2.DescribeInstanceTypesInput{
-		InstanceTypes: []*string{aws.String(instanceType)},
+		InstanceTypes: []types.InstanceType{
+			instanceType,
+		},
 	}
 
 	// execute get call
-	op, err := svc.DescribeInstanceTypes(params)
+	op, err := svc.DescribeInstanceTypes(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("describeInstanceType", "DescribeInstanceTypes", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance_type.describeInstanceType", "api_error", err)
 		return nil, err
 	}
+	if len(op.InstanceTypes) > 0 {
+		return op.InstanceTypes[0], nil
+	}
 
-	return op, nil
+	return nil, nil
 }
 
 func instanceTypeDataToAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("instanceTypeDataToAkas")
-	var instanceType string
+	var instanceType types.InstanceType
 	switch h.Item.(type) {
-	case *ec2.InstanceTypeOffering:
-		instanceType = *h.Item.(*ec2.InstanceTypeOffering).InstanceType
-	case *ec2.DescribeInstanceTypesOutput:
-		instanceType = *h.Item.(*ec2.DescribeInstanceTypesOutput).InstanceTypes[0].InstanceType
+	case types.InstanceTypeOffering:
+		instanceType = h.Item.(types.InstanceTypeOffering).InstanceType
+	case types.InstanceTypeInfo:
+		instanceType = h.Item.(types.InstanceTypeInfo).InstanceType
 	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -325,7 +323,7 @@ func instanceTypeDataToAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:::instance-type/" + instanceType}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:::instance-type/" + fmt.Sprint(instanceType)}
 
 	return akas, nil
 }
