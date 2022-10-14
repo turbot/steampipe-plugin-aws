@@ -222,7 +222,7 @@ func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -274,7 +274,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

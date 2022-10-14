@@ -68,7 +68,7 @@ func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -126,7 +126,7 @@ func getAwsBackupProtectedResource(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
