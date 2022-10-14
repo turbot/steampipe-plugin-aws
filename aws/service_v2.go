@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codecommit"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
@@ -194,6 +195,17 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
+}
+
+func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codecommit")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return codecommit.NewFromConfig(*cfg), nil
 }
 
 func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
