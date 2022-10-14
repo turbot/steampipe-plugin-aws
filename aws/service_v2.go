@@ -471,6 +471,9 @@ func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Clien
 	if err != nil {
 		return nil, err
 	}
+	if cfg == nil {
+		return nil, nil
+	}
 	return inspector.NewFromConfig(*cfg), nil
 }
 
