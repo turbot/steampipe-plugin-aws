@@ -73,6 +73,11 @@ import (
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
+	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
+	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
+	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
+	dlmEndpoint "github.com/aws/aws-sdk-go/service/dlm"
+	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 )
@@ -279,9 +284,12 @@ func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Cli
 
 // CodePipelineClient returns the service connection for AWS CodePipeline service
 func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codepipelineEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return codepipeline.NewFromConfig(*cfg), nil
 }
@@ -304,25 +312,34 @@ func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databas
 }
 
 func DAXClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, daxEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return dax.NewFromConfig(*cfg), nil
 }
 
 func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*directoryservice.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, directoryserviceEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return directoryservice.NewFromConfig(*cfg), nil
 }
 
 func DLMClient(ctx context.Context, d *plugin.QueryData) (*dlm.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, dlmEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return dlm.NewFromConfig(*cfg), nil
 }
@@ -392,9 +409,12 @@ func Ec2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (
 }
 
 func ElasticBeanstalkClient(ctx context.Context, d *plugin.QueryData) (*elasticbeanstalk.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, elasticbeanstalkEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return elasticbeanstalk.NewFromConfig(*cfg), nil
 }
