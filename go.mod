@@ -48,10 +48,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/inspector v1.12.15
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15
-	github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17
-	github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.24.6
+	github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17
+	github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/ram v1.16.18
@@ -65,11 +65,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository v1.11.17
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
 	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.15.11
+	github.com/aws/aws-sdk-go-v2/service/waf v1.11.17
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.16.11
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.23.0
-	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
-	github.com/aws/aws-sdk-go-v2/service/waf v1.11.17
 	github.com/aws/smithy-go v1.13.3
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2
@@ -85,10 +85,6 @@ require (
 	github.com/allegro/bigcache/v3 v3.0.2 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.12 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.23 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.17 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.19 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.17 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.23 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.17 // indirect
