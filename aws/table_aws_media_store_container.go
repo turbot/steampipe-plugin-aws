@@ -2,12 +2,14 @@ package aws
 
 import (
 	"context"
-	"strings"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore/types"
+	"github.com/aws/smithy-go"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -225,10 +227,13 @@ func getMediaStoreContainerPolicy(ctx context.Context, d *plugin.QueryData, h *p
 	// Get call
 	data, err := svc.GetContainerPolicy(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_media_store_container.getMediaStoreContainerPolicy", "api_error", err)
-		if strings.Contains(err.Error(), "PolicyNotFoundException") || strings.Contains(err.Error(), "ContainerInUseException") {
-			return nil, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if helpers.StringSliceContains([]string{"PolicyNotFoundException", "ContainerInUseException"}, ae.ErrorCode()) {
+				return nil, nil
+			}
 		}
+		plugin.Logger(ctx).Error("aws_media_store_container.getMediaStoreContainerPolicy", "api_error", err)
 		return nil, err
 	}
 
@@ -256,10 +261,13 @@ func listMediaStoreContainerTags(ctx context.Context, d *plugin.QueryData, h *pl
 	// Get call
 	data, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_media_store_container.listMediaStoreContainerTags", "api_error", err)
-		if strings.Contains(err.Error(), "ContainerInUseException") {
-			return nil, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ContainerInUseException" {
+				return nil, nil
+			}
 		}
+		plugin.Logger(ctx).Error("aws_media_store_container.listMediaStoreContainerTags", "api_error", err)
 		return nil, err
 	}
 

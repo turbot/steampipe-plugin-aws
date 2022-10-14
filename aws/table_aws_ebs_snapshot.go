@@ -178,10 +178,8 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
 	// Create session
-	svc, err := Ec2RegionsClient(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ebs_snapshot.listAwsEBSSnapshots", "connection_error", err)
 		return nil, err
@@ -237,11 +235,10 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshotID := d.KeyColumnQuals["snapshot_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2RegionsClient(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ebs_snapshot.getAwsEBSSnapshot", "connection_error", err)
 		return nil, err
@@ -268,7 +265,6 @@ func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 // getAwsEBSSnapshotCreateVolumePermissions :: Describes the users and groups that have the permissions for creating volumes from the snapshot
 func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	snapshotData := h.Item.(types.Snapshot)
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -279,7 +275,7 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 		return nil, nil
 	}
 	// Create session
-	svc, err := Ec2RegionsClient(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ebs_snapshot.getAwsEBSSnapshotCreateVolumePermissions", "connection_error", err)
 		return nil, err

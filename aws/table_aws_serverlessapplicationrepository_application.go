@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
-	"strings"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository/types"
+	"github.com/aws/smithy-go"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -246,11 +247,13 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 	// Get call
 	data, err := svc.GetApplicationPolicy(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.getServerlessApplicationRepositoryApplicationPolicy", "api_error", err)
-		if strings.Contains(err.Error(), "ForbiddenException") {
-			return nil, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ForbiddenException" {
+				return nil, nil
+			}
 		}
-
+		plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.getServerlessApplicationRepositoryApplicationPolicy", "api_error", err)
 		return nil, err
 	}
 

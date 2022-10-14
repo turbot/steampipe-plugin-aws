@@ -237,7 +237,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 	// quals := d.Quals
 
 	// Limiting the results
-	maxLimit := int32(1000)
+	maxLimit := int32(10000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {

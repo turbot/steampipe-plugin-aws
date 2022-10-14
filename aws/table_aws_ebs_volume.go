@@ -166,10 +166,8 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
 	// Create session
-	svc, err := Ec2RegionsClient(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ebs_volume.listEBSVolume", "connection_error", err)
 		return nil, err
@@ -227,11 +225,10 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 //// HYDRATE FUNCTIONS
 
 func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	volumeID := d.KeyColumnQuals["volume_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2RegionsClient(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ebs_volume.getEBSVolume", "connection_error", err)
 		return nil, err
@@ -259,12 +256,8 @@ func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	volume := h.Item.(types.Volume)
 
-	// Table is currently failing with error `Error: region must be passed Ec2Service`
-	// While `LIST` and `GET` function are working
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
 	// Create session
-	svc, err := Ec2RegionsClient(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ebs_volume.getVolumeAutoEnableIOData", "connection_error", err)
 		return nil, err
@@ -287,10 +280,9 @@ func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plug
 
 func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	volume := h.Item.(types.Volume)
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
-	svc, err := Ec2RegionsClient(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ebs_volume.getVolumeProductCodes", "connection_error", err)
 		return nil, err

@@ -244,7 +244,7 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 
 func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EmrClient(ctx, d)
+	svc, err := EMRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_emr_cluster.listEmrClusters", "connection_error", err)
 		return nil, err
@@ -296,7 +296,7 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Create Session
-	svc, err := EmrClient(ctx, d)
+	svc, err := EMRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_emr_cluster.getEmrCluster", "connection_error", err)
 		return nil, err

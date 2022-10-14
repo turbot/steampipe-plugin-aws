@@ -163,7 +163,7 @@ type instanceGroupDetails = struct {
 
 func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EmrClient(ctx, d)
+	svc, err := EMRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_emr_instance_group.listEmrInstanceGroups", "connection_error", err)
 		return nil, err
