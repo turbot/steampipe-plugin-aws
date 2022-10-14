@@ -113,6 +113,10 @@ func listElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryData, 
 		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listElasticBeanstalkApplications", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	params := &elasticbeanstalk.DescribeApplicationsInput{}
@@ -152,6 +156,10 @@ func getElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData, _ 
 		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.getElasticBeanstalkApplication", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &elasticbeanstalk.DescribeApplicationsInput{
@@ -180,6 +188,10 @@ func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.Query
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listAwsElasticBeanstalkApplicationTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
