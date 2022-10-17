@@ -619,7 +619,15 @@ func generateStatementsSummary(statements []EvaluatedStatement, allAvailablePerm
 		case "organization":
 			statementsSummary.allowedOrganizationIdsSet[reducedStatement.principal] = true
 		case "arn":
-			account, _ := extractAccountFromArn(reducedStatement.principal)
+			account, globalResource := extractAccountFromArn(reducedStatement.principal)
+			if !globalResource {
+				if account == "" {
+					statementsSummary.allowedPrincipalAccountIdsSet["*"] = true
+				} else {
+					statementsSummary.allowedPrincipalAccountIdsSet[account] = true
+				}
+			}
+
 			if account != "" {
 				statementsSummary.allowedPrincipalAccountIdsSet[account] = true
 			}
@@ -1574,7 +1582,7 @@ func extractAccountFromArn(arn string) (string, bool) {
 		return extractAccount(accountCheck), false
 	}
 
-	return "*", false
+	return "", false
 }
 
 func extractAccount(account string) string {
