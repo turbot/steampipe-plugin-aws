@@ -156,7 +156,7 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "not subscribed") {
+			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProducts", "api_error", err)

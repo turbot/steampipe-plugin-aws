@@ -159,6 +159,11 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	maxItems := int32(1000)
 	input := &auditmanager.ListAssessmentsInput{}
 

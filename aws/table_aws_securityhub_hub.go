@@ -88,7 +88,7 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	// List call
 	resp, err := svc.DescribeHub(ctx, &securityhub.DescribeHubInput{})
 	if err != nil {
-		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
+		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") || strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_securityhub_hub.listSecurityHubs", "api_error", err)
@@ -121,7 +121,7 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Execute get call
 	data, err := svc.DescribeHub(ctx, params)
 	if err != nil {
-		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
+		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") || strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHub", "api_error", err)

@@ -185,6 +185,9 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	for pagesLeft {
 		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
+			if strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_wafv2_rule_group.listAwsWafv2RuleGroups", "api_error", err)
 			return nil, err
 		}
@@ -272,6 +275,9 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	op, err := svc.GetRuleGroup(ctx, params)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_wafv2_rule_group.getAwsWafv2RuleGroup", "api_error", err)
 		return nil, err
 	}

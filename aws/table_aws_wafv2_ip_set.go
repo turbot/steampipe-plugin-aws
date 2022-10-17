@@ -174,6 +174,9 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	for pagesLeft {
 		response, err := svc.ListIPSets(ctx, params)
 		if err != nil {
+			if strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_wafv2_ip_set.listAwsWafv2IpSets", "api_error", err)
 			return nil, err
 		}
@@ -259,6 +262,9 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	op, err := svc.GetIPSet(ctx, params)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_wafv2_ip_set.getAwsWafv2IpSet", "api_error", err)
 		return nil, err
 	}

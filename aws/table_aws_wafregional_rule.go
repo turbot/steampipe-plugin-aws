@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
@@ -111,6 +112,9 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for pagesLeft {
 		response, err := svc.ListRules(ctx, params)
 		if err != nil {
+			if strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_wafregional_rule.listAwsWAFRegionalRules", "api_error", err)
 			return nil, err
 		}
@@ -161,6 +165,9 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.GetRule(ctx, param)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRule", "api_error", err)
 		var ae smithy.APIError
 		if errors.As(err, &ae) {

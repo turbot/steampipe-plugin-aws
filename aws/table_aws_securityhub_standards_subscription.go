@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
@@ -123,6 +124,9 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			if strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.listSecurityHubStandardsSubcriptions", "api_error", err)
 			return nil, err
 		}

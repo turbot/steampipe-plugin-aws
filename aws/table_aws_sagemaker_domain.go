@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
@@ -203,6 +204,9 @@ func listAwsSageMakerDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			if strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_sagemaker_domain.listAwsSageMakerDomains", "api_error", err)
 			return nil, err
 		}
@@ -248,6 +252,9 @@ func getAwsSageMakerDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.DescribeDomain(ctx, params)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_sagemaker_domain.getAwsSageMakerDomain", "api_error", err)
 		return nil, err
 	}

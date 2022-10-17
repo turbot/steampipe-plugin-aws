@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
@@ -178,6 +179,9 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			if strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listAwsRoute53ResolverEndpoint", "api_error", err)
 			return nil, err
 		}
@@ -216,6 +220,9 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *
 	// Execute get call
 	data, err := svc.GetResolverEndpoint(ctx, params)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.getAwsRoute53ResolverEndpoint", "api_error", err)
 		return nil, err
 	}

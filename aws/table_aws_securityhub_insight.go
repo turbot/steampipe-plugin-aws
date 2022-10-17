@@ -108,7 +108,7 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Handle error for accounts that are not subscribed to AWS Security Hub
-			if strings.Contains(err.Error(), "not subscribed") {
+			if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_securityhub_insight.listSecurityHubInsights", "api_error", err)
@@ -154,11 +154,12 @@ func getSecurityHubInsight(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.GetInsights(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_securityhub_insight.getSecurityHubInsight", "api_error", err)
 		// Handle error for accounts that are not subscribed to AWS Security Hub
-		if strings.Contains(err.Error(), "not subscribed") {
+		if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}
+		plugin.Logger(ctx).Error("aws_securityhub_insight.getSecurityHubInsight", "api_error", err)
+		return nil, err
 	}
 	if len(data.Insights) > 0 {
 		return data.Insights[0], nil

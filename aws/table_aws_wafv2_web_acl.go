@@ -216,6 +216,9 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	for pagesLeft {
 		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {
+			if strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAwsWafv2WebAcls", "api_error", err)
 			return nil, err
 		}
@@ -301,6 +304,9 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	op, err := svc.GetWebACL(ctx, params)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_wafv2_web_acl.getAwsWafv2WebAcl", "api_error", err)
 		return nil, err
 	}

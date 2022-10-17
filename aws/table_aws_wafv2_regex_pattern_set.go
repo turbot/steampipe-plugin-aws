@@ -170,6 +170,9 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 	for pagesLeft {
 		response, err := svc.ListRegexPatternSets(ctx, params)
 		if err != nil {
+			if strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listAwsWafv2RegexPatternSets", "api_error", err)
 			return nil, err
 		}
@@ -256,6 +259,9 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 
 	op, err := svc.GetRegexPatternSet(ctx, params)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.getAwsWafv2RegexPatternSet", "api_error", err)
 		return nil, err
 	}

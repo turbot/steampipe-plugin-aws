@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
@@ -127,6 +128,9 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for pagesLeft {
 		output, err := svc.ListEventBuses(ctx, params)
 		if err != nil {
+			if strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_eventbridge_bus.listAwsEventBridgeBuses", "api_error", err)
 			return nil, err
 		}
@@ -175,6 +179,9 @@ func getAwsEventBridgeBus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Get call
 	data, err := svc.DescribeEventBus(ctx, params)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBus", "api_error", err)
 		return nil, err
 	}

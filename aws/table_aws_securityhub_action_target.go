@@ -100,7 +100,7 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "not subscribed") {
+			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_securityhub_action_target.go.listSecurityHubActionTargets", "api_error", err)
@@ -142,7 +142,7 @@ func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, h *plu
 	data, err := svc.DescribeActionTargets(ctx, params)
 	if err != nil {
 		// Handle unsupported and inactive region exceptions
-		if strings.Contains(err.Error(), "not subscribed") {
+		if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_securityhub_action_target.getSecurityHubActionTarget", "api_error", err)
