@@ -195,7 +195,7 @@ func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		}
 	}
 
-// API doesn't support aws-sdk-go-v2 paginator as of date.
+	// API doesn't support aws-sdk-go-v2 paginator as of date.
 	pagesLeft := true
 
 	for pagesLeft {
