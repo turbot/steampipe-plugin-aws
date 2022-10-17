@@ -829,8 +829,6 @@ func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map
 				partialEvaluatedCondition := evaluateSourceAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
-			// TODO: Will be added later but used for OU-: See `aws:PrincipalOrgPaths` from https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html
-			// case "aws:principalorgpaths":
 			case "aws:principalorgid":
 				partialEvaluatedCondition := evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
