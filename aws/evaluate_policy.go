@@ -205,6 +205,7 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 		isPublic := evaluatedCondition.isPublic
 		isShared := evaluatedCondition.isShared
 		isPrivate := evaluatedCondition.isPrivate
+		isServicePublic := evaluatedCondition.isServicePublic
 
 		actionSet := map[string]bool{}
 		for _, action := range statement.Action {
@@ -257,7 +258,7 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 				newStatement := EvaluatedStatement{
 					availablePermissions: availablePermissions.Copy(),
 					isPrivate:            isPrivate,
-					isPublic:             isPublic,
+					isPublic:             isServicePublic,
 					isShared:             isShared,
 					principal:            allowedPrincipalService,
 					principalType:        "service",
@@ -353,10 +354,10 @@ func loadAllAvailablePermissions() AllAvailablePermissions {
 			privileges := []string{}
 			accessLevel := map[string]string{}
 
-			for _, priviledge := range parliamentPermission.Privileges {
-				lowerPriviledge := strings.ToLower(priviledge.Privilege)
-				privileges = append(privileges, lowerPriviledge)
-				accessLevel[lowerPriviledge] = priviledge.AccessLevel
+			for _, privileged := range parliamentPermission.Privileges {
+				lowerPrivilege := strings.ToLower(privileged.Privilege)
+				privileges = append(privileges, lowerPrivilege)
+				accessLevel[lowerPrivilege] = privileged.AccessLevel
 			}
 
 			sort.Strings(privileges)
@@ -427,8 +428,8 @@ func (allAvailablePermissions AllAvailablePermissions) FindAvailablePermissions(
 		servicePermissions := allAvailablePermissions.servicePermissions[permissionSummary.service]
 
 		if permissionSummary.matcher == "" {
-			if _, exists := servicePermissions.accessLevel[permissionSummary.priviledge]; exists {
-				permission := fmt.Sprintf("%s:%s", permissionSummary.service, permissionSummary.priviledge)
+			if _, exists := servicePermissions.accessLevel[permissionSummary.privilege]; exists {
+				permission := fmt.Sprintf("%s:%s", permissionSummary.service, permissionSummary.privilege)
 				permissions[permission] = true
 			}
 			continue
@@ -436,21 +437,21 @@ func (allAvailablePermissions AllAvailablePermissions) FindAvailablePermissions(
 
 		// Find API Call
 		privilegesLen := len(servicePermissions.privileges)
-		checkIndex := sort.SearchStrings(servicePermissions.privileges, permissionSummary.priviledge)
+		checkIndex := sort.SearchStrings(servicePermissions.privileges, permissionSummary.privilege)
 		if checkIndex >= privilegesLen {
 			continue
 		}
 
-		evaluatedPriviledgeLen := len(permissionSummary.priviledge)
+		evaluatedPrivilegeLen := len(permissionSummary.privilege)
 		matcher := regexp.MustCompile(permissionSummary.matcher)
 		for ; checkIndex < privilegesLen; checkIndex++ {
 			currentPrivilege := servicePermissions.privileges[checkIndex]
 			currentPrivilegeLen := len(currentPrivilege)
 
-			splitIndex := int(math.Min(float64(currentPrivilegeLen), float64(evaluatedPriviledgeLen)))
-			partialPriviledge := currentPrivilege[0:splitIndex]
+			splitIndex := int(math.Min(float64(currentPrivilegeLen), float64(evaluatedPrivilegeLen)))
+			partialPrivilege := currentPrivilege[0:splitIndex]
 
-			if partialPriviledge != permissionSummary.priviledge {
+			if partialPrivilege != permissionSummary.privilege {
 				break
 			}
 			if !matcher.MatchString(currentPrivilege) {
@@ -493,28 +494,28 @@ func (allAvailablePermissions AllAvailablePermissions) GetAccessLevels(available
 		servicePermissions := allAvailablePermissions.servicePermissions[actionSummary.service]
 
 		if actionSummary.matcher == "" {
-			if accessLevel, exists := servicePermissions.accessLevel[actionSummary.priviledge]; exists {
+			if accessLevel, exists := servicePermissions.accessLevel[actionSummary.privilege]; exists {
 				accessLevels[accessLevel] = true
 			}
 			continue
 		}
 		// Find API Call
 		privilegesLen := len(servicePermissions.privileges)
-		checkIndex := sort.SearchStrings(servicePermissions.privileges, actionSummary.priviledge)
+		checkIndex := sort.SearchStrings(servicePermissions.privileges, actionSummary.privilege)
 		if checkIndex >= privilegesLen {
 			continue
 		}
 
-		evaluatedPriviledgeLen := len(actionSummary.priviledge)
+		evaluatedPrivilegeLen := len(actionSummary.privilege)
 		matcher := regexp.MustCompile(actionSummary.matcher)
 		for ; checkIndex < privilegesLen; checkIndex++ {
 			currentPrivilege := servicePermissions.privileges[checkIndex]
 			currentPrivilegeLen := len(currentPrivilege)
 
-			splitIndex := int(math.Min(float64(currentPrivilegeLen), float64(evaluatedPriviledgeLen)))
-			partialPriviledge := currentPrivilege[0:splitIndex]
+			splitIndex := int(math.Min(float64(currentPrivilegeLen), float64(evaluatedPrivilegeLen)))
+			partialPrivilege := currentPrivilege[0:splitIndex]
 
-			if partialPriviledge != actionSummary.priviledge {
+			if partialPrivilege != actionSummary.privilege {
 				break
 			}
 			if !matcher.MatchString(currentPrivilege) {
@@ -529,10 +530,10 @@ func (allAvailablePermissions AllAvailablePermissions) GetAccessLevels(available
 }
 
 type PermissionSummary struct {
-	matcher    string
-	priviledge string
-	process    bool
-	service    string
+	matcher   string
+	privilege string
+	process   bool
+	service   string
 }
 
 func createPermissionSummary(action string) PermissionSummary {
@@ -554,11 +555,11 @@ func createPermissionSummary(action string) PermissionSummary {
 	located := wildcardLocator.FindString(raw)
 
 	if located == "" {
-		evaluated.priviledge = raw
+		evaluated.privilege = raw
 		return evaluated
 	}
 
-	evaluated.priviledge = located[:len(located)-1]
+	evaluated.privilege = located[:len(located)-1]
 
 	// Convert Wildcards to regexp
 	matcher := fmt.Sprintf("^%s$", raw)
@@ -695,71 +696,71 @@ type EvaluatedOperator struct {
 	isNegated  bool
 }
 
-func evaulateOperator(operator string) (EvaluatedOperator, bool) {
-	evaulatedOperator := EvaluatedOperator{}
+func evaluateOperator(operator string) (EvaluatedOperator, bool) {
+	evaluatedOperator := EvaluatedOperator{}
 	evaluated := true
 
 	operator = strings.ToLower(operator)
 	if strings.HasSuffix(operator, "ifexists") {
-		return evaulatedOperator, false
+		return evaluatedOperator, false
 	}
 
 	switch operator {
 	case "stringequals":
-		evaulatedOperator.category = "string"
-		evaulatedOperator.isNegated = false
-		evaulatedOperator.isLike = false
-		evaulatedOperator.isCaseless = false
+		evaluatedOperator.category = "string"
+		evaluatedOperator.isNegated = false
+		evaluatedOperator.isLike = false
+		evaluatedOperator.isCaseless = false
 	case "stringnotequals":
-		evaulatedOperator.category = "string"
-		evaulatedOperator.isNegated = true
-		evaulatedOperator.isLike = false
-		evaulatedOperator.isCaseless = false
+		evaluatedOperator.category = "string"
+		evaluatedOperator.isNegated = true
+		evaluatedOperator.isLike = false
+		evaluatedOperator.isCaseless = false
 	case "stringequalsignorecase":
-		evaulatedOperator.category = "string"
-		evaulatedOperator.isNegated = false
-		evaulatedOperator.isLike = false
-		evaulatedOperator.isCaseless = true
+		evaluatedOperator.category = "string"
+		evaluatedOperator.isNegated = false
+		evaluatedOperator.isLike = false
+		evaluatedOperator.isCaseless = true
 	case "stringnotequalsignorecase":
-		evaulatedOperator.category = "string"
-		evaulatedOperator.isNegated = true
-		evaulatedOperator.isLike = false
-		evaulatedOperator.isCaseless = true
+		evaluatedOperator.category = "string"
+		evaluatedOperator.isNegated = true
+		evaluatedOperator.isLike = false
+		evaluatedOperator.isCaseless = true
 	case "stringlike":
-		evaulatedOperator.category = "string"
-		evaulatedOperator.isNegated = false
-		evaulatedOperator.isLike = true
-		evaulatedOperator.isCaseless = false
+		evaluatedOperator.category = "string"
+		evaluatedOperator.isNegated = false
+		evaluatedOperator.isLike = true
+		evaluatedOperator.isCaseless = false
 	case "stringnotlike":
-		evaulatedOperator.category = "string"
-		evaulatedOperator.isNegated = false
-		evaulatedOperator.isLike = true
-		evaulatedOperator.isCaseless = false
+		evaluatedOperator.category = "string"
+		evaluatedOperator.isNegated = false
+		evaluatedOperator.isLike = true
+		evaluatedOperator.isCaseless = false
 	case "arnequals":
-		evaulatedOperator.category = "arn"
-		evaulatedOperator.isNegated = false
-		evaulatedOperator.isLike = false
-		evaulatedOperator.isCaseless = true
+		evaluatedOperator.category = "arn"
+		evaluatedOperator.isNegated = false
+		evaluatedOperator.isLike = false
+		evaluatedOperator.isCaseless = true
 	case "arnlike":
-		evaulatedOperator.category = "arn"
-		evaulatedOperator.isNegated = false
-		evaulatedOperator.isLike = true
-		evaulatedOperator.isCaseless = true
+		evaluatedOperator.category = "arn"
+		evaluatedOperator.isNegated = false
+		evaluatedOperator.isLike = true
+		evaluatedOperator.isCaseless = true
 	case "arnnotequals":
-		evaulatedOperator.category = "arn"
-		evaulatedOperator.isNegated = true
-		evaulatedOperator.isLike = false
-		evaulatedOperator.isCaseless = true
+		evaluatedOperator.category = "arn"
+		evaluatedOperator.isNegated = true
+		evaluatedOperator.isLike = false
+		evaluatedOperator.isCaseless = true
 	case "arnnotlike":
-		evaulatedOperator.category = "arn"
-		evaulatedOperator.isNegated = true
-		evaulatedOperator.isLike = true
-		evaulatedOperator.isCaseless = true
+		evaluatedOperator.category = "arn"
+		evaluatedOperator.isNegated = true
+		evaluatedOperator.isLike = true
+		evaluatedOperator.isCaseless = true
 	default:
 		evaluated = false
 	}
 
-	return evaulatedOperator, evaluated
+	return evaluatedOperator, evaluated
 }
 
 type Permissions struct {
@@ -776,6 +777,7 @@ type EvaluatedCondition struct {
 	allowedPrincipalsArnsSet               map[string]bool
 	isPrivate                              bool
 	isPublic                               bool
+	isServicePublic                        bool
 	isShared                               bool
 }
 
@@ -790,6 +792,7 @@ func (evaluatedCondition *EvaluatedCondition) Merge(other EvaluatedCondition) {
 	evaluatedCondition.isPublic = evaluatedCondition.isPublic || other.isPublic
 	evaluatedCondition.isShared = evaluatedCondition.isShared || other.isShared
 	evaluatedCondition.isPrivate = evaluatedCondition.isPrivate || other.isPrivate
+	evaluatedCondition.isServicePublic = evaluatedCondition.isServicePublic || other.isServicePublic
 }
 
 func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map[string]interface{}) (EvaluatedCondition, error) {
@@ -797,38 +800,38 @@ func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map
 	evaluatedCondition := EvaluatedCondition{}
 
 	for operator, conditionKey := range conditions {
-		evaulatedOperator, evaluated := evaulateOperator(operator)
-		if !evaluated || evaulatedOperator.isNegated {
+		evaluatedOperator, evaluated := evaluateOperator(operator)
+		if !evaluated || evaluatedOperator.isNegated {
 			continue
 		}
 
 		for conditionName, conditionValues := range conditionKey.(map[string]interface{}) {
 			switch conditionName {
 			case "aws:principalaccount":
-				partialEvaluatedCondition := evaluatePrincipalAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
+				partialEvaluatedCondition := evaluatePrincipalAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
 			case "aws:sourceaccount":
-				partialEvaluatedCondition := evaluateSourceAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
+				partialEvaluatedCondition := evaluateSourceAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
 			case "aws:sourceowner":
-				partialEvaluatedCondition := evaluateSourceAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
+				partialEvaluatedCondition := evaluateSourceAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
 			// TODO: Will be added later but used for OU-: See `aws:PrincipalOrgPaths` from https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html
 			// case "aws:principalorgpaths":
 			case "aws:principalorgid":
-				partialEvaluatedCondition := evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
+				partialEvaluatedCondition := evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
 			case "aws:principalarn":
-				partialEvaluatedCondition := evaluatePrincipalArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
+				partialEvaluatedCondition := evaluatePrincipalArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
 			// TODO: Broken
 			case "aws:sourcearn":
-				partialEvaluatedCondition := evaluateSourceArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
+				partialEvaluatedCondition := evaluateSourceArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
 			}
@@ -842,7 +845,7 @@ func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map
 	return evaluatedCondition, nil
 }
 
-func evaluateSourceArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaulatedOperator EvaluatedOperator) EvaluatedCondition {
+func evaluateSourceArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaluatedOperator EvaluatedOperator) EvaluatedCondition {
 	processed := false
 	referencedAccountsSet := map[string]bool{}
 	allowedPrincipalsArnsSet := map[string]bool{}
@@ -852,20 +855,20 @@ func evaluateSourceArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, condi
 	isPrivate := false
 
 	for _, conditionValue := range conditionValues {
-		if evaulatedOperator.category != "string" && evaulatedOperator.category != "arn" {
+		if evaluatedOperator.category != "string" && evaluatedOperator.category != "arn" {
 			continue
 		}
 
 		// value "*" means conditionAccount was invalid
 		var conditionAccount string
 
-		if evaulatedOperator.category == "arn" {
+		if evaluatedOperator.category == "arn" {
 			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
 			if conditionAccount == "" {
 				continue
 			}
-		} else if evaulatedOperator.category == "string" {
-			if evaulatedOperator.isLike {
+		} else if evaluatedOperator.category == "string" {
+			if evaluatedOperator.isLike {
 				conditionAccount = extractAccountFromArn(conditionValue)
 				if conditionAccount == "" {
 					conditionAccount = "*"
@@ -914,7 +917,7 @@ func evaluateSourceArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, condi
 }
 
 // TODO: We have a problem with the following code as it evaluates the Principal which is incorrect
-func evaluateTypeConditionForAPrincipalTypeArn(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaulatedOperator EvaluatedOperator) EvaluatedCondition {
+func evaluateTypeConditionForAPrincipalTypeArn(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaluatedOperator EvaluatedOperator) EvaluatedCondition {
 	processed := false
 	allowedPrincipalsAccountsSet := map[string]bool{}
 	allowedPrincipalsArnsSet := map[string]bool{}
@@ -924,19 +927,19 @@ func evaluateTypeConditionForAPrincipalTypeArn(evaluatedPrincipal EvaluatedPrinc
 	isPrivate := false
 
 	for _, conditionValue := range conditionValues {
-		if evaulatedOperator.category != "string" && evaulatedOperator.category != "arn" {
+		if evaluatedOperator.category != "string" && evaluatedOperator.category != "arn" {
 			continue
 		}
 
 		// value "*" means conditionAccount was invalid
 		var conditionAccount string
 
-		if evaulatedOperator.category == "arn" {
+		if evaluatedOperator.category == "arn" {
 			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
 			if conditionAccount == "" {
 				continue
 			}
-		} else if evaulatedOperator.category == "string" && !evaulatedOperator.isLike {
+		} else if evaluatedOperator.category == "string" && !evaluatedOperator.isLike {
 			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
 			if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") || conditionAccount == "" {
 				continue
@@ -989,12 +992,12 @@ func evaluateTypeConditionForAPrincipalTypeArn(evaluatedPrincipal EvaluatedPrinc
 
 		for principalAccount := range evaluatedPrincipal.allowedPrincipalsAccountsSet {
 			if accountPolicyValue.Contains(principalAccount) {
-				if evaulatedOperator.category == "arn" {
+				if evaluatedOperator.category == "arn" {
 					replacementArn := updateAccountInArn(conditionValue, principalAccount)
 					allowedPrincipalsArnsSet[replacementArn] = true
 				} else {
 					if conditionAccount == "*" {
-						if evaulatedOperator.category != "arn" {
+						if evaluatedOperator.category != "arn" {
 							allowedPrincipalsAccountsSet[principalAccount] = true
 						} else {
 							allowedPrincipalsAccountsSet[principalAccount] = true
@@ -1031,7 +1034,7 @@ func evaluateTypeConditionForAPrincipalTypeArn(evaluatedPrincipal EvaluatedPrinc
 	return evaluatedPrincipal.toEvaluatedCondition()
 }
 
-func evaluatePrincipalArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaulatedOperator EvaluatedOperator) EvaluatedCondition {
+func evaluatePrincipalArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaluatedOperator EvaluatedOperator) EvaluatedCondition {
 	processed := false
 	allowedPrincipalsAccountsSet := map[string]bool{}
 	allowedPrincipalsArnsSet := map[string]bool{}
@@ -1041,19 +1044,19 @@ func evaluatePrincipalArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, co
 	isPrivate := false
 
 	for _, conditionValue := range conditionValues {
-		if evaulatedOperator.category != "string" && evaulatedOperator.category != "arn" {
+		if evaluatedOperator.category != "string" && evaluatedOperator.category != "arn" {
 			continue
 		}
 
 		// value "*" means conditionAccount was invalid
 		var conditionAccount string
 
-		if evaulatedOperator.category == "arn" {
+		if evaluatedOperator.category == "arn" {
 			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
 			if conditionAccount == "" {
 				continue
 			}
-		} else if evaulatedOperator.category == "string" && !evaulatedOperator.isLike {
+		} else if evaluatedOperator.category == "string" && !evaluatedOperator.isLike {
 			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
 			if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") || conditionAccount == "" {
 				continue
@@ -1106,12 +1109,12 @@ func evaluatePrincipalArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, co
 
 		for principalAccount := range evaluatedPrincipal.allowedPrincipalsAccountsSet {
 			if accountPolicyValue.Contains(principalAccount) {
-				if evaulatedOperator.category == "arn" {
+				if evaluatedOperator.category == "arn" {
 					replacementArn := updateAccountInArn(conditionValue, principalAccount)
 					allowedPrincipalsArnsSet[replacementArn] = true
 				} else {
 					if conditionAccount == "*" {
-						if evaulatedOperator.category != "arn" {
+						if evaluatedOperator.category != "arn" {
 							allowedPrincipalsAccountsSet[principalAccount] = true
 						} else {
 							allowedPrincipalsAccountsSet[principalAccount] = true
@@ -1161,7 +1164,7 @@ func updateAccountInArn(arn string, account string) string {
 	return strings.Join(splitArn, ":")
 }
 
-func evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaulatedOperator EvaluatedOperator) EvaluatedCondition {
+func evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaluatedOperator EvaluatedOperator) EvaluatedCondition {
 	processed := false
 	allowedOrganizationIdsSet := map[string]bool{}
 	isPublic := evaluatedPrincipal.isAwsPublic || evaluatedPrincipal.isServicePublic || evaluatedPrincipal.isFederatedPublic
@@ -1169,12 +1172,12 @@ func evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal EvaluatedPrinci
 	isPrivate := false
 
 	for _, principal := range conditionValues {
-		if evaulatedOperator.category != "string" {
+		if evaluatedOperator.category != "string" {
 			continue
 		}
 
 		organization := principal
-		if evaulatedOperator.isLike {
+		if evaluatedOperator.isLike {
 			if organization == "*" {
 				allowedOrganizationIdsSet["o-*"] = true
 				// For aws:PrincipalOrgPaths - Leave here as reference
@@ -1255,7 +1258,7 @@ func evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal EvaluatedPrinci
 }
 
 // TODO: We have a problem with the following code as it evaluates the Principal which is incorrect
-func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaulatedOperator EvaluatedOperator) EvaluatedCondition {
+func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaluatedOperator EvaluatedOperator) EvaluatedCondition {
 	processed := false
 	allowedPrincipalsAccountsSet := map[string]bool{}
 	allowedPrincipalsArnsSet := map[string]bool{}
@@ -1264,13 +1267,15 @@ func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, c
 	isShared := evaluatedPrincipal.isFederatedShared
 	isPrivate := false
 
+	parsingError := false
+
 	if len(evaluatedPrincipal.allowedPrincipalServicesSet) > 0 {
 		for _, conditionValue := range conditionValues {
-			if evaulatedOperator.category != "string" {
+			if evaluatedOperator.category != "string" {
 				continue
 			}
 
-			if evaulatedOperator.isLike {
+			if evaluatedOperator.isLike {
 				// Sanity check the input first
 
 				// Regex to allow for account: ["222244446666", "22224444666?", "22224?446666", ...] and must be exactly 12
@@ -1278,6 +1283,7 @@ func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, c
 
 				// Not OK
 				if !(strings.Contains(conditionValue, "*") && len(conditionValue) <= 12) && !reAccountFormat.MatchString(conditionValue) {
+					parsingError = true
 					continue
 				}
 			} else {
@@ -1285,6 +1291,7 @@ func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, c
 				reAccountFormat := regexp.MustCompile(`^[0-9]{12}$`)
 				// Not OK
 				if !reAccountFormat.MatchString(conditionValue) {
+					parsingError = true
 					continue
 				}
 			}
@@ -1318,10 +1325,14 @@ func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, c
 		}
 	}
 
+	if parsingError {
+		return evaluatedPrincipal.toInvalidCondition()
+	}
+
 	return evaluatedPrincipal.toEvaluatedCondition()
 }
 
-func evaluatePrincipalAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaulatedOperator EvaluatedOperator) EvaluatedCondition {
+func evaluatePrincipalAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaluatedOperator EvaluatedOperator) EvaluatedCondition {
 	processed := false
 	allowedPrincipalsAccountsSet := map[string]bool{}
 	allowedPrincipalsArnsSet := map[string]bool{}
@@ -1331,11 +1342,11 @@ func evaluatePrincipalAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal
 	isPrivate := false
 
 	for _, conditionValue := range conditionValues {
-		if evaulatedOperator.category != "string" {
+		if evaluatedOperator.category != "string" {
 			continue
 		}
 
-		if evaulatedOperator.isLike {
+		if evaluatedOperator.isLike {
 			// Sanity check the input first
 
 			// Regex to allow for account: ["222244446666", "22224444666?", "22224?446666", ...] and must be exactly 12
@@ -1446,6 +1457,21 @@ type EvaluatedPrincipal struct {
 	userAccountId                          string
 }
 
+func (evaluatedPrincipal EvaluatedPrincipal) toInvalidCondition() EvaluatedCondition {
+	return EvaluatedCondition{
+		allowedOrganizationIdsSet:              map[string]bool{},
+		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
+		allowedPrincipalsAccountsSet:           map[string]bool{},
+		allowedPrincipalsArnsSet:               map[string]bool{},
+		allowedPrincipalServicesSet:            map[string]bool{},
+		referencedAccountsSet:                  map[string]bool{},
+		isPublic:                               false,
+		isShared:                               false,
+		isPrivate:                              false,
+		isServicePublic:                        false,
+	}
+}
+
 func (evaluatedPrincipal EvaluatedPrincipal) toEvaluatedCondition() EvaluatedCondition {
 	return EvaluatedCondition{
 		allowedOrganizationIdsSet:              evaluatedPrincipal.allowedOrganizationIdsSet,
@@ -1454,9 +1480,10 @@ func (evaluatedPrincipal EvaluatedPrincipal) toEvaluatedCondition() EvaluatedCon
 		allowedPrincipalsArnsSet:               evaluatedPrincipal.allowedPrincipalsArnsSet,
 		allowedPrincipalServicesSet:            evaluatedPrincipal.allowedPrincipalServicesSet,
 		referencedAccountsSet:                  map[string]bool{},
-		isPublic:                               evaluatedPrincipal.isAwsPublic || evaluatedPrincipal.isServicePublic || evaluatedPrincipal.isFederatedPublic,
+		isPublic:                               evaluatedPrincipal.isAwsPublic || evaluatedPrincipal.isFederatedPublic,
 		isShared:                               evaluatedPrincipal.isAwsShared || evaluatedPrincipal.isFederatedShared,
 		isPrivate:                              evaluatedPrincipal.isAwsPrivate,
+		isServicePublic:                        evaluatedPrincipal.isServicePublic,
 	}
 }
 
@@ -1502,7 +1529,7 @@ func evaluatePrincipal(principal Principal, conditions map[string]interface{}, u
 				} else {
 					// Malformed arn
 					continue
-					//return evaluatedPrincipal, fmt.Errorf("unabled to parse arn or account: %s", principalItem)
+					//return evaluatedPrincipal, fmt.Errorf("unable to parse arn or account: %s", principalItem)
 				}
 
 				if userAccountId != account {
