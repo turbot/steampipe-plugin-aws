@@ -1159,7 +1159,6 @@ func evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal EvaluatedPrinci
 	return evaluatedPrincipal.toEvaluatedCondition()
 }
 
-// TODO: We have a problem with the following code as it evaluates the Principal which is incorrect
 func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaluatedOperator EvaluatedOperator) EvaluatedCondition {
 	processed := false
 	allowedPrincipalsAccountsSet := map[string]bool{}
