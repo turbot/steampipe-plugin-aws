@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/inspector"
-
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -123,9 +123,11 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := InspectorService(ctx, d)
+
+	// Create Session
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_run.listInspectorAssessmentRuns", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -133,51 +135,54 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, nil
 	}
 
-	var assessmentRunArns []*string
-
-	input := &inspector.ListAssessmentRunsInput{
-		MaxResults: aws.Int64(500),
+	var assessmentRunArns []string
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
-	filter := &inspector.AssessmentRunFilter{}
+	input := &inspector.ListAssessmentRunsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	filter := &types.AssessmentRunFilter{}
 
 	if d.KeyColumnQuals["assessment_template_arn"].GetStringValue() != "" {
-		input.AssessmentTemplateArns = aws.StringSlice([]string{d.KeyColumnQuals["assessment_template_arn"].GetStringValue()})
+		input.AssessmentTemplateArns = []string{d.KeyColumnQuals["assessment_template_arn"].GetStringValue()}
 	}
 	if d.KeyColumnQuals["name"].GetStringValue() != "" {
 		filter.NamePattern = aws.String(d.KeyColumnQuals["name"].GetStringValue())
 	}
 	if d.KeyColumnQuals["state"].GetStringValue() != "" {
-		filter.States = aws.StringSlice([]string{d.KeyColumnQuals["state"].GetStringValue()})
+		filter.States = []types.AssessmentRunState{
+			types.AssessmentRunState(d.KeyColumnQuals["state"].GetStringValue()),
+		}
 	}
 
 	input.Filter = filter
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	paginator := inspector.NewListAssessmentRunsPaginator(svc, input, func(o *inspector.ListAssessmentRunsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.ListAssessmentRunsPages(
-		input,
-		func(page *inspector.ListAssessmentRunsOutput, isLast bool) bool {
-			if len(page.AssessmentRunArns) != 0 {
-				assessmentRunArns = append(assessmentRunArns, page.AssessmentRunArns...)
-			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listInspectorAssessmentRuns", "ListAssessmentRunsPages", err)
-		return nil, err
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_assessment_run.listInspectorAssessmentRuns", "api_error", err)
+			return nil, err
+		}
+		assessmentRunArns = append(assessmentRunArns, output.AssessmentRunArns...)
+
 	}
 
 	// check if there is any assessmentRunArn
@@ -189,7 +194,7 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 	arnLeft := true
 	for arnLeft {
 		// DescribeAssessmentRuns API can take maximum 10 arns at a time.
-		var arns []*string
+		var arns []string
 		if len(assessmentRunArns) > passedArns {
 			if (len(assessmentRunArns) - passedArns) >= 10 {
 				arns = assessmentRunArns[passedArns : passedArns+10]
@@ -206,8 +211,9 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 		}
 
 		// Get details for all available assessment runs
-		result, err := svc.DescribeAssessmentRuns(input)
+		result, err := svc.DescribeAssessmentRuns(ctx, input)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_assessment_run.listInspectorAssessmentRuns.DescribeAssessmentRuns", "api_error", err)
 			return nil, err
 		}
 

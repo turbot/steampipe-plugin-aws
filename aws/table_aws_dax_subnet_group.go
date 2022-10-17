@@ -77,7 +77,7 @@ func listDaxSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := DaxClient(ctx, d)
+	svc, err := DAXClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_dax_subnet_group.listSubnetGroups", "service_creation_error", err)
 		return nil, err

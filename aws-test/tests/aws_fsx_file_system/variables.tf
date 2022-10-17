@@ -40,17 +40,11 @@ data "aws_region" "alternate" {
   provider = aws.alternate
 }
 
-data "null_data_source" "resource" {
-  inputs = {
-    scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
-  }
-}
-
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
 }
 resource "aws_subnet" "my_subnet" {
-  vpc_id     = "${aws_vpc.my_vpc.id}"
+  vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.0.1.0/24"
 }
 
@@ -64,24 +58,13 @@ resource "aws_fsx_lustre_file_system" "named_test_resource" {
   }
 }
 
-data "template_file" "resource_aka" {
-  template = "arn:$${partition}:fsx:$${region}:$${account_id}:file-system/${aws_fsx_lustre_file_system.named_test_resource.id}"
-  vars = {
-    resource_name    = var.resource_name
-    partition        = data.aws_partition.current.partition
-    account_id       = data.aws_caller_identity.current.account_id
-    region           = data.aws_region.primary.name
-    alternate_region = data.aws_region.alternate.name
-  }
-}
-
 output "resource_name" {
   value = var.resource_name
 }
 
 output "resource_aka" {
   depends_on = [aws_fsx_lustre_file_system.named_test_resource]
-  value      = data.template_file.resource_aka.rendered
+  value      = "arn:${data.aws_partition.current.partition}:fsx:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:file-system/${aws_fsx_lustre_file_system.named_test_resource.id}"
 }
 
 output "resource_id" {
