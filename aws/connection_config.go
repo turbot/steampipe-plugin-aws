@@ -67,7 +67,7 @@ func GetConfig(connection *plugin.Connection) awsConfig {
 	config, _ := connection.Config.(awsConfig)
 
 	// Setting "regions = []" in the connection config is not valid
-	if len(config.Regions) == 0 {
+	if config.Regions != nil && len(config.Regions) == 0 {
 		errorMessage := fmt.Sprintf("\nconnection %s has invalid value for \"regions\", it must contain at least 1 region.", connection.Name)
 		panic(errorMessage)
 	}

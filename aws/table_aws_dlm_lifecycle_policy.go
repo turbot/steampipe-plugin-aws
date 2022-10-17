@@ -6,8 +6,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dlm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dlm"
+	"github.com/aws/aws-sdk-go-v2/service/dlm/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -20,6 +21,9 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("policy_id"),
 			Hydrate:    getDLMLifecyclePolicy,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFound"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDLMLifecyclePolicies,
@@ -113,15 +117,19 @@ func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := DLMService(ctx, d)
+	svc, err := DLMClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "service_connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &dlm.GetLifecyclePoliciesInput{}
 
-	policies, err := svc.GetLifecyclePolicies(input)
+	policies, err := svc.GetLifecyclePolicies(ctx, input)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "list_api_error", err)
 		return nil, err
@@ -160,17 +168,21 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create service
-	svc, err := DLMService(ctx, d)
+	svc, err := DLMClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "service_connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dlm.GetLifecyclePolicyInput{
 		PolicyId: aws.String(id),
 	}
 
-	op, err := svc.GetLifecyclePolicy(params)
+	op, err := svc.GetLifecyclePolicy(ctx, params)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "get_api_error", err)
 		return nil, err
@@ -180,9 +192,9 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func policyId(item interface{}) *string {
 	switch item := item.(type) {
-	case *dlm.LifecyclePolicy:
+	case *types.LifecyclePolicy:
 		return item.PolicyId
-	case *dlm.LifecyclePolicySummary:
+	case types.LifecyclePolicySummary:
 		return item.PolicyId
 	}
 	return nil
