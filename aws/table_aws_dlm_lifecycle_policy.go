@@ -122,6 +122,10 @@ func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "service_connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &dlm.GetLifecyclePoliciesInput{}
 
@@ -168,6 +172,10 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "service_connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dlm.GetLifecyclePolicyInput{

@@ -209,6 +209,11 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Build params
 	params := &lambda.GetAliasInput{
 		FunctionName: aws.String(functionName),
@@ -233,6 +238,12 @@ func getLambdaAliasPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaAliasPolicy", "connection_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	qualifier := getAliasQualifier(h.Item)
 
 	input := &lambda.GetPolicyInput{
@@ -265,6 +276,12 @@ func getLambdaAliasUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin
 		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaAliasUrlConfig", "connection_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	qualifier := getAliasQualifier(h.Item)
 	input := &lambda.GetFunctionUrlConfigInput{
 		FunctionName: alias.FunctionName,

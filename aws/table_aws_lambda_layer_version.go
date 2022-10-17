@@ -141,6 +141,11 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	equalQuals := d.KeyColumnQuals
 	// Minimize the API call with the given layer name
 	if equalQuals["layer_name"] != nil {
@@ -254,6 +259,11 @@ func getLambdaLayerVersion(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Build the params
 	params := &lambda.GetLayerVersionInput{
 		LayerName:     aws.String(layerName),
@@ -287,6 +297,11 @@ func getLambdaLayerVersionPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_lambda_layer_version.getLambdaLayerVersionPolicy", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params

@@ -240,22 +240,27 @@ func unique(stringSlice []string) []string {
 	return list
 }
 
-func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, serviceId string) []string {
+func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, serviceId string) ([]string, error) {
 	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]string)
+		return cachedData.([]string), nil
 	}
 
 	var validRegions []string
-	regions := endpoints.AwsPartition().Services()[serviceId].Regions()
+	services := endpoints.AwsPartition().Services()
+	serviceInfo, ok := services[serviceId]
+	if !ok {
+		return nil, fmt.Errorf("SupportedRegionsForService called with invalid service ID: " + serviceId)
+	}
+
+	regions := serviceInfo.Regions()
 	for rs := range regions {
 		validRegions = append(validRegions, rs)
 	}
 
 	// set cache
 	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
-
-	return validRegions
+	return validRegions, nil
 }
 
 // BuildServiceQuotasServicesRegionList :: return a list of matrix items, one per region-services specified in the connection config

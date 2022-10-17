@@ -186,6 +186,10 @@ func listElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, 
 		plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.listElasticBeanstalkEnvironments", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	pagesLeft := true
 	params := &elasticbeanstalk.DescribeEnvironmentsInput{
@@ -247,6 +251,10 @@ func getElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData, h 
 		plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.getElasticBeanstalkEnvironment", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	var name string
 	if h.Item != nil {
@@ -287,6 +295,10 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.listElasticBeanstalkEnvironmentTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param
