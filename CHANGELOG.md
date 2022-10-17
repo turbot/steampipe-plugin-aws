@@ -1,3 +1,34 @@
+## v0.79.0 [2022-10-14]
+
+_Enhancements_
+
+- Updated 70+ tables to use [AWS SDK Go v2](https://github.com/aws/aws-sdk-go-v2). ([#1324](https://github.com/turbot/steampipe-plugin-aws/pull/1324))
+- Added `managed_actions` column to `aws_elastic_beanstalk_environment` table. ([#996](https://github.com/turbot/steampipe-plugin-aws/pull/996))
+- Added the following columns to the `aws_ec2_intance`table:
+  - `ami_launch_index`
+  - `architecture`
+  - `boot_mode`
+  - `capacity_reservation_id`
+  - `capacity_reservation_specification`
+  - `client_token`
+  - `ena_support`
+  - `enclave_options`
+  - `hibernation_options`
+  - `platform`
+  - `platform_details`
+  - `private_dns_name_options`
+  - `state_transition_reason`
+  - `tpm_support`
+  - `usage_operation`
+  - `usage_operation_update_time`
+
+_Bug fixes_
+
+- Removed duplicate values in `inline_policies` column in `aws_iam_role` and `aws_iam_user` tables. ([#1346](https://github.com/turbot/steampipe-plugin-aws/pull/1346))
+- Fixed queries failing for the `aws_acm_certificate` table when querying the `title` column. ([#1351](https://github.com/turbot/steampipe-plugin-aws/pull/1351))
+- Fixed empty check for `regions` config arg incorrectly failing when at least 1 other config arg is set. ([#1349](https://github.com/turbot/steampipe-plugin-aws/pull/1349))
+- Fixed queries that specify `service_name` for the `aws_ecs_task` table returning no rows if an unqualified query was run first. ([#1338](https://github.com/turbot/steampipe-plugin-aws/pull/1338))
+
 ## v0.78.0 [2022-09-23]
 
 _What's new?_

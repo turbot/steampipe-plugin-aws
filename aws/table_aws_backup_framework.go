@@ -117,19 +117,15 @@ func getNumberOfControls(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// LIST FUNCTION
 
 func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// AWS Backup service is available in all regions. However, the AWS Backup audit manager, which is newly introduced under the Backup service, is not supported in all regions.
-	// Due to this reason, we could not put a check based on the service endpoint and had to check the region code directly.
-	// https://aws.amazon.com/about-aws/whats-new/2022/05/aws-backup-audit-manager-adds-amazon-s3-storage-gateway/#:~:text=AWS%20Backup%20Audit%20Manager%20is,Middle%20East%20(Bahrain)%20Regions.
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "ap-northeast-3" {
-		return nil, nil
-	}
-
 	// Create session
 	svc, err := BackupClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworks", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -192,6 +188,10 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		plugin.Logger(ctx).Error("aws_backup_framework.getAwsBackupFramework", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	var name string
 	if h.Item != nil {
@@ -231,6 +231,10 @@ func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworkTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var arn *string

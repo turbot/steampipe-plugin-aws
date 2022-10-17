@@ -77,6 +77,10 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.listDomainNames", "service_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(500)
@@ -132,6 +136,10 @@ func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.getDomainName", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	domainName := d.KeyColumnQuals["domain_name"].GetStringValue()

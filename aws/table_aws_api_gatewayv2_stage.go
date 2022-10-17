@@ -169,6 +169,10 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.listAPIGatewayV2Stages", "service_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(500)
@@ -226,6 +230,10 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	stageName := d.KeyColumnQuals["stage_name"].GetStringValue()

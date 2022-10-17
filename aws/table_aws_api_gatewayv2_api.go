@@ -104,6 +104,10 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		logger.Error("aws_api_gatewayv2_api.listAPIGatewayV2API", "connection error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(500)
@@ -159,6 +163,10 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_api.getAPIGatewayV2API", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	id := d.KeyColumnQuals["api_id"].GetStringValue()
