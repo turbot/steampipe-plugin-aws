@@ -183,14 +183,6 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 	return autoscaling.NewFromConfig(*cfg), nil
 }
 
-func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return backup.NewFromConfig(*cfg), nil
-}
-
 func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {
 	// CloudControl returns GeneralServiceException in a lot of situations, which
 	// AWS SDK treats as retryable. This is frustrating because we end up retrying
