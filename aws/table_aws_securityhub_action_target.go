@@ -25,6 +25,9 @@ func tableAwsSecurityHubActionTarget(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubActionTargets,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -100,7 +103,8 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
+			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
+			if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_securityhub_action_target.go.listSecurityHubActionTargets", "api_error", err)

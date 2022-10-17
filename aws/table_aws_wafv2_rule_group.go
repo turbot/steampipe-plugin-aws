@@ -185,6 +185,7 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	for pagesLeft {
 		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
+			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 			if strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
@@ -275,6 +276,7 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	op, err := svc.GetRuleGroup(ctx, params)
 	if err != nil {
+		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 		if strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}

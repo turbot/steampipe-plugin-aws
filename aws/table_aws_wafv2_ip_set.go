@@ -174,6 +174,7 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	for pagesLeft {
 		response, err := svc.ListIPSets(ctx, params)
 		if err != nil {
+			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 			if strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
@@ -262,6 +263,7 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	op, err := svc.GetIPSet(ctx, params)
 	if err != nil {
+		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 		if strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}

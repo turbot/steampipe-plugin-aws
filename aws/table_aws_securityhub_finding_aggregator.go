@@ -153,6 +153,7 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 	// Get call
 	op, err := svc.GetFindingAggregator(ctx, params)
 	if err != nil {
+		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 		if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}

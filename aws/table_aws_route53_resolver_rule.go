@@ -187,6 +187,7 @@ func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *pl
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 			if strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
@@ -228,6 +229,7 @@ func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plug
 	// Get call
 	data, err := svc.GetResolverRule(ctx, params)
 	if err != nil {
+		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 		if strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}

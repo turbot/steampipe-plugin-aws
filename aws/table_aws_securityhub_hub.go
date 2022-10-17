@@ -88,6 +88,7 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	// List call
 	resp, err := svc.DescribeHub(ctx, &securityhub.DescribeHubInput{})
 	if err != nil {
+		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") || strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}
@@ -121,6 +122,7 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Execute get call
 	data, err := svc.DescribeHub(ctx, params)
 	if err != nil {
+		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") || strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}

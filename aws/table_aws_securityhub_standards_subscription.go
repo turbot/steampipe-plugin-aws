@@ -124,6 +124,7 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 			if strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
@@ -166,7 +167,8 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.GetEnabledStandards", "api_error", err)
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if ae.ErrorCode() == "InvalidAccessException" {
+			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
+			if ae.ErrorCode() == "InvalidAccessException" || strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
 		}

@@ -170,6 +170,7 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 	for pagesLeft {
 		response, err := svc.ListRegexPatternSets(ctx, params)
 		if err != nil {
+			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 			if strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
@@ -259,6 +260,7 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 
 	op, err := svc.GetRegexPatternSet(ctx, params)
 	if err != nil {
+		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
 		if strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}
