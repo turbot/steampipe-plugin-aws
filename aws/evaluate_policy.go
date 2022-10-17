@@ -140,7 +140,7 @@ func (evaluatedStatement *EvaluatedStatement) ApplyDenyStatement(denyStatement E
 	}
 
 	if denyStatement.principalType == "account" && evaluatedStatement.principalType == "arn" {
-		account := extractAccountInPlaceFromArn(evaluatedStatement.principal)
+		account, _ := extractAccountInPlaceFromArn(evaluatedStatement.principal)
 
 		if account == denyStatement.principal {
 			evaluatedStatement.availablePermissions.RemovePermissions(denyStatement.availablePermissions)
@@ -619,9 +619,11 @@ func generateStatementsSummary(statements []EvaluatedStatement, allAvailablePerm
 		case "organization":
 			statementsSummary.allowedOrganizationIdsSet[reducedStatement.principal] = true
 		case "arn":
-			account := extractAccountFromArn(reducedStatement.principal)
+			account, _ := extractAccountFromArn(reducedStatement.principal)
+			if account != "" {
+				statementsSummary.allowedPrincipalAccountIdsSet[account] = true
+			}
 			statementsSummary.allowedPrincipalsSet[reducedStatement.principal] = true
-			statementsSummary.allowedPrincipalAccountIdsSet[account] = true
 		case "ref_account":
 			statementsSummary.allowedPrincipalAccountIdsSet[reducedStatement.principal] = true
 		case "account":
@@ -829,7 +831,6 @@ func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map
 				partialEvaluatedCondition := evaluatePrincipalArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
-			// TODO: Broken
 			case "aws:sourcearn":
 				partialEvaluatedCondition := evaluateSourceArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaluatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
@@ -853,40 +854,46 @@ func evaluateSourceArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, condi
 	isPublic := evaluatedPrincipal.isFederatedPublic
 	isShared := evaluatedPrincipal.isFederatedShared
 	isPrivate := false
+	parsingError := false
 
 	for _, conditionValue := range conditionValues {
 		if evaluatedOperator.category != "string" && evaluatedOperator.category != "arn" {
 			continue
 		}
 
-		// value "*" means conditionAccount was invalid
-		var conditionAccount string
+		conditionAccount := ""
+		globalResource := false
 
 		if evaluatedOperator.category == "arn" {
-			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
-			if conditionAccount == "" {
+			conditionAccount, globalResource = extractAccountInPlaceFromArn(conditionValue)
+			if !globalResource && conditionAccount == "" {
+				parsingError = true
 				continue
 			}
 		} else if evaluatedOperator.category == "string" {
 			if evaluatedOperator.isLike {
-				conditionAccount = extractAccountFromArn(conditionValue)
-				if conditionAccount == "" {
+				conditionAccount, globalResource = extractAccountFromArn(conditionValue)
+				if !globalResource && conditionAccount == "" {
 					conditionAccount = "*"
 				}
-			} else if !strings.Contains(conditionValue, "*") || !strings.Contains(conditionValue, "?") {
+			} else if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") {
+				parsingError = true
 				continue
 			} else {
-				conditionAccount = extractAccountInPlaceFromArn(conditionValue)
-				if conditionAccount == "" {
+				conditionAccount, globalResource = extractAccountInPlaceFromArn(conditionValue)
+				if !globalResource && conditionAccount == "" {
+					parsingError = true
 					continue
 				}
 			}
 		}
 
-		referencedAccountsSet[conditionAccount] = true
+		if conditionAccount != "" {
+			referencedAccountsSet[conditionAccount] = true
+		}
 		allowedPrincipalsArnsSet[conditionValue] = true
 
-		if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") {
+		if strings.Contains(conditionAccount, "*") || strings.Contains(conditionAccount, "?") {
 			isPublic = true
 		} else {
 			if conditionAccount != evaluatedPrincipal.userAccountId {
@@ -913,122 +920,8 @@ func evaluateSourceArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, condi
 		}
 	}
 
-	return evaluatedPrincipal.toEvaluatedCondition()
-}
-
-// TODO: We have a problem with the following code as it evaluates the Principal which is incorrect
-func evaluateTypeConditionForAPrincipalTypeArn(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaluatedOperator EvaluatedOperator) EvaluatedCondition {
-	processed := false
-	allowedPrincipalsAccountsSet := map[string]bool{}
-	allowedPrincipalsArnsSet := map[string]bool{}
-
-	isPublic := evaluatedPrincipal.isAwsPublic || evaluatedPrincipal.isServicePublic || evaluatedPrincipal.isFederatedPublic
-	isShared := evaluatedPrincipal.isFederatedShared
-	isPrivate := false
-
-	for _, conditionValue := range conditionValues {
-		if evaluatedOperator.category != "string" && evaluatedOperator.category != "arn" {
-			continue
-		}
-
-		// value "*" means conditionAccount was invalid
-		var conditionAccount string
-
-		if evaluatedOperator.category == "arn" {
-			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
-			if conditionAccount == "" {
-				continue
-			}
-		} else if evaluatedOperator.category == "string" && !evaluatedOperator.isLike {
-			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
-			if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") || conditionAccount == "" {
-				continue
-			}
-		} else {
-			conditionAccount = extractAccountFromArn(conditionValue)
-			if conditionAccount == "" {
-				conditionAccount = "*"
-			}
-		}
-
-		processed = true
-
-		conditionPolicyValue := MakePolicyValue(conditionValue)
-
-		// Simple direct comparison here
-		for principalArns := range evaluatedPrincipal.allowedPrincipalsArnsSet {
-			if principalArns == "*" {
-				principalPolicyValue := MakePolicyValue("*")
-				resolved := principalPolicyValue.Intersection(conditionPolicyValue)
-
-				allowedPrincipalsArnsSet[resolved] = true
-				if resolved == "*" || strings.Contains(conditionAccount, "*") || strings.Contains(conditionAccount, "?") {
-					isPublic = true
-					continue
-				}
-
-				isPublic = false
-				if conditionAccount != evaluatedPrincipal.userAccountId {
-					isShared = true
-				} else {
-					isPrivate = true
-				}
-			} else if conditionPolicyValue.Contains(principalArns) {
-				if !conditionPolicyValue.Contains(principalArns) {
-					continue
-				}
-				allowedPrincipalsArnsSet[principalArns] = true
-
-				principalAccount := extractAccountFromArn(principalArns)
-				if principalAccount != evaluatedPrincipal.userAccountId {
-					isShared = true
-				} else {
-					isPrivate = true
-				}
-			}
-		}
-
-		accountPolicyValue := MakePolicyValue(conditionAccount)
-
-		for principalAccount := range evaluatedPrincipal.allowedPrincipalsAccountsSet {
-			if accountPolicyValue.Contains(principalAccount) {
-				if evaluatedOperator.category == "arn" {
-					replacementArn := updateAccountInArn(conditionValue, principalAccount)
-					allowedPrincipalsArnsSet[replacementArn] = true
-				} else {
-					if conditionAccount == "*" {
-						if evaluatedOperator.category != "arn" {
-							allowedPrincipalsAccountsSet[principalAccount] = true
-						} else {
-							allowedPrincipalsAccountsSet[principalAccount] = true
-						}
-					} else {
-						resolved := strings.Replace(conditionValue, conditionAccount, principalAccount, 1)
-
-						allowedPrincipalsArnsSet[resolved] = true
-					}
-				}
-
-				if principalAccount != evaluatedPrincipal.userAccountId {
-					isShared = true
-				} else {
-					isPrivate = true
-				}
-			}
-		}
-	}
-
-	if processed {
-		return EvaluatedCondition{
-			allowedOrganizationIdsSet:              evaluatedPrincipal.allowedOrganizationIdsSet,
-			allowedPrincipalFederatedIdentitiesSet: evaluatedPrincipal.allowedPrincipalFederatedIdentitiesSet,
-			allowedPrincipalsAccountsSet:           allowedPrincipalsAccountsSet,
-			allowedPrincipalsArnsSet:               allowedPrincipalsArnsSet,
-			allowedPrincipalServicesSet:            evaluatedPrincipal.allowedPrincipalServicesSet,
-			isPublic:                               isPublic,
-			isShared:                               isShared,
-			isPrivate:                              isPrivate,
-		}
+	if parsingError {
+		return evaluatedPrincipal.toInvalidCondition()
 	}
 
 	return evaluatedPrincipal.toEvaluatedCondition()
@@ -1048,21 +941,20 @@ func evaluatePrincipalArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, co
 			continue
 		}
 
-		// value "*" means conditionAccount was invalid
 		var conditionAccount string
 
 		if evaluatedOperator.category == "arn" {
-			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
+			conditionAccount, _ = extractAccountInPlaceFromArn(conditionValue)
 			if conditionAccount == "" {
 				continue
 			}
 		} else if evaluatedOperator.category == "string" && !evaluatedOperator.isLike {
-			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
+			conditionAccount, _ = extractAccountInPlaceFromArn(conditionValue)
 			if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") || conditionAccount == "" {
 				continue
 			}
 		} else {
-			conditionAccount = extractAccountFromArn(conditionValue)
+			conditionAccount, _ = extractAccountFromArn(conditionValue)
 			if conditionAccount == "" {
 				conditionAccount = "*"
 			}
@@ -1096,7 +988,11 @@ func evaluatePrincipalArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, co
 				}
 				allowedPrincipalsArnsSet[principalArns] = true
 
-				principalAccount := extractAccountFromArn(principalArns)
+				principalAccount, _ := extractAccountFromArn(principalArns)
+				if principalAccount == "" {
+					principalAccount = "*"
+				}
+
 				if principalAccount != evaluatedPrincipal.userAccountId {
 					isShared = true
 				} else {
@@ -1394,7 +1290,10 @@ func evaluatePrincipalAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal
 					isPrivate = true
 				}
 			} else {
-				account := extractAccountFromArn(principalArns)
+				account, _ := extractAccountFromArn(principalArns)
+				if account == "" {
+					account = "*"
+				}
 				if !conditionPolicyValue.Contains(account) {
 					continue
 				}
@@ -1638,20 +1537,29 @@ func setToSortedSlice(set map[string]bool) []string {
 	return slice
 }
 
-func extractAccountInPlaceFromArn(arn string) string {
+func extractAccountInPlaceFromArn(arn string) (string, bool) {
 	splitArn := strings.Split(arn, ":")
 
 	// There should always be an account
 	if len(splitArn) < 6 {
-		return ""
+		return "", false
 	}
 
-	return extractAccount(splitArn[4])
+	if splitArn[4] == "" {
+		return extractAccount(splitArn[4]), true
+	}
+
+	return extractAccount(splitArn[4]), false
 }
 
-func extractAccountFromArn(arn string) string {
+func extractAccountFromArn(arn string) (string, bool) {
+	reIsGlobalResource := regexp.MustCompile(`^.*:.*:.*:.*::.*$`)
 	reIsAwsResourceOrWildcard := regexp.MustCompile(`^.*:([0-9\?\*]{1,12}):.*$`)
 	reIsAwsResource := regexp.MustCompile(`^arn:[a-z]*:[a-z]*:[a-z]*:([0-9]{12}):.*$`)
+
+	if reIsGlobalResource.MatchString(arn) {
+		return "", true
+	}
 
 	if reIsAwsResourceOrWildcard.MatchString(arn) {
 		var accountCheck string
@@ -1663,10 +1571,10 @@ func extractAccountFromArn(arn string) string {
 			accountCheck = arnAccount[1]
 		}
 
-		return extractAccount(accountCheck)
+		return extractAccount(accountCheck), false
 	}
 
-	return "*"
+	return "*", false
 }
 
 func extractAccount(account string) string {
