@@ -415,6 +415,7 @@ func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	userData, err := svc.ListUserPolicies(ctx, params)
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_user.listAwsIamUserInlinePolicies", "api_error", err)
 		return nil, err
@@ -425,7 +426,7 @@ func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	errorCh := make(chan error, len(userData.PolicyNames))
 	for _, policy := range userData.PolicyNames {
 		wg.Add(1)
-		go getUserPolicyDataAsync(ctx, &policy, user.UserName, svc, &wg, policyCh, errorCh)
+		go getUserPolicyDataAsync(ctx, aws.String(policy), user.UserName, svc, &wg, policyCh, errorCh)
 	}
 
 	// wait for all inline policies to be processed

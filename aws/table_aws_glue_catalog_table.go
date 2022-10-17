@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/glue"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/glue"
+	"github.com/aws/aws-sdk-go-v2/service/glue/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -152,14 +153,18 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 
 func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Info("aws_glue_catalog_table.listGlueCatalogTables")
-	database := h.Item.(*glue.Database)
+	database := h.Item.(types.Database)
 
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_glue_catalog_table.listGlueCatalogTables", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	if d.KeyColumnQualString("catalog_id") != "" && *database.CatalogId != d.KeyColumnQualString("catalog_id") {
@@ -169,47 +174,54 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, nil
 	}
 
-	input := &glue.GetTablesInput{
-		MaxResults:   aws.Int64(100),
-		DatabaseName: database.Name,
-		CatalogId:    database.CatalogId,
-	}
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
+	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
-
+	input := &glue.GetTablesInput{
+		MaxResults:   aws.Int32(maxLimit),
+		DatabaseName: database.Name,
+		CatalogId:    database.CatalogId,
+	}
 	// List call
-	err = svc.GetTablesPages(
-		input,
-		func(page *glue.GetTablesOutput, isLast bool) bool {
-			for _, table := range page.TableList {
-				d.StreamListItem(ctx, table)
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["catalog_id"] != nil {
+		input.CatalogId = aws.String(equalQuals["catalog_id"].GetStringValue())
+	}
+	paginator := glue.NewGetTablesPaginator(svc, input, func(o *glue.GetTablesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_glue_catalog_table.listGlueCatalogTables", "api_error", err)
+			return nil, err
+		}
+		for _, table := range output.TableList {
+			d.StreamListItem(ctx, table)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlueCatalogTable")
-
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	databaseName := d.KeyColumnQuals["database_name"].GetStringValue()
 
@@ -219,9 +231,15 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_table.getGlueCatalogTable", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -231,23 +249,23 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	// Get call
-	data, err := svc.GetTable(params)
+	data, err := svc.GetTable(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getGlueCatalogTable", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_glue_catalog_table.getGlueCatalogTable", "api_error", err)
 		return nil, err
 	}
-	return data.Table, nil
+	return *data.Table, nil
 }
 
 func getGlueCatalogTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlueCatalogTableAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	data := h.Item.(*glue.TableData)
+	data := h.Item.(types.Table)
 
 	// Get common columns
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_table.getGlueCatalogTableAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
