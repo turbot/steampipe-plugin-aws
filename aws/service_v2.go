@@ -602,6 +602,7 @@ func OpenSearchClient(ctx context.Context, d *plugin.QueryData) (*opensearch.Cli
 	if err != nil {
 		return nil, err
 	}
+	return opensearch.NewFromConfig(*cfg), nil
 }
 
 func RedshiftClient(ctx context.Context, d *plugin.QueryData) (*redshift.Client, error) {
