@@ -98,7 +98,6 @@ resource "aws_sagemaker_model" "named_test_resource" {
     image_config {
       repository_access_mode = "Vpc"
     }
-    # image = aws_ecr_repository.named_test_resource.repository_url
     image = "public.ecr.aws/nginx/nginx:1-alpine-perl"
   }
 
