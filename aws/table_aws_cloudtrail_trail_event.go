@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -24,6 +24,9 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate:    listCloudwatchLogTrailEvents,
 			KeyColumns: tableAwsCloudtrailEventsListKeyColumns(),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -224,30 +227,36 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail_event.listCloudwatchLogTrailEvents", "connection_error", err)
 		return nil, err
 	}
 
 	equalQuals := d.KeyColumnQuals
 	// quals := d.Quals
 
-	input := cloudwatchlogs.FilterLogEventsInput{
-		LogGroupName: aws.String(equalQuals["log_group_name"].GetStringValue()),
-		// Default to the maximum allowed
-		Limit: aws.Int64(10000),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(10000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			input.Limit = limit
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
 		}
 	}
 
+	input := &cloudwatchlogs.FilterLogEventsInput{
+		LogGroupName: aws.String(equalQuals["log_group_name"].GetStringValue()),
+		// Default to the maximum allowed
+		Limit: aws.Int32(maxLimit),
+	}
+
 	if equalQuals["log_stream_name"] != nil {
-		input.LogStreamNames = []*string{aws.String(equalQuals["log_stream_name"].GetStringValue())}
+		input.LogStreamNames = []string{equalQuals["log_stream_name"].GetStringValue()}
 	}
 
 	queryFilter := ""
@@ -281,43 +290,33 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 		}
 	}
 
-	if input.FilterPattern != nil {
-		plugin.Logger(ctx).Debug("aws_cloudtrail_trail_event.listCloudwatchLogTrailEvents", "region", d.KeyColumnQualString(matrixKeyRegion), "filter query", *input.FilterPattern)
-	}
+	paginator := cloudwatchlogs.NewFilterLogEventsPaginator(svc, input, func(o *cloudwatchlogs.FilterLogEventsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudtrail_trail_event.listCloudwatchLogTrailEvents", "api_error", err)
+			return nil, err
+		}
 
-	err = svc.FilterLogEventsPages(
-		&input,
-		func(page *cloudwatchlogs.FilterLogEventsOutput, _ bool) bool {
-			for _, logEvent := range page.Events {
-				d.StreamListItem(ctx, logEvent)
+		for _, items := range output.Events {
+			d.StreamListItem(ctx, items)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			// Abort if we've been cancelled, which probably means we've reached the requested limit
-			select {
-			case <-ctx.Done():
-				return false
-			default:
-				return true
-			}
-		},
-	)
-
-	// Handle log group not found errors gracefully
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == "ResourceNotFoundException" {
-			return nil, nil
 		}
 	}
 
 	return nil, err
 }
 
-func getCloudtrailMessageField(_ context.Context, _ *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	e := h.Item.(*cloudwatchlogs.FilteredLogEvent)
+func getCloudtrailMessageField(ctx context.Context, _ *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	e := h.Item.(types.FilteredLogEvent)
 	cte := cloudtrailEvent{}
 	err := json.Unmarshal([]byte(*e.Message), &cte)
 	if err != nil {

@@ -46,6 +46,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12
+	github.com/aws/aws-sdk-go-v2/service/emr v1.20.11
 	github.com/aws/aws-sdk-go-v2/service/firehose v1.14.19
 	github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14
 	github.com/aws/aws-sdk-go-v2/service/glacier v1.13.17
@@ -59,7 +60,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.24.6
 	github.com/aws/aws-sdk-go-v2/service/macie2 v1.23.4
+	github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17
 	github.com/aws/aws-sdk-go-v2/service/neptune v1.17.12
+	github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0
 	github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8
@@ -72,11 +75,16 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.16.2
+	github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository v1.11.17
 	github.com/aws/aws-sdk-go-v2/service/ses v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.14.1
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
+	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.15.11
 	github.com/aws/aws-sdk-go-v2/service/waf v1.11.17
+	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.16.11
+	github.com/aws/aws-sdk-go-v2/service/workspaces v1.23.0
 	github.com/aws/smithy-go v1.13.3
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2

@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -21,7 +21,7 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "region_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValue"}),
 			},
 			Hydrate: getAwsAvailabilityZone,
 		},
@@ -107,7 +107,6 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 
 func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := h.Item.(types.Region)
-	plugin.Logger(ctx).Trace("getAwsAvailabilityZone", "region", *region.RegionName)
 
 	// If a region is not opted-in, we cannot list the availability zones
 	if *region.OptInStatus == "not-opted-in" {
@@ -115,17 +114,18 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, *region.RegionName)
+	svc, err := Ec2RegionsClient(ctx, d, *region.RegionName)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_availability_zone.listAwsAvailabilityZones", "connection_error", err)
 		return nil, err
 	}
 
 	input := &ec2.DescribeAvailabilityZonesInput{
 		AllAvailabilityZones: aws.Bool(true),
-		Filters: []*ec2.Filter{
+		Filters: []types.Filter{
 			{
 				Name:   aws.String("region-name"),
-				Values: []*string{region.RegionName},
+				Values: []string{*region.RegionName},
 			},
 		},
 	}
@@ -133,16 +133,16 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["zone_id"] != nil {
-		input.ZoneIds = []*string{aws.String(equalQuals["zone_id"].GetStringValue())}
+		input.ZoneIds = []string{equalQuals["zone_id"].GetStringValue()}
 	}
 	if equalQuals["name"] != nil {
-		input.ZoneNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+		input.ZoneNames = []string{equalQuals["name"].GetStringValue()}
 	}
 
 	// execute list call
-	resp, err := svc.DescribeAvailabilityZones(input)
+	resp, err := svc.DescribeAvailabilityZones(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("getAwsAvailabilityZone", "region", *region.RegionName, "DescribeAvailabilityZones error", err)
+		plugin.Logger(ctx).Error("aws_availability_zone.listAwsAvailabilityZones", "api_error", err)
 		return nil, err
 	}
 
@@ -165,19 +165,21 @@ func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	regionName := d.KeyColumnQuals["region_name"].GetStringValue()
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, regionName)
+	svc, err := Ec2RegionsClient(ctx, d, regionName)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_availability_zone.getAwsAvailabilityZone", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeAvailabilityZonesInput{
 		AllAvailabilityZones: aws.Bool(true),
-		ZoneNames:            []*string{&name},
+		ZoneNames:            []string{name},
 	}
 
 	// execute list call
-	op, err := svc.DescribeAvailabilityZones(params)
+	op, err := svc.DescribeAvailabilityZones(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_availability_zone.getAwsAvailabilityZone", "api_error", err)
 		return nil, err
 	}
 
@@ -189,8 +191,7 @@ func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func getAwsAvailabilityZoneAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAvailabilityZoneAkas")
-	zone := h.Item.(*ec2.AvailabilityZone)
+	zone := h.Item.(types.AvailabilityZone)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
