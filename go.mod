@@ -10,9 +10,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/account v1.7.8
 	github.com/aws/aws-sdk-go-v2/service/acm v1.14.8
+	github.com/aws/aws-sdk-go-v2/service/amplify v1.11.18
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.15.10
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.12.8
 	github.com/aws/aws-sdk-go-v2/service/appconfig v1.13.7
+	github.com/aws/aws-sdk-go-v2/service/applicationautoscaling v1.15.18
 	github.com/aws/aws-sdk-go-v2/service/auditmanager v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.10
 	github.com/aws/aws-sdk-go-v2/service/backup v1.17.5
@@ -38,6 +40,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.15
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.19
 	github.com/aws/aws-sdk-go-v2/service/efs v1.17.15
+	github.com/aws/aws-sdk-go-v2/service/eks v1.22.1
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.22.10
 	github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12
@@ -54,6 +57,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.12.14
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.24.6
+	github.com/aws/aws-sdk-go-v2/service/neptune v1.17.12
 	github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8
@@ -61,10 +65,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/rds v1.25.5
 	github.com/aws/aws-sdk-go-v2/service/redshift v1.26.10
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9
+	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2
 	github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9
+	github.com/aws/aws-sdk-go-v2/service/ses v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.14.1
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
