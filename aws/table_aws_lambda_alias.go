@@ -210,7 +210,7 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -240,7 +240,7 @@ func getLambdaAliasPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

@@ -150,6 +150,10 @@ func listNetworkFirewallRuleGroups(ctx context.Context, d *plugin.QueryData, _ *
 		plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.listNetworkFirewallRuleGroups", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -210,6 +214,10 @@ func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *pl
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.getNetworkFirewallRuleGroup", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params

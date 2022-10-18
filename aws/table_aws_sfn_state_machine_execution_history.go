@@ -2,15 +2,16 @@ package aws
 
 import (
 	"context"
+	"strconv"
+	"strings"
+	"sync"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-	"strconv"
-	"strings"
-	"sync"
 )
 
 func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugin.Table {
@@ -242,7 +243,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -336,7 +337,7 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

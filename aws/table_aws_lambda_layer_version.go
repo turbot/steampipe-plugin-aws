@@ -142,7 +142,7 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -203,36 +203,6 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	return nil, nil
-
-	// err = svc.ListLayerVersionsPages(
-	// 	&input,
-	// 	func(page *lambda.ListLayerVersionsOutput, lastPage bool) bool {
-	// 		for _, version := range page.LayerVersions {
-	// d.StreamListItem(ctx, LayerVersionInfo{*layerName, lambda.GetLayerVersionOutput{
-	// 	CompatibleArchitectures: version.CompatibleArchitectures,
-	// 	CompatibleRuntimes:      version.CompatibleRuntimes,
-	// 	CreatedDate:             version.CreatedDate,
-	// 	Description:             version.Description,
-	// 	LayerVersionArn:         version.LayerVersionArn,
-	// 	LicenseInfo:             version.LicenseInfo,
-	// 	Version:                 version.Version,
-	// }})
-
-	// 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-	// 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-	// 				return false
-	// 			}
-	// 		}
-	// 		return !lastPage
-	// 	},
-	// )
-
-	// if err != nil {
-	// 	logger.Error("listLambdaLayerVersions", "error_ListLayerVersionsPages", err)
-	// 	return nil, err
-	// }
-
-	// return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -260,7 +230,7 @@ func getLambdaLayerVersion(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -300,7 +270,7 @@ func getLambdaLayerVersionPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

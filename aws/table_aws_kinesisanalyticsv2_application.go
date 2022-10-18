@@ -133,9 +133,8 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.listKinesisAnalyticsV2Applications", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -206,9 +205,8 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2Application", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -235,9 +233,8 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2ApplicationTags", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

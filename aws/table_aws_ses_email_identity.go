@@ -81,6 +81,10 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		plugin.Logger(ctx).Error("aws_ses_email_identity.listSESEmailIdentities", "get_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// execute list call
 	input := &ses.ListIdentitiesInput{
@@ -138,6 +142,10 @@ func getSESIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryDa
 		plugin.Logger(ctx).Error("aws_ses_email_identity.getSESIdentityVerificationAttributes", "get_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	input := &ses.GetIdentityVerificationAttributesInput{
 		Identities: identities,
@@ -159,6 +167,10 @@ func getSESIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ses_email_identity.getSESIdentityNotificationAttributes", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &ses.GetIdentityNotificationAttributesInput{

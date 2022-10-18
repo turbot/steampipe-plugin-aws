@@ -5,14 +5,13 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/glacier"
 	"github.com/aws/aws-sdk-go-v2/service/glacier/types"
 	"github.com/aws/smithy-go"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -138,9 +137,8 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		plugin.Logger(ctx).Error("aws_glacier_vault.listGlacierVault", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -214,9 +212,8 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVault", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -244,9 +241,8 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultAccessPolicy", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -279,9 +275,8 @@ func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultLockPolicy", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -314,9 +309,8 @@ func getGlacierVaultNotifications(ctx context.Context, d *plugin.QueryData, h *p
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultNotifications", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -349,9 +343,8 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 		plugin.Logger(ctx).Error("aws_glacier_vault.listTagsForGlacierVault", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

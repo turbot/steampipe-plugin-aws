@@ -101,7 +101,7 @@ func listLambdaLayers(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

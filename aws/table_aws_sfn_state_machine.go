@@ -121,7 +121,7 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -188,7 +188,7 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -223,7 +223,7 @@ func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

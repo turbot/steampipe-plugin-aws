@@ -105,10 +105,15 @@ import (
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
 	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
+	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
+	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
+	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
+	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
+	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -612,9 +617,12 @@ func FirehoseClient(ctx context.Context, d *plugin.QueryData) (*firehose.Client,
 }
 
 func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, glacierEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return glacier.NewFromConfig(*cfg), nil
 }
@@ -628,17 +636,23 @@ func KinesisClient(ctx context.Context, d *plugin.QueryData) (*kinesis.Client, e
 }
 
 func KinesisAnalyticsV2Client(ctx context.Context, d *plugin.QueryData) (*kinesisanalyticsv2.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kinesisanalyticsv2Endpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return kinesisanalyticsv2.NewFromConfig(*cfg), nil
 }
 
 func KinesisVideoClient(ctx context.Context, d *plugin.QueryData) (*kinesisvideo.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kinesisvideoEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return kinesisvideo.NewFromConfig(*cfg), nil
 }
@@ -654,9 +668,12 @@ func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
 }
 
 func NetworkFirewallClient(ctx context.Context, d *plugin.QueryData) (*networkfirewall.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, networkfirewallEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return networkfirewall.NewFromConfig(*cfg), nil
 }
@@ -806,9 +823,12 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 }
 
 func SESClient(ctx context.Context, d *plugin.QueryData) (*ses.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, sesEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return ses.NewFromConfig(*cfg), nil
 }

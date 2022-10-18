@@ -112,7 +112,7 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -173,7 +173,7 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -203,7 +203,7 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

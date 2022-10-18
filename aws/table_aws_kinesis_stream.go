@@ -157,7 +157,7 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -228,7 +228,7 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -258,7 +258,7 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -288,7 +288,7 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

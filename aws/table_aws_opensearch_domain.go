@@ -224,7 +224,7 @@ func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -274,7 +274,7 @@ func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -309,7 +309,7 @@ func listOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
