@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
@@ -194,16 +193,16 @@ func listLightsailInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			plugin.Logger(ctx).Error("listLightsailInstances", "query_error", err)
 			return nil, nil
 		}
-	
+
 		for _, item := range resp.Instances {
 			d.StreamListItem(ctx, item)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-			return nil, nil
+				return nil, nil
 			}
 		}
-	
+
 		if resp.NextPageToken != nil {
 			input.PageToken = resp.NextPageToken
 		} else {
@@ -248,7 +247,6 @@ func getLightsailInstance(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 //// TRANSFORM FUNCTIONS
-
 
 func getLightsailInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.Value.([]types.Tag)
