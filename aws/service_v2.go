@@ -95,6 +95,7 @@ import (
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
+	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
@@ -118,7 +119,6 @@ import (
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
-	ssoadminEndpoint "github.com/aws/aws-sdk-go/service/ssoadmin"
 	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
 )
 
@@ -607,9 +607,12 @@ func ApplicationAutoScalingClient(ctx context.Context, d *plugin.QueryData) (*ap
 }
 
 func AmplifyClient(ctx context.Context, d *plugin.QueryData) (*amplify.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, amplifyEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return amplify.NewFromConfig(*cfg), nil
 }
@@ -856,7 +859,8 @@ func EKSClient(ctx context.Context, d *plugin.QueryData) (*eks.Client, error) {
 }
 
 func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssoadminEndpoint.EndpointsID)
+	// https://github.com/aws/aws-sdk-go/blob/main/aws/endpoints/defaults.go#L17417
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "portal.sso")
 	if err != nil {
 		return nil, err
 	}

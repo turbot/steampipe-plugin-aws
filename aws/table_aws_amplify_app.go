@@ -178,6 +178,10 @@ func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		plugin.Logger(ctx).Error("aws_amplify_app.listAmplifyApps", "get_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &amplify.ListAppsInput{
 		MaxResults: int32(100),
@@ -239,6 +243,10 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_amplify_app.getAmplifyApp", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
