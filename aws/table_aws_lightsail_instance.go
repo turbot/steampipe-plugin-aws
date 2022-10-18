@@ -165,13 +165,6 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 				Hydrate:     getLightsailInstance,
 				Transform:   transform.FromField("Arn").Transform(arnToAkas),
 			},
-			// {
-			// 	Name:        "akas",
-			// 	Description: resourceInterfaceDescription("akas"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getLightsailInstanceARN,
-			// 	Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
-			// },
 		}),
 	}
 }
@@ -270,29 +263,4 @@ func getLightsailInstanceTurbotTags(_ context.Context, d *transform.TransformDat
 	}
 
 	return &turbotTagsMap, nil
-}
-
-func getLightsailInstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	
-	instance := h.Item.(types.Instance)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-
-	instance_id_arr := strings.Split(*instance.Arn, "/")
-	instance_id := instance_id_arr[len(instance_id_arr)-1]
-
-	// arn := *instance.Arn
-
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumnsCached_error", err)
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	arn := "arn:" + commonColumnData.Partition + ":lightsail:" + region + ":" + commonColumnData.AccountId + ":Instance/" + instance_id
-
-	return arn, nil
 }
