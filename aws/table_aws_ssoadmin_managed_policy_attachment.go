@@ -71,6 +71,10 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 		plugin.Logger(ctx).Error("aws_ssoadmin_managed_policy_attachment.listSsoAdminManagedPolicyAttachments", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)

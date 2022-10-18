@@ -16,7 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/acm"
@@ -281,7 +280,7 @@ func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplore
 }
 
 func DaxService(ctx context.Context, d *plugin.QueryData) (*dax.DAX, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.DaxServiceID)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, dax.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -507,7 +506,7 @@ func IdentityStoreService(ctx context.Context, d *plugin.QueryData) (*identityst
 }
 
 func InspectorService(ctx context.Context, d *plugin.QueryData) (*inspector.Inspector, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.InspectorServiceID)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, inspector.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -596,7 +595,7 @@ func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkf
 }
 
 func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoint, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.PinpointServiceID)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, pinpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -704,7 +703,7 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 }
 
 func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.ServerlessrepoServiceID)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, serverlessapplicationrepository.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -814,7 +813,7 @@ func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 }
 
 func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.WafRegionalServiceID)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, wafregional.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -841,7 +840,7 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 }
 
 func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.WorkSpaces, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.WorkspacesServiceID)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, workspaces.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

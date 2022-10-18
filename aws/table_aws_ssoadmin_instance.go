@@ -57,6 +57,10 @@ func listSsoAdminInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		plugin.Logger(ctx).Error("aws_ssoadmin_instance.listSsoAdminInstances", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)

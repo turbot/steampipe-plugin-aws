@@ -107,13 +107,19 @@ import (
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
+	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
 	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
+	mediastoreEndpoint "github.com/aws/aws-sdk-go/service/mediastore"
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
+	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
+	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
+	ssoadminEndpoint "github.com/aws/aws-sdk-go/service/ssoadmin"
+	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -563,7 +569,7 @@ func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Clien
 }
 
 func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "kafka")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kafkaEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -574,7 +580,7 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 }
 
 func MediaStoreClient(ctx context.Context, d *plugin.QueryData) (*mediastore.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "mediastore")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, mediastoreEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -749,7 +755,7 @@ func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 }
 
 func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "redshift-serverless")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, redshiftserverlessEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -796,7 +802,7 @@ func SecretsManagerClient(ctx context.Context, d *plugin.QueryData) (*secretsman
 }
 
 func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "serverlessrepo")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, serverlessrepoEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -850,9 +856,12 @@ func EKSClient(ctx context.Context, d *plugin.QueryData) (*eks.Client, error) {
 }
 
 func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssoadminEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return ssoadmin.NewFromConfig(*cfg), nil
 }
@@ -866,7 +875,7 @@ func WellArchitectedClient(ctx context.Context, d *plugin.QueryData) (*wellarchi
 }
 
 func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "workspaces")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, workspacesEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

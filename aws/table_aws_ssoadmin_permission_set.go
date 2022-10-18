@@ -115,6 +115,10 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.listSsoAdminPermissionSets", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	equalQuals := d.KeyColumnQuals
 	// Minimize the API call with the given layer name
@@ -193,6 +197,10 @@ func getSsoAdminPermissionSet(ctx context.Context, d *plugin.QueryData, h *plugi
 
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	permissionSet := h.Item.(*PermissionSetItem)
 	arn := *permissionSet.PermissionSetArn
@@ -235,6 +243,10 @@ func getSsoAdminResourceTags(ctx context.Context, d *plugin.QueryData, instanceA
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.getSsoAdminResourceTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &ssoadmin.ListTagsForResourceInput{
