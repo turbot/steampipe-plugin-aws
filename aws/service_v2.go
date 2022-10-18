@@ -51,14 +51,20 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/firehose"
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
+	"github.com/aws/aws-sdk-go-v2/service/glacier"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/kinesis"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/neptune"
+	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
@@ -71,6 +77,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
@@ -86,7 +93,6 @@ import (
 	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
 	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
-	dlmEndpoint "github.com/aws/aws-sdk-go/service/dlm"
 	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
@@ -355,7 +361,18 @@ func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*director
 }
 
 func DLMClient(ctx context.Context, d *plugin.QueryData) (*dlm.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, dlmEndpoint.EndpointsID)
+	// DLM has an endpoint ID, but it's not available in endpoints.AwsPartition().Services()
+	//cfg, err := getClientForQuerySupportedRegion(ctx, d, dlmEndpoint.EndpointsID)
+
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	// List of endpoints taken from https://github.com/aws/aws-sdk-go-v2/blob/main/codegen/smithy-aws-go-codegen/src/main/resources/software/amazon/smithy/aws/go/codegen/endpoints.json
+	// Last updated 2022-10-17
+	validRegions := []string{"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "cn-north-1", "cn-northwest-1", "us-gov-east-1", "us-gov-west-1"}
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
+
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -551,6 +568,45 @@ func AmplifyClient(ctx context.Context, d *plugin.QueryData) (*amplify.Client, e
 	return amplify.NewFromConfig(*cfg), nil
 }
 
+func FirehoseClient(ctx context.Context, d *plugin.QueryData) (*firehose.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return firehose.NewFromConfig(*cfg), nil
+}
+
+func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return glacier.NewFromConfig(*cfg), nil
+}
+
+func KinesisClient(ctx context.Context, d *plugin.QueryData) (*kinesis.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return kinesis.NewFromConfig(*cfg), nil
+}
+
+func KinesisAnalyticsV2Client(ctx context.Context, d *plugin.QueryData) (*kinesisanalyticsv2.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return kinesisanalyticsv2.NewFromConfig(*cfg), nil
+}
+
+func KinesisVideoClient(ctx context.Context, d *plugin.QueryData) (*kinesisvideo.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return kinesisvideo.NewFromConfig(*cfg), nil
+}
 func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, kmsEndpoint.EndpointsID)
 	if err != nil {
@@ -579,6 +635,14 @@ func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organization
 		return nil, err
 	}
 	return organizations.NewFromConfig(*cfg), nil
+}
+
+func OpenSearchClient(ctx context.Context, d *plugin.QueryData) (*opensearch.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return opensearch.NewFromConfig(*cfg), nil
 }
 
 func RedshiftClient(ctx context.Context, d *plugin.QueryData) (*redshift.Client, error) {
@@ -652,6 +716,14 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 	return s3control.NewFromConfig(*cfg), nil
 }
 
+func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return sfn.NewFromConfig(*cfg), nil
+}
+
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -717,7 +789,6 @@ func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 }
 
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
-
 	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*aws.Config), nil
