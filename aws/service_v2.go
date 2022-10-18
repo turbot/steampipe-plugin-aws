@@ -64,6 +64,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/neptune"
 	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
@@ -99,6 +100,7 @@ import (
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
+	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -636,6 +638,17 @@ func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, err
 		return nil, nil
 	}
 	return lambda.NewFromConfig(*cfg), nil
+}
+
+func Macie2Client(ctx context.Context, d *plugin.QueryData) (*macie2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, macie2Endpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return macie2.NewFromConfig(*cfg), nil
 }
 
 func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {
