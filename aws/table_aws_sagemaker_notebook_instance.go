@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
@@ -192,7 +191,6 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 	}
 
 	if svc == nil {
-		plugin.Logger(ctx).Error("Here ============>>>>>", err)
 		// Check for unsupported region
 		return nil, nil
 	}
