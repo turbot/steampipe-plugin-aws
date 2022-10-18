@@ -7,6 +7,14 @@ _Enhancements_
 _Bug fixes_
 
 - `aws_ssm_document` did not work properly when `owner` column was used in where clause. Also now `owner` works as API input column while `owner_output` column will display API output.(**NOTE:** This change was required as the API input value for `owner` differ from output value)
+
+## v0.79.1 [2022-10-17]
+
+_Bug fixes_
+
+- Fixed unsupported region check in `aws_dlm_lifecycle_policy` table to allow queries for valid regions.
+- Fixed paging in `aws_route53_record` table to return all records correctly. ([#1356](https://github.com/turbot/steampipe-plugin-aws/pull/1356))
+
 ## v0.79.0 [2022-10-14]
 
 _Enhancements_
