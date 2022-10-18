@@ -55,6 +55,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
@@ -85,6 +86,7 @@ import (
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
+	lightsailEndpoint "github.com/aws/aws-sdk-go/service/lightsail"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -540,6 +542,17 @@ func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
 		return nil, nil
 	}
 	return kms.NewFromConfig(*cfg), nil
+}
+
+func LightsailClient(ctx context.Context, d *plugin.QueryData) (*lightsail.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, lightsailEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return lightsail.NewFromConfig(*cfg), nil
 }
 
 func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, error) {

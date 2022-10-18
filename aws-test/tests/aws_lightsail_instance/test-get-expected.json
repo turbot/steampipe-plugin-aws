@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "blueprint_id": "amazon_linux_2",
+    "name": "{{ output.resource_name.value }}",
+    "title": "{{ output.resource_name.value }}"
+  }
+]
