@@ -3,11 +3,11 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"sync"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/route53"
+	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
@@ -85,36 +85,36 @@ func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTrafficPolicies")
-
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_traffic_policy.listTrafficPolicies", "connection_error", err)
 		return nil, err
 	}
 
-	input := &route53.ListTrafficPoliciesInput{
-		MaxItems: aws.String("100"),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < 100 {
-			if *limit < 1 {
-				input.MaxItems = aws.String("1")
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxItems = aws.String(fmt.Sprint(*limit))
+				maxLimit = limit
 			}
 		}
+	}
+
+	input := &route53.ListTrafficPoliciesInput{
+		MaxItems: aws.Int32(maxLimit),
 	}
 
 	// List call
 	pagesLeft := true
 	for pagesLeft {
-		result, err := svc.ListTrafficPolicies(input)
+		result, err := svc.ListTrafficPolicies(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("listTrafficPolicies", "ListTrafficPolicies_error", err)
+			plugin.Logger(ctx).Error("aws_route53_traffic_policy.listTrafficPolicies", "api_error", err)
 			return nil, err
 		}
 
@@ -135,7 +135,7 @@ func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			return nil, err
 		}
 
-		if *result.IsTruncated {
+		if result.IsTruncated {
 			input.TrafficPolicyIdMarker = result.TrafficPolicyIdMarker
 		} else {
 			pagesLeft = false
@@ -145,33 +145,34 @@ func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 }
 
 // To fetch all available versions for a traffic policy
-func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, svc *route53.Route53, id *string, wg *sync.WaitGroup, errorCh chan error) {
-	plugin.Logger(ctx).Trace("listTrafficPolicyVersionsAsync")
+func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, svc *route53.Client, id *string, wg *sync.WaitGroup, errorCh chan error) {
 
-	input := &route53.ListTrafficPolicyVersionsInput{
-		Id:       id,
-		MaxItems: aws.String("100"),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < 100 {
-			if *limit < 1 {
-				input.MaxItems = aws.String("1")
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxItems = aws.String(fmt.Sprint(*limit))
+				maxLimit = limit
 			}
 		}
 	}
+
+	input := &route53.ListTrafficPolicyVersionsInput{
+		Id:       id,
+		MaxItems: aws.Int32(maxLimit),
+	}
+
 	defer wg.Done()
 
 	// List call
 	pagesLeft := true
 	for pagesLeft {
-		result, err := svc.ListTrafficPolicyVersions(input)
+		result, err := svc.ListTrafficPolicyVersions(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("listTrafficPolicyVersionsAsync", "ListTrafficPolicyVersions_error", err)
+			plugin.Logger(ctx).Error("listTrafficPolicyVersionsAsync", "ListTrafficPolicyVersions", "api_error", err)
 			errorCh <- err
 		}
 		for _, policies := range result.TrafficPolicies {
@@ -182,7 +183,7 @@ func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, sv
 				pagesLeft = false
 			}
 		}
-		if *result.IsTruncated {
+		if result.IsTruncated {
 			input.TrafficPolicyVersionMarker = result.TrafficPolicyVersionMarker
 		} else {
 			pagesLeft = false
@@ -193,16 +194,14 @@ func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, sv
 //// HYDRATE FUNCTIONS
 
 func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getTrafficPolicy")
-
 	var id string
-	var version int64
+	var version int32
 	if h.Item != nil {
 		id = trafficPolicyId(h.Item)
 		version = trafficPolicyVersion(h.Item)
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
-		version = d.KeyColumnQuals["version"].GetInt64Value()
+		version = int32(d.KeyColumnQuals["version"].GetInt64Value())
 	}
 
 	// Validate if input params are empty
@@ -211,8 +210,9 @@ func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_traffic_policy.getTrafficPolicy", "connection_error", err)
 		return nil, err
 	}
 
@@ -222,8 +222,9 @@ func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// execute get call
-	item, err := svc.GetTrafficPolicy(params)
+	item, err := svc.GetTrafficPolicy(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_traffic_policy.getTrafficPolicy", "api_error", err)
 		return nil, err
 	}
 	return item.TrafficPolicy, nil
@@ -243,16 +244,16 @@ func getRoute53TrafficPolicyTurbotAkas(ctx context.Context, d *plugin.QueryData,
 	akas := []string{"arn:" + commonColumnData.Partition +
 		":route53::" + commonColumnData.AccountId +
 		":" + "trafficpolicy/" + trafficPolicyId(h.Item) +
-		"/" + strconv.FormatInt(trafficPolicyVersion(h.Item), 10)}
+		"/" + fmt.Sprint(trafficPolicyVersion(h.Item))}
 
 	return akas, nil
 }
 
 func trafficPolicyId(item interface{}) string {
 	switch item := item.(type) {
-	case *route53.TrafficPolicy:
+	case *types.TrafficPolicy:
 		return *item.Id
-	case *route53.TrafficPolicySummary:
+	case types.TrafficPolicy:
 		return *item.Id
 	}
 	return ""
@@ -262,12 +263,12 @@ func extractTrafficPolicyVersion(_ context.Context, _ *plugin.QueryData, h *plug
 	return trafficPolicyVersion(h.Item), nil
 }
 
-func trafficPolicyVersion(item interface{}) int64 {
+func trafficPolicyVersion(item interface{}) int32 {
 	switch item := item.(type) {
-	case *route53.TrafficPolicy:
+	case *types.TrafficPolicy:
 		return *item.Version
-	case *route53.TrafficPolicySummary:
-		return *item.LatestVersion
+	case types.TrafficPolicy:
+		return *item.Version
 	}
 	return 0
 }
