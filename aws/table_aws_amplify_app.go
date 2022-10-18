@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/amplify"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/amplify"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -19,7 +20,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("app_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationException", "NotFoundException"}),
 			},
 			Hydrate: getAmplifyApp,
 		},
@@ -171,47 +172,43 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
 	// Create Session
-	svc, err := AmplifyService(ctx, d)
+	svc, err := AmplifyClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listAmplifyApps", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_amplify_app.listAmplifyApps", "get_client_error", err)
 		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
 	}
 
 	input := &amplify.ListAppsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < input.MaxResults {
+			if limit < 20 {
+				input.MaxResults = int32(20)
 			} else {
-				input.MaxResults = limit
+				input.MaxResults = int32(limit)
 			}
 		}
 	}
 
+	// API doesn't support aws-sdk-go-v2 paginator as of date.
 	pagesLeft := true
 
 	for pagesLeft {
-		result, err := svc.ListApps(input)
+		result, err := svc.ListApps(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("ListApps", "ERROR", err)
+			plugin.Logger(ctx).Error("aws_amplify_app.listAmplifyApps", "api_error", err)
 			return nil, err
 		}
 
-		for _, app := range result.Apps {
-			d.StreamListItem(ctx, app)
+		for _, item := range result.Apps {
+			d.StreamListItem(ctx, item)
 
-			// Context can be cancelled due to manual cancellation or the limit has been hit
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
@@ -234,19 +231,14 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	appId := d.KeyColumnQuals["app_id"].GetStringValue()
 	if appId == "" {
-		plugin.Logger(ctx).Trace("Column app_id is expected but not present, ignore")
 		return nil, nil
 	}
 
 	// Create Session
-	svc, err := AmplifyService(ctx, d)
+	svc, err := AmplifyClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listAmplifyApps", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_amplify_app.getAmplifyApp", "get_client_error", err)
 		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
 	}
 
 	// Build the params
@@ -255,9 +247,9 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Get call
-	data, err := svc.GetApp(params)
+	data, err := svc.GetApp(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("GetApp", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_amplify_app.getAmplifyApp", "api_error", err)
 		return nil, err
 	}
 

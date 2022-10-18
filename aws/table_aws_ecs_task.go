@@ -37,8 +37,9 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 				{
-					Name:    "service_name",
-					Require: plugin.Optional,
+					Name:       "service_name",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 			},
 		},
@@ -156,6 +157,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Name:        "service_name",
 				Description: "The name of the service.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("service_name"),
 			},
 			{
 				Name:        "started_at",
@@ -251,11 +253,6 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 	}
 }
 
-type tasksInfo struct {
-	types.Task
-	ServiceName string
-}
-
 //// LIST FUNCTION
 
 func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -341,7 +338,7 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		}
 
 		for _, task := range result.Tasks {
-			d.StreamListItem(ctx, tasksInfo{task, serviceName})
+			d.StreamListItem(ctx, task)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -356,14 +353,14 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 //// TRANSFORM FUNCTIONS
 
 func extractClusterName(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	task := d.HydrateItem.(tasksInfo).Task
+	task := d.HydrateItem.(types.Task)
 	clusterName := strings.Split(string(*task.ClusterArn), "/")[1]
 
 	return clusterName, nil
 }
 
 func ecsTaskTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	task := d.HydrateItem.(tasksInfo).Task
+	task := d.HydrateItem.(types.Task)
 
 	var turbotTagsMap map[string]string
 	if len(task.Tags) > 0 {

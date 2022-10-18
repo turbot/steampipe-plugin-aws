@@ -3,17 +3,19 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/service/eks"
 )
 
 type IdentityProviderConfig struct {
 	Name *string
 	Type *string
-	eks.OidcIdentityProviderConfig
+	types.OidcIdentityProviderConfig
 }
 
 //// TABLE DEFINITION
@@ -139,57 +141,53 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 
 func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get Eks Cluster details
-	cluster := h.Item.(*eks.Cluster)
+	cluster := h.Item.(types.Cluster)
 
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_identity_provider_config.listEksIdentityProviderConfigs", "get_client_error", err)
 		return nil, err
 	}
 
 	// As per the API document input parameter MaxResults should support the value of 100.
 	// However with value of 100, API is throwing an error - InvalidParameterException: maxResults needs to be 1.
 	// Raised an issue with AWS SDK - https://github.com/aws/aws-sdk-go/issues/4457
+	// Same behaviour in AWS SDK V2 also.
 	param := &eks.ListIdentityProviderConfigsInput{
 		ClusterName: cluster.Name,
-		//MaxResults:  aws.Int64(100),
 	}
 
-	// limit := d.QueryContext.Limit
-	// if d.QueryContext.Limit != nil {
-	// 	if *limit < *param.MaxResults {
-	// 		if *limit < 1 {
-	// 			param.MaxResults = aws.Int64(1)
-	// 		} else {
-	// 			param.MaxResults = limit
-	// 		}
-	// 	}
-	// }
+	paginator := eks.NewListIdentityProviderConfigsPaginator(svc, param, func(o *eks.ListIdentityProviderConfigsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-	err = svc.ListIdentityProviderConfigsPages(
-		param,
-		func(page *eks.ListIdentityProviderConfigsOutput, _ bool) bool {
-			for _, providerConfig := range page.IdentityProviderConfigs {
-				d.StreamListItem(ctx, &IdentityProviderConfig{providerConfig.Name, providerConfig.Type, eks.OidcIdentityProviderConfig{
-					ClusterName: cluster.Name,
-				}})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_eks_identity_provider_config.listEksIdentityProviderConfigs", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, providerConfig := range output.IdentityProviderConfigs {
+			plugin.Logger(ctx).Info("providerConfig ", providerConfig)
+			d.StreamListItem(ctx, &IdentityProviderConfig{providerConfig.Name, providerConfig.Type, types.OidcIdentityProviderConfig{
+				ClusterName: cluster.Name,
+			}})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return true
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getEksIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEksIdentityProviderConfig")
-
 	var clusterName, providerConfigName, providerConfigType string
 	if h.Item != nil {
 		clusterName = *h.Item.(*IdentityProviderConfig).ClusterName
@@ -202,21 +200,23 @@ func getEksIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_identity_provider_config.getEksIdentityProviderConfig", "get_client_error", err)
 		return nil, err
 	}
 
 	params := &eks.DescribeIdentityProviderConfigInput{
 		ClusterName: &clusterName,
-		IdentityProviderConfig: &eks.IdentityProviderConfig{
-			Name: &providerConfigName,
-			Type: &providerConfigType,
+		IdentityProviderConfig: &types.IdentityProviderConfig{
+			Name: aws.String(providerConfigName),
+			Type: aws.String(providerConfigType),
 		},
 	}
 
-	op, err := svc.DescribeIdentityProviderConfig(params)
+	op, err := svc.DescribeIdentityProviderConfig(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_identity_provider_config.getEksIdentityProviderConfig", "api_error", err)
 		return nil, err
 	}
 

@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 )
 
 //// TABLE DEFINITION
@@ -99,56 +99,61 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
 
 	// Create Session
-	svc, err := ApplicationAutoScalingService(ctx, d)
+	svc, err := ApplicationAutoScalingClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listAwsApplicationAutoScalingTargets", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_appautoscaling_target.listAwsApplicationAutoScalingTargets", "get_client_error", err)
 		return nil, err
 	}
 
 	// The maximum number for MaxResults parameter is not defined by the API
 	// We have set the MaxResults to 1000 based on our test
 	input := &applicationautoscaling.DescribeScalableTargetsInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(1000),
 	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
-	input.ServiceNamespace = types.String(name)
+	input.ServiceNamespace = types.ServiceNamespace(name)
 
 	if equalQuals["resource_id"] != nil {
-		input.ResourceIds = []*string{types.String(equalQuals["resource_id"].GetStringValue())}
+		input.ResourceIds = []string{equalQuals["resource_id"].GetStringValue()}
 	}
 	if equalQuals["scalable_dimension"] != nil {
-		input.ScalableDimension = types.String(equalQuals["scalable_dimension"].GetStringValue())
+		input.ScalableDimension = types.ScalableDimension(equalQuals["scalable_dimension"].GetStringValue())
 	}
 
-	// Limiting the results
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxResults {
+			if limit < 1 {
+				input.MaxResults = aws.Int32(1)
 			} else {
-				input.MaxResults = limit
+				input.MaxResults = aws.Int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeScalableTargetsPages(
-		input,
-		func(page *applicationautoscaling.DescribeScalableTargetsOutput, isLast bool) bool {
-			for _, scalableTarget := range page.ScalableTargets {
-				d.StreamListItem(ctx, scalableTarget)
+	paginator := applicationautoscaling.NewDescribeScalableTargetsPaginator(svc, input, func(o *applicationautoscaling.DescribeScalableTargetsPaginatorOptions) {
+		o.Limit = *input.MaxResults
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_neptune_db_cluster.listNeptuneDBClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, scalableTarget := range output.ScalableTargets {
+			d.StreamListItem(ctx, scalableTarget)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -156,26 +161,26 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 //// HYDRATE FUNCTIONS
 
 func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsApplicationAutoScalingTarget")
-
 	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
 	id := d.KeyColumnQuals["resource_id"].GetStringValue()
 
 	// create service
-	svc, err := ApplicationAutoScalingService(ctx, d)
+	svc, err := ApplicationAutoScalingClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_appautoscaling_target.getAwsApplicationAutoScalingTarget", "get_client_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &applicationautoscaling.DescribeScalableTargetsInput{
-		ServiceNamespace: &name,
-		ResourceIds:      []*string{types.String(id)},
+		ServiceNamespace: types.ServiceNamespace(name),
+		ResourceIds:      []string{(id)},
 	}
 
 	// Get call
-	op, err := svc.DescribeScalableTargets(params)
+	op, err := svc.DescribeScalableTargets(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_appautoscaling_target.getAwsApplicationAutoScalingTarget", "api_error", err)
 		return nil, err
 	}
 	if op.ScalableTargets != nil && len(op.ScalableTargets) > 0 {

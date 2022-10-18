@@ -368,6 +368,11 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	input := &lambda.GetPolicyInput{
 		FunctionName: aws.String(functionName),
 	}
@@ -407,6 +412,11 @@ func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := LambdaClient(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	input := &lambda.GetFunctionUrlConfigInput{

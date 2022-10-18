@@ -180,6 +180,10 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.listAPIGatewayV2Integrations", "service_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(500)
@@ -236,6 +240,10 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plu
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.getAPIGatewayV2Integration", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	api := d.KeyColumnQuals["api_id"].GetStringValue()
