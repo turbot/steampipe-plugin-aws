@@ -76,6 +76,7 @@ import (
 
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
+	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -507,7 +508,7 @@ func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, err
 }
 
 func Macie2Client(ctx context.Context, d *plugin.QueryData) (*macie2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "macie2")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, macie2Endpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

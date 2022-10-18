@@ -159,7 +159,6 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		plugin.Logger(ctx).Error("table_aws_macie2_classification_job.listMacie2ClassificationJobs", "client_error", err)
 		return nil, err
 	}
-
 	// Service is not supported in the region
 	if svc == nil {
 		return nil, nil
@@ -200,10 +199,11 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 			// Throws "AccessDeniedException: Macie is not enabled." when AWS Macie is not enabled in a region
 			// also the API throws AccessDeniedException if the request does not have proper permission
 			// with the below check we will only handle "Macie is not enabled"
-			plugin.Logger(ctx).Error("table_aws_macie2_classification_job.listMacie2ClassificationJobs", "api_error", err)
 			if strings.Contains(err.Error(), "Macie is not enabled.") {
 				return nil, nil
 			}
+			plugin.Logger(ctx).Error("table_aws_macie2_classification_job.listMacie2ClassificationJobs", "api_error", err)
+			return nil, err
 		}
 
 		for _, job := range output.Items {
@@ -241,7 +241,6 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("table_aws_macie2_classification_job.getMacie2ClassificationJob", "client_error", err)
 		return nil, err
 	}
-
 	// Service is not supported in the region
 	if svc == nil {
 		return nil, nil
@@ -258,10 +257,11 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 		// Throws "AccessDeniedException: Macie is not enabled." when AWS Macie is not enabled in a region
 		// also the API throws AccessDeniedException if the request does not have proper permission
 		// with the below check we will only handle "Macie is not enabled"
-		plugin.Logger(ctx).Error("table_aws_macie2_classification_job.listMacie2ClassificationJobs", "api_error", err)
 		if strings.Contains(err.Error(), "Macie is not enabled.") {
 			return nil, nil
 		}
+		plugin.Logger(ctx).Error("table_aws_macie2_classification_job.listMacie2ClassificationJobs", "api_error", err)
+		return nil, err
 	}
 
 	return op, nil
