@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -108,12 +109,6 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	// Standards Subscription Arn format
 	// arn:aws:securityhub:us-east-1:accountID:subscription/aws-foundational-security-best-practices/v/1.0.0
 	// arn:aws:securityhub:::ruleset/cis-aws-foundations-benchmark/v/1.2.0
-	// var standardsSubscriptionArn string
-	// if strings.Contains(*standardsArn, "standards") {
-	// 	standardsSubscriptionArn = "arn:aws:securityhub:" + region + ":" + commonColumnData.AccountId + ":subscription" + strings.Split(*standardsArn, "standards")[1]
-	// } else {
-	// 	standardsSubscriptionArn = "arn:aws:securityhub:" + region + ":" + commonColumnData.AccountId + ":subscription" + strings.Split(*standardsArn, "ruleset")[1]
-	// }
 
 	var standardsSubscriptionArn string
 	if strings.Contains(standardsArn, "standards") {
@@ -127,6 +122,10 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_securityhub_standards_control.listSecurityHubStandardsControls", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -144,7 +143,7 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 
 	input := &securityhub.DescribeStandardsControlsInput{
 		MaxResults:               maxLimit,
-		StandardsSubscriptionArn: &standardsSubscriptionArn,
+		StandardsSubscriptionArn: aws.String(standardsSubscriptionArn),
 	}
 
 	// List call
@@ -156,8 +155,7 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
+			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "not subscribed") {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProducts", "api_error", err)

@@ -102,6 +102,10 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 		plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProducts", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -129,7 +133,7 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Handle error for accounts that are not subscribed to AWS Security Hub
-			if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") || strings.Contains(err.Error(), "no such host") {
+			if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProducts", "api_error", err)
@@ -160,6 +164,10 @@ func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		plugin.Logger(ctx).Error("aws_securityhub_product.getSecurityHubProduct", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &securityhub.DescribeProductsInput{
@@ -170,7 +178,7 @@ func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	op, err := svc.DescribeProducts(ctx, params)
 	if err != nil {
 		// Handle error for accounts that are not subscribed to AWS Security Hub
-		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") || strings.Contains(err.Error(), "no such host") {
+		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_securityhub_product.getSecurityHubProduct", "api_error", err)

@@ -141,7 +141,6 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listAwsWafv2RegexPatternSets", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
 		// unsupported region check
 		return nil, nil
@@ -170,10 +169,6 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 	for pagesLeft {
 		response, err := svc.ListRegexPatternSets(ctx, params)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listAwsWafv2RegexPatternSets", "api_error", err)
 			return nil, err
 		}
@@ -246,7 +241,6 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.getAwsWafv2RegexPatternSet", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
 		// unsupported region check
 		return nil, nil
@@ -260,10 +254,6 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 
 	op, err := svc.GetRegexPatternSet(ctx, params)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.getAwsWafv2RegexPatternSet", "api_error", err)
 		return nil, err
 	}
@@ -295,7 +285,6 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listTagsForAwsWafv2RegexPatternSet", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
 		// unsupported region check
 		return nil, nil

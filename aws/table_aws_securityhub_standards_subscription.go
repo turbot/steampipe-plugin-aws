@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
@@ -98,6 +97,10 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 		plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.listSecurityHubStandardsSubcriptions", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -124,10 +127,6 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.listSecurityHubStandardsSubcriptions", "api_error", err)
 			return nil, err
 		}
@@ -157,6 +156,10 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.GetEnabledStandards", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the input
 	input := &securityhub.GetEnabledStandardsInput{}
@@ -167,8 +170,8 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.GetEnabledStandards", "api_error", err)
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if ae.ErrorCode() == "InvalidAccessException" || strings.Contains(err.Error(), "no such host") {
+			// If the service is not enabled, API throws InvalidAccessException error
+			if ae.ErrorCode() == "InvalidAccessException" {
 				return nil, nil
 			}
 		}

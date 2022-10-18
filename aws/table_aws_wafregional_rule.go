@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
@@ -92,6 +91,10 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 		plugin.Logger(ctx).Error("aws_wafregional_rule.listAwsWAFRegionalRules", "get_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	maxItems := int32(100)
@@ -112,10 +115,6 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for pagesLeft {
 		response, err := svc.ListRules(ctx, params)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_wafregional_rule.listAwsWAFRegionalRules", "api_error", err)
 			return nil, err
 		}
@@ -148,6 +147,7 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -166,17 +166,13 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.GetRule(ctx, param)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
-		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRule", "api_error", err)
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
 			if ae.ErrorCode() == "WAFNonexistentItemException" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRule", "api_error", err)
 		return nil, err
 	}
 

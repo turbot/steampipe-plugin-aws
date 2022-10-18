@@ -84,12 +84,15 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		plugin.Logger(ctx).Error("aws_securityhub_hub.listSecurityHubs", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	resp, err := svc.DescribeHub(ctx, &securityhub.DescribeHubInput{})
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") || strings.Contains(err.Error(), "no such host") {
+		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_securityhub_hub.listSecurityHubs", "api_error", err)
@@ -113,6 +116,10 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHub", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &securityhub.DescribeHubInput{
@@ -122,8 +129,7 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Execute get call
 	data, err := svc.DescribeHub(ctx, params)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") || strings.Contains(err.Error(), "no such host") {
+		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHub", "api_error", err)
@@ -139,6 +145,10 @@ func getSecurityHubAdministratorAccount(ctx context.Context, d *plugin.QueryData
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -161,6 +171,10 @@ func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubTags", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -156,6 +157,10 @@ func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		plugin.Logger(ctx).Error("aws_sagemaker_app.listSageMakerApps", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	paginator := sagemaker.NewListAppsPaginator(svc, input, func(o *sagemaker.ListAppsPaginatorOptions) {
 		o.Limit = maxLimit
@@ -215,6 +220,10 @@ func getSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		plugin.Logger(ctx).Error("aws_sagemaker_app.getSageMakerApp", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Get call
 	data, err := svc.DescribeApp(ctx, &params)
@@ -234,13 +243,7 @@ func sageMakerAppArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 			return "", err
 		}
 		commonColumnData := c.(*awsCommonColumnData)
-		return "arn:" + commonColumnData.Partition +
-			":sagemaker:" + commonColumnData.Region +
-			":" + commonColumnData.AccountId +
-			":app/" + *item.DomainId +
-			"/" + *item.UserProfileName +
-			"/" + strings.ToLower(string(item.AppType)) +
-			"/" + *item.AppName, nil
+		return fmt.Sprintf("arn:%s:sagemaker:%s:%s:app/%s/%s/%s/%s", commonColumnData.Partition, commonColumnData.Region, commonColumnData.AccountId, *item.DomainId, *item.UserProfileName, strings.ToLower(string(item.AppType)), *item.AppName), nil
 	case *sagemaker.DescribeAppOutput:
 		return *item.AppArn, nil
 	}

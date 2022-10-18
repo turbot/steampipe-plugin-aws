@@ -75,6 +75,10 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.listSecurityHubFindingAggregators", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -102,7 +106,7 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Handle error for accounts that are not subscribed to AWS Security Hub
-			if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
+			if strings.Contains(err.Error(), "not subscribed") {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.listSecurityHubFindingAggregators", "api_error", err)
@@ -144,6 +148,10 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.getSecurityHubFindingAggregator", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &securityhub.GetFindingAggregatorInput{
@@ -153,8 +161,7 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 	// Get call
 	op, err := svc.GetFindingAggregator(ctx, params)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
+		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.getSecurityHubFindingAggregator", "api_error", err)

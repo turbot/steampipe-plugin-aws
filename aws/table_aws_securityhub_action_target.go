@@ -75,6 +75,10 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 		plugin.Logger(ctx).Error("aws_securityhub_action_target.go.listSecurityHubActionTargets", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(100)
@@ -103,8 +107,7 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
+			if strings.Contains(err.Error(), "not subscribed") {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_securityhub_action_target.go.listSecurityHubActionTargets", "api_error", err)
@@ -136,6 +139,10 @@ func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("aws_securityhub_action_target.go.getSecurityHubActionTarget", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &securityhub.DescribeActionTargetsInput{
@@ -146,7 +153,7 @@ func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, h *plu
 	data, err := svc.DescribeActionTargets(ctx, params)
 	if err != nil {
 		// Handle unsupported and inactive region exceptions
-		if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
+		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_securityhub_action_target.getSecurityHubActionTarget", "api_error", err)

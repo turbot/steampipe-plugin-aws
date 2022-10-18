@@ -137,6 +137,10 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 		plugin.Logger(ctx).Error("aws_eventbridge_rule.listAwsEventBridgeRules", "get_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -214,6 +218,11 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeRule", "get_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	// Build the params
 	params := &eventbridge.DescribeRuleInput{
 		Name: &name,
@@ -240,6 +249,11 @@ func getAwsEventBridgeTargetByRule(ctx context.Context, d *plugin.QueryData, h *
 		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeTargetByRule", "get_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	// Build the params
 	params := &eventbridge.ListTargetsByRuleInput{
 		EventBusName: eventbusname,
@@ -264,6 +278,10 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeRuleTags", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

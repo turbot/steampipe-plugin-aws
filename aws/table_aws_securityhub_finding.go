@@ -255,6 +255,10 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 		plugin.Logger(ctx).Error("aws_securityhub_finding.listSecurityHubFindings", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -288,7 +292,7 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Handle error for accounts that are not subscribed to AWS Security Hub
-			if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
+			if strings.Contains(err.Error(), "not subscribed") {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_securityhub_finding.listSecurityHubFindings", "api_error", err)
@@ -325,6 +329,10 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		plugin.Logger(ctx).Error("aws_securityhub_finding.getSecurityHubFinding", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &securityhub.GetFindingsInput{
@@ -342,7 +350,7 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	op, err := svc.GetFindings(ctx, params)
 	if err != nil {
 		// Handle error for unsupported or inactive regions
-		if strings.Contains(err.Error(), "not subscribed") || strings.Contains(err.Error(), "no such host") {
+		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
 		plugin.Logger(ctx).Debug("aws_securityhub_finding.getSecurityHubFinding", "api_error", err)

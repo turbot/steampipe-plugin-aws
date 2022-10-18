@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
@@ -93,6 +92,10 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 		plugin.Logger(ctx).Error("aws_eventbridge_bus.listAwsEventBridgeBuses", "get_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -128,10 +131,6 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for pagesLeft {
 		output, err := svc.ListEventBuses(ctx, params)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_eventbridge_bus.listAwsEventBridgeBuses", "api_error", err)
 			return nil, err
 		}
@@ -169,6 +168,10 @@ func getAwsEventBridgeBus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBus", "get_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
@@ -180,10 +183,6 @@ func getAwsEventBridgeBus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Get call
 	data, err := svc.DescribeEventBus(ctx, params)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBus", "api_error", err)
 		return nil, err
 	}
@@ -200,6 +199,10 @@ func getAwsEventBridgeBusTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBusTags", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

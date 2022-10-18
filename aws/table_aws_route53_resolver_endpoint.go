@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
@@ -149,6 +148,10 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listAwsRoute53ResolverEndpoint", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	maxItems := int32(100)
 	input := route53resolver.ListResolverEndpointsInput{}
@@ -179,10 +182,6 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listAwsRoute53ResolverEndpoint", "api_error", err)
 			return nil, err
 		}
@@ -212,6 +211,10 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *
 		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.getAwsRoute53ResolverEndpoint", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &route53resolver.GetResolverEndpointInput{
@@ -221,10 +224,6 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *
 	// Execute get call
 	data, err := svc.GetResolverEndpoint(ctx, params)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.getAwsRoute53ResolverEndpoint", "api_error", err)
 		return nil, err
 	}
@@ -240,6 +239,10 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listResolverEndpointIPAddresses", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -270,6 +273,10 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listResolverEndpointIPAddresses", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

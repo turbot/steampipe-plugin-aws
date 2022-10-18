@@ -156,7 +156,6 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		plugin.Logger(ctx).Error("aws_wafv2_rule_group.listAwsWafv2RuleGroups", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
 		// unsupported region check
 		return nil, nil
@@ -185,10 +184,6 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	for pagesLeft {
 		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_wafv2_rule_group.listAwsWafv2RuleGroups", "api_error", err)
 			return nil, err
 		}
@@ -262,7 +257,6 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		plugin.Logger(ctx).Error("aws_wafv2_rule_group.getAwsWafv2RuleGroup", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
 		// unsupported region check
 		return nil, nil
@@ -276,10 +270,7 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	op, err := svc.GetRuleGroup(ctx, params)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
+
 		plugin.Logger(ctx).Error("aws_wafv2_rule_group.getAwsWafv2RuleGroup", "api_error", err)
 		return nil, err
 	}

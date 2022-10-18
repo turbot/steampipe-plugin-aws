@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
@@ -156,6 +155,10 @@ func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *pl
 		plugin.Logger(ctx).Error("aws_route53_resolver_rule.listAwsRoute53ResolverRules", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	maxItems := int32(100)
 	input := route53resolver.ListResolverRulesInput{}
@@ -187,10 +190,6 @@ func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *pl
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_route53_resolver_rule.listAwsRoute53ResolverRules", "api_error", err)
 			return nil, err
 		}
@@ -220,6 +219,10 @@ func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plug
 		plugin.Logger(ctx).Error("aws_route53_resolver_rule.getAwsRoute53ResolverRule", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &route53resolver.GetResolverRuleInput{
@@ -229,10 +232,6 @@ func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plug
 	// Get call
 	data, err := svc.GetResolverRule(ctx, params)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_route53_resolver_rule.getAwsRoute53ResolverRule", "api_error", err)
 		return nil, err
 	}
@@ -248,6 +247,10 @@ func listResolverRuleAssociation(ctx context.Context, d *plugin.QueryData, h *pl
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_resolver_rule.listResolverRuleAssociation", "api_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -295,6 +298,10 @@ func getAwsRoute53ResolverRuleTags(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_resolver_rule.getAwsRoute53ResolverRuleTags", "api_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

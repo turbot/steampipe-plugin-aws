@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
@@ -177,6 +176,10 @@ func listAwsSageMakerDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 		plugin.Logger(ctx).Error("aws_sagemaker_domain.listAwsSageMakerDomains", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -204,10 +207,6 @@ func listAwsSageMakerDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_sagemaker_domain.listAwsSageMakerDomains", "api_error", err)
 			return nil, err
 		}
@@ -244,6 +243,10 @@ func getAwsSageMakerDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		plugin.Logger(ctx).Error("aws_sagemaker_domain.getAwsSageMakerDomain", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &sagemaker.DescribeDomainInput{
@@ -253,10 +256,6 @@ func getAwsSageMakerDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.DescribeDomain(ctx, params)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_sagemaker_domain.getAwsSageMakerDomain", "api_error", err)
 		return nil, err
 	}
@@ -274,6 +273,10 @@ func listAwsSageMakerDomainTags(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sagemaker_domain.listAwsSageMakerDomainTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

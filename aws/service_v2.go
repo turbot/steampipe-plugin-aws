@@ -93,11 +93,17 @@ import (
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
 	dlmEndpoint "github.com/aws/aws-sdk-go/service/dlm"
 	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	eventbridgeEndpoint "github.com/aws/aws-sdk-go/service/eventbridge"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 	redshiftServerlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
+	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
+	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
+	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
+	wafregionalEnpoint "github.com/aws/aws-sdk-go/service/wafregional"
+	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -495,9 +501,12 @@ func ElasticsearchClient(ctx context.Context, d *plugin.QueryData) (*elasticsear
 }
 
 func EventBridgeClient(ctx context.Context, d *plugin.QueryData) (*eventbridge.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, eventbridgeEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return eventbridge.NewFromConfig(*cfg), nil
 }
@@ -660,9 +669,12 @@ func Route53DomainsClient(ctx context.Context, d *plugin.QueryData) (*route53dom
 }
 
 func Route53ResolverClient(ctx context.Context, d *plugin.QueryData) (*route53resolver.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, route53resolverEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return route53resolver.NewFromConfig(*cfg), nil
 }
@@ -696,17 +708,23 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 }
 
 func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, sagemakerEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return sagemaker.NewFromConfig(*cfg), nil
 }
 
 func SecurityHubClient(ctx context.Context, d *plugin.QueryData) (*securityhub.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return securityhub.NewFromConfig(*cfg), nil
 }
@@ -744,14 +762,27 @@ func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
 }
 
 func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafregionalEnpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return wafregional.NewFromConfig(*cfg), nil
 }
 
 func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
+	validRegions, err := SupportedRegionsForService(ctx, d, wafv2Enpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if !helpers.StringSliceContains(validRegions, region) {
+		// We choose to ignore unsupported regions rather than returning an error
+		// for them - it's a better user experience. So, return a nil session rather
+		// than an error. The caller must handle this case.
+		return nil, nil
+	}
 	cfg, err := getClientForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err

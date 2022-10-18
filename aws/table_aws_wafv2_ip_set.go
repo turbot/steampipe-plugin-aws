@@ -144,7 +144,6 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		plugin.Logger(ctx).Error("aws_wafv2_ip_set.listAwsWafv2IpSets", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
 		// unsupported region check
 		return nil, nil
@@ -174,10 +173,6 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	for pagesLeft {
 		response, err := svc.ListIPSets(ctx, params)
 		if err != nil {
-			// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_wafv2_ip_set.listAwsWafv2IpSets", "api_error", err)
 			return nil, err
 		}
@@ -249,9 +244,8 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		plugin.Logger(ctx).Error("aws_wafv2_ip_set.getAwsWafv2IpSet", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -263,10 +257,6 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	op, err := svc.GetIPSet(ctx, params)
 	if err != nil {
-		// Service Client doesn't throw any error if region is not supported but the API throws no such host error for that region
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_wafv2_ip_set.getAwsWafv2IpSet", "api_error", err)
 		return nil, err
 	}
@@ -296,7 +286,6 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 		plugin.Logger(ctx).Error("aws_wafv2_ip_set.listTagsForAwsWafv2IpSet", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
 		// unsupported region check
 		return nil, nil
