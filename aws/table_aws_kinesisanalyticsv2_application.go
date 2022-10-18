@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
@@ -127,32 +128,40 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 
 func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := KinesisAnalyticsV2Service(ctx, d)
+	svc, err := KinesisAnalyticsV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.listKinesisAnalyticsV2Applications", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// List call
 	pagesLeft := true
-	params := &kinesisanalyticsv2.ListApplicationsInput{
-		Limit: aws.Int64(50),
-	}
-
+	maxLimit := int32(50)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				params.Limit = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				params.Limit = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
+	params := &kinesisanalyticsv2.ListApplicationsInput{
+		Limit: aws.Int32(maxLimit),
+	}
+	// API doesn't support aws-sdk-go-v2 paginator as of data
 
 	for pagesLeft {
-		result, err := svc.ListApplications(params)
+		result, err := svc.ListApplications(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.listKinesisAnalyticsV2Applications", "api_error", err)
 			return nil, err
 		}
 
@@ -174,7 +183,7 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 	}
 
 	if err != nil {
-		plugin.Logger(ctx).Error("listKinesisAnalyticsV2Applications", "ListApplications_error", err)
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.listKinesisAnalyticsV2Applications", "api_error", err)
 	}
 
 	return nil, err
@@ -183,21 +192,24 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 //// HYDRATE FUNCTIONS
 
 func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getKinesisAnalyticsV2Application")
-
 	var applicationName string
 	if h.Item != nil {
-		i := h.Item.(*kinesisanalyticsv2.ApplicationSummary)
+		i := h.Item.(types.ApplicationSummary)
 		applicationName = *i.ApplicationName
 	} else {
 		applicationName = d.KeyColumnQuals["application_name"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := KinesisAnalyticsV2Service(ctx, d)
+	svc, err := KinesisAnalyticsV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2Application", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -206,9 +218,9 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	// Get call
-	data, err := svc.DescribeApplication(params)
+	data, err := svc.DescribeApplication(ctx, params)
 	if err != nil {
-		logger.Debug("getKinesisAnalyticsV2Application", "DescribeApplication_error", err)
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2Application", "api_error", err)
 		return nil, err
 	}
 
@@ -216,15 +228,17 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 }
 
 func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getKinesisAnalyticsV2ApplicationTags")
-
 	arn := applicationArn(h.Item)
-
 	// Create Session
-	svc, err := KinesisAnalyticsV2Service(ctx, d)
+	svc, err := KinesisAnalyticsV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2ApplicationTags", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -233,9 +247,9 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("getKinesisAnalyticsV2ApplicationTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2ApplicationTags", "api_error", err)
 		return nil, err
 	}
 
@@ -245,8 +259,7 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 //// TRANSFORM FUNCTIONS
 
 func kinesisAnalyticsV2ApplicationTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("kinesisAnalyticsV2ApplicationTagListToTurbotTags")
-	tagList := d.Value.([]*kinesisanalyticsv2.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	if tagList == nil {
 		return nil, nil
@@ -266,9 +279,9 @@ func kinesisAnalyticsV2ApplicationTagListToTurbotTags(ctx context.Context, d *tr
 
 func applicationArn(item interface{}) *string {
 	switch item := item.(type) {
-	case *kinesisanalyticsv2.ApplicationDetail:
+	case *types.ApplicationDetail:
 		return item.ApplicationARN
-	case *kinesisanalyticsv2.ApplicationSummary:
+	case types.ApplicationSummary:
 		return item.ApplicationARN
 	}
 	return nil

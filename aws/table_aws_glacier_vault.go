@@ -2,15 +2,16 @@ package aws
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/glacier"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/glacier"
+	"github.com/aws/aws-sdk-go-v2/service/glacier/types"
+	"github.com/aws/smithy-go"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -132,54 +133,62 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 
 func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glacier_vault.listGlacierVault", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glacier_vault.listGlacierVault", "api_error", err)
 		return nil, err
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 	accountID := commonColumnData.AccountId
-	maxLimit := "10"
-
-	input := &glacier.ListVaultsInput{
-		AccountId: aws.String(accountID),
-		Limit:     &maxLimit,
-	}
-
+	maxLimit := int32(10)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < 10 {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				input.Limit = aws.String("1")
+				maxLimit = 1
 			} else {
-				input.Limit = aws.String(fmt.Sprint(*limit))
+				maxLimit = int32(*limit)
 			}
 		}
 	}
-
+	input := &glacier.ListVaultsInput{
+		AccountId: aws.String(accountID),
+		Limit:     aws.Int32(maxLimit),
+	}
+	paginator := glacier.NewListVaultsPaginator(svc, input, func(o *glacier.ListVaultsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 	// List call
-	err = svc.ListVaultsPages(
-		input,
-		func(page *glacier.ListVaultsOutput, isLast bool) bool {
-			for _, vaults := range page.VaultList {
-				d.StreamListItem(ctx, vaults)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_glacier_vault.listGlacierVault", "api_error", err)
+			return nil, err
+		}
+		for _, vaults := range output.VaultList {
+			d.StreamListItem(ctx, vaults)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
+		}
+	}
 	return nil, err
 }
 
@@ -192,6 +201,7 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVault", "api_error", err)
 		return nil, err
 	}
 
@@ -199,9 +209,15 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	accountID := commonColumnData.AccountId
 
 	// create service
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVault", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	params := &glacier.DescribeVaultInput{
@@ -209,8 +225,9 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		AccountId: aws.String(accountID),
 	}
 
-	op, err := svc.DescribeVault(params)
+	op, err := svc.DescribeVault(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVault", "api_error", err)
 		return nil, err
 	}
 
@@ -218,121 +235,149 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 }
 
 func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getGlacierVaultAccessPolicy")
-
-	data := h.Item.(*glacier.DescribeVaultOutput)
-	accountID := strings.Split(*data.VaultARN, ":")[4]
+	data := glacierVaultData(h.Item)
+	accountID := strings.Split(data["Arn"], ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultAccessPolicy", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build param
 	param := &glacier.GetVaultAccessPolicyInput{
-		VaultName: data.VaultName,
+		VaultName: aws.String(data["Name"]),
 		AccountId: aws.String(accountID),
 	}
 
-	vaultAccessPolicy, err := svc.GetVaultAccessPolicy(param)
+	vaultAccessPolicy, err := svc.GetVaultAccessPolicy(ctx, param)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" {
+		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultAccessPolicy", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
 				return nil, nil
 			}
-			return nil, err
 		}
 	}
 	return vaultAccessPolicy, nil
 }
 
 func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getGlacierVaultLockPolicy")
-
-	data := h.Item.(*glacier.DescribeVaultOutput)
-	accountID := strings.Split(*data.VaultARN, ":")[4]
+	data := glacierVaultData(h.Item)
+	accountID := strings.Split(data["Arn"], ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultLockPolicy", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build param
 	param := &glacier.GetVaultLockInput{
-		VaultName: data.VaultName,
+		VaultName: aws.String(data["Name"]),
 		AccountId: aws.String(accountID),
 	}
 
-	vaultLock, err := svc.GetVaultLock(param)
+	vaultLock, err := svc.GetVaultLock(ctx, param)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" {
+		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultLockPolicy", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
 				return nil, nil
 			}
-			return nil, err
 		}
 	}
 	return vaultLock, nil
 }
 
 func getGlacierVaultNotifications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-
-	data := h.Item.(*glacier.DescribeVaultOutput)
-	accountID := strings.Split(*data.VaultARN, ":")[4]
+	data := glacierVaultData(h.Item)
+	accountID := strings.Split(data["Arn"], ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_glacier_vault.getGlacierVaultNotifications", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultNotifications", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build param
 	param := &glacier.GetVaultNotificationsInput{
-		VaultName: data.VaultName,
+		VaultName: aws.String(data["Name"]),
 		AccountId: aws.String(accountID),
 	}
 
-	vaultNotifications, err := svc.GetVaultNotifications(param)
+	vaultNotifications, err := svc.GetVaultNotifications(ctx, param)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" {
+		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVaultNotifications", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
 				return nil, nil
 			}
-			logger.Error("aws_glacier_vault.getGlacierVaultNotifications", "api_error", err)
-			return nil, err
 		}
 	}
 	return vaultNotifications, nil
 }
 
 func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listTagsForGlacierVault")
-
-	data := h.Item.(*glacier.DescribeVaultOutput)
-	accountID := strings.Split(*data.VaultARN, ":")[4]
+	data := glacierVaultData(h.Item)
+	accountID := strings.Split(data["Arn"], ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glacier_vault.listTagsForGlacierVault", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build param
 	param := &glacier.ListTagsForVaultInput{
-		VaultName: data.VaultName,
+		VaultName: aws.String(data["Name"]),
 		AccountId: aws.String(accountID),
 	}
 
-	vaultTags, err := svc.ListTagsForVault(param)
+	vaultTags, err := svc.ListTagsForVault(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glacier_vault.listTagsForGlacierVault", "api_error", err)
 		return nil, err
 	}
 	return vaultTags, nil
+}
+
+func glacierVaultData(item interface{}) map[string]string {
+	data := map[string]string{}
+	switch item := item.(type) {
+	case types.DescribeVaultOutput:
+		data["Arn"] = *item.VaultARN
+		data["Name"] = *item.VaultName
+	case *glacier.DescribeVaultOutput:
+		data["Arn"] = *item.VaultARN
+		data["Name"] = *item.VaultName
+	}
+	return data
 }

@@ -975,7 +975,11 @@ func getSessionForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData,
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-	validRegions := SupportedRegionsForService(ctx, d, serviceID)
+	validRegions, err := SupportedRegionsForService(ctx, d, serviceID)
+	if err != nil {
+		return nil, err
+	}
+
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather

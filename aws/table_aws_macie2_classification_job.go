@@ -2,14 +2,14 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/macie2"
+	"github.com/aws/aws-sdk-go-v2/service/macie2"
+	"github.com/aws/aws-sdk-go-v2/service/macie2/types"
 )
 
 //// TABLE DEFINITION
@@ -152,79 +152,80 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listMacie2ClassificationJobs")
 
-	// Create Session
-	svc, err := Macie2Service(ctx, d)
+	// Create session
+	svc, err := Macie2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("table_aws_macie2_classification_job.listMacie2ClassificationJobs", "client_error", err)
 		return nil, err
 	}
-
 	// Service is not supported in the region
 	if svc == nil {
 		return nil, nil
 	}
 
+	maxItems := int32(200)
 	input := &macie2.ListClassificationJobsInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	filterCriteris := buildMacie2ClassificationJobsFilterCriteria(d.Quals)
-
-	if len(filterCriteris.Excludes) > 0 || len(filterCriteris.Includes) > 0 {
-		input.FilterCriteria = filterCriteris
+		MaxResults: maxItems,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
+	}
+
+	filterCriteria := buildMacie2ClassificationJobsFilterCriteria(d.Quals)
+
+	if len(filterCriteria.Excludes) > 0 || len(filterCriteria.Includes) > 0 {
+		input.FilterCriteria = filterCriteria
 	}
 
 	// List call
-	err = svc.ListClassificationJobsPages(
-		input,
-		func(page *macie2.ListClassificationJobsOutput, isLast bool) bool {
-			for _, job := range page.Items {
-				d.StreamListItem(ctx, job)
+	paginator := macie2.NewListClassificationJobsPaginator(svc, input, func(o *macie2.ListClassificationJobsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
 			// Throws "AccessDeniedException: Macie is not enabled." when AWS Macie is not enabled in a region
 			// also the API throws AccessDeniedException if the request does not have proper permission
 			// with the below check we will only handle "Macie is not enabled"
-			if awsErr.Message() == "Macie is not enabled." {
+			if strings.Contains(err.Error(), "Macie is not enabled.") {
+				return nil, nil
+			}
+			plugin.Logger(ctx).Error("table_aws_macie2_classification_job.listMacie2ClassificationJobs", "api_error", err)
+			return nil, err
+		}
+
+		for _, job := range output.Items {
+			d.StreamListItem(ctx, job)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-		plugin.Logger(ctx).Error("listMacie2ClassificationJobs", "ListClassificationJobsPages_error", err)
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getMacie2ClassificationJob")
 
 	var id string
 	if h.Item != nil {
-		id = *h.Item.(*macie2.JobSummary).JobId
+		id = *h.Item.(types.JobSummary).JobId
 	} else {
 		id = d.KeyColumnQuals["job_id"].GetStringValue()
 	}
@@ -234,12 +235,12 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, nil
 	}
 
-	// Create service
-	svc, err := Macie2Service(ctx, d)
+	// Create session
+	svc, err := Macie2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("table_aws_macie2_classification_job.getMacie2ClassificationJob", "client_error", err)
 		return nil, err
 	}
-
 	// Service is not supported in the region
 	if svc == nil {
 		return nil, nil
@@ -251,17 +252,15 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Get call
-	op, err := svc.DescribeClassificationJob(params)
+	op, err := svc.DescribeClassificationJob(ctx, params)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Throws "AccessDeniedException: Macie is not enabled." when AWS Macie is not enabled in a region
-			// also the API throws AccessDeniedException if the request does not have proper permission
-			// with the below check we will only handle "Macie is not enabled"
-			if awsErr.Message() == "Macie is not enabled." {
-				return nil, nil
-			}
+		// Throws "AccessDeniedException: Macie is not enabled." when AWS Macie is not enabled in a region
+		// also the API throws AccessDeniedException if the request does not have proper permission
+		// with the below check we will only handle "Macie is not enabled"
+		if strings.Contains(err.Error(), "Macie is not enabled.") {
+			return nil, nil
 		}
-		plugin.Logger(ctx).Error("getMacie2ClassificationJob", "DescribeClassificationJob_error", err)
+		plugin.Logger(ctx).Error("table_aws_macie2_classification_job.listMacie2ClassificationJobs", "api_error", err)
 		return nil, err
 	}
 
@@ -271,8 +270,8 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 //// UTILITY FUNCTION
 //// Build macie2 list job classification job filter
 
-func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) *macie2.ListJobsFilterCriteria {
-	filterCriteria := &macie2.ListJobsFilterCriteria{}
+func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) *types.ListJobsFilterCriteria {
+	filterCriteria := &types.ListJobsFilterCriteria{}
 
 	filterQuals := map[string]string{
 		"name":       "name",
@@ -285,19 +284,19 @@ func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) 
 			for _, q := range quals[columnName].Quals {
 				value := getQualsValueByColumn(quals, columnName, "string")
 
-				filter := &macie2.ListJobsFilterTerm{
-					Comparator: aws.String(macie2.JobComparatorEq),
+				filter := types.ListJobsFilterTerm{
+					Comparator: types.JobComparatorEq,
 				}
 
 				val, ok := value.(string)
 				if ok {
-					filter.Values = []*string{aws.String(val)}
+					filter.Values = []string{val}
 				} else {
-					filter.Values = value.([]*string)
+					filter.Values = value.([]string)
 				}
 
 				if filterName == "name" {
-					filter.Key = aws.String(macie2.ListJobsFilterKeyName)
+					filter.Key = types.ListJobsFilterKeyName
 					switch q.Operator {
 					case "<>":
 						filterCriteria.Excludes = append(filterCriteria.Excludes, filter)
@@ -306,7 +305,7 @@ func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) 
 					}
 				}
 				if filterName == "jobType" {
-					filter.Key = aws.String(macie2.ListJobsFilterKeyJobType)
+					filter.Key = types.ListJobsFilterKeyJobType
 					switch q.Operator {
 					case "<>":
 						filterCriteria.Excludes = append(filterCriteria.Excludes, filter)
@@ -315,7 +314,7 @@ func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) 
 					}
 				}
 				if filterName == "jobStatus" {
-					filter.Key = aws.String(macie2.ListJobsFilterKeyJobStatus)
+					filter.Key = types.ListJobsFilterKeyJobStatus
 					switch q.Operator {
 					case "<>":
 						filterCriteria.Excludes = append(filterCriteria.Excludes, filter)

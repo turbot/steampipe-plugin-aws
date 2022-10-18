@@ -152,8 +152,9 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, nil
 	}
 
-	input := route53.ListResourceRecordSetsInput{
+	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: aws.String(hostedZoneID),
+		MaxItems:     aws.Int32(1000),
 	}
 
 	equalQuals := d.KeyColumnQuals
@@ -172,7 +173,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// Paginator not avilable for the in v2, till date 09/30/2022
 	// Also, API doesn't support paging. Therfore not handling limit for the function
 	for {
-		op, err := svc.ListResourceRecordSets(ctx, &input)
+		op, err := svc.ListResourceRecordSets(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_record.listRoute53Records", "api_error", err)
 			return nil, err
@@ -205,12 +206,9 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 		if op.NextRecordIdentifier != nil {
 			input.StartRecordIdentifier = op.NextRecordIdentifier
-			if op.NextRecordName != nil {
-				input.StartRecordName = op.NextRecordName
-			}
-			if string(op.NextRecordType) != "" {
-				input.StartRecordType = op.NextRecordType
-			}
+		} else if op.NextRecordName != nil && string(op.NextRecordType) != "" {
+			input.StartRecordName = op.NextRecordName
+			input.StartRecordType = op.NextRecordType
 		} else {
 			break
 		}
