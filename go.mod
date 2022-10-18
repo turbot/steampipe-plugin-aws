@@ -42,13 +42,19 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12
+	github.com/aws/aws-sdk-go-v2/service/firehose v1.14.19
 	github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14
+	github.com/aws/aws-sdk-go-v2/service/glacier v1.13.17
 	github.com/aws/aws-sdk-go-v2/service/glue v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/inspector v1.12.15
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15
+	github.com/aws/aws-sdk-go-v2/service/kinesis v1.15.19
+	github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.14.18
+	github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.12.14
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.24.6
+	github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/ram v1.16.18
@@ -59,6 +65,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9
+	github.com/aws/aws-sdk-go-v2/service/sfn v1.14.1
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
 	github.com/aws/aws-sdk-go-v2/service/waf v1.11.17
@@ -76,7 +83,7 @@ require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/allegro/bigcache/v3 v3.0.2 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.8 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.17 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.23 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.17 // indirect

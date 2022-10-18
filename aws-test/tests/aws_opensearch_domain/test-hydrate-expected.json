@@ -7,9 +7,10 @@
     "domain_name": "{{ resourceName }}",
     "ebs_options": {
       "EBSEnabled": true,
-      "Iops": null,
+      "Iops": 3000,
+      "Throughput": 125,
       "VolumeSize": 10,
-      "VolumeType": "gp2"
+      "VolumeType": "gp3"
     },
     "engine_version": "OpenSearch_1.2",
     "partition": "{{ output.aws_partition.value }}",

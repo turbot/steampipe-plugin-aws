@@ -48,13 +48,19 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/firehose"
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
+	"github.com/aws/aws-sdk-go-v2/service/glacier"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/kinesis"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
@@ -65,6 +71,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
@@ -531,6 +538,45 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 	return kafka.NewFromConfig(*cfg), nil
 }
 
+func FirehoseClient(ctx context.Context, d *plugin.QueryData) (*firehose.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return firehose.NewFromConfig(*cfg), nil
+}
+
+func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return glacier.NewFromConfig(*cfg), nil
+}
+
+func KinesisClient(ctx context.Context, d *plugin.QueryData) (*kinesis.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return kinesis.NewFromConfig(*cfg), nil
+}
+
+func KinesisAnalyticsV2Client(ctx context.Context, d *plugin.QueryData) (*kinesisanalyticsv2.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return kinesisanalyticsv2.NewFromConfig(*cfg), nil
+}
+
+func KinesisVideoClient(ctx context.Context, d *plugin.QueryData) (*kinesisvideo.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return kinesisvideo.NewFromConfig(*cfg), nil
+}
 func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, kmsEndpoint.EndpointsID)
 	if err != nil {
@@ -559,6 +605,14 @@ func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organization
 		return nil, err
 	}
 	return organizations.NewFromConfig(*cfg), nil
+}
+
+func OpenSearchClient(ctx context.Context, d *plugin.QueryData) (*opensearch.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return opensearch.NewFromConfig(*cfg), nil
 }
 
 func RedshiftClient(ctx context.Context, d *plugin.QueryData) (*redshift.Client, error) {
@@ -630,6 +684,14 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 		return nil, err
 	}
 	return s3control.NewFromConfig(*cfg), nil
+}
+
+func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return sfn.NewFromConfig(*cfg), nil
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {

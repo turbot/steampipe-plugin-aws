@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "ap-southeast-1"
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
