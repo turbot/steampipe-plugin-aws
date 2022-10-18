@@ -104,6 +104,7 @@ import (
 	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
 	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
+	eksEndpoint "github.com/aws/aws-sdk-go/service/eks"
 	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
@@ -851,9 +852,12 @@ func TaggingResourceClient(ctx context.Context, d *plugin.QueryData) (*resourceg
 }
 
 func EKSClient(ctx context.Context, d *plugin.QueryData) (*eks.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, eksEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return eks.NewFromConfig(*cfg), nil
 }
