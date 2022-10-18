@@ -177,8 +177,8 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	input := &kinesis.ListStreamsInput{
 		Limit: aws.Int32(maxLimit),
 	}
-	// API doesn't support aws-sdk-go-v2 paginator as of data
 
+	// API doesn't support aws-sdk-go-v2 paginator as of date
 	for pagesLeft {
 		result, err := svc.ListStreams(ctx, input)
 		if err != nil {
@@ -204,9 +204,6 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		} else {
 			pagesLeft = false
 		}
-	}
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_kinesis_stream.listStreams", "api_error", err)
 	}
 
 	return nil, err
