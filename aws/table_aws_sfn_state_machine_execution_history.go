@@ -273,9 +273,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
 			return nil, err
 		}
-		for _, execution := range output.Executions {
-			executions = append(executions, execution)
-		}
+		executions = append(executions, output.Executions...)
 	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
