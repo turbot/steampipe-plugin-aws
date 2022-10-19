@@ -1,12 +1,9 @@
 ## v0.7x.x [TBD]
 
-_Enhancements_
-
-- Updated `status` column type from JSON to String in table `aws_ssm_association`.
-
 _Bug fixes_
 
-- `aws_ssm_document` did not work properly when `owner` column was used in where clause. Also now `owner` works as API input column while `owner_output` column will display API output.(**NOTE:** This change was required as the API input value for `owner` differ from output value)
+- Fixed `status` column type from JSON to string in `aws_ssm_association` table. ([#1337](https://github.com/turbot/steampipe-plugin-aws/pull/1337))
+- `aws_ssm_document` table queries now return correct results when specifying the `owner` column. ([#1337](https://github.com/turbot/steampipe-plugin-aws/pull/1337))
 
 ## v0.79.1 [2022-10-17]
 
