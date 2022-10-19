@@ -757,7 +757,7 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-	validRegions, err := SupportedRegionsForClient(ctx, d, serviceID)
+	validRegions, err := GetSupportedRegionsForClient(ctx, d, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -890,7 +890,7 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 }
 
 // SupportedRegionsForClient list outs the valid regions for a service based on service id
-func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceId string) ([]string, error) {
+func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceId string) ([]string, error) {
 	var partitionName string
 	var partition endpoints.Partition
 
@@ -908,9 +908,10 @@ func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, service
 	// If partition name is not available,
 	// try to fetch partiton from APIs
 	if partitionName == "" {
+		// Using WithCache to avoid making repeated calls to fetch partition in parallel
 		getCachedAccountPartition := plugin.HydrateFunc(getAccountPartition).WithCache()
 		// Ignoring the errors as we don't want plugin to fail if unable to determine the partitions
-		// Instead below switch statment will set AWS commercial as the deafult partition
+		// Instead below switch statment will set AWS commercial as the default partition
 		partitionData, _ := getCachedAccountPartition(ctx, d, nil)
 		partitionName, _ = partitionData.(string)
 	}
@@ -945,8 +946,7 @@ func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, service
 		validRegions = append(validRegions, rs)
 	}
 
-	// set cache
+	// Save valid regions in the cache
 	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
-
 	return validRegions, nil
 }

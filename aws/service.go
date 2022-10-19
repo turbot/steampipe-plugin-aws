@@ -639,7 +639,7 @@ func getSessionForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData,
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-	validRegions, err := SupportedRegionsForClient(ctx, d, serviceID)
+	validRegions, err := GetSupportedRegionsForClient(ctx, d, serviceID)
 	if err != nil {
 		return nil, err
 	}
