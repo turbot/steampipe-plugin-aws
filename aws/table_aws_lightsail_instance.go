@@ -81,9 +81,10 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "location",
-				Description: "The region name and Availability Zone where the instance is located.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "availability_zone",
+				Description: "The Availability Zone where the instance is located.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Location.AvailabilityZone"),
 			},
 			{
 				Name:        "metadata_options",
@@ -106,7 +107,7 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "resourceType",
+				Name:        "resource_type",
 				Description: "The type of resource.",
 				Type:        proto.ColumnType_STRING,
 			},
@@ -123,7 +124,7 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "state_name",
-				Description: "The status code for the instance.",
+				Description: "The status of the instance.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("State.Name"),
 			},
