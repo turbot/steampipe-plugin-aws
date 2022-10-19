@@ -65,6 +65,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
@@ -85,6 +86,7 @@ import (
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
+	servicequotasEndpoint "github.com/aws/aws-sdk-go/service/servicequotas"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -421,7 +423,7 @@ func ECRPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Clien
 	return ecrpublic.NewFromConfig(*cfg), nil
 }
 
-func Ec2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
+func EC2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
 	// We can query EC2 for the list of supported regions. But, if credentials
 	// are insufficient this query will retry many times, so we create a special
 	// client with a small number of retries to prevent hangs.
@@ -672,6 +674,17 @@ func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 	return sqs.NewFromConfig(*cfg), nil
 }
 
+func ServiceQuotasRegionalClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, servicequotasEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return servicequotas.NewFromConfig(*cfg), nil
+}
+
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
 	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
@@ -733,12 +746,7 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-
-	validRegions, err := SupportedRegionsForService(ctx, d, serviceID)
-	if err != nil {
-		return nil, err
-	}
-
+	validRegions := SupportedRegionsForClient(ctx, d, serviceID)
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather
