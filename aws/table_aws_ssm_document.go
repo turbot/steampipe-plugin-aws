@@ -28,24 +28,7 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			Hydrate: listAwsSSMDocuments,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "document_type", Require: plugin.Optional},
-				{Name: "owner", Require: plugin.Optional},
-				/*
-					Added a column
-					Can't use filter for owner as the output values for owner doesn't match with the input values
-
-					select * from aws_ssm_document where owner = 'Dynatrace'
-					Error: operation error SSM: ListDocuments, https response error StatusCode: 400, RequestID: 8eaa3ca5-65f8-41a6-a166-cb30c1d6f232, api error ValidationException: [Dynatrace] is not a known filter value of key Owner, possible values: Self, Amazon, Public, Private, ThirdParty, All, Default (SQLSTATE HV000)
-
-					select distinct owner from aws_ssm_document;
-					+-----------------------+
-					| owner                 |
-					+-----------------------+
-					| AlertLogic            |
-					| Amazon                |
-					| Dynatrace             |
-					| Trend Micro Cloud One |
-					+-----------------------+
-				*/
+				{Name: "owner_type", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -135,17 +118,35 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSSMDocument,
 			},
+			/*
+			   Added a column
+			   Can't use filter for owner as the output values for owner doesn't match with the input values
+
+			   select * from aws_ssm_document where owner = 'Dynatrace'
+			   Error: operation error SSM: ListDocuments, https response error StatusCode: 400, RequestID: 8eaa3ca5-65f8-41a6-a166-cb30c1d6f232, api error ValidationException: [Dynatrace] is not a known filter value of key Owner, possible values: Self, Amazon, Public, Private, ThirdParty, All, Default (SQLSTATE HV000)
+
+			   select distinct owner from aws_ssm_document;
+			   +-----------------------+
+			   | owner                 |
+			   +-----------------------+
+			   | 111122223333          |  // Referring to user aws account id
+			   | AlertLogic            |
+			   | Amazon                |
+			   | Dynatrace             |
+			   | Trend Micro Cloud One |
+			   +-----------------------+
+			*/
 			{
-				Name:        "owner",
-				Description: "The AWS user account type that created the document to filter results. Possible values: Self, Amazon, Public, Private, ThirdParty, All, Default.",
+				Name:        "owner_type", // maybe "owner_filter"
+				Description: "The AWS user account type to filter the documents. Possible values: Self, Amazon, Public, Private, ThirdParty, All, Default.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("owner"),
+				Transform:   transform.FromQual("owner_type"),
 			},
 			{
-				Name:        "owner_output",
+				Name:        "owner",
 				Description: "The AWS user account that created the document.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("owner"),
+				// Transform:   transform.FromField("Owner"),
 			},
 			{
 				Name:        "parameters",
@@ -433,7 +434,7 @@ func buildSSMDocumentFilter(quals plugin.KeyColumnQualMap) []types.DocumentKeyVa
 	filters := make([]types.DocumentKeyValuesFilter, 0)
 
 	filterQuals := map[string]string{
-		"owner":         "Owner",
+		"owner_type":   "Owner",
 		"document_type": "DocumentType",
 	}
 
