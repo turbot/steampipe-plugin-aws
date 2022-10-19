@@ -186,6 +186,9 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	op, err := svc.GetBackupPlan(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_plan.getAwsBackupPlan", "api_error", err)
+	}
 
 	return op, nil
 }
