@@ -26,7 +26,7 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listLightsailInstance,
+			Hydrate: listLightsailInstances,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -171,12 +171,12 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listLightsailInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listLightsailInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
 	svc, err := LightsailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_lightsail_instance.listLightsailInstance", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_lightsail_instance.listLightsailInstances", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -191,7 +191,7 @@ func listLightsailInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		resp, err := svc.GetInstances(ctx, input)
 
 		if err != nil {
-			plugin.Logger(ctx).Error("listLightsailInstances", "query_error", err)
+			plugin.Logger(ctx).Error("aws_lightsail_instance.listLightsailInstances", "query_error", err)
 			return nil, nil
 		}
 
