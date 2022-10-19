@@ -114,6 +114,10 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
+	if svc == nil {
+		return nil, nil
+	}
+
 	// Get backup plan details
 	plan := h.Item.(types.BackupPlansListMember)
 
@@ -169,6 +173,10 @@ func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_backup_selection.getBackupSelection", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		return nil, nil
 	}
 
 	var backupPlanID, selectionID string

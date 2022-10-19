@@ -75,6 +75,7 @@ import (
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
+	bckupEndpoint "github.com/aws/aws-sdk-go/service/backup"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
@@ -211,10 +212,15 @@ func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Cli
 }
 
 func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, bckupEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
+	
+	if cfg == nil {
+		return nil, nil
+	}
+
 	return backup.NewFromConfig(*cfg), nil
 }
 

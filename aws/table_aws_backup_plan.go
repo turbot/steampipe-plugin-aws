@@ -111,6 +111,10 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	if svc == nil {
+		return nil, nil
+	}
+
 	// Limiting the results
 	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
@@ -163,6 +167,10 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_backup_plan.getAwsBackupPlan", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		return nil, nil
 	}
 
 	var id, versionId string
