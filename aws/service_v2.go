@@ -68,11 +68,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
@@ -666,6 +668,15 @@ func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, e
 	return route53.NewFromConfig(*cfg), nil
 }
 
+func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
+	// TODO - Should STS be regional instead?
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return sts.NewFromConfig(*cfg), nil
+}
+
 func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -746,7 +757,11 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-	validRegions := SupportedRegionsForClient(ctx, d, serviceID)
+	validRegions, err := SupportedRegionsForClient(ctx, d, serviceID)
+	if err != nil {
+		return nil, err
+	}
+
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather
@@ -872,4 +887,66 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	}
 
 	return retryTime, nil
+}
+
+// SupportedRegionsForClient list outs the valid regions for a service based on service id
+func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceId string) ([]string, error) {
+	var partitionName string
+	var partition endpoints.Partition
+
+	// If valid regions list is already avialable in cache, return it
+	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.([]string), nil
+	}
+
+	// Get the partition of the AWS account plugin is connected to
+	if cachedData, ok := d.ConnectionManager.Cache.Get("getAccountPartition"); ok {
+		partitionName = cachedData.(string)
+	}
+
+	// If partition name is not available,
+	// try to fetch partiton from APIs
+	if partitionName == "" {
+		getCachedAccountPartition := plugin.HydrateFunc(getAccountPartition).WithCache()
+		// Ignoring the errors as we don't want plugin to fail if unable to determine the partitions
+		// Instead below switch statment will set AWS commercial as the deafult partition
+		partitionData, _ := getCachedAccountPartition(ctx, d, nil)
+		partitionName, _ = partitionData.(string)
+	}
+
+	// Get AWS partition based on the partition name
+	// If the partition name was obtained from APIs set AWS commercial as the default partition
+	switch partitionName {
+	case endpoints.AwsPartitionID:
+		partition = endpoints.AwsPartition()
+	case endpoints.AwsCnPartitionID:
+		partition = endpoints.AwsCnPartition()
+	case endpoints.AwsIsoPartitionID:
+		partition = endpoints.AwsIsoPartition()
+	case endpoints.AwsUsGovPartitionID:
+		partition = endpoints.AwsUsGovPartition()
+	case endpoints.AwsIsoBPartitionID:
+		partition = endpoints.AwsCnPartition()
+	default:
+		partition = endpoints.AwsPartition()
+	}
+
+	var validRegions []string
+	// Get the list of the service regions based on the Service Id
+	services := partition.Services()
+	serviceInfo, ok := services[serviceId]
+	if !ok {
+		return nil, fmt.Errorf("SupportedRegionsForClient called with invalid service ID: " + serviceId)
+	}
+
+	regions := serviceInfo.Regions()
+	for rs := range regions {
+		validRegions = append(validRegions, rs)
+	}
+
+	// set cache
+	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
+
+	return validRegions, nil
 }
