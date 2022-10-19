@@ -18,6 +18,9 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 	return &plugin.Table{
 		Name:        "aws_servicequotas_service_quota_change_request",
 		Description: "AWS ServiceQuotas Service Quota Change Request",
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
+		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getServiceQuotaChangeRequest,
 			KeyColumns: plugin.SingleColumn("id"),
