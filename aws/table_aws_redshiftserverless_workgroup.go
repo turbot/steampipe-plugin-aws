@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -140,6 +139,7 @@ func listRedshiftServerlessWorkgroups(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -168,9 +168,6 @@ func listRedshiftServerlessWorkgroups(ctx context.Context, d *plugin.QueryData, 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_redshiftserverless_workgroup.listRedshiftServerlessWorkgroups", "api_error", err)
 			return nil, err
 		}
@@ -205,6 +202,7 @@ func getRedshiftServerlessWorkgroup(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -215,9 +213,6 @@ func getRedshiftServerlessWorkgroup(ctx context.Context, d *plugin.QueryData, _ 
 
 	op, err := svc.GetWorkgroup(ctx, params)
 	if err != nil {
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		logger.Error("aws_redshiftserverless_workgroup.getRedshiftServerlessWorkgroup", "api_error", err)
 		return nil, err
 	}
@@ -235,6 +230,7 @@ func getWorkgroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

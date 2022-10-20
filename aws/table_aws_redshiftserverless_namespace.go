@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -127,6 +126,7 @@ func listRedshiftServerlessNamespaces(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -155,9 +155,6 @@ func listRedshiftServerlessNamespaces(ctx context.Context, d *plugin.QueryData, 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_redshiftserverless_namespace.listRedshiftServerlessNamespaces", "api_error", err)
 			return nil, err
 		}
@@ -192,6 +189,7 @@ func getRedshiftServerlessNamespace(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -202,9 +200,6 @@ func getRedshiftServerlessNamespace(ctx context.Context, d *plugin.QueryData, _ 
 
 	op, err := svc.GetNamespace(ctx, params)
 	if err != nil {
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		logger.Error("aws_redshiftserverless_namespace.getRedshiftServerlessNamespace", "api_error", err)
 		return nil, err
 	}
@@ -222,6 +217,7 @@ func getNamespaceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

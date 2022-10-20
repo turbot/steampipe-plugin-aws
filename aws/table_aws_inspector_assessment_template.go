@@ -255,7 +255,6 @@ func getAwsInspectorAssessmentTemplateTags(ctx context.Context, d *plugin.QueryD
 		return nil, nil
 	}
 
-
 	// Build the params
 	params := &inspector.ListTagsForResourceInput{
 		ResourceArn: &assessmentTemplateArn,
@@ -287,7 +286,6 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 		// Unsupported region, return no data
 		return nil, nil
 	}
-
 
 	// Build the params
 	params := &inspector.ListEventSubscriptionsInput{

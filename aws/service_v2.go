@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codecommit"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
@@ -66,6 +67,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
@@ -78,6 +80,7 @@ import (
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
 	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
 	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
+	codecommitEndpoint "github.com/aws/aws-sdk-go/service/codecommit"
 	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
 	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
@@ -87,6 +90,7 @@ import (
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 	lightsailEndpoint "github.com/aws/aws-sdk-go/service/lightsail"
+	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -108,7 +112,7 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 }
 
 func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
-	cfg, err := getClient(ctx, d, "Account")
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
@@ -211,14 +215,27 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 	return svc, nil
 }
 
-func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, backupEndpoint.EndpointsID)
+func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codecommitEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
 	if cfg == nil {
 		return nil, nil
 	}
+	return codecommit.NewFromConfig(*cfg), nil
+}
+
+func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, backupEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg == nil {
+		return nil, nil
+	}
+
 	return backup.NewFromConfig(*cfg), nil
 }
 
@@ -643,6 +660,17 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 		return nil, err
 	}
 	return s3control.NewFromConfig(*cfg), nil
+}
+
+func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, sagemakerEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return sagemaker.NewFromConfig(*cfg), nil
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
