@@ -1,11 +1,12 @@
 ## v0.7x.x [TBD]
 
+_Enhancements_
+
+- Added `owner_type` column to the `aws_ssm_document` table to allow filtering on SSM documents by AWS account type. ([#1337](https://github.com/turbot/steampipe-plugin-aws/pull/1337))
+
 _Bug fixes_
 
 - Fixed `status` column type from JSON to string in `aws_ssm_association` table. ([#1337](https://github.com/turbot/steampipe-plugin-aws/pull/1337))
-- `aws_ssm_document` table queries now return correct results when specifying the `owner` column. ([#1337](https://github.com/turbot/steampipe-plugin-aws/pull/1337)) </br>
-   Added `owner_type` column to filter SSM documents based on the owner type. Owner type can be Self, Amazon, Public, Private, ThirdParty, All, Default."
-
 
 ## v0.79.1 [2022-10-17]
 
