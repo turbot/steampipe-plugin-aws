@@ -1,3 +1,4 @@
+
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125-create-update"
@@ -12,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "ap-south-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -46,28 +47,29 @@ data "null_data_source" "resource" {
   }
 }
 
-resource "aws_backup_vault" "named_test_resource" {
-  name = var.resource_name
-}
-
-resource "aws_backup_plan" "named_test_resource" {
-  name = var.resource_name
-
-  rule {
-    rule_name         = "tf_example_backup_rule"
-    target_vault_name = aws_backup_vault.named_test_resource.name
-    schedule          = "cron(0 12 * * ? *)"
+resource "aws_lightsail_instance" "named_test_resource" {
+  name              = var.resource_name
+  availability_zone = "ap-south-1b"
+  blueprint_id      = "amazon_linux_2"
+  bundle_id         = "nano_2_1"
+  tags = {
+    Name = var.resource_name
   }
 }
 
-output "id" {
-  value = aws_backup_plan.named_test_resource.id
-}
-
-output "version_id" {
-  value = aws_backup_plan.named_test_resource.version
-}
-
 output "resource_aka" {
-  value = aws_backup_plan.named_test_resource.arn
+  value = aws_lightsail_instance.named_test_resource.arn
 }
+
+output "account_id" {
+  value = data.aws_caller_identity.current.account_id
+}
+
+output "aws_region" {
+  value = data.aws_region.primary.name
+}
+
+output "resource_name" {
+  value = var.resource_name
+}
+

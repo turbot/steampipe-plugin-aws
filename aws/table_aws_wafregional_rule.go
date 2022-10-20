@@ -89,6 +89,7 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -144,6 +145,7 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

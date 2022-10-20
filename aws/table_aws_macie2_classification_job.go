@@ -162,6 +162,7 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 
 	// Service is not supported in the region
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -242,6 +243,7 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 
 	// Service is not supported in the region
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
