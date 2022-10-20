@@ -118,26 +118,8 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSSMDocument,
 			},
-			/*
-			   Added a column
-			   Can't use filter for owner as the output values for owner doesn't match with the input values
-
-			   select * from aws_ssm_document where owner = 'Dynatrace'
-			   Error: operation error SSM: ListDocuments, https response error StatusCode: 400, RequestID: 8eaa3ca5-65f8-41a6-a166-cb30c1d6f232, api error ValidationException: [Dynatrace] is not a known filter value of key Owner, possible values: Self, Amazon, Public, Private, ThirdParty, All, Default (SQLSTATE HV000)
-
-			   select distinct owner from aws_ssm_document;
-			   +-----------------------+
-			   | owner                 |
-			   +-----------------------+
-			   | 111122223333          |  // Referring to user aws account id
-			   | AlertLogic            |
-			   | Amazon                |
-			   | Dynatrace             |
-			   | Trend Micro Cloud One |
-			   +-----------------------+
-			*/
 			{
-				Name:        "owner_type", // maybe "owner_filter"
+				Name:        "owner_type",
 				Description: "The AWS user account type to filter the documents. Possible values: Self, Amazon, Public, Private, ThirdParty, All, Default.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("owner_type"),
@@ -146,7 +128,6 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Name:        "owner",
 				Description: "The AWS user account that created the document.",
 				Type:        proto.ColumnType_STRING,
-				// Transform:   transform.FromField("Owner"),
 			},
 			{
 				Name:        "parameters",
