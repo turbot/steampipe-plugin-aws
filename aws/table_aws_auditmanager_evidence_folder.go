@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
+	auditmanagerv1 "github.com/aws/aws-sdk-go/service/auditmanager"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -156,10 +157,14 @@ func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h
 		plugin.Logger(ctx).Error("aws_auditmanager_evidence_folder.listAuditManagerEvidenceFolders", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	maxItems := int32(100)
 	// Get assessment details
-	assessmentID := *h.Item.(types.AssessmentMetadataItem).Id
+	assessmentID := *h.Item.(*auditmanagerv1.AssessmentMetadataItem).Id
 	params := &auditmanager.GetEvidenceFoldersByAssessmentInput{
 		AssessmentId: &assessmentID,
 	}
@@ -216,6 +221,10 @@ func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_auditmanager_evidence_folder.getAuditManagerEvidenceFolder", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()

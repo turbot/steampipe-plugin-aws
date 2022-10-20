@@ -167,6 +167,11 @@ func listFsxFileSystems(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	// https://docs.aws.amazon.com/fsx/latest/APIReference/API_DescribeFileSystems.html
 	maxItems := int32(1000)
 	input := fsx.DescribeFileSystemsInput{}
@@ -218,6 +223,11 @@ func getFsxFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_fsx_file_system.getFsxFileSystem", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	quals := d.KeyColumnQuals

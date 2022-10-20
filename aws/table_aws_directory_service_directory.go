@@ -217,6 +217,10 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 		plugin.Logger(ctx).Error("aws_directory_service_directory.listDirectoryServiceDirectories", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -280,6 +284,10 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceDirectory", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	directoryID := d.KeyColumnQuals["directory_id"].GetStringValue()
 	if directoryID == "" {
@@ -317,6 +325,11 @@ func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData
 		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	params := &directoryservice.DescribeSharedDirectoriesInput{
 		OwnerDirectoryId: directory.DirectoryId,
 	}
@@ -366,6 +379,10 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceDirectoryTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &directoryservice.ListTagsForResourceInput{

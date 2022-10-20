@@ -366,7 +366,7 @@ func listAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	errorCh := make(chan error, len(policyNames))
 	for _, policy := range policyNames {
 		wg.Add(1)
-		go getRolePolicyDataAsync(ctx, &policy, role.RoleName, svc, &wg, policyCh, errorCh)
+		go getRolePolicyDataAsync(ctx, aws.String(policy), role.RoleName, svc, &wg, policyCh, errorCh)
 	}
 
 	// wait for all inline policies to be processed

@@ -250,6 +250,10 @@ func getAwsInspectorAssessmentTemplateTags(ctx context.Context, d *plugin.QueryD
 		plugin.Logger(ctx).Error("aws_inspector_assessment_template.getAwsInspectorAssessmentTemplateTags", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &inspector.ListTagsForResourceInput{
@@ -276,6 +280,11 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_inspector_assessment_template.listAwsInspectorAssessmentEventSubscriptions", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
