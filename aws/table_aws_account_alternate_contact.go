@@ -113,6 +113,7 @@ func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

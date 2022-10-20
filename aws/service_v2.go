@@ -75,7 +75,8 @@ import (
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
-	bckupEndpoint "github.com/aws/aws-sdk-go/service/backup"
+	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
+	codecommitEndpoint "github.com/aws/aws-sdk-go/service/codecommit"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
@@ -100,7 +101,7 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 }
 
 func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
-	cfg, err := getClient(ctx, d, "Account")
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +202,7 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 }
 
 func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codecommit")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codecommitEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -212,11 +213,11 @@ func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Cli
 }
 
 func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, bckupEndpoint.EndpointsID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, backupEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if cfg == nil {
 		return nil, nil
 	}

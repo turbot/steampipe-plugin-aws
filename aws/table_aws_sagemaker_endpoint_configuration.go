@@ -107,9 +107,8 @@ func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryDat
 		plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.listSagemakerEndpointConfigurations", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// Check for unsupported region
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -186,9 +185,8 @@ func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData,
 		plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.getSagemakerEndpointConfiguration", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// Check for unsupported region
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -208,13 +206,18 @@ func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData,
 }
 
 func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	configArn := endpointConfigARN(h.Item)
+
 	// Create client
 	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.listSageMakerEndpointConfigurationTags", "connection_error", err)
 		return nil, err
 	}
-	configArn := endpointConfigARN(h.Item)
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &sagemaker.ListTagsInput{

@@ -259,9 +259,6 @@ func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_ecs_task_definition.listEcsTaskDefinitions", "api_error", err)
 			return nil, err
 		}
@@ -308,9 +305,6 @@ func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	op, err := svc.DescribeTaskDefinition(ctx, params)
 	if err != nil {
-		if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 		plugin.Logger(ctx).Error("aws_ecs_task_definition.getEcsTaskDefinition", "api_error", err)
 		return nil, err
 	}

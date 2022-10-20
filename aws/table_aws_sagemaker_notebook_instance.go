@@ -189,9 +189,8 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 		plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.listAwsSageMakerNotebookInstances", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// Check for unsupported region
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -271,9 +270,8 @@ func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h
 		plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.getAwsSageMakerNotebookInstance", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// Check for unsupported region
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -300,7 +298,10 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 		plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.listAwsSageMakerNotebookInstanceTags", "connection_error", err)
 		return nil, err
 	}
-
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 	// Build the params
 	params := &sagemaker.ListTagsInput{
 		ResourceArn: aws.String(resourceArn),

@@ -271,6 +271,7 @@ func getKafkaClusterConfiguration(ctx context.Context, d *plugin.QueryData, h *p
 	}
 	// Unsupported region, return no data
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

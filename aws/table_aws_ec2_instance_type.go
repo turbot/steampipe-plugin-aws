@@ -199,6 +199,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -284,6 +285,7 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -319,11 +321,11 @@ func instanceTypeDataToAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance_type.instanceTypeDataToAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
-
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:::instance-type/" + fmt.Sprint(instanceType)}
+	akas := []string{fmt.Sprintf("arn:%s:ec2:::instance-type/%s", commonColumnData.Partition, instanceType)}
 
 	return akas, nil
 }

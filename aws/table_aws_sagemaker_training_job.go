@@ -304,13 +304,12 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		plugin.Logger(ctx).Error("aws_sagemaker_training_job.listAwsSageMakerTrainingJobs", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// Check for unsupported region
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -362,7 +361,7 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		o.StopOnDuplicateToken = true
 	})
 
-		// List call
+	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -398,9 +397,8 @@ func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("aws_sagemaker_training_job.getAwsSageMakerTrainingJob", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// Check for unsupported region
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -424,6 +422,10 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sagemaker_training_job.getAwsSageMakerTrainingJobTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

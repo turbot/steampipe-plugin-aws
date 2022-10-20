@@ -127,7 +127,7 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 		}
 
 		for _, items := range output.Repositories {
-				repositoryNames = append(repositoryNames, items.RepositoryName)
+			repositoryNames = append(repositoryNames, items.RepositoryName)
 		}
 	}
 

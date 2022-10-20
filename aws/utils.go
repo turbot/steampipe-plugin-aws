@@ -12,8 +12,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
 	sagemaker_type "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"

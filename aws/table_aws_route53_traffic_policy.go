@@ -8,10 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
@@ -48,8 +47,6 @@ func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
 				Name:        "version",
 				Description: "The version number that Amazon Route 53 assigns to a traffic policy.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     extractTrafficPolicyVersion,
-				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "comment",
@@ -131,7 +128,7 @@ func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		close(errorCh)
 
 		for err := range errorCh {
-			plugin.Logger(ctx).Error("listTrafficPolicies", "listTrafficPolicyVersionsAsync_error", err)
+			plugin.Logger(ctx).Error("aws_route53_traffic_policy.listTrafficPolicies", "listTrafficPolicyVersionsAsync_error", err)
 			return nil, err
 		}
 
@@ -172,7 +169,7 @@ func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, sv
 	for pagesLeft {
 		result, err := svc.ListTrafficPolicyVersions(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("listTrafficPolicyVersionsAsync", "ListTrafficPolicyVersions", "api_error", err)
+			plugin.Logger(ctx).Error("aws_route53_traffic_policy.listTrafficPolicyVersionsAsync", "ListTrafficPolicyVersions_api_error", err)
 			errorCh <- err
 		}
 		for _, policies := range result.TrafficPolicies {
@@ -197,8 +194,9 @@ func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	var id string
 	var version int32
 	if h.Item != nil {
-		id = trafficPolicyId(h.Item)
-		version = trafficPolicyVersion(h.Item)
+		trafficPolicy := h.Item.(types.TrafficPolicy)
+		id = *trafficPolicy.Id
+		version = *trafficPolicy.Version
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
 		version = int32(d.KeyColumnQuals["version"].GetInt64Value())
@@ -227,11 +225,11 @@ func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		plugin.Logger(ctx).Error("aws_route53_traffic_policy.getTrafficPolicy", "api_error", err)
 		return nil, err
 	}
-	return item.TrafficPolicy, nil
+	return *item.TrafficPolicy, nil
 }
 
 func getRoute53TrafficPolicyTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRoute53TrafficPolicyTurbotAkas")
+	trafficPolicy := h.Item.(types.TrafficPolicy)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -241,34 +239,7 @@ func getRoute53TrafficPolicyTurbotAkas(ctx context.Context, d *plugin.QueryData,
 
 	// Get data for turbot defined properties
 	//arn:aws:route53::<account-id>:trafficpolicy/<id>/<version>
-	akas := []string{"arn:" + commonColumnData.Partition +
-		":route53::" + commonColumnData.AccountId +
-		":" + "trafficpolicy/" + trafficPolicyId(h.Item) +
-		"/" + fmt.Sprint(trafficPolicyVersion(h.Item))}
+	arn := fmt.Sprintf("arn:%s:route53::%s:trafficpolicy/%s/%s", commonColumnData.Partition, commonColumnData.AccountId, *trafficPolicy.Id, string(*trafficPolicy.Version))
 
-	return akas, nil
-}
-
-func trafficPolicyId(item interface{}) string {
-	switch item := item.(type) {
-	case *types.TrafficPolicy:
-		return *item.Id
-	case types.TrafficPolicy:
-		return *item.Id
-	}
-	return ""
-}
-
-func extractTrafficPolicyVersion(_ context.Context, _ *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	return trafficPolicyVersion(h.Item), nil
-}
-
-func trafficPolicyVersion(item interface{}) int32 {
-	switch item := item.(type) {
-	case *types.TrafficPolicy:
-		return *item.Version
-	case types.TrafficPolicy:
-		return *item.Version
-	}
-	return 0
+	return []string{arn}, nil
 }

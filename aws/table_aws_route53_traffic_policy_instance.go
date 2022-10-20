@@ -2,14 +2,14 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
@@ -181,18 +181,11 @@ func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugi
 		plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.getTrafficPolicyInstance", "api_error", err)
 		return nil, err
 	}
-	return item.TrafficPolicyInstance, nil
+	return *item.TrafficPolicyInstance, nil
 }
 
 func getRoute53TrafficPolicyInstanceTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var instanceId string
-
-	switch item := h.Item.(type) {
-	case *types.TrafficPolicyInstance:
-		instanceId = *item.Id
-	case types.TrafficPolicyInstance:
-		instanceId = *item.Id
-	}
+	instanceId := *h.Item.(types.TrafficPolicyInstance).Id
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -204,9 +197,6 @@ func getRoute53TrafficPolicyInstanceTurbotAkas(ctx context.Context, d *plugin.Qu
 
 	// Get data for turbot defined properties
 	//arn:aws:route53::<account-id>:trafficpolicyinstance/<id>
-	akas := []string{"arn:" + commonColumnData.Partition +
-		":route53::" + commonColumnData.AccountId +
-		":" + "trafficpolicyinstance/" + instanceId}
-
-	return akas, nil
+	arn := fmt.Sprintf("arn:%s:route53::%s:trafficpolicyinstance/%s", commonColumnData.Partition, commonColumnData.AccountId, instanceId)
+	return []string{arn}, nil
 }

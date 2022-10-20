@@ -110,8 +110,8 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		plugin.Logger(ctx).Error("aws_backup_plan.listAwsBackupPlans", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -129,9 +129,9 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	input := &backup.ListBackupPlansInput{
-		MaxResults: aws.Int32(maxLimit),
+		MaxResults:     aws.Int32(maxLimit),
+		IncludeDeleted: aws.Bool(true),
 	}
-	input.IncludeDeleted = aws.Bool(true)
 
 	paginator := backup.NewListBackupPlansPaginator(svc, input, func(o *backup.ListBackupPlansPaginatorOptions) {
 		o.Limit = maxLimit
@@ -168,8 +168,8 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		plugin.Logger(ctx).Error("aws_backup_plan.getAwsBackupPlan", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

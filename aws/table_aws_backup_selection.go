@@ -115,6 +115,7 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -135,9 +136,9 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	input := &backup.ListBackupSelectionsInput{
-		MaxResults: aws.Int32(maxLimit),
+		MaxResults:   aws.Int32(maxLimit),
+		BackupPlanId: aws.String(*plan.BackupPlanId),
 	}
-	input.BackupPlanId = aws.String(*plan.BackupPlanId)
 
 	paginator := backup.NewListBackupSelectionsPaginator(svc, input, func(o *backup.ListBackupSelectionsPaginatorOptions) {
 		o.Limit = maxLimit
@@ -176,6 +177,7 @@ func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

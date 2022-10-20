@@ -127,9 +127,8 @@ func listAwsSageMakerModels(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		plugin.Logger(ctx).Error("aws_sagemaker_model.listAwsSageMakerModels", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
-		// Check for unsupported region
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -205,9 +204,8 @@ func getAwsSageMakerModel(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		plugin.Logger(ctx).Error("aws_sagemaker_model.getAwsSageMakerModel", "connection_error", err)
 		return nil, err
 	}
-	
 	if svc == nil {
-		// Check for unsupported region
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -239,6 +237,10 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sagemaker_model.listAwsSageMakerModelTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
