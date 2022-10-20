@@ -2,13 +2,12 @@ package aws
 
 import (
 	"context"
+	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +19,7 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("product_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAccessException", "InvalidInputException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException"}),
 			},
 			Hydrate: getSecurityHubProduct,
 		},
@@ -96,51 +95,62 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSecurityHubProducts")
 
-	// Create Session
-	svc, err := SecurityHubService(ctx, d)
+	// Create session
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProducts", "client_error", err)
 		return nil, err
 	}
-
-	input := &securityhub.DescribeProductsInput{
-		MaxResults: aws.Int64(100),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeProductsPages(
-		input,
-		func(page *securityhub.DescribeProductsOutput, isLast bool) bool {
-			for _, product := range page.Products {
-				d.StreamListItem(ctx, product)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("listSecurityHubProducts", "query_error", err)
-		return nil, nil
+	input := &securityhub.DescribeProductsInput{
+		MaxResults: maxLimit,
 	}
-	return nil, err
+
+	paginator := securityhub.NewDescribeProductsPaginator(svc, input, func(o *securityhub.DescribeProductsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			// Handle error for accounts that are not subscribed to AWS Security Hub
+			if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
+				return nil, nil
+			}
+			plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProducts", "api_error", err)
+			return nil, err
+		}
+
+		for _, product := range output.Products {
+			d.StreamListItem(ctx, product)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -148,18 +158,30 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	productArn := d.KeyColumnQuals["product_arn"].GetStringValue()
 
-	// Create service
-	svc, err := SecurityHubService(ctx, d)
+	// Create session
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_product.getSecurityHubProduct", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
+	// Build the params
 	params := &securityhub.DescribeProductsInput{
 		ProductArn: &productArn,
 	}
 
-	op, err := svc.DescribeProducts(params)
+	// Get call
+	op, err := svc.DescribeProducts(ctx, params)
 	if err != nil {
+		// Handle error for accounts that are not subscribed to AWS Security Hub
+		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("aws_securityhub_product.getSecurityHubProduct", "api_error", err)
 		return nil, err
 	}
 

@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/identitystore"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/identitystore"
+	"github.com/aws/aws-sdk-go-v2/service/identitystore/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -17,15 +18,15 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"identity_store_id", "id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getIdentityStoreUser,
 		},
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.AllColumns([]string{"identity_store_id", "name"}),
+			KeyColumns: plugin.AllColumns([]string{"identity_store_id"}),
 			Hydrate:    listIdentityStoreUsers,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -62,81 +63,76 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listIdentityStoreUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listIdentityStoreUsers")
 
-	name := d.KeyColumnQuals["name"].GetStringValue()
 	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
 
-	// Create session
-	svc, err := IdentityStoreService(ctx, d)
+	// Create Session
+	svc, err := IdentityStoreClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_identitystore_user.listIdentityStoreUsers", "get_client_error", err)
 		return nil, err
 	}
 
-	params := &identitystore.ListUsersInput{
-		IdentityStoreId: aws.String(identityStoreId),
-		Filters: []*identitystore.Filter{
-			{
-				AttributePath:  aws.String("UserName"),
-				AttributeValue: aws.String(name),
-			},
-		},
-		MaxResults: aws.Int64(50),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(50)
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			if *limit < 1 {
-				params.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				params.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.ListUsersPages(
-		params,
-		func(page *identitystore.ListUsersOutput, isLast bool) bool {
-			for _, user := range page.Users {
-				item := &IdentityStoreUser{
-					IdentityStoreId: &identityStoreId,
-					User:            user,
-				}
-				d.StreamListItem(ctx, item)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listIdentityStoreUsers", "ListUsersPages_error", err)
-
+	params := &identitystore.ListUsersInput{
+		IdentityStoreId: aws.String(identityStoreId),
+		MaxResults:      aws.Int32(maxLimit),
 	}
+
+	paginator := identitystore.NewListUsersPaginator(svc, params, func(o *identitystore.ListUsersPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_identitystore_user.listIdentityStoreUsers", "api_error", err)
+			return nil, err
+		}
+		for _, user := range output.Users {
+			item := &IdentityStoreUser{
+				IdentityStoreId: &identityStoreId,
+				User:            user,
+			}
+			d.StreamListItem(ctx, item)
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
 	return nil, err
 }
 
 type IdentityStoreUser struct {
 	IdentityStoreId *string
-	User            *identitystore.User
+	User            types.User
 }
 
 //// HYDRATE FUNCTIONS
 
 func getIdentityStoreUser(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getIdentityStoreUser")
 
 	userId := d.KeyColumnQuals["id"].GetStringValue()
 	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
 
-	// Create session
-	svc, err := IdentityStoreService(ctx, d)
+	// Create Session
+	svc, err := IdentityStoreClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_identitystore_user.getIdentityStoreUser", "get_client_error", err)
 		return nil, err
 	}
 
@@ -145,15 +141,15 @@ func getIdentityStoreUser(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		IdentityStoreId: aws.String(identityStoreId),
 	}
 
-	op, err := svc.DescribeUser(params)
+	op, err := svc.DescribeUser(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getIdentityStoreUser", "DescribeUser_error", err)
+		plugin.Logger(ctx).Error("aws_identitystore_user.getIdentityStoreUser", "api_error", err)
 		return nil, err
 	}
 
 	item := &IdentityStoreUser{
 		IdentityStoreId: &identityStoreId,
-		User: &identitystore.User{
+		User: types.User{
 			UserName: op.UserName,
 			UserId:   op.UserId,
 		},
