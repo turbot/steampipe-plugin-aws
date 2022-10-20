@@ -22,7 +22,8 @@ from
   aws_ssm_document;
 ```
 
-### List documents owned by Account
+### List documents owned by the AWS account
+
 ```sql
 select
   name,
@@ -53,7 +54,7 @@ where
   owner_type != 'Amazon';
 ```
 
-### List owned documents that are shared publicly
+### List documents that are shared publicly
 
 ```sql
 select
