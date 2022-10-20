@@ -193,7 +193,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := Ec2RegionsClient(ctx, d, region)
+	svc, err := EC2RegionsClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.listAwsInstanceTypesOfferings", "connection_error", err)
 		return nil, err
@@ -279,7 +279,7 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := Ec2RegionsClient(ctx, d, region)
+	svc, err := EC2RegionsClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.describeInstanceType", "connection_error", err)
 		return nil, err

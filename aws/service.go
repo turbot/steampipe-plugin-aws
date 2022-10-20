@@ -19,83 +19,48 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/aws/aws-sdk-go/service/amplify"
-	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/aws/aws-sdk-go/service/codebuild"
-	"github.com/aws/aws-sdk-go/service/codecommit"
-	"github.com/aws/aws-sdk-go/service/codepipeline"
-	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/aws/aws-sdk-go/service/costexplorer"
-	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
-	"github.com/aws/aws-sdk-go/service/dax"
-	"github.com/aws/aws-sdk-go/service/directoryservice"
-	"github.com/aws/aws-sdk-go/service/dlm"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/ecrpublic"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
-	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
 	"github.com/aws/aws-sdk-go/service/firehose"
-	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
-	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/identitystore"
-	"github.com/aws/aws-sdk-go/service/inspector"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
-	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/macie2"
 	"github.com/aws/aws-sdk-go/service/mediastore"
 	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/aws/aws-sdk-go/service/opensearchservice"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
-	"github.com/aws/aws-sdk-go/service/pricing"
-	"github.com/aws/aws-sdk-go/service/ram"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
-	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
-	"github.com/aws/aws-sdk-go/service/s3control"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
-	"github.com/aws/aws-sdk-go/service/servicequotas"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/aws/aws-sdk-go/service/sns"
-	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/ssoadmin"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
 	"github.com/aws/aws-sdk-go/service/wafv2"
@@ -106,14 +71,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
-func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return acm.New(sess), nil
-}
-
 func AmplifyService(ctx context.Context, d *plugin.QueryData) (*amplify.Amplify, error) {
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, amplify.EndpointsID)
 	if err != nil {
@@ -123,22 +80,6 @@ func AmplifyService(ctx context.Context, d *plugin.QueryData) (*amplify.Amplify,
 		return nil, nil
 	}
 	return amplify.New(sess), nil
-}
-
-func APIGatewayService(ctx context.Context, d *plugin.QueryData) (*apigateway.APIGateway, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return apigateway.New(sess), nil
-}
-
-func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.ApiGatewayV2, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return apigatewayv2.New(sess), nil
 }
 
 // ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
@@ -208,44 +149,12 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 	return svc, nil
 }
 
-func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, codebuild.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	return codebuild.New(sess), nil
-}
-
-func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, codecommit.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	return codecommit.New(sess), nil
-}
-
-func CodePipelineService(ctx context.Context, d *plugin.QueryData) (*codepipeline.CodePipeline, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, codepipeline.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	return codepipeline.New(sess), nil
-}
-
 func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
 	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
 	return cloudfront.New(sess), nil
-}
-
-func CloudFormationService(ctx context.Context, d *plugin.QueryData) (*cloudformation.CloudFormation, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return cloudformation.New(sess), nil
 }
 
 func CloudWatchService(ctx context.Context, d *plugin.QueryData) (*cloudwatch.CloudWatch, error) {
@@ -264,57 +173,6 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 	return cloudwatchlogs.New(sess), nil
 }
 
-func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.ConfigService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return configservice.New(sess), nil
-}
-
-func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplorer.CostExplorer, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return costexplorer.New(sess), nil
-}
-
-func DaxService(ctx context.Context, d *plugin.QueryData) (*dax.DAX, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.DaxServiceID)
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return dax.New(sess), nil
-}
-
-func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.DatabaseMigrationService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return databasemigrationservice.New(sess), nil
-}
-
-func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservice.DirectoryService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return directoryservice.New(sess), nil
-}
-
-func DLMService(ctx context.Context, d *plugin.QueryData) (*dlm.DLM, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return dlm.New(sess), nil
-}
-
 func DynamoDbService(ctx context.Context, d *plugin.QueryData) (*dynamodb.DynamoDB, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -331,35 +189,6 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	return ec2.New(sess), nil
 }
 
-func Ec2RegionsService(ctx context.Context, d *plugin.QueryData, region string) (*ec2.EC2, error) {
-	// We can query EC2 for the list of supported regions. But, if credentials
-	// are insufficient this query will retry many times, so we create a special
-	// client with a small number of retries to prevent hangs.
-	// Note - This is not cached, but usually the result of using this service will be.
-	sess, err := getSessionWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
-	if err != nil {
-		return nil, err
-	}
-	svc := ec2.New(sess)
-	return svc, nil
-}
-
-func EcrService(ctx context.Context, d *plugin.QueryData) (*ecr.ECR, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return ecr.New(sess), nil
-}
-
-func EcrPublicService(ctx context.Context, d *plugin.QueryData) (*ecrpublic.ECRPublic, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return ecrpublic.New(sess), nil
-}
-
 func EcsService(ctx context.Context, d *plugin.QueryData) (*ecs.ECS, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -368,36 +197,12 @@ func EcsService(ctx context.Context, d *plugin.QueryData) (*ecs.ECS, error) {
 	return ecs.New(sess), nil
 }
 
-func EfsService(ctx context.Context, d *plugin.QueryData) (*efs.EFS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return efs.New(sess), nil
-}
-
-func FsxService(ctx context.Context, d *plugin.QueryData) (*fsx.FSx, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return fsx.New(sess), nil
-}
-
 func EksService(ctx context.Context, d *plugin.QueryData) (*eks.EKS, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return eks.New(sess), nil
-}
-
-func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData) (*elasticbeanstalk.ElasticBeanstalk, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return elasticbeanstalk.New(sess), nil
 }
 
 func ElastiCacheService(ctx context.Context, d *plugin.QueryData) (*elasticache.ElastiCache, error) {
@@ -414,22 +219,6 @@ func ElasticsearchService(ctx context.Context, d *plugin.QueryData) (*elasticsea
 		return nil, err
 	}
 	return elasticsearchservice.New(sess), nil
-}
-
-func ELBService(ctx context.Context, d *plugin.QueryData) (*elb.ELB, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return elb.New(sess), nil
-}
-
-func ELBv2Service(ctx context.Context, d *plugin.QueryData) (*elbv2.ELBV2, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return elbv2.New(sess), nil
 }
 
 func EventBridgeService(ctx context.Context, d *plugin.QueryData) (*eventbridge.EventBridge, error) {
@@ -474,14 +263,6 @@ func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*global
 	return globalaccelerator.New(sess), nil
 }
 
-func GlueService(ctx context.Context, d *plugin.QueryData) (*glue.Glue, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return glue.New(sess), nil
-}
-
 func GuardDutyService(ctx context.Context, d *plugin.QueryData) (*guardduty.GuardDuty, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -490,31 +271,12 @@ func GuardDutyService(ctx context.Context, d *plugin.QueryData) (*guardduty.Guar
 	return guardduty.New(sess), nil
 }
 
-func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return iam.New(sess), nil
-}
-
 func IdentityStoreService(ctx context.Context, d *plugin.QueryData) (*identitystore.IdentityStore, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return identitystore.New(sess), nil
-}
-
-func InspectorService(ctx context.Context, d *plugin.QueryData) (*inspector.Inspector, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.InspectorServiceID)
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return inspector.New(sess), nil
 }
 
 func KinesisService(ctx context.Context, d *plugin.QueryData) (*kinesis.Kinesis, error) {
@@ -539,22 +301,6 @@ func KinesisVideoService(ctx context.Context, d *plugin.QueryData) (*kinesisvide
 		return nil, err
 	}
 	return kinesisvideo.New(sess), nil
-}
-
-func KMSService(ctx context.Context, d *plugin.QueryData) (*kms.KMS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return kms.New(sess), nil
-}
-
-func LambdaService(ctx context.Context, d *plugin.QueryData) (*lambda.Lambda, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return lambda.New(sess), nil
 }
 
 func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, error) {
@@ -614,22 +360,6 @@ func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchser
 	return opensearchservice.New(sess), nil
 }
 
-func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return pricing.New(sess), nil
-}
-
-func RAMService(ctx context.Context, d *plugin.QueryData) (*ram.RAM, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return ram.New(sess), nil
-}
-
 func RDSService(ctx context.Context, d *plugin.QueryData) (*rds.RDS, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -638,37 +368,12 @@ func RDSService(ctx context.Context, d *plugin.QueryData) (*rds.RDS, error) {
 	return rds.New(sess), nil
 }
 
-func RedshiftService(ctx context.Context, d *plugin.QueryData) (*redshift.Redshift, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return redshift.New(sess), nil
-}
-
-func Route53DomainsService(ctx context.Context, d *plugin.QueryData) (*route53domains.Route53Domains, error) {
-	// Route53Domains only operate in us-east-1
-	sess, err := getSession(ctx, d, "us-east-1")
-	if err != nil {
-		return nil, err
-	}
-	return route53domains.New(sess), nil
-}
-
 func Route53ResolverService(ctx context.Context, d *plugin.QueryData) (*route53resolver.Route53Resolver, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return route53resolver.New(sess), nil
-}
-
-func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return route53.New(sess), nil
 }
 
 func SecretsManagerService(ctx context.Context, d *plugin.QueryData) (*secretsmanager.SecretsManager, error) {
@@ -685,14 +390,6 @@ func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.
 		return nil, err
 	}
 	return securityhub.New(sess), nil
-}
-
-func S3ControlService(ctx context.Context, d *plugin.QueryData, region string) (*s3control.S3Control, error) {
-	sess, err := getSessionForRegion(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	return s3control.New(sess), nil
 }
 
 func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.SageMaker, error) {
@@ -722,48 +419,6 @@ func SESService(ctx context.Context, d *plugin.QueryData) (*ses.SES, error) {
 	return ses.New(sess), nil
 }
 
-func SNSService(ctx context.Context, d *plugin.QueryData) (*sns.SNS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return sns.New(sess), nil
-}
-
-// TODO
-// ServiceQuotasService returns the service connection for AWS ServiceQuotas service
-func ServiceQuotasService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("servicequotas-%s", "region")
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*servicequotas.ServiceQuotas), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, "")
-	if err != nil {
-		return nil, err
-	}
-	svc := servicequotas.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
-}
-
-func ServiceQuotasRegionalService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return servicequotas.New(sess), nil
-}
-
-func SQSService(ctx context.Context, d *plugin.QueryData) (*sqs.SQS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return sqs.New(sess), nil
-}
-
 func SsmService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -786,15 +441,6 @@ func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, e
 		return nil, err
 	}
 	return sfn.New(sess), nil
-}
-
-func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
-	// TODO - Should STS be regional instead?
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return sts.New(sess), nil
 }
 
 func TaggingResourceService(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.ResourceGroupsTaggingAPI, error) {
@@ -975,11 +621,10 @@ func getSessionForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData,
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-	validRegions, err := SupportedRegionsForService(ctx, d, serviceID)
+	validRegions, err := GetSupportedRegionsForClient(ctx, d, serviceID)
 	if err != nil {
 		return nil, err
 	}
-
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather
