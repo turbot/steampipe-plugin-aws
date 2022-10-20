@@ -28,7 +28,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
@@ -53,7 +52,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
-	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
@@ -149,14 +147,6 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
-}
-
-func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, codecommit.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	return codecommit.New(sess), nil
 }
 
 func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
@@ -384,14 +374,6 @@ func Route53ResolverService(ctx context.Context, d *plugin.QueryData) (*route53r
 		return nil, err
 	}
 	return route53resolver.New(sess), nil
-}
-
-func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return route53.New(sess), nil
 }
 
 func SecretsManagerService(ctx context.Context, d *plugin.QueryData) (*secretsmanager.SecretsManager, error) {
