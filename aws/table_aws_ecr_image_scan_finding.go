@@ -2,12 +2,14 @@ package aws
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ecr"
+	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-	"time"
 )
 
 //// TABLE DEFINITION
@@ -15,12 +17,16 @@ import (
 func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ecr_image_scan_finding",
-		Description: "AWS ECR Image Scan findings",
+		Description: "AWS ECR Image Scan Finding",
 		List: &plugin.ListConfig{
-			Hydrate: getAwsEcrImageScanFindings,
+			Hydrate: listAwsEcrImageScanFindings,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
 			},
+			// Ideally image_tag and image_digest could both be used as optional
+			// key columns, but the query planner only works with required key
+			// columns when there are multiple. We chose image_tag instead of
+			// image_digest as it's more common/friendly to use.
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "repository_name", Require: plugin.Required},
 				{Name: "image_tag", Require: plugin.Required},
@@ -32,6 +38,7 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 				Name:        "repository_name",
 				Description: "The name of the repository.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("repository_name"),
 			},
 			{
 				Name:        "image_tag",
@@ -42,21 +49,6 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 				Name:        "image_digest",
 				Description: "The image digest",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "image_scan_status",
-				Description: "The current state of the scan",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "image_scan_completed_at",
-				Description: "The date and time, in JavaScript date format, when the repository was created.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "vulnerability_source_updated_at",
-				Description: "The date and time, in JavaScript date format, when the repository was created.",
-				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "name",
@@ -88,81 +80,110 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ImageScanFinding.Uri"),
 			},
+			{
+				Name:        "image_scan_status",
+				Description: "The current state of the scan",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ImageScanStatus.Status"),
+			},
+			{
+				Name:        "image_scan_status_description",
+				Description: "The description of the image scan status.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ImageScanStatus.Description"),
+			},
+			{
+				Name:        "image_scan_completed_at",
+				Description: "The date and time, in JavaScript date format, when the repository was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "vulnerability_source_updated_at",
+				Description: "The date and time, in JavaScript date format, when the repository was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ImageScanFinding.Name"),
+			},
 		}),
 	}
 }
 
 // // LIST FUNCTION
-func getAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	imageTag := d.KeyColumnQuals["image_tag"]
 	repositoryName := d.KeyColumnQuals["repository_name"]
-	plugin.Logger(ctx).Trace("getAwsEcrImageScanFindings", "repositoryName", repositoryName, "imageTag", imageTag, "path")
+	plugin.Logger(ctx).Trace("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "repositoryName", repositoryName, "imageTag", imageTag)
 
-	input := &ecr.DescribeImageScanFindingsInput{
-		MaxResults:     aws.Int64(1000),
-		RepositoryName: aws.String(repositoryName.GetStringValue()),
-		ImageId:        &ecr.ImageIdentifier{},
-	}
-
-	if len(imageTag.GetStringValue()) > 0 {
-		input.ImageId.ImageTag = aws.String(imageTag.GetStringValue())
-	}
-
-	limit := d.QueryContext.Limit
-	if limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
-			}
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
 		}
 	}
 
-	// List call
-	type ImagescanFindingsOutput struct {
-		RepositoryName               *string
-		ImageTag                     *string
-		ImageDigest                  *string
-		ImageScanStatus              *string
-		ImageScanCompletedAt         *time.Time
-		VulnerabilitySourceUpdatedAt *time.Time
-		ImageScanFinding             *ecr.ImageScanFinding
-	}
-	err = svc.DescribeImageScanFindingsPages(
-		input,
-		func(page *ecr.DescribeImageScanFindingsOutput, isLast bool) bool {
-			if page.ImageScanFindings != nil {
-				for _, finding := range page.ImageScanFindings.Findings {
-					result := &ImagescanFindingsOutput{
-						RepositoryName:   input.RepositoryName,
-						ImageTag:         page.ImageId.ImageTag,
-						ImageDigest:      page.ImageId.ImageDigest,
-						ImageScanStatus:  page.ImageScanStatus.Status,
-						ImageScanFinding: finding,
-					}
-					if page.ImageScanFindings.ImageScanCompletedAt != nil {
-						result.ImageScanCompletedAt = page.ImageScanFindings.ImageScanCompletedAt
-					}
-					if page.ImageScanFindings.VulnerabilitySourceUpdatedAt != nil {
-						result.VulnerabilitySourceUpdatedAt = page.ImageScanFindings.VulnerabilitySourceUpdatedAt
-					}
-					d.StreamListItem(ctx, result)
-					// Context may get cancelled due to manual cancellation or if the limit has been reached
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
-				}
-			}
-			return !isLast
+	input := &ecr.DescribeImageScanFindingsInput{
+		MaxResults:     aws.Int32(maxLimit),
+		RepositoryName: aws.String(repositoryName.GetStringValue()),
+		ImageId: &types.ImageIdentifier{
+			ImageTag: aws.String(imageTag.GetStringValue()),
 		},
-	)
+	}
+
+	paginator := ecr.NewDescribeImageScanFindingsPaginator(svc, input, func(o *ecr.DescribeImageScanFindingsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	type ImageScanFindingsOutput struct {
+		ImageDigest                  *string
+		ImageScanCompletedAt         *time.Time
+		ImageScanFinding             types.ImageScanFinding
+		ImageScanStatus              types.ImageScanStatus
+		ImageTag                     *string
+		VulnerabilitySourceUpdatedAt *time.Time
+	}
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "api_error", err)
+			return nil, err
+		}
+
+		for _, finding := range output.ImageScanFindings.Findings {
+			result := &ImageScanFindingsOutput{
+				ImageDigest:      output.ImageId.ImageDigest,
+				ImageScanFinding: finding,
+				ImageScanStatus:  *output.ImageScanStatus,
+				ImageTag:         output.ImageId.ImageTag,
+			}
+			if output.ImageScanFindings.ImageScanCompletedAt != nil {
+				result.ImageScanCompletedAt = output.ImageScanFindings.ImageScanCompletedAt
+			}
+			if output.ImageScanFindings.VulnerabilitySourceUpdatedAt != nil {
+				result.VulnerabilitySourceUpdatedAt = output.ImageScanFindings.VulnerabilitySourceUpdatedAt
+			}
+			d.StreamListItem(ctx, result)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
 
 	return nil, err
 }

@@ -1,56 +1,28 @@
-# Table: aws_ecr_image_finding
+# Table: aws_ecr_image_scan_finding
 
 Amazon Elastic Container Registry (Amazon ECR) stores Docker images and allows you to scan them on push, or periodically.
 The corresponding CVE findings are available in this table for an image tag, in a repository.
 
 ## Examples
 
-### Get CVEs count from an image tag scan, group by severity
+### List scan findings for an image
 
 ```sql
 select
   repository_name,
   image_tag,
-  image_digest,
-  image_scan_status,
-  image_scan_completed_at,
-  vulnerability_source_updated_at,
-  severity,
-  count(*) as nb 
-from
-  aws_ecr_image_scan_finding 
-where
-  repository_name = 'my-repo' 
-  and image_tag = 'my-image-tag' 
-group by
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  7
-```
-
-### Get details from an image tag scan
-
-```sql
-select
-  repository_name,
-  image_tag,
-  image_digest,
-  image_scan_status,
-  image_scan_completed_at,
-  vulnerability_source_updated_at,
-  severity,
   name,
+  severity,
   description,
   attributes,
-  uri 
+  uri,
+  image_scan_status,
+  image_scan_completed_at,
+  vulnerability_source_updated_at
 from
-  aws_ecr_image_scan_finding 
+  aws_ecr_image_scan_finding
 where
-  repository_name = 'my-repo' 
+  repository_name = 'my-repo'
   and image_tag = 'my-image-tag'
 ```
 
@@ -58,20 +30,24 @@ where
 
 ```sql
 select
-  findings.* 
+  f.repository_name,
+  f.image_tag,
+  f.name,
+  f.severity,
+  jsonb_pretty(f.attributes) as attributes
 from
   (
     select
       repository_name,
-      jsonb_array_elements_text(image_tags) as image_tag 
+      jsonb_array_elements_text(image_tags) as image_tag
     from
-      aws_ecr_image i 
+      aws_ecr_image as i
     where
-      i.image_pushed_at > now() - interval '24' hour 
+      i.image_pushed_at > now() - interval '24' hour
   )
-  images 
+  images
   left outer join
-    aws_ecr_image_scan_finding findings 
-    on images.repository_name = findings.repository_name 
-    and images.image_tag = findings.image_tag
+    aws_ecr_image_scan_finding as f
+    on images.repository_name = f.repository_name
+    and images.image_tag = f.image_tag
 ```
