@@ -106,9 +106,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
 
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
@@ -145,6 +142,8 @@ import (
 	wafregionalEnpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -974,6 +973,17 @@ func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryD
 	return serverlessapplicationrepository.NewFromConfig(*cfg), nil
 }
 
+func ServiceQuotasRegionalClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, servicequotasEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return servicequotas.NewFromConfig(*cfg), nil
+}
+
 func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -1004,6 +1014,15 @@ func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 		return nil, err
 	}
 	return sqs.NewFromConfig(*cfg), nil
+}
+
+func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
+	// TODO - Should STS be regional instead?
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return sts.NewFromConfig(*cfg), nil
 }
 
 func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
@@ -1055,15 +1074,6 @@ func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv
 	return wafv2.NewFromConfig(*cfg), nil
 }
 
-func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
-	// TODO - Should STS be regional instead?
-	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return sts.NewFromConfig(*cfg), nil
-}
-
 func WellArchitectedClient(ctx context.Context, d *plugin.QueryData) (*wellarchitected.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -1081,17 +1091,6 @@ func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Cli
 		return nil, nil
 	}
 	return workspaces.NewFromConfig(*cfg), nil
-}
-
-func ServiceQuotasRegionalClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, servicequotasEndpoint.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
-	}
-	return servicequotas.NewFromConfig(*cfg), nil
 }
 
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
