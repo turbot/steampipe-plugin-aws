@@ -1,12 +1,22 @@
-## v0.7x.x [TBD]
+## v0.80.0 [2022-10-21]
+
+- New tables added
+  - [aws_ecr_image_scan_finding](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecr_image_scan_finding) ([#1315](https://github.com/turbot/steampipe-plugin-aws/pull/1315)) (Thanks to [@aminvielledebatAtBedrock](https://github.com/aminvielledebatAtBedrock) for the new table!)
+  - [aws_lightsail_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lightsail_instance) ([#1359](https://github.com/turbot/steampipe-plugin-aws/pull/1359))
 
 _Enhancements_
 
 - Added `owner_type` column to the `aws_ssm_document` table to allow filtering on SSM documents by AWS account type. ([#1337](https://github.com/turbot/steampipe-plugin-aws/pull/1337))
+- Updated 80+ tables to use [AWS SDK Go v2](https://github.com/aws/aws-sdk-go-v2). ([#1337](https://github.com/turbot/steampipe-plugin-aws/pull/1337)) ([#1357](https://github.com/turbot/steampipe-plugin-aws/pull/1357))
 
 _Bug fixes_
 
 - Fixed `status` column type from JSON to string in `aws_ssm_association` table. ([#1337](https://github.com/turbot/steampipe-plugin-aws/pull/1337))
+- Removed unsupported `TAGS` dimension note in `aws_cost_usage` table doc. ([#1362](https://github.com/turbot/steampipe-plugin-aws/pull/1362))
+
+_Deprecated_
+
+- Deprecated `image_details` and `image_scanning_findings` columns in `aws_ecr_repository` table to avoid throttling issues. Please use the `aws_ecr_image` and `aws_ecr_image_scan_finding` tables instead. ([#1198](https://github.com/turbot/steampipe-plugin-aws/pull/1198))
 
 ## v0.79.1 [2022-10-17]
 
