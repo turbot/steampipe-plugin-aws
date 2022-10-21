@@ -87,7 +87,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "image_details",
-				Description: "A list of ImageDetail objects that contain data about the image.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. A new table(aws_ecr_image) has been added for this column. A list of ImageDetail objects that contain data about the image.",
 				Hydrate:     getAwsEcrDescribeImages,
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromValue(),
