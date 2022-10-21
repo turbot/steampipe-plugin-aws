@@ -23,7 +23,6 @@ from
   aws_ecr_repository;
 ```
 
-
 ### List repositories which are not using Customer Managed Keys (CMK) for encryption
 
 ```sql
@@ -37,7 +36,6 @@ where
   encryption_configuration ->> 'EncryptionType' = 'AES256';
 ```
 
-
 ### List repositories with automatic image scanning disabled
 
 ```sql
@@ -50,21 +48,39 @@ where
   image_scanning_configuration ->> 'ScanOnPush' = 'false';
 ```
 
+### List image details for repositories
+
+```sql
+select
+  r.repository_name as repository_name,
+  i.image_digest as image_digest,
+  i.image_pushed_at as image_pushed_at,
+  i.image_size_in_bytes as image_size_in_bytes,
+  i.last_recorded_pull_time as last_recorded_pull_time,
+  i.registry_id as registry_id,
+  i.image_scan_status as image_scan_status
+from
+  aws_ecr_repository as r,
+  aws_ecr_image as i
+where
+  r.repository_name = i.repository_name;
+```
 
 ### List repositories whose image scanning has failed
 
 ```sql
 select
-  repository_name,
-  detail -> 'ImageScanStatus' ->> 'Status' as scan_status
+  r.repository_name as repository_name,
+  i.image_digest as image_digest,
+  i.image_scan_status as image_scan_status
 from
-  aws_ecr_repository,
-  jsonb_array_elements(image_details) as details,
-  jsonb(details) as detail
+  aws_ecr_repository as r,
+  aws_ecr_image as i
 where
-  detail -> 'ImageScanStatus' ->> 'Status' = 'FAILED';
+  r.repository_name = i.repository_name
+  and
+  i.image_scan_status ->> 'Status' = 'FAILED';
 ```
-
 
 ### List repositories whose tag immutability is disabled
 
@@ -130,7 +146,7 @@ select
   detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'LOW' as low_severity_counts,
   detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'MEDIUM' as medium_severity_counts,
   detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'UNDEFINED' as undefined_severity_counts
-from 
+from
   aws_ecr_repository,
   jsonb_array_elements(image_scanning_findings) as details, jsonb(details) as detail;
 

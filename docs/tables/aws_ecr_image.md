@@ -58,3 +58,40 @@ where
 and
   repository_name = 'test1';
 ```
+
+### List images for repositories created in last 20 days
+
+```sql
+select
+  i.repository_name as repository_name,
+  r. repository_uri as repository_uri,
+  i.image_digest as image_digest,
+  i.image_tags as image_tags
+from
+  aws_ecr_image as i,
+  aws_ecr_repository as r
+where
+  i.repository_name = r.repository_name
+and
+  r.created_at >= now() - interval '20' day;
+```
+
+### Get policy statements of repositories in which image persist
+
+```sql
+select
+  i.repository_name as repository_name,
+  r. repository_uri as repository_uri,
+  i.image_digest as image_digest,
+  i.image_tags as image_tags,
+  s ->> 'Effect' as effect,
+  s ->> 'Action' as action,
+  s ->> 'Condition' as condition,
+  s ->> 'Principal' as principal
+from
+  aws_ecr_image as i,
+  aws_ecr_repository as r,
+  jsonb_array_elements(r.policy -> 'Statement') as s
+where
+  i.repository_name = r.repository_name;
+```
