@@ -81,7 +81,7 @@ and
 ```sql
 select
   i.repository_name as repository_name,
-  r. repository_uri as repository_uri,
+  r.repository_uri as repository_uri,
   i.image_digest as image_digest,
   i.image_tags as image_tags,
   s ->> 'Effect' as effect,
