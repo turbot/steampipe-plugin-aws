@@ -99,7 +99,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "image_scanning_findings",
-				Description: "Scan findings for an image.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use the aws_ecr_image_scan_finding table instead. Scan findings for an image.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEcrDescribeImageScanningFindings,
 				Transform:   transform.FromValue(),
