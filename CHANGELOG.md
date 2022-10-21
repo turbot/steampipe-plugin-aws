@@ -1,5 +1,7 @@
 ## v0.80.0 [2022-10-21]
 
+_What's new?_
+
 - New tables added
   - [aws_ecr_image_scan_finding](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecr_image_scan_finding) ([#1315](https://github.com/turbot/steampipe-plugin-aws/pull/1315)) (Thanks to [@aminvielledebatAtBedrock](https://github.com/aminvielledebatAtBedrock) for the new table!)
   - [aws_lightsail_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lightsail_instance) ([#1359](https://github.com/turbot/steampipe-plugin-aws/pull/1359))
