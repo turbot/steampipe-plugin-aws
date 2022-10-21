@@ -20,24 +20,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
-	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/aws/aws-sdk-go/service/servicequotas"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/aws/aws-sdk-go/service/ssoadmin"
-	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -51,28 +42,12 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 	return backup.New(sess), nil
 }
 
-func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, codecommit.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	return codecommit.New(sess), nil
-}
-
 func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
 	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
 	return cloudfront.New(sess), nil
-}
-
-func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.CloudWatchLogs, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return cloudwatchlogs.New(sess), nil
 }
 
 func DynamoDbService(ctx context.Context, d *plugin.QueryData) (*dynamodb.DynamoDB, error) {
@@ -89,27 +64,6 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 		return nil, err
 	}
 	return ec2.New(sess), nil
-}
-
-func Ec2RegionsService(ctx context.Context, d *plugin.QueryData, region string) (*ec2.EC2, error) {
-	// We can query EC2 for the list of supported regions. But, if credentials
-	// are insufficient this query will retry many times, so we create a special
-	// client with a small number of retries to prevent hangs.
-	// Note - This is not cached, but usually the result of using this service will be.
-	sess, err := getSessionWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
-	if err != nil {
-		return nil, err
-	}
-	svc := ec2.New(sess)
-	return svc, nil
-}
-
-func EcsService(ctx context.Context, d *plugin.QueryData) (*ecs.ECS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return ecs.New(sess), nil
 }
 
 func EksService(ctx context.Context, d *plugin.QueryData) (*eks.EKS, error) {
@@ -157,22 +111,6 @@ func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoi
 	return pinpoint.New(sess), nil
 }
 
-func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return route53.New(sess), nil
-}
-
-func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.SageMaker, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return sagemaker.New(sess), nil
-}
-
 func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.SecurityHub, error) {
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, securityhub.EndpointsID)
 	if err != nil {
@@ -184,62 +122,12 @@ func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.
 	return securityhub.New(sess), nil
 }
 
-// ServiceQuotasService returns the service connection for AWS ServiceQuotas service
-func ServiceQuotasService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("servicequotas-%s", "region")
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*servicequotas.ServiceQuotas), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, "")
-	if err != nil {
-		return nil, err
-	}
-	svc := servicequotas.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
-}
-
-func ServiceQuotasRegionalService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return servicequotas.New(sess), nil
-}
-
 func SESService(ctx context.Context, d *plugin.QueryData) (*ses.SES, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return ses.New(sess), nil
-}
-
-func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdmin, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return ssoadmin.New(sess), nil
-}
-
-func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return sfn.New(sess), nil
-}
-
-func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
-	// TODO - Should STS be regional instead?
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return sts.New(sess), nil
 }
 
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
