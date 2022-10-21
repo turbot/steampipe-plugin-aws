@@ -19,8 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/backup"
-	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/emr"
@@ -40,22 +38,6 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 		return nil, err
 	}
 	return backup.New(sess), nil
-}
-
-func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return cloudfront.New(sess), nil
-}
-
-func DynamoDbService(ctx context.Context, d *plugin.QueryData) (*dynamodb.DynamoDB, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return dynamodb.New(sess), nil
 }
 
 func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.EC2, error) {

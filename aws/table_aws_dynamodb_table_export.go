@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
 func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
@@ -156,7 +156,7 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	tableName := h.Item.(*dynamodb.TableDescription).TableName
+	tableName := h.Item.(types.TableDescription).TableName
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
@@ -169,35 +169,52 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	tableArn := "arn:" + commonColumnData.Partition + ":dynamodb:" + region + ":" + commonColumnData.AccountId + ":table/" + *tableName
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	input := &dynamodb.ListExportsInput{
-		MaxResults: aws.Int64(25),
+		MaxResults: aws.Int32(25),
 		TableArn:   aws.String(tableArn),
 	}
 
-	err = svc.ListExportsPages(
-		input,
-		func(page *dynamodb.ListExportsOutput, lastPage bool) bool {
-			for _, export := range page.ExportSummaries {
-				d.StreamListItem(ctx, export)
-
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxResults {
+			if limit < 1 {
+				input.MaxResults = aws.Int32(1)
+			} else {
+				input.MaxResults = aws.Int32(limit)
 			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("listTableExports", "list", err)
-		return nil, err
+		}
 	}
+
+	paginator := dynamodb.NewListExportsPaginator(svc, input, func(o *dynamodb.ListExportsPaginatorOptions) {
+		o.Limit = *input.MaxResults
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ebs_snapshot.listAwsEBSSnapshots", "api_error", err)
+			return nil, err
+		}
+
+		for _, export := range output.ExportSummaries {
+			d.StreamListItem(ctx, export)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
 	return nil, nil
 }
 
@@ -206,13 +223,13 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var arn string
 	if h.Item != nil {
-		arn = *h.Item.(*dynamodb.ExportSummary).ExportArn
+		arn = *h.Item.(*types.ExportSummary).ExportArn
 	} else {
 		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +238,7 @@ func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 		ExportArn: &arn,
 	}
 
-	op, err := svc.DescribeExport(input)
+	op, err := svc.DescribeExport(ctx, input)
 
 	if err != nil {
 		plugin.Logger(ctx).Error("getTableExport", "get", err)
