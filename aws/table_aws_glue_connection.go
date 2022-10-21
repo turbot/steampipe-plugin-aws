@@ -117,7 +117,7 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -190,7 +190,7 @@ func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

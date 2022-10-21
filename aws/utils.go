@@ -12,7 +12,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	sagemaker_type "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -120,7 +120,7 @@ func base64DecodedData(_ context.Context, d *transform.TransformData) (interface
 // Transform function for sagemaker resources tags
 func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	tags := d.HydrateItem.([]sagemaker_type.Tag)
+	tags := d.HydrateItem.([]sagemakerTypes.Tag)
 
 	if tags != nil {
 		turbotTagsMap := map[string]string{}

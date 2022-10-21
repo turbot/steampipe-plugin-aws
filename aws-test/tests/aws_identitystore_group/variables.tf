@@ -12,13 +12,13 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
 variable "aws_region_alternate" {
   type        = string
-  default     = "us-east-2"
+  default     = "us-east-1"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -48,13 +48,10 @@ data "null_data_source" "resource" {
 
 data "aws_ssoadmin_instances" "main" {}
 
-data "aws_identitystore_group" "main" {
+resource "aws_identitystore_group" "main" {
+  display_name      = var.resource_name
+  description       = "Example description"
   identity_store_id = tolist(data.aws_ssoadmin_instances.main.identity_store_ids)[0]
-
-  filter {
-    attribute_path  = "DisplayName"
-    attribute_value = "TestGroup"
-  }
 }
 
 output "account_id" {
@@ -70,13 +67,13 @@ output "aws_partition" {
 }
 
 output "resource_id" {
-  value = data.aws_identitystore_group.main.id
+  value = resource.aws_identitystore_group.main.group_id
 }
 
 output "resource_name" {
-  value = data.aws_identitystore_group.main.display_name
+  value = resource.aws_identitystore_group.main.display_name
 }
 
 output "identity_store_id" {
-  value = data.aws_identitystore_group.main.identity_store_id
+  value = resource.aws_identitystore_group.main.identity_store_id
 }

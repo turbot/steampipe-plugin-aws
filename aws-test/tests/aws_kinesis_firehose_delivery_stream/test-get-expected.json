@@ -5,7 +5,7 @@
     "delivery_stream_encryption_configuration": {
       "FailureDescription": null,
       "KeyARN": null,
-      "KeyType": null,
+      "KeyType": "",
       "Status": "DISABLED"
     },
     "delivery_stream_name": "{{ resourceName }}",

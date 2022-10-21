@@ -189,7 +189,7 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -267,7 +267,7 @@ func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -308,7 +308,7 @@ func getFunctionVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

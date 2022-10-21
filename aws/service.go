@@ -16,99 +16,32 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/amplify"
-	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
-	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/backup"
-	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
 	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/aws/aws-sdk-go/service/eventbridge"
-	"github.com/aws/aws-sdk-go/service/firehose"
-	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
-	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/aws/aws-sdk-go/service/identitystore"
-	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
-	"github.com/aws/aws-sdk-go/service/kinesisvideo"
-	"github.com/aws/aws-sdk-go/service/macie2"
-	"github.com/aws/aws-sdk-go/service/mediastore"
-	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
-	"github.com/aws/aws-sdk-go/service/opensearchservice"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
-	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
-	"github.com/aws/aws-sdk-go/service/route53resolver"
+	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
+	"github.com/aws/aws-sdk-go/service/servicequotas"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/ssoadmin"
-	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/aws/aws-sdk-go/service/wafregional"
-	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/aws/aws-sdk-go/service/wellarchitected"
-	"github.com/aws/aws-sdk-go/service/workspaces"
+	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
-
-func AmplifyService(ctx context.Context, d *plugin.QueryData) (*amplify.Amplify, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, amplify.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return amplify.New(sess), nil
-}
-
-// ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
-func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData) (*applicationautoscaling.ApplicationAutoScaling, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return applicationautoscaling.New(sess), nil
-}
-
-func AuditManagerService(ctx context.Context, d *plugin.QueryData) (*auditmanager.AuditManager, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, auditmanager.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return auditmanager.New(sess), nil
-}
-
-func AutoScalingService(ctx context.Context, d *plugin.QueryData) (*autoscaling.AutoScaling, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return autoscaling.New(sess), nil
-}
 
 func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
@@ -118,35 +51,12 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 	return backup.New(sess), nil
 }
 
-func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontrolapi.CloudControlApi, error) {
-	// CloudControl returns GeneralServiceException in a lot of situations, which
-	// AWS SDK treats as retryable. This is frustrating because we end up retrying
-	// many times for things that will never work.
-	// So, we use a specific client configuration for CloudControl with a smaller
-	// number of retries to avoid hangs. In effect, this service IGNORES the retry
-	// configuration in aws.spc - but, good enough for something that is rarely used
-	// anyway.
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("CloudControlService called without a region in QueryData")
-	}
-
-	// Use a service level cache since we are going around the standard
-	// getSession with its caching.
-	serviceCacheKey := fmt.Sprintf("cloudcontrolapi-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*cloudcontrolapi.CloudControlApi), nil
-	}
-
-	sess, err := getSessionWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
+func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codecommit.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := cloudcontrolapi.New(sess)
-
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return codecommit.New(sess), nil
 }
 
 func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
@@ -155,14 +65,6 @@ func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.Cl
 		return nil, err
 	}
 	return cloudfront.New(sess), nil
-}
-
-func CloudWatchService(ctx context.Context, d *plugin.QueryData) (*cloudwatch.CloudWatch, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return cloudwatch.New(sess), nil
 }
 
 func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.CloudWatchLogs, error) {
@@ -189,6 +91,19 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	return ec2.New(sess), nil
 }
 
+func Ec2RegionsService(ctx context.Context, d *plugin.QueryData, region string) (*ec2.EC2, error) {
+	// We can query EC2 for the list of supported regions. But, if credentials
+	// are insufficient this query will retry many times, so we create a special
+	// client with a small number of retries to prevent hangs.
+	// Note - This is not cached, but usually the result of using this service will be.
+	sess, err := getSessionWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
+	if err != nil {
+		return nil, err
+	}
+	svc := ec2.New(sess)
+	return svc, nil
+}
+
 func EcsService(ctx context.Context, d *plugin.QueryData) (*ecs.ECS, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -205,52 +120,12 @@ func EksService(ctx context.Context, d *plugin.QueryData) (*eks.EKS, error) {
 	return eks.New(sess), nil
 }
 
-func ElastiCacheService(ctx context.Context, d *plugin.QueryData) (*elasticache.ElastiCache, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return elasticache.New(sess), nil
-}
-
-func ElasticsearchService(ctx context.Context, d *plugin.QueryData) (*elasticsearchservice.ElasticsearchService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return elasticsearchservice.New(sess), nil
-}
-
-func EventBridgeService(ctx context.Context, d *plugin.QueryData) (*eventbridge.EventBridge, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return eventbridge.New(sess), nil
-}
-
 func EmrService(ctx context.Context, d *plugin.QueryData) (*emr.EMR, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return emr.New(sess), nil
-}
-
-func FirehoseService(ctx context.Context, d *plugin.QueryData) (*firehose.Firehose, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return firehose.New(sess), nil
-}
-
-func GlacierService(ctx context.Context, d *plugin.QueryData) (*glacier.Glacier, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return glacier.New(sess), nil
 }
 
 func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.GlobalAccelerator, error) {
@@ -263,76 +138,6 @@ func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*global
 	return globalaccelerator.New(sess), nil
 }
 
-func GuardDutyService(ctx context.Context, d *plugin.QueryData) (*guardduty.GuardDuty, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return guardduty.New(sess), nil
-}
-
-func IdentityStoreService(ctx context.Context, d *plugin.QueryData) (*identitystore.IdentityStore, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return identitystore.New(sess), nil
-}
-
-func KinesisService(ctx context.Context, d *plugin.QueryData) (*kinesis.Kinesis, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return kinesis.New(sess), nil
-}
-
-func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData) (*kinesisanalyticsv2.KinesisAnalyticsV2, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return kinesisanalyticsv2.New(sess), nil
-}
-
-func KinesisVideoService(ctx context.Context, d *plugin.QueryData) (*kinesisvideo.KinesisVideo, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return kinesisvideo.New(sess), nil
-}
-
-func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, "macie2")
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return macie2.New(sess), nil
-}
-
-func MediaStoreService(ctx context.Context, d *plugin.QueryData) (*mediastore.MediaStore, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, mediastore.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return mediastore.New(sess), nil
-}
-
-func NeptuneService(ctx context.Context, d *plugin.QueryData) (*neptune.Neptune, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return neptune.New(sess), nil
-}
-
 func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkfirewall.NetworkFirewall, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -342,7 +147,7 @@ func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkf
 }
 
 func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoint, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.PinpointServiceID)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, pinpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -352,44 +157,12 @@ func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoi
 	return pinpoint.New(sess), nil
 }
 
-func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchservice.OpenSearchService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
-	return opensearchservice.New(sess), nil
-}
-
-func RDSService(ctx context.Context, d *plugin.QueryData) (*rds.RDS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return rds.New(sess), nil
-}
-
-func Route53ResolverService(ctx context.Context, d *plugin.QueryData) (*route53resolver.Route53Resolver, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return route53resolver.New(sess), nil
-}
-
-func SecretsManagerService(ctx context.Context, d *plugin.QueryData) (*secretsmanager.SecretsManager, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return secretsmanager.New(sess), nil
-}
-
-func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.SecurityHub, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return securityhub.New(sess), nil
+	return route53.New(sess), nil
 }
 
 func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.SageMaker, error) {
@@ -400,15 +173,40 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 	return sagemaker.New(sess), nil
 }
 
-func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.ServerlessrepoServiceID)
+func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.SecurityHub, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, securityhub.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
 	if sess == nil {
 		return nil, nil
 	}
-	return serverlessapplicationrepository.New(sess), nil
+	return securityhub.New(sess), nil
+}
+
+// ServiceQuotasService returns the service connection for AWS ServiceQuotas service
+func ServiceQuotasService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("servicequotas-%s", "region")
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*servicequotas.ServiceQuotas), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, "")
+	if err != nil {
+		return nil, err
+	}
+	svc := servicequotas.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+func ServiceQuotasRegionalService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
+	sess, err := getSessionForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return servicequotas.New(sess), nil
 }
 
 func SESService(ctx context.Context, d *plugin.QueryData) (*ses.SES, error) {
@@ -417,14 +215,6 @@ func SESService(ctx context.Context, d *plugin.QueryData) (*ses.SES, error) {
 		return nil, err
 	}
 	return ses.New(sess), nil
-}
-
-func SsmService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return ssm.New(sess), nil
 }
 
 func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdmin, error) {
@@ -443,58 +233,13 @@ func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, e
 	return sfn.New(sess), nil
 }
 
-func TaggingResourceService(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.ResourceGroupsTaggingAPI, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return resourcegroupstaggingapi.New(sess), nil
-}
-
-func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
+func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
+	// TODO - Should STS be regional instead?
 	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
-	return waf.New(sess), nil
-}
-
-func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.WafRegionalServiceID)
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return wafregional.New(sess), nil
-}
-
-func WAFv2Service(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.WAFV2, error) {
-	sess, err := getSessionForRegion(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	return wafv2.New(sess), nil
-}
-
-func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarchitected.WellArchitected, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return wellarchitected.New(sess), nil
-}
-
-func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.WorkSpaces, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.WorkspacesServiceID)
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return workspaces.New(sess), nil
+	return sts.New(sess), nil
 }
 
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {

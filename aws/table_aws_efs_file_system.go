@@ -166,7 +166,7 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -224,7 +224,7 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -259,7 +259,7 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

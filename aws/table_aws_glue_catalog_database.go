@@ -100,7 +100,7 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 
@@ -161,7 +161,7 @@ func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	if svc == nil {
-		// unsupported region check
+		// Unsupported region check
 		return nil, nil
 	}
 

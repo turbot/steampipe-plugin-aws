@@ -6,8 +6,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -20,7 +21,7 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBParameterGroupNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBParameterGroupNotFound"}),
 			},
 			Hydrate: getRDSDBParameterGroup,
 		},
@@ -94,46 +95,54 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBParameterGroups")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.listRDSDBParameterGroups", "connection_error", err)
 		return nil, err
 	}
 
-	input := &rds.DescribeDBParameterGroupsInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeDBParameterGroupsPages(
-		input,
-		func(page *rds.DescribeDBParameterGroupsOutput, isLast bool) bool {
-			for _, dbParameterGroup := range page.DBParameterGroups {
-				d.StreamListItem(ctx, dbParameterGroup)
+	input := &rds.DescribeDBParameterGroupsInput{
+		MaxRecords: aws.Int32(maxLimit),
+	}
 
-				// Check if context has been cancelled or if the limit has been reached (if specified)
-				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := rds.NewDescribeDBParameterGroupsPaginator(svc, input, func(o *rds.DescribeDBParameterGroupsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_parameter_group.listRDSDBParameterGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.DBParameterGroups {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
@@ -143,8 +152,9 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.getRDSDBParameterGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -152,8 +162,9 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		DBParameterGroupName: aws.String(name),
 	}
 
-	op, err := svc.DescribeDBParameterGroups(params)
+	op, err := svc.DescribeDBParameterGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.getRDSDBParameterGroup", "api_error", err)
 		return nil, err
 	}
 
@@ -164,38 +175,45 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func getRDSParameterGroupParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRDSParameterGroupParameters")
 
-	dbParameterGroup := h.Item.(*rds.DBParameterGroup)
+	dbParameterGroup := h.Item.(types.DBParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.getRDSParameterGroupParameters", "connection_error", err)
 		return nil, err
 	}
 
-	var items []*rds.Parameter
-	err = svc.DescribeDBParametersPages(
-		&rds.DescribeDBParametersInput{
-			DBParameterGroupName: dbParameterGroup.DBParameterGroupName,
-		},
-		func(page *rds.DescribeDBParametersOutput, isLast bool) bool {
-			items = append(items, page.Parameters...)
-			return !isLast
-		},
-	)
+	input := &rds.DescribeDBParametersInput{
+		DBParameterGroupName: dbParameterGroup.DBParameterGroupName,
+	}
+
+	var items []types.Parameter
+
+	paginator := rds.NewDescribeDBParametersPaginator(svc, input, func(o *rds.DescribeDBParametersPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_parameter_group.getRDSParameterGroupParameters", "api_error", err)
+			return nil, err
+		}
+		items = append(items, output.Parameters...)
+	}
 
 	return items, err
 }
 
 func getRDSParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRDSParameterGroupTags")
-
-	dbParameterGroup := h.Item.(*rds.DBParameterGroup)
+	dbParameterGroup := h.Item.(types.DBParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.getRDSParameterGroupTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -203,8 +221,9 @@ func getRDSParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 		ResourceName: dbParameterGroup.DBParameterGroupArn,
 	}
 
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.getRDSParameterGroupTags", "api_error", err)
 		return nil, err
 	}
 
