@@ -3,6 +3,8 @@
 Amazon Elastic Container Registry (Amazon ECR) stores Docker images and allows you to scan them on push, or periodically.
 The corresponding CVE findings are available in this table for an image tag, in a repository.
 
+**Note**: Users or roles that have the AWS managed `ReadOnlyAccess` policy attached also need to attach the AWS managed `AmazonInspector2ReadOnlyAccess` policy to query this table.
+
 ## Examples
 
 ### List scan findings for an image
