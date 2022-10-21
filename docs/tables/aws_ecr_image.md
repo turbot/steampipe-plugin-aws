@@ -59,12 +59,12 @@ and
   repository_name = 'test1';
 ```
 
-### List images for repositories created in last 20 days
+### List images for repositories created in the last 20 days
 
 ```sql
 select
   i.repository_name as repository_name,
-  r. repository_uri as repository_uri,
+  r.repository_uri as repository_uri,
   i.image_digest as image_digest,
   i.image_tags as image_tags
 from
@@ -76,7 +76,7 @@ and
   r.created_at >= now() - interval '20' day;
 ```
 
-### Get policy statements of repositories in which image persist
+### Get repository policy for each image's repository
 
 ```sql
 select
