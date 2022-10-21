@@ -586,6 +586,9 @@ func EventBridgeClient(ctx context.Context, d *plugin.QueryData) (*eventbridge.C
 	if err != nil {
 		return nil, err
 	}
+	if cfg == nil {
+		return nil, nil
+	}
 	return eventbridge.NewFromConfig(*cfg), nil
 }
 
