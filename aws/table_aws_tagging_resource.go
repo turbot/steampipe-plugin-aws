@@ -92,7 +92,7 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 
 func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := TaggingResourceClient(ctx, d)
+	svc, err := ResourceGroupsTaggingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_tagging_resource.listTaggingResources", "get_client_error", err)
 		return nil, err
@@ -145,7 +145,7 @@ func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create session
-	svc, err := TaggingResourceClient(ctx, d)
+	svc, err := ResourceGroupsTaggingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_tagging_resource.getTaggingResource", "get_client_error", err)
 		return nil, err

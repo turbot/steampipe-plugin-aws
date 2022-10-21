@@ -8,15 +8,15 @@
     "name": "{{resourceName}}",
     "options": [
       {
-        "DBSecurityGroupMemberships": null,
+        "DBSecurityGroupMemberships": [],
         "OptionDescription": "SQL Server - Transparent Data Encryption",
         "OptionName": "TDE",
-        "OptionSettings": null,
+        "OptionSettings": [],
         "OptionVersion": null,
         "Permanent": false,
         "Persistent": true,
         "Port": null,
-        "VpcSecurityGroupMemberships": null
+        "VpcSecurityGroupMemberships": []
       }
     ]
   }

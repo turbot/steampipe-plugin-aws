@@ -679,9 +679,12 @@ func SecretsManagerService(ctx context.Context, d *plugin.QueryData) (*secretsma
 }
 
 func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.SecurityHub, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, securityhub.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return securityhub.New(sess), nil
 }
