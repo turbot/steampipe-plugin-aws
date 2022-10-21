@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sns"
+	snsTypes "github.com/aws/aws-sdk-go-v2/service/sns/types"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +21,14 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("topic_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFound", "InvalidParameter"}),
 			},
 			Hydrate: getTopicAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopics,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "topic_arn",
@@ -187,7 +188,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Description: "The list of tags associated with the topic.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(handleSNSTopicEmptyTags),
 			},
 			{
 				Name:        "policy",
@@ -229,7 +230,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,
-				Transform:   transform.From(snsTopicTurbotTags),
+				Transform:   transform.From(handleSNSTopicTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -244,33 +245,37 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsSnsTopics")
-
-	// Create session
-	svc, err := SNSService(ctx, d)
+	// Get client
+	svc, err := SNSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sns_topic.listAwsSnsTopics", "get_client_error", err)
 		return nil, err
 	}
 
-	// List call
-	err = svc.ListTopicsPages(
-		&sns.ListTopicsInput{},
-		func(page *sns.ListTopicsOutput, lastPage bool) bool {
-			for _, topic := range page.Topics {
-				d.StreamListItem(ctx, &sns.GetTopicAttributesOutput{
-					Attributes: map[string]*string{
-						"TopicArn": topic.TopicArn,
-					},
-				})
+	params := &sns.ListTopicsInput{}
+	// Does not support limit
+	paginator := sns.NewListTopicsPaginator(svc, params, func(o *sns.ListTopicsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sns_topic.listAwsSnsTopics", "api_error", err)
+			return nil, err
+		}
+		for _, topic := range output.Topics {
+			d.StreamListItem(ctx, &sns.GetTopicAttributesOutput{
+				Attributes: map[string]string{
+					"TopicArn": *topic.TopicArn,
+				},
+			})
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -278,8 +283,6 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getTopicAttributes")
-
 	var arn string
 	if h.Item != nil {
 		data := h.Item.(*sns.GetTopicAttributesOutput)
@@ -288,45 +291,50 @@ func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		arn = d.KeyColumnQuals["topic_arn"].GetStringValue()
 	}
 
-	// Create session
-	svc, err := SNSService(ctx, d)
+	if arn == "" {
+		return nil, nil
+	}
+
+	// Get client
+	svc, err := SNSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sns_topic.getTopicAttributes", "get_client_error", err)
 		return nil, err
 	}
 
 	// Build params
-	param := &sns.GetTopicAttributesInput{
+	params := &sns.GetTopicAttributesInput{
 		TopicArn: aws.String(arn),
 	}
 
-	op, err := svc.GetTopicAttributes(param)
+	op, err := svc.GetTopicAttributes(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Trace("getTopicAttributes__", "Error", err)
+		plugin.Logger(ctx).Error("aws_sns_topic.getTopicAttributes", "api_error", err)
 		return nil, err
 	}
 	return op, nil
 }
 
 func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTagsForSnsTopic")
 	topicAttributesOutput := h.Item.(*sns.GetTopicAttributesOutput)
 
-	// Create session
-	svc, err := SNSService(ctx, d)
+	// Get client
+	svc, err := SNSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sns_topic.listTagsForSnsTopic", "get_client_error", err)
 		return nil, err
 	}
 
 	// Build param
 	param := &sns.ListTagsForResourceInput{
-		ResourceArn: topicAttributesOutput.Attributes["TopicArn"],
+		ResourceArn: aws.String(topicAttributesOutput.Attributes["TopicArn"]),
 	}
 
 	// Next token is not supported
 	// AWS supports upto 50 tags
-	topicTags, err := svc.ListTagsForResource(param)
-
+	topicTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sns_topic.listTagsForSnsTopic", "api_error", err)
 		return nil, err
 	}
 	return topicTags, nil
@@ -334,17 +342,25 @@ func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// TRANSFORM FUNCTIONS
 
-func snsTopicTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleSNSTopicTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.HydrateItem.(*sns.ListTagsForResourceOutput)
-	// if !ok {
-	// 	return nil, nil
-	// }
-	var turbotTagsMap map[string]string
-	if tags.Tags != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tags.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
+	if len(tags.Tags) == 0 {
+		return nil, nil
 	}
+
+	turbotTagsMap := map[string]string{}
+	for _, i := range tags.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
 	return turbotTagsMap, nil
+}
+
+func handleSNSTopicEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	tags, ok := d.Value.([]snsTypes.Tag)
+	if !ok || len(tags) == 0 {
+		return nil, nil
+	}
+
+	return tags, nil
 }

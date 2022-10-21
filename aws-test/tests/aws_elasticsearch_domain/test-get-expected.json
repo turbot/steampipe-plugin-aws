@@ -5,12 +5,6 @@
       "{{ output.resource_aka.value }}"
     ],
     "domain_name": "{{ resourceName }}",
-    "ebs_options": {
-      "EBSEnabled": true,
-      "Iops": null,
-      "VolumeSize": 10,
-      "VolumeType": "gp2"
-    },
     "elasticsearch_version": "5.6",
     "partition": "{{ output.aws_partition.value }}",
     "region": "{{ output.aws_region.value }}",

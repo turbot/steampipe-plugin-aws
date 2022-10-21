@@ -3,12 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +22,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBClusterNotFoundFault"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBClusterNotFoundFault"}),
 			},
 			Hydrate: getRDSDBCluster,
 		},
@@ -31,7 +33,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				{Name: "engine", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",
@@ -277,7 +279,6 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "members",
 				Description: "A list of instances that make up the DB cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("DBClusterMembers"),
 			},
 			{
 				Name:        "option_group_memberships",
@@ -345,28 +346,29 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBClusters")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster.listRDSDBClusters", "connection_error", err)
 		return nil, err
 	}
 
-	input := &rds.DescribeDBClustersInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
+	}
+
+	input := &rds.DescribeDBClustersInput{
+		MaxRecords: aws.Int32(maxLimit),
 	}
 
 	filters := buildRdsDbClusterFilter(d.Quals)
@@ -375,22 +377,45 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		input.Filters = filters
 	}
 
-	// List call
-	err = svc.DescribeDBClustersPages(
-		input,
-		func(page *rds.DescribeDBClustersOutput, isLast bool) bool {
-			for _, dbCluster := range page.DBClusters {
-				d.StreamListItem(ctx, dbCluster)
+	paginator := rds.NewDescribeDBClustersPaginator(svc, input, func(o *rds.DescribeDBClustersPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Check if context has been cancelled or if the limit has been reached (if specified)
-				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_cluster.listRDSDBClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.DBClusters {
+			// The DescribeDBClusters API returns non-RDS DB clusters as well,
+			// but we only want RDS clusters here, even if the 'engine' qual
+			// isn't passed in.
+			// Current supported RDS engine values as of 2022/08/15 are
+			// "aurora", "aurora-mysql", "aurora-postgresql", "mysql", and "postgres".
+			// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/RDS.html#createDBCluster-property
+			if helpers.StringSliceContains(
+				[]string{
+					"aurora",
+					"aurora-mysql",
+					"aurora-postgresql",
+					"mysql",
+					"postgres",
+				},
+				*items.Engine) {
+				d.StreamListItem(ctx, items)
 			}
-			return !isLast
-		},
-	)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
 	return nil, err
 }
 
@@ -400,8 +425,9 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	dbClusterIdentifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster.getRDSDBCluster", "connection_error", err)
 		return nil, err
 	}
 
@@ -409,8 +435,9 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		DBClusterIdentifier: aws.String(dbClusterIdentifier),
 	}
 
-	op, err := svc.DescribeDBClusters(params)
+	op, err := svc.DescribeDBClusters(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster.getRDSDBCluster", "api_error", err)
 		return nil, err
 	}
 
@@ -421,25 +448,26 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 }
 
 func getRDSDBClusterPendingMaintenanceAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	dbClusterIdentifier := *h.Item.(*rds.DBCluster).DBClusterIdentifier
+	dbClusterIdentifier := *h.Item.(types.DBCluster).DBClusterIdentifier
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster.getRDSDBClusterPendingMaintenanceAction", "connection_error", err)
 		return nil, err
 	}
 
-	filter := &rds.Filter{
+	filter := &types.Filter{
 		Name:   aws.String("db-cluster-id"),
-		Values: aws.StringSlice([]string{dbClusterIdentifier}),
+		Values: []string{dbClusterIdentifier},
 	}
 	params := &rds.DescribePendingMaintenanceActionsInput{
-		Filters: []*rds.Filter{filter},
+		Filters: []types.Filter{*filter},
 	}
 
-	op, err := svc.DescribePendingMaintenanceActions(params)
+	op, err := svc.DescribePendingMaintenanceActions(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getRDSDBClusterPendingMaintenanceAction", "DescribePendingMaintenanceActions", err)
+		plugin.Logger(ctx).Error("aws_rds_db_cluster.getRDSDBClusterPendingMaintenanceAction", "api_error", err)
 		return nil, err
 	}
 
@@ -452,7 +480,7 @@ func getRDSDBClusterPendingMaintenanceAction(ctx context.Context, d *plugin.Quer
 //// TRANSFORM FUNCTIONS
 
 func getRDSDBClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbCluster := d.HydrateItem.(*rds.DBCluster)
+	dbCluster := d.HydrateItem.(types.DBCluster)
 
 	if dbCluster.TagList != nil {
 		turbotTagsMap := map[string]string{}
@@ -467,8 +495,8 @@ func getRDSDBClusterTurbotTags(_ context.Context, d *transform.TransformData) (i
 //// UTILITY FUNCTIONS
 
 // build rdds db cluster list call input filter
-func buildRdsDbClusterFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
-	filters := make([]*rds.Filter, 0)
+func buildRdsDbClusterFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 	filterQuals := map[string]string{
 		"clone_group_id": "clone-group-id",
 		"engine":         "engine",
@@ -476,18 +504,15 @@ func buildRdsDbClusterFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := rds.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				v := value.([]*string)
-				filter.Values = v
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

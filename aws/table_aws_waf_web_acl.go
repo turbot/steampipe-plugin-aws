@@ -2,13 +2,17 @@ package aws
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/waf"
+	"github.com/aws/aws-sdk-go-v2/service/waf/types"
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +24,7 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"web_acl_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			},
 			Hydrate: getWafWebAcl,
 		},
@@ -47,7 +51,7 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("WebACLId"),
 			},
 			{
-				Name:        "default_action_type",
+				Name:        "default_action",
 				Description: "The action to perform if none of the Rules contained in the WebACL match.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getWafWebAcl,
@@ -108,32 +112,29 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 
 func listWafWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := WAFService(ctx, d)
+	svc, err := WAFClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_web_acl.listWafWebAcls", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_web_acl.listWafWebAcls", "get_client_error", err)
 		return nil, err
 	}
 
-	pagesLeft := true
-	params := &waf.ListWebACLsInput{
-		Limit: aws.Int64(100),
-	}
+	maxItems := int32(100)
+	params := &waf.ListWebACLsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
-			if *limit < 1 {
-				params.Limit = aws.Int64(1)
-			} else {
-				params.Limit = limit
-			}
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			params.Limit = limit
 		}
 	}
 
+	// API doesn't support aws-sdk-go-v2 paginator as of date
+	pagesLeft := true
 	for pagesLeft {
-		response, err := svc.ListWebACLs(params)
+		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_waf_web_acl.listWafWebAcls", "api_error", err)
 			return nil, err
 		}
 
@@ -171,9 +172,9 @@ func getWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	// Create Session
-	svc, err := WAFService(ctx, d)
+	svc, err := WAFClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_web_acl.getWafWebAcl", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_web_acl.getWafWebAcl", "get_client_error", err)
 		return nil, err
 	}
 
@@ -181,7 +182,7 @@ func getWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		WebACLId: aws.String(id),
 	}
 
-	op, err := svc.GetWebACL(params)
+	op, err := svc.GetWebACL(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_web_acl.getWafWebAcl", "api_error", err)
 		return nil, err
@@ -197,19 +198,19 @@ func listTagsForWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	data := classicWebAclData(h.Item, ctx, d, h)
 
 	// Create session
-	svc, err := WAFService(ctx, d)
+	svc, err := WAFClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_web_acl.listTagsForWafWebAcl", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_web_acl.listTagsForWafWebAcl", "get_client_error", err)
 		return nil, err
 	}
 
 	// Build param with maximum limit set
 	param := &waf.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
-		Limit:       aws.Int64(100),
+		Limit:       int32(100),
 	}
 
-	webAclTags, err := svc.ListTagsForResource(param)
+	webAclTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_web_acl.listTagsForWafWebAcl", "api_error", err)
 		return nil, err
@@ -221,8 +222,9 @@ func getClassicLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h 
 	data := classicWebAclData(h.Item, ctx, d, h)
 
 	// Create session
-	svc, err := WAFService(ctx, d)
+	svc, err := WAFClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_waf_web_acl.getClassicLoggingConfiguration", "get_client_error", err)
 		return nil, err
 	}
 
@@ -231,13 +233,16 @@ func getClassicLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h 
 		ResourceArn: aws.String(data["Arn"]),
 	}
 
-	op, err := svc.GetLoggingConfiguration(param)
+	// panic(*param.ResourceArn)
+	op, err := svc.GetLoggingConfiguration(ctx, param)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "NonexistentItemException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "WAFNonexistentItemException" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_waf_web_acl.getClassicLoggingConfiguration", "api_error", err)
 		return nil, err
 	}
 	return op, nil
@@ -267,19 +272,20 @@ func classicWebAclTagListToTurbotTags(ctx context.Context, d *transform.Transfor
 func classicWebAclData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *waf.WebACL:
+	case *types.WebACL:
 		data["ID"] = *item.WebACLId
 		data["Arn"] = *item.WebACLArn
 		data["Name"] = *item.Name
-	case *waf.WebACLSummary:
+	case types.WebACLSummary:
 		data["ID"] = *item.WebACLId
 		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 		commonData, err := getCommonColumnsCached(ctx, d, h)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_waf_web_acl.classicWebAclData", "api_error", err)
 			return nil
 		}
 		commonColumnData := commonData.(*awsCommonColumnData)
-		data["Arn"] = "arn:aws:waf::" + commonColumnData.AccountId + ":webacl/" + (*aws.String(*item.WebACLId))
+		data["Arn"] = fmt.Sprintf("arn:aws:waf::%s:webacl/%s", commonColumnData.AccountId, *item.WebACLId)
 		data["Name"] = *item.Name
 	}
 	return data

@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
@@ -17,7 +18,7 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("transit_gateway_attachment_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed", "InvalidAction"}),
 			},
 			Hydrate: getEc2TransitGatewayVpcAttachment,
 		},
@@ -33,8 +34,11 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 				{Name: "transit_gateway_id", Require: plugin.Optional},
 				{Name: "transit_gateway_owner_id", Require: plugin.Optional},
 			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction"}),
+			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_attachment_id",
@@ -122,17 +126,29 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEc2TransitGatewayVpcAttachment", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_vpc_attachment.listEc2TransitGatewayVpcAttachment", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeTransitGatewayAttachmentsInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filters := buildEc2TransitGatewayVpcAttachmentFilter(d.Quals)
@@ -141,32 +157,28 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 		input.Filters = filters
 	}
 
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeTransitGatewayAttachmentsPaginator(svc, input, func(o *ec2.DescribeTransitGatewayAttachmentsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_transit_gateway_vpc_attachment.listEc2TransitGatewayVpcAttachment", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.TransitGatewayAttachments {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeTransitGatewayAttachmentsPages(
-		input,
-		func(page *ec2.DescribeTransitGatewayAttachmentsOutput, isLast bool) bool {
-			for _, transitGatewayAttachment := range page.TransitGatewayAttachments {
-				d.StreamListItem(ctx, transitGatewayAttachment)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 
 	return nil, err
 }
@@ -174,25 +186,24 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 //// HYDRATE FUNCTIONS
 
 func getEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2TransitGatewayVpcAttachment")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	transitGatewayAttachmentID := d.KeyColumnQuals["transit_gateway_attachment_id"].GetStringValue()
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_vpc_attachment.getEc2TransitGatewayVpcAttachment", "connection_error", err)
 		return nil, err
 	}
 
 	// Build params
 	params := &ec2.DescribeTransitGatewayAttachmentsInput{
-		TransitGatewayAttachmentIds: []*string{aws.String(transitGatewayAttachmentID)},
+		TransitGatewayAttachmentIds: []string{transitGatewayAttachmentID},
 	}
 
-	op, err := svc.DescribeTransitGatewayAttachments(params)
+	op, err := svc.DescribeTransitGatewayAttachments(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getEc2TransitGatewayVpcAttachment__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_vpc_attachment.getEc2TransitGatewayVpcAttachment", "api_error", err)
 		return nil, err
 	}
 
@@ -203,9 +214,8 @@ func getEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData,
 }
 
 func getAwsEc2TransitGatewayVpcAttachmentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2TransitGatewayVpcAttachmentAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	transitGatewayAttachment := h.Item.(*ec2.TransitGatewayAttachment)
+	transitGatewayAttachment := h.Item.(types.TransitGatewayAttachment)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -223,12 +233,22 @@ func getAwsEc2TransitGatewayVpcAttachmentAkas(ctx context.Context, d *plugin.Que
 //// TRANSFORM FUNCTIONS
 
 func transitGatewayAttachmentRawTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.TransitGatewayAttachment)
-	return ec2TagsToMap(data.Tags)
+	data := d.HydrateItem.(types.TransitGatewayAttachment)
+	var turbotTagsMap map[string]string
+	if data.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range data.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
 
 func getEc2TransitGatewayAttachmentTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.TransitGatewayAttachment)
+	data := d.HydrateItem.(types.TransitGatewayAttachment)
 	title := data.TransitGatewayAttachmentId
 	if data.Tags != nil {
 		for _, i := range data.Tags {
@@ -240,10 +260,10 @@ func getEc2TransitGatewayAttachmentTitle(_ context.Context, d *transform.Transfo
 	return title, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 transit gateway VPC attachment list call input filter
-func buildEc2TransitGatewayVpcAttachmentFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEc2TransitGatewayVpcAttachmentFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"association_state":                          "association.state",
@@ -258,18 +278,15 @@ func buildEc2TransitGatewayVpcAttachmentFilter(quals plugin.KeyColumnQualMap) []
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ec2.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				v := value.([]*string)
-				filter.Values = v
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

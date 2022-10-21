@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +21,14 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"SSLPolicyNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"SSLPolicyNotFound"}),
 			},
 			Hydrate: getEc2SslPolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2SslPolicies,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -66,35 +67,37 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listEc2SslPolicies")
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
+	plugin.Logger(ctx).Error("aws_ec2_ssl_policy.listEc2SslPolicies", "connection_error", err)
 	if err != nil {
 		return nil, err
 	}
 
-	// List call
-	params := &elbv2.DescribeSSLPoliciesInput{
-		PageSize: aws.Int64(400),
-	}
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(400)
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.PageSize {
-			if *limit < 1 {
-				params.PageSize = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				params.PageSize = limit
+				maxLimit = limit
 			}
 		}
 	}
 
+	// List call
+	params := &elasticloadbalancingv2.DescribeSSLPoliciesInput{
+		PageSize: aws.Int32(maxLimit),
+	}
+
 	pagesLeft := true
 	for pagesLeft {
-		response, err := svc.DescribeSSLPolicies(params)
+		response, err := svc.DescribeSSLPolicies(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_ssl_policy.listEc2SslPolicies", "api_error", err)
 			return nil, err
 		}
 
@@ -121,7 +124,6 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2SslPolicy")
 
 	matrixKeyRegion := d.KeyColumnQualString(matrixKeyRegion)
 	name := d.KeyColumnQuals["name"].GetStringValue()
@@ -133,19 +135,21 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_ssl_policy.getEc2SslPolicy", "connection_error", err)
 		return nil, err
 	}
 
 	// Build params
-	params := &elbv2.DescribeSSLPoliciesInput{
-		Names: []*string{aws.String(name)},
+	params := &elasticloadbalancingv2.DescribeSSLPoliciesInput{
+		Names: []string{name},
 	}
 
 	if matrixKeyRegion == regionName {
-		op, err := svc.DescribeSSLPolicies(params)
+		op, err := svc.DescribeSSLPolicies(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_ssl_policy.getEc2SslPolicy", "api_error", err)
 			return nil, err
 		}
 
@@ -158,9 +162,8 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 }
 
 func getEc2SslPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2SslPolicyAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	data := h.Item.(*elbv2.SslPolicy)
+	data := h.Item.(types.SslPolicy)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)

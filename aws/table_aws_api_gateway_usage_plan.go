@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +21,14 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
 			},
 			Hydrate: getUsagePlan,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listUsagePlans,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -92,42 +93,51 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	logger := plugin.Logger(ctx)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
-		logger.Trace("listUsagePlans", "connection error", err)
+		logger.Error("aws_api_gateway_usage_plan.listUsagePlans", "service_client_error", err)
 		return nil, err
 	}
 
-	input := &apigateway.GetUsagePlansInput{
-		Limit: aws.Int64(500),
-	}
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(500)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.Limit = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.GetUsagePlansPages(
-		input,
-		func(page *apigateway.GetUsagePlansOutput, lastPage bool) bool {
-			for _, plan := range page.Items {
-				d.StreamListItem(ctx, plan)
+	input := &apigateway.GetUsagePlansInput{
+		Limit: aws.Int32(maxLimit),
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := apigateway.NewGetUsagePlansPaginator(svc, input, func(o *apigateway.GetUsagePlansPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listUsagePlans", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Items {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -135,11 +145,11 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 //// HYDRATE FUNCTIONS
 
 func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getUsagePlan")
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getUsagePlan", "service_cllient_error", err)
 		return nil, err
 	}
 
@@ -148,9 +158,9 @@ func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		UsagePlanId: aws.String(id),
 	}
 
-	op, err := svc.GetUsagePlan(params)
+	op, err := svc.GetUsagePlan(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getUsagePlan__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gateway_usage_plan.getUsagePlan", "api_error", err)
 		return nil, err
 	}
 
@@ -158,9 +168,15 @@ func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 }
 
 func getUsagePlanAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getUsagePlanAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	usagePlan := h.Item.(*apigateway.UsagePlan)
+	id := ""
+
+	switch h.Item.(type) {
+	case *apigateway.GetUsagePlanOutput:
+		id = *h.Item.(*apigateway.GetUsagePlanOutput).Id
+	case types.UsagePlan:
+		id = *h.Item.(types.UsagePlan).Id
+	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -169,7 +185,7 @@ func getUsagePlanAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/usageplans/" + *usagePlan.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/usageplans/" + id}
 
 	return akas, nil
 }

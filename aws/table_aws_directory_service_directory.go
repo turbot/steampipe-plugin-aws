@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/directoryservice"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
+	"github.com/aws/aws-sdk-go-v2/service/directoryservice/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +21,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("directory_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
 			},
 			Hydrate: getDirectoryServiceDirectory,
 		},
@@ -33,7 +34,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -211,38 +212,47 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 
 func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DirectoryService(ctx, d)
+	svc, err := DirectoryServiceClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_directory_service_directory.listDirectoryServiceDirectories", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	// Build the params
 	input := &directoryservice.DescribeDirectoriesInput{
-		Limit: aws.Int64(1000),
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			input.Limit = limit
-		}
+		Limit: aws.Int32(maxLimit),
 	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["directory_id"] != nil {
-		input.DirectoryIds = []*string{aws.String(equalQuals["directory_id"].GetStringValue())}
+		input.DirectoryIds = []string{equalQuals["directory_id"].GetStringValue()}
 	}
 
 	pagesLeft := true
 
 	// List call
 	for pagesLeft {
-		result, err := svc.DescribeDirectories(input)
+		result, err := svc.DescribeDirectories(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("DescribeDirectories", "list", err)
+			plugin.Logger(ctx).Error("aws_directory_service_directory.listDirectoryServiceDirectories", "api_error", err)
 			return nil, err
 		}
 
@@ -269,9 +279,14 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 
 func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := DirectoryService(ctx, d)
+	svc, err := DirectoryServiceClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceDirectory", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	directoryID := d.KeyColumnQuals["directory_id"].GetStringValue()
@@ -279,12 +294,13 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, nil
 	}
 
-	params := &directoryservice.DescribeDirectoriesInput{}
-	params.SetDirectoryIds([]*string{&directoryID})
+	params := &directoryservice.DescribeDirectoriesInput{
+		DirectoryIds: []string{directoryID},
+	}
 
-	op, err := svc.DescribeDirectories(params)
+	op, err := svc.DescribeDirectories(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("DescribeDirectories", "get", err)
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceDirectory", "api_error", err)
 		return nil, err
 	}
 
@@ -295,28 +311,33 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 }
 
 func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	directory := h.Item.(*directoryservice.DirectoryDescription)
+	directory := h.Item.(types.DirectoryDescription)
 
 	// DescribeSharedDirectories Operation is only supported for MicrosoftAD directories.
 	// Ignore if not a MicrosoftAD directory
-	if *directory.Type != "MicrosoftAD" {
+	if directory.Type != types.DirectoryTypeMicrosoftAd {
 		return nil, nil
 	}
 
 	// Create service
-	svc, err := DirectoryService(ctx, d)
+	svc, err := DirectoryServiceClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	params := &directoryservice.DescribeSharedDirectoriesInput{
 		OwnerDirectoryId: directory.DirectoryId,
 	}
 
-	var directories []*directoryservice.SharedDirectory
+	var directories []types.SharedDirectory
 
 	for {
-		response, err := svc.DescribeSharedDirectories(params)
+		response, err := svc.DescribeSharedDirectories(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "api_error", err)
 			return nil, err
@@ -333,8 +354,7 @@ func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData
 }
 
 func getDirectoryARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDirectoryARN")
-	directory := h.Item.(*directoryservice.DirectoryDescription)
+	directory := h.Item.(types.DirectoryDescription)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -351,14 +371,18 @@ func getDirectoryARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 }
 
 func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDirectoryServiceDirectoryTags")
 
-	directoryID := h.Item.(*directoryservice.DirectoryDescription).DirectoryId
+	directoryID := h.Item.(types.DirectoryDescription).DirectoryId
 
 	// Create service
-	svc, err := DirectoryService(ctx, d)
+	svc, err := DirectoryServiceClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceDirectoryTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &directoryservice.ListTagsForResourceInput{
@@ -366,12 +390,12 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	pagesLeft := true
-	tags := []*directoryservice.Tag{}
+	tags := []types.Tag{}
 
 	for pagesLeft {
-		result, err := svc.ListTagsForResource(params)
+		result, err := svc.ListTagsForResource(ctx, params)
 		if err != nil {
-			plugin.Logger(ctx).Error("ListTagsForResource", "tag", err)
+			plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceDirectoryTags", "api_error", err)
 			return nil, err
 		}
 		tags = append(tags, result.Tags...)
@@ -389,7 +413,7 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 //// TRANSFORM FUNCTIONS
 
 func directoryServiceDirectoryTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags := d.HydrateItem.([]*directoryservice.Tag)
+	tags := d.HydrateItem.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	if tags != nil {

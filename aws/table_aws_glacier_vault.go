@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/glacier"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -30,7 +30,7 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listGlacierVault,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vault_name",
@@ -90,6 +90,12 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getGlacierVaultLockPolicy,
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
+				Name:        "vault_notification_config",
+				Description: "Contains the notification configuration set on the vault.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGlacierVaultNotifications,
 			},
 			{
 				Name:        "tags_src",
@@ -271,6 +277,38 @@ func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 	}
 	return vaultLock, nil
+}
+
+func getGlacierVaultNotifications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
+	data := h.Item.(*glacier.DescribeVaultOutput)
+	accountID := strings.Split(*data.VaultARN, ":")[4]
+
+	// Create session
+	svc, err := GlacierService(ctx, d)
+	if err != nil {
+		logger.Error("aws_glacier_vault.getGlacierVaultNotifications", "service_creation_error", err)
+		return nil, err
+	}
+
+	// Build param
+	param := &glacier.GetVaultNotificationsInput{
+		VaultName: data.VaultName,
+		AccountId: aws.String(accountID),
+	}
+
+	vaultNotifications, err := svc.GetVaultNotifications(param)
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "ResourceNotFoundException" {
+				return nil, nil
+			}
+			logger.Error("aws_glacier_vault.getGlacierVaultNotifications", "api_error", err)
+			return nil, err
+		}
+	}
+	return vaultNotifications, nil
 }
 
 func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

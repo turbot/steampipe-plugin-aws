@@ -6,11 +6,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
+
+// AWS SDK Migration from V1 to V2 blocked
+// due to https://github.com/aws/aws-sdk-go-v2/issues/1884
 
 //// TABLE DEFINITION
 
@@ -24,7 +27,7 @@ func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"BadRequestException"}),
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "member_account_id",
@@ -77,12 +80,15 @@ func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSecurityHubMembers")
-
 	// Create session
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_member.listSecurityHubMembers", "service_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &securityhub.ListMembersInput{
@@ -123,7 +129,7 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("listSecurityHubMembers", "list", err)
+		plugin.Logger(ctx).Error("aws_securityhub_member.listSecurityHubMembers", "api_error", err)
 	}
 	return nil, err
 }

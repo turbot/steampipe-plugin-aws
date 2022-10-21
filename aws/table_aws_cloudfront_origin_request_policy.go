@@ -2,13 +2,14 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +21,7 @@ func tableAwsCloudFrontOriginRequestPolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
 			},
 			Hydrate: getCloudFrontOriginRequestPolicy,
 		},
@@ -99,37 +100,38 @@ func tableAwsCloudFrontOriginRequestPolicy(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	plugin.Logger(ctx).Trace("listCloudFrontOriginRequestPolicies")
-
-	// Create session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_origin_request_policy.listCloudFrontOriginRequestPolicies", "client_error", err)
 		return nil, err
 	}
 
-	// The maximum number for MaxResults parameter is not defined by the API
-	// We have set the MaxResults to 1000 based on our test
-	// List call
-	params := &cloudfront.ListOriginRequestPoliciesInput{
-		MaxItems: aws.Int64(1000),
-	}
+	// The maximum number for MaxItems parameter is not defined by the API
+	// We have set the MaxItems to 1000 based on our test
+	maxItems := int32(1000)
 
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxItems {
-			if *limit < 1 {
-				params.MaxItems = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				params.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
+	params := &cloudfront.ListOriginRequestPoliciesInput{
+		MaxItems: &maxItems,
+	}
+
 	pagesLeft := true
 	for pagesLeft {
-		response, err := svc.ListOriginRequestPolicies(params)
+		response, err := svc.ListOriginRequestPolicies(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudfront_origin_request_policy.listCloudFrontOriginRequestPolicies", "api_error", err)
 			return nil, err
 		}
 		for _, policy := range response.OriginRequestPolicyList.Items {
@@ -155,35 +157,38 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 //// HYDRATE FUNCTIONS
 
 func getCloudFrontOriginRequestPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudFrontOriginRequestPolicy")
-
-	// Create session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_origin_request_policy.getCloudFrontOriginRequestPolicy", "client_error", err)
 		return nil, err
 	}
 
 	var policyID string
 	if h.Item != nil {
-		policyID = *h.Item.(*cloudfront.OriginRequestPolicySummary).OriginRequestPolicy.Id
+		policyID = *h.Item.(types.OriginRequestPolicySummary).OriginRequestPolicy.Id
 	} else {
 		policyID = d.KeyColumnQuals["id"].GetStringValue()
+	}
+
+	if strings.TrimSpace(policyID) == "" {
+		return nil, nil
 	}
 
 	params := &cloudfront.GetOriginRequestPolicyInput{
 		Id: aws.String(policyID),
 	}
 
-	op, err := svc.GetOriginRequestPolicy(params)
+	op, err := svc.GetOriginRequestPolicy(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_origin_request_policy.getCloudFrontOriginRequestPolicy", "api_error", err)
 		return nil, err
 	}
 
-	return op, nil
+	return *op, nil
 }
 
 func getCloudFrontOriginRequestPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudFrontOriginRequestPolicyAkas")
 	policyID := *originRequestPolicyID(h.Item)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -201,9 +206,9 @@ func getCloudFrontOriginRequestPolicyAkas(ctx context.Context, d *plugin.QueryDa
 
 func originRequestPolicyID(item interface{}) *string {
 	switch item := item.(type) {
-	case *cloudfront.GetOriginRequestPolicyOutput:
+	case cloudfront.GetOriginRequestPolicyOutput:
 		return item.OriginRequestPolicy.Id
-	case *cloudfront.OriginRequestPolicySummary:
+	case types.OriginRequestPolicySummary:
 		return item.OriginRequestPolicy.Id
 	}
 	return nil

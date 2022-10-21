@@ -3,11 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
@@ -17,7 +18,7 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("subnet_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
 			},
 			Hydrate: getVpcSubnet,
 		},
@@ -36,7 +37,7 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subnet_id",
@@ -117,6 +118,7 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 				Name:        "ipv6_cidr_block_association_set",
 				Description: "A list of IPv6 CIDR blocks associated with the subnet.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleEmptyIpv6CidrBlockAssociationSet),
 			},
 			{
 				Name:        "tags_src",
@@ -151,17 +153,29 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcSubnets", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = int32(5)
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeSubnetsInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -182,33 +196,27 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		input.Filters = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeSubnetsPaginator(svc, input, func(o *ec2.DescribeSubnetsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Subnets {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeSubnetsPages(
-		input,
-		func(page *ec2.DescribeSubnetsOutput, isLast bool) bool {
-			for _, subnet := range page.Subnets {
-				d.StreamListItem(ctx, subnet)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 
 	return nil, err
 }
@@ -216,26 +224,25 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 //// HYDRATE FUNCTIONS
 
 func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcSubnet")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	subnetID := d.KeyColumnQuals["subnet_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeSubnetsInput{
-		SubnetIds: []*string{aws.String(subnetID)},
+		SubnetIds: []string{subnetID},
 	}
 
 	// Get call
-	op, err := svc.DescribeSubnets(params)
+	op, err := svc.DescribeSubnets(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcSubnet__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "api_error", err)
 		return nil, err
 	}
 
@@ -248,12 +255,33 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 //// TRANSFORM FUNCTIONS
 
 func getVpcSubnetTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	subnet := d.HydrateItem.(*ec2.Subnet)
-	return ec2TagsToMap(subnet.Tags)
+	tags := d.HydrateItem.(types.Subnet).Tags
+
+	var turbotTagsMap map[string]string
+	if tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
+}
+
+func handleEmptyIpv6CidrBlockAssociationSet(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	ipv6CidrBlockAssociationSet := d.HydrateItem.(types.Subnet).Ipv6CidrBlockAssociationSet
+
+	if len(ipv6CidrBlockAssociationSet) > 0 {
+		return ipv6CidrBlockAssociationSet, nil
+	}
+
+	return nil, nil
 }
 
 func getSubnetTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	subnet := d.HydrateItem.(*ec2.Subnet)
+	subnet := d.HydrateItem.(types.Subnet)
 	subnetData := d.HydrateResults
 	var title string
 	if subnet.Tags != nil {
@@ -266,9 +294,9 @@ func getSubnetTurbotTitle(_ context.Context, d *transform.TransformData) (interf
 
 	if title == "" {
 		if subnetData["getVpcSubnet"] != nil {
-			title = *subnetData["getVpcSubnet"].(*ec2.Subnet).SubnetId
+			title = *subnetData["getVpcSubnet"].(types.Subnet).SubnetId
 		} else {
-			title = *subnetData["listVpcSubnets"].(*ec2.Subnet).SubnetId
+			title = *subnetData["listVpcSubnets"].(types.Subnet).SubnetId
 		}
 	}
 	return title, nil

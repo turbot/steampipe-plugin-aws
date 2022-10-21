@@ -3,14 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -35,7 +34,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -153,7 +152,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags associated with stack.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.From(cfnStackTagsToTurbotTags),
 			},
 
 			// Standard columns
@@ -183,9 +182,15 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 
 func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CloudFormationService(ctx, d)
+	svc, err := CloudFormationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// We can not pass the MaxResult value in param so we can't limit the result per page
@@ -194,23 +199,27 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
-		input.StackName = types.String(equalQuals["name"].GetStringValue())
+		input.StackName = aws.String(equalQuals["name"].GetStringValue())
 	}
+	paginator := cloudformation.NewDescribeStacksPaginator(svc, input, func(o *cloudformation.DescribeStacksPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "api_error", err)
+			return nil, err
+		}
 
-	err = svc.DescribeStacksPages(
-		input,
-		func(page *cloudformation.DescribeStacksOutput, lastPage bool) bool {
-			for _, stack := range page.Stacks {
-				d.StreamListItem(ctx, stack)
-
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, stack := range output.Stacks {
+			d.StreamListItem(ctx, stack)
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+
+	}
 	return nil, err
 }
 
@@ -218,9 +227,15 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := CloudFormationService(ctx, d)
+	svc, err := CloudFormationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.getCloudFormationStack", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
@@ -228,9 +243,9 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		StackName: aws.String(name),
 	}
 
-	op, err := svc.DescribeStacks(params)
+	op, err := svc.DescribeStacks(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getCloudFormationStack__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.getCloudFormationStack", err)
 		return nil, err
 	}
 
@@ -242,21 +257,27 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getStackTemplate")
-	stack := h.Item.(*cloudformation.Stack)
+	stack := h.Item.(types.Stack)
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d)
+	svc, err := CloudFormationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.getStackTemplate", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// template_body is the template in its original string form
 	params := &cloudformation.GetTemplateInput{
 		StackName: stack.StackName,
 	}
-	stackTemplate, err := svc.GetTemplate(params)
+	stackTemplate, err := svc.GetTemplate(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.getStackTemplate", "api_error", err)
 		return nil, err
 	}
 
@@ -264,37 +285,43 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getStackTemplate")
-	stack := h.Item.(*cloudformation.Stack)
+	stack := h.Item.(types.Stack)
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d)
+	svc, err := CloudFormationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.describeStackResources", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	params := &cloudformation.DescribeStackResourcesInput{
 		StackName: stack.StackName,
 	}
 
-	stackResources, err := svc.DescribeStackResources(params)
+	stackResources, err := svc.DescribeStackResources(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.describeStackResources", "api_error", err)
 		return nil, err
 	}
 
 	return stackResources, nil
 }
 
-//// TRANSFORM FUNCTIONS
-
+// // TRANSFORM FUNCTIONS
 func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	stack := d.HydrateItem.(*cloudformation.Stack)
+	stack := d.HydrateItem.(types.Stack)
 	var turbotTagsMap map[string]string
-
-	if stack.Tags != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range stack.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
+	if len(stack.Tags) > 0 {
+		if stack.Tags != nil {
+			turbotTagsMap = map[string]string{}
+			for _, i := range stack.Tags {
+				turbotTagsMap[*i.Key] = *i.Value
+			}
 		}
 	}
 	return turbotTagsMap, nil

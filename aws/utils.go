@@ -6,16 +6,17 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
 
+	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
@@ -73,7 +74,7 @@ func extractNameFromSqsQueueURL(queue string) (string, error) {
 }
 
 func handleNilString(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	value := types.SafeString(d.Value)
+	value := types.SafeString(fmt.Sprintf("%v", d.Value))
 	if value == "" {
 		return "false", nil
 	}
@@ -119,7 +120,7 @@ func base64DecodedData(_ context.Context, d *transform.TransformData) (interface
 // Transform function for sagemaker resources tags
 func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	tags := d.HydrateItem.([]*sagemaker.Tag)
+	tags := d.HydrateItem.([]sagemakerTypes.Tag)
 
 	if tags != nil {
 		turbotTagsMap := map[string]string{}
@@ -206,4 +207,31 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		}
 	}
 	return value
+}
+
+// handleNullIfZero :: handles empty slices and map convert them to null instead of the zero type
+func handleEmptySliceAndMap(ctx context.Context, d *transform.TransformData) (any, error) {
+	if d.Value == nil {
+		return nil, nil
+	}
+
+	reflectVal := reflect.ValueOf(d.Value)
+	switch reflectVal.Kind() {
+	// To handle empty array to null change in aws sdk V1 to V2 migration
+	case reflect.Slice, reflect.Map:
+		if reflectVal.Len() == 0 {
+			return nil, nil
+		}
+	case reflect.Struct:
+		if reflectVal == reflect.Zero(reflectVal.Type()) {
+			return nil, nil
+		}
+	case reflect.String:
+		// To handle empty string to null change in aws sdk V1 to V2 migration
+		if reflectVal.String() == "" {
+			return nil, nil
+		}
+	}
+
+	return d.Value, nil
 }

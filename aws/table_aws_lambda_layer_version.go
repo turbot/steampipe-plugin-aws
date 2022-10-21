@@ -2,16 +2,17 @@ package aws
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
@@ -32,7 +33,7 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 				{Name: "layer_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "layer_name",
@@ -131,115 +132,148 @@ type LayerVersionInfo struct {
 //// LIST FUNCTION
 
 func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listLambdaLayerVersions")
+	layerName := h.Item.(types.LayersListItem).LayerName
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
-		logger.Error("listLambdaLayerVersions", "error_LambdaService", err)
+		plugin.Logger(ctx).Error("aws_lambda_layer_version.listLambdaLayerVersions", "connection_error", err)
 		return nil, err
 	}
 
-	layerName := h.Item.(*lambda.LayersListItem).LayerName
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
 
 	equalQuals := d.KeyColumnQuals
 	// Minimize the API call with the given layer name
 	if equalQuals["layer_name"] != nil {
-		if equalQuals["layer_name"].GetStringValue() != "" {
-			if equalQuals["layer_name"].GetStringValue() != "" && equalQuals["layer_name"].GetStringValue() != *layerName {
-				return nil, nil
-			}
-		} else if len(getListValues(equalQuals["layer_name"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["layer_name"].GetListValue())), *layerName) {
-				return nil, nil
-			}
+		if equalQuals["layer_name"].GetStringValue() != *layerName {
+			return nil, nil
 		}
 	}
 
-	// Set MaxItems to the maximum number allowed
+	maxItems := int32(50)
 	input := lambda.ListLayerVersionsInput{
 		LayerName: layerName,
-		MaxItems:  types.Int64(50),
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListLayerVersionsPages(
-		&input,
-		func(page *lambda.ListLayerVersionsOutput, lastPage bool) bool {
-			for _, version := range page.LayerVersions {
-				d.StreamListItem(ctx, LayerVersionInfo{*layerName, lambda.GetLayerVersionOutput{
-					CompatibleArchitectures: version.CompatibleArchitectures,
-					CompatibleRuntimes:      version.CompatibleRuntimes,
-					CreatedDate:             version.CreatedDate,
-					Description:             version.Description,
-					LayerVersionArn:         version.LayerVersionArn,
-					LicenseInfo:             version.LicenseInfo,
-					Version:                 version.Version,
-				}})
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := lambda.NewListLayerVersionsPaginator(svc, &input, func(o *lambda.ListLayerVersionsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)
+			return nil, err
+		}
+
+		for _, version := range output.LayerVersions {
+			d.StreamListItem(ctx, LayerVersionInfo{*layerName, lambda.GetLayerVersionOutput{
+				CompatibleArchitectures: version.CompatibleArchitectures,
+				CompatibleRuntimes:      version.CompatibleRuntimes,
+				CreatedDate:             version.CreatedDate,
+				Description:             version.Description,
+				LayerVersionArn:         version.LayerVersionArn,
+				LicenseInfo:             version.LicenseInfo,
+				Version:                 version.Version,
+			}})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		logger.Error("listLambdaLayerVersions", "error_ListLayerVersionsPages", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
+
+	// err = svc.ListLayerVersionsPages(
+	// 	&input,
+	// 	func(page *lambda.ListLayerVersionsOutput, lastPage bool) bool {
+	// 		for _, version := range page.LayerVersions {
+	// d.StreamListItem(ctx, LayerVersionInfo{*layerName, lambda.GetLayerVersionOutput{
+	// 	CompatibleArchitectures: version.CompatibleArchitectures,
+	// 	CompatibleRuntimes:      version.CompatibleRuntimes,
+	// 	CreatedDate:             version.CreatedDate,
+	// 	Description:             version.Description,
+	// 	LayerVersionArn:         version.LayerVersionArn,
+	// 	LicenseInfo:             version.LicenseInfo,
+	// 	Version:                 version.Version,
+	// }})
+
+	// 			// Context may get cancelled due to manual cancellation or if the limit has been reached
+	// 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+	// 				return false
+	// 			}
+	// 		}
+	// 		return !lastPage
+	// 	},
+	// )
+
+	// if err != nil {
+	// 	logger.Error("listLambdaLayerVersions", "error_ListLayerVersionsPages", err)
+	// 	return nil, err
+	// }
+
+	// return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getLambdaLayerVersion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getLambdaLayerVersion")
-
 	var layerName string
 	var version int64
 	if h.Item != nil {
 		layerName = h.Item.(LayerVersionInfo).LayerName
-		version = *h.Item.(LayerVersionInfo).Version
+		version = h.Item.(LayerVersionInfo).Version
 	} else {
 		layerName = d.KeyColumnQuals["layer_name"].GetStringValue()
 		version = d.KeyColumnQuals["version"].GetInt64Value()
 	}
 
+	if strings.TrimSpace(layerName) == "" {
+		return nil, nil
+	}
+
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
-		logger.Error("getLambdaLayerVersion", "error_LambdaService", err)
+		plugin.Logger(ctx).Error("aws_lambda_layer_version.getLambdaLayerVersion", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
 	params := &lambda.GetLayerVersionInput{
-		LayerName:     &layerName,
-		VersionNumber: &version,
+		LayerName:     aws.String(layerName),
+		VersionNumber: version,
 	}
 
 	// Get call
-	data, err := svc.GetLayerVersion(params)
+	data, err := svc.GetLayerVersion(ctx, params)
 	if err != nil {
-		logger.Error("getLambdaLayerVersion", "error_GetLayerVersion", err)
+		plugin.Logger(ctx).Error("aws_lambda_layer_version.getLambdaLayerVersion", "api_error", err)
 		return nil, err
 	}
 
@@ -247,41 +281,46 @@ func getLambdaLayerVersion(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getLambdaLayerVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getLambdaLayerVersionPolicy")
 
 	var layerName string
 	var version int64
 	if h.Item != nil {
 		layerName = h.Item.(LayerVersionInfo).LayerName
-		version = *h.Item.(LayerVersionInfo).Version
+		version = h.Item.(LayerVersionInfo).Version
 	} else {
 		layerName = d.KeyColumnQuals["layer_name"].GetStringValue()
 		version = d.KeyColumnQuals["version"].GetInt64Value()
 	}
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
-		logger.Error("getLambdaLayerVersionPolicy", "error_LambdaService", err)
+		plugin.Logger(ctx).Error("aws_lambda_layer_version.getLambdaLayerVersionPolicy", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
 	params := &lambda.GetLayerVersionPolicyInput{
-		LayerName:     &layerName,
-		VersionNumber: &version,
+		LayerName:     aws.String(layerName),
+		VersionNumber: version,
 	}
 
 	// Get call
-	data, err := svc.GetLayerVersionPolicy(params)
+	data, err := svc.GetLayerVersionPolicy(ctx, params)
 	if err != nil {
-		logger.Error("getLambdaLayerVersionPolicy", "error_GetLayerVersionPolicy", err)
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			// If the function does not exist or does not have url config, the operation returns a 404 (ResourceNotFoundException) error.
+			if ae.ErrorCode() == "ResourceNotFoundException" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_lambda_layer_version.getLambdaLayerVersionPolicy", "api_error", err)
 		return nil, err
 	}
 

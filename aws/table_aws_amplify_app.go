@@ -5,10 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/amplify"
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -27,7 +26,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAmplifyApps,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "app_id",
@@ -172,21 +171,16 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.listAmplifyApps")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Amplify is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://amplify.ap-southeast-3.amazonaws.com/": dial tcp: lookup amplify.ap-southeast-3.amazonaws.com: no such host
-	serviceId := amplify.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create Session
 	svc, err := AmplifyService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("listAmplifyApps", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &amplify.ListAppsInput{
@@ -237,17 +231,6 @@ func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.getAmplifyApp")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Amplify is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://amplify.ap-southeast-3.amazonaws.com/": dial tcp: lookup amplify.ap-southeast-3.amazonaws.com: no such host
-	serviceId := amplify.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	appId := d.KeyColumnQuals["app_id"].GetStringValue()
 	if appId == "" {
@@ -255,10 +238,15 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, nil
 	}
 
-	// Create service
+	// Create Session
 	svc, err := AmplifyService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("listAmplifyApps", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -275,5 +263,3 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	return data.App, nil
 }
-
-//// TRANSFORM FUNCTION

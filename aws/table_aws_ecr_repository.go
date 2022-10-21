@@ -2,14 +2,17 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +24,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("repository_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
 			},
 			Hydrate: getAwsEcrRepositories,
 		},
@@ -31,7 +34,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				{Name: "registry_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",
@@ -158,13 +161,27 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 
 func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.listAwsEcrRepositories", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ecr.DescribeRepositoriesInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	equalQuals := d.KeyColumnQuals
@@ -172,32 +189,28 @@ func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		input.RegistryId = aws.String(equalQuals["registry_id"].GetStringValue())
 	}
 
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ecr.NewDescribeRepositoriesPaginator(svc, input, func(o *ecr.DescribeRepositoriesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecr_repository.listAwsEcrRepositories", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Repositories {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeRepositoriesPages(
-		input,
-		func(page *ecr.DescribeRepositoriesOutput, isLast bool) bool {
-			for _, repository := range page.Repositories {
-				d.StreamListItem(ctx, repository)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 
 	return nil, err
 }
@@ -205,45 +218,43 @@ func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.
 ////  HYDRATE FUNCTIONS
 
 func getAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrRepositories")
 
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*ecr.Repository).RepositoryName
+		name = *h.Item.(types.Repository).RepositoryName
 	} else {
 		name = d.KeyColumnQuals["repository_name"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositories", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ecr.DescribeRepositoriesInput{
-		RepositoryNames: []*string{aws.String(name)},
+		RepositoryNames: []string{name},
 	}
 
 	// Get call
-	data, err := svc.DescribeRepositories(params)
+	data, err := svc.DescribeRepositories(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsEcrRepositories", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositories", "api_error", err)
 		return nil, err
 	}
 	return data.Repositories[0], nil
 }
 
 func listAwsEcrRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsEcrRepositoryTags")
 
-	resourceArn := h.Item.(*ecr.Repository).RepositoryArn
+	resourceArn := h.Item.(types.Repository).RepositoryArn
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.listAwsEcrRepositoryTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -253,9 +264,9 @@ func listAwsEcrRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("listAwsEcrRepositoryTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ecr_repository.listAwsEcrRepositoryTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
@@ -265,11 +276,12 @@ func getAwsEcrRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEcrRepositoryPolicy")
 
-	repositoryName := h.Item.(*ecr.Repository).RepositoryName
+	repositoryName := h.Item.(types.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryPolicy", "connection_error", err)
 		return nil, err
 	}
 
@@ -279,76 +291,65 @@ func getAwsEcrRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Get call
-	op, err := svc.GetRepositoryPolicy(params)
+	op, err := svc.GetRepositoryPolicy(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "RepositoryPolicyNotFoundException" {
-				return nil, nil
-			}
-			return nil, err
+		if strings.Contains(err.Error(), "RepositoryPolicyNotFoundException") {
+			return nil, nil
 		}
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryPolicy", "api_error", err)
+		return nil, err
 	}
+
 	return op, nil
 }
 
 func getAwsEcrDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrDescribeImages")
 
-	repositoryName := h.Item.(*ecr.Repository).RepositoryName
+	repositoryName := h.Item.(types.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrDescribeImages", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ecr.DescribeImagesInput{
 		RepositoryName: repositoryName,
-		MaxResults:     aws.Int64(100),
+		MaxResults:     aws.Int32(100),
 	}
 
-	var result []*ecr.ImageDetail
-
-	err = svc.DescribeImagesPages(
-		params,
-		func(page *ecr.DescribeImagesOutput, isLast bool) bool {
-			result = append(result, page.ImageDetails...)
-			return !isLast
-		},
-	)
-
+	// Get call
+	op, err := svc.DescribeImages(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrDescribeImages", err)
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrDescribeImages", "api_error", err)
 		return nil, err
 	}
 
-	return result, nil
+	return op, nil
 }
 
 func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrDescribeImageScanningFindings")
 
 	getAwsEcrDescribeImageDetails := plugin.HydrateFunc(getAwsEcrDescribeImages)
 	imageDetails, err := getAwsEcrDescribeImageDetails(ctx, d, h)
 	if err != nil {
-		logger.Error("getAwsEcrDescribeImageScanningFindings", "getAwsEcrDescribeImageDetails", err)
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrDescribeImageDetails", "api_error", err)
 		return nil, err
 	}
 	images := imageDetails.(*ecr.DescribeImagesOutput)
 
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
-		logger.Error("getAwsEcrDescribeImageScanningFindings", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrDescribeImageScanningFindings", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	// As per doc the max result value can be between 1-1000 but as per testing it returns only 100 result per page
 	params := &ecr.DescribeImageScanFindingsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(100),
 	}
 
 	var result []ecr.DescribeImageScanFindingsOutput
@@ -357,39 +358,40 @@ func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.Query
 		var scanningDetails *ecr.DescribeImageScanFindingsOutput
 
 		params.RepositoryName = image.RepositoryName
-		params.ImageId = &ecr.ImageIdentifier{
+		params.ImageId = &types.ImageIdentifier{
 			ImageDigest: image.ImageDigest,
 		}
 
-		err = svc.DescribeImageScanFindingsPages(
-			params,
-			func(page *ecr.DescribeImageScanFindingsOutput, isLast bool) bool {
-				if scanningDetails != nil {
-					if *scanningDetails.ImageId.ImageDigest == *image.ImageDigest {
-						if scanningDetails.ImageScanFindings.EnhancedFindings != nil {
-							scanningDetails.ImageScanFindings.EnhancedFindings = append(scanningDetails.ImageScanFindings.EnhancedFindings, page.ImageScanFindings.EnhancedFindings...)
-						} else if scanningDetails.ImageScanFindings.Findings != nil {
-							scanningDetails.ImageScanFindings.Findings = append(scanningDetails.ImageScanFindings.Findings, page.ImageScanFindings.Findings...)
-						}
-					}
-					for k, v := range page.ImageScanFindings.FindingSeverityCounts {
-						scanningDetails.ImageScanFindings.FindingSeverityCounts[k] = aws.Int64(*v + *scanningDetails.ImageScanFindings.FindingSeverityCounts[k])
-					}
-				} else {
-					scanningDetails = page
+		paginator := ecr.NewDescribeImageScanFindingsPaginator(svc, params, func(o *ecr.DescribeImageScanFindingsPaginatorOptions) {
+			o.Limit = 100
+			o.StopOnDuplicateToken = true
+		})
+
+		// List call
+		for paginator.HasMorePages() {
+			scan, err := paginator.NextPage(ctx)
+			if err != nil {
+				if strings.Contains(err.Error(), "ScanNotFoundException") {
+					return result, nil
 				}
-				return !isLast
-			},
-		)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "ScanNotFoundException") {
-				return result, nil
+				plugin.Logger(ctx).Error("aws_ecr_repository.DescribeImageScanFindingsPages", "api_error", err)
+				return nil, err
 			}
-			logger.Error("getAwsEcrDescribeImageScanningFindings", "DescribeImageScanFindingsPages", err)
-			return nil, err
+			if scanningDetails != nil {
+				if *scanningDetails.ImageId.ImageDigest == *image.ImageDigest {
+					if scanningDetails.ImageScanFindings.EnhancedFindings != nil {
+						scanningDetails.ImageScanFindings.EnhancedFindings = append(scan.ImageScanFindings.EnhancedFindings, scan.ImageScanFindings.EnhancedFindings...)
+					} else if scanningDetails.ImageScanFindings.Findings != nil {
+						scanningDetails.ImageScanFindings.Findings = append(scanningDetails.ImageScanFindings.Findings, scan.ImageScanFindings.Findings...)
+					}
+				}
+				for k, v := range scan.ImageScanFindings.FindingSeverityCounts {
+					scanningDetails.ImageScanFindings.FindingSeverityCounts[k] = v + scanningDetails.ImageScanFindings.FindingSeverityCounts[k]
+				}
+			} else {
+				scanningDetails = scan
+			}
 		}
-
 		if scanningDetails != nil {
 			result = append(result, *scanningDetails)
 		}
@@ -399,14 +401,13 @@ func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.Query
 }
 
 func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrRepositoryLifecyclePolicy")
 
-	repositoryName := h.Item.(*ecr.Repository).RepositoryName
+	repositoryName := h.Item.(types.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryLifecyclePolicy", "connection_error", err)
 		return nil, err
 	}
 	// Build the params
@@ -414,14 +415,16 @@ func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData
 		RepositoryName: repositoryName,
 	}
 	// Get call
-	op, err := svc.GetLifecyclePolicy(params)
+	op, err := svc.GetLifecyclePolicy(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "LifecyclePolicyNotFoundException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "LifecyclePolicyNotFoundException" {
 				return nil, nil
 			}
-			return nil, err
 		}
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryLifecyclePolicy", "api_error", err)
+		return nil, err
 	}
 	return op, nil
 }
@@ -429,7 +432,6 @@ func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData
 //// TRANSFORM FUNCTIONS
 
 func ecrTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ecrTagListToTurbotTags")
 	tags := d.HydrateItem.(*ecr.ListTagsForResourceOutput)
 
 	// Mapping the resource tags inside turbotTags

@@ -3,15 +3,18 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/guardduty"
-
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
+
+type filterInfo = struct {
+	guardduty.GetFilterOutput
+	Name       string
+	DetectorId string
+}
 
 func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -20,7 +23,7 @@ func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"detector_id", "name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
 			},
 			Hydrate: getAwsGuardDutyFilter,
 		},
@@ -31,7 +34,7 @@ func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 				{Name: "detector_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -94,90 +97,77 @@ func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 	}
 }
 
-type filterInfo = struct {
-	guardduty.GetFilterOutput
-	Name       string
-	DetectorId string
-}
-
 //// LIST FUNCTION
 
 func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_filter.listAwsGuardDutyFilters", "get_client_error", err)
 		return nil, err
 	}
 
 	equalQuals := d.KeyColumnQuals
-
 	// Minimize the API call with the given detector_id
 	if equalQuals["detector_id"] != nil {
-		if equalQuals["detector_id"].GetStringValue() != "" {
-			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != id {
-				return nil, nil
-			}
-		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), id) {
-				return nil, nil
-			}
+		if equalQuals["detector_id"].GetStringValue() != id {
+			return nil, nil
 		}
 	}
 
-	input := &guardduty.ListFiltersInput{
+	maxItems := int32(50)
+	params := &guardduty.ListFiltersInput{
 		DetectorId: &id,
-		MaxResults: aws.Int64(50),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			params.MaxResults = limit
+		}
+	}
+
+	paginator := guardduty.NewListFiltersPaginator(svc, params, func(o *guardduty.ListFiltersPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_guardduty_filter.listAwsGuardDutyFilters", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.FilterNames {
+			d.StreamListItem(ctx, filterInfo{Name: item, DetectorId: id})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListFiltersPages(
-		input,
-		func(page *guardduty.ListFiltersOutput, isLast bool) bool {
-			for _, parameter := range page.FilterNames {
-				d.StreamLeafListItem(ctx, filterInfo{
-					Name:       *parameter,
-					DetectorId: id,
-				})
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTION
 
 func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsGuardDutyFilter")
-
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_filter.getAwsGuardDutyFilter", "get_client_error", err)
 		return nil, err
 	}
+
 	var detectorID string
 	var name string
+
 	if h.Item != nil {
 		detectorID = h.Item.(filterInfo).DetectorId
 		name = h.Item.(filterInfo).Name
@@ -198,8 +188,9 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	data, err := svc.GetFilter(params)
+	data, err := svc.GetFilter(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_filter.getAwsGuardDutyFilter", "api_error", err)
 		return nil, err
 	}
 
@@ -209,18 +200,17 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 //// TRANSFORM FUNCTION
 
 func getAwsGuardDutyFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsGuardDutyFilterAkas")
-
 	data := h.Item.(filterInfo)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_filter.getAwsGuardDutyFilterAkas", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorId + "/filter" + "/" + data.Name
+	aka := fmt.Sprintf("arn:%s:guardduty:%s:%s:detector/%s/filter/%s", commonColumnData.Partition, region, commonColumnData.AccountId, data.DetectorId, data.Name)
 
 	return []string{aka}, nil
 }

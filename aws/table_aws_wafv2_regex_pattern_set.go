@@ -4,11 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +21,14 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAwsWafv2RegexPatternSet,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RegexPatternSets,
 		},
-		GetMatrixItem: BuildWafRegionList,
+		GetMatrixItemFunc: BuildWafRegionList,
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",
@@ -128,42 +129,47 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 
 func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	scope := aws.String("REGIONAL")
+	scope := types.ScopeRegional
 
 	if region == "global" {
 		region = "us-east-1"
-		scope = aws.String("CLOUDFRONT")
+		scope = types.ScopeCloudfront
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2RegexPatternSets", "AWS_REGION", region)
-
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listAwsWafv2RegexPatternSets", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// List all Regex Pattern Sets
 	pagesLeft := true
-	params := &wafv2.ListRegexPatternSetsInput{
-		Scope: scope,
-		Limit: aws.Int64(100),
-	}
-
+	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				params.Limit = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				params.Limit = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
+	params := &wafv2.ListRegexPatternSetsInput{
+		Scope: scope,
+		Limit: aws.Int32(maxLimit),
+	}
 
+	// ListRegexPatternSets API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
-		response, err := svc.ListRegexPatternSets(params)
+		response, err := svc.ListRegexPatternSets(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listAwsWafv2RegexPatternSets", "api_error", err)
 			return nil, err
 		}
 
@@ -190,8 +196,6 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 //// HYDRATE FUNCTIONS
 
 func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWafv2RegexPatternSet")
-
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	var id, name, scope string
@@ -232,20 +236,25 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.getAwsWafv2RegexPatternSet", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	params := &wafv2.GetRegexPatternSetInput{
 		Id:    aws.String(id),
 		Name:  aws.String(name),
-		Scope: aws.String(scope),
+		Scope: types.Scope(scope),
 	}
 
-	op, err := svc.GetRegexPatternSet(params)
+	op, err := svc.GetRegexPatternSet(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("GetRegexPatternSet", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.getAwsWafv2RegexPatternSet", "api_error", err)
 		return nil, err
 	}
 
@@ -256,7 +265,6 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTagsForAwsWafv2RegexPatternSet")
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
@@ -272,19 +280,25 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listTagsForAwsWafv2RegexPatternSet", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
-		Limit:       aws.Int64(100),
+		Limit:       aws.Int32(100),
 	}
 
-	regexPatternSetTags, err := svc.ListTagsForResource(param)
+	regexPatternSetTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listTagsForAwsWafv2RegexPatternSet", "api_error", err)
 		return nil, err
 	}
 	return regexPatternSetTags, nil
@@ -302,7 +316,6 @@ func regexPatternSetLocation(_ context.Context, d *transform.TransformData) (int
 }
 
 func regexPatternSetTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("regexPatternSetTagListToTurbotTags")
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
 	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
@@ -322,7 +335,6 @@ func regexPatternSetTagListToTurbotTags(ctx context.Context, d *transform.Transf
 }
 
 func regularExpressionObjectListToRegularExpressionList(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("regularExpressionObjectListToRegularExpressionList")
 	data := d.HydrateItem.(*wafv2.GetRegexPatternSetOutput)
 
 	if data.RegexPatternSet.RegularExpressionList == nil || len(data.RegexPatternSet.RegularExpressionList) < 1 {
@@ -360,7 +372,7 @@ func regexPatternSetData(item interface{}) map[string]string {
 		data["Arn"] = *item.RegexPatternSet.ARN
 		data["Name"] = *item.RegexPatternSet.Name
 		data["Description"] = *item.RegexPatternSet.Description
-	case *wafv2.RegexPatternSetSummary:
+	case types.RegexPatternSetSummary:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name

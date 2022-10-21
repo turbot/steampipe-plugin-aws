@@ -1,6 +1,38 @@
 [
   {
     "access_point_policy_is_public": false,
-    "name": "{{ resourceName }}"
+    "name": "{{ resourceName }}",
+    "policy": {
+      "Statement": [
+        {
+          "Action": "s3:GetObjectTagging",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "*"
+          },
+          "Resource": "{{ output.arn.value }}/object/*"
+        }
+      ],
+      "Version": "2008-10-17"
+    },
+    "policy_std": {
+      "Statement": [
+        {
+          "Action": [
+            "s3:getobjecttagging"
+          ],
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": [
+              "*"
+            ]
+          },
+          "Resource": [
+            "{{ output.arn.value }}/object/*"
+          ]
+        }
+      ],
+      "Version": "2008-10-17"
+    }
   }
 ]

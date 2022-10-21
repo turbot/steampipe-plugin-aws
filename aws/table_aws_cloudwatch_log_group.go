@@ -2,14 +2,15 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
@@ -29,7 +30,7 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -93,78 +94,96 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	// Get client
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.listCloudwatchLogGroups", "client_error", err)
 		return nil, err
 	}
 
-	input := &cloudwatchlogs.DescribeLogGroupsInput{
-		Limit: aws.Int64(50),
-	}
+	maxItems := int32(50)
 
-	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["name"] != nil {
-		input.LogGroupNamePrefix = types.String(equalQuals["name"].GetStringValue())
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.Limit = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.DescribeLogGroupsPages(
-		input,
-		func(page *cloudwatchlogs.DescribeLogGroupsOutput, isLast bool) bool {
-			for _, logGroup := range page.LogGroups {
-				d.StreamListItem(ctx, logGroup)
+	input := &cloudwatchlogs.DescribeLogGroupsInput{
+		Limit: &maxItems,
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := cloudwatchlogs.NewDescribeLogGroupsPaginator(svc, input, func(o *cloudwatchlogs.DescribeLogGroupsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.LogGroupNamePrefix = aws.String(equalQuals["name"].GetStringValue())
+	}
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Info("aws_cloudwatch_log_group.listCloudwatchLogGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, logGroup := range output.LogGroups {
+			d.StreamListItem(ctx, logGroup)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
-
-	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	// Get client
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroup", "client_error", err)
 		return nil, err
 	}
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
+	if strings.TrimSpace(name) == "" {
+		return nil, nil
+	}
+
 	params := &cloudwatchlogs.DescribeLogGroupsInput{
 		LogGroupNamePrefix: aws.String(name),
 	}
 
-	// execute list call
-	item, err := svc.DescribeLogGroups(params)
-	if err != nil {
-		return nil, err
-	}
+	paginator := cloudwatchlogs.NewDescribeLogGroupsPaginator(svc, params, func(o *cloudwatchlogs.DescribeLogGroupsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-	for _, logGroup := range item.LogGroups {
-		if types.SafeString(logGroup.LogGroupName) == name {
-			return logGroup, nil
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroup", "api_error", err)
+			return nil, err
+		}
+
+		for _, logGroup := range output.LogGroups {
+			if *logGroup.LogGroupName == name {
+				return logGroup, nil
+			}
 		}
 	}
 
@@ -172,12 +191,12 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 }
 
 func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
-	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
+	logGroup := h.Item.(types.LogGroup)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getLogGroupTagging", "client_error", err)
 		return nil, err
 	}
 
@@ -186,8 +205,9 @@ func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// List resource tags
-	logGroupData, err := svc.ListTagsLogGroup(params)
+	logGroupData, err := svc.ListTagsLogGroup(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getLogGroupTagging", "api_error", err)
 		return nil, err
 	}
 	return logGroupData, nil

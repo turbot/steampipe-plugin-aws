@@ -2,12 +2,16 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
+	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk/types"
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,18 +23,18 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("environment_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
 			},
-			Hydrate: getAwsElasticBeanstalkEnvironment,
+			Hydrate: getElasticBeanstalkEnvironment,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsElasticBeanstalkEnvironments,
+			Hydrate: listElasticBeanstalkEnvironments,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "environment_id", Require: plugin.Optional},
 				{Name: "application_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "environment_name",
@@ -71,7 +75,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Name:        "cname",
 				Description: "The URL to the CNAME for this environment.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsElasticBeanstalkEnvironment,
+				Hydrate:     getElasticBeanstalkEnvironment,
 			},
 			{
 				Name:        "date_updated",
@@ -82,7 +86,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Name:        "endpoint_url",
 				Description: "The URL to the LoadBalancer.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsElasticBeanstalkEnvironment,
+				Hydrate:     getElasticBeanstalkEnvironment,
 			},
 			{
 				Name:        "health",
@@ -128,7 +132,8 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Name:        "environment_links",
 				Description: "A list of links to other environments in the same group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsElasticBeanstalkEnvironment,
+				Hydrate:     getElasticBeanstalkEnvironment,
+				Transform:   transform.FromField("EnvironmentLinks"),
 			},
 			{
 				Name:        "resources",
@@ -166,7 +171,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("EnvironmentArn").Transform(arnToAkas),
+				Transform:   transform.FromField("EnvironmentArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -174,16 +179,21 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.listElasticBeanstalkEnvironments", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	pagesLeft := true
 	params := &elasticbeanstalk.DescribeEnvironmentsInput{
-		MaxRecords: aws.Int64(1000),
+		MaxRecords: aws.Int32(1000),
 	}
 
 	equalQuals := d.KeyColumnQuals
@@ -191,28 +201,29 @@ func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryDat
 		params.ApplicationName = aws.String(equalQuals["application_name"].GetStringValue())
 	}
 	if equalQuals["environment_id"] != nil {
-		params.EnvironmentIds = []*string{aws.String(equalQuals["environment_id"].GetStringValue())}
+		params.EnvironmentIds = []string{equalQuals["environment_id"].GetStringValue()}
 	}
 
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxRecords {
-			if *limit < 1 {
-				params.MaxRecords = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *params.MaxRecords {
+			if limit < 1 {
+				params.MaxRecords = aws.Int32(1)
 			} else {
-				params.MaxRecords = limit
+				params.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
 	for pagesLeft {
-		result, err := svc.DescribeEnvironments(params)
+		result, err := svc.DescribeEnvironments(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.listElasticBeanstalkEnvironments", "api_error", err)
 			return nil, err
 		}
 
-		for _, environments := range result.Environments {
-			d.StreamListItem(ctx, environments)
+		for _, environment := range result.Environments {
+			d.StreamListItem(ctx, environment)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -233,35 +244,43 @@ func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryDat
 
 //// HYDRATE FUNCTIONS
 
-func getAwsElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsElasticBeanstalkEnvironment")
-
+func getElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.getElasticBeanstalkEnvironment", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*elasticbeanstalk.EnvironmentDescription).EnvironmentName
+		name = *h.Item.(types.EnvironmentDescription).EnvironmentName
 	} else {
 		name = d.KeyColumnQuals["environment_name"].GetStringValue()
+	}
+
+	// Return nil, if no input provided
+	if name == "" {
+		return nil, nil
 	}
 
 	// Build the params
 
 	params := &elasticbeanstalk.DescribeEnvironmentsInput{
-		EnvironmentNames: []*string{aws.String(name)},
+		EnvironmentNames: []string{name},
 	}
 
-	environmentData, err := svc.DescribeEnvironments(params)
+	environmentData, err := svc.DescribeEnvironments(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsElasticBeanstalkEnvironment__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.getElasticBeanstalkEnvironment", "api_error", err)
 		return nil, err
 	}
 
-	if environmentData != nil && len(environmentData.Environments) > 0 {
+	if len(environmentData.Environments) > 0 {
 		return environmentData.Environments[0], nil
 	}
 
@@ -269,15 +288,17 @@ func getAwsElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData,
 }
 
 func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	plugin.Logger(ctx).Trace("listElasticBeanstalkEnvironmentTags")
-
-	resourceArn := h.Item.(*elasticbeanstalk.EnvironmentDescription).EnvironmentArn
+	resourceArn := h.Item.(types.EnvironmentDescription).EnvironmentArn
 
 	// Create session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.listElasticBeanstalkEnvironmentTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param
@@ -285,30 +306,32 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 		ResourceArn: resourceArn,
 	}
 
-	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("listElasticBeanstalkEnvironmentTags", "ERROR", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.listElasticBeanstalkEnvironmentTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
 }
 
-//// TRANSFORM FUNCTIONS
+// // TRANSFORM FUNCTIONS
 func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("elasticBeanstalkEnvironmentTagListToTurbotTags")
 	tags := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
 
-	// Mapping the resource tags inside turbotTags
-	if tags.ResourceTags == nil {
-		return nil, nil
-	}
 	var turbotTagsMap map[string]string
-	if tags.ResourceTags != nil {
+	// Mapping the resource tags inside turbotTags
+	if len(tags.ResourceTags) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tags.ResourceTags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}
+
 	return turbotTagsMap, nil
 }

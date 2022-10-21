@@ -3,7 +3,7 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -15,8 +15,8 @@ func tableAwsDynamoDBMetricAccountProvisionedReadCapacityUtilization(_ context.C
 		List: &plugin.ListConfig{
 			Hydrate: listDynamboDbMetricAccountProvisionedReadCapacityUtilization,
 		},
-		GetMatrixItem: BuildRegionList,
-		Columns:       awsRegionalColumns(cwMetricColumns([]*plugin.Column{})),
+		GetMatrixItemFunc: BuildRegionList,
+		Columns:           awsRegionalColumns(cwMetricColumns([]*plugin.Column{})),
 	}
 }
 

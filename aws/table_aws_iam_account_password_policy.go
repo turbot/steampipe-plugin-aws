@@ -2,21 +2,15 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
-
-//type awsIamPolicySimulatorResult struct {
-//	PrincipalArn string
-//	Action       string
-//	ResourceArn  string
-//	Decision     *string
-//	Result       *iam.EvaluationResult
-//}
 
 func tableAwsIamAccountPasswordPolicy(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -93,21 +87,22 @@ func tableAwsIamAccountPasswordPolicy(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAccountPasswordPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAccountPasswordPolicies")
-
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get Client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_account_password_policy.listAccountPasswordPolicies", "client_error", err)
 		return nil, err
 	}
 
-	resp, err := svc.GetAccountPasswordPolicy(&iam.GetAccountPasswordPolicyInput{})
+	resp, err := svc.GetAccountPasswordPolicy(ctx, &iam.GetAccountPasswordPolicyInput{})
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "NoSuchEntity" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "NoSuchEntity" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_iam_account_password_policy.listAccountPasswordPolicies", "api_error", err)
 		return nil, err
 	}
 

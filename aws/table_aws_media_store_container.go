@@ -6,10 +6,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/mediastore"
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
@@ -29,7 +29,7 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ContainerInUseException"}),
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -112,22 +112,16 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 
 func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("listMediaStoreContainers")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS MediaStore is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://mediastore.eu-west-3.amazonaws.com/": dial tcp: lookup mediastore.eu-west-3.amazonaws.com: no such host
-	serviceId := mediastore.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create service
 	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
 		logger.Error("listMediaStoreContainers", "error_MediaStoreService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Set MaxResults to the maximum number allowed
@@ -175,20 +169,8 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 
 func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getMediaStoreContainer")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS MediaStore is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://mediastore.eu-west-3.amazonaws.com/": dial tcp: lookup mediastore.eu-west-3.amazonaws.com: no such host
-	serviceId := mediastore.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	containerName := d.KeyColumnQuals["name"].GetStringValue()
-
 	// check if name is empty
 	if containerName == "" {
 		return nil, nil
@@ -199,6 +181,10 @@ func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if err != nil {
 		logger.Error("getMediaStoreContainer", "error_MediaStoreService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

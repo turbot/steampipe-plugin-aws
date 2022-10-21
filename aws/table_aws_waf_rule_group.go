@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/waf"
+	"github.com/aws/aws-sdk-go-v2/service/waf/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -93,32 +95,28 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 
 func listWafRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := WAFService(ctx, d)
+	svc, err := WAFClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.listWafRuleGroups", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.listAwsWAFRules", "get_client_error", err)
 		return nil, err
 	}
 
 	// List all rule groups
 	pagesLeft := true
 	params := &waf.ListRuleGroupsInput{
-		Limit: aws.Int64(100),
+		Limit: int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
-			if *limit < 1 {
-				params.Limit = aws.Int64(1)
-			} else {
-				params.Limit = limit
-			}
+		if *limit < int64(params.Limit) {
+			params.Limit = int32(*limit)
 		}
 	}
 
 	for pagesLeft {
-		response, err := svc.ListRuleGroups(params)
+		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_waf_rule_group.listWafRuleGroups", "api_error", err)
 			return nil, err
@@ -155,18 +153,18 @@ func getWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		id = d.KeyColumnQuals["rule_group_id"].GetStringValue()
 	}
 
-	// Create Session
-	svc, err := WAFService(ctx, d)
+	// Create session
+	svc, err := WAFClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroup", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroup", "get_client_error", err)
 		return nil, err
 	}
 
 	params := &waf.GetRuleGroupInput{
-		RuleGroupId: aws.String(id),
+		RuleGroupId: &(id),
 	}
 
-	op, err := svc.GetRuleGroup(params)
+	op, err := svc.GetRuleGroup(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroup", "api_error", err)
 		return nil, err
@@ -179,20 +177,20 @@ func getWafRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryData, h *
 	data := classicRuleGroupData(h.Item, ctx, d, h)
 	id := data["rule_group_id"]
 
-	// Create Session
-	svc, err := WAFService(ctx, d)
+	// Create session
+	svc, err := WAFClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroupRules", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroupActivatedRules", "get_client_error", err)
 		return nil, err
 	}
 
 	params := &waf.ListActivatedRulesInRuleGroupInput{
-		RuleGroupId: aws.String(id),
+		RuleGroupId: &(id),
 	}
 
-	op, err := svc.ListActivatedRulesInRuleGroup(params)
+	op, err := svc.ListActivatedRulesInRuleGroup(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroupRules", "api_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroupActivatedRules", "api_error", err)
 		return nil, err
 	}
 
@@ -206,19 +204,19 @@ func listTagsForWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin
 	data := classicRuleGroupData(h.Item, ctx, d, h)
 
 	// Create session
-	svc, err := WAFService(ctx, d)
+	svc, err := WAFClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.listTagsForWafRuleGroup", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.listTagsForWafRuleGroup", "get_client_error", err)
 		return nil, err
 	}
 
 	// Build param with maximum limit set
 	param := &waf.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
-		Limit:       aws.Int64(100),
+		Limit:       int32(100),
 	}
 
-	ruleGroupTags, err := svc.ListTagsForResource(param)
+	ruleGroupTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rule_group.listTagsForWafRuleGroup", "api_error", err)
 		return nil, err
@@ -264,18 +262,18 @@ func classicRuleGroupData(item interface{}, ctx context.Context, d *plugin.Query
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	switch item := item.(type) {
-	case *waf.RuleGroup:
+	case *types.RuleGroup:
 		data["rule_group_id"] = *item.RuleGroupId
-
 		// arn:aws:waf::account:rulegroup/name/ID
-		data["Arn"] = "arn:aws:waf::" + commonColumnData.AccountId + ":" + "rulegroup/" + *item.RuleGroupId
+		data["Arn"] = "arn:" + commonColumnData.Partition + ":waf::" + commonColumnData.AccountId + ":rulegroup/" + *item.RuleGroupId
 		data["Name"] = *item.Name
-	case *waf.RuleGroupSummary:
-		data["rule_group_id"] = *item.RuleGroupId
 
+	case types.RuleGroupSummary:
+		data["rule_group_id"] = *item.RuleGroupId
 		// arn:aws:waf::account:rulegroup/name/ID
-		data["Arn"] = "arn:aws:waf::" + commonColumnData.AccountId + ":" + "rulegroup/" + *item.RuleGroupId
+		data["Arn"] = "arn:" + commonColumnData.Partition + ":waf::" + commonColumnData.AccountId + ":rulegroup/" + *item.RuleGroupId
 		data["Name"] = *item.Name
 	}
+
 	return data
 }

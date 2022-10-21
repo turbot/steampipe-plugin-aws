@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
@@ -25,7 +25,7 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpointServices,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",
@@ -80,6 +80,12 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 			{
 				Name:        "service_type",
 				Description: "The type of service.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "vpc_endpoint_connections",
+				Description: "Information about one or more VPC endpoint connections.",
+				Hydrate:     getVpcEndpointConnections,
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -240,6 +246,40 @@ func listVpcEndpointServicePermissions(ctx context.Context, d *plugin.QueryData,
 	}
 
 	return allowedPrincipals, nil
+}
+
+func getVpcEndpointConnections(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	endpointService := h.Item.(*ec2.ServiceDetail)
+
+	// get service
+	svc, err := Ec2Service(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Debug("aws_vpc_endpoint_service.getVpcEndpointConnections", "service_creation_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &ec2.DescribeVpcEndpointConnectionsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("service-id"),
+				Values: []*string{endpointService.ServiceId},
+			},
+		},
+	}
+
+	// Get call
+	op, err := svc.DescribeVpcEndpointConnections(params)
+	if err != nil {
+		plugin.Logger(ctx).Debug("aws_vpc_endpoint_service.getVpcEndpointConnections", "api_error", err)
+		return nil, err
+	}
+
+	if op.VpcEndpointConnections != nil && len(op.VpcEndpointConnections) > 0 {
+		return op, nil
+	}
+	return nil, nil
 }
 
 func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

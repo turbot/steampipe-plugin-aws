@@ -3,11 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/organizations"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
@@ -17,7 +18,7 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AccountNotFoundException", "InvalidInputException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"AccountNotFoundException", "InvalidInputException"}),
 			},
 			Hydrate: getOrganizationsAccount,
 		},
@@ -95,127 +96,130 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listOrganizationsAccounts")
-
-	// Create session
-	svc, err := OrganizationService(ctx, d)
+	// Get Client
+	svc, err := OrganizationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_account.listOrganizationsAccounts", "client_error", err)
 		return nil, err
 	}
 
-	params := &organizations.ListAccountsInput{
-		MaxResults: aws.Int64(20),
-	}
+	// The maximum number for MaxResults parameter is not defined by the API
+	// We have set the MaxResults to 1000 based on our test
+	maxItems := int32(20)
+	params := &organizations.ListAccountsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			if *limit < 1 {
-				params.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				params.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListAccountsPages(
-		params,
-		func(page *organizations.ListAccountsOutput, isLast bool) bool {
-			for _, account := range page.Accounts {
-				d.StreamListItem(ctx, account)
+	params.MaxResults = &maxItems
+	paginator := organizations.NewListAccountsPaginator(svc, params, func(o *organizations.ListAccountsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_organizations_account.listOrganizationsAccounts", "api_error", err)
+			return nil, err
+		}
+
+		for _, account := range output.Accounts {
+			d.StreamListItem(ctx, account)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listOrganizationsAccounts", "ListAccountsPages_error", err)
-
+		}
 	}
-	return nil, err
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getOrganizationsAccount(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getOrganizationsAccount")
-
 	accountId := d.KeyColumnQuals["id"].GetStringValue()
 
-	// Create session
-	svc, err := OrganizationService(ctx, d)
+	// Get Client
+	svc, err := OrganizationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_account.getOrganizationsAccount", "client_error", err)
 		return nil, err
 	}
 
 	params := &organizations.DescribeAccountInput{
-		AccountId: aws.String(accountId),
+		AccountId: &accountId,
 	}
 
-	op, err := svc.DescribeAccount(params)
+	op, err := svc.DescribeAccount(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getOrganizationsAccount", "DescribeAccount_error", err)
+		plugin.Logger(ctx).Error("aws_organizations_account.getOrganizationsAccount", "api_error", err)
 		return nil, err
 	}
 
-	return op.Account, nil
+	return *op.Account, nil
 }
 
 func getOrganizationsAccountTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getOrganizationsAccountTags")
 
-	resourceId := *h.Item.(*organizations.Account).Id
+	resourceId := *h.Item.(types.Account).Id
 
 	tags, err := getOrganizationsResourceTags(ctx, d, resourceId)
 	return tags, err
 }
 
 func getOrganizationsResourceTags(ctx context.Context, d *plugin.QueryData, resourceId string) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getOrganizationsResourceTags")
 
-	// Create Session
-	svc, err := OrganizationService(ctx, d)
+	// Get Client
+	svc, err := OrganizationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_account.getOrganizationsResourceTags", "client_error", err)
 		return nil, err
 	}
 
 	params := &organizations.ListTagsForResourceInput{
-		ResourceId: aws.String(resourceId),
+		ResourceId: &resourceId,
 	}
 
-	tags := []*organizations.Tag{}
+	tags := []types.Tag{}
 
-	err = svc.ListTagsForResourcePages(
-		params,
-		func(page *organizations.ListTagsForResourceOutput, isLast bool) bool {
-			tags = append(tags, page.Tags...)
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("getOrganizationsResourceTags", "ListTagsForResourcePages_error", err)
-		return nil, err
+	paginator := organizations.NewListTagsForResourcePaginator(svc, params, func(o *organizations.ListTagsForResourcePaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_organizations_account.getOrganizationsResourceTags", "api_error", err)
+			return nil, err
+		}
+
+		tags = append(tags, output.Tags...)
 	}
 
-	return &tags, err
+	return tags, err
 }
 
 //// TRANSFORM FUNCTIONS
 
 func getOrganizationsResourceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getOrganizationsResourceTurbotTags")
-
-	tags := d.HydrateItem.(*[]*organizations.Tag)
+	tags := d.HydrateItem.([]types.Tag)
 	tagsMap := map[string]string{}
 
-	for _, tag := range *tags {
+	for _, tag := range tags {
 		tagsMap[*tag.Key] = *tag.Value
 	}
 
-	return &tagsMap, nil
+	return tagsMap, nil
 }

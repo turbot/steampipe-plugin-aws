@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,20 +21,20 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("target_group_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound", "TargetGroupNotFound", "ValidationError"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"LoadBalancerNotFound", "TargetGroupNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2TargetGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TargetGroups,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"TargetGroupNotFound", "ValidationError"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"TargetGroupNotFound", "ValidationError"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "target_group_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "target_group_name",
@@ -128,6 +128,7 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 				Description: "Contains information about the health of the target.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2TargetGroupTargetHealthDescription,
+				Transform:   transform.From(handleTargetHealthDescriptionsEmptyValue),
 			},
 			{
 				Name:        "tags_src",
@@ -163,48 +164,57 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 
 func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_target_group.listEc2TargetGroups", "connection_error", err)
 		return nil, err
 	}
 
-	input := &elbv2.DescribeTargetGroupsInput{
-		PageSize: aws.Int64(400),
+	// Limiting the results
+	maxLimit := int32(400)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
+	input := &elasticloadbalancingv2.DescribeTargetGroupsInput{
+		PageSize: aws.Int32(maxLimit),
 	}
 
 	// Additional Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["target_group_name"] != nil {
-		input.Names = []*string{aws.String(equalQuals["target_group_name"].GetStringValue())}
+		input.Names = []string{equalQuals["target_group_name"].GetStringValue()}
 	}
 
-	// Limiting the results
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.PageSize {
-			if *limit < 1 {
-				input.PageSize = types.Int64(1)
-			} else {
-				input.PageSize = limit
-			}
-		}
-	}
+	paginator := elasticloadbalancingv2.NewDescribeTargetGroupsPaginator(svc, input, func(o *elasticloadbalancingv2.DescribeTargetGroupsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.DescribeTargetGroupsPages(
-		input,
-		func(page *elbv2.DescribeTargetGroupsOutput, isLast bool) bool {
-			for _, targetGroup := range page.TargetGroups {
-				d.StreamListItem(ctx, targetGroup)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_target_group.listEc2TargetGroups", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.TargetGroups {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
 
 	return nil, err
 }
@@ -212,22 +222,23 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2TargetGroup")
 
 	targetGroupArn := d.KeyColumnQuals["target_group_arn"].GetStringValue()
 
 	// create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_target_group.getEc2TargetGroup", "connection_error", err)
 		return nil, err
 	}
 
-	params := &elbv2.DescribeTargetGroupsInput{
-		TargetGroupArns: []*string{aws.String(targetGroupArn)},
+	params := &elasticloadbalancingv2.DescribeTargetGroupsInput{
+		TargetGroupArns: []string{targetGroupArn},
 	}
 
-	op, err := svc.DescribeTargetGroups(params)
+	op, err := svc.DescribeTargetGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_target_group.getEc2TargetGroup", "api_error", err)
 		return nil, err
 	}
 
@@ -238,22 +249,23 @@ func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 }
 
 func getAwsEc2TargetGroupTargetHealthDescription(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2TargetGroupTargetHealthDescription")
 
-	targetGroup := h.Item.(*elbv2.TargetGroup)
+	targetGroup := h.Item.(types.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_target_group.getAwsEc2TargetGroupTargetHealthDescription", "connection_error", err)
 		return nil, err
 	}
 
-	params := &elbv2.DescribeTargetHealthInput{
+	params := &elasticloadbalancingv2.DescribeTargetHealthInput{
 		TargetGroupArn: targetGroup.TargetGroupArn,
 	}
 
-	op, err := svc.DescribeTargetHealth(params)
+	op, err := svc.DescribeTargetHealth(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_target_group.getAwsEc2TargetGroupTargetHealthDescription", "api_error", err)
 		return nil, err
 	}
 
@@ -261,22 +273,23 @@ func getAwsEc2TargetGroupTargetHealthDescription(ctx context.Context, d *plugin.
 }
 
 func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2TargetGroupTags")
 
-	targetGroup := h.Item.(*elbv2.TargetGroup)
+	targetGroup := h.Item.(types.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_target_group.getAwsEc2TargetGroupTags", "connection_error", err)
 		return nil, err
 	}
 
-	params := &elbv2.DescribeTagsInput{
-		ResourceArns: []*string{aws.String(*targetGroup.TargetGroupArn)},
+	params := &elasticloadbalancingv2.DescribeTagsInput{
+		ResourceArns: []string{*targetGroup.TargetGroupArn},
 	}
 
-	op, err := svc.DescribeTags(params)
+	op, err := svc.DescribeTags(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_target_group.getAwsEc2TargetGroupTags", "api_error", err)
 		return nil, err
 	}
 
@@ -286,7 +299,7 @@ func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 //// TRANSFORM FUNCTIONS
 
 func targetGroupTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*elbv2.DescribeTagsOutput)
+	data := d.HydrateItem.(*elasticloadbalancingv2.DescribeTagsOutput)
 	var turbotTagsMap map[string]string
 	if data.TagDescriptions != nil && len(data.TagDescriptions) > 0 {
 		if data.TagDescriptions[0].Tags != nil {
@@ -300,8 +313,18 @@ func targetGroupTagsToTurbotTags(_ context.Context, d *transform.TransformData) 
 	return turbotTagsMap, nil
 }
 
+func handleTargetHealthDescriptionsEmptyValue(_ context.Context, d *transform.TransformData) (interface{}, error) {
+
+	healthDescriptions := d.HydrateItem.(*elasticloadbalancingv2.DescribeTargetHealthOutput)
+	if len(healthDescriptions.TargetHealthDescriptions) > 0 {
+		return healthDescriptions.TargetHealthDescriptions, nil
+	}
+
+	return nil, nil
+}
+
 func targetGroupRawTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*elbv2.DescribeTagsOutput)
+	data := d.HydrateItem.(*elasticloadbalancingv2.DescribeTagsOutput)
 	if data.TagDescriptions != nil && len(data.TagDescriptions) > 0 {
 		if data.TagDescriptions[0].Tags != nil {
 			return data.TagDescriptions[0].Tags, nil

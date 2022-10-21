@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +21,7 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_snapshot_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBSnapshotNotFound", "DBClusterSnapshotNotFoundFault"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBSnapshotNotFound", "DBClusterSnapshotNotFoundFault"}),
 			},
 			Hydrate: getRDSDBClusterSnapshot,
 		},
@@ -34,7 +34,7 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 				{Name: "type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_snapshot_identifier",
@@ -149,7 +149,7 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Description: "A list of DB cluster snapshot attribute names and values for a manual DB cluster snapshot.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsRDSDBClusterSnapshotAttributes,
-				Transform:   transform.FromField("DBClusterSnapshotAttributesResult.DBClusterSnapshotAttributes"),
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags_src",
@@ -184,53 +184,63 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBClusterSnapshots")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.listRDSDBClusterSnapshots", "connection_error", err)
 		return nil, err
 	}
 
-	input := rds.DescribeDBClusterSnapshotsInput{
-		MaxRecords: types.Int64(100),
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	// select * from aws_rds_db_cluster_snapshot limit 3
+	// Error: InvalidParameterValue: Invalid value 3 for MaxRecords. Must be between 20 and 100
+	// 	status code: 400, request id: c39eead1-96e0-49c8-a927-aa9a3131836d
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		// select * from aws_rds_db_cluster_snapshot limit 3
-		// Error: InvalidParameterValue: Invalid value 3 for MaxRecords. Must be between 20 and 100
-		// 	status code: 400, request id: c39eead1-96e0-49c8-a927-aa9a3131836d
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = types.Int64(100)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
+
+	input := &rds.DescribeDBClusterSnapshotsInput{
+		MaxRecords: aws.Int32(maxLimit),
+	}
+
 	filters := buildRdsDbClusterSnapshotFilter(d.Quals)
 
 	if len(filters) != 0 {
-		input.SetFilters(filters)
+		input.Filters = filters
 	}
 
+	paginator := rds.NewDescribeDBClusterSnapshotsPaginator(svc, input, func(o *rds.DescribeDBClusterSnapshotsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
 	// List call
-	err = svc.DescribeDBClusterSnapshotsPages(&input, func(page *rds.DescribeDBClusterSnapshotsOutput, isLast bool) bool {
-		for _, dbClusterSnapshot := range page.DBClusterSnapshots {
-			d.StreamListItem(ctx, dbClusterSnapshot)
-			// Check if context has been cancelled or if the limit has been hit (if specified)
-			// if there is a limit, it will return the number of rows required to reach this limit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return false
-			}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.listRDSDBClusterSnapshots", "api_error", err)
+			return nil, err
 		}
 
-		return !isLast
-	},
-	)
+		for _, items := range output.DBClusterSnapshots {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
 	return nil, err
 }
 
@@ -240,8 +250,9 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 	snapshotIdentifier := d.KeyColumnQuals["db_cluster_snapshot_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getRDSDBClusterSnapshot", "connection_error", err)
 		return nil, err
 	}
 
@@ -249,8 +260,9 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 		DBClusterSnapshotIdentifier: aws.String(snapshotIdentifier),
 	}
 
-	op, err := svc.DescribeDBClusterSnapshots(params)
+	op, err := svc.DescribeDBClusterSnapshots(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getRDSDBClusterSnapshot", "api_error", err)
 		return nil, err
 	}
 
@@ -261,13 +273,13 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 }
 
 func getAwsRDSDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRDSDBClusterSnapshotAttributes")
 
-	dbClusterSnapshot := h.Item.(*rds.DBClusterSnapshot)
+	dbClusterSnapshot := h.Item.(types.DBClusterSnapshot)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getAwsRDSDBClusterSnapshotAttributes", "connection_error", err)
 		return nil, err
 	}
 
@@ -275,18 +287,38 @@ func getAwsRDSDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryDa
 		DBClusterSnapshotIdentifier: dbClusterSnapshot.DBClusterSnapshotIdentifier,
 	}
 
-	dbClusterSnapshotData, err := svc.DescribeDBClusterSnapshotAttributes(params)
+	dbClusterSnapshotData, err := svc.DescribeDBClusterSnapshotAttributes(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getAwsRDSDBClusterSnapshotAttributes", "api_error", err)
 		return nil, err
 	}
 
-	return dbClusterSnapshotData, nil
+	var attributes = make([]map[string]interface{}, 0)
+
+	if dbClusterSnapshotData.DBClusterSnapshotAttributesResult != nil {
+
+		for _, attribute := range dbClusterSnapshotData.DBClusterSnapshotAttributesResult.DBClusterSnapshotAttributes {
+			var result = make(map[string]interface{})
+
+			result["AttributeName"] = attribute.AttributeName
+			if len(attribute.AttributeValues) == 0 {
+				result["AttributeValues"] = nil
+			} else {
+				result["AttributeValues"] = attribute.AttributeValues
+			}
+
+			attributes = append(attributes, result)
+
+		}
+	}
+
+	return attributes, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
 func getRDSDBClusterSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbClusterSnapshot := d.HydrateItem.(*rds.DBClusterSnapshot)
+	dbClusterSnapshot := d.HydrateItem.(types.DBClusterSnapshot)
 
 	if dbClusterSnapshot.TagList != nil {
 		turbotTagsMap := map[string]string{}
@@ -301,8 +333,8 @@ func getRDSDBClusterSnapshotTurbotTags(_ context.Context, d *transform.Transform
 //// UTILITY FUNCTIONS
 
 // build snapshots list call input filter
-func buildRdsDbClusterSnapshotFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
-	filters := make([]*rds.Filter, 0)
+func buildRdsDbClusterSnapshotFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 	filterQuals := map[string]string{
 		"db_cluster_identifier":          "db-cluster-id",
 		"db_cluster_snapshot_identifier": "db-cluster-snapshot-id",
@@ -312,18 +344,15 @@ func buildRdsDbClusterSnapshotFilter(quals plugin.KeyColumnQualMap) []*rds.Filte
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := rds.Filter{
-				Name: types.String(filterName),
+			filter := types.Filter{
+				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				v := value.([]*string)
-				filter.Values = v
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

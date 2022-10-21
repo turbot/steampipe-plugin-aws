@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -30,7 +30,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupVaults,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -68,6 +68,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Name:        "sns_topic_arn",
 				Description: "An ARN that uniquely identifies an Amazon Simple Notification Service.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsBackupVaultNotification,
 				Transform:   transform.FromField("SNSTopicArn"),
 			},
 			{

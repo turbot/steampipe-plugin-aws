@@ -2,13 +2,15 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/route53resolver"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
+	"github.com/aws/aws-sdk-go-v2/service/route53resolver/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +22,7 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsRoute53ResolverRule,
 		},
@@ -34,7 +36,7 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -146,16 +148,31 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsRoute53ResolverRules")
 
 	// Create session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_resolver_rule.listAwsRoute53ResolverRules", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
-	input := &route53resolver.ListResolverRulesInput{
-		MaxResults: aws.Int64(100),
+	maxItems := int32(100)
+	input := route53resolver.ListResolverRulesInput{}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
 	}
 
 	filter := buildRoute53ResolverRuleFilter(d.Quals)
@@ -163,49 +180,48 @@ func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *pl
 		input.Filters = filter
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+	// List call
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := route53resolver.NewListResolverRulesPaginator(svc, &input, func(o *route53resolver.ListResolverRulesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_route53_resolver_rule.listAwsRoute53ResolverRules", "api_error", err)
+			return nil, err
+		}
+
+		for _, resolverEndpointRules := range output.ResolverRules {
+			d.StreamListItem(ctx, resolverEndpointRules)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListResolverRulesPages(
-		input,
-		func(page *route53resolver.ListResolverRulesOutput, isLast bool) bool {
-			for _, parameter := range page.ResolverRules {
-				d.StreamListItem(ctx, parameter)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsRoute53ResolverRule")
 
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
-	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	// Create session
+	svc, err := Route53ResolverClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_resolver_rule.getAwsRoute53ResolverRule", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -214,42 +230,44 @@ func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plug
 	}
 
 	// Get call
-	data, err := svc.GetResolverRule(params)
+	data, err := svc.GetResolverRule(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsRoute53ResolverRule", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_route53_resolver_rule.getAwsRoute53ResolverRule", "api_error", err)
 		return nil, err
 	}
-
 	return data.ResolverRule, nil
 }
 
 func listResolverRuleAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listResolverRuleAssociation")
 
-	resolverRuleData := h.Item.(*route53resolver.ResolverRule)
-	id := resolverRuleData.Id
-	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	resolverRuleData := h.Item.(types.ResolverRule)
+
+	// Create session
+	svc, err := Route53ResolverClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_resolver_rule.listResolverRuleAssociation", "api_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
 	params := &route53resolver.ListResolverRuleAssociationsInput{
-		Filters: []*route53resolver.Filter{
+		Filters: []types.Filter{
 			{
-				Name: types.String("ResolverRuleId"),
-				Values: []*string{
-					id,
+				Name: aws.String("ResolverRuleId"),
+				Values: []string{
+					*resolverRuleData.Id,
 				},
 			},
 		},
 	}
 
-	op, err := svc.ListResolverRuleAssociations(params)
+	op, err := svc.ListResolverRuleAssociations(ctx, params)
 	if err != nil {
-		logger.Debug("listResolverRuleAssociation", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_route53_resolver_rule.listResolverRuleAssociation", "api_error", err)
 		return nil, err
 	}
 
@@ -257,32 +275,44 @@ func listResolverRuleAssociation(ctx context.Context, d *plugin.QueryData, h *pl
 }
 
 func getAwsRoute53ResolverRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsRoute53ResolverRuleTags")
 
-	resolverRuleData := h.Item.(*route53resolver.ResolverRule)
+	route53resolverRuleID := ""
+	route53resolverRuleArn := ""
+	switch h.Item.(type) {
+	case types.ResolverRule:
+		route53resolverRuleID = *h.Item.(types.ResolverRule).Id
+		route53resolverRuleArn = *h.Item.(types.ResolverRule).Arn
+	case *types.ResolverRule:
+		route53resolverRuleID = *h.Item.(*types.ResolverRule).Id
+		route53resolverRuleArn = *h.Item.(*types.ResolverRule).Arn
+	}
 
 	// For default resolver rule i.e not supported tag
 	defaultID := "rslvr-autodefined-rr-internet-resolver"
-	if *resolverRuleData.Id == defaultID {
+	if route53resolverRuleID == defaultID {
 		return nil, nil
 	}
 
-	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	// Create session
+	svc, err := Route53ResolverClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_resolver_rule.getAwsRoute53ResolverRuleTags", "api_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
 	params := &route53resolver.ListTagsForResourceInput{
-		ResourceArn: resolverRuleData.Arn,
+		ResourceArn: aws.String(route53resolverRuleArn),
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsRoute53ResolverRuleTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.getAwsRoute53ResolverRuleTags", "api_error", err)
 		return nil, err
 	}
 
@@ -292,12 +322,11 @@ func getAwsRoute53ResolverRuleTags(ctx context.Context, d *plugin.QueryData, h *
 //// TRANSFORM FUNCTIONS
 
 func route53resolverRuleTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53resolverTagListToTurbotTags")
 
 	if d.Value == nil {
 		return nil, nil
 	}
-	tagList := d.Value.([]*route53resolver.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
@@ -314,9 +343,10 @@ func route53resolverRuleTagListToTurbotTags(ctx context.Context, d *transform.Tr
 }
 
 //// UTILITY FUNCTION
+
 // Build route53resolver rule list call input filter
-func buildRoute53ResolverRuleFilter(quals plugin.KeyColumnQualMap) []*route53resolver.Filter {
-	filters := make([]*route53resolver.Filter, 0)
+func buildRoute53ResolverRuleFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"creator_request_id":   "CreatorRequestId",
@@ -328,18 +358,18 @@ func buildRoute53ResolverRuleFilter(quals plugin.KeyColumnQualMap) []*route53res
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := route53resolver.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
+				filter.Values = []string{fmt.Sprint(val)}
 			} else {
 				valSlice := value.([]*string)
-				filter.Values = valSlice
+				filter.Values = []string{fmt.Sprint(valSlice)}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

@@ -4,18 +4,7 @@ A VPC endpoint enables you to privately connect your VPC to supported AWS servic
 
 ## Examples
 
-### Availability zone count for each VPC endpoint service
-
-```sql
-select
-  service_name,
-  jsonb_array_length(availability_zones) as availability_zone_count
-from
-  aws_vpc_endpoint_service;
-```
-
-
-### DNS information for the VPC endpoint services
+### Basic info
 
 ```sql
 select
@@ -27,8 +16,29 @@ from
   aws_vpc_endpoint_service;
 ```
 
+### Get availability zone count for each VPC endpoint service
 
-### VPC endpoint services with their corresponding service types
+```sql
+select
+  service_name,
+  jsonb_array_length(availability_zones) as availability_zone_count
+from
+  aws_vpc_endpoint_service;
+```
+
+### Get DNS information for each VPC endpoint service
+
+```sql
+select
+  service_name,
+  service_id,
+  base_endpoint_dns_names,
+  private_dns_name
+from
+  aws_vpc_endpoint_service;
+```
+
+### List VPC endpoint services with their corresponding service types
 
 ```sql
 select
@@ -40,8 +50,7 @@ from
   cross join jsonb_array_elements(service_type) as type;
 ```
 
-
-### List of VPC endpoint services which do not support endpoint policy
+### List VPC endpoint services which do not support endpoint policies
 
 ```sql
 select
@@ -54,7 +63,7 @@ where
   not vpc_endpoint_policy_supported;
 ```
 
-### List allowed principals of VPC endpoint services
+### List allowed principals for each VPC endpoint services
 
 ```sql
 select
@@ -63,4 +72,19 @@ select
   jsonb_pretty(vpc_endpoint_service_permissions) as allowed_principals
 from
   aws_vpc_endpoint_service;
+```
+
+### Get VPC endpoint connection info for each VPC endpoint service
+
+```sql
+select
+  service_name,
+  service_id,
+  c ->> 'VpcEndpointId' as vpc_endpoint_id,
+  c ->> 'VpcEndpointOwner' as vpc_endpoint_owner,
+  c ->> 'VpcEndpointState' as vpc_endpoint_state,
+  jsonb_array_elements_text(c -> 'NetworkLoadBalancerArns') as network_loadBalancer_arns
+from
+  aws_vpc_endpoint_service,
+  jsonb_array_elements(vpc_endpoint_connections) as c
 ```

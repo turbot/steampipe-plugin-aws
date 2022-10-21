@@ -84,3 +84,16 @@ from
 where
   not tags :: JSONB ? 'owner';
 ```
+
+### List vaults with notifications enabled
+
+```sql
+select
+  vault_name,
+  vault_notification_config ->> 'SNSTopic' as sns_topic,
+  vault_notification_config ->> 'Events' as notification_events
+from
+  aws_glacier_vault
+where
+  vault_notification_config is not null;
+```

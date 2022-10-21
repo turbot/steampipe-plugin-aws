@@ -3,12 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsLambdaLayer(_ context.Context) *plugin.Table {
@@ -18,7 +17,7 @@ func tableAwsLambdaLayer(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listLambdaLayers,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "layer_name",
@@ -93,52 +92,55 @@ func tableAwsLambdaLayer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listLambdaLayers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listLambdaLayers")
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
-		logger.Error("listLambdaLayers", "error_LambdaService", err)
+		plugin.Logger(ctx).Error("aws_lambda_layer.listLambdaLayers", "connection_error", err)
 		return nil, err
 	}
 
-	// Set MaxItems to the maximum number allowed
-	input := lambda.ListLayersInput{
-		MaxItems: types.Int64(50),
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Set MaxItems to the maximum number allowed
+	maxItems := int32(50)
+	input := lambda.ListLayersInput{}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListLayersPages(
-		&input,
-		func(page *lambda.ListLayersOutput, lastPage bool) bool {
-			for _, layer := range page.Layers {
-				d.StreamListItem(ctx, layer)
+	paginator := lambda.NewListLayersPaginator(svc, &input, func(o *lambda.ListLayersPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)
+			return nil, err
+		}
+
+		for _, layer := range output.Layers {
+			d.StreamListItem(ctx, layer)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		logger.Error("listLambdaLayers", "error_ListLayersPages", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil

@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -106,11 +106,11 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := h.Item.(*ec2.Region)
+	region := h.Item.(types.Region)
 	plugin.Logger(ctx).Trace("getAwsAvailabilityZone", "region", *region.RegionName)
 
 	// If a region is not opted-in, we cannot list the availability zones
-	if types.SafeString(region.OptInStatus) == "not-opted-in" {
+	if *region.OptInStatus == "not-opted-in" {
 		return nil, nil
 	}
 

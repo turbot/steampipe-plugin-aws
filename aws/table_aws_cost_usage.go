@@ -5,11 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
@@ -124,27 +125,27 @@ func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.Get
 	dim2 := strings.ToUpper(keyQuals["dimension_type_2"].GetStringValue())
 
 	params := &costexplorer.GetCostAndUsageInput{
-		TimePeriod: &costexplorer.DateInterval{
+		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
-		Granularity: aws.String(granularity),
-		Metrics:     aws.StringSlice(AllCostMetrics()),
+		Granularity: types.Granularity(granularity),
+		Metrics:     AllCostMetrics(),
 	}
-	var groupings []*costexplorer.GroupDefinition
+	var groupings []types.GroupDefinition
 	if dim1 != "" {
-		groupings = append(groupings, &costexplorer.GroupDefinition{
-			Type: aws.String("DIMENSION"),
+		groupings = append(groupings, types.GroupDefinition{
+			Type: types.GroupDefinitionType("DIMENSION"),
 			Key:  aws.String(dim1),
 		})
 	}
 	if dim2 != "" {
-		groupings = append(groupings, &costexplorer.GroupDefinition{
-			Type: aws.String("DIMENSION"),
+		groupings = append(groupings, types.GroupDefinition{
+			Type: types.GroupDefinitionType("DIMENSION"),
 			Key:  aws.String(dim2),
 		})
 	}
-	params.SetGroupBy(groupings)
+	params.GroupBy = groupings
 
 	return params
 }

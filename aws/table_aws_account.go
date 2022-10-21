@@ -2,14 +2,15 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -101,29 +102,32 @@ func tableAwsAccount(ctx context.Context) *plugin.Table {
 
 type accountData struct {
 	commonColumnData awsCommonColumnData
-	Aliases          []*string
+	Aliases          []string
 }
 
 //// LIST FUNCTION
 
 func listAccountAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_account.listAccountAlias", "client_error", err)
 		return nil, err
 	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_account.listAccountAlias", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// execute list call
-	op, err := svc.ListAccountAliases(&iam.ListAccountAliasesInput{})
+	op, err := svc.ListAccountAliases(ctx, &iam.ListAccountAliasesInput{})
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_account.listAccountAlias", "api_error", err)
 		return nil, err
 	}
 
@@ -145,21 +149,23 @@ func listAccountAlias(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getOrganizationDetails(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getOrganizationDetails")
 
-	// Create Session
-	svc, err := OrganizationService(ctx, d)
+	// Get Client
+	svc, err := OrganizationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_account.getOrganizationDetails", "client_error", err)
 		return nil, err
 	}
 
-	op, err := svc.DescribeOrganization(&organizations.DescribeOrganizationInput{})
+	op, err := svc.DescribeOrganization(ctx, &organizations.DescribeOrganizationInput{})
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "AWSOrganizationsNotInUseException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "AWSOrganizationsNotInUseException" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_account.getOrganizationDetails", "api_error", err)
 		return nil, err
 	}
 
@@ -169,7 +175,6 @@ func getOrganizationDetails(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// Transform Functions
 
 func accountDataToTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAccountAkas")
 	accountInfo := d.HydrateItem.(*accountData)
 
 	if accountInfo.Aliases != nil && len(accountInfo.Aliases) > 0 {
@@ -180,7 +185,6 @@ func accountDataToTitle(ctx context.Context, d *transform.TransformData) (interf
 }
 
 func accountARN(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("accountARN")
 	accountInfo := d.HydrateItem.(*accountData)
 
 	arn := "arn:" + accountInfo.commonColumnData.Partition + ":::" + accountInfo.commonColumnData.AccountId

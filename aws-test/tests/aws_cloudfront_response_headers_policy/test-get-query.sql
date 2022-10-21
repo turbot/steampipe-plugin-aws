@@ -1,7 +1,7 @@
 select
   account_id,
   arn,
-  e_tag,
+  etag,
   id,
   name,
   response_headers_policy_config,

@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,7 +21,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"rest_api_id", "name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIGatewayStage,
 		},
@@ -27,7 +29,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 			ParentHydrate: listRestAPI,
 			Hydrate:       listAPIGatewayStage,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -164,7 +166,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 }
 
 type stageRowData = struct {
-	Stage     *apigateway.Stage
+	Stage     types.Stage
 	RestAPIId *string
 }
 
@@ -172,10 +174,10 @@ type stageRowData = struct {
 
 func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get Rest API details
-	restAPI := h.Item.(*apigateway.RestApi)
+	restAPI := h.Item.(types.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +186,7 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		RestApiId: restAPI.Id,
 	}
 
-	op, err := svc.GetStages(params)
+	op, err := svc.GetStages(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -204,11 +206,11 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGatewayStage")
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_stage.getAPIGatewayStage", "service_client_error", err)
 		return nil, err
 	}
 
@@ -220,17 +222,34 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		StageName: aws.String(stageName),
 	}
 
-	stageData, err := svc.GetStage(params)
+	stageData, err := svc.GetStage(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAPIGatewayStage__", "ERROR", err)
+		plugin.Logger(ctx).Debug("aws_api_gateway_stage.getAPIGatewayStage", "api_error", err)
 		return nil, err
 	}
 
-	return &stageRowData{stageData, aws.String(restAPIID)}, nil
+	return &stageRowData{types.Stage{
+		AccessLogSettings:    stageData.AccessLogSettings,
+		CacheClusterEnabled:  stageData.CacheClusterEnabled,
+		CacheClusterSize:     stageData.CacheClusterSize,
+		CacheClusterStatus:   stageData.CacheClusterStatus,
+		CanarySettings:       stageData.CanarySettings,
+		ClientCertificateId:  stageData.ClientCertificateId,
+		CreatedDate:          stageData.CreatedDate,
+		DeploymentId:         stageData.DeploymentId,
+		Description:          stageData.Description,
+		DocumentationVersion: stageData.DocumentationVersion,
+		LastUpdatedDate:      stageData.LastUpdatedDate,
+		MethodSettings:       stageData.MethodSettings,
+		StageName:            stageData.StageName,
+		Tags:                 stageData.Tags,
+		TracingEnabled:       stageData.TracingEnabled,
+		Variables:            stageData.Variables,
+		WebAclArn:            stageData.WebAclArn,
+	}, aws.String(restAPIID)}, nil
 }
 
 func getAPIGatewayStageARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGatewayStageARN")
 	apiStage := h.Item.(*stageRowData)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 

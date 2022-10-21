@@ -2,13 +2,15 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsEc2ASG(_ context.Context) *plugin.Table {
@@ -18,14 +20,14 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationError"}),
 			},
-			Hydrate: getAwsEc2AutoscalingGroup,
+			Hydrate: getAwsEc2AutoScalingGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsEc2AutoscalingGroup,
+			Hydrate: listAwsEc2AutoScalingGroup,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -219,7 +221,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "policies",
 				Description: "A set of scaling policies for the specified Auto Scaling group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEc2AutoscalingGroupPolicy,
+				Hydrate:     getAwsEc2AutoScalingGroupPolicy,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -262,105 +264,146 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEc2AutoScalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := AutoScalingService(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoScalingGroup", "connection_error", err)
 		return nil, err
 	}
 
-	input := &autoscaling.DescribeAutoScalingGroupsInput{
-		MaxRecords: aws.Int64(100),
-	}
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 1 {
-				input.MaxRecords = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeAutoScalingGroupsPages(
-		input,
-		func(page *autoscaling.DescribeAutoScalingGroupsOutput, isLast bool) bool {
-			for _, autoscalingGroup := range page.AutoScalingGroups {
-				d.StreamListItem(ctx, autoscalingGroup)
+	input := &autoscaling.DescribeAutoScalingGroupsInput{
+		MaxRecords: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := autoscaling.NewDescribeAutoScalingGroupsPaginator(svc, input, func(o *autoscaling.DescribeAutoScalingGroupsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoScalingGroup", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.AutoScalingGroups {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
 
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
-func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEc2AutoscalingGroup")
+func getAwsEc2AutoScalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutosScalingGroup", "connection_error", err)
 		return nil, err
 	}
 
 	// Build params
 	params := &autoscaling.DescribeAutoScalingGroupsInput{
-		AutoScalingGroupNames: []*string{aws.String(name)},
+		AutoScalingGroupNames: []string{name},
 	}
 
-	rowData, err := svc.DescribeAutoScalingGroups(params)
+	rowData, err := svc.DescribeAutoScalingGroups(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsEc2AutoscalingGroup", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroup", "api_error", err)
 		return nil, err
 	}
 
-	if len(rowData.AutoScalingGroups) > 0 && rowData.AutoScalingGroups[0] != nil {
+	if len(rowData.AutoScalingGroups) > 0 {
 		return rowData.AutoScalingGroups[0], nil
 	}
 
 	return nil, nil
 }
 
-func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEc2AutoscalingGroupPolicy")
-
-	asg := h.Item.(*autoscaling.Group)
+func getAwsEc2AutoScalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	asg := h.Item.(types.AutoScalingGroup)
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoScalingGroupPolicy", "connection_error", err)
 		return nil, err
 	}
 
-	var policies []*autoscaling.ScalingPolicy
-	err = svc.DescribePoliciesPages(
-		&autoscaling.DescribePoliciesInput{
-			AutoScalingGroupName: asg.AutoScalingGroupName,
-		},
-		func(page *autoscaling.DescribePoliciesOutput, isLast bool) bool {
-			policies = append(policies, page.ScalingPolicies...)
-			return !isLast
-		},
-	)
-	if err != nil {
-		logger.Debug("getAwsEc2AutoscalingGroupPolicy", "ERROR", err)
-		return nil, err
+	var policies = make([]map[string]interface{}, 0)
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
+	input := &autoscaling.DescribePoliciesInput{
+		AutoScalingGroupName: asg.AutoScalingGroupName,
+		MaxRecords:           aws.Int32(maxLimit),
+	}
+
+	paginator := autoscaling.NewDescribePoliciesPaginator(svc, input, func(o *autoscaling.DescribePoliciesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoScalingGroupPolicy", "api_error", err)
+			return nil, err
+		}
+
+		for _, policy := range output.ScalingPolicies {
+			data, _ := json.Marshal(policy)
+			var result map[string]interface{}
+			err = json.Unmarshal(data, &result)
+			if err != nil {
+				continue
+			}
+			if len(result["Alarms"].([]interface{})) == 0 {
+				result["Alarms"] = nil
+			}
+			if len(result["StepAdjustments"].([]interface{})) == 0 {
+				result["StepAdjustments"] = nil
+			}
+			policies = append(policies, result)
+		}
 	}
 
 	return policies, nil
@@ -369,7 +412,7 @@ func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 //// TRANSFORM FUNCTIONS
 
 func getASGTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(*autoscaling.Group)
+	asg := d.HydrateItem.(types.AutoScalingGroup)
 	var turbotTagsMap map[string]string
 	if asg.Tags == nil {
 		return nil, nil

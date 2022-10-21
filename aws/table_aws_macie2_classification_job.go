@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -33,7 +33,7 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				{Name: "job_type", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -160,6 +160,11 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
+	// Service is not supported in the region
+	if svc == nil {
+		return nil, nil
+	}
+
 	input := &macie2.ListClassificationJobsInput{
 		MaxResults: aws.Int64(100),
 	}
@@ -233,6 +238,11 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := Macie2Service(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+
+	// Service is not supported in the region
+	if svc == nil {
+		return nil, nil
 	}
 
 	// Build params

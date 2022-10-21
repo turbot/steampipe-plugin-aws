@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -57,51 +58,75 @@ func tableAwsIamPolicyAttachment(_ context.Context) *plugin.Table {
 
 type PolicyAttachment struct {
 	PolicyArn       string
-	AttachmentCount *int64
-	PolicyGroups    []*iam.PolicyGroup
-	PolicyRoles     []*iam.PolicyRole
-	PolicyUsers     []*iam.PolicyUser
+	AttachmentCount *int32
+	PolicyGroups    *[]types.PolicyGroup
+	PolicyRoles     *[]types.PolicyRole
+	PolicyUsers     *[]types.PolicyUser
 }
 
 //// LIST FUNCTION
 
 func listIamPolicyAttachments(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_policy_attachment.listIamPolicyAttachments", "api_error", err)
 		return nil, err
 	}
-	policy := h.Item.(*iam.Policy)
-
-	params := &iam.ListEntitiesForPolicyInput{
-		PolicyArn: policy.Arn,
-		MaxItems:  types.Int64(1000),
-	}
+	policy := h.Item.(types.Policy)
+	maxItems := int32(100)
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxItems {
-			if *limit < 1 {
-				params.MaxItems = types.Int64(1)
-			} else {
-				params.MaxItems = limit
-			}
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			maxItems = limit
 		}
 	}
 
-	// List call
-	err = svc.ListEntitiesForPolicyPages(params, func(page *iam.ListEntitiesForPolicyOutput, lastPage bool) bool {
-		d.StreamListItem(ctx, PolicyAttachment{*policy.Arn, policy.AttachmentCount, page.PolicyGroups, page.PolicyRoles, page.PolicyUsers})
+	params := &iam.ListEntitiesForPolicyInput{
+		PolicyArn: policy.Arn,
+		MaxItems:  aws.Int32(maxItems),
+	}
 
-		// Check if context has been cancelled or if the limit has been hit (if specified)
-		// if there is a limit, it will return the number of rows required to reach this limit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
-			return false
+	paginator := iam.NewListEntitiesForPolicyPaginator(svc, params, func(o *iam.ListEntitiesForPolicyPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_policy_attachment.listIamPolicyAttachments", "api_error", err)
+			return nil, err
 		}
-		return !lastPage
-	},
-	)
-	return nil, err
+
+		policyAttachment := PolicyAttachment{
+			*policy.Arn,
+			policy.AttachmentCount,
+			&output.PolicyGroups,
+			&output.PolicyRoles,
+			&output.PolicyUsers,
+		}
+
+		if len(output.PolicyGroups) == 0 {
+			policyAttachment.PolicyGroups = nil
+		}
+		if len(output.PolicyRoles) == 0 {
+			policyAttachment.PolicyRoles = nil
+		}
+		if len(output.PolicyUsers) == 0 {
+			policyAttachment.PolicyUsers = nil
+		}
+
+		d.StreamListItem(ctx, policyAttachment)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
+	}
+
+	return nil, nil
 }

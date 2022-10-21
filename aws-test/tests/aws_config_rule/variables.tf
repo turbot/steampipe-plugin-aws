@@ -46,6 +46,31 @@ data "null_data_source" "resource" {
   }
 }
 
+resource "aws_config_configuration_recorder" "aws_config_rule" {
+  name     = "default"
+  role_arn = aws_iam_role.r.arn
+}
+
+resource "aws_iam_role" "r" {
+  name = "awsconfig-example"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "config.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+POLICY
+}
+
 # Create AWS > Config > Rule
 resource "aws_config_config_rule" "named_test_resource" {
   name = var.resource_name
@@ -56,7 +81,10 @@ resource "aws_config_config_rule" "named_test_resource" {
     owner             = "AWS"
     source_identifier = "S3_BUCKET_VERSIONING_ENABLED"
   }
+  depends_on = [aws_config_configuration_recorder.aws_config_rule]
 }
+
+
 
 output "account_id" {
   value = data.aws_caller_identity.current.account_id

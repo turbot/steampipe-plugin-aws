@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
 //// TABLE DEFINITION
@@ -22,7 +23,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("network_interface_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidNetworkInterfaceID.NotFound", "InvalidNetworkInterfaceID.Unavailable", "InvalidNetworkInterfaceID.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidNetworkInterfaceID.NotFound", "InvalidNetworkInterfaceID.Unavailable", "InvalidNetworkInterfaceID.Malformed"}),
 			},
 			Hydrate: getEc2NetworkInterface,
 		},
@@ -52,7 +53,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "network_interface_id",
@@ -205,6 +206,11 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "subnet_id",
+				Description: "The ID of the subnet.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "vpc_id",
 				Description: "The ID of the VPC.",
 				Type:        proto.ColumnType_STRING,
@@ -258,17 +264,29 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEc2NetworkInterfaces", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_network_interface.listEc2NetworkInterfaces", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeNetworkInterfacesInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filters := buildec2NetworkInterfaceFilter(d.Quals)
@@ -277,32 +295,29 @@ func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugi
 		input.Filters = filters
 	}
 
-	// Limiting the results
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	paginator := ec2.NewDescribeNetworkInterfacesPaginator(svc, input, func(o *ec2.DescribeNetworkInterfacesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.DescribeNetworkInterfacesPages(
-		input,
-		func(page *ec2.DescribeNetworkInterfacesOutput, isLast bool) bool {
-			for _, networkInterface := range page.NetworkInterfaces {
-				d.StreamListItem(ctx, networkInterface)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_network_interface.listEc2NetworkInterfaces", "api_error", err)
+			return nil, err
+		}
 
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.NetworkInterfaces {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
 
 	return nil, err
 }
@@ -310,23 +325,23 @@ func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2NetworkInterface")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	networkInterfaceID := d.KeyColumnQuals["network_interface_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_network_interface.getEc2NetworkInterface", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeNetworkInterfacesInput{
-		NetworkInterfaceIds: []*string{aws.String(networkInterfaceID)},
+		NetworkInterfaceIds: []string{networkInterfaceID},
 	}
 
-	op, err := svc.DescribeNetworkInterfaces(params)
+	op, err := svc.DescribeNetworkInterfaces(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_network_interface.getEc2NetworkInterface", "api_error", err)
 		return nil, err
 	}
 
@@ -337,9 +352,8 @@ func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func getAwsEc2NetworkInterfaceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2NetworkInterfaceTurbotData")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	networkInterface := h.Item.(*ec2.NetworkInterface)
+	networkInterface := h.Item.(types.NetworkInterface)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -356,7 +370,7 @@ func getAwsEc2NetworkInterfaceAkas(ctx context.Context, d *plugin.QueryData, h *
 //// TRANSFORM FUNCTIONS
 
 func getEc2NetworkInterfaceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.NetworkInterface)
+	data := d.HydrateItem.(types.NetworkInterface)
 
 	// Get resource tags
 	var turbotTags map[string]string
@@ -369,10 +383,10 @@ func getEc2NetworkInterfaceTurbotTags(_ context.Context, d *transform.TransformD
 	return turbotTags, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 network interface list call input filter
-func buildec2NetworkInterfaceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildec2NetworkInterfaceFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"association_id":                 "association.association-id",
@@ -402,26 +416,23 @@ func buildec2NetworkInterfaceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter
 	columnIpAddr := []string{"association_ip_owner_id", "association_public_ip", "private_ip_address"}
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ec2.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
 				value := getQualsValueByColumn(quals, columnName, "boolean")
-				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+				filter.Values = []string{fmt.Sprint(value)}
 			} else if strings.Contains(fmt.Sprint(columnIpAddr), columnName) {
 				value := getQualsValueByColumn(quals, columnName, "ipaddr")
-				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+				filter.Values = []string{fmt.Sprint(value)}
 			} else {
 				value := getQualsValueByColumn(quals, columnName, "string")
 				val, ok := value.(string)
 				if ok {
-					filter.Values = []*string{aws.String(val)}
-				} else {
-					v := value.([]*string)
-					filter.Values = v
+					filter.Values = []string{val}
 				}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

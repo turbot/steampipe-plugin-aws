@@ -2,12 +2,14 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,14 +21,14 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"domain_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
 			},
 			Hydrate: getDomainName,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDomainNames,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
@@ -70,16 +72,38 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 
 func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.listDomainNames", "service_client_error", err)
 		return nil, err
 	}
-	params := &apigatewayv2.GetDomainNamesInput{}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
+	params := &apigatewayv2.GetDomainNamesInput{
+		MaxResults: aws.String(fmt.Sprint(maxLimit)),
+	}
 	pagesLeft := true
 
 	for pagesLeft {
-		result, err := svc.GetDomainNames(params)
+		result, err := svc.GetDomainNames(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.listDomainNames", "api_error", err)
 			return nil, err
 		}
 
@@ -106,13 +130,16 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDomainName")
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getDomainName__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.getDomainName", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	domainName := d.KeyColumnQuals["domain_name"].GetStringValue()
@@ -120,16 +147,18 @@ func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		DomainName: aws.String(domainName),
 	}
 
-	op, err := svc.GetDomainName(input)
+	op, err := svc.GetDomainName(ctx, input)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.getDomainName", "api_error", err)
 		return nil, err
 	}
 
 	if op != nil {
-		domainName := &apigatewayv2.DomainName{
+		domainName := &types.DomainName{
 			DomainName:                    op.DomainName,
 			Tags:                          op.Tags,
 			ApiMappingSelectionExpression: op.ApiMappingSelectionExpression,
+			MutualTlsAuthentication:       op.MutualTlsAuthentication,
 			DomainNameConfigurations:      op.DomainNameConfigurations,
 		}
 		return domainName, nil
@@ -139,8 +168,15 @@ func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 }
 
 func getapiGatewayV2DomainNameAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	v2ApiDomain := h.Item.(*apigatewayv2.DomainName)
 	region := d.KeyColumnQualString(matrixKeyRegion)
+	domainName := ""
+
+	switch h.Item.(type) {
+	case *types.DomainName:
+		domainName = *h.Item.(*types.DomainName).DomainName
+	case types.DomainName:
+		domainName = *h.Item.(types.DomainName).DomainName
+	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -149,7 +185,7 @@ func getapiGatewayV2DomainNameAkas(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/domainnames/" + *v2ApiDomain.DomainName}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/domainnames/" + domainName}
 
 	return akas, nil
 }
