@@ -264,7 +264,7 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 	// anyway.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("CloudControlService called without a region in QueryData")
+		return nil, fmt.Errorf("CloudControlClient called without a region in QueryData")
 	}
 
 	// Use a service level cache since we are going around the standard
