@@ -415,7 +415,7 @@ func buildSSMDocumentFilter(quals plugin.KeyColumnQualMap) []types.DocumentKeyVa
 	filters := make([]types.DocumentKeyValuesFilter, 0)
 
 	filterQuals := map[string]string{
-		"owner_type":   "Owner",
+		"owner_type":    "Owner",
 		"document_type": "DocumentType",
 	}
 

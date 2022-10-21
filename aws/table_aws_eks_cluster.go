@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
 )
 
 //// TABLE DEFINITION
@@ -139,69 +140,86 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 
 func listEksClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_cluster.listEksClusters", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &eks.ListClustersInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(100),
 	}
 
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxResults {
+			if limit < 20 {
+				input.MaxResults = aws.Int32(20)
 			} else {
-				input.MaxResults = limit
+				input.MaxResults = aws.Int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListClustersPages(
-		input,
-		func(page *eks.ListClustersOutput, _ bool) bool {
-			for _, cluster := range page.Clusters {
-				d.StreamListItem(ctx, &eks.Cluster{
-					Name: cluster,
-				})
+	paginator := eks.NewListClustersPaginator(svc, input, func(o *eks.ListClustersPaginatorOptions) {
+		o.Limit = *input.MaxResults
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_eks_cluster.listEksClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, cluster := range output.Clusters {
+			d.StreamListItem(ctx, types.Cluster{
+				Name: aws.String(cluster),
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return true
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEksCluster")
-
 	var clusterName string
 	if h.Item != nil {
-		clusterName = *h.Item.(*eks.Cluster).Name
+		clusterName = *h.Item.(types.Cluster).Name
 	} else {
 		clusterName = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_cluster.getEksCluster", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &eks.DescribeClusterInput{
 		Name: &clusterName,
 	}
 
-	op, err := svc.DescribeCluster(params)
+	op, err := svc.DescribeCluster(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_cluster.getEksCluster", "api_error", err)
 		return nil, err
 	}
 
