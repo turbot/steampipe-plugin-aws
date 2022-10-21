@@ -2,10 +2,6 @@
 
 Amazon Elastic Container Registry (Amazon ECR) is a managed container image registry service.
 
-**Note**
-
-Users having Read-only access to the console need to attach the AWS managed policy `AmazonInspector2ReadOnlyAccess` to their role to be able to query the `image_scanning_findings` column of the table.
-
 ## Examples
 
 ### Basic info
@@ -48,12 +44,13 @@ where
   image_scanning_configuration ->> 'ScanOnPush' = 'false';
 ```
 
-### List image details for repositories
+### List images for each repository
 
 ```sql
 select
   r.repository_name as repository_name,
   i.image_digest as image_digest,
+  i.image_tags as image_tags,
   i.image_pushed_at as image_pushed_at,
   i.image_size_in_bytes as image_size_in_bytes,
   i.last_recorded_pull_time as last_recorded_pull_time,
@@ -66,7 +63,7 @@ where
   r.repository_name = i.repository_name;
 ```
 
-### List repositories whose image scanning has failed
+### List images with failed scans
 
 ```sql
 select
@@ -78,8 +75,7 @@ from
   aws_ecr_image as i
 where
   r.repository_name = i.repository_name
-  and
-  i.image_scan_status ->> 'Status' = 'FAILED';
+  and i.image_scan_status ->> 'Status' = 'FAILED';
 ```
 
 ### List repositories whose tag immutability is disabled
@@ -93,7 +89,6 @@ from
 where
   image_tag_mutability = 'IMMUTABLE';
 ```
-
 
 ### List repositories whose lifecycle policy rule is not configured to remove untagged and old images
 
@@ -114,7 +109,6 @@ where
   );
 ```
 
-
 ### List repository policy statements that grant full access for each repository
 
 ```sql
@@ -132,22 +126,4 @@ from
 where
   s ->> 'Effect' = 'Allow'
   and a in ('*', 'ecr:*');
-```
-
-
-### Get repository image vulnerability count by severity for each repository
-
-```sql
-select
-  repository_name,
-  detail -> 'ImageId' ->> 'ImageDigest' as image_digest,
-  detail -> 'ImageId' ->> 'ImageTag' as image_tag,
-  detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'INFORMATIONAL' as informational_severity_counts,
-  detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'LOW' as low_severity_counts,
-  detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'MEDIUM' as medium_severity_counts,
-  detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'UNDEFINED' as undefined_severity_counts
-from
-  aws_ecr_repository,
-  jsonb_array_elements(image_scanning_findings) as details, jsonb(details) as detail;
-
 ```
