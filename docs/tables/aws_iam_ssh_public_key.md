@@ -9,6 +9,8 @@ The SSH public keys returned by this table are used for authenticating the IAM u
 ```sql
 select
   ssh_public_key_id,
+  ssh_public_key_body_pem,
+  ssh_public_key_body_rsa,
   user_name,
   upload_date
 from

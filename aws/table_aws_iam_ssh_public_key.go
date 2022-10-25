@@ -38,8 +38,15 @@ func tableAwsIamSshPublicKey(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("SSHPublicKeyId"),
 			},
 			{
-				Name:        "ssh_public_key_body",
-				Description: "The SSH public key.",
+				Name:        "ssh_public_key_body_pem",
+				Description: "The SSH public key, PEM encoded.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SSHPublicKeyBody"),
+				Hydrate:     getIamSshPublicKeyAsPem,
+			},
+			{
+				Name:        "ssh_public_key_body_rsa",
+				Description: "The SSH public key, SSH RSA encoded.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SSHPublicKeyBody"),
 				Hydrate:     getIamSshPublicKey,
@@ -70,12 +77,6 @@ func tableAwsIamSshPublicKey(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SSHPublicKeyId"),
-			},
-			{
-				Name:        "raw",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromValue(),
 			},
 		}),
 	}
@@ -157,8 +158,40 @@ func getIamSshPublicKey(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	params := &iam.GetSSHPublicKeyInput{
 		UserName:       &userName,
 		SSHPublicKeyId: &sshPublicKeyId,
-		// TODO: run this func twice, to get the PEM format as well
-		Encoding: "SSH",
+		Encoding:       "SSH",
+	}
+
+	op, err := svc.GetSSHPublicKey(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_ssh_public_key.getIamSshPublicKey", "api_error", err)
+		return nil, err
+	}
+
+	return *op.SSHPublicKey, nil
+}
+
+func getIamSshPublicKeyAsPem(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	userName := d.KeyColumnQuals["user_name"].GetStringValue()
+	if userName == "" {
+		userName = *h.Item.(types.SSHPublicKeyMetadata).UserName
+	}
+
+	sshPublicKeyId := d.KeyColumnQuals["ssh_public_key_id"].GetStringValue()
+	if sshPublicKeyId == "" {
+		sshPublicKeyId = *h.Item.(types.SSHPublicKeyMetadata).SSHPublicKeyId
+	}
+
+	// Get client
+	svc, err := IAMClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_ssh_public_key.getIamSshPublicKey", "client_error", err)
+		return nil, err
+	}
+
+	params := &iam.GetSSHPublicKeyInput{
+		UserName:       &userName,
+		SSHPublicKeyId: &sshPublicKeyId,
+		Encoding:       "PEM",
 	}
 
 	op, err := svc.GetSSHPublicKey(ctx, params)
