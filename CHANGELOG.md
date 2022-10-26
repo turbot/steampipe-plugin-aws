@@ -33,7 +33,7 @@ _Enhancements_
 
 - Updated 70+ tables to use [AWS SDK Go v2](https://github.com/aws/aws-sdk-go-v2). ([#1324](https://github.com/turbot/steampipe-plugin-aws/pull/1324))
 - Added `managed_actions` column to `aws_elastic_beanstalk_environment` table. ([#996](https://github.com/turbot/steampipe-plugin-aws/pull/996))
-- Added the following columns to the `aws_ec2_intance`table:
+- Added the following columns to the `aws_ec2_instance`table:
   - `ami_launch_index`
   - `architecture`
   - `boot_mode`
