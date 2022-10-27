@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/emr"
+	"github.com/aws/aws-sdk-go-v2/service/emr/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -137,7 +137,7 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 }
 
 type emrInstanceInfo struct {
-	*emr.Instance
+	types.Instance
 	ClusterId *string
 }
 
@@ -145,13 +145,14 @@ type emrInstanceInfo struct {
 
 func listEmrInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EmrService(ctx, d)
+	svc, err := EMRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_emr_instance.listEMRInstances", "connection_error", err)
 		return nil, err
 	}
 
 	// Get cluster details
-	clusterID := h.Item.(*emr.ClusterSummary).Id
+	clusterID := h.Item.(types.ClusterSummary).Id
 
 	if d.KeyColumnQualString("cluster_id") != "" && d.KeyColumnQualString("cluster_id") != *clusterID {
 		return nil, nil
@@ -173,36 +174,41 @@ func listEmrInstances(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		input.InstanceGroupId = aws.String(d.KeyColumnQualString("instance_group_id"))
 	}
 
-	// List call
-	err = svc.ListInstancesPages(
-		input,
-		func(page *emr.ListInstancesOutput, isLast bool) bool {
-			for _, instance := range page.Instances {
-				d.StreamListItem(ctx, &emrInstanceInfo{
-					Instance:  instance,
-					ClusterId: clusterID,
-				})
+	paginator := emr.NewListInstancesPaginator(svc, input, func(o *emr.ListInstancesPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_emr_cluster.listEmrClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, instance := range output.Instances {
+			d.StreamListItem(ctx, &emrInstanceInfo{
+				Instance:  instance,
+				ClusterId: clusterID,
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 func getEmrInstanceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEmrInstanceAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(*emrInstanceInfo)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_emr_instance.getEmrInstanceAkas", "common_data_error", err)
 		return nil, err
 	}
 

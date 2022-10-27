@@ -19,8 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/backup"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
@@ -37,22 +35,6 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 		return nil, err
 	}
 	return backup.New(sess), nil
-}
-
-func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.EC2, error) {
-	sess, err := getSessionForRegion(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	return ec2.New(sess), nil
-}
-
-func EmrService(ctx context.Context, d *plugin.QueryData) (*emr.EMR, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return emr.New(sess), nil
 }
 
 func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.GlobalAccelerator, error) {
@@ -246,14 +228,6 @@ func getSessionForQueryRegion(ctx context.Context, d *plugin.QueryData) (*sessio
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
-	}
-	return getSession(ctx, d, region)
-}
-
-// Helper function to get the session for a specific region
-func getSessionForRegion(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
-	if region == "" {
-		return nil, fmt.Errorf("getSessionForRegion called with an empty region")
 	}
 	return getSession(ctx, d, region)
 }
