@@ -20,7 +20,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
@@ -46,14 +45,6 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 		return nil, err
 	}
 	return ec2.New(sess), nil
-}
-
-func EksService(ctx context.Context, d *plugin.QueryData) (*eks.EKS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return eks.New(sess), nil
 }
 
 func EmrService(ctx context.Context, d *plugin.QueryData) (*emr.EMR, error) {

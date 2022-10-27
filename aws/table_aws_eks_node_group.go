@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
 )
 
 //// TABLE DEFINITION
@@ -19,14 +19,14 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 		Description: "AWS EKS Node Group",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"nodegroup_name", "cluster_name"}),
-			Hydrate:    getEksNodeGroup,
+			Hydrate:    getEKSNodeGroup,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterException", "InvalidParameter"}),
 			},
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listEksClusters,
-			Hydrate:       listEksNodeGroups,
+			ParentHydrate: listEKSClusters,
+			Hydrate:       listEKSNodeGroups,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cluster_name", Require: plugin.Optional},
 			},
@@ -42,7 +42,7 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) associated with the managed node group.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 				Transform:   transform.FromField("NodegroupArn"),
 			},
 			{
@@ -54,121 +54,121 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 				Name:        "created_at",
 				Description: "The Unix epoch timestamp in seconds for when the managed node group was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "status",
 				Description: "The current status of the managed node group.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "ami_type",
 				Description: "The AMI type that was specified in the node group configuration.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "capacity_type",
 				Description: "The capacity type of your managed node group.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "disk_size",
 				Description: "The disk size in the node group configuration.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "modified_at",
 				Description: "The Unix epoch timestamp in seconds for when the managed node group was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "node_role",
 				Description: "The IAM role associated with your node group.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "release_version",
 				Description: "If the node group was deployed using a launch template with a custom AMI, then this is the AMI ID that was specified in the launch template. For node groups that weren't deployed using a launch template, this is the version of the Amazon EKS optimized AMI that the node group was deployed with.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "version",
 				Description: "The Kubernetes version of the managed node group.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "health",
 				Description: "The health status of the node group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "instance_types",
 				Description: "The instance type that is associated with the node group. If the node group was deployed with a launch template, then this is null.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "labels",
 				Description: "The Kubernetes labels applied to the nodes in the node group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "launch_template",
 				Description: "If a launch template was used to create the node group, then this is the launch template that was used.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "remote_access",
 				Description: "The remote access configuration that is associated with the node group. If the node group was deployed with a launch template, then this is null.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "resources",
 				Description: "The resources associated with the node group, such as Auto Scaling groups and security groups for remote access.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "scaling_config",
 				Description: "The scaling configuration details for the Auto Scaling group that is associated with your node group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "subnets",
 				Description: "The subnets that were specified for the Auto Scaling group that is associated with your node group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "taints",
 				Description: "The Kubernetes taints to be applied to the nodes in the node group when they are created.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 			{
 				Name:        "update_config",
 				Description: "The node group update configuration.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 
 			// Steampipe Standard columns
@@ -183,7 +183,7 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("NodegroupArn").Transform(transform.EnsureStringArray),
-				Hydrate:     getEksNodeGroup,
+				Hydrate:     getEKSNodeGroup,
 			},
 		}),
 	}
@@ -191,10 +191,10 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEksNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listEKSNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get cluster details
 	cluster := d.KeyColumnQuals["cluster_name"].GetStringValue()
-	clusterName := *h.Item.(*eks.Cluster).Name
+	clusterName := *h.Item.(types.Cluster).Name
 
 	if cluster != "" {
 		if cluster != clusterName {
@@ -203,47 +203,53 @@ func listEksNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_node_group.listEksNodeGroups", "connection_error", err)
 		return nil, err
 	}
 
+	maxItems := int32(100)
 	input := &eks.ListNodegroupsInput{
 		ClusterName: &clusterName,
-		MaxResults:  aws.Int64(100),
 	}
 
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListNodegroupsPages(
-		input,
-		func(page *eks.ListNodegroupsOutput, _ bool) bool {
-			for _, nodegroup := range page.Nodegroups {
-				d.StreamListItem(ctx, &eks.Nodegroup{
-					NodegroupName: nodegroup,
-					ClusterName:   &clusterName,
-				})
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return true
-		},
-	)
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := eks.NewListNodegroupsPaginator(svc, input, func(o *eks.ListNodegroupsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-	if err != nil {
-		plugin.Logger(ctx).Error("ListNodegroupsPages", "api_error", err)
-		return nil, err
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_eks_node_group.listEKSNodeGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, nodegroup := range output.Nodegroups {
+			d.StreamListItem(ctx, &types.Nodegroup{
+				NodegroupName: aws.String(nodegroup),
+				ClusterName:   aws.String(clusterName),
+			})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
 	return nil, nil
@@ -251,13 +257,12 @@ func listEksNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 //// HYDRATE FUNCTIONS
 
-func getEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Error("getEksNodeGroup")
+func getEKSNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	var clusterName, nodegroupName string
 	if h.Item != nil {
-		clusterName = *h.Item.(*eks.Nodegroup).ClusterName
-		nodegroupName = *h.Item.(*eks.Nodegroup).NodegroupName
+		clusterName = *h.Item.(*types.Nodegroup).ClusterName
+		nodegroupName = *h.Item.(*types.Nodegroup).NodegroupName
 	} else {
 		clusterName = d.KeyColumnQuals["cluster_name"].GetStringValue()
 		nodegroupName = d.KeyColumnQuals["nodegroup_name"].GetStringValue()
@@ -269,8 +274,9 @@ func getEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	// create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_node_group.getEKSNodeGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -279,10 +285,9 @@ func getEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		NodegroupName: &nodegroupName,
 	}
 
-	op, err := svc.DescribeNodegroup(params)
-
+	op, err := svc.DescribeNodegroup(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("DescribeNodegroup", "api_error", err)
+		plugin.Logger(ctx).Error("aws_eks_node_group.getEKSNodeGroup", "api_error", err)
 		return nil, err
 	}
 
