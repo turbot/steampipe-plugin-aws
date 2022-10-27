@@ -19,7 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/backup"
-	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/aws/aws-sdk-go/service/securityhub"
@@ -35,16 +34,6 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 		return nil, err
 	}
 	return backup.New(sess), nil
-}
-
-func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.GlobalAccelerator, error) {
-	// Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
-	// the us-west-2 (Oregon) Region to create or update accelerators.
-	sess, err := getSession(ctx, d, "us-west-2")
-	if err != nil {
-		return nil, err
-	}
-	return globalaccelerator.New(sess), nil
 }
 
 func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkfirewall.NetworkFirewall, error) {

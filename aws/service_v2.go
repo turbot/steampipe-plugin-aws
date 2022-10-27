@@ -59,6 +59,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/firehose"
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/glacier"
+	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -105,8 +106,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
-
 	"github.com/aws/aws-sdk-go/aws/endpoints"
+
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
@@ -636,6 +637,16 @@ func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, e
 		return nil, nil
 	}
 	return glacier.NewFromConfig(*cfg), nil
+}
+
+func GlobalAcceleratorClient(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.Client, error) {
+	// Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
+	// the us-west-2 (Oregon) Region to create or update accelerators.
+	cfg, err := getClient(ctx, d, "us-west-2")
+	if err != nil {
+		return nil, err
+	}
+	return globalaccelerator.NewFromConfig(*cfg), nil
 }
 
 func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) {

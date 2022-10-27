@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/globalaccelerator"
-
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
+	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -20,7 +20,7 @@ func tableAwsGlobalAcceleratorAccelerator(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlobalAcceleratorAccelerator,
 		},
@@ -116,50 +116,51 @@ func tableAwsGlobalAcceleratorAccelerator(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listGlobalAcceleratorAccelerators(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listGlobalAcceleratorAccelerators")
 
 	// Create session
-	svc, err := GlobalAcceleratorService(ctx, d)
+	svc, err := GlobalAcceleratorClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.listGlobalAcceleratorAccelerators", "service_creation_error", err)
 		return nil, err
 	}
 
-	input := &globalaccelerator.ListAcceleratorsInput{
-		MaxResults: aws.Int64(100),
-	}
+	maxItems := int32(100)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
+	input := &globalaccelerator.ListAcceleratorsInput{
+		MaxResults: &maxItems,
+	}
 
-	// List call
-	err = svc.ListAcceleratorsPages(
-		input,
-		func(page *globalaccelerator.ListAcceleratorsOutput, isLast bool) bool {
-			for _, accelerator := range page.Accelerators {
-				d.StreamListItem(ctx, accelerator)
+	paginator := globalaccelerator.NewListAcceleratorsPaginator(svc, input, func(o *globalaccelerator.ListAcceleratorsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.listGlobalAcceleratorAccelerators", "api_error", err)
+			return nil, err
+		}
+
+		for _, accelerator := range output.Accelerators {
+			d.StreamListItem(ctx, accelerator)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.listGlobalAcceleratorAccelerators", "api_error", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -168,8 +169,6 @@ func listGlobalAcceleratorAccelerators(ctx context.Context, d *plugin.QueryData,
 //// HYDRATE FUNCTIONS
 
 func getGlobalAcceleratorAccelerator(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlobalAcceleratorAccelerator")
-
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// check if arn is empty
@@ -178,7 +177,7 @@ func getGlobalAcceleratorAccelerator(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Create session
-	svc, err := GlobalAcceleratorService(ctx, d)
+	svc, err := GlobalAcceleratorClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.getGlobalAcceleratorAccelerator", "service_creation_error", err)
 		return nil, err
@@ -190,22 +189,19 @@ func getGlobalAcceleratorAccelerator(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Get call
-	data, err := svc.DescribeAccelerator(params)
+	data, err := svc.DescribeAccelerator(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.getGlobalAcceleratorAccelerator", "api_error", err)
 		return nil, err
 	}
-	return data.Accelerator, nil
+	return *data.Accelerator, nil
 }
 
 func getGlobalAcceleratorAcceleratorTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getGlobalAcceleratorAcceleratorTags")
-
-	accelerator := h.Item.(*globalaccelerator.Accelerator)
+	accelerator := h.Item.(types.Accelerator)
 
 	// Create Session
-	svc, err := GlobalAcceleratorService(ctx, d)
+	svc, err := GlobalAcceleratorClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -216,22 +212,19 @@ func getGlobalAcceleratorAcceleratorTags(ctx context.Context, d *plugin.QueryDat
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("getGlobalAcceleratorAcceleratorTags", "api_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.getGlobalAcceleratorAcceleratorTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
 }
 
 func getGlobalAcceleratorAcceleratorAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getGlobalAcceleratorAcceleratorAttributes")
-
-	accelerator := h.Item.(*globalaccelerator.Accelerator)
+	accelerator := h.Item.(types.Accelerator)
 
 	// Create Session
-	svc, err := GlobalAcceleratorService(ctx, d)
+	svc, err := GlobalAcceleratorClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -242,9 +235,9 @@ func getGlobalAcceleratorAcceleratorAttributes(ctx context.Context, d *plugin.Qu
 	}
 
 	// Get call
-	op, err := svc.DescribeAcceleratorAttributes(params)
+	op, err := svc.DescribeAcceleratorAttributes(ctx, params)
 	if err != nil {
-		logger.Debug("getGlobalAcceleratorAcceleratorAttributes", "api_error", err)
+		plugin.Logger(ctx).Error("getGlobalAcceleratorAcceleratorAttributes", "api_error", err)
 		return nil, err
 	}
 	return op, nil
@@ -253,8 +246,6 @@ func getGlobalAcceleratorAcceleratorAttributes(ctx context.Context, d *plugin.Qu
 //// TRANSFORM FUNCTIONS
 
 func globalacceleratorAcceleratorTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("globalacceleratorAcceleratorTurbotTags")
-
 	tags := d.HydrateItem.(*globalaccelerator.ListTagsForResourceOutput)
 
 	// Mapping the resource tags inside turbotTags
