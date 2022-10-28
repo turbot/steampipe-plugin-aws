@@ -1188,7 +1188,7 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
 	validRegions, err := GetSupportedRegionsForClient(ctx, d, serviceID)
 	if err != nil {
@@ -1209,7 +1209,7 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
 	return getClient(ctx, d, region)
 }

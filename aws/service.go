@@ -169,7 +169,7 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 func getSessionForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*session.Session, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+		return nil, fmt.Errorf("getSessionForQuerySupportedRegion called without a region in QueryData")
 	}
 	validRegions, err := GetSupportedRegionsForClient(ctx, d, serviceID)
 	if err != nil {
@@ -182,15 +182,6 @@ func getSessionForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData,
 		return nil, nil
 	}
 	// Supported region, so get and return the session
-	return getSession(ctx, d, region)
-}
-
-// Helper function to get the session for a region set in query data
-func getSessionForQueryRegion(ctx context.Context, d *plugin.QueryData) (*session.Session, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
-	}
 	return getSession(ctx, d, region)
 }
 
