@@ -122,6 +122,7 @@ import (
 	dynamodbEndpoint "github.com/aws/aws-sdk-go/service/dynamodb"
 	eksEndpoint "github.com/aws/aws-sdk-go/service/eks"
 	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	emrEndpoint "github.com/aws/aws-sdk-go/service/emr"
 	eventbridgeEndpoint "github.com/aws/aws-sdk-go/service/eventbridge"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
@@ -597,9 +598,12 @@ func ElasticsearchClient(ctx context.Context, d *plugin.QueryData) (*elasticsear
 }
 
 func EMRClient(ctx context.Context, d *plugin.QueryData) (*emr.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, emrEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return emr.NewFromConfig(*cfg), nil
 }

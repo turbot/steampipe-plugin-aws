@@ -168,6 +168,10 @@ func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		plugin.Logger(ctx).Error("aws_emr_instance_group.listEmrInstanceGroups", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Get cluster details
 	clusterID := h.Item.(types.ClusterSummary).Id

@@ -248,6 +248,10 @@ func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		plugin.Logger(ctx).Error("aws_emr_cluster.listEmrClusters", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &emr.ListClustersInput{}
 
@@ -299,6 +303,10 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_emr_cluster.getEmrCluster", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &emr.DescribeClusterInput{
