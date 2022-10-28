@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -170,6 +171,11 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	logGroupName := d.KeyColumnQuals["log_group_name"].GetStringValue()
+
+	// Empty input check
+	if strings.TrimSpace(name) == "" || strings.TrimSpace(logGroupName) == "" {
+		return nil, nil
+	}
 
 	// Create session
 	svc, err := CloudWatchLogsClient(ctx, d)
