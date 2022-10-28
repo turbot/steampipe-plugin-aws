@@ -19,9 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/backup"
-	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/aws/aws-sdk-go/service/ses"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -35,17 +33,6 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 	return backup.New(sess), nil
 }
 
-func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoint, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, pinpoint.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return pinpoint.New(sess), nil
-}
-
 func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.SecurityHub, error) {
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, securityhub.EndpointsID)
 	if err != nil {
@@ -55,14 +42,6 @@ func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.
 		return nil, nil
 	}
 	return securityhub.New(sess), nil
-}
-
-func SESService(ctx context.Context, d *plugin.QueryData) (*ses.SES, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return ses.New(sess), nil
 }
 
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {

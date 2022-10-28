@@ -243,6 +243,8 @@ github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10 h1:YCqIdYDeOYrrvSxSJGWD
 github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10/go.mod h1:28S5BnLe/L5tAa/O+HUehabvkxDxxVKiz6X0ztVwcCY=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8 h1:ay2kKjWoadTWcvMBmvpnsrzQxf/Ic+yYDeyPK8HN3Dk=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8/go.mod h1:2LqaphiwM7jerVTmN/7Yv5fSaobVKqX1BSwgMFE9rmA=
+github.com/aws/aws-sdk-go-v2/service/pinpoint v1.17.10 h1:v4yOymXUHIFrSkfufcmrGWQVmxiJ+bfPb62ZdnUfnSQ=
+github.com/aws/aws-sdk-go-v2/service/pinpoint v1.17.10/go.mod h1:gTeobJafYIJWagBLdHngLYc9+SsJgDEmmByFq/wmObg=
 github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8 h1:w7sg7s/4kMlCHlEuSjsgyMXRS/2AtdIRZFMyNV+KgFw=
 github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8/go.mod h1:OSNjl2fCqD71DByxLo/+irlhVc9fke558TKV1EyJ+QM=
 github.com/aws/aws-sdk-go-v2/service/ram v1.16.18 h1:wt0Jmv2xC/nw3AIvlJFDAJ7kiLvTLc+CfBMGXVpb5h8=
