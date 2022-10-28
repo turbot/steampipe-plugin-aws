@@ -26,9 +26,12 @@ import (
 )
 
 func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, backup.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return backup.New(sess), nil
 }

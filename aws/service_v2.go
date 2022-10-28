@@ -146,6 +146,7 @@ import (
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
 	wafregionalEnpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
+	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
 	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -1107,9 +1108,12 @@ func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv
 }
 
 func WellArchitectedClient(ctx context.Context, d *plugin.QueryData) (*wellarchitected.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wellarchitectedEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return wellarchitected.NewFromConfig(*cfg), nil
 }
