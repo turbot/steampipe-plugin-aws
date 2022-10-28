@@ -119,6 +119,7 @@ import (
 	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
 	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
+	dynamodbEndpoint "github.com/aws/aws-sdk-go/service/dynamodb"
 	eksEndpoint "github.com/aws/aws-sdk-go/service/eks"
 	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	eventbridgeEndpoint "github.com/aws/aws-sdk-go/service/eventbridge"
@@ -475,9 +476,12 @@ func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error
 }
 
 func DynamoDBClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, dynamodbEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return dynamodb.NewFromConfig(*cfg), nil
 }

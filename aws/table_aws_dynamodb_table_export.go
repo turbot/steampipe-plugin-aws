@@ -163,6 +163,7 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_table_export.listTableExports", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
@@ -171,7 +172,12 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	// Create Session
 	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_table_export.listTableExports", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &dynamodb.ListExportsInput{
@@ -201,7 +207,7 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_ebs_snapshot.listAwsEBSSnapshots", "api_error", err)
+			plugin.Logger(ctx).Error("aws_dynamodb_table_export.listTableExports", "api_error", err)
 			return nil, err
 		}
 
@@ -231,7 +237,12 @@ func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	// Create Session
 	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_table_export.getTableExport", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &dynamodb.DescribeExportInput{
@@ -239,9 +250,8 @@ func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	op, err := svc.DescribeExport(ctx, input)
-
 	if err != nil {
-		plugin.Logger(ctx).Error("getTableExport", "get", err)
+		plugin.Logger(ctx).Error("aws_dynamodb_table_export.getTableExport", "api_error", err)
 		return nil, err
 	}
 
