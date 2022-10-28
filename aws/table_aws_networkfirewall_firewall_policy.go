@@ -142,6 +142,10 @@ func listNetworkFirewallPolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 		plugin.Logger(ctx).Error("aws_networkfirewall_firewall_policy.listNetworkFirewallPolicies", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(100)
@@ -215,6 +219,10 @@ func getNetworkFirewallPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		logger.Error("aws_networkfirewall_firewall_policy.getNetworkFirewallPolicy", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Get call
