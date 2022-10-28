@@ -317,7 +317,7 @@ func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	if rowData.Table != nil {
-		return rowData.Table, nil
+		return *rowData.Table, nil
 	}
 
 	return nil, nil

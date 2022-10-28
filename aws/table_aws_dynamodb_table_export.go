@@ -229,7 +229,7 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var arn string
 	if h.Item != nil {
-		arn = *h.Item.(*types.ExportSummary).ExportArn
+		arn = *h.Item.(types.ExportSummary).ExportArn
 	} else {
 		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
