@@ -21,7 +21,6 @@ func tableAwsEmrInstanceFleet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstanceFleets,
-			// ShouldIgnoreError: ,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRequestException"}),
 			},

@@ -47,7 +47,7 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_iam_role" "iam_emr_service_role" {
-  name               = "${var.resource_name}_1"
+  name               = "${var.resource_name}_4"
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",
@@ -66,7 +66,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "iam_emr_service_policy" {
-  name   = "${var.resource_name}_1"
+  name   = "${var.resource_name}_3"
   role   = aws_iam_role.iam_emr_service_role.id
   policy = <<EOF
 {
@@ -135,7 +135,7 @@ EOF
 }
 
 resource "aws_iam_role" "iam_emr_profile_role" {
-  name               = "${var.resource_name}_2"
+  name               = "${var.resource_name}_3"
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",
@@ -154,12 +154,12 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "emr_profile" {
-  name = "var.resource_name"
+  name = aws_iam_role.iam_emr_profile_role.name
   role = aws_iam_role.iam_emr_profile_role.name
 }
 
 resource "aws_iam_role_policy" "iam_emr_profile_policy" {
-  name   = "${var.resource_name}_2"
+  name   = "${var.resource_name}_4"
   role   = aws_iam_role.iam_emr_profile_role.id
   policy = <<EOF
 {
