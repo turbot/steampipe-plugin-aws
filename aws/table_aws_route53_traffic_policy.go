@@ -20,7 +20,7 @@ func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "version"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchTrafficPolicy"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchTrafficPolicy"}),
 			},
 			Hydrate: getTrafficPolicy,
 		},

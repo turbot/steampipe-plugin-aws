@@ -3,10 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/glue/types"
-	"github.com/aws/aws-sdk-go/aws"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -21,7 +20,7 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("endpoint_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueDevEndpoint,
 		},

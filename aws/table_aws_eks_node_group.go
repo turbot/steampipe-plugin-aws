@@ -21,7 +21,7 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"nodegroup_name", "cluster_name"}),
 			Hydrate:    getEKSNodeGroup,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterException", "InvalidParameter"}),
 			},
 		},
 		List: &plugin.ListConfig{

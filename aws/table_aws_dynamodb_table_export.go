@@ -18,7 +18,7 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ExportNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "ExportNotFoundException"}),
 			},
 			Hydrate: getTableExport,
 		},

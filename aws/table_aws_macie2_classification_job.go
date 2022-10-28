@@ -4,12 +4,11 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/macie2"
+	"github.com/aws/aws-sdk-go-v2/service/macie2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go-v2/service/macie2"
-	"github.com/aws/aws-sdk-go-v2/service/macie2/types"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +20,7 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("job_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getMacie2ClassificationJob,
 		},

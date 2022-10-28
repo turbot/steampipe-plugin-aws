@@ -18,7 +18,7 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
 			},
 			Hydrate: getVpcEgressOnlyInternetGateway,
 		},
