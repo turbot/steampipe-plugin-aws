@@ -21,7 +21,7 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"nodegroup_name", "cluster_name"}),
 			Hydrate:    getEKSNodeGroup,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -208,6 +208,10 @@ func listEKSNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		plugin.Logger(ctx).Error("aws_eks_node_group.listEksNodeGroups", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	maxItems := int32(100)
 	input := &eks.ListNodegroupsInput{
@@ -278,6 +282,10 @@ func getEKSNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_node_group.getEKSNodeGroup", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &eks.DescribeNodegroupInput{
