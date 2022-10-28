@@ -2,13 +2,14 @@ package aws
 
 import (
 	"context"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 	"github.com/aws/aws-sdk-go-v2/service/emr/types"
+	"github.com/aws/smithy-go"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -188,6 +189,12 @@ func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "InvalidRequestException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_emr_instance_group.listEmrInstanceGroups", err)
 			return nil, err
 		}

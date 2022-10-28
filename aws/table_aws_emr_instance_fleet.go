@@ -2,9 +2,11 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 	"github.com/aws/aws-sdk-go-v2/service/emr/types"
+	"github.com/aws/smithy-go"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -19,8 +21,9 @@ func tableAwsEmrInstanceFleet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstanceFleets,
+			// ShouldIgnoreError: ,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRequestException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -153,6 +156,13 @@ func listEmrInstanceFleets(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				// Error: operation error EMR: ListInstanceFleets, https response error StatusCode: 400, RequestID: 560c660e-9fd8-4457-9cfd-fa79427912d4, InvalidRequestException: Instance fleets and instance groups are mutually exclusive. The EMR cluster specified in the request uses instance groups. The ListInstanceFleets operation does not support clusters that use instance groups. Use the ListInstanceGroups operation instead. (SQLSTATE HV000)
+				if ae.ErrorCode() == "InvalidRequestException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_emr_instance_fleet.listEmrInstanceFleets", "api_error", err)
 			return nil, err
 		}
