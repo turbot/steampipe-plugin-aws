@@ -81,6 +81,10 @@ func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin
 		plugin.Logger(ctx).Error("aws_ses_domain_identity.listSESDomainIdentities", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	maxItems := int32(1000)
 	// Limiting the results
