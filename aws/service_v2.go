@@ -144,6 +144,7 @@ import (
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	servicequotasEndpoint "github.com/aws/aws-sdk-go/service/servicequotas"
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
+	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	wafregionalEnpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
@@ -1034,9 +1035,12 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 }
 
 func SSMClient(ctx context.Context, d *plugin.QueryData) (*ssm.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return ssm.NewFromConfig(*cfg), nil
 }

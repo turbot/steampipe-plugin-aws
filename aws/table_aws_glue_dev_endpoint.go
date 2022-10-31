@@ -191,7 +191,8 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	maxLimit := int32(1000)
+	// MaxResults size must be between 1 and 200 (SQLSTATE HV000)
+	maxLimit := int32(200)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {

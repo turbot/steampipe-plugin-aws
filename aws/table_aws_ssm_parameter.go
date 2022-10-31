@@ -153,6 +153,10 @@ func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		plugin.Logger(ctx).Error("aws_ssm_parameter.listAwsSSMParameters", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	maxItems := int32(50)
 	input := &ssm.DescribeParametersInput{}
@@ -211,6 +215,10 @@ func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameter", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Build the params
 	params := &ssm.DescribeParametersInput{
@@ -246,6 +254,10 @@ func getAwsSSMParameterDetails(ctx context.Context, d *plugin.QueryData, h *plug
 		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameterDetails", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Build the params
 	params := &ssm.GetParameterInput{
@@ -280,6 +292,10 @@ func getAwsSSMParameterTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameterTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params

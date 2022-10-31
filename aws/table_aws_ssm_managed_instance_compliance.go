@@ -103,6 +103,10 @@ func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData,
 		plugin.Logger(ctx).Error("aws_ssm_managed_instance_compliance.listSsmManagedInstanceCompliances", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	instanceId := d.KeyColumnQuals["resource_id"].GetStringValue()
 
