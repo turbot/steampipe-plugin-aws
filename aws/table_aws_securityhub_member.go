@@ -25,7 +25,7 @@ func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubMembers,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException", "BadRequestException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
