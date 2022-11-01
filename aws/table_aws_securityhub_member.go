@@ -147,6 +147,7 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_securityhub_member.listSecurityHubMembers", "api_error", err)
 			return nil, err
 		}
 		for _, member := range output.Members {
