@@ -46,7 +46,7 @@ func tableAwsPricingServiceAttribute(_ context.Context) *plugin.Table {
 }
 
 type ServiceDetail struct {
-	AttributeName *string
+	AttributeName string
 	ServiceCode   *string
 }
 
@@ -98,7 +98,7 @@ func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *p
 
 		for _, items := range output.Services {
 			for _, attributeName := range items.AttributeNames {
-				d.StreamListItem(ctx, ServiceDetail{&attributeName, items.ServiceCode})
+				d.StreamListItem(ctx, ServiceDetail{attributeName, items.ServiceCode})
 			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -139,7 +139,7 @@ func listAttributeValues(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	input := &pricing.GetAttributeValuesInput{
-		AttributeName: attributeName,
+		AttributeName: &attributeName,
 		ServiceCode:   serviceCode,
 		MaxResults:    maxLimit,
 	}
