@@ -985,6 +985,18 @@ func SecurityHubClient(ctx context.Context, d *plugin.QueryData) (*securityhub.C
 	return securityhub.NewFromConfig(*cfg), nil
 }
 
+// Added for using middleware for migrating table "aws_securityhub_member"
+func SecurityHubClientConfig(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cfg, nil
+}
+
 func SESClient(ctx context.Context, d *plugin.QueryData) (*ses.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, sesEndpoint.EndpointsID)
 	if err != nil {
