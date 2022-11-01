@@ -1007,7 +1007,7 @@ func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryD
 	return serverlessapplicationrepository.NewFromConfig(*cfg), nil
 }
 
-func ServiceQuotasRegionalClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
+func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, servicequotasEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
@@ -1055,6 +1055,8 @@ func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 
 func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
 	// TODO - Should STS be regional instead?
+	// By default, the AWS Security Token Service (AWS STS) is available as a global service, and all AWS STS requests go to a single endpoint at https://sts.amazonaws.com. AWS recommends using Regional AWS STS endpoints instead of the global endpoint to reduce latency, build in redundancy, and increase session token validity.
+	// https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
@@ -1326,12 +1328,12 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	return retryTime, nil
 }
 
-// SupportedRegionsForClient list outs the valid regions for a service based on service id
+// GetSupportedRegionsForClient lists valid regions for a service based on service ID
 func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceId string) ([]string, error) {
 	var partitionName string
 	var partition endpoints.Partition
 
-	// If valid regions list is already avialable in cache, return it
+	// If valid regions list is already available in cache, return it
 	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.([]string), nil
@@ -1342,8 +1344,7 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 		partitionName = cachedData.(string)
 	}
 
-	// If partition name is not available,
-	// try to fetch partiton from APIs
+	// If partition name is not available, try to fetch it from "STS GetCallerIdentity" API
 	if partitionName == "" {
 		// Using WithCache to avoid making repeated calls to fetch partition in parallel
 		getCachedAccountPartition := plugin.HydrateFunc(getAccountPartition).WithCache()
@@ -1354,7 +1355,6 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 	}
 
 	// Get AWS partition based on the partition name
-	// If the partition name was obtained from APIs set AWS commercial as the default partition
 	switch partitionName {
 	case endpoints.AwsPartitionID:
 		partition = endpoints.AwsPartition()
@@ -1365,13 +1365,14 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 	case endpoints.AwsUsGovPartitionID:
 		partition = endpoints.AwsUsGovPartition()
 	case endpoints.AwsIsoBPartitionID:
-		partition = endpoints.AwsCnPartition()
+		partition = endpoints.AwsIsoBPartition()
 	default:
 		partition = endpoints.AwsPartition()
 	}
 
 	var validRegions []string
-	// Get the list of the service regions based on the Service Id
+
+	// Get the list of the service regions based on the service ID
 	services := partition.Services()
 	serviceInfo, ok := services[serviceId]
 	if !ok {

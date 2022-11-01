@@ -148,7 +148,7 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalClient(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.listServiceQuotaChangeRequests", "connection_error", err)
 		return nil, err
@@ -217,7 +217,7 @@ func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalClient(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.getServiceQuotaChangeRequest", "connection_error", err)
 		return nil, err
@@ -247,7 +247,7 @@ func getServiceQuotaChangeRequestTags(ctx context.Context, d *plugin.QueryData, 
 	quota := h.Item.(types.RequestedServiceQuotaChange)
 
 	// Create service
-	svc, err := ServiceQuotasRegionalClient(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.getServiceQuotaChangeRequestTags", "connection_error", err)
 		return nil, err

@@ -158,7 +158,7 @@ func getAccountPartition(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	commonData, err := getCommonColumns(ctx, d, nil)
 	if err != nil {
 		plugin.Logger(ctx).Error("getAccountPartition", "common_data_error", err)
-		// If error or some other issue return default partition
+		// If error or some other issue return default partition(i.e. AWS commercial)
 		return "aws", nil
 	}
 

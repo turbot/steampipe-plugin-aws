@@ -137,7 +137,7 @@ func listServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	service := h.Item.(types.ServiceInfo)
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalClient(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_service_quota.listServiceQuotas", "connection_error", err)
 		return nil, err
@@ -209,7 +209,7 @@ func getServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalClient(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_service_quota.getServiceQuota", "connection_error", err)
 		return nil, err
@@ -239,7 +239,7 @@ func getServiceQuotaTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	quota := h.Item.(types.ServiceQuota)
 
 	// Create service
-	svc, err := ServiceQuotasRegionalClient(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_service_quota.getServiceQuotaTags", "connection_error", err)
 		return nil, err

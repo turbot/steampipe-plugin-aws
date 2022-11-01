@@ -121,7 +121,7 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 
 func listServiceQuotasService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ServiceQuotasRegionalClient(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.listServiceQuotasService", "connection_error", err)
 	}
@@ -160,7 +160,7 @@ func listDefaultServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugi
 	service := h.Item.(types.ServiceInfo)
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalClient(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.listDefaultServiceQuotas", "connection_error", err)
 		return nil, err
@@ -232,7 +232,7 @@ func getDefaultServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalClient(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.getDefaultServiceQuota", "connection_error", err)
 		return nil, err
