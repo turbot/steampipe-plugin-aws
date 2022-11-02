@@ -2,11 +2,14 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/mediastore"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/mediastore"
+	"github.com/aws/aws-sdk-go-v2/service/mediastore/types"
+	"github.com/aws/smithy-go"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -19,14 +22,14 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ContainerNotFoundException", "ContainerInUseException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameter", "ContainerNotFoundException", "ContainerInUseException"}),
 			},
 			Hydrate: getMediaStoreContainer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listMediaStoreContainers,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ContainerInUseException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ContainerInUseException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -114,9 +117,9 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 	logger := plugin.Logger(ctx)
 
 	// Create service
-	svc, err := MediaStoreService(ctx, d)
+	svc, err := MediaStoreClient(ctx, d)
 	if err != nil {
-		logger.Error("listMediaStoreContainers", "error_MediaStoreService", err)
+		logger.Error("aws_media_store_container.listMediaStoreContainers", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -124,42 +127,45 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, nil
 	}
 
-	// Set MaxResults to the maximum number allowed
-	input := mediastore.ListContainersInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.ListContainersPages(
-		&input,
-		func(page *mediastore.ListContainersOutput, lastPage bool) bool {
-			for _, container := range page.Containers {
-				d.StreamListItem(ctx, container)
+	// Set MaxResults to the maximum number allowed
+	input := &mediastore.ListContainersInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := mediastore.NewListContainersPaginator(svc, input, func(o *mediastore.ListContainersPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_media_store_container.listMediaStoreContainers", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Containers {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		logger.Error("listMediaStoreContainers", "error_ListContainersPages", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -168,8 +174,6 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 //// HYDRATE FUNCTIONS
 
 func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-
 	containerName := d.KeyColumnQuals["name"].GetStringValue()
 	// check if name is empty
 	if containerName == "" {
@@ -177,9 +181,9 @@ func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create service
-	svc, err := MediaStoreService(ctx, d)
+	svc, err := MediaStoreClient(ctx, d)
 	if err != nil {
-		logger.Error("getMediaStoreContainer", "error_MediaStoreService", err)
+		plugin.Logger(ctx).Error("aws_media_store_container.getMediaStoreContainer", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -193,28 +197,25 @@ func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Get call
-	data, err := svc.DescribeContainer(params)
+	data, err := svc.DescribeContainer(ctx, params)
 	if err != nil {
-		logger.Error("getMediaStoreContainer", "error_DescribeContainer", err)
+		plugin.Logger(ctx).Error("aws_media_store_container.getMediaStoreContainer", "api_error", err)
 		return nil, err
 	}
 
-	return data.Container, nil
+	return *data.Container, nil
 }
 
 func getMediaStoreContainerPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getMediaStoreContainerPolicy")
-
 	var containerName string
 	if h.Item != nil {
-		containerName = *h.Item.(*mediastore.Container).Name
+		containerName = *h.Item.(types.Container).Name
 	}
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d)
+	svc, err := MediaStoreClient(ctx, d)
 	if err != nil {
-		logger.Error("getMediaStoreContainerPolicy", "error_MediaStoreService", err)
+		plugin.Logger(ctx).Error("aws_media_store_container.getMediaStoreContainerPolicy", "connection_error", err)
 		return nil, err
 	}
 
@@ -224,14 +225,15 @@ func getMediaStoreContainerPolicy(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Get call
-	data, err := svc.GetContainerPolicy(params)
+	data, err := svc.GetContainerPolicy(ctx, params)
 	if err != nil {
-		logger.Error("getMediaStoreContainerPolicy", "error_GetContainerPolicy", err)
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "PolicyNotFoundException" || a.Code() == "ContainerInUseException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if helpers.StringSliceContains([]string{"PolicyNotFoundException", "ContainerInUseException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_media_store_container.getMediaStoreContainerPolicy", "api_error", err)
 		return nil, err
 	}
 
@@ -239,18 +241,15 @@ func getMediaStoreContainerPolicy(ctx context.Context, d *plugin.QueryData, h *p
 }
 
 func listMediaStoreContainerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listMediaStoreContainerTags")
-
 	var arn string
 	if h.Item != nil {
-		arn = *h.Item.(*mediastore.Container).ARN
+		arn = *h.Item.(types.Container).ARN
 	}
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d)
+	svc, err := MediaStoreClient(ctx, d)
 	if err != nil {
-		logger.Error("listMediaStoreContainerTags", "error_MediaStoreService", err)
+		plugin.Logger(ctx).Error("aws_media_store_container.listMediaStoreContainerTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -260,14 +259,15 @@ func listMediaStoreContainerTags(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	// Get call
-	data, err := svc.ListTagsForResource(params)
+	data, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Error("listMediaStoreContainerTags", "error_ListTagsForResource", err)
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ContainerInUseException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ContainerInUseException" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_media_store_container.listMediaStoreContainerTags", "api_error", err)
 		return nil, err
 	}
 
@@ -277,7 +277,6 @@ func listMediaStoreContainerTags(ctx context.Context, d *plugin.QueryData, h *pl
 //// TRANSFORM FUNCTION
 
 func containerTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("containerTurbotTags")
 
 	// When container is being created or deleted, 'ContainerInUseException' is thrown.
 	// When 'ContainerInUseException' is thrown, the hydrated data comes as null.

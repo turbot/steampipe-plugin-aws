@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -79,65 +80,71 @@ type InventoryInfo struct {
 //// LIST FUNCTION
 
 func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsSSMInventories")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_inventory.listAwsSSMInventories", "connection_error", err)
 		return nil, err
 	}
 
-	input := buildSsmInventoryFilter(ctx, d.Quals)
+	maxItems := int32(50)
+	input := buildSSMInventoryFilter(ctx, d.Quals)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.GetInventoryPages(
-		input,
-		func(page *ssm.GetInventoryOutput, isLast bool) bool {
-			for _, inventory := range page.Entities {
-				if inventory.Data != nil {
-					for _, v := range inventory.Data {
-						d.StreamListItem(ctx, &InventoryInfo{
-							Id:            inventory.Id,
-							CaptureTime:   v.CaptureTime,
-							SchemaVersion: v.SchemaVersion,
-							TypeName:      v.TypeName,
-							Content:       v.Content,
-						})
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := ssm.NewGetInventoryPaginator(svc, &input, func(o *ssm.GetInventoryPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-						// Context may get cancelled due to manual cancellation or if the limit has been reached
-						if d.QueryStatus.RowsRemaining(ctx) == 0 {
-							return false
-						}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssm_inventory.listAwsSSMInventories", "api_error", err)
+			return nil, err
+		}
+
+		for _, inventory := range output.Entities {
+			if inventory.Data != nil {
+				for _, data := range inventory.Data {
+					d.StreamListItem(ctx, &InventoryInfo{
+						Id:            inventory.Id,
+						CaptureTime:   data.CaptureTime,
+						SchemaVersion: data.SchemaVersion,
+						TypeName:      data.TypeName,
+						Content:       data.Content,
+					})
+
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return nil, nil
 					}
 				}
-
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 func getAwsSSMInventorySchema(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsSSMInventorySchema")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getAwsSSMInventorySchema", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ssm_inventory.getAwsSSMInventorySchema", "connection_error", err)
 		return nil, err
 	}
 
@@ -147,20 +154,20 @@ func getAwsSSMInventorySchema(ctx context.Context, d *plugin.QueryData, h *plugi
 		TypeName: inventory.TypeName,
 	}
 
-	var schemas []*ssm.InventoryItemSchema
+	paginator := ssm.NewGetInventorySchemaPaginator(svc, input, func(o *ssm.GetInventorySchemaPaginatorOptions) {
+		o.Limit = 200
+		o.StopOnDuplicateToken = true
+	})
 
-	err = svc.GetInventorySchemaPages(
-		input,
-		func(page *ssm.GetInventorySchemaOutput, isLast bool) bool {
+	var schemas []types.InventoryItemSchema
 
-			schemas = append(schemas, page.Schemas...)
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("getAwsSSMInventorySchema", "api_error", err)
-		return nil, err
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssm_inventory.getAwsSSMInventorySchema", "api_error", err)
+			return nil, err
+		}
+		schemas = append(schemas, output.Schemas...)
 	}
 
 	return schemas, nil
@@ -168,14 +175,13 @@ func getAwsSSMInventorySchema(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// UTILITY FUNCTION
 
-// Build ssm inventory list call input filter
-func buildSsmInventoryFilter(ctx context.Context, quals plugin.KeyColumnQualMap) *ssm.GetInventoryInput {
+// Build SSM inventory list call input filter
+func buildSSMInventoryFilter(ctx context.Context, quals plugin.KeyColumnQualMap) ssm.GetInventoryInput {
 
-	input := &ssm.GetInventoryInput{
-		MaxResults: aws.Int64(50),
+	input := ssm.GetInventoryInput{
+		MaxResults: aws.Int32(50),
 	}
-	inventoryFilter := &ssm.InventoryFilter{}
-	resultAttribute := &ssm.ResultAttribute{}
+	inventoryFilter := types.InventoryFilter{}
 
 	filterQuals := []string{"id", "type_name"}
 
@@ -185,22 +191,27 @@ func buildSsmInventoryFilter(ctx context.Context, quals plugin.KeyColumnQualMap)
 			for _, q := range quals[columnName].Quals {
 				switch columnName {
 				case "id":
-					inventoryFilter.Key = aws.String("AWS:InstanceInformation.InstanceId")
-					inventoryFilter.Values = []*string{aws.String(value.(string))}
+					input.Filters = []types.InventoryFilter{
+						{
+							Key:    aws.String("AWS:InstanceInformation.InstanceId"),
+							Values: []string{value.(string)},
+						},
+					}
 					if q.Operator == "=" {
-						inventoryFilter.Type = aws.String("Equal")
+						input.Filters[0].Type = types.InventoryQueryOperatorTypeEqual
 					} else if q.Operator == "<>" {
-						inventoryFilter.Type = aws.String("NotEqual")
+						input.Filters[0].Type = types.InventoryQueryOperatorTypeNotEqual
 					}
 					input.Filters = append(input.Filters, inventoryFilter)
+
 				case "type_name":
 					if q.Operator == "=" {
-						resultAttribute.TypeName = aws.String(value.(string))
-						input.ResultAttributes = append(input.ResultAttributes, resultAttribute)
+						input.ResultAttributes = []types.ResultAttribute{{TypeName: aws.String(value.(string))}}
 					}
 				}
 			}
 		}
 	}
+
 	return input
 }

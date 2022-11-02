@@ -6,8 +6,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -20,7 +21,7 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBSubnetGroupNotFoundFault"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBSubnetGroupNotFoundFault"}),
 			},
 			Hydrate: getRDSDBSubnetGroup,
 		},
@@ -98,46 +99,54 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBSubnetGroups")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_subnet_group.listRDSDBSubnetGroups", "connection_error", err)
 		return nil, err
 	}
 
-	input := &rds.DescribeDBSubnetGroupsInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeDBSubnetGroupsPages(
-		input,
-		func(page *rds.DescribeDBSubnetGroupsOutput, isLast bool) bool {
-			for _, dbSubnetGroup := range page.DBSubnetGroups {
-				d.StreamListItem(ctx, dbSubnetGroup)
+	input := &rds.DescribeDBSubnetGroupsInput{
+		MaxRecords: aws.Int32(maxLimit),
+	}
 
-				// Check if context has been cancelled or if the limit has been reached (if specified)
-				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := rds.NewDescribeDBSubnetGroupsPaginator(svc, input, func(o *rds.DescribeDBSubnetGroupsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_subnet_group.listRDSDBSubnetGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.DBSubnetGroups {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
@@ -147,8 +156,9 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_subnet_group.getRDSDBSubnetGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -156,8 +166,9 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		DBSubnetGroupName: aws.String(name),
 	}
 
-	op, err := svc.DescribeDBSubnetGroups(params)
+	op, err := svc.DescribeDBSubnetGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_subnet_group.getRDSDBSubnetGroup", "api_error", err)
 		return nil, err
 	}
 
@@ -168,13 +179,13 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 }
 
 func getRDSDBSubnetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRDSDBSubnetGroupTags")
 
-	dbSubnetGroup := h.Item.(*rds.DBSubnetGroup)
+	dbSubnetGroup := h.Item.(types.DBSubnetGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_subnet_group.getRDSDBSubnetGroupTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -182,8 +193,9 @@ func getRDSDBSubnetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin
 		ResourceName: dbSubnetGroup.DBSubnetGroupArn,
 	}
 
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_subnet_group.getRDSDBSubnetGroupTags", "api_error", err)
 		return nil, err
 	}
 

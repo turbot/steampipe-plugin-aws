@@ -3,8 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
+	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -89,45 +91,50 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTaggingResources")
-
 	// Create session
-	svc, err := TaggingResourceService(ctx, d)
+	svc, err := ResourceGroupsTaggingClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_tagging_resource.listTaggingResources", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &resourcegroupstaggingapi.GetResourcesInput{
-		ResourcesPerPage: aws.Int64(100),
+		ResourcesPerPage: aws.Int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.ResourcesPerPage {
-			if *limit < 1 {
-				input.ResourcesPerPage = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.ResourcesPerPage {
+			if limit < 1 {
+				input.ResourcesPerPage = aws.Int32(1)
 			} else {
-				input.ResourcesPerPage = limit
+				input.ResourcesPerPage = aws.Int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.GetResourcesPages(
-		input,
-		func(page *resourcegroupstaggingapi.GetResourcesOutput, isLast bool) bool {
-			for _, resource := range page.ResourceTagMappingList {
-				d.StreamListItem(ctx, resource)
+	paginator := resourcegroupstaggingapi.NewGetResourcesPaginator(svc, input, func(o *resourcegroupstaggingapi.GetResourcesPaginatorOptions) {
+		o.Limit = *input.ResourcesPerPage
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_tagging_resource.listTaggingResources", "api_error", err)
+			return nil, err
+		}
+
+		for _, resource := range output.ResourceTagMappingList {
+			d.StreamListItem(ctx, resource)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -135,22 +142,22 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// HYDRATE FUNCTIONS
 
 func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getTaggingResource")
-
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create session
-	svc, err := TaggingResourceService(ctx, d)
+	svc, err := ResourceGroupsTaggingClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_tagging_resource.getTaggingResource", "get_client_error", err)
 		return nil, err
 	}
 
 	param := &resourcegroupstaggingapi.GetResourcesInput{
-		ResourceARNList: []*string{&arn},
+		ResourceARNList: []string{arn},
 	}
 
-	op, err := svc.GetResources(param)
+	op, err := svc.GetResources(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_tagging_resource.getTaggingResource", "api_error", err)
 		return nil, err
 	}
 
@@ -164,8 +171,7 @@ func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// TRANSFORM FUNCTIONS
 
 func resourceTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("resourceTagListToTurbotTags")
-	tagList := d.Value.([]*resourcegroupstaggingapi.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
