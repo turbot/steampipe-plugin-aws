@@ -124,9 +124,9 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 			return nil, err
 		}
 
-		for _, items := range output.AssessmentTargetArns {
+		for _, item := range output.AssessmentTargetArns {
 			d.StreamListItem(ctx, &types.AssessmentTarget{
-				Arn: &items,
+				Arn: aws.String(item),
 			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit

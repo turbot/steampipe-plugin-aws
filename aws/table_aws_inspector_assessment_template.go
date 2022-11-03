@@ -183,9 +183,9 @@ func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, 
 			return nil, err
 		}
 
-		for _, items := range output.AssessmentTemplateArns {
+		for _, item := range output.AssessmentTemplateArns {
 			d.StreamListItem(ctx, &types.AssessmentTemplate{
-				Arn: &items,
+				Arn: aws.String(item),
 			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit

@@ -70,13 +70,11 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 				Name:        "ip_permissions",
 				Description: "A list of inbound rules associated with the security group",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleIpPermissionsEmptyResult),
 			},
 			{
 				Name:        "ip_permissions_egress",
 				Description: "A list of outbound rules associated with the security group",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleIpPermissionsEgressEmptyResult),
 			},
 			{
 				Name:        "tags_src",
@@ -236,42 +234,4 @@ func getVpcSecurityGroupTurbotTags(_ context.Context, d *transform.TransformData
 		return turbotTagsMap, nil
 	}
 	return nil, nil
-}
-
-func handleIpPermissionsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	securityGroutIpPermissions := d.HydrateItem.(types.SecurityGroup).IpPermissions
-	var permissions []types.IpPermission
-	for _, permission := range securityGroutIpPermissions {
-		if len(permission.IpRanges) < 1 {
-			permission.IpRanges = nil
-		}
-		if len(permission.Ipv6Ranges) < 1 {
-			permission.Ipv6Ranges = nil
-		}
-		if len(permission.PrefixListIds) < 1 {
-			permission.PrefixListIds = nil
-		}
-		permissions = append(permissions, permission)
-	}
-
-	return permissions, nil
-}
-
-func handleIpPermissionsEgressEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	securityGroutIpPermissionsEgress := d.HydrateItem.(types.SecurityGroup).IpPermissionsEgress
-	var permissions []types.IpPermission
-	for _, permission := range securityGroutIpPermissionsEgress {
-		if len(permission.UserIdGroupPairs) < 1 {
-			permission.UserIdGroupPairs = nil
-		}
-		if len(permission.Ipv6Ranges) < 1 {
-			permission.Ipv6Ranges = nil
-		}
-		if len(permission.PrefixListIds) < 1 {
-			permission.PrefixListIds = nil
-		}
-		permissions = append(permissions, permission)
-	}
-
-	return permissions, nil
 }

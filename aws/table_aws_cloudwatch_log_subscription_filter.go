@@ -180,7 +180,6 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 
 	for _, subscriptionFilter := range op.SubscriptionFilters {
 		if *subscriptionFilter.FilterName == name {
-			plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilter", "api_error", err)
 			return subscriptionFilter, nil
 		}
 	}

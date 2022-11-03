@@ -100,14 +100,13 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				Description: "A list of MFA devices attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserMfaDevices,
-				Transform:   transform.FromField("MFADevices").Transform(handleEmptyUserMfaDevices),
+				Transform:   transform.FromField("MFADevices"),
 			},
 			{
 				Name:        "groups",
 				Description: "A list of groups attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserGroups,
-				Transform:   transform.FromField("Groups").Transform(handleEmptyUserGroups),
 			},
 			{
 				Name:        "inline_policies",
@@ -505,22 +504,4 @@ func handleEmptyUserMfaStatus(_ context.Context, d *transform.TransformData) (in
 	}
 
 	return false, nil
-}
-
-func handleEmptyUserMfaDevices(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	mfaDevices, ok := d.Value.([]types.MFADevice)
-	if !ok || len(mfaDevices) == 0 {
-		return nil, nil
-	}
-
-	return mfaDevices, nil
-}
-
-func handleEmptyUserGroups(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	groups, ok := d.Value.([]types.Group)
-	if !ok || len(groups) == 0 {
-		return nil, nil
-	}
-
-	return groups, nil
 }

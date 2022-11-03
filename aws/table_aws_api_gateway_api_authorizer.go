@@ -146,7 +146,7 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	for _, authorizer := range op.Items {
-		d.StreamLeafListItem(ctx, &authorizerRowData{&authorizer, restAPI.Id})
+		d.StreamLeafListItem(ctx, &authorizerRowData{authorizer, restAPI.Id})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {

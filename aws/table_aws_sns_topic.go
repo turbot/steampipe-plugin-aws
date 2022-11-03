@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
-	snsTypes "github.com/aws/aws-sdk-go-v2/service/sns/types"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -188,7 +187,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Description: "The list of tags associated with the topic.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,
-				Transform:   transform.FromField("Tags").Transform(handleSNSTopicEmptyTags),
+				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "policy",
@@ -354,13 +353,4 @@ func handleSNSTopicTurbotTags(_ context.Context, d *transform.TransformData) (in
 	}
 
 	return turbotTagsMap, nil
-}
-
-func handleSNSTopicEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags, ok := d.Value.([]snsTypes.Tag)
-	if !ok || len(tags) == 0 {
-		return nil, nil
-	}
-
-	return tags, nil
 }

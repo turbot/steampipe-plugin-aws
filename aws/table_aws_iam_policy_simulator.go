@@ -90,7 +90,7 @@ type awsIamPolicySimulatorResult struct {
 	Action                            string
 	Decision                          *string
 	DecisionDetails                   map[string]types.PolicyEvaluationDecisionType
-	MatchedStatements                 *[]types.Statement
+	MatchedStatements                 []types.Statement
 	MissingContextValues              []string
 	OrganizationsDecisionDetail       *types.OrganizationsDecisionDetail
 	PermissionsBoundaryDecisionDetail *types.PermissionsBoundaryDecisionDetail
@@ -131,7 +131,7 @@ func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, _ *plugin
 		Action:                            action,
 		Decision:                          aws.String(string(resultForAction.EvalDecision)),
 		DecisionDetails:                   resultForAction.EvalDecisionDetails,
-		MatchedStatements:                 &resultForAction.MatchedStatements,
+		MatchedStatements:                 resultForAction.MatchedStatements,
 		MissingContextValues:              resultForAction.MissingContextValues,
 		OrganizationsDecisionDetail:       resultForAction.OrganizationsDecisionDetail,
 		PermissionsBoundaryDecisionDetail: resultForAction.PermissionsBoundaryDecisionDetail,

@@ -115,7 +115,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Description: "A list of tags attached with the IAM policy.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamPolicy,
-				Transform:   transform.FromField("Tags").Transform(handleIAMPolicyEmptyTags),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Standard columns for all tables
@@ -281,14 +281,6 @@ func handleIAMPolicyTurbotTags(_ context.Context, d *transform.TransformData) (i
 	}
 
 	return &turbotTagsMap, nil
-}
-
-func handleIAMPolicyEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags, ok := d.Value.([]types.Tag)
-	if ok || len(tags) == 0 {
-		return nil, nil
-	}
-	return d.Value, nil
 }
 
 func attachementCountToBool(_ context.Context, d *transform.TransformData) (interface{}, error) {

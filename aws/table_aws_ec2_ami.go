@@ -176,7 +176,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Description: "The users and groups that have the permissions for creating instances from the AMI.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2AmiLaunchPermissionData,
-				Transform:   transform.From(handleLaunchPermissionsEmptyData),
+				Transform:   transform.FromField("LaunchPermissions"),
 			},
 			{
 				Name:        "tags_src",
