@@ -229,7 +229,7 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS

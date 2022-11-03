@@ -48,7 +48,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				{Name: "virtualization_type", Require: plugin.Optional},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,

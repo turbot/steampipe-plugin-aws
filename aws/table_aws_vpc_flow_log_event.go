@@ -5,8 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -71,7 +70,7 @@ func tableAwsVpcFlowLogEvent(_ context.Context) *plugin.Table {
 }
 
 func getMessageField(_ context.Context, _ *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	e := h.Item.(*cloudwatchlogs.FilteredLogEvent)
+	e := h.Item.(types.FilteredLogEvent)
 	fields := strings.Fields(*e.Message)
 	return fields, nil
 }

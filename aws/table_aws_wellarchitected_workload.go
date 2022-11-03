@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -189,6 +188,10 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		plugin.Logger(ctx).Error("aws_wellarchitected_workload.listWellArchitectedWorkloads", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(50)
@@ -224,13 +227,6 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wellarchitected_workload.listWellArchitectedWorkloads", "api_error", err)
-
-			// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-			// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
-
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			return nil, err
 		}
 
@@ -264,6 +260,10 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("aws_wellarchitected_workload.getWellArchitectedWorkload", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &wellarchitected.GetWorkloadInput{
 		WorkloadId: aws.String(id),
@@ -272,11 +272,6 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 	op, err := svc.GetWorkload(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wellarchitected_workload.getWellArchitectedWorkload", "api_error", err)
-		// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-		// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		return nil, err
 	}
 

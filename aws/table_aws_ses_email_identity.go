@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -78,7 +77,7 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Create Session
 	svc, err := SESClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ses_email_identity.listSESEmailIdentities", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_ses_email_identity.listSESEmailIdentities", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -127,7 +126,7 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS

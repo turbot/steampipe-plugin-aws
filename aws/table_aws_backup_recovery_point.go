@@ -162,6 +162,10 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 		plugin.Logger(ctx).Error("aws_backup_recovery_point.listAwsBackupRecoveryPoints", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Unsupported region check
 	if svc == nil {
@@ -236,6 +240,10 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_backup_recovery_point.getAwsBackupRecoveryPoint", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Unsupported region check

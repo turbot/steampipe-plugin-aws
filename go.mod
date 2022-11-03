@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.49
-	github.com/aws/aws-sdk-go-v2 v1.16.16
+	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.21
 	github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.16.0
@@ -26,6 +26,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.14
 	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.13.6
 	github.com/aws/aws-sdk-go-v2/service/codebuild v1.19.13
+	github.com/aws/aws-sdk-go-v2/service/codecommit v1.13.17
 	github.com/aws/aws-sdk-go-v2/service/codedeploy v1.14.16
 	github.com/aws/aws-sdk-go-v2/service/codepipeline v1.13.15
 	github.com/aws/aws-sdk-go-v2/service/configservice v1.26.1
@@ -52,6 +53,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/firehose v1.14.19
 	github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14
 	github.com/aws/aws-sdk-go-v2/service/glacier v1.13.17
+	github.com/aws/aws-sdk-go-v2/service/globalaccelerator v1.15.2
 	github.com/aws/aws-sdk-go-v2/service/glue v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/guardduty v1.15.9
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
@@ -70,6 +72,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0
 	github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
+	github.com/aws/aws-sdk-go-v2/service/pinpoint v1.17.10
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/ram v1.16.18
 	github.com/aws/aws-sdk-go-v2/service/rds v1.26.1
@@ -81,22 +84,24 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/route53resolver v1.15.19
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9
-	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.46.0
+	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.48.0
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.23.5
 	github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository v1.11.17
+	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.13.18
 	github.com/aws/aws-sdk-go-v2/service/ses v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.14.1
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.15.11
+	github.com/aws/aws-sdk-go-v2/service/sts v1.16.19
 	github.com/aws/aws-sdk-go-v2/service/waf v1.11.17
 	github.com/aws/aws-sdk-go-v2/service/wafregional v1.12.18
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.22.9
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.16.11
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.23.0
-	github.com/aws/smithy-go v1.13.3
+	github.com/aws/smithy-go v1.13.4
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2
 	github.com/turbot/go-kit v0.4.0
@@ -112,8 +117,8 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.8 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.17 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.23 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.17 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.25 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.19 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.24 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
@@ -123,7 +128,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.23 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.6 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.16.19 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bradfitz/gomemcache v0.0.0-20220106215444-fb4bf637b56d // indirect
 	github.com/btubbs/datetime v0.1.1 // indirect

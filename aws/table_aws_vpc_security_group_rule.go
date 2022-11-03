@@ -2,11 +2,11 @@ package aws
 
 import (
 	"context"
-	"strings"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/go-kit/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -16,10 +16,13 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc_security_group_rule",
 		Description: "AWS VPC Security Group Rule",
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidGroup.NotFound", "InvalidSecurityGroupRuleId.Malformed", "InvalidSecurityGroupRuleId.NotFound"}),
+		},
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("security_group_rule_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidSecurityGroupRuleId.Malformed", "InvalidSecurityGroupRuleId.NotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidGroup.NotFound", "InvalidSecurityGroupRuleId.Malformed", "InvalidSecurityGroupRuleId.NotFound"}),
 			},
 			Hydrate: getSecurityGroupRule,
 		},
@@ -207,61 +210,59 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listSecurityGroupRules", "AWS_REGION", region)
-
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.listSecurityGroupRules", "connection_error", err)
 		return nil, err
-	}
-
-	// Additonal Filter
-	// As per API Docs MaxResults value can be between 5 and 1000
-	input := &ec2.DescribeSecurityGroupRulesInput{
-		MaxResults: aws.Int64(1000),
 	}
 
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = types.Int64(5)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			// As per API Docs MaxResults value can be between 5 and 1000
+			if limit < 5 {
+				maxLimit = int32(5)
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
+
+	input := &ec2.DescribeSecurityGroupRulesInput{}
 
 	groupId := d.KeyColumnQuals["group_id"].GetStringValue()
 	if groupId != "" {
-		paramFilter := &ec2.Filter{
-			Name:   aws.String("group-id"),
-			Values: []*string{aws.String(groupId)},
+		input.Filters = []types.Filter{
+			{
+				Name:   aws.String("group-id"),
+				Values: []string{groupId},
+			},
 		}
-		input.Filters = []*ec2.Filter{paramFilter}
 	}
 
-	// List call
-	err = svc.DescribeSecurityGroupRulesPages(
-		input,
-		func(page *ec2.DescribeSecurityGroupRulesOutput, isLast bool) bool {
-			for _, securityGroupRule := range page.SecurityGroupRules {
-				d.StreamListItem(ctx, securityGroupRule)
+	paginator := ec2.NewDescribeSecurityGroupRulesPaginator(svc, input, func(o *ec2.DescribeSecurityGroupRulesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_security_group_rule.listSecurityGroupRules", "api_error", err)
+			return nil, err
+		}
+
+		for _, securityGroupRule := range output.SecurityGroupRules {
+			d.StreamListItem(ctx, securityGroupRule)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("listSecurityGroupRules", "list", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -270,9 +271,6 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSecurityGroupRule")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	ruleID := d.KeyColumnQuals["security_group_rule_id"].GetStringValue()
 
 	// check if rule id is empty
@@ -281,20 +279,21 @@ func getSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getSecurityGroupRule", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeSecurityGroupRulesInput{
-		SecurityGroupRuleIds: []*string{aws.String(ruleID)},
+		SecurityGroupRuleIds: []string{ruleID},
 	}
 
 	// Get call
-	op, err := svc.DescribeSecurityGroupRules(params)
+	op, err := svc.DescribeSecurityGroupRules(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getSecurityGroupRule", "get", err)
+		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getSecurityGroupRule", "api_error", err)
 		return nil, err
 	}
 
@@ -306,29 +305,24 @@ func getSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSecurityGroupDetails")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	sgRule := h.Item.(*ec2.SecurityGroupRule)
+	sgRule := h.Item.(types.SecurityGroupRule)
 
 	// Build the params
 	params := &ec2.DescribeSecurityGroupsInput{
-		GroupIds: []*string{aws.String(*sgRule.GroupId)},
+		GroupIds: []string{*sgRule.GroupId},
 	}
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getSecurityGroupDetails", "connection_error", err)
 		return nil, err
 	}
 
-	op, err := svc.DescribeSecurityGroups(params)
+	op, err := svc.DescribeSecurityGroups(ctx, params)
 	if err != nil {
-		// Unlikely, but handle any NotFound errors
-		if strings.Contains(err.Error(), "InvalidGroup.NotFound") {
-			return nil, nil
-		}
-		plugin.Logger(ctx).Error("getSecurityGroupDetails", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getSecurityGroupDetails", "api_error", err)
 		return nil, err
 	}
 
@@ -340,34 +334,26 @@ func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin
 }
 
 func getReferencedSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getReferencedSecurityGroupDetails")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	sgRule := h.Item.(*ec2.SecurityGroupRule)
-
+	sgRule := h.Item.(types.SecurityGroupRule)
 	if sgRule.ReferencedGroupInfo == nil {
 		return nil, nil
 	}
 
 	// Build the params
 	params := &ec2.DescribeSecurityGroupsInput{
-		GroupIds: []*string{aws.String(*sgRule.ReferencedGroupInfo.GroupId)},
+		GroupIds: []string{*sgRule.ReferencedGroupInfo.GroupId},
 	}
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getReferencedSecurityGroupDetails", "connection_error", err)
 		return nil, err
 	}
 
-	op, err := svc.DescribeSecurityGroups(params)
+	op, err := svc.DescribeSecurityGroups(ctx, params)
 	if err != nil {
-		// If the referenced security group is in another account, a NotFound error
-		// will be returned
-		if strings.Contains(err.Error(), "InvalidGroup.NotFound") {
-			plugin.Logger(ctx).Error("getReferencedSecurityGroupDetails", "ERROR", err)
-			return nil, nil
-		}
+		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getReferencedSecurityGroupDetails", "api_error", err)
 		return nil, err
 	}
 
@@ -379,18 +365,20 @@ func getReferencedSecurityGroupDetails(ctx context.Context, d *plugin.QueryData,
 }
 
 func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	sgRule := h.Item.(*ec2.SecurityGroupRule)
+	sgRule := h.Item.(types.SecurityGroupRule)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getSecurityGroupRuleTurbotData", "common_data_error", err)
 		return nil, err
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create a unique AKA
+
 	hashCode := "_" + *sgRule.IpProtocol
 	if *sgRule.IsEgress {
 		hashCode = "egress" + hashCode
@@ -399,7 +387,7 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	if sgRule.FromPort != nil {
-		hashCode = hashCode + "_" + types.IntToString(sgRule.FromPort) + "_" + types.IntToString(sgRule.ToPort)
+		hashCode = fmt.Sprintf("%s_%d_%d", hashCode, sgRule.FromPort, sgRule.ToPort)
 	}
 
 	if sgRule.CidrIpv4 != nil {

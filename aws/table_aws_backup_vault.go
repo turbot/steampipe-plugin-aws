@@ -119,6 +119,10 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_backup_vault.listAwsBackupVaults", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Unsupported region check
 	if svc == nil {
@@ -177,6 +181,10 @@ func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVault", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Unsupported region check
 	if svc == nil {
@@ -212,6 +220,11 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+	
 	name := vaultID(h.Item)
 
 	params := &backup.GetBackupVaultNotificationsInput{
@@ -244,6 +257,11 @@ func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *
 		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultAccessPolicy", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	name := vaultID(h.Item)
 	params := &backup.GetBackupVaultAccessPolicyInput{
 		BackupVaultName: aws.String(name),

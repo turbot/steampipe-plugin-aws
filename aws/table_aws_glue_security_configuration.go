@@ -21,7 +21,7 @@ func tableAwsGlueSecurityConfiguration(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueSecurityConfiguration,
 		},

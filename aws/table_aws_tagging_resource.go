@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi/types"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -20,7 +19,7 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 			Hydrate:    getTaggingResource,
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterException"}),
 			},
 		},
 		List: &plugin.ListConfig{

@@ -236,6 +236,10 @@ func listAwsSSMDocuments(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_ssm_document.listAwsSSMDocuments", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	maxItems := int32(50)
 	input := &ssm.ListDocumentsInput{}
@@ -300,6 +304,10 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocument", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Empty name input check
 	if strings.TrimSpace(name) == "" {
@@ -334,6 +342,10 @@ func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentPermissionDetail", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
