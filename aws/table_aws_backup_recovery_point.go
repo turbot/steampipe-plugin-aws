@@ -31,6 +31,13 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 			ParentHydrate: listAwsBackupVaults,
 			Hydrate:       listAwsBackupRecoveryPoints,
 			KeyColumns: []*plugin.KeyColumn{
+				// API throws error Error: InvalidParameterValueException: Unsupported resource type: arn:aws:ec2:us-east-1::snapshot/snap-03ba1ca215342e331 by passing recovery point arn to list API param
+				// Issue raise in AWS SDK V2 https://github.com/aws/aws-sdk-go-v2/issues/1904
+
+				// {
+				// 	Name:    "recovery_point_arn",
+				// 	Require: plugin.Optional,
+				// },
 				{
 					Name:    "resource_type",
 					Require: plugin.Optional,
