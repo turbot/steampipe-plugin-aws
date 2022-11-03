@@ -27,7 +27,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 			},
 			Hydrate: listRoute53Records,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchHostedZone"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchHostedZone", "InvalidInput"}),
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -180,22 +180,6 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, record := range op.ResourceRecordSets {
-			// The StartRecordName and StartRecordType input parameters only tell
-			// the API where to start when returning results, so any records/types
-			// that are greater in lexicographic order will also be returned.
-			// Since Postgres will filter on exact matches anyway, check for exact
-			// matches as an optimization to reduce the number of requests.
-
-			if input.StartRecordName != nil && *record.Name != *input.StartRecordName {
-				plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record name", "input.StartRecordName", *input.StartRecordName, "record.Name", *record.Name)
-				continue
-			}
-
-			if string(input.StartRecordType) != "" && record.Type != input.StartRecordType {
-				plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record type", "input.StartRecordType", input.StartRecordType, "record.Type", record.Type)
-				continue
-			}
-
 			d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
