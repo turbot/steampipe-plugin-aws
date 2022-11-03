@@ -13,7 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// AWS SDK Migration from V1 to V2 using middleware
+// AWS SDK v1 to v2 migration isusing middleware
 // due to https://github.com/aws/aws-sdk-go-v2/issues/1884
 
 //// TABLE DEFINITION
