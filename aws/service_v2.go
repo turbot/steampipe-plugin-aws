@@ -1352,18 +1352,18 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 	}
 
 	// Get the partition of the AWS account plugin is connected to
-	if cachedData, ok := d.ConnectionManager.Cache.Get("getAccountPartition"); ok {
-		partitionName = cachedData.(string)
+	if cachedData, ok := d.ConnectionManager.Cache.Get("getCommonColumns"); ok {
+		partitionName = cachedData.(*awsCommonColumnData).Partition
 	}
 
-	// If partition name is not available, try to fetch it from "STS GetCallerIdentity" API
+	// If partition name is not available in cache, try to fetch it from "STS GetCallerIdentity" API
 	if partitionName == "" {
-		// Using WithCache to avoid making repeated calls to fetch partition in parallel
-		getCachedAccountPartition := plugin.HydrateFunc(getAccountPartition).WithCache()
-		// Ignoring the errors as we don't want plugin to fail if unable to determine the partitions
-		// Instead below switch statment will set AWS commercial as the default partition
-		partitionData, _ := getCachedAccountPartition(ctx, d, nil)
-		partitionName, _ = partitionData.(string)
+		commonColumnData, err := getCommonColumns(ctx, d, nil)
+		if err != nil {
+			plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition name", err)
+			return nil, err
+		}
+		partitionName = commonColumnData.(*awsCommonColumnData).Partition
 	}
 
 	// Get AWS partition based on the partition name
@@ -1379,7 +1379,8 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 	case endpoints.AwsIsoBPartitionID:
 		partition = endpoints.AwsIsoBPartition()
 	default:
-		partition = endpoints.AwsPartition()
+		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition", fmt.Errorf("%s is a invalid partition", partitionName))
+		return nil, fmt.Errorf("GetSupportedRegionsForClient:: '%s' is a invalid partition", partitionName)
 	}
 
 	var validRegions []string
@@ -1388,7 +1389,7 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 	services := partition.Services()
 	serviceInfo, ok := services[serviceId]
 	if !ok {
-		return nil, fmt.Errorf("SupportedRegionsForClient called with invalid service ID: " + serviceId)
+		return nil, fmt.Errorf("SupportedRegionsForClient called with invalid service ID: %s", serviceId)
 	}
 
 	regions := serviceInfo.Regions()

@@ -19,7 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/backup"
-	"github.com/aws/aws-sdk-go/service/securityhub"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -34,17 +33,6 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 		return nil, nil
 	}
 	return backup.New(sess), nil
-}
-
-func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.SecurityHub, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, securityhub.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
-	}
-	return securityhub.New(sess), nil
 }
 
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {

@@ -146,23 +146,3 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	d.ConnectionManager.Cache.Set(cacheKey, callerIdentity)
 	return callerIdentity, nil
 }
-
-func getAccountPartition(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	cacheKey := "getAccountPartition"
-
-	// if found in cache, return the result
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.(string), nil
-	}
-
-	commonData, err := getCommonColumns(ctx, d, nil)
-	if err != nil {
-		plugin.Logger(ctx).Error("getAccountPartition", "common_data_error", err)
-		// If error or some other issue return default partition(i.e. AWS commercial)
-		return "aws", nil
-	}
-
-	// save to cache
-	d.ConnectionManager.Cache.Set(cacheKey, commonData.(*awsCommonColumnData).Partition)
-	return commonData.(*awsCommonColumnData).Partition, nil
-}
