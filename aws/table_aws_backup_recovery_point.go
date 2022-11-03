@@ -167,11 +167,6 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, nil
 	}
 
-	// Unsupported region check
-	if svc == nil {
-		return nil, nil
-	}
-
 	// Limiting the results
 	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
@@ -243,11 +238,6 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 	if svc == nil {
 		// Unsupported region, return no data
-		return nil, nil
-	}
-
-	// Unsupported region check
-	if svc == nil {
 		return nil, nil
 	}
 
