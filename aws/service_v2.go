@@ -986,6 +986,7 @@ func SecurityHubClient(ctx context.Context, d *plugin.QueryData) (*securityhub.C
 }
 
 // Added for using middleware for migrating table "aws_securityhub_member"
+// See https://github.com/aws/aws-sdk-go-v2/issues/1884#issuecomment-1278567756 for more info
 func SecurityHubClientConfig(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.EndpointsID)
 	if err != nil {
@@ -1341,12 +1342,12 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 }
 
 // GetSupportedRegionsForClient lists valid regions for a service based on service ID
-func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceId string) ([]string, error) {
+func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceID string) ([]string, error) {
 	var partitionName string
 	var partition endpoints.Partition
 
 	// If valid regions list is already available in cache, return it
-	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
+	cacheKey := fmt.Sprintf("supported-regions-%s", serviceID)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.([]string), nil
 	}
@@ -1379,17 +1380,17 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 	case endpoints.AwsIsoBPartitionID:
 		partition = endpoints.AwsIsoBPartition()
 	default:
-		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition", fmt.Errorf("%s is a invalid partition", partitionName))
-		return nil, fmt.Errorf("GetSupportedRegionsForClient:: '%s' is a invalid partition", partitionName)
+		plugin.Logger(ctx).Error("service_v2.GetSupportedRegionsForClient", "invalid_partition_error", fmt.Errorf("%s is an invalid partition", partitionName))
+		return nil, fmt.Errorf("service_v2.GetSupportedRegionsForClient:: '%s' is an invalid partition", partitionName)
 	}
 
 	var validRegions []string
 
 	// Get the list of the service regions based on the service ID
 	services := partition.Services()
-	serviceInfo, ok := services[serviceId]
+	serviceInfo, ok := services[serviceID]
 	if !ok {
-		return nil, fmt.Errorf("SupportedRegionsForClient called with invalid service ID: %s", serviceId)
+		return nil, fmt.Errorf("service_v2.SupportedRegionsForClient called with invalid service ID: %s", serviceID)
 	}
 
 	regions := serviceInfo.Regions()
