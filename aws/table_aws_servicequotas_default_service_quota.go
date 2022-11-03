@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/servicequotas"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
+	"github.com/aws/aws-sdk-go-v2/service/servicequotas/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -16,23 +17,27 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_servicequotas_default_service_quota",
 		Description: "AWS ServiceQuotas Default Service Quota",
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
+		},
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"service_code", "quota_code", "region"}),
+			KeyColumns: plugin.AllColumns([]string{"service_code", "quota_code"}),
+			Hydrate:    getDefaultServiceQuota,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResourceException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
 			},
-			Hydrate: getDefaultServiceQuota,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listDefaultServiceQuotas,
+			ParentHydrate: listServiceQuotasService,
+			Hydrate:       listDefaultServiceQuotas,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResourceException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildServiceQuotasServicesRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "quota_name",
@@ -112,60 +117,103 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 	}
 }
 
-//// LIST FUNCTION
+//// PARENT HYDRATE FUNCTION
 
-func listDefaultServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listDefaultServiceQuotas")
-
+func listServiceQuotasService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
-		return nil, err
+		plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.listServiceQuotasService", "connection_error", err)
 	}
-
-	matrixServiceCode := d.KeyColumnQualString(matrixKeyServiceCode)
-	serviceCode := d.KeyColumnQuals["service_code"].GetStringValue()
-
-	// Filter the serviceCode if user provided value for it
-	if serviceCode != "" && serviceCode != matrixServiceCode {
+	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
+	input := &servicequotas.ListServicesInput{
+		MaxResults: aws.Int32(100),
+	}
+
+	paginator := servicequotas.NewListServicesPaginator(svc, input, func(o *servicequotas.ListServicesPaginatorOptions) {
+		o.Limit = 100
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.listServiceQuotasService", "api_error", err)
+			return nil, err
+		}
+
+		for _, service := range output.Services {
+			d.StreamListItem(ctx, service)
+		}
+	}
+
+	return nil, nil
+}
+
+//// LIST FUNCTION
+
+func listDefaultServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	service := h.Item.(types.ServiceInfo)
+
+	// Create Session
+	svc, err := ServiceQuotasClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.listDefaultServiceQuotas", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	serviceCode := d.KeyColumnQuals["service_code"].GetStringValue()
+	// Filter the serviceCode if user provided value for it
+	if serviceCode != "" && serviceCode != *service.ServiceCode {
+		return nil, nil
+	}
+
+	maxItems := int32(100)
 	input := &servicequotas.ListAWSDefaultServiceQuotasInput{
-		MaxResults:  aws.Int64(100),
-		ServiceCode: aws.String(matrixServiceCode),
+		ServiceCode: service.ServiceCode,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = 1
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListAWSDefaultServiceQuotasPages(
-		input,
-		func(page *servicequotas.ListAWSDefaultServiceQuotasOutput, isLast bool) bool {
-			for _, quota := range page.Quotas {
-				d.StreamListItem(ctx, quota)
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := servicequotas.NewListAWSDefaultServiceQuotasPaginator(svc, input, func(o *servicequotas.ListAWSDefaultServiceQuotasPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.listDefaultServiceQuotas", "api_error", err)
+			return nil, err
+		}
+
+		for _, quota := range output.Quotas {
+			d.StreamListItem(ctx, quota)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listDefaultServiceQuotas", "list", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -174,28 +222,24 @@ func listDefaultServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugi
 //// HYDRATE FUNCTIONS
 
 func getDefaultServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDefaultServiceQuota")
 
 	quotaCode := d.KeyColumnQuals["quota_code"].GetStringValue()
 	serviceCode := d.KeyColumnQuals["service_code"].GetStringValue()
-	region := d.KeyColumnQuals["region"].GetStringValue()
 
 	// check if quotaCode or serviceCode or region is empty
-	if quotaCode == "" || serviceCode == "" || region == "" {
-		return nil, nil
-	}
-
-	// Filter the serviceCode and region with the provided value
-	matrixServiceCode := d.KeyColumnQualString(matrixKeyServiceCode)
-	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
-	if serviceCode != matrixServiceCode || region != matrixRegion {
+	if quotaCode == "" || serviceCode == "" {
 		return nil, nil
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.getDefaultServiceQuota", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -205,11 +249,11 @@ func getDefaultServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Get call
-	data, err := svc.GetAWSDefaultServiceQuota(params)
+	data, err := svc.GetAWSDefaultServiceQuota(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getDefaultServiceQuota", "get", err)
+		plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.getDefaultServiceQuota", "api_error", err)
 		return nil, err
 	}
 
-	return data.Quota, nil
+	return *data.Quota, nil
 }

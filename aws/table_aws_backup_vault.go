@@ -116,6 +116,10 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &backup.ListBackupVaultsInput{
 		MaxResults: aws.Int64(1000),
@@ -158,6 +162,10 @@ func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	var name string
 	if h.Item != nil {
@@ -186,6 +194,10 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 	name := vaultID(h.Item)
 
 	params := &backup.GetBackupVaultNotificationsInput{
@@ -210,6 +222,11 @@ func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	name := vaultID(h.Item)
 	params := &backup.GetBackupVaultAccessPolicyInput{
 		BackupVaultName: aws.String(name),

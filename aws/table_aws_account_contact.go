@@ -148,6 +148,7 @@ func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

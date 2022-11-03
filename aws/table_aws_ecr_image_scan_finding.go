@@ -21,7 +21,7 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrImageScanFindings,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
 			},
 			// Ideally image_tag and image_digest could both be used as optional
 			// key columns, but the query planner only works with required key
