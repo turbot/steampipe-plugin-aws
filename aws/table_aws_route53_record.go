@@ -23,6 +23,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "zone_id", Require: plugin.Required},
 				{Name: "name", Require: plugin.Optional},
+				{Name: "set_identifier", Require: plugin.Optional},
 				{Name: "type", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53Records,
@@ -170,9 +171,16 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if equalQuals["name"] != nil {
 		input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
 
-		// Constraint: Specifying record type without specifying record name returns an InvalidInput error
+		// Specifying record type without specifying record name returns an
+		// InvalidInput error
 		if equalQuals["type"] != nil {
 			input.StartRecordType = route53Types.RRType(equalQuals["type"].GetStringValue())
+
+			// Specifying record identifier without specifying record name and type
+			// returns an InvalidInput error
+			if equalQuals["set_identifier"] != nil {
+				input.StartRecordIdentifier = aws.String(equalQuals["set_identifier"].GetStringValue())
+			}
 		}
 	}
 
