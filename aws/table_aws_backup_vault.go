@@ -119,7 +119,7 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_backup_vault.listAwsBackupVaults", "connection_error", err)
 		return nil, err
 	}
-	
+
 	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil

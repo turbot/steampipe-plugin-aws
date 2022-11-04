@@ -245,7 +245,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultAwsRegion(d)
+	defaultRegion := getDefaultAwsRegion(d)
 
 	// Get client
 	svc, err := S3Client(ctx, d, defaultRegion)
@@ -279,7 +279,7 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 // do not have a get call for s3 bucket.
 // using list api call to create get function
 func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultAwsRegion(d)
+	defaultRegion := getDefaultAwsRegion(d)
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create client
@@ -346,7 +346,7 @@ func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.Q
 
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucket := h.Item.(types.Bucket)
-	defaultRegion := GetDefaultAwsRegion(d)
+	defaultRegion := getDefaultAwsRegion(d)
 
 	// Create client
 	svc, err := S3Client(ctx, d, defaultRegion)
