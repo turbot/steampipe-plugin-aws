@@ -2,9 +2,7 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
@@ -334,34 +332,6 @@ func getEc2AmiTurbotTags(_ context.Context, d *transform.TransformData) (interfa
 	}
 
 	return &turbotTagsMap, nil
-}
-
-func handleLaunchPermissionsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-
-	imageData := d.HydrateItem.(*ec2.DescribeImageAttributeOutput)
-
-	if len(imageData.LaunchPermissions) < 1 {
-		return nil, nil
-	}
-
-	var launchPermissions []LaunchPermissions
-
-	for _, permission := range imageData.LaunchPermissions {
-
-		launchPermission := &LaunchPermissions{
-			OrganizationArn:       permission.OrganizationArn,
-			OrganizationalUnitArn: permission.OrganizationalUnitArn,
-			UserId:                permission.UserId,
-		}
-		if permission.Group == "" {
-			launchPermission.Group = nil
-		} else {
-			launchPermission.Group = aws.String(fmt.Sprint(permission.Group))
-		}
-
-		launchPermissions = append(launchPermissions, *launchPermission)
-	}
-	return launchPermissions, nil
 }
 
 func getEc2AmiTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
