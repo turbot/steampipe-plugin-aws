@@ -157,11 +157,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			if limit < 1 {
-				maxItems = int32(1)
-			} else {
-				maxItems = int32(limit)
-			}
+			maxItems = int32(limit)
 		}
 	}
 
@@ -180,8 +176,8 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 	}
 
-	// v2 new Paginator is not avilable for the API in SDK as of data.
-	// Instead using generic way to do pagination
+	// Paginator is not supported in AWS SDK v2 as of 2022/11/04
+	// So we use generic pagination handling instead
 	for {
 		op, err := svc.ListResourceRecordSets(ctx, input)
 		if err != nil {
@@ -198,12 +194,12 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 			}
 		}
 
-		// Check if the result is trucated due to page size
-		if op.IsTruncated {
-			input.StartRecordName = op.NextRecordName
-		} else {
+		// Check if the result is truncated due to page size
+		if !op.IsTruncated {
 			break
 		}
+
+		input.StartRecordName = op.NextRecordName
 	}
 
 	return nil, nil
