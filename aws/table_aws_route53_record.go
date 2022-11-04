@@ -190,7 +190,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, record := range op.ResourceRecordSets {
-			d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
+			d.StreamListItem(ctx, &recordInfo{aws.String(hostedZoneID), record})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
