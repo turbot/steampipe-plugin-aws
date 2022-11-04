@@ -33,7 +33,7 @@ func tableAwsCloudwatchLogEvent(_ context.Context) *plugin.Table {
 			Hydrate:    listCloudwatchLogEvents,
 			KeyColumns: tableAwsCloudwatchLogEventListKeyColumns(),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,

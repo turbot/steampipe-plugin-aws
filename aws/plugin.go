@@ -22,7 +22,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		DefaultTransform: transform.FromCamel(),
 		DefaultGetConfig: &plugin.GetConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{
 					"NoSuchEntity",
 					"NotFoundException",
 					"ResourceNotFoundException",

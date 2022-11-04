@@ -19,7 +19,7 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("execution_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameter", "ExecutionDoesNotExist", "InvalidArn"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ExecutionDoesNotExist", "InvalidArn"}),
 			},
 			Hydrate: getStepFunctionsStateMachineExecution,
 		},

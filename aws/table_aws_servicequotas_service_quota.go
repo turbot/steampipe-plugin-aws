@@ -18,20 +18,20 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 		Name:        "aws_servicequotas_service_quota",
 		Description: "AWS ServiceQuotas Service Quota",
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
+			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 		},
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"service_code", "quota_code"}),
 			Hydrate:    getServiceQuota,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listServiceQuotasService,
 			Hydrate:       listServiceQuotas,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},

@@ -22,7 +22,7 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"arn"}),
 			Hydrate:    getIamSamlProvider,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchEntity"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchEntity"}),
 			},
 		},
 		List: &plugin.ListConfig{

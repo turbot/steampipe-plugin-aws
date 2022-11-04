@@ -19,7 +19,7 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 		Description: "AWS CodeCommit Repository",
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter"}),
 			},
 			Hydrate: listCodeCommitRepositories,
 		},

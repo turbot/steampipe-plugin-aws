@@ -21,7 +21,7 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getLightsailInstance,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidResourceName", "DoesNotExist"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidResourceName", "DoesNotExist"}),
 			},
 		},
 		List: &plugin.ListConfig{

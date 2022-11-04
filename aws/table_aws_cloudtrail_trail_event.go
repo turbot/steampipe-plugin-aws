@@ -25,7 +25,7 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 			Hydrate:    listCloudwatchLogTrailEvents,
 			KeyColumns: tableAwsCloudtrailEventsListKeyColumns(),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,

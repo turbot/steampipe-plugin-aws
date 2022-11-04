@@ -22,14 +22,14 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cluster_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ClusterNotFoundFault", "ServiceLinkedRoleNotFoundFault"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundFault", "ServiceLinkedRoleNotFoundFault"}),
 			},
 			Hydrate: getDaxCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDaxClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{

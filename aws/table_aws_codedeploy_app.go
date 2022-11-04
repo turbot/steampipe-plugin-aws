@@ -20,7 +20,7 @@ func tableAwsCodeDeployApplication(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("application_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ApplicationDoesNotExistException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ApplicationDoesNotExistException"}),
 			},
 			Hydrate: getCodeDeployApplication,
 		},

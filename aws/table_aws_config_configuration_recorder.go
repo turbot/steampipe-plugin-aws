@@ -17,7 +17,7 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchConfigurationRecorderException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchConfigurationRecorderException"}),
 			},
 			Hydrate: getConfigConfigurationRecorder,
 		},

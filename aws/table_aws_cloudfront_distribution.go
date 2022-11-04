@@ -20,7 +20,7 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchDistribution"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchDistribution"}),
 			},
 			Hydrate: getCloudFrontDistribution,
 		},

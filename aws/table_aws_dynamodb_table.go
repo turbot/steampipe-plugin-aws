@@ -16,12 +16,12 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 		Name:        "aws_dynamodb_table",
 		Description: "AWS DynamoDB Table",
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"TableNotFoundException"}),
+			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"TableNotFoundException"}),
 		},
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getDynamboDbTable,
 		},
