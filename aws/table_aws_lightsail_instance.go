@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-
 	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/lightsail/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -22,7 +21,7 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getLightsailInstance,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidResourceName", "DoesNotExist"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidResourceName", "DoesNotExist"}),
 			},
 		},
 		List: &plugin.ListConfig{

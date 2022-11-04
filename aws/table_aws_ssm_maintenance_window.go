@@ -172,6 +172,10 @@ func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *pl
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.listAwsSSMMaintenanceWindow", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	maxItems := int32(100)
 	input := &ssm.DescribeMaintenanceWindowsInput{}
@@ -241,6 +245,10 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.getAwsSSMMaintenanceWindow", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Build the params
 	params := &ssm.GetMaintenanceWindowInput{
@@ -265,6 +273,10 @@ func getMaintenanceWindowTargets(ctx context.Context, d *plugin.QueryData, h *pl
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.getMaintenanceWindowTargets", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -291,6 +303,10 @@ func getMaintenanceWindowTasks(ctx context.Context, d *plugin.QueryData, h *plug
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.getMaintenanceWindowTasks", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Build the params
 	params := &ssm.DescribeMaintenanceWindowTasksInput{
@@ -315,6 +331,10 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.getAwsSSMMaintenanceWindowTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params

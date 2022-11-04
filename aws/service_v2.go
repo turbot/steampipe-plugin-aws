@@ -32,6 +32,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codecommit"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
@@ -58,6 +59,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/firehose"
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/glacier"
+	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -76,6 +78,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/networkfirewall"
 	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
@@ -91,20 +94,20 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
+	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
-
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
@@ -112,11 +115,14 @@ import (
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
 	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
 	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
+	codecommitEndpoint "github.com/aws/aws-sdk-go/service/codecommit"
 	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
 	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
+	dynamodbEndpoint "github.com/aws/aws-sdk-go/service/dynamodb"
 	eksEndpoint "github.com/aws/aws-sdk-go/service/eks"
 	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	emrEndpoint "github.com/aws/aws-sdk-go/service/emr"
 	eventbridgeEndpoint "github.com/aws/aws-sdk-go/service/eventbridge"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
@@ -130,15 +136,21 @@ import (
 	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
 	mediastoreEndpoint "github.com/aws/aws-sdk-go/service/mediastore"
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
+	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
 	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
+	servicequotasEndpoint "github.com/aws/aws-sdk-go/service/servicequotas"
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
+	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	wafregionalEnpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
+	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
 	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -160,7 +172,7 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 }
 
 func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
-	cfg, err := getClient(ctx, d, "Account")
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
@@ -283,6 +295,17 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
+}
+
+func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codecommitEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return codecommit.NewFromConfig(*cfg), nil
 }
 
 func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudformation.Client, error) {
@@ -456,9 +479,12 @@ func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error
 }
 
 func DynamoDBClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, dynamodbEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return dynamodb.NewFromConfig(*cfg), nil
 }
@@ -574,9 +600,12 @@ func ElasticsearchClient(ctx context.Context, d *plugin.QueryData) (*elasticsear
 }
 
 func EMRClient(ctx context.Context, d *plugin.QueryData) (*emr.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, emrEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return emr.NewFromConfig(*cfg), nil
 }
@@ -620,6 +649,16 @@ func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, e
 		return nil, nil
 	}
 	return glacier.NewFromConfig(*cfg), nil
+}
+
+func GlobalAcceleratorClient(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.Client, error) {
+	// Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
+	// the us-west-2 (Oregon) Region to create or update accelerators.
+	cfg, err := getClient(ctx, d, "us-west-2")
+	if err != nil {
+		return nil, err
+	}
+	return globalaccelerator.NewFromConfig(*cfg), nil
 }
 
 func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) {
@@ -799,6 +838,17 @@ func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organization
 	return organizations.NewFromConfig(*cfg), nil
 }
 
+func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, pinpointEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return pinpoint.NewFromConfig(*cfg), nil
+}
+
 func PricingServiceClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
@@ -935,6 +985,19 @@ func SecurityHubClient(ctx context.Context, d *plugin.QueryData) (*securityhub.C
 	return securityhub.NewFromConfig(*cfg), nil
 }
 
+// Added for using middleware for migrating table "aws_securityhub_member"
+// See https://github.com/aws/aws-sdk-go-v2/issues/1884#issuecomment-1278567756 for more info
+func SecurityHubClientConfig(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cfg, nil
+}
+
 func SESClient(ctx context.Context, d *plugin.QueryData) (*ses.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, sesEndpoint.EndpointsID)
 	if err != nil {
@@ -957,6 +1020,17 @@ func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryD
 	return serverlessapplicationrepository.NewFromConfig(*cfg), nil
 }
 
+func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, servicequotasEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return servicequotas.NewFromConfig(*cfg), nil
+}
+
 func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -974,9 +1048,12 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 }
 
 func SSMClient(ctx context.Context, d *plugin.QueryData) (*ssm.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return ssm.NewFromConfig(*cfg), nil
 }
@@ -987,6 +1064,17 @@ func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 		return nil, err
 	}
 	return sqs.NewFromConfig(*cfg), nil
+}
+
+func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
+	// TODO - Should STS be regional instead?
+	// By default, the AWS Security Token Service (AWS STS) is available as a global service, and all AWS STS requests go to a single endpoint at https://sts.amazonaws.com. AWS recommends using Regional AWS STS endpoints instead of the global endpoint to reduce latency, build in redundancy, and increase session token validity.
+	// https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return sts.NewFromConfig(*cfg), nil
 }
 
 func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
@@ -1021,7 +1109,7 @@ func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.C
 }
 
 func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
-	validRegions, err := SupportedRegionsForService(ctx, d, wafv2Enpoint.EndpointsID)
+	validRegions, err := GetSupportedRegionsForClient(ctx, d, wafv2Enpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -1039,9 +1127,12 @@ func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv
 }
 
 func WellArchitectedClient(ctx context.Context, d *plugin.QueryData) (*wellarchitected.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wellarchitectedEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return wellarchitected.NewFromConfig(*cfg), nil
 }
@@ -1116,10 +1207,9 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
-
-	validRegions, err := SupportedRegionsForService(ctx, d, serviceID)
+	validRegions, err := GetSupportedRegionsForClient(ctx, d, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -1138,7 +1228,7 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
 	return getClient(ctx, d, region)
 }
@@ -1249,4 +1339,66 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	}
 
 	return retryTime, nil
+}
+
+// GetSupportedRegionsForClient lists valid regions for a service based on service ID
+func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceID string) ([]string, error) {
+	var partitionName string
+	var partition endpoints.Partition
+
+	// If valid regions list is already available in cache, return it
+	cacheKey := fmt.Sprintf("supported-regions-%s", serviceID)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.([]string), nil
+	}
+
+	// Get the partition of the AWS account plugin is connected to
+	if cachedData, ok := d.ConnectionManager.Cache.Get("getCommonColumns"); ok {
+		partitionName = cachedData.(*awsCommonColumnData).Partition
+	}
+
+	// If partition name is not available in cache, try to fetch it from "STS GetCallerIdentity" API
+	if partitionName == "" {
+		commonColumnData, err := getCommonColumns(ctx, d, nil)
+		if err != nil {
+			plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition name", err)
+			return nil, err
+		}
+		partitionName = commonColumnData.(*awsCommonColumnData).Partition
+	}
+
+	// Get AWS partition based on the partition name
+	switch partitionName {
+	case endpoints.AwsPartitionID:
+		partition = endpoints.AwsPartition()
+	case endpoints.AwsCnPartitionID:
+		partition = endpoints.AwsCnPartition()
+	case endpoints.AwsIsoPartitionID:
+		partition = endpoints.AwsIsoPartition()
+	case endpoints.AwsUsGovPartitionID:
+		partition = endpoints.AwsUsGovPartition()
+	case endpoints.AwsIsoBPartitionID:
+		partition = endpoints.AwsIsoBPartition()
+	default:
+		plugin.Logger(ctx).Error("service_v2.GetSupportedRegionsForClient", "invalid_partition_error", fmt.Errorf("%s is an invalid partition", partitionName))
+		return nil, fmt.Errorf("service_v2.GetSupportedRegionsForClient:: '%s' is an invalid partition", partitionName)
+	}
+
+	var validRegions []string
+
+	// Get the list of the service regions based on the service ID
+	services := partition.Services()
+	serviceInfo, ok := services[serviceID]
+	if !ok {
+		return nil, fmt.Errorf("service_v2.SupportedRegionsForClient called with invalid service ID: %s", serviceID)
+	}
+
+	regions := serviceInfo.Regions()
+	for rs := range regions {
+		validRegions = append(validRegions, rs)
+	}
+
+	// Save valid regions in the cache
+	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
+	return validRegions, nil
 }

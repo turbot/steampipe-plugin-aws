@@ -28,6 +28,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 					"ResourceNotFoundException",
 					"InvalidParameter",
 					"InvalidParameterValue",
+					"InvalidParameterException",
 					"InvalidParameterValueException",
 					"ValidationError",
 					"ValidationException",
