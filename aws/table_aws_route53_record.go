@@ -152,26 +152,36 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, nil
 	}
 
+	maxItems := int32(100)
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
+	}
+
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: aws.String(hostedZoneID),
-		MaxItems:     aws.Int32(1000),
+		MaxItems:     aws.Int32(maxItems),
 	}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
-		if equalQuals["name"].GetStringValue() != "" {
-			input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
-		}
-	}
-	if equalQuals["type"] != nil {
-		// StartRecordType has a constraint that it must be used with StartRecordName
-		if equalQuals["type"].GetStringValue() != "" && input.StartRecordName != nil {
+		input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
+
+		// Constraint: Specifying record type without specifying record name returns an InvalidInput error
+		if equalQuals["type"] != nil {
 			input.StartRecordType = route53Types.RRType(equalQuals["type"].GetStringValue())
 		}
 	}
 
-	// Paginator not avilable for the in v2, till date 09/30/2022
-	// Also, API doesn't support paging. Therfore not handling limit for the function
+	// v2 new Paginator is not avilable for the API in SDK as of data.
+	// Instead using generic way to do pagination
 	for {
 		op, err := svc.ListResourceRecordSets(ctx, input)
 		if err != nil {
@@ -188,11 +198,9 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 			}
 		}
 
-		if op.NextRecordIdentifier != nil {
-			input.StartRecordIdentifier = op.NextRecordIdentifier
-		} else if op.NextRecordName != nil && string(op.NextRecordType) != "" {
+		// Check if the result is trucated due to page size
+		if op.IsTruncated {
 			input.StartRecordName = op.NextRecordName
-			input.StartRecordType = op.NextRecordType
 		} else {
 			break
 		}
