@@ -27,7 +27,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 			},
 			Hydrate: listRoute53Records,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchHostedZone", "InvalidInput"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchHostedZone"}),
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -199,7 +199,15 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 			break
 		}
 
-		input.StartRecordName = op.NextRecordName
+		if op.NextRecordName != nil {
+			input.StartRecordName = op.NextRecordName
+		}
+		if op.NextRecordType != "" {
+			input.StartRecordType = op.NextRecordType
+		}
+		if op.NextRecordIdentifier != nil {
+			input.StartRecordIdentifier = op.NextRecordIdentifier
+		}
 	}
 
 	return nil, nil
