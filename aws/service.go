@@ -1206,7 +1206,6 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 	if err != nil {
 		return nil, err
 	}
-	plugin.Logger(ctx).Info("getClientForQuerySupportedRegion", serviceID, validRegions)
 
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
