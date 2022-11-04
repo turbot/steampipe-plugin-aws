@@ -22,7 +22,7 @@ func tableAwsEmrInstanceFleet(_ context.Context) *plugin.Table {
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstanceFleets,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidRequestException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
