@@ -20,7 +20,7 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("hub_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAccessException", "ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException", "ResourceNotFoundException"}),
 			},
 			Hydrate: getSecurityHub,
 		},

@@ -19,7 +19,7 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameter", "NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "NotFoundException"}),
 			},
 			Hydrate: getServerlessApplicationRepositoryApplication,
 		},

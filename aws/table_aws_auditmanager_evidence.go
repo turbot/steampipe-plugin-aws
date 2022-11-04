@@ -29,7 +29,7 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "evidence_folder_id", "assessment_id", "control_set_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: getAuditManagerEvidence,
 		},

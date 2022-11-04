@@ -66,7 +66,7 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 
 	// Retrieve regions list from the AWS plugin steampipe connection config
 	awsConfig := GetConfig(d.Connection)
-	defaultAwsRegion := GetDefaultAwsRegion(d)
+	defaultAwsRegion := getDefaultAwsRegion(d)
 
 	// If regions are not mentioned in the plugin steampipe connection config
 	// get the default aws region and prepare the matrix
@@ -146,7 +146,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 
 	defaultRegions := awsCommercialRegions
 
-	defaultRegion := GetDefaultAwsRegion(d)
+	defaultRegion := getDefaultAwsRegion(d)
 	if strings.HasPrefix(defaultRegion, "us-gov") {
 		defaultRegions = awsUsGovRegions
 	} else if strings.HasPrefix(defaultRegion, "cn") {

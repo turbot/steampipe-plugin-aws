@@ -17,7 +17,7 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "StateMachineDoesNotExist", "InvalidArn"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "StateMachineDoesNotExist", "InvalidArn"}),
 			},
 			Hydrate: getStepFunctionsStateMachine,
 		},

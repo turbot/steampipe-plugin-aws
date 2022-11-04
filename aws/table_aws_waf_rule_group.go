@@ -21,7 +21,7 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"rule_group_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NonexistentItemException", "WAFNonexistentItemException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NonexistentItemException", "WAFNonexistentItemException"}),
 			},
 			Hydrate: getWafRuleGroup,
 		},

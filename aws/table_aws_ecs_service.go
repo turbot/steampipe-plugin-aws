@@ -22,7 +22,7 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 			Hydrate:       listEcsServices,
 			ParentHydrate: listEcsClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ClusterNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,

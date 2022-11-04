@@ -20,7 +20,7 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("job_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getMacie2ClassificationJob,
 		},

@@ -22,14 +22,14 @@ func tableAwsGlueConnection(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"EntityNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueConnection,
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"connection_type"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
 			},
 			Hydrate: listGlueConnections,
 		},

@@ -21,7 +21,7 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudWatchMetrics,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{

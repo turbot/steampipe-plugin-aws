@@ -21,7 +21,7 @@ func tableAwsRDSDBEventSubscription(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cust_subscription_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"SubscriptionNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionNotFound"}),
 			},
 			Hydrate: getRDSDBEventSubscription,
 		},

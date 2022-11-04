@@ -19,7 +19,7 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("replication_group_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
 			},
 			Hydrate: getElastiCacheReplicationGroup,
 		},

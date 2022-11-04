@@ -21,7 +21,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 			Hydrate:       listEcsTasks,
 			ParentHydrate: listEcsClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ClusterNotFoundException", "ServiceNotFoundException", "InvalidParameterException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundException", "ServiceNotFoundException", "InvalidParameterException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{

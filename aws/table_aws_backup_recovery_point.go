@@ -23,7 +23,7 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"backup_vault_name", "recovery_point_arn"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAwsBackupRecoveryPoint,
 		},

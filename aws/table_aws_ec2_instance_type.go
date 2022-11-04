@@ -22,7 +22,7 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("instance_type"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInstanceType"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInstanceType"}),
 			},
 			Hydrate: describeInstanceType,
 		},

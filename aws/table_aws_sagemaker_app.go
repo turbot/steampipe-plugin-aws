@@ -22,7 +22,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
 			},
 			Hydrate: getSageMakerApp,
 		},

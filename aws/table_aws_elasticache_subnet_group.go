@@ -19,7 +19,7 @@ func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cache_subnet_group_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"CacheSubnetGroupNotFoundFault"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CacheSubnetGroupNotFoundFault"}),
 			},
 			Hydrate: getElastiCacheSubnetGroup,
 		},

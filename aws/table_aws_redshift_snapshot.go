@@ -21,7 +21,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("snapshot_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ClusterSnapshotNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterSnapshotNotFound"}),
 			},
 			Hydrate: getRedshiftSnapshot,
 		},

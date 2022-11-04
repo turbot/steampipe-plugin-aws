@@ -20,7 +20,7 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
 			},
 			Hydrate: getAwsSageMakerDomain,
 		},

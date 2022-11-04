@@ -21,7 +21,7 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBSubnetGroupNotFoundFault"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBSubnetGroupNotFoundFault"}),
 			},
 			Hydrate: getRDSDBSubnetGroup,
 		},

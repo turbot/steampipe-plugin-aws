@@ -19,7 +19,7 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("service_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidServiceName"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidServiceName"}),
 			},
 			Hydrate: getVpcEndpointService,
 		},

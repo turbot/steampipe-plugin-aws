@@ -21,7 +21,7 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getHealthCheck,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchHealthCheck"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHealthCheck"}),
 			},
 		},
 		List: &plugin.ListConfig{

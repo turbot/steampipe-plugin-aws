@@ -20,7 +20,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("app_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationException", "NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException"}),
 			},
 			Hydrate: getAmplifyApp,
 		},

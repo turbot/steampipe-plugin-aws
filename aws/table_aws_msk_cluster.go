@@ -21,7 +21,7 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getKafkaCluster(string(types.ClusterTypeProvisioned)),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{

@@ -20,7 +20,7 @@ func tableAwsElastiCacheReservedCacheNode(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("reserved_cache_node_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ReservedCacheNodeNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReservedCacheNodeNotFound"}),
 			},
 			Hydrate: getElastiCacheReservedCacheNode,
 		},

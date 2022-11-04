@@ -21,7 +21,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("subscription_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 			},
 			Hydrate: getSubscriptionAttributes,
 		},
@@ -29,7 +29,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 			Hydrate: listAwsSnsTopicSubscriptions,
 		},
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFound", "InvalidParameter"}),
+			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{

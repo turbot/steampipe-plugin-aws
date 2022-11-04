@@ -22,7 +22,7 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ListenerNotFound", "LoadBalancerNotFound", "ValidationError"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ListenerNotFound", "LoadBalancerNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2LoadBalancerListener,
 		},

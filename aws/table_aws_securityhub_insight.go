@@ -21,13 +21,13 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getSecurityHubInsight,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "InvalidInputException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidInputException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubInsights,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,

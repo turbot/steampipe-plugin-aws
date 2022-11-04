@@ -22,7 +22,7 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"rest_api_id", "id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getRestAPIAuthorizer,
 		},
@@ -146,7 +146,7 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	for _, authorizer := range op.Items {
-		d.StreamLeafListItem(ctx, &authorizerRowData{&authorizer, restAPI.Id})
+		d.StreamLeafListItem(ctx, &authorizerRowData{authorizer, restAPI.Id})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {

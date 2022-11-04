@@ -19,19 +19,19 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 		Name:        "aws_servicequotas_service_quota_change_request",
 		Description: "AWS ServiceQuotas Service Quota Change Request",
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
+			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getServiceQuotaChangeRequest,
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceQuotaChangeRequests,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchResourceException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},

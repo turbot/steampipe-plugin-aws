@@ -25,7 +25,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("name"),
 			// DescribeBackupVault API returns AccessDeniedException instead of a not found error when it is called for vaults that do not exist
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameter", "AccessDeniedException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "AccessDeniedException"}),
 			},
 			Hydrate: getAwsBackupVault,
 		},
@@ -119,7 +119,7 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_backup_vault.listAwsBackupVaults", "connection_error", err)
 		return nil, err
 	}
-	
+
 	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil

@@ -20,13 +20,13 @@ func tableAwsSecurityHubActionTarget(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getSecurityHubActionTarget,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubActionTargets,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,

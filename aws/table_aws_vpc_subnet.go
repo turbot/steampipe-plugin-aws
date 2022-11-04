@@ -18,7 +18,7 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("subnet_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
 			},
 			Hydrate: getVpcSubnet,
 		},
@@ -118,7 +118,6 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 				Name:        "ipv6_cidr_block_association_set",
 				Description: "A list of IPv6 CIDR blocks associated with the subnet.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleEmptyIpv6CidrBlockAssociationSet),
 			},
 			{
 				Name:        "tags_src",
@@ -268,16 +267,6 @@ func getVpcSubnetTurbotTags(_ context.Context, d *transform.TransformData) (inte
 	}
 
 	return &turbotTagsMap, nil
-}
-
-func handleEmptyIpv6CidrBlockAssociationSet(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	ipv6CidrBlockAssociationSet := d.HydrateItem.(types.Subnet).Ipv6CidrBlockAssociationSet
-
-	if len(ipv6CidrBlockAssociationSet) > 0 {
-		return ipv6CidrBlockAssociationSet, nil
-	}
-
-	return nil, nil
 }
 
 func getSubnetTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
