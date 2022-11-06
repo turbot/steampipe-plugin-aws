@@ -39,6 +39,7 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				{Name: "title", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "verification_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "workflow_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "workflow_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
@@ -140,8 +141,14 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "workflow_state",
-				Description: "The workflow state of a finding.",
+				Description: "DEPRECATED. The workflow state of a finding.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "workflow_status",
+				Description: "The workflow status of a finding.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Workflow.Status"),
 			},
 			{
 				Name:        "standards_control_arn",
@@ -367,7 +374,7 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFin
 	securityFindingsFilter := &types.AwsSecurityFindingFilters{}
 	strFilter := types.StringFilter{}
 
-	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state"}
+	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state", "workflow_status"}
 
 	for _, s := range strColumns {
 		if quals[s] == nil {
@@ -414,6 +421,9 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFin
 			case "workflow_state":
 				strFilter.Value = aws.String(value)
 				securityFindingsFilter.WorkflowState = append(securityFindingsFilter.WorkflowState, strFilter)
+			case "workflow_status":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.WorkflowStatus = append(securityFindingsFilter.WorkflowStatus, strFilter)
 			}
 
 		}

@@ -134,7 +134,7 @@ where
    updated_at >= now() - interval '30' day;
 ```
 
-### List findings with assigned workflow state
+### DEPRECATED, List findings with assigned workflow state
 
 ```sql
 select
@@ -147,6 +147,21 @@ from
   aws_securityhub_finding
 where 
   workflow_state = 'ASSIGNED';
+```
+
+### List findings with NOTIFIED workflow status
+
+```sql
+select
+  title,
+  id,
+  product_arn,
+  product_name,
+  workflow_status
+from
+  aws_securityhub_finding
+where 
+  workflow_status = 'NOTIFIED';
 ```
 
 ### Get network detail for a particular finding
