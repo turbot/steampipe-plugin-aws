@@ -21,7 +21,7 @@ func tableAwsDaxSubnetGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listDaxSubnetGroups,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"SubnetGroupNotFoundFault"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubnetGroupNotFoundFault"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{

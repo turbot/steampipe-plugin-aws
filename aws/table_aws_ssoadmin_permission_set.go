@@ -167,7 +167,7 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 
 		for _, items := range output.PermissionSets {
 			d.StreamListItem(ctx, &PermissionSetItem{
-				InstanceArn:      &instanceArn,
+				InstanceArn:      aws.String(instanceArn),
 				PermissionSetArn: aws.String(items),
 			})
 

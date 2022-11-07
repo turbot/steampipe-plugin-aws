@@ -22,7 +22,7 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getSecurityHubFinding,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAccessException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -41,7 +41,7 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				{Name: "workflow_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAccessException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,

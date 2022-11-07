@@ -159,6 +159,10 @@ func listSsmManagedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin
 		plugin.Logger(ctx).Error("aws_ssm_managed_instance.listSsmManagedInstances", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	maxItems := int32(50)
 	input := &ssm.DescribeInstanceInformationInput{}

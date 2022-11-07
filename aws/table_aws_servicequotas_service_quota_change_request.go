@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
-	"strings"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/servicequotas"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
+	"github.com/aws/aws-sdk-go-v2/service/servicequotas/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -17,17 +18,20 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 	return &plugin.Table{
 		Name:        "aws_servicequotas_service_quota_change_request",
 		Description: "AWS ServiceQuotas Service Quota Change Request",
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
+		},
 		Get: &plugin.GetConfig{
+			Hydrate:    getServiceQuotaChangeRequest,
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResourceException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 			},
-			Hydrate: getServiceQuotaChangeRequest,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceQuotaChangeRequests,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResourceException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},
@@ -142,55 +146,60 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 //// LIST FUNCTION
 
 func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listServiceQuotaChangeRequests")
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.listServiceQuotaChangeRequests", "connection_error", err)
 		return nil, err
 	}
-
-	input := &servicequotas.ListRequestedServiceQuotaChangeHistoryInput{
-		MaxResults: aws.Int64(100),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
+	maxItems := int32(100)
+	input := &servicequotas.ListRequestedServiceQuotaChangeHistoryInput{}
 	if d.KeyColumnQuals["service_code"] != nil {
 		input.ServiceCode = aws.String(d.KeyColumnQuals["service_code"].GetStringValue())
 	}
 	if d.KeyColumnQuals["status"] != nil {
-		input.Status = aws.String(d.KeyColumnQuals["status"].GetStringValue())
+		input.Status = types.RequestStatus(d.KeyColumnQuals["status"].GetStringValue())
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = 1
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListRequestedServiceQuotaChangeHistoryPages(
-		input,
-		func(page *servicequotas.ListRequestedServiceQuotaChangeHistoryOutput, isLast bool) bool {
-			for _, requestedQuota := range page.RequestedQuotas {
-				d.StreamListItem(ctx, requestedQuota)
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := servicequotas.NewListRequestedServiceQuotaChangeHistoryPaginator(svc, input, func(o *servicequotas.ListRequestedServiceQuotaChangeHistoryPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.listServiceQuotaChangeRequests", "api_error", err)
+			return nil, err
+		}
+
+		for _, requestedQuota := range output.RequestedQuotas {
+			d.StreamListItem(ctx, requestedQuota)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listServiceQuotaChangeRequests", "list", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -199,7 +208,6 @@ func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h 
 //// HYDRATE FUNCTIONS
 
 func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getServiceQuotaChangeRequest")
 
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
@@ -209,9 +217,14 @@ func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.getServiceQuotaChangeRequest", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -220,24 +233,28 @@ func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Get call
-	data, err := svc.GetRequestedServiceQuotaChange(params)
+	data, err := svc.GetRequestedServiceQuotaChange(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("getServiceQuotaChangeRequest", "get", err)
 		return nil, err
 	}
 
-	return data.RequestedQuota, nil
+	return *data.RequestedQuota, nil
 }
 
 func getServiceQuotaChangeRequestTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getServiceQuotaChangeRequestTags")
 
-	quota := h.Item.(*servicequotas.RequestedServiceQuotaChange)
+	quota := h.Item.(types.RequestedServiceQuotaChange)
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.getServiceQuotaChangeRequestTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -245,12 +262,9 @@ func getServiceQuotaChangeRequestTags(ctx context.Context, d *plugin.QueryData, 
 		ResourceARN: quota.QuotaArn,
 	}
 
-	data, err := svc.ListTagsForResource(params)
+	data, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		if strings.Contains(err.Error(), "NoSuchResourceException") {
-			return nil, nil
-		}
-		plugin.Logger(ctx).Error("getServiceQuotaChangeRequestTags", "error", err)
+		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.getServiceQuotaChangeRequestTags", "api_error", err)
 		return nil, err
 	}
 
@@ -258,35 +272,30 @@ func getServiceQuotaChangeRequestTags(ctx context.Context, d *plugin.QueryData, 
 }
 
 func getServiceQuotaChangeRequestAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getServiceQuotaChangeRequestAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	data := h.Item.(*servicequotas.RequestedServiceQuotaChange)
+	data := h.Item.(types.RequestedServiceQuotaChange)
 
 	// Get common columns
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.getServiceQuotaChangeRequestAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
+	arn := fmt.Sprintf("arn:/%s:servicequotas:%s:%s:changeRequest/%s", commonColumnData.Partition, region, commonColumnData.AccountId, *data.Id)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":servicequotas:" + region + ":" + commonColumnData.AccountId + ":changeRequest/" + *data.Id}
-
-	return akas, nil
+	return []string{arn}, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
 func serviceQuotaChangeRequestTagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("serviceQuotaChangeRequestTagsToTurbotTags")
-	tags := d.HydrateItem.([]*servicequotas.Tag)
+	tags := d.HydrateItem.([]types.Tag)
 
-	if tags == nil {
-		return nil, nil
-	}
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if tags != nil {
+	if len(tags) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tags {
 			turbotTagsMap[*i.Key] = *i.Value

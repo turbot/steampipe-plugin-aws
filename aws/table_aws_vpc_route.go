@@ -20,7 +20,7 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 		// Get: &plugin.GetConfig{
 		// 	KeyColumns:        plugin.SingleColumn("route_table_id"),
 		// IgnoreConfig: &plugin.IgnoreConfig{
-		// 	ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
+		// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
 		// }
 		// 	Hydrate:           getAwsVpcRoute,
 		// },

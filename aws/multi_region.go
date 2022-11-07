@@ -2,20 +2,16 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/servicequotas"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 const matrixKeyRegion = "region"
-const matrixKeyServiceCode = "serviceCode"
 
 type RegionsData struct {
 	AllRegions      []string
@@ -70,7 +66,7 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 
 	// Retrieve regions list from the AWS plugin steampipe connection config
 	awsConfig := GetConfig(d.Connection)
-	defaultAwsRegion := GetDefaultAwsRegion(d)
+	defaultAwsRegion := getDefaultAwsRegion(d)
 
 	// If regions are not mentioned in the plugin steampipe connection config
 	// get the default aws region and prepare the matrix
@@ -124,18 +120,6 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 	return matrix
 }
 
-func getInvalidRegions(regions []string, d *plugin.QueryData) []string {
-	awsRegions := getAllAwsRegions()
-
-	invalidRegions := []string{}
-	for _, region := range regions {
-		if !helpers.StringSliceContains(awsRegions, region) {
-			invalidRegions = append(invalidRegions, region)
-		}
-	}
-	return invalidRegions
-}
-
 // BuildWafRegionList :: return a list of matrix items for AWS WAF resources, one per region specified in the connection config
 func BuildWafRegionList(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
 	var regionMatrix []map[string]interface{}
@@ -162,7 +146,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 
 	defaultRegions := awsCommercialRegions
 
-	defaultRegion := GetDefaultAwsRegion(d)
+	defaultRegion := getDefaultAwsRegion(d)
 	if strings.HasPrefix(defaultRegion, "us-gov") {
 		defaultRegions = awsUsGovRegions
 	} else if strings.HasPrefix(defaultRegion, "cn") {
@@ -182,7 +166,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 	// We can query EC2 for the list of supported regions. If credentials
 	// are insufficient this query will retry many times, so we create
 	// a special client with a small number of retries to prevent hangs.
-	svc, err := Ec2RegionsService(ctx, d, defaultRegion)
+	svc, err := EC2RegionsClient(ctx, d, defaultRegion)
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache
@@ -195,7 +179,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 	}
 
 	// execute list call
-	resp, err := svc.DescribeRegions(params)
+	resp, err := svc.DescribeRegions(ctx, params)
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		d.ConnectionManager.Cache.Set(cacheKey, data)
@@ -226,151 +210,4 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 	// save to extension cache
 	d.ConnectionManager.Cache.Set(cacheKey, data)
 	return data, err
-}
-
-func unique(stringSlice []string) []string {
-	keys := make(map[string]bool)
-	list := []string{}
-	for _, entry := range stringSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
-}
-
-func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, serviceId string) ([]string, error) {
-	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]string), nil
-	}
-
-	var validRegions []string
-	services := endpoints.AwsPartition().Services()
-	serviceInfo, ok := services[serviceId]
-	if !ok {
-		return nil, fmt.Errorf("SupportedRegionsForService called with invalid service ID: " + serviceId)
-	}
-
-	regions := serviceInfo.Regions()
-	for rs := range regions {
-		validRegions = append(validRegions, rs)
-	}
-
-	// set cache
-	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
-	return validRegions, nil
-}
-
-// BuildServiceQuotasServicesRegionList :: return a list of matrix items, one per region-services specified in the connection config
-func BuildServiceQuotasServicesRegionList(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
-
-	// cache servicequotas services region matrix
-	cacheKey := "ServiceQuotasServicesRegionList"
-
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]map[string]interface{})
-	}
-
-	// get all the services
-	services, err := listServiceQuotasServices(ctx, d)
-	if err != nil {
-		panic(err)
-	}
-
-	defaultAwsRegion := GetDefaultAwsRegion(d)
-	regionData, _ := listRegions(ctx, d)
-	var allRegions []string
-
-	// retrieve regions from connection config
-	awsConfig := GetConfig(d.Connection)
-	// Get only the regions as required by config file
-	if awsConfig.Regions != nil {
-		for _, pattern := range awsConfig.Regions {
-			for _, validRegion := range regionData.AllRegions {
-				if ok, _ := path.Match(pattern, validRegion); ok {
-					allRegions = append(allRegions, validRegion)
-				}
-			}
-		}
-	}
-
-	if len(allRegions) > 0 {
-		uniqueRegions := unique(allRegions)
-
-		if len(getInvalidRegions(uniqueRegions, nil)) > 0 {
-			panic("\n\nConnection config has invalid regions: " + strings.Join(getInvalidRegions(uniqueRegions, nil), ", "))
-		}
-
-		// Remove inactive regions from the list
-		finalRegions := helpers.StringSliceDiff(uniqueRegions, regionData.NotOptedRegions)
-
-		matrix := make([]map[string]interface{}, len(finalRegions)*len(services))
-		for i, region := range finalRegions {
-			for j, service := range services {
-				matrix[len(services)*i+j] = map[string]interface{}{
-					matrixKeyRegion:      region,
-					matrixKeyServiceCode: *service.ServiceCode,
-				}
-				plugin.Logger(ctx).Debug("listServiceQuotasServices Matrix", (len(services)*i)+j, matrix[len(services)*i+j])
-			}
-		}
-
-		// set ServiceQuotasServicesRegionList cache
-		d.ConnectionManager.Cache.Set(cacheKey, matrix)
-
-		return matrix
-	}
-
-	defaultMatrix := make([]map[string]interface{}, len(services))
-	for j, service := range services {
-		defaultMatrix[j] = map[string]interface{}{
-			matrixKeyRegion:      defaultAwsRegion,
-			matrixKeyServiceCode: *service.ServiceCode,
-		}
-		plugin.Logger(ctx).Debug("listServiceQuotasServices Matrix", j, defaultMatrix[j])
-	}
-
-	// set ServiceQuotasServicesRegionList cache
-	d.ConnectionManager.Cache.Set(cacheKey, defaultMatrix)
-
-	return defaultMatrix
-}
-
-func listServiceQuotasServices(ctx context.Context, d *plugin.QueryData) ([]*servicequotas.ServiceInfo, error) {
-	plugin.Logger(ctx).Trace("listServiceQuotasServices")
-
-	serviceCacheKey := "listServiceQuotasServices"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.([]*servicequotas.ServiceInfo), nil
-	}
-
-	// Create Session
-	svc, err := ServiceQuotasService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	services := []*servicequotas.ServiceInfo{}
-	input := &servicequotas.ListServicesInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	// List call
-	err = svc.ListServicesPages(
-		input,
-		func(page *servicequotas.ListServicesOutput, isLast bool) bool {
-			services = append(services, page.Services...)
-			return !isLast
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// save services in cache
-	d.ConnectionManager.Cache.Set(serviceCacheKey, services)
-
-	return services, err
 }

@@ -63,6 +63,13 @@ resource "aws_iam_role" "my_role" {
   })
 }
 
+# arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess policy is AWS defined so we need not to create a separate policy for it. Which have full read access to ECR service
+resource "aws_iam_policy_attachment" "ecr_full_access_policy_attach" {
+  name       = var.resource_name
+  roles      = [aws_iam_role.my_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
+}
+
 resource "aws_sagemaker_notebook_instance" "named_test_resource" {
   name = var.resource_name
   role_arn = aws_iam_role.my_role.arn

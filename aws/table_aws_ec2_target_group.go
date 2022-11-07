@@ -21,14 +21,14 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("target_group_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"LoadBalancerNotFound", "TargetGroupNotFound", "ValidationError"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"LoadBalancerNotFound", "TargetGroupNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2TargetGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TargetGroups,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"TargetGroupNotFound", "ValidationError"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"TargetGroupNotFound", "ValidationError"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "target_group_name", Require: plugin.Optional},
@@ -128,7 +128,6 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 				Description: "Contains information about the health of the target.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2TargetGroupTargetHealthDescription,
-				Transform:   transform.From(handleTargetHealthDescriptionsEmptyValue),
 			},
 			{
 				Name:        "tags_src",
@@ -311,16 +310,6 @@ func targetGroupTagsToTurbotTags(_ context.Context, d *transform.TransformData) 
 	}
 
 	return turbotTagsMap, nil
-}
-
-func handleTargetHealthDescriptionsEmptyValue(_ context.Context, d *transform.TransformData) (interface{}, error) {
-
-	healthDescriptions := d.HydrateItem.(*elasticloadbalancingv2.DescribeTargetHealthOutput)
-	if len(healthDescriptions.TargetHealthDescriptions) > 0 {
-		return healthDescriptions.TargetHealthDescriptions, nil
-	}
-
-	return nil, nil
 }
 
 func targetGroupRawTags(_ context.Context, d *transform.TransformData) (interface{}, error) {

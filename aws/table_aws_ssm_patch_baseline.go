@@ -22,7 +22,7 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("baseline_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
 			},
 			Hydrate: getPatchBaseline,
 		},
@@ -175,6 +175,10 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		plugin.Logger(ctx).Error("aws_ssm_patch_baseline.describePatchBaselines", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Build the params
 	// Adding a filter to filter out all the predefined patch baseline, that does not belongs to the user or account
@@ -249,6 +253,10 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		plugin.Logger(ctx).Error("aws_ssm_patch_baseline.getPatchBaseline", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Build the params
 	params := &ssm.GetPatchBaselineInput{
@@ -273,6 +281,10 @@ func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_patch_baseline.getAwsSSMPatchBaselineTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	baselineIDSplitted := strings.Split(baselineId, "/")

@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -97,14 +99,14 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 	logGroup := h.Item.(types.LogGroup)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.listCloudwatchLogSubscriptionFilters", "service_creation_error", err)
 		return nil, err
 	}
 
 	input := &cloudwatchlogs.DescribeSubscriptionFiltersInput{
-		Limit:        aws.Int64(50),
+		Limit:        aws.Int32(50),
 		LogGroupName: logGroup.LogGroupName,
 	}
 
@@ -122,33 +124,43 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(50)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.Limit = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.DescribeSubscriptionFiltersPages(
-		input,
-		func(page *cloudwatchlogs.DescribeSubscriptionFiltersOutput, isLast bool) bool {
-			for _, subscriptionFilter := range page.SubscriptionFilters {
-				d.StreamListItem(ctx, subscriptionFilter)
+	input.Limit = &maxLimit
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := cloudwatchlogs.NewDescribeSubscriptionFiltersPaginator(svc, input, func(o *cloudwatchlogs.DescribeSubscriptionFiltersPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudwatch_alarm.listCloudWatchAlarms", "api_error", err)
+			return nil, err
+		}
+		for _, subscriptionFilter := range output.SubscriptionFilters {
+			d.StreamListItem(ctx, subscriptionFilter)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -160,8 +172,13 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	logGroupName := d.KeyColumnQuals["log_group_name"].GetStringValue()
 
+	// Empty input check
+	if strings.TrimSpace(name) == "" || strings.TrimSpace(logGroupName) == "" {
+		return nil, nil
+	}
+
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilter", "service_creation_error", err)
 		return nil, err
@@ -173,14 +190,13 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 	}
 
 	// execute list call
-	op, err := svc.DescribeSubscriptionFilters(params)
+	op, err := svc.DescribeSubscriptionFilters(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, subscriptionFilter := range op.SubscriptionFilters {
 		if *subscriptionFilter.FilterName == name {
-			plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilter", "api_error", err)
 			return subscriptionFilter, nil
 		}
 	}
@@ -189,7 +205,7 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 
 func getCloudwatchLogSubscriptionFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	subscriptionFilter := h.Item.(*cloudwatchlogs.SubscriptionFilter)
+	subscriptionFilter := h.Item.(types.SubscriptionFilter)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -199,8 +215,10 @@ func getCloudwatchLogSubscriptionFilterAkas(ctx context.Context, d *plugin.Query
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	arn := fmt.Sprintf("arn:%s:logs:%s:%s:log-group:%s:subscription-filter:%s", commonColumnData.Partition, region, commonColumnData.AccountId, *subscriptionFilter.LogGroupName, *subscriptionFilter.FilterName)
+
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":logs:" + region + ":" + commonColumnData.AccountId + ":log-group:" + *subscriptionFilter.LogGroupName + ":subscription-filter:" + *subscriptionFilter.FilterName}
+	akas := []string{arn}
 
 	return akas, nil
 }

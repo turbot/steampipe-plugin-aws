@@ -3,10 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"github.com/aws/aws-sdk-go/aws"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -20,7 +19,7 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Managed Instance Compliance",
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidResourceId", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidResourceId", "ValidationException"}),
 			},
 			Hydrate: listSsmManagedInstanceCompliances,
 			KeyColumns: []*plugin.KeyColumn{
@@ -103,6 +102,10 @@ func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_managed_instance_compliance.listSsmManagedInstanceCompliances", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	instanceId := d.KeyColumnQuals["resource_id"].GetStringValue()

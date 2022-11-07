@@ -21,7 +21,7 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("reserved_db_instance_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ReservedDBInstanceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReservedDBInstanceNotFound"}),
 			},
 			Hydrate: getRDSReservedDBInstance,
 		},
@@ -36,7 +36,7 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 				{Name: "reserved_db_instances_offering_id", Require: plugin.Optional},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,

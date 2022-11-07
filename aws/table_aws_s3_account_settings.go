@@ -89,7 +89,7 @@ func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData,
 	s3Account := h.Item.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlClient(ctx, d, GetDefaultAwsRegion(d))
+	svc, err := S3ControlClient(ctx, d, getDefaultAwsRegion(d))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "client_error", err)
 		return nil, err

@@ -110,8 +110,8 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 
 		for _, items := range output.AttachedManagedPolicies {
 			d.StreamListItem(ctx, &ManagedPolicyAttachment{
-				InstanceArn:           &instanceArn,
-				PermissionSetArn:      &permissionSetArn,
+				InstanceArn:           aws.String(instanceArn),
+				PermissionSetArn:      aws.String(permissionSetArn),
 				AttachedManagedPolicy: items,
 			})
 			// Context can be cancelled due to manual cancellation or the limit has been hit

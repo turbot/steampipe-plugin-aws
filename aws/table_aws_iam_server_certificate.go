@@ -82,7 +82,7 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 				Description: "A list of tags attached with the resource.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamServerCertificate,
-				Transform:   transform.From(getIamServerCertificateSrcTags),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Steampipe standard columns
@@ -217,14 +217,4 @@ func getIamServerCertificateTags(_ context.Context, d *transform.TransformData) 
 	}
 
 	return turbotTagsMap, nil
-}
-
-func getIamServerCertificateSrcTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	cert, ok := d.HydrateItem.(*types.ServerCertificate)
-
-	if !ok || len(cert.Tags) == 0 {
-		return nil, nil
-	}
-
-	return cert.Tags, nil
 }

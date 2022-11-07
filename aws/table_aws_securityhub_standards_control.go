@@ -20,7 +20,7 @@ func tableAwsSecurityHubStandardsControl(_ context.Context) *plugin.Table {
 		Description: "AWS Security Hub Standards Control",
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			ParentHydrate: listSecurityHubStandardsSubcriptions,
 			Hydrate:       listSecurityHubStandardsControls,

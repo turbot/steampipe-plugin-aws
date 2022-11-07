@@ -2,13 +2,14 @@ package aws
 
 import (
 	"context"
-	"strings"
+	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/service/emr"
+	"github.com/aws/aws-sdk-go-v2/service/emr/types"
+	"github.com/aws/smithy-go"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,6 +21,9 @@ func tableAwsEmrInstanceFleet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstanceFleets,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequestException"}),
+			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -119,7 +123,7 @@ func tableAwsEmrInstanceFleet(_ context.Context) *plugin.Table {
 }
 
 type instanceFleetDetails = struct {
-	emr.InstanceFleet
+	types.InstanceFleet
 	ClusterID string
 }
 
@@ -127,50 +131,62 @@ type instanceFleetDetails = struct {
 
 func listEmrInstanceFleets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EmrService(ctx, d)
+	svc, err := EMRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_emr_instance_fleet.listEmrInstanceFleets", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Get cluster details
-	clusterID := h.Item.(*emr.ClusterSummary).Id
+	clusterID := h.Item.(types.ClusterSummary).Id
+	input := &emr.ListInstanceFleetsInput{
+		ClusterId: clusterID,
+	}
+
+	paginator := emr.NewListInstanceFleetsPaginator(svc, input, func(o *emr.ListInstanceFleetsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.ListInstanceFleetsPages(
-		&emr.ListInstanceFleetsInput{
-			ClusterId: clusterID,
-		},
-		func(page *emr.ListInstanceFleetsOutput, isLast bool) bool {
-			for _, instanceFleet := range page.InstanceFleets {
-				d.StreamListItem(ctx, instanceFleetDetails{*instanceFleet, *clusterID})
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				// Error: operation error EMR: ListInstanceFleets, https response error StatusCode: 400, RequestID: 560c660e-9fd8-4457-9cfd-fa79427912d4, InvalidRequestException: Instance fleets and instance groups are mutually exclusive. The EMR cluster specified in the request uses instance groups. The ListInstanceFleets operation does not support clusters that use instance groups. Use the ListInstanceGroups operation instead. (SQLSTATE HV000)
+				if ae.ErrorCode() == "InvalidRequestException" {
+					return nil, nil
 				}
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		if strings.Contains(err.Error(), "InvalidRequestException") {
-			return nil, nil
+			plugin.Logger(ctx).Error("aws_emr_instance_fleet.listEmrInstanceFleets", "api_error", err)
+			return nil, err
 		}
-		plugin.Logger(ctx).Error("listEmrInstanceFleets", "ListInstanceFleetsPages-err", err)
-		return nil, err
+
+		for _, instanceFleet := range output.InstanceFleets {
+			d.StreamListItem(ctx, instanceFleetDetails{instanceFleet, *clusterID})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
+
 	return nil, nil
 }
 
 func getEmrInstanceFleetARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEmrInstanceFleetARN")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(instanceFleetDetails)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_emr_instance_fleet.getEmrInstanceFleetARN", "common_data_error", err)
 		return nil, err
 	}
 

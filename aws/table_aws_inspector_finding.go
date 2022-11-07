@@ -24,7 +24,7 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorFindings,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntity", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "NoSuchEntity", "InvalidParameter"}),
 			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "agent_id", Require: plugin.Optional, Operators: []string{"="}},

@@ -23,11 +23,12 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "zone_id", Require: plugin.Required},
 				{Name: "name", Require: plugin.Optional},
+				{Name: "set_identifier", Require: plugin.Optional},
 				{Name: "type", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53Records,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchHostedZone"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHostedZone"}),
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -152,26 +153,39 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, nil
 	}
 
+	maxItems := int32(100)
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			maxItems = int32(limit)
+		}
+	}
+
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: aws.String(hostedZoneID),
-		MaxItems:     aws.Int32(1000),
+		MaxItems:     aws.Int32(maxItems),
 	}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
-		if equalQuals["name"].GetStringValue() != "" {
-			input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
-		}
-	}
-	if equalQuals["type"] != nil {
-		// StartRecordType has a constraint that it must be used with StartRecordName
-		if equalQuals["type"].GetStringValue() != "" && input.StartRecordName != nil {
+		input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
+
+		// Specifying record type without specifying record name returns an
+		// InvalidInput error
+		if equalQuals["type"] != nil {
 			input.StartRecordType = route53Types.RRType(equalQuals["type"].GetStringValue())
+
+			// Specifying record identifier without specifying record name and type
+			// returns an InvalidInput error
+			if equalQuals["set_identifier"] != nil {
+				input.StartRecordIdentifier = aws.String(equalQuals["set_identifier"].GetStringValue())
+			}
 		}
 	}
 
-	// Paginator not avilable for the in v2, till date 09/30/2022
-	// Also, API doesn't support paging. Therfore not handling limit for the function
+	// Paginator is not supported in AWS SDK v2 as of 2022/11/04
+	// So we use generic pagination handling instead
 	for {
 		op, err := svc.ListResourceRecordSets(ctx, input)
 		if err != nil {
@@ -180,23 +194,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, record := range op.ResourceRecordSets {
-			// The StartRecordName and StartRecordType input parameters only tell
-			// the API where to start when returning results, so any records/types
-			// that are greater in lexicographic order will also be returned.
-			// Since Postgres will filter on exact matches anyway, check for exact
-			// matches as an optimization to reduce the number of requests.
-
-			if input.StartRecordName != nil && *record.Name != *input.StartRecordName {
-				plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record name", "input.StartRecordName", *input.StartRecordName, "record.Name", *record.Name)
-				continue
-			}
-
-			if string(input.StartRecordType) != "" && record.Type != input.StartRecordType {
-				plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record type", "input.StartRecordType", input.StartRecordType, "record.Type", record.Type)
-				continue
-			}
-
-			d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
+			d.StreamListItem(ctx, &recordInfo{aws.String(hostedZoneID), record})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -204,13 +202,19 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 			}
 		}
 
+		// Check if the result is truncated due to page size
+		if !op.IsTruncated {
+			break
+		}
+
+		if op.NextRecordName != nil {
+			input.StartRecordName = op.NextRecordName
+		}
+		if op.NextRecordType != "" {
+			input.StartRecordType = op.NextRecordType
+		}
 		if op.NextRecordIdentifier != nil {
 			input.StartRecordIdentifier = op.NextRecordIdentifier
-		} else if op.NextRecordName != nil && string(op.NextRecordType) != "" {
-			input.StartRecordName = op.NextRecordName
-			input.StartRecordType = op.NextRecordType
-		} else {
-			break
 		}
 	}
 

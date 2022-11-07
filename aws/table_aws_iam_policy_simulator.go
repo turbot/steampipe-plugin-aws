@@ -3,10 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
-	"github.com/aws/aws-sdk-go/aws"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -90,7 +89,7 @@ type awsIamPolicySimulatorResult struct {
 	Action                            string
 	Decision                          *string
 	DecisionDetails                   map[string]types.PolicyEvaluationDecisionType
-	MatchedStatements                 *[]types.Statement
+	MatchedStatements                 []types.Statement
 	MissingContextValues              []string
 	OrganizationsDecisionDetail       *types.OrganizationsDecisionDetail
 	PermissionsBoundaryDecisionDetail *types.PermissionsBoundaryDecisionDetail
@@ -131,7 +130,7 @@ func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, _ *plugin
 		Action:                            action,
 		Decision:                          aws.String(string(resultForAction.EvalDecision)),
 		DecisionDetails:                   resultForAction.EvalDecisionDetails,
-		MatchedStatements:                 &resultForAction.MatchedStatements,
+		MatchedStatements:                 resultForAction.MatchedStatements,
 		MissingContextValues:              resultForAction.MissingContextValues,
 		OrganizationsDecisionDetail:       resultForAction.OrganizationsDecisionDetail,
 		PermissionsBoundaryDecisionDetail: resultForAction.PermissionsBoundaryDecisionDetail,

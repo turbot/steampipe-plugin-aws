@@ -23,7 +23,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("association_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"AssociationDoesNotExist", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AssociationDoesNotExist", "ValidationException"}),
 			},
 			Hydrate: getAwsSSMAssociation,
 		},
@@ -207,6 +207,10 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		plugin.Logger(ctx).Error("aws_ssm_association.listAwsSSMAssociations", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	maxItems := int32(50)
 	input := &ssm.ListAssociationsInput{}
@@ -292,6 +296,10 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_association.getAwsSSMAssociation", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params

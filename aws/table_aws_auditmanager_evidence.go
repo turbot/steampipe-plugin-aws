@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
-	auditmanagerv1 "github.com/aws/aws-sdk-go/service/auditmanager"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -30,7 +29,7 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "evidence_folder_id", "assessment_id", "control_set_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: getAuditManagerEvidence,
 		},
@@ -173,7 +172,7 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Get assessment details
-	assessmentID := *h.Item.(*auditmanagerv1.AssessmentMetadataItem).Id
+	assessmentID := *h.Item.(types.AssessmentMetadataItem).Id
 
 	// Create session
 	svc, err := AuditManagerClient(ctx, d)

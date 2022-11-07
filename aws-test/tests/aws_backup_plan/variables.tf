@@ -64,6 +64,10 @@ output "id" {
   value = aws_backup_plan.named_test_resource.id
 }
 
+output "version_id" {
+  value = aws_backup_plan.named_test_resource.version
+}
+
 output "resource_aka" {
   value = aws_backup_plan.named_test_resource.arn
 }

@@ -3,24 +3,25 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
 func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_dynamodb_table",
 		Description: "AWS DynamoDB Table",
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"TableNotFoundException"}),
+		},
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getDynamboDbTable,
 		},
@@ -219,116 +220,130 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 
 func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_table.listDynamboDbTables", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &dynamodb.ListTablesInput{
-		Limit: aws.Int64(100),
+		Limit: aws.Int32(100),
 	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
-		input.ExclusiveStartTableName = types.String(equalQuals["name"].GetStringValue())
+		input.ExclusiveStartTableName = aws.String(equalQuals["name"].GetStringValue())
 	}
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.Limit {
+			if limit < 1 {
+				input.Limit = aws.Int32(1)
 			} else {
-				input.Limit = limit
+				input.Limit = aws.Int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListTablesPages(
-		input,
-		func(page *dynamodb.ListTablesOutput, lastPage bool) bool {
-			for _, table := range page.TableNames {
-				d.StreamListItem(ctx, &dynamodb.TableDescription{
-					TableName: table,
-				})
+	paginator := dynamodb.NewListTablesPaginator(svc, input, func(o *dynamodb.ListTablesPaginatorOptions) {
+		o.Limit = *input.Limit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_dynamodb_table.listDynamboDbTables", "api_error", err)
+			return nil, err
+		}
+
+		for _, table := range output.TableNames {
+			d.StreamListItem(ctx, types.TableDescription{
+				TableName: aws.String(table),
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("ListTablesPages", "list", err)
+		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDynamboDbTable")
 
 	var name string
 	if h.Item != nil {
-		data := h.Item.(*dynamodb.TableDescription)
-		name = types.SafeString(data.TableName)
+		data := h.Item.(types.TableDescription)
+		if data.TableName != nil {
+			name = *data.TableName
+		}
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_table.getDynamboDbTable", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dynamodb.DescribeTableInput{
 		TableName: aws.String(name),
 	}
 
-	rowData, err := svc.DescribeTable(params)
+	rowData, err := svc.DescribeTable(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("[DEBUG] getDynamboDbTable__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_dynamodb_table.getDynamboDbTable", "api_error", err)
 		return nil, err
 	}
 
 	if rowData.Table != nil {
-		return rowData.Table, nil
+		return *rowData.Table, nil
 	}
 
 	return nil, nil
 }
 
 func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDescribeContinuousBackups")
-	table := h.Item.(*dynamodb.TableDescription)
+	table := h.Item.(types.TableDescription)
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_table.getDescribeContinuousBackups", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dynamodb.DescribeContinuousBackupsInput{
 		TableName: table.TableName,
 	}
 
-	op, err := svc.DescribeContinuousBackups(params)
+	op, err := svc.DescribeContinuousBackups(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			// If a table is archived then continuous backups can't be queried for it
-			if a.Code() == "TableNotFoundException" {
-				return dynamodb.DescribeContinuousBackupsOutput{}, nil
-			}
-		}
+		plugin.Logger(ctx).Error("aws_dynamodb_table.getDescribeContinuousBackups", "api_error", err)
 		return nil, err
 	}
 
@@ -336,9 +351,9 @@ func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *p
 }
 
 func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getTableTagging")
+
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	table := h.Item.(*dynamodb.TableDescription)
+	table := h.Item.(types.TableDescription)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -347,24 +362,29 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	tableArn := "arn:" + commonColumnData.Partition + ":dynamodb:" + region + ":" + commonColumnData.AccountId + ":table/" + *table.TableName
+
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_table.getTableTagging", "connection_error", err)
 		return nil, err
 	}
-
-	tableArn := "arn:" + commonColumnData.Partition + ":dynamodb:" + region + ":" + commonColumnData.AccountId + ":table/" + *table.TableName
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &dynamodb.ListTagsOfResourceInput{
 		ResourceArn: &tableArn,
 	}
 
 	pagesLeft := true
-	tags := []*dynamodb.Tag{}
+	tags := []types.Tag{}
 	for pagesLeft {
-		result, err := svc.ListTagsOfResource(params)
+		result, err := svc.ListTagsOfResource(ctx, params)
 		if err != nil {
-			plugin.Logger(ctx).Error("ListTagsOfResource", "tag", err)
+			plugin.Logger(ctx).Error("aws_dynamodb_table.getTableTagging", "api_error", err)
 			return nil, err
 		}
 		tags = append(tags, result.Tags...)
@@ -379,22 +399,26 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 }
 
 func getTableStreamingDestination(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	tableName := h.Item.(*dynamodb.TableDescription).TableName
+	tableName := h.Item.(types.TableDescription).TableName
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_table.getTableStreamingDestination", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &dynamodb.DescribeKinesisStreamingDestinationInput{
 		TableName: tableName,
 	}
 
-	op, err := svc.DescribeKinesisStreamingDestination(input)
-
+	op, err := svc.DescribeKinesisStreamingDestination(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("getTableStreamingDestination", err)
+		plugin.Logger(ctx).Error("aws_dynamodb_table.getTableStreamingDestination", "api_error", err)
 	}
 	return op, nil
 }
@@ -411,7 +435,7 @@ func getTableBillingMode(_ context.Context, d *transform.TransformData) (interfa
 }
 
 func getTableTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags := d.HydrateItem.([]*dynamodb.Tag)
+	tags := d.HydrateItem.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string

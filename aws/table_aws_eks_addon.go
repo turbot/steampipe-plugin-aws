@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -21,13 +20,13 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"addon_name", "cluster_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
 			},
 			Hydrate: getEksAddon,
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listEksClusters,
-			Hydrate:       listEksAddons,
+			ParentHydrate: listEKSClusters,
+			Hydrate:       listEKSAddons,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -112,14 +111,14 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listEKSAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get cluster details
 	clusterName := *h.Item.(types.Cluster).Name
 
 	// Create service
 	svc, err := EKSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_eks_addon.listEksAddons", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_eks_addon.listEKSAddons", "get_client_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -151,7 +150,7 @@ func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_eks_addon.listEksAddons", "api_error", err)
+			plugin.Logger(ctx).Error("aws_eks_addon.listEKSAddons", "api_error", err)
 			return nil, err
 		}
 

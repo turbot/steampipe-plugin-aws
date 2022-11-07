@@ -3,8 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -17,7 +19,7 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
 			},
 			Hydrate: getAwsSageMakerTrainingJob,
 		},
@@ -296,21 +298,37 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsSageMakerTrainingJobs")
-
-	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	// Create Client
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_training_job.listAwsSageMakerTrainingJobs", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	input := &sagemaker.ListTrainingJobsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["training_job_status"] != nil {
-		input.StatusEquals = aws.String(equalQuals["training_job_status"].GetStringValue())
+		input.StatusEquals = types.TrainingJobStatus(equalQuals["training_job_status"].GetStringValue())
 	}
 
 	quals := d.Quals
@@ -338,33 +356,28 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		}
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+	paginator := sagemaker.NewListTrainingJobsPaginator(svc, input, func(o *sagemaker.ListTrainingJobsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sagemaker_training_job.listAwsSageMakerTrainingJobs", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.TrainingJobSummaries {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.ListTrainingJobsPages(
-		input,
-		func(page *sagemaker.ListTrainingJobsOutput, isLast bool) bool {
-			for _, job := range page.TrainingJobSummaries {
-				d.StreamListItem(ctx, job)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 	return nil, err
 }
 
@@ -373,15 +386,20 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*sagemaker.TrainingJobSummary).TrainingJobName
+		name = *h.Item.(types.TrainingJobSummary).TrainingJobName
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
-	// Create service
-	svc, err := SageMakerService(ctx, d)
+	// Create Client
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_training_job.getAwsSageMakerTrainingJob", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -390,7 +408,7 @@ func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Get call
-	data, err := svc.DescribeTrainingJob(params)
+	data, err := svc.DescribeTrainingJob(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -398,14 +416,16 @@ func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plu
 }
 
 func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsSageMakerTrainingJobTags")
-
 	arn := trainingJobArn(h.Item)
-	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	// Create Client
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_training_job.getAwsSageMakerTrainingJobTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -414,11 +434,11 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	pagesLeft := true
-	tags := []*sagemaker.Tag{}
+	tags := []types.Tag{}
 	for pagesLeft {
-		keyTags, err := svc.ListTags(params)
+		keyTags, err := svc.ListTags(ctx, params)
 		if err != nil {
-			plugin.Logger(ctx).Error("getAwsSageMakerTrainingJobTags", "ListTags_error", err)
+			plugin.Logger(ctx).Error("aws_sagemaker_training_job.getAwsSageMakerTrainingJobTags", "api_error", err)
 			return nil, err
 		}
 		tags = append(tags, keyTags.Tags...)
@@ -437,7 +457,7 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 
 func trainingJobArn(item interface{}) string {
 	switch item := item.(type) {
-	case *sagemaker.TrainingJobSummary:
+	case types.TrainingJobSummary:
 		return *item.TrainingJobArn
 	case *sagemaker.DescribeTrainingJobOutput:
 		return *item.TrainingJobArn

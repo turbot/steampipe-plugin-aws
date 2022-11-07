@@ -20,7 +20,7 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchDistribution"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchDistribution"}),
 			},
 			Hydrate: getCloudFrontDistribution,
 		},
@@ -195,11 +195,11 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 				Description: "A list of tags assigned to the Maintenance Window",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudFrontDistributionTags,
-				Transform:   transform.FromField("Tags.Items").Transform(handleEmptySliceAndMap),
+				Transform:   transform.FromField("Tags.Items"),
 			},
 			{
 				Name:        "viewer_certificate",
-				Description: "A complex type that determines the distribution’s SSL/TLS configuration for communicating with viewers.",
+				Description: "A complex type that determines the distribution's SSL/TLS configuration for communicating with viewers.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ViewerCertificate", "Distribution.DistributionConfig.ViewerCertificate"),
 			},

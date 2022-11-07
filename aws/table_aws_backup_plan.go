@@ -3,11 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/backup/types"
 
-	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -20,9 +19,9 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_plan",
 		Description: "AWS Backup Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("backup_plan_id"),
+			KeyColumns: plugin.AllColumns([]string{"backup_plan_id", "version_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupPlan,
 		},
@@ -106,42 +105,57 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 
 func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_plan.listAwsBackupPlans", "connection_error", err)
 		return nil, err
 	}
-
-	input := &backup.ListBackupPlansInput{
-		MaxResults: aws.Int64(1000),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
-	input.IncludeDeleted = aws.Bool(true)
 
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.ListBackupPlansPages(
-		input,
-		func(page *backup.ListBackupPlansOutput, lastPage bool) bool {
-			for _, plan := range page.BackupPlansList {
-				d.StreamListItem(ctx, plan)
+	input := &backup.ListBackupPlansInput{
+		MaxResults:     aws.Int32(maxLimit),
+		IncludeDeleted: aws.Bool(true),
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := backup.NewListBackupPlansPaginator(svc, input, func(o *backup.ListBackupPlansPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_backup_plan.listAwsBackupPlans", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.BackupPlansList {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
@@ -149,36 +163,40 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_plan.getAwsBackupPlan", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
-	var id string
+	var id, versionId string
 	if h.Item != nil {
-		plan := h.Item.(*backup.PlansListMember)
+		plan := h.Item.(types.BackupPlansListMember)
 		id = *plan.BackupPlanId
+		versionId = *plan.VersionId
 	} else {
 		id = d.KeyColumnQuals["backup_plan_id"].GetStringValue()
+		versionId = d.KeyColumnQuals["version_id"].GetStringValue()
 	}
 
 	// check if id is empty
-	if id == "" {
+	if id == "" || versionId == "" {
 		return nil, nil
 	}
 
 	params := &backup.GetBackupPlanInput{
 		BackupPlanId: aws.String(id),
+		VersionId:    aws.String(versionId),
 	}
 
-	op, err := svc.GetBackupPlan(params)
+	op, err := svc.GetBackupPlan(ctx, params)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "ResourceNotFoundException" {
-				return nil, nil
-			}
-		}
-		return nil, err
+		plugin.Logger(ctx).Error("aws_backup_plan.getAwsBackupPlan", "api_error", err)
 	}
+
 	return op, nil
 }

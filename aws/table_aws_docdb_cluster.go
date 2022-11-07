@@ -22,7 +22,7 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBClusterNotFoundFault"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBClusterNotFoundFault"}),
 			},
 			Hydrate: getDocDBCluster,
 		},
@@ -273,12 +273,7 @@ func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 		for _, cluster := range output.DBClusters {
 			// The DescribeDBClusters API returns non-DocDB clusters as well, but we only want DocDB clusters here.
-			if helpers.StringSliceContains(
-				[]string{
-					"docdb",
-				},
-				*cluster.Engine) {
-
+			if helpers.StringSliceContains([]string{"docdb"}, *cluster.Engine) {
 				d.StreamListItem(ctx, cluster)
 			}
 

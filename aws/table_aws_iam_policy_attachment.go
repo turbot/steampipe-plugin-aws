@@ -59,9 +59,9 @@ func tableAwsIamPolicyAttachment(_ context.Context) *plugin.Table {
 type PolicyAttachment struct {
 	PolicyArn       string
 	AttachmentCount *int32
-	PolicyGroups    *[]types.PolicyGroup
-	PolicyRoles     *[]types.PolicyRole
-	PolicyUsers     *[]types.PolicyUser
+	PolicyGroups    []types.PolicyGroup
+	PolicyRoles     []types.PolicyRole
+	PolicyUsers     []types.PolicyUser
 }
 
 //// LIST FUNCTION
@@ -105,19 +105,9 @@ func listIamPolicyAttachments(ctx context.Context, d *plugin.QueryData, h *plugi
 		policyAttachment := PolicyAttachment{
 			*policy.Arn,
 			policy.AttachmentCount,
-			&output.PolicyGroups,
-			&output.PolicyRoles,
-			&output.PolicyUsers,
-		}
-
-		if len(output.PolicyGroups) == 0 {
-			policyAttachment.PolicyGroups = nil
-		}
-		if len(output.PolicyRoles) == 0 {
-			policyAttachment.PolicyRoles = nil
-		}
-		if len(output.PolicyUsers) == 0 {
-			policyAttachment.PolicyUsers = nil
+			output.PolicyGroups,
+			output.PolicyRoles,
+			output.PolicyUsers,
 		}
 
 		d.StreamListItem(ctx, policyAttachment)

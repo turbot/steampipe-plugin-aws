@@ -21,7 +21,7 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAccountAlternateContacts,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -113,6 +113,7 @@ func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

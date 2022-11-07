@@ -22,12 +22,13 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		DefaultTransform: transform.FromCamel(),
 		DefaultGetConfig: &plugin.GetConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{
 					"NoSuchEntity",
 					"NotFoundException",
 					"ResourceNotFoundException",
 					"InvalidParameter",
 					"InvalidParameterValue",
+					"InvalidParameterException",
 					"InvalidParameterValueException",
 					"ValidationError",
 					"ValidationException",
