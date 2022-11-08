@@ -6,7 +6,7 @@ _Bug fixes_
 
 _Dependencies_
 
-- Recompiled plugin with [steampipe-plugin-sdk v4.1.8](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v417-2022-09-08) which fixes the default file limit issue. ([#1382](https://github.com/turbot/steampipe-plugin-aws/pull/1382))
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.8]() which fixes the default file limit issue. ([#1382](https://github.com/turbot/steampipe-plugin-aws/pull/1382))
 
 ## v0.81.0 [2022-11-04]
 
