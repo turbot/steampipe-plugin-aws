@@ -134,7 +134,8 @@ where
    updated_at >= now() - interval '30' day;
 ```
 
-### DEPRECATED, List findings with assigned workflow state
+### [DEPRECATED] This column has been deprecated and will be removed in a future release. (Use Worfklow Status (`worfklow_status`)). 
+### List findings with assigned workflow state
 
 ```sql
 select
@@ -149,7 +150,7 @@ where
   workflow_state = 'ASSIGNED';
 ```
 
-### List findings with NOTIFIED workflow status
+### List findings with Workflow Status (`worfklow_status`) NOTIFIED. (All Workflow Status: NEW, NOTIFIED, SUPPRESSED, RESOLVED)
 
 ```sql
 select
