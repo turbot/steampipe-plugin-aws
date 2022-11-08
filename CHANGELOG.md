@@ -2,7 +2,7 @@
 
 _Bug fixes_
 
-- Fixed typo in the `aws_efs_file_system` table's document to use `ValueInStandard` instead of `ValueInIA` in the example query. ([#1381](https://github.com/turbot/steampipe-plugin-aws/pull/1381)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Fixed the typo in the example query of `aws_efs_file_system` table document to use `ValueInStandard` instead of `ValueInIA`. ([#1381](https://github.com/turbot/steampipe-plugin-aws/pull/1381)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
 
 _Dependencies_
 
