@@ -150,7 +150,7 @@ where
   workflow_state = 'ASSIGNED';
 ```
 
-### List findings with Workflow Status (`worfklow_status`) NOTIFIED. (All Workflow Status: NEW, NOTIFIED, SUPPRESSED, RESOLVED)
+### List findings with workflow status NOTIFIED
 
 ```sql
 select
