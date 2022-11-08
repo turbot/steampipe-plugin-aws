@@ -1,3 +1,13 @@
+## v0.81.1 [2022-11-09]
+
+_Bug fixes_
+
+- Fixed typo in the `aws_efs_file_system` table's document to use `ValueInStandard` instead of `ValueInIA` in the example query. ([#1381](https://github.com/turbot/steampipe-plugin-aws/pull/1381)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Dependencies_
+
+- Recompiled plugin with steampipe-plugin-sdk v4.1.8. ([#1382](https://github.com/turbot/steampipe-plugin-aws/pull/1382))
+
 ## v0.81.0 [2022-11-04]
 
 _Enhancements_
