@@ -113,7 +113,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
-	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
 	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
@@ -214,7 +213,17 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 }
 
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, apigatewayv2Endpoint.EndpointsID)
+	// APIGatewayV2 has an endpoint ID which is the same as for APIGateway but doesn't give the correct region list for supported regions. Still, it's unavailable in region `me-central-1(i.e. Middle East UAE).`
+	//cfg, err := getClientForQuerySupportedRegion(ctx, d, apigatewayv2Endpoint.EndpointsID)
+
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	validRegions := []string{"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "cn-north-1", "cn-northwest-1", "us-gov-east-1", "us-gov-west-1", "us-iso-east-1"}
+
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
+
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
