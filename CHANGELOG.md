@@ -8,11 +8,10 @@ _Bug fixes_
 
 - Fixed the `aws_api_gatewayv2_*` tables to correctly return results instead of an error by skipping the unsupported `me-central-1` region. ([#1388](https://github.com/turbot/steampipe-plugin-aws/pull/1388))
 - Fixed the `billing_mode` column in `aws_dynamodb_table` to correctly return results instead of an error. ([#1387](https://github.com/turbot/steampipe-plugin-aws/pull/1387))
-- Fixed the typo in the `aws_dynamodb_*` tables to use `DynamoDB` instead of `DynamboDb`.
 
 _Deprecated_
 
-- Deprecated the `workflow_state` column in `aws_securityhub_finding` table per [AWS Documentation](https://docs.aws.amazon.com/cli/latest/reference/securityhub/get-findings.html#options). We recommend you to update any workflow or query to use `workflow_status` instead of `workflow_state`. ([#1377](https://github.com/turbot/steampipe-plugin-aws/pull/1377))
+- Deprecated the `workflow_state` column in the `aws_securityhub_finding` table per [AWS documentation](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/securityhub/get-findings.html#options). We recommend updating any workflows and queries to use `workflow_status` instead of `workflow_state`. ([#1377](https://github.com/turbot/steampipe-plugin-aws/pull/1377))
 
 ## v0.81.1 [2022-11-09]
 
