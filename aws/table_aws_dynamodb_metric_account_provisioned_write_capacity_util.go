@@ -13,7 +13,7 @@ func tableAwsDynamoDBMetricAccountProvisionedWriteCapacityUtilization(_ context.
 		Name:        "aws_dynamodb_metric_account_provisioned_write_capacity_util",
 		Description: "AWS DynamoDB Metric Account Provisioned Write Capacity Utilization",
 		List: &plugin.ListConfig{
-			Hydrate: listDynamboDbMetricAccountProvisionedWriteCapacityUtilization,
+			Hydrate: listDynamoDBMetricAccountProvisionedWriteCapacityUtilization,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns:           awsRegionalColumns(cwMetricColumns([]*plugin.Column{})),
@@ -22,6 +22,6 @@ func tableAwsDynamoDBMetricAccountProvisionedWriteCapacityUtilization(_ context.
 
 //// LIST FUNCTION
 
-func listDynamboDbMetricAccountProvisionedWriteCapacityUtilization(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDynamoDBMetricAccountProvisionedWriteCapacityUtilization(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/DynamoDB", "AccountProvisionedWriteCapacityUtilization", "", "")
 }

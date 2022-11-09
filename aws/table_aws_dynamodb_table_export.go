@@ -23,7 +23,7 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 			Hydrate: getTableExport,
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listDynamboDbTables,
+			ParentHydrate: listDynamoDBTables,
 			Hydrate:       listTableExports,
 		},
 		GetMatrixItemFunc: BuildRegionList,
