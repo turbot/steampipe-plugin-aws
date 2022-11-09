@@ -134,7 +134,6 @@ where
    updated_at >= now() - interval '30' day;
 ```
 
-### [DEPRECATED] This column has been deprecated and will be removed in a future release. (Use Worfklow Status (`worfklow_status`)). 
 ### List findings with assigned workflow state
 
 ```sql
