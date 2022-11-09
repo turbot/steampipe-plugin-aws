@@ -426,9 +426,9 @@ func getTableStreamingDestination(ctx context.Context, d *plugin.QueryData, h *p
 //// TRANSFORM FUNCTIONS
 
 func getTableBillingMode(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	billingMode := "PROVISIONED"
+	billingMode := types.BillingModeProvisioned
 	if d.Value != nil {
-		billingMode = *d.Value.(*string)
+		billingMode = d.Value.(types.BillingMode)
 	}
 
 	return billingMode, nil
