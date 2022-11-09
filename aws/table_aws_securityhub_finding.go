@@ -146,7 +146,7 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "workflow_status",
-				Description: "The workflow status of a finding.",
+				Description: "The workflow status of a finding. Possible values are NEW, NOTIFIED, SUPPRESSED, RESOLVED.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Workflow.Status"),
 			},
