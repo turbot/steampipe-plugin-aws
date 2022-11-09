@@ -213,7 +213,7 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 }
 
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
-	// APIGatewayV2 has an endpoint ID which is the same as for APIGateway but doesn't give the correct region list for supported regions. Still, it's unavailable in region `me-central-1(i.e. Middle East UAE).`
+	// APIGatewayV2's endpoint ID is the same as APIGateway's, but me-central-1 does not support API Gateway v2 yet
 	//cfg, err := getClientForQuerySupportedRegion(ctx, d, apigatewayv2Endpoint.EndpointsID)
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
