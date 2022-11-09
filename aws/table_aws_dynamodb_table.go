@@ -77,6 +77,8 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("TableStatus"),
 			},
+			// If it is not available then it should default to "PROVISIONED"
+			// Possible values are "PAY_PER_REQUEST" or "PROVISIONED"
 			{
 				Name:        "billing_mode",
 				Description: "Controls how AWS charges for read and write throughput and manage capacity.",
@@ -84,8 +86,6 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Default:     "PROVISIONED",
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("BillingModeSummary.BillingMode").Transform(getTableBillingMode),
-				// If it is not available then it should default to  "PROVISIONED"
-				// Billing mode can only be PAY_PER_REQUEST or PROVISIONED
 			},
 			{
 				Name:        "item_count",
@@ -426,9 +426,9 @@ func getTableStreamingDestination(ctx context.Context, d *plugin.QueryData, h *p
 //// TRANSFORM FUNCTIONS
 
 func getTableBillingMode(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	billingMode := "PROVISIONED"
+	billingMode := types.BillingModeProvisioned
 	if d.Value != nil {
-		billingMode = *d.Value.(*string)
+		billingMode = d.Value.(types.BillingMode)
 	}
 
 	return billingMode, nil
