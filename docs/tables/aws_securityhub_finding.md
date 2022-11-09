@@ -134,21 +134,6 @@ where
    updated_at >= now() - interval '30' day;
 ```
 
-### List findings with assigned workflow state
-
-```sql
-select
-  title,
-  id,
-  product_arn,
-  product_name,
-  workflow_state
-from
-  aws_securityhub_finding
-where 
-  workflow_state = 'ASSIGNED';
-```
-
 ### List findings with workflow status NOTIFIED
 
 ```sql
