@@ -26,11 +26,9 @@ select
   u.user_id as user_id,
   u.password_last_used as password_last_used,
   u.mfa_enabled as mfa_enabled
-  iam_group ->> 'GroupId' as group_id,
-  iam_group ->> 'CreateDate' as create_date
 from
-  aws_iam_service_specific_credential as s,
-  aws_iam_user as u
+  aws.aws_iam_service_specific_credential as s,
+  aws.aws_iam_user as u
 where
   s.user_name = u.name;
 ```
