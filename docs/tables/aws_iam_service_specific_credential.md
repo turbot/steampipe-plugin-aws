@@ -4,7 +4,7 @@ Service-specific credentials are associated with a specific IAM user and can onl
 
 ## Examples
 
-### Basic service specific credential info
+### Basic info
 
 ```sql
 select
@@ -16,7 +16,7 @@ from
   aws_iam_service_specific_credential;
 ```
 
-### IAM user details for the service specific credential
+### IAM user details for the service specific credentials
 
 ```sql
 select

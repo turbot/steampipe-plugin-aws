@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -20,6 +21,7 @@ func tableAwsIamUserServiceSpecificCredential(ctx context.Context) *plugin.Table
 			ParentHydrate: listIamUsers,
 			Hydrate:       listAwsIamUserServiceSpecificCredentials,
 			KeyColumns: []*plugin.KeyColumn{
+				{Name: "service_name", Require: plugin.Optional},
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
@@ -84,6 +86,10 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 
 	params := &iam.ListServiceSpecificCredentialsInput{
 		UserName: user.UserName,
+	}
+
+	if d.KeyColumnQuals["service_name"].GetStringValue() != "" {
+		params.ServiceName = aws.String(d.KeyColumnQuals["service_name"].GetStringValue())
 	}
 
 	userData, _ := svc.ListServiceSpecificCredentials(ctx, params)
