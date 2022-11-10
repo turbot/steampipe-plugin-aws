@@ -33,7 +33,7 @@ where
   s.user_name = u.name;
 ```
 
-### List users those were not used password more than 30 days
+### List users those were not used password in last 30 days
 
 ```sql
 select
