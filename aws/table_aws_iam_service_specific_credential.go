@@ -76,7 +76,7 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 	// Create Session
 	svc, err := IAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_user.listAwsIamUserServiceSpecificCredentials", "client_error", err)
+		plugin.Logger(ctx).Error("aws_iam_service_specific_credential.listAwsIamUserServiceSpecificCredentials", "client_error", err)
 		return nil, err
 	}
 
@@ -94,17 +94,19 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 
 	userData, _ := svc.ListServiceSpecificCredentials(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_user.listAwsIamUserServiceSpecificCredentials", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iam_service_specific_credential.listAwsIamUserServiceSpecificCredentials", "api_error", err)
 		return nil, err
 	}
 
-	if userData.ServiceSpecificCredentials != nil {
-		for _, cred := range userData.ServiceSpecificCredentials {
-			d.StreamListItem(ctx, cred)
+	if userData != nil {
+		if userData.ServiceSpecificCredentials != nil {
+			for _, cred := range userData.ServiceSpecificCredentials {
+				d.StreamListItem(ctx, cred)
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil, nil
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
 			}
 		}
 	}
