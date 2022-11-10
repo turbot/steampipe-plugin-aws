@@ -98,15 +98,13 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 		return nil, err
 	}
 
-	if userData != nil {
-		if userData.ServiceSpecificCredentials != nil {
-			for _, cred := range userData.ServiceSpecificCredentials {
-				d.StreamListItem(ctx, cred)
+	if userData != nil && userData.ServiceSpecificCredentials != nil {
+		for _, cred := range userData.ServiceSpecificCredentials {
+			d.StreamListItem(ctx, cred)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return nil, nil
-				}
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
