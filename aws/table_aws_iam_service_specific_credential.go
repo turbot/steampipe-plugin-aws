@@ -92,7 +92,7 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 		params.ServiceName = aws.String(d.KeyColumnQuals["service_name"].GetStringValue())
 	}
 
-	userData, _ := svc.ListServiceSpecificCredentials(ctx, params)
+	userData, err := svc.ListServiceSpecificCredentials(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_service_specific_credential.listAwsIamUserServiceSpecificCredentials", "api_error", err)
 		return nil, err
