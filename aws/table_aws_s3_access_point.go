@@ -22,6 +22,9 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 		Description: "AWS S3 Access Point",
 		List: &plugin.ListConfig{
 			Hydrate: listS3AccessPoints,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchAccessPoint", "InvalidParameter", "InvalidRequest"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Optional},
 			},
@@ -30,7 +33,7 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
 			Hydrate:    getS3AccessPoint,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchAccessPoint", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchAccessPoint", "InvalidParameter", "InvalidRequest"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
