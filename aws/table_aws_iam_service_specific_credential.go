@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -20,6 +21,7 @@ func tableAwsIamUserServiceSpecificCredential(ctx context.Context) *plugin.Table
 			ParentHydrate: listIamUsers,
 			Hydrate:       listAwsIamUserServiceSpecificCredentials,
 			KeyColumns: []*plugin.KeyColumn{
+				{Name: "service_name", Require: plugin.Optional},
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
@@ -74,7 +76,7 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 	// Create Session
 	svc, err := IAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_user.listAwsIamUserServiceSpecificCredentials", "client_error", err)
+		plugin.Logger(ctx).Error("aws_iam_service_specific_credential.listAwsIamUserServiceSpecificCredentials", "client_error", err)
 		return nil, err
 	}
 
@@ -86,13 +88,17 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 		UserName: user.UserName,
 	}
 
-	userData, _ := svc.ListServiceSpecificCredentials(ctx, params)
+	if d.KeyColumnQuals["service_name"].GetStringValue() != "" {
+		params.ServiceName = aws.String(d.KeyColumnQuals["service_name"].GetStringValue())
+	}
+
+	userData, err := svc.ListServiceSpecificCredentials(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_user.listAwsIamUserServiceSpecificCredentials", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iam_service_specific_credential.listAwsIamUserServiceSpecificCredentials", "api_error", err)
 		return nil, err
 	}
 
-	if userData.ServiceSpecificCredentials != nil {
+	if userData != nil && userData.ServiceSpecificCredentials != nil {
 		for _, cred := range userData.ServiceSpecificCredentials {
 			d.StreamListItem(ctx, cred)
 
