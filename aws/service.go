@@ -903,6 +903,18 @@ func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData) (*resource
 	return resourceexplorer2.NewFromConfig(*cfg), nil
 }
 
+func ResourceExplorerRegionalClient(ctx context.Context, d *plugin.QueryData, region string) (*resourceexplorer2.Client, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ResourceExplorerRegionalClient")
+	}
+
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	return resourceexplorer2.NewFromConfig(*cfg), nil
+}
+
 func ResourceGroupsTaggingClient(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
