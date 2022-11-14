@@ -2,23 +2,25 @@ package aws
 
 import (
 	"context"
-	"errors"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-	"time"
 )
 
 //// TABLE DEFINITION
 
-func tableAwsSpotPriceHistory(_ context.Context) *plugin.Table {
+func tableAwsEc2SpotPrice(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_spot_price_history",
-		Description: "AWS Spot Price History",
+		Name:        "aws_ec2_spot_price",
+		Description: "AWS EC2 Spot Price History",
 		List: &plugin.ListConfig{
-			Hydrate: listSpotPriceHistory,
+			Hydrate: listEc2SpotPrice,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValue"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "availability_zone", Require: plugin.Optional},
 				{Name: "instance_type", Require: plugin.Optional},
@@ -33,7 +35,7 @@ func tableAwsSpotPriceHistory(_ context.Context) *plugin.Table {
 			{Name: "instance_type", Description: "The instance type.", Type: proto.ColumnType_STRING},
 			{Name: "product_description", Description: "A general description of the AMI.", Type: proto.ColumnType_STRING},
 			{Name: "spot_price", Description: "The maximum price per unit hour that you are willing to pay for a Spot Instance.", Type: proto.ColumnType_STRING},
-			{Name: "timestamp", Description: "The date and time the request was created", Type: proto.ColumnType_TIMESTAMP},
+			{Name: "create_timestamp", Description: "The time stamp of the Spot price history.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromField("Timestamp")},
 			{Name: "start_time", Description: "The date and time, up to the past 90 days, from which to start retrieving the price history data.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromQual("start_time")},
 			{Name: "end_time", Description: "The date and time, up to the current date, from which to stop retrieving the price history data.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromQual("end_time")},
 		}),
@@ -42,11 +44,11 @@ func tableAwsSpotPriceHistory(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSpotPriceHistory(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2SpotPrice(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := EC2Client(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_spot_price_history.listSpotPriceHistory", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_spot_price_history.listEc2SpotPrice", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -55,12 +57,12 @@ func listSpotPriceHistory(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 
 	// Limiting the results
-	maxItems := int32(100)
+	maxItems := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			if limit < 20 {
-				maxItems = 20
+			if limit < 1 {
+				maxItems = 1
 			} else {
 				maxItems = limit
 			}
@@ -71,54 +73,26 @@ func listSpotPriceHistory(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		MaxResults: &maxItems,
 	}
 
-	// use filters instead of availability_zone which doesn't work
+	equalQuals := d.KeyColumnQuals
 	if d.Quals["availability_zone"] != nil {
-		value := getQualsValueByColumn(d.Quals, "availability_zone", "string").(string)
-		columnName := "availability-zone"
-		input.Filters = append(input.Filters, types.Filter{Name: &columnName, Values: []string{value}})
+		input.AvailabilityZone = aws.String(equalQuals["availability_zone"].GetStringValue())
 	}
 
 	if d.Quals["instance_type"] != nil {
-		value := getQualsValueByColumn(d.Quals, "instance_type", "string")
-		v, ok := value.(string)
-		if !ok {
-			err := errors.New("instance_type must be a string")
-			plugin.Logger(ctx).Error("aws_spot_price_history.listSpotPriceHistory", "input_type_error", err, "value", v)
-			return nil, err
-		}
-		input.InstanceTypes = []types.InstanceType{types.InstanceType(v)}
+		input.InstanceTypes = []types.InstanceType{types.InstanceType(equalQuals["instance_type"].GetStringValue())}
 	}
 
 	if d.Quals["product_description"] != nil {
-		value := getQualsValueByColumn(d.Quals, "product_description", "string")
-		v, ok := value.(string)
-		if !ok {
-			err := errors.New("product_description must be a string")
-			plugin.Logger(ctx).Error("aws_spot_price_history.listSpotPriceHistory", "input_type_error", err, "value", v)
-			return nil, err
-		}
-		input.ProductDescriptions = []string{v}
+		input.ProductDescriptions = []string{equalQuals["product_description"].GetStringValue()}
 	}
 
 	if d.Quals["start_time"] != nil {
-		value := getQualsValueByColumn(d.Quals, "start_time", "time")
-		v, ok := value.(time.Time)
-		if !ok {
-			err := errors.New("start_time must have a time value")
-			plugin.Logger(ctx).Error("aws_spot_price_history.listSpotPriceHistory", "input_type_error", err, "value", v)
-			return nil, err
-		}
+		v := equalQuals["start_time"].GetTimestampValue().AsTime()
 		input.StartTime = &v
 	}
 
 	if d.Quals["end_time"] != nil {
-		value := getQualsValueByColumn(d.Quals, "end_time", "time")
-		v, ok := value.(time.Time)
-		if !ok {
-			err := errors.New("end_time must have a time value")
-			plugin.Logger(ctx).Error("aws_spot_price_history.listSpotPriceHistory", "input_type_error", err, "value", v)
-			return nil, err
-		}
+		v := equalQuals["end_time"].GetTimestampValue().AsTime()
 		input.EndTime = &v
 	}
 
@@ -134,7 +108,7 @@ func listSpotPriceHistory(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_spot_price_history.listSpotPriceHistory", "api_error", err)
+			plugin.Logger(ctx).Error("aws_spot_price_history.listEc2SpotPrice", "api_error", err)
 			return nil, err
 		}
 

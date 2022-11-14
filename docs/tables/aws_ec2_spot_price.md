@@ -1,4 +1,4 @@
-# Table: aws_spot_price_history
+# Table: aws_ec2_spot_price
 
 Returns the list of prices for Spot EC2 instances.
 
@@ -12,10 +12,10 @@ select
   instance_type,
   product_description,
   spot_price::numeric as spot_price,
-  timestamp as start_time,
-  lead(timestamp, 1, now()) over (partition by instance_type, availability_zone, product_description order by timestamp) as stop_time
+  create_timestamp as start_time,
+  lead(create_timestamp, 1, now()) over (partition by instance_type, availability_zone, product_description order by create_timestamp) as stop_time
 from
-  aws_spot_price_history 
+    aws_ec2_spot_price 
 where
   instance_type = 'm5.4xlarge' 
   and product_description = 'Linux/UNIX' 
