@@ -20,7 +20,7 @@ AWS Resource Explorer is a resource search and discovery service. This table all
 ## Examples
 **NOTE** For below examples the region `ap-south-1` has the `AGGREGATOR` Index with default view to list all resources.
 
-### List resources from the default view of the region using Aggregator Index region
+### Basic info
 ```sql
 select
   arn,
@@ -116,7 +116,7 @@ select
   resource_region,
   resource_type,
   service,
-  owning_account_id, properties
+  owning_account_id
 from
   aws_resource_explorer_search
 where
@@ -131,7 +131,7 @@ select
   resource_region,
   resource_type,
   service,
-  owning_account_id, properties
+  owning_account_id
 from
   aws_resource_explorer_search
 where
@@ -139,3 +139,17 @@ where
   and query = 'region:global';
 ```
 
+### List resources from with a specific view
+```sql
+select
+  arn,
+  resource_region,
+  resource_type,
+  service,
+  owning_account_id
+from
+  aws_resource_explorer_search
+where
+  region = 'us-east-2'
+  and view_arn = 'arn:aws:resource-explorer-2:us-east-2:123456789012:view/My-Resources-View/1a2b3c4d-5d6e-7f8a-9b0c-abcd11111111';
+```
