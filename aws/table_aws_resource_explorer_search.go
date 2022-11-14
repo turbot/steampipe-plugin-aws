@@ -103,6 +103,7 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 
 	if d.KeyColumnQuals["query"] != nil {
 		params.QueryString = aws.String(d.KeyColumnQualString("query"))
+		plugin.Logger(ctx).Info("aws_resource_explorer_view.awsResourceExplorerSearch", "QueryString", *params.QueryString)
 	}
 
 	maxItems := int32(1000)
