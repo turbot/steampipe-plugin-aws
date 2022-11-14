@@ -18,26 +18,20 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 		Name:        "aws_resource_explorer_search",
 		Description: "AWS Resource Explorer Search",
 		List: &plugin.ListConfig{
-			// ParentHydrate: listAWSExplorerIndexes,
-			Hydrate: awsExplorerSearch,
+			Hydrate: awsResourceExplorerSearch,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "query", Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "region", Require: plugin.Required, CacheMatch: "exact"},
+				{Name: "view_arn", Require: plugin.Optional}, // The view to be used to search resources.
+			},
 			// IgnoreConfig: &plugin.IgnoreConfig{
 			// 	// ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "UnauthorizedException"}),
 			// },
-			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "region_input", Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "query", Require: plugin.Optional, CacheMatch: "exact"},
-			},
 		},
-		// GetMatrixItemFunc: BuildRegionList,
 		Columns: []*plugin.Column{
 			{
-				Name:        "view_arn",
-				Description: "The Amazon resource name (ARN) of the view that this operation used to perform the search.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "arn",
-				Description: "The list of views available in the Amazon Web Services Region.",
+				Description: "The Amazon resource name (ARN) of the resource.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -51,27 +45,15 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "region_input",
-				Description: "The Amazon Web Services Region in which the index exists.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("region_input"),
-			},
-			{
-				Name:        "region_output",
-				Description: "The Amazon Web Services Region in which the index exists.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Region"),
-			},
-			{
-				Name:        "query",
-				Description: "The Amazon Web Services Region in which the index exists.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("query"),
-			},
-			{
 				Name:        "owning_account_id",
 				Description: "The Amazon Web Services account that owns the resource.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "resource_region",
+				Description: "The AWS Region in which the resource was created and exists.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Region"),
 			},
 			{
 				Name:        "last_reported_at",
@@ -83,37 +65,68 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 				Description: "Additional type-specific details about the resource.",
 				Type:        proto.ColumnType_JSON,
 			},
+			// Inputs to the table
+			{
+				Name:        "view_arn",
+				Description: "The Amazon resource name (ARN) of the view that this table uses to perform the search.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "region",
+				Description: "The Amazon Web Services Region to search for the resources.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("region"),
+			},
+			{
+				Name:        "query",
+				Description: "A string that includes keywords and filters that specify the resources to include in the search results.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("query"),
+			},
 		},
 	}
 }
 
 //// LIST FUNCTION
 
-func awsExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString("region_input")
-	// query := d.KeyColumnQualString("query")
+func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.KeyColumnQualString("region")
 	svc, err := ResourceExplorerRegionalClient(ctx, d, region)
-	// svc, err := ResourceExplorerRegionalClient(ctx, d, "ap-south-1")
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_resource_explorer_view.listAWSExplorerViews", "connnection_error", err)
+		plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "connnection_error", err)
 		return nil, err
 	}
 
 	params := &resourceexplorer2.SearchInput{
-		// QueryString: aws.String(query),
-		// QueryString: aws.String("region:us-east-1"),
 		QueryString: aws.String(""),
 	}
 
+	if d.KeyColumnQuals["query"] != nil {
+		params.QueryString = aws.String(d.KeyColumnQualString("query"))
+	}
+
+	maxItems := int32(1000)
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
+	}
+
 	paginator := resourceexplorer2.NewSearchPaginator(svc, params, func(o *resourceexplorer2.SearchPaginatorOptions) {
-		o.Limit = 100
+		o.Limit = maxItems
 		o.StopOnDuplicateToken = true
 	})
 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_resource_explorer_view.listAWSExplorerViews", "api_error", err)
+			plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "api_error", err)
 			return nil, err
 		}
 
