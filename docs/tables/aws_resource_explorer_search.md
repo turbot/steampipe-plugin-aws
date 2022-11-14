@@ -10,7 +10,10 @@ AWS Resource Explorer is a resource search and discovery service. This table all
   - `query`: A string that includes keywords and filters that specify the resources that you want to include in the results. For further details refer [query string syntax](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html#query-syntax).
   - `view_arn`: Specifies the ARN of the view to use for the query. If you don't specify a value for this filed, then the operation automatically uses the default view for the AWS Region in which you called this operation. If the Region either doesn't have a default view or if you don't have permission to use the default view, then the operation fails with a 401 Unauthorized exception.
 
-**For more details refer**
+- A search can return only the first 1,000 results.</br>
+  To see resources beyond the 1,000 returned by an empty query string, you must use queries to restrict matching results to those you want to see and limit the number of matches to less than 1,000.
+
+**For more details refer below**
 - [Using AWS Resource Explorer to search for resources](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search.html)
 - [Search API Document](https://docs.aws.amazon.com/resource-explorer/latest/apireference/API_Search.html)
 
@@ -60,3 +63,79 @@ where
   region = 'ap-south-1'
   and query = '-service:iam region:us-*';
 ```
+
+### List resources other than IAM service in `us-*` regions
+```sql
+select
+  arn,
+  resource_region,
+  resource_type,
+  service,
+  owning_account_id
+from
+  aws_resource_explorer_search
+where
+  region = 'ap-south-1'
+  and query = '-service:iam region:us-*';
+```
+
+### List resources of a specific type using `resourcetype` in query
+```sql
+select
+  arn,
+  resource_region,
+  resource_type,
+  service,
+  owning_account_id
+from
+  aws_resource_explorer_search
+where
+  region = 'ap-south-1'
+  and query = 'resourcetype:iam:user';
+```
+
+### List resources with user created tags
+```sql
+select
+  arn,
+  resource_region,
+  resource_type,
+  service,
+  owning_account_id
+from
+  aws_resource_explorer_search
+where
+  region = 'ap-south-1'
+  and query = '-tag:none';
+```
+
+### List resources with tag key `environment`
+```sql
+select
+  arn,
+  resource_region,
+  resource_type,
+  service,
+  owning_account_id, properties
+from
+  aws_resource_explorer_search
+where
+  region = 'ap-south-1'
+  and query = 'tag.key:environment';
+```
+
+### List resources with `global` scope
+```sql
+select
+  arn,
+  resource_region,
+  resource_type,
+  service,
+  owning_account_id, properties
+from
+  aws_resource_explorer_search
+where
+  region = 'ap-south-1'
+  and query = 'region:global';
+```
+
