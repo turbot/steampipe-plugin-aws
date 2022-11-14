@@ -1,6 +1,6 @@
 # Table: aws_resource_explorer_supported_resource_type
 
-This table retrieves a list of all resource types currently supported by AWS Resource Explorer.
+This table retrieves all resource types currently supported by AWS Resource Explorer.
 
 ## Examples
 
