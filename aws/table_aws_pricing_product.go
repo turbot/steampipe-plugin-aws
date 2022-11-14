@@ -216,8 +216,11 @@ func extractCurrency(_ context.Context, d *transform.TransformData) (interface{}
 
 // build pricing list call input filter
 func buildPricingFilter(qual *plugin.KeyColumnQuals) ([]types.Filter, error) {
-	filters := make([]types.Filter, 0)
+	if qual == nil {
+		return nil, nil
+	}
 
+	filters := make([]types.Filter, 0)
 	for _, qual := range qual.Quals {
 		qualFilter := make(map[string]*string)
 		err := json.Unmarshal([]byte(qual.Value.GetJsonbValue()), &qualFilter)
