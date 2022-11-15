@@ -21,7 +21,7 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 			Hydrate: awsResourceExplorerSearch,
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "query", Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "region", Require: plugin.Required, CacheMatch: "exact"},
+				{Name: "region", Require: plugin.Required},
 				{Name: "view_arn", Require: plugin.Optional}, // The view to be used to search resources.
 			},
 		},
