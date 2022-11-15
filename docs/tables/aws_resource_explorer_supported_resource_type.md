@@ -5,6 +5,7 @@ This table retrieves all resource types currently supported by AWS Resource Expl
 ## Examples
 
 ### Basic info
+
 ```sql
 select
   service,
@@ -14,6 +15,7 @@ from
 ```
 
 ### List iam service resource types supported by AWS resource explorer
+
 ```sql
 select
   service,

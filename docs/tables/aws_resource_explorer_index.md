@@ -5,6 +5,7 @@ Retrieves the indexes in AWS Regions that are currently collecting resource info
 ## Examples
 
 ### Basic info
+
 ```sql
 select
   arn,
@@ -15,6 +16,7 @@ from
 ```
 
 ### Get the details of `AGGREGATOR` index in the account
+
 ```sql
 select
   arn,

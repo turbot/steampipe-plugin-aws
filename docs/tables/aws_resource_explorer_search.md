@@ -13,14 +13,17 @@ AWS Resource Explorer is a resource search and discovery service. This table all
 - A search can return only the first 1,000 results.</br>
   To see resources beyond the 1,000 returned by an empty query string, you must use queries to restrict matching results to those you want to see and limit the number of matches to less than 1,000.
 
-**For more details refer below**
+**For more details refer below:**
+
 - [Using AWS Resource Explorer to search for resources](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search.html)
 - [Search API Document](https://docs.aws.amazon.com/resource-explorer/latest/apireference/API_Search.html)
 
 ## Examples
+
 **NOTE** For below examples the region `ap-south-1` has the `AGGREGATOR` Index with default view to list all resources.
 
 ### Basic info
+
 ```sql
 select
   arn,
@@ -35,6 +38,7 @@ where
 ```
 
 ### List resources other than the IAM service resources
+
 ```sql
 select
   arn,
@@ -50,21 +54,7 @@ where
 ```
 
 ### List resources other than IAM service in `us-*` regions
-```sql
-select
-  arn,
-  resource_region,
-  resource_type,
-  service,
-  owning_account_id
-from
-  aws_resource_explorer_search
-where
-  region = 'ap-south-1'
-  and query = '-service:iam region:us-*';
-```
 
-### List resources other than IAM service in `us-*` regions
 ```sql
 select
   arn,
@@ -80,6 +70,7 @@ where
 ```
 
 ### List resources of a specific type using `resourcetype` in query
+
 ```sql
 select
   arn,
@@ -95,6 +86,7 @@ where
 ```
 
 ### List resources with user created tags
+
 ```sql
 select
   arn,
@@ -110,6 +102,7 @@ where
 ```
 
 ### List resources with tag key `environment`
+
 ```sql
 select
   arn,
@@ -125,6 +118,7 @@ where
 ```
 
 ### List resources with `global` scope
+
 ```sql
 select
   arn,
@@ -140,6 +134,7 @@ where
 ```
 
 ### List resources from with a specific view
+
 ```sql
 select
   arn,
