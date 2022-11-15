@@ -16,9 +16,6 @@ func tableAWSResourceExplorerSupportedResourceType(_ context.Context) *plugin.Ta
 		Description: "AWS Resource Explorer Supported Resource Type",
 		List: &plugin.ListConfig{
 			Hydrate: listAWSExplorerSupportedTypes,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
-			},
 		},
 		Columns: awsDefaultColumns([]*plugin.Column{
 			{

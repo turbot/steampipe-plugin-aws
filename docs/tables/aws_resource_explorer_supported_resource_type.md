@@ -23,5 +23,5 @@ select
 from
   aws_resource_explorer_supported_resource_type
 where
-  service= 'iam';
+  service = 'iam';
 ```

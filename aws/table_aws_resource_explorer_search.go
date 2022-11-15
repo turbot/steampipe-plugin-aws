@@ -24,9 +24,6 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 				{Name: "region", Require: plugin.Required, CacheMatch: "exact"},
 				{Name: "view_arn", Require: plugin.Optional}, // The view to be used to search resources.
 			},
-			// IgnoreConfig: &plugin.IgnoreConfig{
-			// 	// ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "UnauthorizedException"}),
-			// },
 		},
 		Columns: []*plugin.Column{
 			{

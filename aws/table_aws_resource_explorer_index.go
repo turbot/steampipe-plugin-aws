@@ -16,9 +16,6 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 		Description: "AWS Resource Explorer Index",
 		List: &plugin.ListConfig{
 			Hydrate: listAWSExplorerIndexes,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
-			},
 		},
 		Columns: awsDefaultColumns([]*plugin.Column{
 			{
