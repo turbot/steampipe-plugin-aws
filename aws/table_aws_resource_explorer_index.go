@@ -23,8 +23,8 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
 			},
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "type", Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "region", Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "type", Require: plugin.Optional},
+				{Name: "region", Require: plugin.Optional},
 			},
 		},
 		Columns: awsDefaultColumns([]*plugin.Column{
