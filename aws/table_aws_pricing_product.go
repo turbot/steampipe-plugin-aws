@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/pricing/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-	"time"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -93,7 +94,7 @@ type PriceList struct {
 
 func listPricingProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := PricingServiceClient(ctx, d)
+	svc, err := PricingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_pricing_product.listPricingProduct", "connection_error", err)
 		return nil, err
