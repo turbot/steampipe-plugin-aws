@@ -392,8 +392,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wafv2_web_acl":                                            tableAwsWafv2WebAcl(ctx),
 			"aws_wellarchitected_workload":                                 tableAwsWellArchitectedWorkload(ctx),
 			"aws_workspaces_workspace":                                     tableAwsWorkspace(ctx),
-			// Holding of due to this issue https://github.com/aws/aws-sdk-go-v2/issues/1916
-			// "aws_resource_explorer_view":                                   tableAWSResourceExplorerView(ctx),
 		},
 	}
 
