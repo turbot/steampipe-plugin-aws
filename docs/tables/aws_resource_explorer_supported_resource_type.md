@@ -14,7 +14,7 @@ from
   aws_resource_explorer_supported_resource_type;
 ```
 
-### List iam service resource types supported by AWS resource explorer
+### List supported IAM resource types
 
 ```sql
 select

@@ -21,13 +21,6 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 		Description: "AWS Resource Explorer Search",
 		List: &plugin.ListConfig{
 			Hydrate: awsResourceExplorerSearch,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				// UnauthorizedException error thrown for below cases in Resource Explorer
-				// 1. Default view is not present in the region queried
-				// 2. Credentials doesn't have access to the view used for searching
-				// 3. Cross-account or cross-region view is used for searching
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnauthorizedException"}),
-			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "query", Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "view_arn", Require: plugin.Optional, CacheMatch: "exact"}, // The view to be used to search resources..
@@ -119,6 +112,13 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 		QueryString: aws.String(""),
 	}
 
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearchs", "common_data_error", err)
+		return nil, err
+	}
+	accountID := commonData.(*awsCommonColumnData).AccountId
+
 	region := getDefaultAwsRegion(d)
 	hasViewARN := false
 	if d.KeyColumnQuals["view_arn"] != nil {
@@ -130,12 +130,7 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 			region = arnData.Region
 
 			// Avoid cross-account queriying
-			commonData, err := getCommonColumns(ctx, d, h)
-			if err != nil {
-				plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearchs", "common_data_error", err)
-				return nil, err
-			}
-			if arnData.AccountID != commonData.(*awsCommonColumnData).AccountId {
+			if arnData.AccountID != accountID {
 				return nil, nil
 			}
 		}
@@ -165,24 +160,32 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 
 		if len(indexesOutput.Indexes) == 0 {
-			return nil, fmt.Errorf("AGGREGATOR index is not found in found in the Account. Please use \"view_arn\" to serach resources or create aggreagtor index in account with default view and try again.")
+			return nil, fmt.Errorf("Aggregator index not found in account %s. Please create an aggregator index or specify \"view_arn\".", accountID)
+		}
+		region = *indexesOutput.Indexes[0].Region
+
+		// Create the service connection again with the aggregator region
+		svc, err = ResourceExplorerClient(ctx, d, region)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "search_api_connnection_error", err)
+			return nil, err
+		}
+		if svc == nil {
+			// Unsupported region, return no data
+			return nil, nil
 		}
 
-		region = *indexesOutput.Indexes[0].Region
+		defaultViewOutput, err := svc.GetDefaultView(ctx, &resourceexplorer2.GetDefaultViewInput{})
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "get_default_view_api_error", err)
+			return nil, err
+		}
+
+		if defaultViewOutput.ViewArn == nil {
+			return nil, fmt.Errorf("Aggregator index default view not found in account %s. Please create an default view in region \"%s\" or specify \"view_arn\".", accountID, region)
+		}
 	}
 
-	// Create the service connection again with the aggregator region
-	svc, err = ResourceExplorerClient(ctx, d, region)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "search_api_connnection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
-	//
 	if d.KeyColumnQuals["query"] != nil {
 		searchParams.QueryString = aws.String(d.KeyColumnQualString("query"))
 	}

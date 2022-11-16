@@ -135,5 +135,5 @@ select
 from
   aws_resource_explorer_search
 where
-  view_arn = 'arn:aws:resource-explorer-2:ap-south-1:013122550996:view/view1/7c9e9845-4736-409f-9c0f-673fe7ce3e46';
+  view_arn = 'arn:aws:resource-explorer-2:ap-south-1:111122223333:view/view1/7c9e9845-4736-409f-9c0f-673fe7ce3e46';
 ```
