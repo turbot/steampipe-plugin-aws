@@ -4,7 +4,7 @@ AWS Resource Explorer is a resource search and discovery service. This table all
 
 **Important notes:**
 
-- You **_must_** specify an AWS `region` or `view_arn` in the where clause to search for resources. The details of the region having AWS Explorer Service Indexes for search can be known through the [aws_resource_explorer_index](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_resource_explorer_index) table. Only regions when Resource Explorer is turned on, and the index is available in the region, then it can be used for searches.
+- This table uses the `AGGREGATOR` index for searching resources in the AWS account. If the account doesn't have an `AGGREGATOR` index enabled `view_arn` field can be used to search resource explorer through specific views. Only regions where Resource Explorer is turned on, and the available index can be used for searches
 
 - This table supports other optional quals. Queries with optional quals are optimised to use specific View and Query for searches. Optional quals are supported for the following columns:
   - `query`: A string that includes keywords and filters that specify the resources that you want to include in the results. For further details refer [query string syntax](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html#query-syntax).
@@ -20,21 +20,17 @@ AWS Resource Explorer is a resource search and discovery service. This table all
 
 ## Examples
 
-**NOTE** For below examples the region `ap-south-1` has the `AGGREGATOR` Index with default view to list all resources.
-
 ### Basic info
 
 ```sql
 select
   arn,
-  resource_region,
+  region,
   resource_type,
   service,
   owning_account_id
 from
-  aws_resource_explorer_search
-where
-  region = 'ap-south-1';
+  aws_resource_explorer_search;
 ```
 
 ### List resources other than the IAM service resources
@@ -42,15 +38,14 @@ where
 ```sql
 select
   arn,
-  resource_region,
+  region,
   resource_type,
   service,
   owning_account_id
 from
   aws_resource_explorer_search
 where
-  region = 'ap-south-1'
-  and query = '-service:iam';
+  query = '-service:iam';
 ```
 
 ### List resources other than IAM service in `us-*` regions
@@ -58,15 +53,14 @@ where
 ```sql
 select
   arn,
-  resource_region,
+  region,
   resource_type,
   service,
   owning_account_id
 from
   aws_resource_explorer_search
 where
-  region = 'ap-south-1'
-  and query = '-service:iam region:us-*';
+  query = '-service:iam region:us-*';
 ```
 
 ### List resources of a specific type using `resourcetype` in query
@@ -74,15 +68,14 @@ where
 ```sql
 select
   arn,
-  resource_region,
+  region,
   resource_type,
   service,
   owning_account_id
 from
   aws_resource_explorer_search
 where
-  region = 'ap-south-1'
-  and query = 'resourcetype:iam:user';
+  query = 'resourcetype:iam:user';
 ```
 
 ### List resources with user created tags
@@ -90,15 +83,14 @@ where
 ```sql
 select
   arn,
-  resource_region,
+  region,
   resource_type,
   service,
   owning_account_id
 from
   aws_resource_explorer_search
 where
-  region = 'ap-south-1'
-  and query = '-tag:none';
+  query = '-tag:none';
 ```
 
 ### List resources with tag key `environment`
@@ -106,15 +98,14 @@ where
 ```sql
 select
   arn,
-  resource_region,
+  region,
   resource_type,
   service,
   owning_account_id
 from
   aws_resource_explorer_search
 where
-  region = 'ap-south-1'
-  and query = 'tag.key:environment';
+  query = 'tag.key:environment';
 ```
 
 ### List resources with `global` scope
@@ -122,15 +113,14 @@ where
 ```sql
 select
   arn,
-  resource_region,
+  region,
   resource_type,
   service,
   owning_account_id
 from
   aws_resource_explorer_search
 where
-  region = 'ap-south-1'
-  and query = 'region:global';
+  query = 'region:global';
 ```
 
 ### List resources from with a specific view
@@ -138,13 +128,12 @@ where
 ```sql
 select
   arn,
-  resource_region,
+  region,
   resource_type,
   service,
   owning_account_id
 from
   aws_resource_explorer_search
 where
-  region = 'us-east-2'
-  and view_arn = 'arn:aws:resource-explorer-2:us-east-2:123456789012:view/My-Resources-View/1a2b3c4d-5d6e-7f8a-9b0c-abcd11111111';
+  view_arn = 'arn:aws:resource-explorer-2:ap-south-1:013122550996:view/view1/7c9e9845-4736-409f-9c0f-673fe7ce3e46';
 ```
