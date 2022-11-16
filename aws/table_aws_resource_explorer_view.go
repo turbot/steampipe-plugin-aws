@@ -67,7 +67,7 @@ package aws
 // 	// explorerIndex := h.Item.(types.Index)
 // 	// Create Session
 // 	region := d.KeyColumnQualString("region")
-// 	svc, err := ResourceExplorerRegionalClient(ctx, d, region)
+// 	svc, err := ResourceExplorerClient(ctx, d, region)
 // 	if err != nil {
 // 		plugin.Logger(ctx).Error("aws_resource_explorer_view.listAWSExplorerViews", "connnection_error", err)
 // 		return nil, err

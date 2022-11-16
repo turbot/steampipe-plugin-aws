@@ -4,7 +4,7 @@ AWS Resource Explorer is a resource search and discovery service. This table all
 
 **Important notes:**
 
-- You **_must_** specify an AWS `region` in the where clause to search for resources. The details of the region having AWS Explorer Service Indexes for search can be known through the [aws_resource_explorer_index](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_resource_explorer_index) table. Only regions when Resource Explorer is turned on, and the index is available in the region, then it can be used for searches.
+- You **_must_** specify an AWS `region` or `view_arn` in the where clause to search for resources. The details of the region having AWS Explorer Service Indexes for search can be known through the [aws_resource_explorer_index](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_resource_explorer_index) table. Only regions when Resource Explorer is turned on, and the index is available in the region, then it can be used for searches.
 
 - This table supports other optional quals. Queries with optional quals are optimised to use specific View and Query for searches. Optional quals are supported for the following columns:
   - `query`: A string that includes keywords and filters that specify the resources that you want to include in the results. For further details refer [query string syntax](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html#query-syntax).

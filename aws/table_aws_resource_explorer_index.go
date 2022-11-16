@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
+	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -16,6 +17,15 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 		Description: "AWS Resource Explorer Index",
 		List: &plugin.ListConfig{
 			Hydrate: listAWSExplorerIndexes,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				// ValidationException error thrown for below cases in the table
+				// 1. Type of the index type passed as input is not a valid value
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
+			},
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "type", Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "region", Require: plugin.Optional, CacheMatch: "exact"},
+			},
 		},
 		Columns: awsDefaultColumns([]*plugin.Column{
 			{
@@ -40,14 +50,29 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	params := &resourceexplorer2.ListIndexesInput{}
+	region := getDefaultAwsRegion(d)
+	if d.KeyColumnQuals["region"] != nil {
+		region = d.KeyColumnQualString("region")
+		params.Regions = []string{region}
+	}
+
 	// Create Session
-	svc, err := ResourceExplorerClient(ctx, d)
+	svc, err := ResourceExplorerClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_resource_explorer_index.listAWSExplorerIndexes", "connnection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
-	paginator := resourceexplorer2.NewListIndexesPaginator(svc, &resourceexplorer2.ListIndexesInput{}, func(o *resourceexplorer2.ListIndexesPaginatorOptions) {
+	if d.KeyColumnQuals["type"] != nil {
+		params.Type = types.IndexType(d.KeyColumnQualString("type"))
+	}
+
+	paginator := resourceexplorer2.NewListIndexesPaginator(svc, params, func(o *resourceexplorer2.ListIndexesPaginatorOptions) {
 		o.Limit = 100
 		o.StopOnDuplicateToken = true
 	})

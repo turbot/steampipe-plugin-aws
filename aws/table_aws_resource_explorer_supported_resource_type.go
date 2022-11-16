@@ -36,10 +36,14 @@ func tableAWSResourceExplorerSupportedResourceType(_ context.Context) *plugin.Ta
 
 func listAWSExplorerSupportedTypes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ResourceExplorerClient(ctx, d)
+	svc, err := ResourceExplorerClient(ctx, d, getDefaultAwsRegion(d))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_resource_explorer_supported_resource_type.listAWSExplorerSupportedTypes", "connnection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	paginator := resourceexplorer2.NewListSupportedResourceTypesPaginator(svc, &resourceexplorer2.ListSupportedResourceTypesInput{}, func(o *resourceexplorer2.ListSupportedResourceTypesPaginatorOptions) {

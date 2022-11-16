@@ -157,6 +157,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
+var resourceExplorerRegions = []string{"ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-west-1", "eu-west-2", "eu-west-3", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
+
 // https://github.com/aws/aws-sdk-go-v2/issues/543
 type NoOpRateLimit struct{}
 
@@ -895,17 +897,17 @@ func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshi
 	return redshiftserverless.NewFromConfig(*cfg), nil
 }
 
-func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData) (*resourceexplorer2.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return resourceexplorer2.NewFromConfig(*cfg), nil
-}
+func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region string) (*resourceexplorer2.Client, error) {
+	// https://aws.amazon.com/about-aws/whats-new/2022/11/announcing-aws-resource-explorer/
+	// AWS Resource Explorer is generally available in the following AWS Regions, with more Regions coming soon: US East (Ohio), US East (N. Virginia), US West (N. California), US West (Oregon), Asia Pacific (Mumbai), Asia Pacific (Osaka), Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), Europe (London), Europe (Paris), Europe (Stockholm), and South America (São Paulo).
 
-func ResourceExplorerRegionalClient(ctx context.Context, d *plugin.QueryData, region string) (*resourceexplorer2.Client, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed ResourceExplorerRegionalClient")
+		return nil, fmt.Errorf("region must be passed ResourceExplorerClient")
+	}
+
+	// If not a supported region return nil client
+	if !helpers.StringSliceContains(resourceExplorerRegions, region) {
+		return nil, nil
 	}
 
 	cfg, err := getClient(ctx, d, region)

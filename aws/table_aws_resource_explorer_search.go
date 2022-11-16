@@ -3,9 +3,10 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2/types"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -19,10 +20,17 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 		Description: "AWS Resource Explorer Search",
 		List: &plugin.ListConfig{
 			Hydrate: awsResourceExplorerSearch,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				// UnauthorizedException error thrown for below cases in Resource Explorer
+				// 1. Default view is not present in the region queried
+				// 2. Credentials doesn't have access to the view used for searching
+				// 3. Cross-account or cross-region view is used for searching
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnauthorizedException"}),
+			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "query", Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "region", Require: plugin.Required},
-				{Name: "view_arn", Require: plugin.Optional}, // The view to be used to search resources.
+				{Name: "region", Require: plugin.AnyOf, CacheMatch: "exact"},
+				{Name: "view_arn", Require: plugin.AnyOf, CacheMatch: "exact"}, // The view to be used to search resources..
 			},
 		},
 		Columns: []*plugin.Column{
@@ -87,15 +95,49 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString("region")
-	svc, err := ResourceExplorerRegionalClient(ctx, d, region)
+	params := &resourceexplorer2.SearchInput{
+		QueryString: aws.String(""),
+	}
+
+	region := ""
+	if d.KeyColumnQuals["region"] != nil {
+		region = d.KeyColumnQualString("region")
+	}
+
+	if d.KeyColumnQuals["view_arn"] != nil {
+		viewARN := d.KeyColumnQualString("view_arn")
+		if arn.IsARN(viewARN) {
+			arnData, _ := arn.Parse(viewARN)
+			// API throws UnauthorizedException for cross-region and cross-account queries
+			// Avoid cross-region queriying
+			if region != "" && arnData.Region != region {
+				return nil, nil
+			}
+			if region == "" {
+				region = arnData.Region
+			}
+
+			// Avoid cross-account queriying
+			commonData, err := getCommonColumns(ctx, d, h)
+			if err != nil {
+				plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearchs", "common_data_error", err)
+				return nil, err
+			}
+			if arnData.AccountID != commonData.(*awsCommonColumnData).AccountId {
+				return nil, nil
+			}
+		}
+		params.ViewArn = aws.String(d.KeyColumnQualString("view_arn"))
+	}
+
+	svc, err := ResourceExplorerClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "connnection_error", err)
 		return nil, err
 	}
-
-	params := &resourceexplorer2.SearchInput{
-		QueryString: aws.String(""),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	if d.KeyColumnQuals["query"] != nil {
