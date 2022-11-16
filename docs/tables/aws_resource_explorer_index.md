@@ -1,6 +1,7 @@
 # Table: aws_resource_explorer_index
 
-Retrieves the indexes in AWS Regions that are currently collecting resource information for AWS Resource Explorer.
+Retrieves the indexes in AWS regions that are currently collecting resource
+information for AWS Resource Explorer.
 
 ## Examples
 
@@ -15,7 +16,7 @@ from
   aws_resource_explorer_index;
 ```
 
-### Get the details of `AGGREGATOR` index in the account
+### Get the details for the aggregator index
 
 ```sql
 select

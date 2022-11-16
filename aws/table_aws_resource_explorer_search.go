@@ -23,7 +23,7 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 			Hydrate: awsResourceExplorerSearch,
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "query", Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "view_arn", Require: plugin.Optional, CacheMatch: "exact"}, // The view to be used to search resources..
+				{Name: "view_arn", Require: plugin.Optional, CacheMatch: "exact"},
 			},
 		},
 		Columns: []*plugin.Column{
@@ -80,41 +80,16 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-/*
-In an effort to make this table a bit easier, I think we should update the search table to work as follows:
-
-The table should have no required key columns, and we remove region as a key column entirely (but keep query and view_arn
-
-1. Queries for this table that do not specify any key columns, e.g., select * from aws_resource_explorer_search, should still work and follow this sequence
-
-2. List all indexes and look for an aggregator index (connect to the default region to get these)
-
-  - If there's no aggregator index in the account, return an error letting the user know there's no aggregator
-  - Connect to the region where the aggregator index exists
-  - Look for a default view in the aggregator region
-  - If there's no default view, return an error letting the user know there's no default view
-    Note: If this isn't possible due to Resource explorer ListViews always erroring out with error ValidationException aws/aws-sdk-go-v2#1916, we should skip this step for now and just make the search call
-  - Make the search API call
-
-This design has been largely modeled off of how AWS handles activating unified search:
-  - To enable including your account's resources in the search results for unified search from any Amazon console, you must complete the following steps:
-  - Activate Amazon Resource Explorer in one or more Amazon Web Services Regions in your account.
-  - Register one Region to contain the aggregator index.
-  - Create a default view in the Region with the aggregator index.
-  - If a user does pass a view_arn, then we should extract the region out of the view ARN, connect to that region, and pass that view_arn in the input params.
-
-Other notes:
-  - AWS has a 500 requests/month limit on single region indexes and 10,000 requests/month limit on aggregator region indexes, so we strongly prefer searching on the aggregator indexes.
-  - AWS in general returns 401 UnauthorizedException error codes for any error, e.g., Resource Explorer disabled, no index, no default view, insufficient IAM permissions, so we should do our best in the code to wrap these errors and provide better error messages when possible.
-*/
 func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	searchParams := &resourceexplorer2.SearchInput{
 		QueryString: aws.String(""),
 	}
 
+	// If a view ARN is passed in, check if it's from a different account to
+	// avoid an unsuccessful API call
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearchs", "common_data_error", err)
+		plugin.Logger(ctx).Error("aws_resource_explorer_search.awsResourceExplorerSearchs", "common_data_error", err)
 		return nil, err
 	}
 	accountID := commonData.(*awsCommonColumnData).AccountId
@@ -126,10 +101,11 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 		viewARN := d.KeyColumnQualString("view_arn")
 		if arn.IsARN(viewARN) {
 			arnData, _ := arn.Parse(viewARN)
-			// API throws UnauthorizedException for cross-region and cross-account queries
+			// API throws UnauthorizedException for cross-region and cross-account
+			// queries
 			region = arnData.Region
 
-			// Avoid cross-account queriying
+			// Avoid cross-account queries
 			if arnData.AccountID != accountID {
 				return nil, nil
 			}
@@ -139,7 +115,7 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 
 	svc, err := ResourceExplorerClient(ctx, d, region)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "connnection_error", err)
+		plugin.Logger(ctx).Error("aws_resource_explorer_search.awsResourceExplorerSearch", "connnection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -147,27 +123,31 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, nil
 	}
 
-	// Make an API Error to get aggregator index
+	// If no view ARN is specified, attempt to find the account's aggregator
+	// index and verify that region has a default view
 	if !hasViewARN {
+		// Since each account can only have 1 aggregator index, no need to page
 		getAggregatorIndexParams := &resourceexplorer2.ListIndexesInput{
 			Type: types.IndexTypeAggregator,
 		}
 
 		indexesOutput, err := svc.ListIndexes(ctx, getAggregatorIndexParams)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "list_indexes_api_error", err)
+			plugin.Logger(ctx).Error("aws_resource_explorer_search.awsResourceExplorerSearch", "list_indexes_api_error", err)
 			return nil, err
 		}
 
 		if len(indexesOutput.Indexes) == 0 {
 			return nil, fmt.Errorf("Aggregator index not found in account %s. Please create an aggregator index or specify \"view_arn\".", accountID)
 		}
+
+		// Each account can only have 1 aggregator index
 		region = *indexesOutput.Indexes[0].Region
 
-		// Create the service connection again with the aggregator region
+		// Create the service connection again in the aggregator index's region
 		svc, err = ResourceExplorerClient(ctx, d, region)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "search_api_connnection_error", err)
+			plugin.Logger(ctx).Error("aws_resource_explorer_search.awsResourceExplorerSearch", "search_api_connnection_error", err)
 			return nil, err
 		}
 		if svc == nil {
@@ -177,12 +157,12 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 
 		defaultViewOutput, err := svc.GetDefaultView(ctx, &resourceexplorer2.GetDefaultViewInput{})
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "get_default_view_api_error", err)
+			plugin.Logger(ctx).Error("aws_resource_explorer_search.awsResourceExplorerSearch", "get_default_view_api_error", err)
 			return nil, err
 		}
 
 		if defaultViewOutput.ViewArn == nil {
-			return nil, fmt.Errorf("Aggregator index default view not found in account %s. Please create an default view in region \"%s\" or specify \"view_arn\".", accountID, region)
+			return nil, fmt.Errorf("Default view not found in %s region in account %s. Please create a default view or specify \"view_arn\".", region, accountID)
 		}
 	}
 
@@ -211,7 +191,7 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_resource_explorer_view.awsResourceExplorerSearch", "serach_api_error", err)
+			plugin.Logger(ctx).Error("aws_resource_explorer_search.awsResourceExplorerSearch", "search_api_error", err)
 			return nil, err
 		}
 
