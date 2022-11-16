@@ -274,6 +274,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_opensearch_domain":                                        tableAwsOpenSearchDomain(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
 			"aws_pinpoint_app":                                             tableAwsPinpointApp(ctx),
+			"aws_pricing_product":                                          tableAwsPricingProduct(ctx),
 			"aws_pricing_service_attribute":                                tableAwsPricingServiceAttribute(ctx),
 			"aws_ram_principal_association":                                tableAwsRAMPrincipalAssociation(ctx),
 			"aws_ram_resource_association":                                 tableAwsRAMResourceAssociation(ctx),
