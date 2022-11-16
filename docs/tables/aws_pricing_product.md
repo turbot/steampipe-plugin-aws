@@ -24,9 +24,9 @@ select
   attributes ->> 'operatingSystem',
   attributes ->> 'preInstalledSw'
 from
-  aws_pricing_product 
+  aws_pricing_product
 where
-  service_code = 'AmazonEC2' 
+  service_code = 'AmazonEC2'
   and filters = '{
   "regionCode": "eu-west-3",
   "locationType": "AWS Region",
@@ -52,11 +52,11 @@ select
   attributes ->> 'vcpu',
   attributes ->> 'memory',
   attributes ->> 'databaseEngine',
-  attributes ->> 'deploymentOption' 
+  attributes ->> 'deploymentOption'
 from
-  aws_pricing_product 
+  aws_pricing_product
 where
-  service_code = 'AmazonRDS' 
+  service_code = 'AmazonRDS'
   and filters = '{
   "regionCode": "eu-west-3",
   "locationType": "AWS Region",
@@ -78,11 +78,11 @@ select
   attributes ->> 'instanceType',
   attributes ->> 'vcpu',
   attributes ->> 'memory',
-  attributes ->> 'cacheEngine' 
+  attributes ->> 'cacheEngine'
 from
-  aws_pricing_product 
+  aws_pricing_product
 where
-  service_code = 'AmazonElastiCache' 
+  service_code = 'AmazonElastiCache'
   and filters = '{
   "regionCode": "eu-west-3",
   "locationType": "AWS Region",
