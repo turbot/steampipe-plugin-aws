@@ -26,9 +26,7 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 				// 1. Default view is not present in the region queried
 				// 2. Credentials doesn't have access to the view used for searching
 				// 3. Cross-account or cross-region view is used for searching
-				// ValidationException error thrown for below cases in Resource Explorer
-				// 1. If the `query` uses a filter properties that aren't included in the view.
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnauthorizedException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnauthorizedException"}),
 			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "query", Require: plugin.Optional, CacheMatch: "exact"},
