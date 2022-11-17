@@ -6,7 +6,6 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -1431,17 +1430,14 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 }
 
 // getDefaultAwsRegion returns the default region for AWS partiton
-// if not set by Env variable or in aws profile
 func getDefaultAwsRegion(d *plugin.QueryData) string {
-	allAwsRegions := getAllAwsRegions()
-
-	// have we already created and cached the service?
+	// Have we already created and cached the service?
 	serviceCacheKey := "getDefaultAwsRegion"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(string)
 	}
 
-	// get aws config info
+	// Get AWS config info
 	awsConfig := GetConfig(d.Connection)
 
 	var regions []string
@@ -1449,8 +1445,13 @@ func getDefaultAwsRegion(d *plugin.QueryData) string {
 
 	if awsConfig.Regions != nil {
 		regions = awsConfig.Regions
+		// Pick the first region from the regions list as a best guess to determine
+		// the default region for the AWS partition based on the region prefix.
 		region = regions[0]
 	} else {
+		// If the regions are not set in the aws.spc, this will try to pick the
+		// AWS region based on the SDK logic similar to the AWS CLI command
+		// "aws configure list"
 		session, err := session.NewSessionWithOptions(session.Options{
 			SharedConfigState: session.SharedConfigEnable,
 		})
@@ -1460,42 +1461,18 @@ func getDefaultAwsRegion(d *plugin.QueryData) string {
 		if session != nil && session.Config != nil {
 			region = *session.Config.Region
 		}
-
-		if region != "" {
-			regions = []string{region}
-		}
 	}
 
-	invalidPatterns := []string{}
-	for _, namePattern := range regions {
-		validRegions := []string{}
-		for _, validRegion := range allAwsRegions {
-			if ok, _ := path.Match(namePattern, validRegion); ok {
-				validRegions = append(validRegions, validRegion)
-			}
-		}
-
-		// Region items with wildcards that match on 0 regions should not be
-		// considered invalid
-		if len(validRegions) == 0 && !strings.ContainsAny(namePattern, "?*") {
-			invalidPatterns = append(invalidPatterns, namePattern)
-		}
-	}
-
-	if len(invalidPatterns) > 0 {
-		panic("\nconnection config has invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe.")
-	}
-
-	// most of the global services like IAM, S3, Route 53, etc. in all cloud types target these regions
-	if strings.HasPrefix(region, "us-gov") && !helpers.StringSliceContains(allAwsRegions, region) {
+	// Most of the global services like IAM, S3, Route 53, target these regions
+	if strings.HasPrefix(region, "us-gov") {
 		region = "us-gov-west-1"
-	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
+	} else if strings.HasPrefix(region, "cn") {
 		region = "cn-northwest-1"
-	} else if strings.HasPrefix(region, "us-isob") && !helpers.StringSliceContains(allAwsRegions, region) {
+	} else if strings.HasPrefix(region, "us-isob") {
 		region = "us-isob-east-1"
-	} else if strings.HasPrefix(region, "us-iso") && !helpers.StringSliceContains(allAwsRegions, region) {
+	} else if strings.HasPrefix(region, "us-iso") {
 		region = "us-iso-east-1"
-	} else if !helpers.StringSliceContains(allAwsRegions, region) {
+	} else {
 		region = "us-east-1"
 	}
 

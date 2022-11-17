@@ -30,14 +30,6 @@ var (
 	awsUsIsobRegions = []string{"us-isob-east-1"}
 )
 
-func getAllAwsRegions() []string {
-	awsRegions := append(awsCommercialRegions, awsUsGovRegions...)
-	awsRegions = append(awsRegions, awsChinaRegions...)
-	awsRegions = append(awsRegions, awsUsIsoRegions...)
-	awsRegions = append(awsRegions, awsUsIsobRegions...)
-	return awsRegions
-}
-
 // BuildRegionList :: return a list of matrix items, one per region specified in the connection config.
 // Plugin supports wildcards "*" and "?" in the connection config for the regions.
 //
