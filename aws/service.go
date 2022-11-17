@@ -1445,11 +1445,11 @@ func getDefaultAwsRegion(d *plugin.QueryData) string {
 
 	if awsConfig.Regions != nil {
 		regions = awsConfig.Regions
-		// Pick the first region from the regions list to determine the default
-		// region for the AWS partition based on the region prefix.
+		// Pick the first region from the regions list as a best guess to determine
+		// the default region for the AWS partition based on the region prefix.
 		region = regions[0]
 	} else {
-		// If the regions are not set in the aws.spc. This will try to pick the
+		// If the regions are not set in the aws.spc, this will try to pick the
 		// AWS region based on the SDK logic similar to the AWS CLI command
 		// "aws configure list"
 		session, err := session.NewSessionWithOptions(session.Options{
@@ -1463,7 +1463,7 @@ func getDefaultAwsRegion(d *plugin.QueryData) string {
 		}
 	}
 
-	// most of the global services like IAM, S3, Route 53, etc. in all cloud types target these regions
+	// Most of the global services like IAM, S3, Route 53, target these regions
 	if strings.HasPrefix(region, "us-gov") {
 		region = "us-gov-west-1"
 	} else if strings.HasPrefix(region, "cn") {
