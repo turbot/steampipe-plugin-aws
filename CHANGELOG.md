@@ -1,3 +1,9 @@
+## v0.84.0 [2022-11-17]
+
+_Enhancements_
+
+- Improved default region checking for global and region limited services. ([#1397](https://github.com/turbot/steampipe-plugin-aws/pull/1397))
+
 ## v0.83.0 [2022-11-16]
 
 _What's new?_
