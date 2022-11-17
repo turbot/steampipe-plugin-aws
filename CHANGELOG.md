@@ -2,7 +2,7 @@
 
 _Enhancements_
 
-- Code improvements to effectively handle the support for new AWS Regions like `eu-south-2`. ([#1397](https://github.com/turbot/steampipe-plugin-aws/pull/1397)) ([#1398](https://github.com/turbot/steampipe-plugin-aws/pull/1398))
+- Improved default region checking for global and region limited services. ([#1397](https://github.com/turbot/steampipe-plugin-aws/pull/1397))
 
 ## v0.83.0 [2022-11-16]
 
