@@ -1,3 +1,9 @@
+## v0.84.0 [2022-11-17]
+
+_Enhancements_
+
+- Code improvements to effectively handle the support for new AWS Regions like `eu-south-2`. ([#1397](https://github.com/turbot/steampipe-plugin-aws/pull/1397)) ([#1398](https://github.com/turbot/steampipe-plugin-aws/pull/1398))
+
 ## v0.83.0 [2022-11-16]
 
 _What's new?_
