@@ -6,7 +6,6 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -86,6 +85,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
+	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
@@ -851,8 +851,11 @@ func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client,
 	return pinpoint.NewFromConfig(*cfg), nil
 }
 
-func PricingServiceClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
+	// Pricing API is a global API that supports only us-east-1 and ap-south-1 regions
+	// getDefaultAwsRegion doesn't return the good region at the moment (it should use specified API endpoints but it doesn't).
+	// Set us-east-1 for now
+	cfg, err := getClient(ctx, d, "us-east-1")
 	if err != nil {
 		return nil, err
 	}
@@ -892,6 +895,27 @@ func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshi
 		return nil, nil
 	}
 	return redshiftserverless.NewFromConfig(*cfg), nil
+}
+
+func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region string) (*resourceexplorer2.Client, error) {
+	// https://aws.amazon.com/about-aws/whats-new/2022/11/announcing-aws-resource-explorer/
+	// AWS Resource Explorer is generally available in the following AWS Regions, with more Regions coming soon: US East (Ohio), US East (N. Virginia), US West (N. California), US West (Oregon), Asia Pacific (Mumbai), Asia Pacific (Osaka), Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), Europe (London), Europe (Paris), Europe (Stockholm), and South America (São Paulo).
+	var resourceExplorerRegions = []string{"ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-west-1", "eu-west-2", "eu-west-3", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
+
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ResourceExplorerClient")
+	}
+
+	// If not a supported region return nil client
+	if !helpers.StringSliceContains(resourceExplorerRegions, region) {
+		return nil, nil
+	}
+
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	return resourceexplorer2.NewFromConfig(*cfg), nil
 }
 
 func ResourceGroupsTaggingClient(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.Client, error) {
@@ -1406,17 +1430,14 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 }
 
 // getDefaultAwsRegion returns the default region for AWS partiton
-// if not set by Env variable or in aws profile
 func getDefaultAwsRegion(d *plugin.QueryData) string {
-	allAwsRegions := getAllAwsRegions()
-
-	// have we already created and cached the service?
+	// Have we already created and cached the service?
 	serviceCacheKey := "getDefaultAwsRegion"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(string)
 	}
 
-	// get aws config info
+	// Get AWS config info
 	awsConfig := GetConfig(d.Connection)
 
 	var regions []string
@@ -1424,8 +1445,13 @@ func getDefaultAwsRegion(d *plugin.QueryData) string {
 
 	if awsConfig.Regions != nil {
 		regions = awsConfig.Regions
+		// Pick the first region from the regions list as a best guess to determine
+		// the default region for the AWS partition based on the region prefix.
 		region = regions[0]
 	} else {
+		// If the regions are not set in the aws.spc, this will try to pick the
+		// AWS region based on the SDK logic similar to the AWS CLI command
+		// "aws configure list"
 		session, err := session.NewSessionWithOptions(session.Options{
 			SharedConfigState: session.SharedConfigEnable,
 		})
@@ -1435,42 +1461,18 @@ func getDefaultAwsRegion(d *plugin.QueryData) string {
 		if session != nil && session.Config != nil {
 			region = *session.Config.Region
 		}
-
-		if region != "" {
-			regions = []string{region}
-		}
 	}
 
-	invalidPatterns := []string{}
-	for _, namePattern := range regions {
-		validRegions := []string{}
-		for _, validRegion := range allAwsRegions {
-			if ok, _ := path.Match(namePattern, validRegion); ok {
-				validRegions = append(validRegions, validRegion)
-			}
-		}
-
-		// Region items with wildcards that match on 0 regions should not be
-		// considered invalid
-		if len(validRegions) == 0 && !strings.ContainsAny(namePattern, "?*") {
-			invalidPatterns = append(invalidPatterns, namePattern)
-		}
-	}
-
-	if len(invalidPatterns) > 0 {
-		panic("\nconnection config has invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe.")
-	}
-
-	// most of the global services like IAM, S3, Route 53, etc. in all cloud types target these regions
-	if strings.HasPrefix(region, "us-gov") && !helpers.StringSliceContains(allAwsRegions, region) {
+	// Most of the global services like IAM, S3, Route 53, target these regions
+	if strings.HasPrefix(region, "us-gov") {
 		region = "us-gov-west-1"
-	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
+	} else if strings.HasPrefix(region, "cn") {
 		region = "cn-northwest-1"
-	} else if strings.HasPrefix(region, "us-isob") && !helpers.StringSliceContains(allAwsRegions, region) {
+	} else if strings.HasPrefix(region, "us-isob") {
 		region = "us-isob-east-1"
-	} else if strings.HasPrefix(region, "us-iso") && !helpers.StringSliceContains(allAwsRegions, region) {
+	} else if strings.HasPrefix(region, "us-iso") {
 		region = "us-iso-east-1"
-	} else if !helpers.StringSliceContains(allAwsRegions, region) {
+	} else {
 		region = "us-east-1"
 	}
 

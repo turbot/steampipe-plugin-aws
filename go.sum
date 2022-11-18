@@ -255,6 +255,8 @@ github.com/aws/aws-sdk-go-v2/service/redshift v1.26.10 h1:kcIrxL9JKLVbh8JSwGR3v4
 github.com/aws/aws-sdk-go-v2/service/redshift v1.26.10/go.mod h1:Sy+CUk5vCp1B9P5MhQQEigdm3AnlxCmx6wXS7KQD/mM=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9 h1:YamSUuJG+iaOUfZE4WCJOnesdhf4Lx9MENcXS384/4w=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9/go.mod h1:8ZCxqSjiKCzYs8G8EDB6aaxL4IgqYSbHHuhOUY7lSbE=
+github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.0.0 h1:MwyFZ0xCLriUf70YRdWTBCob+O1s1YYObuwHTrpF7zg=
+github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.0.0/go.mod h1:24lb9a+B8Ckl81TXecnjnKmgAMOW0Dgn7yLTNDejOgw=
 github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19 h1:1KQhU01IDvg4fohFIBGlITT4OM/Q99QY6FRj23M1MUg=
 github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19/go.mod h1:tTgBdzibiIxq4r4+ZopTWLk4rh9U5imMsdKPALItjH8=
 github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2 h1:xxCS9CIRNBaXVxeRk6Oa54o1GDvwWPN2mC4ZvLt/4/Q=

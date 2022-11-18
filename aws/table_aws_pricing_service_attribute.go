@@ -54,7 +54,7 @@ type ServiceDetail struct {
 
 func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := PricingServiceClient(ctx, d)
+	svc, err := PricingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_pricing_service_attribute.listPricingServiceAttributes", "connection_error", err)
 		return nil, err
@@ -119,7 +119,7 @@ func listAttributeValues(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	attributeName := h.Item.(ServiceDetail).AttributeName
 
 	// Create Session
-	svc, err := PricingServiceClient(ctx, d)
+	svc, err := PricingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_pricing_service_attribute.listAttributeValues", "connection_error", err)
 		return nil, err

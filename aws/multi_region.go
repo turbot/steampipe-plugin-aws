@@ -21,22 +21,15 @@ type RegionsData struct {
 }
 
 var (
-	awsCommercialRegions = []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-central-1", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
+	// https://docs.aws.amazon.com/general/latest/gr/rande.html#regional-endpoints
+	awsStandardRegions = []string{
+		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-central-2", "eu-north-1", "eu-south-1", "eu-south-2", "eu-west-1", "eu-west-2", "eu-west-3", "me-central-1", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
 
 	awsUsGovRegions  = []string{"us-gov-east-1", "us-gov-west-1"}
 	awsChinaRegions  = []string{"cn-north-1", "cn-northwest-1"}
 	awsUsIsoRegions  = []string{"us-iso-east-1", "us-iso-west-1"}
 	awsUsIsobRegions = []string{"us-isob-east-1"}
 )
-
-func getAllAwsRegions() []string {
-	awsRegions := append(awsCommercialRegions, awsUsGovRegions...)
-	awsRegions = append(awsRegions, awsChinaRegions...)
-	awsRegions = append(awsRegions, awsUsIsoRegions...)
-	awsRegions = append(awsRegions, awsUsIsobRegions...)
-	return awsRegions
-}
 
 // BuildRegionList :: return a list of matrix items, one per region specified in the connection config.
 // Plugin supports wildcards "*" and "?" in the connection config for the regions.
@@ -144,7 +137,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 		return cachedData.(RegionsData), nil
 	}
 
-	defaultRegions := awsCommercialRegions
+	defaultRegions := awsStandardRegions
 
 	defaultRegion := getDefaultAwsRegion(d)
 	if strings.HasPrefix(defaultRegion, "us-gov") {
