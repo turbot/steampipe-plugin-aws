@@ -3,7 +3,7 @@ module github.com/turbot/steampipe-plugin-aws
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go v1.44.130
+	github.com/aws/aws-sdk-go v1.44.141
 	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.21
@@ -80,7 +80,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9
 	github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.0.0
 	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19
-	github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2
+	github.com/aws/aws-sdk-go-v2/service/route53 v1.24.0
 	github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17
 	github.com/aws/aws-sdk-go-v2/service/route53resolver v1.15.19
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
@@ -107,7 +107,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/turbot/go-kit v0.4.0
 	github.com/turbot/steampipe-plugin-sdk/v4 v4.1.8
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.4.0
 )
 
 require (
@@ -187,9 +187,9 @@ require (
 	go.opentelemetry.io/otel/trace v1.7.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.16.0 // indirect
 	golang.org/x/exp v0.0.0-20220518171630-0b5c67f07fdf // indirect
-	golang.org/x/net v0.0.0-20220412020605-290c469a71a5 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
+	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	google.golang.org/genproto v0.0.0-20220407144326-9054f6ed7bac // indirect
 	google.golang.org/grpc v1.48.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
