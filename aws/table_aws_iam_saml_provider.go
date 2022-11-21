@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,7 +22,7 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"arn"}),
 			Hydrate:    getIamSamlProvider,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchEntity"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchEntity"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -78,18 +78,18 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 }
 
 type SAMLProvider struct {
-	Arn                  *string    `min:"20" type:"string"`
-	CreateDate           *time.Time `type:"timestamp"`
-	SAMLMetadataDocument *string    `min:"1000" type:"string"`
-	Tags                 []*iam.Tag `type:"list"`
-	ValidUntil           *time.Time `type:"timestamp"`
+	Arn                  *string     `min:"20" type:"string"`
+	CreateDate           *time.Time  `type:"timestamp"`
+	SAMLMetadataDocument *string     `min:"1000" type:"string"`
+	Tags                 []types.Tag `type:"list"`
+	ValidUntil           *time.Time  `type:"timestamp"`
 }
 
 //// LIST FUNCTION
 
 func listIamSamlProviders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_saml_provider.listIamSamlProviders", "service_creation_error", err)
 		return nil, err
@@ -98,7 +98,8 @@ func listIamSamlProviders(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	params := &iam.ListSAMLProvidersInput{}
 
 	// List call
-	result, err := svc.ListSAMLProviders(params)
+	// SDK doesn't have new paginator for ListSAMLProviders action
+	result, err := svc.ListSAMLProviders(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_saml_provider.listIamSamlProviders", "api_error", err)
 		return nil, err
@@ -136,9 +137,9 @@ func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Create Session
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_saml_provider.getIamSamlProvider", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_iam_saml_provider.getIamSamlProvider", "client_error", err)
 		return nil, err
 	}
 
@@ -147,14 +148,14 @@ func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// List call
-	result, err := svc.GetSAMLProvider(params)
+	result, err := svc.GetSAMLProvider(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_saml_provider.getIamSamlProvider", "api_error", err)
 		return nil, err
 	}
 
 	provider := SAMLProvider{
-		Arn:                  &arn,
+		Arn:                  aws.String(arn),
 		CreateDate:           result.CreateDate,
 		ValidUntil:           result.ValidUntil,
 		SAMLMetadataDocument: result.SAMLMetadataDocument,
@@ -168,14 +169,13 @@ func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 func samlProviderTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	provider := d.HydrateItem.(SAMLProvider)
-
-	if provider.Tags != nil {
-		turbotTagsMap := map[string]string{}
-		for _, i := range provider.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-		return turbotTagsMap, nil
+	if len(provider.Tags) == 0 {
+		return nil, nil
 	}
 
-	return nil, nil
+	turbotTagsMap := map[string]string{}
+	for _, i := range provider.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+	return turbotTagsMap, nil
 }

@@ -2,13 +2,14 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +21,7 @@ func tableAwsCloudFrontCachePolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchCachePolicy"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchCachePolicy"}),
 			},
 			Hydrate: getCloudFrontCachePolicy,
 		},
@@ -105,39 +106,39 @@ func tableAwsCloudFrontCachePolicy(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listCloudFrontCachePolicies")
-
-	// Create session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_cache_policy.listCloudFrontCachePolicies", "client_error", err)
 		return nil, err
 	}
 
 	// The maximum number for MaxItems parameter is not defined by the API
 	// We have set the MaxItems to 1000 based on our test
-	// List call
-	input := &cloudfront.ListCachePoliciesInput{
-		MaxItems: aws.Int64(1000),
-	}
+	maxItems := int32(1000)
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
+	input := &cloudfront.ListCachePoliciesInput{
+		MaxItems: &maxItems,
+	}
+
+	// Paginator not avilable for API ListCachePolicies
 	pagesLeft := true
 	for pagesLeft {
-		result, err := svc.ListCachePolicies(input)
+		result, err := svc.ListCachePolicies(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("listCloudFrontCachePolicies", "ListCachePolicies_error", err)
+			plugin.Logger(ctx).Error("aws_cloudfront_cache_policy.listCloudFrontCachePolicies", "api_error", err)
 			return nil, err
 		}
 		for _, policy := range result.CachePolicyList.Items {
@@ -161,40 +162,43 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getCloudFrontCachePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudFrontCachePolicy")
-
-	// Create session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_cache_policy.getCloudFrontCachePolicy", "client_error", err)
 		return nil, err
 	}
 
 	var id string
 	if h.Item != nil {
-		id = *h.Item.(*cloudfront.CachePolicySummary).CachePolicy.Id
+		id = *h.Item.(types.CachePolicySummary).CachePolicy.Id
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
+	}
+
+	if strings.TrimSpace(id) == "" {
+		return nil, nil
 	}
 
 	params := &cloudfront.GetCachePolicyInput{
 		Id: aws.String(id),
 	}
 
-	op, err := svc.GetCachePolicy(params)
+	op, err := svc.GetCachePolicy(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getCloudFrontCachePolicy", "GetCachePolicy_error", err)
+		plugin.Logger(ctx).Error("aws_cloudfront_cache_policy.getCloudFrontCachePolicy", "api_error", err)
 		return nil, err
 	}
 
-	return op, nil
+	return *op, nil
 }
 
 func getCloudfrontCachePolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudfrontCachePolicyAkas")
 	id := cloudFrontCachePolicyAka(h.Item)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_cache_policy.getCloudfrontCachePolicyAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -208,9 +212,9 @@ func getCloudfrontCachePolicyAkas(ctx context.Context, d *plugin.QueryData, h *p
 
 func cloudFrontCachePolicyAka(item interface{}) *string {
 	switch item := item.(type) {
-	case *cloudfront.GetCachePolicyOutput:
+	case cloudfront.GetCachePolicyOutput:
 		return item.CachePolicy.Id
-	case *cloudfront.CachePolicySummary:
+	case types.CachePolicySummary:
 		return item.CachePolicy.Id
 	}
 	return nil

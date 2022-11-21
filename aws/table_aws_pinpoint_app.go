@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/service/pinpoint"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
+	"github.com/aws/aws-sdk-go-v2/service/pinpoint/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -23,14 +21,14 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getPinpointApp,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listPinpointApps,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -97,21 +95,16 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listPinpointApps")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Pinpoint is not supported in all regions.
-	// https://docs.aws.amazon.com/general/latest/gr/pinpoint.html
-	serviceId := endpoints.PinpointServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create Session
-	svc, err := PinpointService(ctx, d)
+	svc, err := PinpointClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_pinpoint_app.listPinpointApps", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Page size must be greater than 0 and less than or equal to 1000
@@ -131,10 +124,11 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		}
 	}
 
+	// API doesn't support aws-g0-sdk-v2 paginator as of date
 	for {
-		apps, err := svc.GetApps(input)
+		apps, err := svc.GetApps(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("listPinpointApps", "list", err)
+			plugin.Logger(ctx).Error("aws_pinpoint_app.listPinpointApps", "api_error", err)
 			return nil, err
 		}
 
@@ -159,23 +153,12 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getPinpointApp")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Pinpoint is not supported in all regions.
-	// https://docs.aws.amazon.com/general/latest/gr/pinpoint.html
-	serviceId := endpoints.PinpointServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	appId := d.KeyColumnQuals["id"].GetStringValue()
 	// Empty check
 	if appId == "" {
@@ -183,18 +166,23 @@ func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	// Create service
-	svc, err := PinpointService(ctx, d)
+	svc, err := PinpointClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getPinpointApp", "connection", err)
+		plugin.Logger(ctx).Error("aws_pinpoint_app.getPinpointApp", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
-	params := &pinpoint.GetAppInput{}
-	params.SetApplicationId(appId)
+	params := &pinpoint.GetAppInput{
+		ApplicationId: &appId,
+	}
 
-	op, err := svc.GetApp(params)
+	op, err := svc.GetApp(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getPinpointApp", "get", err)
+		plugin.Logger(ctx).Error("aws_pinpoint_app.getPinpointApp", "api_error", err)
 		return nil, err
 	}
 
@@ -202,25 +190,25 @@ func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, nil
 	}
 
-	return op.ApplicationResponse, nil
+	return *op.ApplicationResponse, nil
 }
 
 func getPinpointApplicationSettings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getPinpointApplicationSettings")
-	application := h.Item.(*pinpoint.ApplicationResponse)
+	application := h.Item.(types.ApplicationResponse)
 
 	// Create service
-	svc, err := PinpointService(ctx, d)
+	svc, err := PinpointClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getPinpointApplicationSettings", "connection", err)
+		plugin.Logger(ctx).Error("aws_pinpoint_app.getPinpointApplicationSettings", "connection_error", err)
 		return nil, err
 	}
-	params := &pinpoint.GetApplicationSettingsInput{}
-	params.SetApplicationId(*application.Id)
+	params := &pinpoint.GetApplicationSettingsInput{
+		ApplicationId: application.Id,
+	}
 
-	op, err := svc.GetApplicationSettings(params)
+	op, err := svc.GetApplicationSettings(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getPinpointApplicationSettings", err)
+		plugin.Logger(ctx).Error("aws_pinpoint_app.getPinpointApplicationSettings", "api_error", err)
 		return nil, err
 	}
 	if op == nil {

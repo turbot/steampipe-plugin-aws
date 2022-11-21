@@ -2,18 +2,19 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/backup/types"
+	"github.com/aws/smithy-go"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-//// TABLE DEFINITION
+// // TABLE DEFINITION
 func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_backup_framework",
@@ -21,14 +22,14 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("framework_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupFramework,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupFrameworks,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "framework_name",
@@ -106,8 +107,8 @@ func getNumberOfControls(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	switch item := h.Item.(type) {
 	case *backup.DescribeFrameworkOutput:
 		value = len(item.FrameworkControls)
-	case *backup.Framework:
-		value = int(*item.NumberOfControls)
+	case types.Framework:
+		value = int(item.NumberOfControls)
 	}
 
 	return value, nil
@@ -116,50 +117,57 @@ func getNumberOfControls(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// LIST FUNCTION
 
 func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// AWS Backup service is available in all regions. However, the AWS Backup audit manager, which is newly introduced under the Backup service, is not supported in all regions.
-	// Due to this reason, we could not put a check based on the service endpoint and had to check the region code directly.
-	// https://aws.amazon.com/about-aws/whats-new/2022/05/aws-backup-audit-manager-adds-amazon-s3-storage-gateway/#:~:text=AWS%20Backup%20Audit%20Manager%20is,Middle%20East%20(Bahrain)%20Regions.
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "ap-northeast-3" {
+	// Create session
+	svc, err := BackupClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworks", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
-	// Create session
-	svc, err := BackupService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &backup.ListFrameworksInput{
-		MaxResults: aws.Int64(1000),
-	}
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.ListFrameworksPages(
-		input,
-		func(output *backup.ListFrameworksOutput, lastPage bool) bool {
-			for _, plan := range output.Frameworks {
-				d.StreamListItem(ctx, plan)
+	input := &backup.ListFrameworksInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := backup.NewListFrameworksPaginator(svc, input, func(o *backup.ListFrameworksPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworks", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Frameworks {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
@@ -175,14 +183,19 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_framework.getAwsBackupFramework", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var name string
 	if h.Item != nil {
-		framework := h.Item.(*backup.Framework)
+		framework := h.Item.(types.Framework)
 		name = *framework.FrameworkName
 	} else {
 		name = d.KeyColumnQuals["framework_name"].GetStringValue()
@@ -197,13 +210,15 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		FrameworkName: aws.String(name),
 	}
 
-	op, err := svc.DescribeFramework(params)
+	op, err := svc.DescribeFramework(ctx, params)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "ResourceNotFoundException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_backup_framework.getAwsBackupFramework", "api_error", err)
 		return nil, err
 	}
 
@@ -212,15 +227,20 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworkTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var arn *string
 
 	switch item := h.Item.(type) {
-	case *backup.Framework:
+	case types.Framework:
 		arn = item.FrameworkArn
 	case *backup.DescribeFrameworkOutput:
 		arn = item.FrameworkArn
@@ -229,28 +249,27 @@ func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plu
 	// Build the params
 	params := backup.ListTagsInput{
 		ResourceArn: aws.String(*arn),
-		MaxResults:  aws.Int64(1000),
+		MaxResults:  aws.Int32(1000),
 	}
 
+	paginator := backup.NewListTagsPaginator(svc, &params, func(o *backup.ListTagsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
 	tags := make(map[string]string)
-	pagesLeft := true
-	for pagesLeft {
-		keyTags, err := svc.ListTags(&params)
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("listAwsBackupFrameworkTags", "ListTags_error", err)
+			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listRestAPI", "api_error", err)
 			return nil, err
 		}
 
-		for k, v := range keyTags.Tags {
-			tags[k] = *v
+		for k, v := range output.Tags {
+			tags[k] = v
 		}
 
-		if keyTags.NextToken != nil {
-			params.NextToken = keyTags.NextToken
-		} else {
-			pagesLeft = false
-		}
 	}
-
 	return tags, nil
 }

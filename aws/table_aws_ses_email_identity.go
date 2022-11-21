@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
@@ -18,7 +18,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSESEmailIdentities,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity",
@@ -30,26 +30,26 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The ARN of the AWS SES identity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEmailIdentityARN,
+				Hydrate:     getSESIdentityARN,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "verification_status",
 				Description: "The verification status of the identity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEmailIdentityVerificationAttributes,
+				Hydrate:     getSESIdentityVerificationAttributes,
 			},
 			{
 				Name:        "verification_token",
-				Description: "The verification token for a domain identity.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The verification token for a domain identity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEmailIdentityVerificationAttributes,
+				Hydrate:     getSESIdentityVerificationAttributes,
 			},
 			{
 				Name:        "notification_attributes",
 				Description: "Represents the notification attributes of an identity.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEmailIdentityNotificationAttributes,
+				Hydrate:     getSESIdentityNotificationAttributes,
 				Transform:   transform.FromValue(),
 			},
 
@@ -64,7 +64,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEmailIdentityARN,
+				Hydrate:     getSESIdentityARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -74,111 +74,123 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listSESEmailIdentities")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
 	// Create Session
-	svc, err := SESService(ctx, d, region)
+	svc, err := SESClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_email_identity.listSESEmailIdentities", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// execute list call
 	input := &ses.ListIdentitiesInput{
-		MaxItems:     aws.Int64(1000),
-		IdentityType: &ses.IdentityType_Values()[0],
+		MaxItems:     aws.Int32(1000),
+		IdentityType: types.IdentityTypeEmailAddress,
 	}
 
 	// Limiting the results
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxItems {
+			if limit < 1 {
+				input.MaxItems = aws.Int32(1)
 			} else {
-				input.MaxItems = limit
+				input.MaxItems = aws.Int32(limit)
 			}
 		}
 	}
 
 	// List call
-	err = svc.ListIdentitiesPages(
-		input,
-		func(page *ses.ListIdentitiesOutput, lastPage bool) bool {
-			for _, identity := range page.Identities {
-				d.StreamListItem(ctx, *identity)
+	paginator := ses.NewListIdentitiesPaginator(svc, input, func(o *ses.ListIdentitiesPaginatorOptions) {
+		o.Limit = *input.MaxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ses_email_identity.listSESEmailIdentities", "api_error", err)
+			return nil, err
+		}
+
+		for _, identity := range output.Identities {
+			d.StreamListItem(ctx, identity)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
-func getEmailIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEmailIdentityVerificationAttributes")
-
+func getSESIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	identity := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	identities := []*string{&identity}
+	identities := []string{identity}
 
 	// Create Session
-	svc, err := SESService(ctx, d, region)
+	svc, err := SESClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_email_identity.getSESIdentityVerificationAttributes", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &ses.GetIdentityVerificationAttributesInput{
 		Identities: identities,
 	}
-	result, err := svc.GetIdentityVerificationAttributes(input)
+	result, err := svc.GetIdentityVerificationAttributes(ctx, input)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_email_identity.getSESIdentityVerificationAttributes", "api_error", err)
 		return nil, err
 	}
 	return result.VerificationAttributes[identity], err
 }
 
-func getEmailIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEmailIdentityNotificationAttributes")
-
+func getSESIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	identity := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	identities := []*string{&identity}
+	identities := []string{identity}
 
 	// Create Session
-	svc, err := SESService(ctx, d, region)
+	svc, err := SESClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_email_identity.getSESIdentityNotificationAttributes", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &ses.GetIdentityNotificationAttributesInput{
 		Identities: identities,
 	}
-	result, err := svc.GetIdentityNotificationAttributes(input)
+	result, err := svc.GetIdentityNotificationAttributes(ctx, input)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_email_identity.getSESIdentityNotificationAttributes", "api_error", err)
 		return nil, err
 	}
 	return result.NotificationAttributes[identity], err
 }
 
-func getEmailIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEmailIdentityARN")
-
+func getSESIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	identity := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_email_identity.getSESIdentityARN", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

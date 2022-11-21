@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/amplify"
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/amplify"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +20,14 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("app_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException"}),
 			},
 			Hydrate: getAmplifyApp,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAmplifyApps,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "app_id",
@@ -172,52 +172,47 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.listAmplifyApps")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Amplify is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://amplify.ap-southeast-3.amazonaws.com/": dial tcp: lookup amplify.ap-southeast-3.amazonaws.com: no such host
-	serviceId := amplify.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
+	// Create Session
+	svc, err := AmplifyClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_amplify_app.listAmplifyApps", "get_client_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
-	// Create Session
-	svc, err := AmplifyService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
 	input := &amplify.ListAppsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < input.MaxResults {
+			if limit < 20 {
+				input.MaxResults = int32(20)
 			} else {
-				input.MaxResults = limit
+				input.MaxResults = int32(limit)
 			}
 		}
 	}
 
+	// API doesn't support aws-sdk-go-v2 paginator as of date.
 	pagesLeft := true
 
 	for pagesLeft {
-		result, err := svc.ListApps(input)
+		result, err := svc.ListApps(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("ListApps", "ERROR", err)
+			plugin.Logger(ctx).Error("aws_amplify_app.listAmplifyApps", "api_error", err)
 			return nil, err
 		}
 
-		for _, app := range result.Apps {
-			d.StreamListItem(ctx, app)
+		for _, item := range result.Apps {
+			d.StreamListItem(ctx, item)
 
-			// Context can be cancelled due to manual cancellation or the limit has been hit
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
@@ -237,28 +232,21 @@ func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.getAmplifyApp")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Amplify is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://amplify.ap-southeast-3.amazonaws.com/": dial tcp: lookup amplify.ap-southeast-3.amazonaws.com: no such host
-	serviceId := amplify.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	appId := d.KeyColumnQuals["app_id"].GetStringValue()
 	if appId == "" {
-		plugin.Logger(ctx).Trace("Column app_id is expected but not present, ignore")
 		return nil, nil
 	}
 
-	// Create service
-	svc, err := AmplifyService(ctx, d)
+	// Create Session
+	svc, err := AmplifyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_amplify_app.getAmplifyApp", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -267,13 +255,11 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Get call
-	data, err := svc.GetApp(params)
+	data, err := svc.GetApp(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("GetApp", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_amplify_app.getAmplifyApp", "api_error", err)
 		return nil, err
 	}
 
 	return data.App, nil
 }
-
-//// TRANSFORM FUNCTION

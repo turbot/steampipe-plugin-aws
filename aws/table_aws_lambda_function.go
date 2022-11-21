@@ -2,15 +2,17 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/aws/smithy-go"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
@@ -24,7 +26,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaFunctions,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -183,10 +185,23 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "code",
+				Description: "The deployment package of the function or version.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsLambdaFunction,
+			},
+			{
 				Name:        "environment_variables",
 				Description: "The environment variables that are accessible from function code during execution.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Configuration.Environment.Variables", "Environment.Variables"),
+			},
+			{
+				Name:        "file_system_configs",
+				Description: "Connection settings for an Amazon EFS file system.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsLambdaFunction,
+				Transform:   transform.FromField("Configuration.FileSystemConfigs"),
 			},
 			{
 				Name:        "policy",
@@ -249,64 +264,84 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsLambdaFunctions")
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "connection_error", err)
 		return nil, err
 	}
-
-	input := &lambda.ListFunctionsInput{
-		MaxItems: aws.Int64(10000),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
+	maxItems := int32(10000)
+	input := lambda.ListFunctionsInput{}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListFunctionsPages(
-		input,
-		func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
-			for _, function := range page.Functions {
-				d.StreamListItem(ctx, function)
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := lambda.NewListFunctionsPaginator(svc, &input, func(o *lambda.ListFunctionsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)
+			return nil, err
+		}
+
+		for _, function := range output.Functions {
+			d.StreamListItem(ctx, function)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsLambdaFunction")
 
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*lambda.FunctionConfiguration).FunctionName
+		name = *h.Item.(types.FunctionConfiguration).FunctionName
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
+	// Empty input check
+	if strings.TrimSpace(name) == "" {
+		return nil, nil
+	}
+
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_lambda_function.getAwsLambdaFunction", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build params
@@ -314,9 +349,9 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		FunctionName: aws.String(name),
 	}
 
-	rowData, err := svc.GetFunction(params)
+	rowData, err := svc.GetFunction(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsLambdaFunction__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_lambda_function.getAwsLambdaFunction", "api_error", err)
 		return nil, err
 	}
 
@@ -324,53 +359,80 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getFunctionPolicy")
-
 	functionName := functionName(h.Item)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_lambda_function.getFunctionPolicy", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &lambda.GetPolicyInput{
 		FunctionName: aws.String(functionName),
 	}
 
-	op, err := svc.GetPolicy(input)
+	op, err := svc.GetPolicy(ctx, input)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "ResourceNotFoundException" {
-				return lambda.GetPolicyOutput{}, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			// If the function does not exist or does not have a policy, the operation returns a 404 (ResourceNotFoundException) error.
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_lambda_function.getFunctionPolicy", "api_error", err)
 		return nil, err
 	}
 	return op, nil
 }
 
 func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getLambdaFunctionUrlConfig")
-
 	functionName := functionName(h.Item)
 
+	commonColumnData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaFunctionUrlConfig", "get_common_columns_error", err)
+		return nil, err
+	}
+
+	awsCommonData := commonColumnData.(*awsCommonColumnData)
+	// GovCloud does not support function URLs
+	// https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-lambda.html#govcloud-lambda-diffs
+	if awsCommonData.Partition == "aws-us-gov" {
+		return nil, nil
+	}
+
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &lambda.GetFunctionUrlConfigInput{
 		FunctionName: aws.String(functionName),
 	}
 
-	urlConfigs, err := svc.GetFunctionUrlConfig(input)
+	urlConfigs, err := svc.GetFunctionUrlConfig(ctx, input)
 	if err != nil {
-		if strings.Contains(err.Error(), "ResourceNotFoundException") {
-			return nil, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			// If the function does not exist or does not have url config, the operation returns a 404 (ResourceNotFoundException) error.
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return nil, nil
+			}
 		}
-		plugin.Logger(ctx).Error("getLambdaFunctionUrlConfig", "GetFunctionUrlConfig_error", err)
+		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaFunctionUrlConfig", "api_error", err)
 		return nil, err
 	}
 
@@ -379,7 +441,7 @@ func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plu
 
 func functionName(item interface{}) string {
 	switch item := item.(type) {
-	case *lambda.FunctionConfiguration:
+	case types.FunctionConfiguration:
 		return *item.FunctionName
 	case *lambda.GetFunctionOutput:
 		return *item.Configuration.FunctionName

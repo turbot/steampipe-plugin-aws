@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/service/workspaces"
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/workspaces"
+	"github.com/aws/aws-sdk-go-v2/service/workspaces/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +21,7 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("workspace_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
 			},
 			Hydrate: getWorkspace,
 		},
@@ -33,7 +33,7 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workspace_id",
@@ -154,37 +154,33 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listWorkspaces")
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
-	serviceId := endpoints.WorkspacesServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
+	// Create Session
+	svc, err := WorkspacesClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_workspaces_workspace.listWorkspaces", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
-	// Create Session
-	svc, err := WorkspacesService(ctx, d)
-	if err != nil {
-		return nil, err
+	// Limiting the results
+	maxLimit := int32(25)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	input := &workspaces.DescribeWorkspacesInput{
-		Limit: aws.Int64(25),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = aws.Int64(1)
-			} else {
-				input.Limit = limit
-			}
-		}
+		Limit: aws.Int32(maxLimit),
 	}
 
 	equalQuals := d.KeyColumnQuals
@@ -204,24 +200,27 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 		}
 	}
 
-	// List call
-	err = svc.DescribeWorkspacesPages(
-		input,
-		func(page *workspaces.DescribeWorkspacesOutput, isLast bool) bool {
-			for _, Workspace := range page.Workspaces {
-				d.StreamListItem(ctx, Workspace)
+	paginator := workspaces.NewDescribeWorkspacesPaginator(svc, input, func(o *workspaces.DescribeWorkspacesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_workspaces_workspace.listWorkspaces", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Workspaces {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listWorkspaces", "list", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -230,18 +229,6 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 //// HYDRATE FUNCTIONS
 
 func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getWorkspace")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
-	serviceId := endpoints.WorkspacesServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	WorkspaceId := d.KeyColumnQuals["workspace_id"].GetStringValue()
 
 	// check if workspace id is empty
@@ -249,21 +236,26 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		return nil, nil
 	}
 
-	// Create service
-	svc, err := WorkspacesService(ctx, d)
+	// Create Session
+	svc, err := WorkspacesClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_workspaces_workspace.getWorkspace", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
 	params := &workspaces.DescribeWorkspacesInput{
-		WorkspaceIds: aws.StringSlice([]string{WorkspaceId}),
+		WorkspaceIds: []string{WorkspaceId},
 	}
 
 	// Get call
-	data, err := svc.DescribeWorkspaces(params)
+	data, err := svc.DescribeWorkspaces(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("DescribeWorkspaces", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_workspaces_workspace.getWorkspace", "api_error", err)
 		return nil, err
 	}
 
@@ -275,14 +267,17 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 }
 
 func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listWorkspacesTags")
-
-	workspaceId := h.Item.(*workspaces.Workspace).WorkspaceId
+	workspaceId := h.Item.(types.Workspace).WorkspaceId
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d)
+	svc, err := WorkspacesClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_workspaces_workspace.listWorkspacesTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -290,9 +285,9 @@ func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		ResourceId: workspaceId,
 	}
 
-	tags, err := svc.DescribeTags(params)
+	tags, err := svc.DescribeTags(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("listWorkspacesTags", "error", err)
+		plugin.Logger(ctx).Error("aws_workspaces_workspace.listWorkspacesTags", "api_error", err)
 		return nil, err
 	}
 
@@ -303,7 +298,7 @@ func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func getWorkspaceArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getWorkspaceArn")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	workspaceId := h.Item.(*workspaces.Workspace).WorkspaceId
+	workspaceId := h.Item.(types.Workspace).WorkspaceId
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)

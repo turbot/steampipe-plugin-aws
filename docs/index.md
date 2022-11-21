@@ -60,7 +60,7 @@ steampipe plugin install aws
 | Credentials | Specify a named profile from an AWS credential file with the `profile` argument. |
 | Permissions | Grant the `ReadOnlyAccess` policy to your user or role. |
 | Radius | Each connection represents a single AWS account. |
-| Resolution |  1. Credentials explicitly set in a steampipe config file (`~/.steampipe/config/aws.spc`).<br />2. Credentials specified in environment variables e.g. `AWS_ACCESS_KEY_ID`.<br />3. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />4. Credentials for the Default profile from the credential file.<br />5. EC2 Instance Role Credentials (if running on an ec2 instance) |
+| Resolution |  1. Credentials explicitly set in a Steampipe config file (`~/.steampipe/config/aws.spc`).<br />2. Credentials specified in environment variables e.g. `AWS_ACCESS_KEY_ID`.<br />3. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />4. Credentials for the Default profile from the credential file.<br />5. EC2 Instance Role Credentials (if running on an ec2 instance) |
 | Region Resolution | 1. Regions set for the connection via the `regions` argument in the config file (`~/.steampipe/config/aws.spc`).<br /> 2. The region specified in the `AWS_DEFAULT_REGION` or `AWS_REGION` environment variable<br />3. The region specified in the active profile (`AWS_PROFILE` or `default`). |
 
 ### Configuration
@@ -102,7 +102,7 @@ connection "aws" {
   # If not set, the default AWS generated endpoint will be used.
   # Can also be set with the AWS_ENDPOINT_URL environment variable.
   #endpoint_url = "http://localhost:4566"
-  
+
   # Set to `true` to force S3 requests to use path-style addressing,
   # i.e., `http://s3.amazonaws.com/BUCKET/KEY`. By default, the S3 client
   # will use virtual hosted bucket addressing when possible (`http://BUCKET.s3.amazonaws.com/KEY`).
@@ -121,11 +121,11 @@ connection "aws" {
 - `session_token` - (Optional) Session token for validating temporary credentials. Can also be set with the `AWS_SESSION_TOKEN` environment variable.
 - `s3_force_path_style`- (Optional) Specifies whether to use path-style addressing, i.e., `https://s3.amazonaws.com/BUCKET/KEY`, or virtual hosted bucket addressing, i.e., `https://BUCKET.s3.amazonaws.com/KEY`. By default, the S3 client will use virtual hosted bucket addressing when possible.
 
-By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc).  This provides a quick way to get started with Steampipe, but you will probably want to customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
+By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc). This provides a quick way to get started with Steampipe, but you will probably want to customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
 
 ## Multi-Region Connections
 
-By default, AWS connections behave like the `aws` cli and connect to a single default region.  Alternatively, you may also specify one or more regions with the `regions` argument:
+By default, AWS connections behave like the `aws` cli and connect to a single default region. Alternatively, you may also specify one or more regions with the `regions` argument:
 ```hcl
 connection "aws" {
   plugin  = "aws"
@@ -134,25 +134,46 @@ connection "aws" {
 ```
 
 The `region` argument supports wildcards:
-- All regions
+- All standard regions
   ```hcl
   connection "aws" {
     plugin  = "aws"
     regions = ["*"]
   }
   ```
-- All regions (gov-cloud)
+- All standard US and EU regions
+  ```hcl
+  connection "aws" {
+    plugin  = "aws"
+    regions = ["us-*", "eu-*"]
+  }
+  ```
+- All US GovCloud regions
   ```hcl
   connection "aws" {
     plugin  = "aws"
     regions = ["us-gov*"]
   }
   ```
-- All US and EU regions
+- All CN regions
   ```hcl
   connection "aws" {
     plugin  = "aws"
-    regions = ["us-*", "eu-*"]
+    regions = ["cn-*"]
+  }
+  ```
+- All ISO regions
+  ```hcl
+  connection "aws" {
+    plugin  = "aws"
+    regions = ["us-iso-*"]
+  }
+  ```
+- All ISOB regions
+  ```hcl
+  connection "aws" {
+    plugin  = "aws"
+    regions = ["us-isob-*"]
   }
   ```
 
@@ -181,7 +202,7 @@ connection "aws_03" {
 }
 ```
 
-Each connection is implemented as a distinct [Postgres schema](https://www.postgresql.org/docs/current/ddl-schemas.html).  As such, you can use qualified table names to query a specific connection:
+Each connection is implemented as a distinct [Postgres schema](https://www.postgresql.org/docs/current/ddl-schemas.html). As such, you can use qualified table names to query a specific connection:
 
 ```sql
 select * from aws_02.aws_account
@@ -192,7 +213,7 @@ Alternatively, can use an unqualified name and it will be resolved according to 
 select * from aws_account
 ```
 
-You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators).  Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection:
+You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators). Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection:
 
 ```hcl
 connection "aws_all" {
@@ -207,7 +228,7 @@ Querying tables from this connection will return results from the `aws_01`, `aws
 select * from aws_all.aws_account
 ```
 
-Steampipe supports the `*` wildcard in the connection names.  For example, to aggregate all the AWS plugin connections whose names begin with `aws_`:
+Steampipe supports the `*` wildcard in the connection names. For example, to aggregate all the AWS plugin connections whose names begin with `aws_`:
 
 ```hcl
 connection "aws_all" {
@@ -217,24 +238,25 @@ connection "aws_all" {
 }
 ```
 
-Aggregators are powerful, but they are not infinitely scalable.  Like any other steampipe connection, they query APIs and are subject to API limits and throttling.  Consider as an example and aggregator that includes 3 AWS connections, where each connection queries 16 regions.  This means you essentially run the same list API calls 48 times!  When using aggregators, it is especially important to:
-- Query only what you need!  `select * from aws_s3_bucket` must make a list API call in each connection, and then 11 API calls *for each bucket*, where `select name, versioning_enabled from aws_s3_bucket` would only require a single API call per bucket.
-- Consider extending the [cache TTL](https://steampipe.io/docs/reference/config-files#connection-options).  The default is currently 300 seconds (5 minutes).  Obviously, anytime steampipe can pull from the cache, its is faster and less impactful to the APIs.  If you don't need the most up-to-date results, increase the cache TTL!
+Aggregators are powerful, but they are not infinitely scalable. Like any other Steampipe connection, they query APIs and are subject to API limits and throttling. Consider as an example and aggregator that includes 3 AWS connections, where each connection queries 16 regions. This means you essentially run the same list API calls 48 times! When using aggregators, it is especially important to:
+- Query only what you need! `select * from aws_s3_bucket` must make a list API call in each connection, and then 11 API calls *for each bucket*, where `select name, versioning_enabled from aws_s3_bucket` would only require a single API call per bucket.
+- Consider extending the [cache TTL](https://steampipe.io/docs/reference/config-files#connection-options). The default is currently 300 seconds (5 minutes). Obviously, anytime Steampipe can pull from the cache, its is faster and less impactful to the APIs. If you don't need the most up-to-date results, increase the cache TTL!
 
 ## Configuring AWS Credentials
 
 ### AWS Profile Credentials
-You may specify a named profile from an AWS credential file with the `profile` argument.  A connection per profile, using named profiles is probably the most common configuration:
+
+You may specify a named profile from an AWS credential file with the `profile` argument. A connection per profile, using named profiles is probably the most common configuration:
 
 #### aws credential file:
 
 ```ini
-[profile_y]
+[account_a]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
 aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
 region = us-west-2
 
-[profile_z]
+[account_b]
 aws_access_key_id = AKIA4YFAKEKEYJ7HS98F
 aws_secret_access_key = Apf938vDKd8ThisIsNotRealzTiEUwXj9nKLWP9mg4
 ```
@@ -242,15 +264,15 @@ aws_secret_access_key = Apf938vDKd8ThisIsNotRealzTiEUwXj9nKLWP9mg4
 #### aws.spc:
 
 ```hcl
-connection "aws_account_y" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "profile_y"
+  profile = "account_a"
   regions = ["us-east-1", "us-west-2"]
 }
 
-connection "aws_account_z" {
+connection "aws_account_b" {
   plugin  = "aws"
-  profile = "profile_z"
+  profile = "account_b"
   regions = ["ap-southeast-1", "ap-southeast-2"]
 }
 ```
@@ -266,7 +288,7 @@ Steampipe works with [AWS SSO](https://docs.aws.amazon.com/cli/latest/userguide/
 #### aws credential file:
 
 ```ini
-[aws_000000000000]
+[account_a_with_sso]
 sso_start_url = https://d-9a672b0000.awsapps.com/start
 sso_region = us-east-2
 sso_account_id = 000000000000
@@ -277,9 +299,9 @@ region = us-east-1
 #### aws.spc:
 
 ```hcl
-connection "aws_000000000000" {
+connection "aws_account_a_with_sso" {
   plugin  = "aws"
-  profile = "aws_000000000000"
+  profile = "account_a_with_sso"
   regions = ["us-west-2", "us-east-1",  "us-west-1", "us-east-2"]
 }
 ```
@@ -291,82 +313,102 @@ If your aws credential file contains profiles that assume a role via the `source
 #### aws credential file:
 
 ```ini
-[cli-user]
+# This user must have sts:AssumeRole permission for arn:aws:iam::*:role/spc_role
+[cli_user]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
 aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
-region = us-west-2
 
-[role-without-mfa]
-role_arn = arn:aws:iam::123456789012:role/test_assume
-source_profile = cli-user
+[account_a_role_without_mfa]
+role_arn = arn:aws:iam::111111111111:role/spc_role
+source_profile = cli_user
 external_id = xxxxx
+
+[account_b_role_without_mfa]
+role_arn = arn:aws:iam::222222222222:role/spc_role
+source_profile = cli_user
+external_id = yyyyy
 ```
 
 #### aws.spc:
 
 ```hcl
-connection "role_aws" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "role-without-mfa"
+  profile = "account_a_role_without_mfa"
+  regions = ["us-east-1", "us-east-2"]
+}
+
+connection "aws_account_b" {
+  plugin  = "aws"
+  profile = "account_b_role_without_mfa"
   regions = ["us-east-1", "us-east-2"]
 }
 ```
 
 ### AssumeRole Credentials (With MFA)
 
-Currently Steampipe doesn't support prompting for an MFA token at run time.  To overcome this problem you will need to generate an AWS profile with temporary credentials.
+Currently Steampipe doesn't support prompting for an MFA token at run time. To overcome this problem you will need to generate an AWS profile with temporary credentials.
 
-One way to accomplish this is to use the `credential_process` to [generate the credentials with a script or program](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html) and cache the tokens in a new profile.  There is a [sample `mfa.sh` script](https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/scripts/mfa.sh) in the `scripts` directory of the [steampipe-plugin-aws](https://github.com/turbot/steampipe-plugin-aws) repo that you can use, and there are several open source projects that automate this process as well.
+One way to accomplish this is to use the `credential_process` to [generate the credentials with a script or program](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html) and cache the tokens in a new profile. There is a [sample `mfa.sh` script](https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/scripts/mfa.sh) in the `scripts` directory of the [steampipe-plugin-aws](https://github.com/turbot/steampipe-plugin-aws) repo that you can use, and there are several open source projects that automate this process as well.
 
 Note that Steampipe cannot prompt you for your token currently, so you must authenticate before starting Steampipe, and re-authenticate outside of Steampipe whenever your credentials expire.
 
 #### aws credential file:
 
-```bash
-[user_account]
+```ini
+[cli_user]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
 aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
-mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa
+mfa_serial = arn:aws:iam::999999999999:mfa/my_role_mfa
 
-[aws_account_123456789012]
-credential_process = sh -c 'mfa.sh arn:aws:iam::123456789012:role/my_role arn:aws:iam::111111111111:mfa/my_role_mfa user_account 2> $(tty)'
+[account_a_role_with_mfa]
+credential_process = sh -c 'mfa.sh arn:aws:iam::111111111111:role/my_role arn:aws:iam::999999999999:mfa/my_role_mfa cli_user 2> $(tty)'
+
+[account_b_role_with_mfa]
+credential_process = sh -c 'mfa.sh arn:aws:iam::222222222222:role/my_role arn:aws:iam::999999999999:mfa/my_role_mfa cli_user 2> $(tty)'
 ```
 
 #### aws.spc:
 
 ```hcl
-connection "aws_account_123456789012" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "aws_account_123456789012"
-  regions = ["*"]
+  profile = "account_a_role_with_mfa"
+  regions = ["us-east-1", "us-east-2"]
+}
+
+connection "aws_account_b" {
+  plugin  = "aws"
+  profile = "account_b_role_with_mfa"
+  regions = ["us-east-1", "us-east-2"]
 }
 ```
 
 ### AWS-Vault Credentials
 
-Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`.  aws-vault can even be used when using AssumeRole Credentials with MFA (you must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA).
+Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`. aws-vault can even be used when using AssumeRole Credentials with MFA (you must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA).
 
 When authenticating with temporary credentials, like using an access key pair with aws-vault, some IAM and STS APIs may be restricted. You can avoid creating a temporary session with the `--no-session` option (e.g., `aws-vault exec my_profile --no-session -- steampipe query "select name from aws_iam_user;"`). For more information, please see [aws-vault Temporary credentials limitations with STS, IAM
 ](https://github.com/99designs/aws-vault/blob/master/USAGE.md#temporary-credentials-limitations-with-sts-iam).
 
 #### aws credential file:
 
-```bash
+```ini
 [vault_user_account]
 credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault_user_profile is the name of the profile in AWS_VAULT...
 
-[aws_account_123456789012]
+[account_a]
 source_profile = vault_user_account
 role_arn = arn:aws:iam::123456789012:role/my_role
-mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa
+mfa_serial = arn:aws:iam::123456789012:mfa/my_role_mfa
 ```
 
 #### aws.spc:
 
 ```hcl
-connection "aws_account_123456789012" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "aws_account_123456789012"
+  profile = "account_a"
   regions = ["*"]
 }
 ```
@@ -376,11 +418,11 @@ connection "aws_account_123456789012" {
 The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments in your connection.
 
 ```hcl
-connection "aws_account_x" {
+connection "aws_account_a" {
   plugin     = "aws"
   secret_key = "gMCYsoGqjfThisISNotARealKeyVVhh"
   access_key = "ASIA3ODZSWFYSN2PFHPJ"
-  regions    = ["us-east-1" , "us-west-2"]
+  regions    = ["us-east-1", "us-west-2"]
 }
 ```
 

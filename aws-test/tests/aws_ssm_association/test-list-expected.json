@@ -4,7 +4,7 @@
     "association_id": "{{ output.resource_id.value }}",
     "association_name": "{{ output.resource_name.value }}",
     "association_version": "1",
-    "compliance_severity": null,
+    "compliance_severity": "",
     "overview": {
       "AssociationStatusAggregatedCount": {},
       "DetailedStatus": "Success",

@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,10 +21,7 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listIamVirtualMFADevices,
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "assignment_status",
-					Require: plugin.Optional,
-				},
+				{Name: "assignment_status", Require: plugin.Optional},
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -107,73 +106,78 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listIamVirtualMFADevices(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_virtual_mfa_device.listIamVirtualMFADevices", "client_error", err)
 		return nil, err
 	}
 
-	input := &iam.ListVirtualMFADevicesInput{
-		MaxItems: aws.Int64(1000),
-	}
+	maxItems := int32(1000)
+	input := iam.ListVirtualMFADevicesInput{}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["assignment_status"] != nil {
 		if equalQuals["assignment_status"].GetStringValue() != "" {
-			input.AssignmentStatus = aws.String(equalQuals["assignment_status"].GetStringValue())
+			input.AssignmentStatus = types.AssignmentStatusType(equalQuals["assignment_status"].GetStringValue())
 		}
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListVirtualMFADevicesPages(
-		input,
-		func(page *iam.ListVirtualMFADevicesOutput, _ bool) bool {
-			for _, mfaDevice := range page.VirtualMFADevices {
-				d.StreamListItem(ctx, mfaDevice)
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := iam.NewListVirtualMFADevicesPaginator(svc, &input, func(o *iam.ListVirtualMFADevicesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_virtual_mfa_device.listIamVirtualMFADevices", "api_error", err)
+			return nil, err
+		}
+
+		for _, mfaDevice := range output.VirtualMFADevices {
+			d.StreamListItem(ctx, mfaDevice)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return true
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getIamMfaDeviceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getIamMfaDeviceTags")
-
-	data := h.Item.(*iam.VirtualMFADevice)
+	data := h.Item.(types.VirtualMFADevice)
 
 	// Create Session
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_virtual_mfa_device.getIamMfaDeviceTags", "client_error", err)
 		return nil, err
 	}
 
-	params := &iam.ListMFADeviceTagsInput{
-		SerialNumber: data.SerialNumber,
-	}
+	params := &iam.ListMFADeviceTagsInput{SerialNumber: data.SerialNumber}
 
-	op, err := svc.ListMFADeviceTags(params)
+	op, err := svc.ListMFADeviceTags(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getIamMfaDeviceTags__", "ERROR", err)
+		plugin.Logger(ctx).Debug("aws_iam_virtual_mfa_device.getIamMfaDeviceTags", "api_error", err)
 		return nil, err
 	}
 
@@ -185,7 +189,7 @@ func getIamMfaDeviceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 func virtualMfaDeviceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*iam.ListMFADeviceTagsOutput)
 	var turbotTagsMap map[string]string
-	if data.Tags == nil {
+	if len(data.Tags) == 0 {
 		return nil, nil
 	}
 
@@ -198,7 +202,7 @@ func virtualMfaDeviceTurbotTags(_ context.Context, d *transform.TransformData) (
 }
 
 func getAssignmentStatus(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*iam.VirtualMFADevice)
+	data := d.HydrateItem.(types.VirtualMFADevice)
 	if data.User != nil {
 		return "Assigned", nil
 	}

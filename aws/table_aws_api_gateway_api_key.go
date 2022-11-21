@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +21,7 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIKey,
 		},
@@ -33,7 +34,7 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -113,52 +114,59 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
-		logger.Trace("listAPIKeys", "connection error", err)
+		plugin.Logger(ctx).Error("aws_api_gateway_api_key.listAPIKeys", "service_client_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &apigateway.GetApiKeysInput{
-		Limit: aws.Int64(500),
+		Limit: aws.Int32(maxLimit),
 	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["customer_id"] != nil {
-		input.CustomerId = types.String(equalQuals["customer_id"].GetStringValue())
+		input.CustomerId = aws.String(equalQuals["customer_id"].GetStringValue())
 	}
 
-	// Limiting the results
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = types.Int64(1)
-			} else {
-				input.Limit = limit
+	paginator := apigateway.NewGetApiKeysPaginator(svc, input, func(o *apigateway.GetApiKeysPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listAPIKeys", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Items {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List call
-	err = svc.GetApiKeysPages(
-		input,
-		func(page *apigateway.GetApiKeysOutput, lastPage bool) bool {
-			for _, items := range page.Items {
-				d.StreamListItem(ctx, items)
-
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !lastPage
-		},
-	)
 	return nil, err
 }
 
@@ -168,8 +176,9 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 	plugin.Logger(ctx).Trace("getAPIKey")
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getAPIKey", "service_client_error", err)
 		return nil, err
 	}
 
@@ -178,9 +187,9 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		ApiKey: aws.String(id),
 	}
 
-	detail, err := svc.GetApiKey(params)
+	detail, err := svc.GetApiKey(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAPIKey__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getAPIKey", "api_error", err)
 		return nil, err
 	}
 	return detail, nil
@@ -189,7 +198,14 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 func getAwsAPIKeysAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsAPIKeysAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	item := h.Item.(*apigateway.ApiKey)
+	id := ""
+
+	switch h.Item.(type) {
+	case *apigateway.GetApiKeyOutput:
+		id = *h.Item.(*apigateway.GetApiKeyOutput).Id
+	case types.ApiKey:
+		id = *h.Item.(types.ApiKey).Id
+	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -198,7 +214,7 @@ func getAwsAPIKeysAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/apikeys/" + *item.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/apikeys/" + id}
 
 	return akas, nil
 }

@@ -2,14 +2,16 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
+	"github.com/aws/smithy-go"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,14 +23,14 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cache_cluster_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
 			},
 			Hydrate: getElastiCacheCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheClusters,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_cluster_id",
@@ -187,81 +189,94 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 
 func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_cluster.listElastiCacheClusters", "connection_error", err)
 		return nil, err
 	}
 
 	input := &elasticache.DescribeCacheClustersInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
 	// List call
-	err = svc.DescribeCacheClustersPages(
-		input,
-		func(page *elasticache.DescribeCacheClustersOutput, isLast bool) bool {
-			for _, cacheCluster := range page.CacheClusters {
-				d.StreamListItem(ctx, cacheCluster)
+	paginator := elasticache.NewDescribeCacheClustersPaginator(svc, input, func(o *elasticache.DescribeCacheClustersPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_elasticache_cluster.listElastiCacheClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, cacheCluster := range output.CacheClusters {
+			d.StreamListItem(ctx, cacheCluster)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getElastiCacheCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_cluster.getElastiCacheCluster", "connection_error", err)
 		return nil, err
 	}
 
-	quals := d.KeyColumnQuals
-	cacheClusterID := quals["cache_cluster_id"].GetStringValue()
+	cacheClusterID := d.KeyColumnQuals["cache_cluster_id"].GetStringValue()
+
+	// Return nil, if no input provided
+	if cacheClusterID == "" {
+		return nil, nil
+	}
 
 	params := &elasticache.DescribeCacheClustersInput{
 		CacheClusterId: aws.String(cacheClusterID),
 	}
 
-	op, err := svc.DescribeCacheClusters(params)
+	op, err := svc.DescribeCacheClusters(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_cluster.getElastiCacheCluster", "api_error", err)
 		return nil, err
 	}
 
-	if op.CacheClusters != nil && len(op.CacheClusters) > 0 {
+	if len(op.CacheClusters) > 0 {
 		return op.CacheClusters[0], nil
 	}
+
 	return nil, nil
 }
 
 func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listTagsForElastiCacheCluster")
-
-	cluster := h.Item.(*elasticache.CacheCluster)
+	cluster := h.Item.(types.CacheCluster)
 
 	// Create session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_cluster.listTagsForElastiCacheCluster", "connection_error", err)
 		return nil, err
 	}
 
@@ -270,32 +285,30 @@ func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *
 		ResourceName: cluster.ARN,
 	}
 
-	clusterTags, err := svc.ListTagsForResource(param)
+	clusterTags, err := svc.ListTagsForResource(ctx, param)
 
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "CacheClusterNotFound" {
-				return &elasticache.TagListMessage{}, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "CacheClusterNotFound" {
+				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_elasticache_cluster.listTagsForElastiCacheCluster", "api_error", err)
 		return nil, err
 	}
+
 	return clusterTags, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
 func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("clusterTagListToTurbotTags")
-	clusterTag := d.HydrateItem.(*elasticache.TagListMessage)
-
-	if clusterTag.TagList == nil {
-		return nil, nil
-	}
+	clusterTag := d.HydrateItem.(*elasticache.ListTagsForResourceOutput)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if clusterTag.TagList != nil {
+	if len(clusterTag.TagList) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range clusterTag.TagList {
 			turbotTagsMap[*i.Key] = *i.Value

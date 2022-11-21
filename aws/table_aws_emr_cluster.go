@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/emr"
+	"github.com/aws/aws-sdk-go-v2/service/emr/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +20,7 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRequestException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequestException"}),
 			},
 			Hydrate: getEmrCluster,
 		},
@@ -30,7 +30,7 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -243,43 +243,53 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 
 func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EmrService(ctx, d)
+	svc, err := EMRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_emr_cluster.listEmrClusters", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &emr.ListClustersInput{}
 
 	euqalQuals := d.KeyColumnQuals
 	if euqalQuals["state"] != nil {
-		input.ClusterStates = []*string{aws.String(euqalQuals["state"].GetStringValue())}
+		input.ClusterStates = []types.ClusterState{
+			types.ClusterState(euqalQuals["state"].GetStringValue()),
+		}
 	}
 
+	paginator := emr.NewListClustersPaginator(svc, input, func(o *emr.ListClustersPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
 	// List call
-	err = svc.ListClustersPages(
-		input,
-		func(page *emr.ListClustersOutput, isLast bool) bool {
-			for _, cluster := range page.Clusters {
-				d.StreamListItem(ctx, cluster)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_emr_cluster.listEmrClusters", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, item := range output.Clusters {
+			d.StreamListItem(ctx, item)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEmrCluster")
-
 	var id string
 	if h.Item != nil {
 		id = clusterID(h.Item)
@@ -289,18 +299,23 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Create Session
-	svc, err := EmrService(ctx, d)
+	svc, err := EMRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_emr_cluster.getEmrCluster", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &emr.DescribeClusterInput{
 		ClusterId: aws.String(id),
 	}
 
-	op, err := svc.DescribeCluster(params)
+	op, err := svc.DescribeCluster(ctx, params)
 	if err != nil {
-		logger.Debug("getEmrCluster", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_emr_cluster.getEmrCluster", "api_error", err)
 		return nil, err
 	}
 
@@ -310,8 +325,7 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 //// TRANSFORM FUNCTIONS
 
 func getEmrClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEmrClusterTurbotTags")
-	clusterTags := d.HydrateItem.(*emr.Cluster)
+	clusterTags := d.HydrateItem.(*types.Cluster)
 
 	if clusterTags == nil {
 		return nil, nil
@@ -331,9 +345,9 @@ func getEmrClusterTurbotTags(ctx context.Context, d *transform.TransformData) (i
 
 func clusterID(item interface{}) string {
 	switch item := item.(type) {
-	case *emr.ClusterSummary:
+	case types.ClusterSummary:
 		return *item.Id
-	case *emr.Cluster:
+	case *types.Cluster:
 		return *item.Id
 	}
 	return ""

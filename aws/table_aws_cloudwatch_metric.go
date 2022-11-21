@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,7 +21,7 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudWatchMetrics,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -40,7 +42,7 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -85,9 +87,10 @@ type MetricDetails struct {
 //// LIST FUNCTION
 
 func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := CloudWatchService(ctx, d)
+	// Get client
+	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_metric.listCloudWatchMetrics", "client_error", err)
 		return nil, err
 	}
 
@@ -95,8 +98,8 @@ func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
-	dimensionFilters := []*cloudwatch.DimensionFilter{}
-	dimensionFilter := cloudwatch.DimensionFilter{}
+	dimensionFilters := []types.DimensionFilter{}
+	dimensionFilter := types.DimensionFilter{}
 	if equalQuals["name"] != nil {
 		if equalQuals["name"].GetStringValue() != "" {
 			input.MetricName = aws.String(equalQuals["name"].GetStringValue())
@@ -111,43 +114,47 @@ func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if d.KeyColumnQualString("dimension_name") != "" && d.KeyColumnQualString("dimension_value") != "" {
 		dimensionFilter.Name = aws.String(equalQuals["dimension_name"].GetStringValue())
 		dimensionFilter.Value = aws.String(equalQuals["dimension_value"].GetStringValue())
-		dimensionFilters = append(dimensionFilters, &dimensionFilter)
+		dimensionFilters = append(dimensionFilters, dimensionFilter)
 	}
 
 	if len(dimensionFilters) > 0 {
 		input.Dimensions = dimensionFilters
 	}
 
-	// List call
-	err = svc.ListMetricsPages(
-		input,
-		func(page *cloudwatch.ListMetricsOutput, isLast bool) bool {
-			for _, metricDetail := range page.Metrics {
-				if metricDetail.Dimensions == nil {
-					d.StreamListItem(ctx, &MetricDetails{
-						MetricName: *metricDetail.MetricName,
-						Namespace:  *metricDetail.Namespace,
-					})
-				} else {
-					for _, dimension := range metricDetail.Dimensions {
-						d.StreamListItem(ctx, &MetricDetails{
-							MetricName:     *metricDetail.MetricName,
-							Namespace:      *metricDetail.Namespace,
-							DimensionName:  *dimension.Name,
-							DimensionValue: *dimension.Value,
-						})
-					}
+	paginator := cloudwatch.NewListMetricsPaginator(svc, input, func(o *cloudwatch.ListMetricsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-					// Context can be cancelled due to manual cancellation or the limit has been hit
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Info("aws_cloudwatch_metric.listCloudWatchMetrics", "api_error", err)
+			return nil, err
+		}
+
+		for _, metricDetail := range output.Metrics {
+			if metricDetail.Dimensions == nil {
+				d.StreamListItem(ctx, MetricDetails{
+					MetricName: *metricDetail.MetricName,
+					Namespace:  *metricDetail.Namespace,
+				})
+			} else {
+				for _, dimension := range metricDetail.Dimensions {
+					d.StreamListItem(ctx, MetricDetails{
+						MetricName:     *metricDetail.MetricName,
+						Namespace:      *metricDetail.Namespace,
+						DimensionName:  *dimension.Name,
+						DimensionValue: *dimension.Value,
+					})
 				}
 
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }

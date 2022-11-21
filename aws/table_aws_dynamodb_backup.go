@@ -3,13 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
@@ -19,7 +18,7 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
 			},
 			Hydrate: getDynamodbBackup,
 		},
@@ -40,7 +39,7 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -116,20 +115,39 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 
 func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_backup.listDynamodbBackups", "service_connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	input := &dynamodb.ListBackupsInput{
-		Limit: aws.Int64(100),
+		Limit: aws.Int32(maxLimit),
 	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["backup_type"] != nil {
-		input.BackupType = aws.String(equalQuals["backup_type"].GetStringValue())
+		input.BackupType = types.BackupTypeFilter(equalQuals["backup_type"].GetStringValue())
 	}
+
 	if equalQuals["arn"] != nil {
 		input.ExclusiveStartBackupArn = aws.String(equalQuals["arn"].GetStringValue())
 	}
@@ -137,22 +155,10 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		input.TableName = aws.String(equalQuals["table_name"].GetStringValue())
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = types.Int64(1)
-			} else {
-				input.Limit = limit
-			}
-		}
-	}
-
 	// Pagination not supported as of date
-	results, err := svc.ListBackups(input)
+	results, err := svc.ListBackups(ctx, input)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_backup.listDynamodbBackups", "api_error", err)
 		return nil, err
 	}
 
@@ -173,30 +179,34 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDynamodbBackup")
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_backup.getDynamodbBackup", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dynamodb.DescribeBackupInput{
 		BackupArn: aws.String(arn),
 	}
 
-	item, err := svc.DescribeBackup(params)
+	item, err := svc.DescribeBackup(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getDynamodbBackup__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_dynamodb_backup.getDynamodbBackup", "api_error", err)
 		return nil, err
 	}
 
-	var rowData *dynamodb.BackupSummary
+	var rowData *types.BackupSummary
 
 	if item.BackupDescription != nil {
-		rowData = &dynamodb.BackupSummary{
+		rowData = &types.BackupSummary{
 			BackupName:             item.BackupDescription.BackupDetails.BackupName,
 			BackupArn:              item.BackupDescription.BackupDetails.BackupArn,
 			BackupStatus:           item.BackupDescription.BackupDetails.BackupStatus,

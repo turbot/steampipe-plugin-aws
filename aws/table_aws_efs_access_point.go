@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/efs"
+	"github.com/aws/aws-sdk-go-v2/service/efs/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,20 +21,20 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("access_point_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AccessPointNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AccessPointNotFound"}),
 			},
 			Hydrate: getEfsAccessPoint,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEfsAccessPoints,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"FileSystemNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"FileSystemNotFound"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "file_system_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -113,48 +115,57 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 
 func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "sconnection_error", err)
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	maxLimit := int32(100)
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < int64(maxLimit) {
+			if *limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = int32(*limit)
+			}
+		}
+	}
 	input := &efs.DescribeAccessPointsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["file_system_id"] != nil {
 		input.FileSystemId = aws.String(equalQuals["file_system_id"].GetStringValue())
 	}
+	paginator := efs.NewDescribeAccessPointsPaginator(svc, input, func(o *efs.DescribeAccessPointsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "api_error", err)
+			return nil, err
+		}
+		for _, accessPoint := range output.AccessPoints {
+			d.StreamListItem(ctx, accessPoint)
 
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeAccessPointsPages(
-		input,
-		func(page *efs.DescribeAccessPointsOutput, isLast bool) bool {
-			for _, accessPoint := range page.AccessPoints {
-				d.StreamListItem(ctx, accessPoint)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -164,17 +175,24 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	accessPointID := quals["access_point_id"].GetStringValue()
 
 	// create service
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_access_point.getEfsAccessPoint", "sconnection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &efs.DescribeAccessPointsInput{
 		AccessPointId: aws.String(accessPointID),
 	}
 
-	data, err := svc.DescribeAccessPoints(params)
+	data, err := svc.DescribeAccessPoints(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_access_point.getEfsAccessPoint", "api_error", err)
 		return nil, err
 	}
 
@@ -187,8 +205,7 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 //// TRANSFORM FUNCTIONS
 
 func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("efsAccessPointTurbotTags")
-	tagList := d.HydrateItem.(*efs.AccessPointDescription)
+	tagList := d.HydrateItem.(types.AccessPointDescription)
 
 	if tagList.Tags == nil {
 		return nil, nil
@@ -196,7 +213,8 @@ func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if tagList != nil {
+
+	if tagList.Tags != nil {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tagList.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
@@ -208,8 +226,7 @@ func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (
 
 // Generate title for the resource
 func efsAccessPointTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("efsAccessPointTitle")
-	data := d.HydrateItem.(*efs.AccessPointDescription)
+	data := d.HydrateItem.(types.AccessPointDescription)
 
 	// If name is available, then setting name as title, else setting Access Point ID as title
 	if data.Name != nil {

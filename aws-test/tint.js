@@ -342,6 +342,11 @@ const _runTerraformApplyForTestPhase = async function (test, phase) {
     .readdirSync(test.dir)
     .sort()
     .filter(i => {
+      // To allow other useful files required for deployment(.i.e .yml and .yaml required for deployment of k8s resources)
+      if ([".xml"].includes(path.extname(i))) {
+        return true;
+      }
+
       if (![".tf", ".tfvars"].includes(path.extname(i))) {
         return false;
       }
@@ -384,7 +389,7 @@ const _runGraphqlQuery = function (test, query) {
   return new Promise((resolve, reject) => {
     try {
       var queryTmp = _renderToTmp(test, query.query);
-      var variablesTmp = _renderToTmp(test, query.variables, "{}");
+      // var variablesTmp = _renderToTmp(test, query.variables, "{}");
       var expectedTmp = _renderToTmp(test, query.expected);
     } catch (e) {
       console.log(chalk.red(`Template Error: ${e.sourcePath}`));

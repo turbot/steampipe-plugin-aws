@@ -3,12 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +19,14 @@ func tableAwsElastiCacheParameterGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cache_parameter_group_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheParameterGroupNotFound", "InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CacheParameterGroupNotFound", "InvalidParameterValueException"}),
 			},
 			Hydrate: getElastiCacheParameterGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheParameterGroup,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_parameter_group_name",
@@ -77,41 +76,49 @@ func tableAwsElastiCacheParameterGroup(_ context.Context) *plugin.Table {
 
 func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_parameter_group.listElastiCacheParameterGroup", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &elasticache.DescribeCacheParameterGroupsInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
 	// List call
-	err = svc.DescribeCacheParameterGroupsPages(
-		input,
-		func(page *elasticache.DescribeCacheParameterGroupsOutput, isLast bool) bool {
-			for _, parameterGroup := range page.CacheParameterGroups {
-				d.StreamListItem(ctx, parameterGroup)
+	paginator := elasticache.NewDescribeCacheParameterGroupsPaginator(svc, input, func(o *elasticache.DescribeCacheParameterGroupsPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_elasticache_parameter_group.listElastiCacheParameterGroup", "api_error", err)
+			return nil, err
+		}
+
+		for _, parameterGroup := range output.CacheParameterGroups {
+			d.StreamListItem(ctx, parameterGroup)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -119,11 +126,10 @@ func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 //// HYDRATE FUNCTIONS
 
 func getElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getElastiCacheParameterGroup")
-
 	// Create service
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_parameter_group.getElastiCacheParameterGroup", "get_client_error", err)
 		return nil, err
 	}
 
@@ -134,8 +140,9 @@ func getElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *p
 		CacheParameterGroupName: aws.String(cacheParameterGroupName),
 	}
 
-	op, err := svc.DescribeCacheParameterGroups(params)
+	op, err := svc.DescribeCacheParameterGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_parameter_group.getElastiCacheParameterGroup", "api_error", err)
 		return nil, err
 	}
 

@@ -40,12 +40,6 @@ data "aws_region" "alternate" {
   provider = aws.alternate
 }
 
-data "null_data_source" "resource" {
-  inputs = {
-    scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
-  }
-}
-
 resource "aws_iam_user" "named_test_resource" {
   name = var.resource_name
   tags = {
@@ -57,26 +51,13 @@ resource "aws_iam_access_key" "named_test_resource" {
   user = aws_iam_user.named_test_resource.name
 }
 
-# Build the resource AKA dynamically based on various information about the
-# account, region, zones, etc. This is important for resources where the AKA
-# is not made available through the terraform provider resource definition.
-# We use a terraform template to make it easy to specify substitutions.
-# Be careful to escape the $ in the resourceAka definition in YAML.
-# e.g. from YAML - resourceAka: "arn:$${partition}:events:$${region}:$${account_id}:rule/$${resource_name}/target/$${resource_name}"
-data "template_file" "resource_aka" {
-  template = "arn:$${partition}:iam::$${account_id}:user/$${resource_name}/accesskey/${aws_iam_access_key.named_test_resource.id}"
-  vars = {
-    resource_name    = aws_iam_user.named_test_resource.name
-    partition        = data.aws_partition.current.partition
-    account_id       = data.aws_caller_identity.current.account_id
-    region           = data.aws_region.primary.name
-    alternate_region = data.aws_region.alternate.name
-  }
+locals {
+  resource_aka = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:user/${aws_iam_user.named_test_resource.name}/accesskey/${aws_iam_access_key.named_test_resource.id}"
 }
 
 output "resource_aka" {
   depends_on = [aws_iam_access_key.named_test_resource]
-  value      = data.template_file.resource_aka.rendered
+  value      = local.resource_aka
 }
 
 output "resource_id" {

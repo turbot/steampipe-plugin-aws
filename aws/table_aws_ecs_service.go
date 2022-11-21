@@ -4,11 +4,12 @@ import (
 	"context"
 	"sync"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,10 +22,10 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 			Hydrate:       listEcsServices,
 			ParentHydrate: listEcsClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundException"}),
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",
@@ -209,47 +210,48 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 
 func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_service.listEcsServices", "connection_error", err)
 		return nil, err
 	}
 
 	// Get cluster details
-	cluster := h.Item.(*ecs.Cluster)
+	cluster := h.Item.(types.Cluster)
 
-	// DescribeServices API can describe up to 10 services in a single operation. Default MaxResults is 10 for ListServicesInput
-	input := &ecs.ListServicesInput{
-		Cluster:    cluster.ClusterArn,
-		MaxResults: aws.Int64(10),
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(10)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
+	// DescribeServices API can describe up to 10 services in a single operation. Default MaxResults is 10 for ListServicesInput
+	input := &ecs.ListServicesInput{
+		Cluster:    cluster.ClusterArn,
+		MaxResults: aws.Int32(maxLimit),
+	}
 
+	paginator := ecs.NewListServicesPaginator(svc, input, func(o *ecs.ListServicesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	var serviceNames []string
 	// List all available ECS services
-	var serviceNames [][]*string
-	err = svc.ListServicesPages(
-		input,
-		func(page *ecs.ListServicesOutput, isLast bool) bool {
-			if len(page.ServiceArns) != 0 {
-				// Create a chunk of array of size 10
-				serviceNames = append(serviceNames, page.ServiceArns)
-			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		return nil, err
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecs_service.listEcsServices", "api_error", err)
+			return nil, err
+		}
+
+		serviceNames = append(serviceNames, output.ServiceArns...)
 	}
 
 	var wg sync.WaitGroup
@@ -258,7 +260,7 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	for _, serviceData := range serviceNames {
 		wg.Add(1)
-		go getServiceDataAsync(serviceData, cluster.ClusterArn, svc, &wg, serviceCh, errorCh)
+		go getServiceDataAsync(serviceData, cluster.ClusterArn, svc, &wg, serviceCh, errorCh, ctx)
 	}
 
 	// wait for all services to be processed
@@ -286,9 +288,9 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	return nil, nil
 }
 
-func getServiceDataAsync(serviceData []*string, clusterARN *string, svc *ecs.ECS, wg *sync.WaitGroup, serviceCh chan *ecs.DescribeServicesOutput, errorCh chan error) {
+func getServiceDataAsync(serviceData string, clusterARN *string, svc *ecs.Client, wg *sync.WaitGroup, serviceCh chan *ecs.DescribeServicesOutput, errorCh chan error, ctx context.Context) {
 	defer wg.Done()
-	rowData, err := getEcsService(serviceData, clusterARN, svc)
+	rowData, err := getEcsService(serviceData, clusterARN, svc, ctx)
 	if err != nil {
 		errorCh <- err
 	} else if rowData != nil {
@@ -298,12 +300,12 @@ func getServiceDataAsync(serviceData []*string, clusterARN *string, svc *ecs.ECS
 
 // Describes the specified services running in your cluster.
 // Below API can describe up to 10 services in a single operation.
-func getEcsService(serviceData []*string, clusterARN *string, svc *ecs.ECS) (*ecs.DescribeServicesOutput, error) {
+func getEcsService(serviceData string, clusterARN *string, svc *ecs.Client, ctx context.Context) (*ecs.DescribeServicesOutput, error) {
 	params := &ecs.DescribeServicesInput{
-		Services: serviceData,
+		Services: []string{serviceData},
 		Cluster:  clusterARN,
 	}
-	response, err := svc.DescribeServices(params)
+	response, err := svc.DescribeServices(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -312,16 +314,16 @@ func getEcsService(serviceData []*string, clusterARN *string, svc *ecs.ECS) (*ec
 
 // List api call is not returning the tags for the service, so we need to make a separate api call for getting the tag details
 func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := h.Item.(*ecs.Service)
+	data := h.Item.(types.Service)
 
 	if data.ServiceArn == nil {
 		return nil, nil
 	}
 
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEcsServiceTags", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ecs_service.getEcsServiceTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -329,9 +331,9 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		ResourceArn: data.ServiceArn,
 	}
 
-	response, err := svc.ListTagsForResource(params)
+	response, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEcsServiceTags", err)
+		plugin.Logger(ctx).Error("aws_ecs_service.getEcsServiceTags", "api_error", err)
 		return nil, err
 	}
 
@@ -342,7 +344,7 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getEcsServiceTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	tags := d.HydrateItem.([]*ecs.Tag)
+	tags := d.HydrateItem.([]types.Tag)
 
 	if len(tags) == 0 {
 		return nil, nil

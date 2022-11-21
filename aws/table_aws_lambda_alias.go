@@ -2,16 +2,17 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/aws/smithy-go"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
@@ -21,7 +22,7 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "function_name", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ResourceNotFoundException"}),
 			},
 			Hydrate: getLambdaAlias,
 		},
@@ -33,7 +34,7 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 				{Name: "function_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -109,21 +110,24 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 }
 
 type aliasRowData = struct {
-	Alias        *lambda.AliasConfiguration
+	Alias        any
 	FunctionName *string
 }
 
 //// LIST FUNCTION
 
 func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listLambdaAliases")
-
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_lambda_alias.listLambdaAliases", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
-	function := h.Item.(*lambda.FunctionConfiguration)
+	function := h.Item.(types.FunctionConfiguration)
 
 	equalQuals := d.KeyColumnQuals
 	// Minimize the API call with the given function name
@@ -139,9 +143,9 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		}
 	}
 
-	input := &lambda.ListAliasesInput{
+	maxItems := int32(10000)
+	input := lambda.ListAliasesInput{
 		FunctionName: function.FunctionName,
-		MaxItems:     aws.Int64(10000),
 	}
 
 	if equalQuals["function_version"] != nil {
@@ -149,54 +153,64 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListAliasesPages(
-		input,
-		func(page *lambda.ListAliasesOutput, lastPage bool) bool {
-			for _, alias := range page.Aliases {
-				d.StreamLeafListItem(ctx, &aliasRowData{alias, function.FunctionName})
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := lambda.NewListAliasesPaginator(svc, &input, func(o *lambda.ListAliasesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)
+			return nil, err
+		}
+
+		for _, alias := range output.Aliases {
+			d.StreamListItem(ctx, &aliasRowData{alias, function.FunctionName})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("getLambdaAlias")
-
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
-	region := d.KeyColumnQuals["region"].GetStringValue()
 
 	// Empty check
-	if name == "" || functionName == "" || region != matrixRegion {
+	if name == "" || functionName == "" {
 		return nil, nil
 	}
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaAlias", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build params
@@ -205,9 +219,9 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		Name:         aws.String(name),
 	}
 
-	rowData, err := svc.GetAlias(params)
+	rowData, err := svc.GetAlias(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getLambdaAlias__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaAlias", "api_error", err)
 		return nil, err
 	}
 
@@ -215,30 +229,37 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 }
 
 func getLambdaAliasPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getLambdaAliasPolicy")
-
 	alias := h.Item.(*aliasRowData)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getLambdaAliasPolicy", "error_LambdaService", err)
+		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaAliasPolicy", "connection_error", err)
 		return nil, err
 	}
 
-	input := &lambda.GetPolicyInput{
-		FunctionName: aws.String(*alias.FunctionName),
-		Qualifier:    aws.String(*alias.Alias.Name),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
-	op, err := svc.GetPolicy(input)
+	qualifier := getAliasQualifier(h.Item)
+
+	input := &lambda.GetPolicyInput{
+		FunctionName: aws.String(*alias.FunctionName),
+		Qualifier:    aws.String(qualifier),
+	}
+
+	op, err := svc.GetPolicy(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("getLambdaAliasPolicy", "error_GetPolicy", err)
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "ResourceNotFoundException" {
-				return lambda.GetPolicyOutput{}, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			// If the function alias does not exist or does not have resource policy, the operation returns a 404 (ResourceNotFoundException) error.
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaAliasPolicy", "api_error", err)
 		return nil, err
 	}
 
@@ -246,29 +267,50 @@ func getLambdaAliasPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getLambdaAliasUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getLambdaAliasUrlConfig")
-
 	alias := h.Item.(*aliasRowData)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaAliasUrlConfig", "connection_error", err)
 		return nil, err
 	}
 
-	input := &lambda.GetFunctionUrlConfigInput{
-		FunctionName: alias.FunctionName,
-		Qualifier:    alias.Alias.Name,
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
-	urlConfigs, err := svc.GetFunctionUrlConfig(input)
+	qualifier := getAliasQualifier(h.Item)
+	input := &lambda.GetFunctionUrlConfigInput{
+		FunctionName: alias.FunctionName,
+		Qualifier:    aws.String(qualifier),
+	}
+
+	urlConfigs, err := svc.GetFunctionUrlConfig(ctx, input)
 	if err != nil {
-		if strings.Contains(err.Error(), "ResourceNotFoundException") {
-			return nil, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			// If the function alias does not exist or does not have resource policy, the operation returns a 404 (ResourceNotFoundException) error.
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return nil, nil
+			}
 		}
-		plugin.Logger(ctx).Error("getLambdaAliasUrlConfig", "GetFunctionUrlConfig_err", err)
+		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaAliasUrlConfig", "api_error", err)
 		return nil, err
 	}
 
 	return urlConfigs, nil
+}
+
+func getAliasQualifier(aliasData any) string {
+	alias := aliasData.(*aliasRowData)
+	var qualifier string
+	switch item := (alias.Alias).(type) {
+	case types.AliasConfiguration:
+		qualifier = *item.Name
+	case *lambda.GetAliasOutput:
+		qualifier = *item.Name
+	}
+	return qualifier
 }

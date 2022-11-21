@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +20,7 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
 			},
 			Hydrate: describeSecretsManagerSecret,
 		},
@@ -32,7 +32,7 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 				{Name: "primary_region", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -171,13 +171,27 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 
 func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := SecretsManagerService(ctx, d)
+	svc, err := SecretsManagerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_secretsmanager_secret.listSecretsManagerSecrets", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &secretsmanager.ListSecretsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filters := buildSecretManagerSecretFilter(d.Quals)
@@ -185,33 +199,28 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 		input.Filters = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+	paginator := secretsmanager.NewListSecretsPaginator(svc, input, func(o *secretsmanager.ListSecretsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_secretsmanager_secret.listSecretsManagerSecrets", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.SecretList {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.ListSecretsPages(
-		input,
-		func(page *secretsmanager.ListSecretsOutput, lastPage bool) bool {
-			for _, secret := range page.SecretList {
-				d.StreamListItem(ctx, secret)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !lastPage
-		},
-	)
 
 	return nil, err
 }
@@ -219,7 +228,6 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 //// HYDRATE FUNCTIONS
 
 func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("describeSecretsManagerSecret")
 
 	var secretID string
 	if h.Item != nil {
@@ -231,8 +239,9 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// get service
-	svc, err := SecretsManagerService(ctx, d)
+	svc, err := SecretsManagerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_secretsmanager_secret.describeSecretsManagerSecret", "connection_error", err)
 		return nil, err
 	}
 
@@ -242,18 +251,16 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Get call
-	op, err := svc.DescribeSecret(params)
+	op, err := svc.DescribeSecret(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("describeSecretsManagerSecret", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_secretsmanager_secret.describeSecretsManagerSecret", "api_error", err)
 		return nil, err
 	}
+
 	return op, nil
 }
 
 func getSecretsManagerSecretPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getSecretsManagerSecretPolicy")
-
 	var arn string
 	if h.Item != nil {
 		data := secretData(h.Item)
@@ -261,9 +268,9 @@ func getSecretsManagerSecretPolicy(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := SecretsManagerService(ctx, d)
+	svc, err := SecretsManagerClient(ctx, d)
 	if err != nil {
-		logger.Error("getSecretsManagerSecretPolicy", "error_SecretsManagerService", err)
+		plugin.Logger(ctx).Error("aws_secretsmanager_secret.getSecretsManagerSecretPolicy", "connection_eror", err)
 		return nil, err
 	}
 
@@ -273,9 +280,9 @@ func getSecretsManagerSecretPolicy(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Get call
-	data, err := svc.GetResourcePolicy(params)
+	data, err := svc.GetResourcePolicy(ctx, params)
 	if err != nil {
-		logger.Error("getSecretsManagerSecretPolicy", "error_GetResourcePolicy", err)
+		plugin.Logger(ctx).Error("aws_secretsmanager_secret.getSecretsManagerSecretPolicy", "api_error", err)
 		return nil, err
 	}
 
@@ -285,8 +292,7 @@ func getSecretsManagerSecretPolicy(ctx context.Context, d *plugin.QueryData, h *
 //// TRANSFORM FUNCTION
 
 func secretsManagerSecretTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("secretsManagerSecretTagListToTurbotTags")
-	tagList := d.Value.([]*secretsmanager.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
@@ -305,7 +311,7 @@ func secretData(item interface{}) map[string]string {
 	switch item := item.(type) {
 	case *secretsmanager.DescribeSecretOutput:
 		data["ARN"] = *item.ARN
-	case *secretsmanager.SecretListEntry:
+	case types.SecretListEntry:
 		data["ARN"] = *item.ARN
 	}
 	return data
@@ -314,8 +320,8 @@ func secretData(item interface{}) map[string]string {
 //// UTILITY FUNCTION
 
 // Build secret manager secret list call input filter
-func buildSecretManagerSecretFilter(quals plugin.KeyColumnQualMap) []*secretsmanager.Filter {
-	filters := make([]*secretsmanager.Filter, 0)
+func buildSecretManagerSecretFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"description":    "description",
@@ -324,17 +330,15 @@ func buildSecretManagerSecretFilter(quals plugin.KeyColumnQualMap) []*secretsman
 	}
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := secretsmanager.Filter{
-				Key: types.String(filterName),
+			filter := types.Filter{
+				Key: types.FilterNameStringType(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				filter.Values = value.([]*string)
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

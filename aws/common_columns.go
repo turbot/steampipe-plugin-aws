@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 // column definitions for the common columns
@@ -131,12 +131,12 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	// get the service connection for the service
-	stsSvc, err := StsService(ctx, d)
+	svc, err := STSClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	callerIdentity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	callerIdentity, err := svc.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		// let the cache know that we have failed to fetch this item
 		return nil, err

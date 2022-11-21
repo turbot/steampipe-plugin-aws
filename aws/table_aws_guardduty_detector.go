@@ -3,11 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 type detectorInfo = struct {
@@ -24,14 +23,14 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("detector_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyDetector,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGuardDutyDetectors,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "detector_id",
@@ -117,55 +116,55 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_guardduty_detector.listGuardDutyDetectors", "service_connection_error", err)
+		plugin.Logger(ctx).Error("aws_guardduty_detector.listGuardDutyDetectors", "get_client_error", err)
 		return nil, err
 	}
 
-	input := &guardduty.ListDetectorsInput{
-		MaxResults: aws.Int64(50),
+	maxItems := int32(50)
+	params := &guardduty.ListDetectorsInput{
+		MaxResults: maxItems,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			params.MaxResults = limit
+		}
+	}
+
+	paginator := guardduty.NewListDetectorsPaginator(svc, params, func(o *guardduty.ListDetectorsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_guardduty_detector.listGuardDutyDetectors", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.DetectorIds {
+			d.StreamListItem(ctx, detectorInfo{DetectorID: item})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	err = svc.ListDetectorsPages(
-		input,
-		func(page *guardduty.ListDetectorsOutput, isLast bool) bool {
-			for _, result := range page.DetectorIds {
-				d.StreamListItem(ctx, detectorInfo{
-					DetectorID: *result,
-				})
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-
 	var id string
 	if h.Item != nil {
 		id = h.Item.(detectorInfo).DetectorID
@@ -175,9 +174,9 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_guardduty_detector.getGuardDutyDetector", "service_connection_error", err)
+		plugin.Logger(ctx).Error("aws_guardduty_detector.getGuardDutyDetector", "client_error", err)
 		return nil, err
 	}
 
@@ -185,9 +184,9 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		DetectorId: &id,
 	}
 
-	op, err := svc.GetDetector(params)
+	op, err := svc.GetDetector(ctx, params)
 	if err != nil {
-		logger.Error("aws_guardduty_detector.getGuardDutyDetector", "api_error", err)
+		plugin.Logger(ctx).Error("aws_guardduty_detector.getGuardDutyDetector", "api_error", err)
 		return nil, err
 	}
 
@@ -195,14 +194,12 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getGuardDutyDetectorMasterAccount(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_guardduty_detector.getGuardDutyDetectorMasterAccount", "service_connection_error", err)
+		plugin.Logger(ctx).Error("aws_guardduty_detector.listGuardDutyDetectors", "get_client_error", err)
 		return nil, err
 	}
 
@@ -210,9 +207,9 @@ func getGuardDutyDetectorMasterAccount(ctx context.Context, d *plugin.QueryData,
 		DetectorId: &id,
 	}
 
-	op, err := svc.GetAdministratorAccount(params)
+	op, err := svc.GetAdministratorAccount(ctx, params)
 	if err != nil {
-		logger.Error("aws_guardduty_detector.getGuardDutyDetectorMasterAccount", "api_error", err)
+		plugin.Logger(ctx).Error("aws_guardduty_detector.getGuardDutyDetectorMasterAccount", "api_error", err)
 		return nil, err
 	}
 

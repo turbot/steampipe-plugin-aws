@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +20,7 @@ func tableAwsEcsClusterMetricCpuUtilizationHourly(_ context.Context) *plugin.Tab
 			ParentHydrate: listEcsClusters,
 			Hydrate:       listEcsClusterMetricCpuUtilizationHourly,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{
@@ -34,7 +34,7 @@ func tableAwsEcsClusterMetricCpuUtilizationHourly(_ context.Context) *plugin.Tab
 }
 
 func listEcsClusterMetricCpuUtilizationHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := h.Item.(*ecs.Cluster)
+	data := h.Item.(types.Cluster)
 	clusterName := strings.Split(*data.ClusterArn, "/")[1]
 	return listCWMetricStatistics(ctx, d, "HOURLY", "AWS/ECS", "CPUUtilization", "ClusterName", clusterName)
 }

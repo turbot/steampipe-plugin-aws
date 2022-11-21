@@ -3,11 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -33,7 +34,7 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -209,52 +210,57 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 
 func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CloudWatchService(ctx, d)
+	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_alarm.listCloudWatchAlarms", "get_client_error", err)
 		return nil, err
 	}
 
-	input := &cloudwatch.DescribeAlarmsInput{
-		MaxRecords: aws.Int64(100),
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
+	params := &cloudwatch.DescribeAlarmsInput{
+		MaxRecords: aws.Int32(maxLimit),
 	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
-		input.AlarmNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+		params.AlarmNames = []string{(equalQuals["name"].GetStringValue())}
 	}
 	if equalQuals["state_value"] != nil {
-		input.StateValue = aws.String(equalQuals["state_value"].GetStringValue())
+		params.StateValue = types.StateValue(equalQuals["state_value"].GetStringValue())
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 1 {
-				input.MaxRecords = aws.Int64(1)
-			} else {
-				input.MaxRecords = limit
+	paginator := cloudwatch.NewDescribeAlarmsPaginator(svc, params, func(o *cloudwatch.DescribeAlarmsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudwatch_alarm.listCloudWatchAlarms", "api_error", err)
+			return nil, err
+		}
+		for _, alarms := range output.MetricAlarms {
+			d.StreamListItem(ctx, alarms)
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeAlarmsPages(
-		input,
-		func(page *cloudwatch.DescribeAlarmsOutput, isLast bool) bool {
-			for _, alarms := range page.MetricAlarms {
-				d.StreamListItem(ctx, alarms)
-
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 
 	return nil, err
 }
@@ -262,41 +268,42 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// HYDRATE FUNCTIONS
 
 func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getCloudWatchAlarm")
+
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 
-	// Create Session
-	svc, err := CloudWatchService(ctx, d)
+	// Create session
+	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_alarm.getCloudWatchAlarm", "get_client_error", err)
 		return nil, err
 	}
 
 	params := &cloudwatch.DescribeAlarmsInput{
-		AlarmNames: []*string{aws.String(name)},
+		AlarmNames: []string{name},
 	}
 
-	op, err := svc.DescribeAlarms(params)
+	// execute list call
+	item, err := svc.DescribeAlarms(ctx, params)
 	if err != nil {
-		logger.Debug("getCloudWatchAlarm", "ERROR", err)
+		plugin.Logger(ctx).Info("aws_cloudwatch_alarm.getCloudWatchAlarm", "api_error", err)
 		return nil, err
 	}
 
-	if op.MetricAlarms != nil && len(op.MetricAlarms) > 0 {
-		return op.MetricAlarms[0], nil
+	if item.MetricAlarms != nil && len(item.MetricAlarms) > 0 {
+		return item.MetricAlarms[0], nil
 	}
 
 	return nil, nil
 }
 
 func getAwsCloudWatchAlarmTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsCloudWatchAlarmTags")
-	alarm := h.Item.(*cloudwatch.MetricAlarm)
+	alarm := h.Item.(types.MetricAlarm)
 
-	// Create service
-	svc, err := CloudWatchService(ctx, d)
+	// Create session
+	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_alarm.getAwsCloudWatchAlarmTags", "get_client_error", err)
 		return nil, err
 	}
 
@@ -304,8 +311,9 @@ func getAwsCloudWatchAlarmTags(ctx context.Context, d *plugin.QueryData, h *plug
 		ResourceARN: alarm.AlarmArn,
 	}
 
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_alarm.getAwsCloudWatchAlarmTags", "api_error", err)
 		return nil, err
 	}
 
@@ -315,18 +323,19 @@ func getAwsCloudWatchAlarmTags(ctx context.Context, d *plugin.QueryData, h *plug
 //// TRANSFORM FUNCTIONS
 
 func getAwsCloudWatchAlarmTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	cloudWatchAlarm := d.HydrateItem.(*cloudwatch.ListTagsForResourceOutput)
+	tagList := d.HydrateItem.(*cloudwatch.ListTagsForResourceOutput)
 
-	if cloudWatchAlarm.Tags == nil {
+	if len(tagList.Tags) == 0 {
 		return nil, nil
 	}
-
-	if cloudWatchAlarm.Tags != nil {
-		turbotTagsMap := map[string]string{}
-		for _, i := range cloudWatchAlarm.Tags {
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tagList != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tagList.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
-		return turbotTagsMap, nil
 	}
-	return nil, nil
+
+	return turbotTagsMap, nil
 }

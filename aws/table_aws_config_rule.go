@@ -3,11 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/configservice"
+	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,7 +19,7 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getConfigRule,
 		},
@@ -32,7 +32,7 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -130,9 +130,10 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create Session
-	svc, err := ConfigService(ctx, d)
+	// Create session
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_rule.listConfigRules", "get_client_error", err)
 		return nil, err
 	}
 
@@ -141,23 +142,28 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
-		input.ConfigRuleNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+		input.ConfigRuleNames = []string{equalQuals["name"].GetStringValue()}
 	}
 
-	err = svc.DescribeConfigRulesPages(
-		input,
-		func(page *configservice.DescribeConfigRulesOutput, lastPage bool) bool {
-			for _, rule := range page.ConfigRules {
-				d.StreamListItem(ctx, rule)
+	paginator := configservice.NewDescribeConfigRulesPaginator(svc, input, func(o *configservice.DescribeConfigRulesPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_config_conformance_pack.listConfigConformancePacks", "api_error", err)
+			return nil, err
+		}
+		for _, configRule := range output.ConfigRules {
+			d.StreamListItem(ctx, configRule)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -165,22 +171,24 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getConfigRule")
 
-	// Create Session
-	svc, err := ConfigService(ctx, d)
+	// Create session
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_rule.getConfigRule", "get_client_error", err)
 		return nil, err
 	}
+
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Build params
 	params := &configservice.DescribeConfigRulesInput{
-		ConfigRuleNames: []*string{aws.String(name)},
+		ConfigRuleNames: []string{name},
 	}
 
-	op, err := svc.DescribeConfigRules(params)
+	op, err := svc.DescribeConfigRules(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_rule.getConfigRule", "api_error", err)
 		return nil, err
 	}
 
@@ -192,22 +200,24 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 }
 
 func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getConfigRuleTags")
 
-	// Create Session
-	svc, err := ConfigService(ctx, d)
+	// Create session
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_rule.getConfigRuleTags", "get_client_error", err)
 		return nil, err
 	}
-	ruleArn := h.Item.(*configservice.ConfigRule).ConfigRuleArn
+
+	ruleArn := h.Item.(types.ConfigRule).ConfigRuleArn
 
 	// Build params
 	params := &configservice.ListTagsForResourceInput{
 		ResourceArn: ruleArn,
 	}
 
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_rule.getConfigRuleTags", "api_error", err)
 		return nil, err
 	}
 
@@ -215,24 +225,24 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getComplianceByConfigRules")
 
-	// Create Session
-	svc, err := ConfigService(ctx, d)
+	// Create session
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getComplianceByConfigRules", "connection", err)
+		plugin.Logger(ctx).Error("aws_config_rule.getComplianceByConfigRules", "get_client_error", err)
 		return nil, err
 	}
-	ruleName := h.Item.(*configservice.ConfigRule).ConfigRuleName
+
+	ruleName := h.Item.(types.ConfigRule).ConfigRuleName
 
 	// Build params
 	params := &configservice.DescribeComplianceByConfigRuleInput{
-		ConfigRuleNames: []*string{ruleName},
+		ConfigRuleNames: []string{*ruleName},
 	}
 
-	op, err := svc.DescribeComplianceByConfigRule(params)
+	op, err := svc.DescribeComplianceByConfigRule(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getComplianceByConfigRules", "DescribeComplianceByConfigRule", err)
+		plugin.Logger(ctx).Error("aws_config_rule.getComplianceByConfigRules", "DescribeComplianceByConfigRule", err)
 		return nil, err
 	}
 
