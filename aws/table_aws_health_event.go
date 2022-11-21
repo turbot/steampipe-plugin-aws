@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/health"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/health"
+	"github.com/aws/aws-sdk-go-v2/service/health/types"
 )
 
 func tableAwsHealthEvent(_ context.Context) *plugin.Table {
@@ -29,7 +30,7 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 				{Name: "status_code", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -96,61 +97,67 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listHealthEvents(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listHealthEvents")
-
 	// Create Session
-	svc, err := HealthService(ctx, d)
+	svc, err := HealthClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_health_event.listHealthEvents", "client error", err)
 		return nil, err
 	}
 
-	filter := buildHealthEventFilter(d)
-
-	params := &health.DescribeEventsInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	if filter != nil {
-		params.Filter = filter
-	}
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			if *limit < 10 {
-				params.MaxResults = aws.Int64(10)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 10 {
+				maxLimit = 10
 			} else {
-				params.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List IAM user access keys
-	err = svc.DescribeEventsPages(
-		params,
-		func(page *health.DescribeEventsOutput, isLast bool) bool {
-			for _, event := range page.Events {
-				d.StreamListItem(ctx, event)
+	filter := buildHealthEventFilter(d)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	input := &health.DescribeEventsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	if filter != nil {
+		input.Filter = filter
+	}
+
+	paginator := health.NewDescribeEventsPaginator(svc, input, func(o *health.DescribeEventsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_health_event.listHealthEvents", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.Events {
+			d.StreamListItem(ctx, item)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listHealthEvents", "listHealthEventsPages", err)
+		}
+
 	}
 
 	return nil, err
 }
 
-/// UTILITY FUNCTION
+// / UTILITY FUNCTION
 // Build health event list call input filter
-func buildHealthEventFilter(d *plugin.QueryData) *health.EventFilter {
-	filter := &health.EventFilter{}
+func buildHealthEventFilter(d *plugin.QueryData) *types.EventFilter {
+	filter := &types.EventFilter{}
 
 	filterQuals := map[string]string{
 		"arn":                 "string",
@@ -169,34 +176,38 @@ func buildHealthEventFilter(d *plugin.QueryData) *health.EventFilter {
 			value := d.KeyColumnQualString(columnName)
 			switch columnName {
 			case "arn":
-				filter.SetEventArns([]*string{aws.String(value)})
+				filter.EntityArns = ([]string{value})
 			case "availability_zone":
-				filter.SetAvailabilityZones([]*string{aws.String(value)})
+				filter.AvailabilityZones = []string{value}
 			case "status_code":
-				filter.SetEventStatusCodes([]*string{aws.String(value)})
+				filter.EventStatusCodes = []types.EventStatusCode{
+					types.EventStatusCode(value),
+				}
 			case "event_type_category":
-				filter.SetEventTypeCategories([]*string{aws.String(value)})
+				filter.EventTypeCategories = []types.EventTypeCategory{
+					types.EventTypeCategory(value),
+				}
 			case "event_type_code":
-				filter.SetEventTypeCodes([]*string{aws.String(value)})
+				filter.EventTypeCodes = []string{value}
 			case "service":
-				filter.SetServices([]*string{aws.String(value)})
+				filter.Services = []string{value}
 			}
 		}
 		if dataType == "time" {
 			if d.Quals[columnName] != nil {
 				for _, q := range d.Quals[columnName].Quals {
 					if q.Value.GetTimestampValue() != nil {
-						t := &health.DateTimeRange{
+						t := &types.DateTimeRange{
 							From: aws.Time(q.Value.GetTimestampValue().AsTime()),
 							To:   aws.Time(q.Value.GetTimestampValue().AsTime()),
 						}
 						switch columnName {
 						case "last_updated_time":
-							filter.SetLastUpdatedTimes([]*health.DateTimeRange{t})
+							filter.LastUpdatedTimes = []types.DateTimeRange{*t}
 						case "start_time":
-							filter.SetStartTimes([]*health.DateTimeRange{t})
+							filter.StartTimes = []types.DateTimeRange{*t}
 						case "end_time":
-							filter.SetEndTimes([]*health.DateTimeRange{t})
+							filter.EndTimes = []types.DateTimeRange{*t}
 						}
 					}
 				}
