@@ -32,7 +32,6 @@ where
   k.id = a.target_key_id and not key_rotation_enabled;
 ```
 
-
 ### List of KMS Customer Managed key alias that is scheduled for
 
 ```sql
