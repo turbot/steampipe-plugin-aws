@@ -17,7 +17,7 @@ from
   aws_kms_alias;
 ```
 
-### List of KMS keys where key rotation disabled for the alias
+### List of KMS key alias where key rotation disabled on the key
 
 ```sql
 select
@@ -33,14 +33,14 @@ where
 ```
 
 
-### List of KMS Customer Managed keys scheduled for deletion
+### List of KMS Customer Managed key alias that is scheduled for
 
 ```sql
 select
+  a.alias_name as alias_name,
   k.id as key_id,
   k.key_state as key_state,
-  k.deletion_date as key_deletion_date,
-  a.alias_name as alias_name
+  k.deletion_date as key_deletion_date
 from
   aws_kms_key as k,
   aws_kms_alias as a
