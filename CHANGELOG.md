@@ -1,3 +1,9 @@
+## v0.84.1 [2022-11-18]
+
+_Dependencies_
+
+- Recompiled plugin with [aws-sdk-go v1.44.141](https://github.com/aws/aws-sdk-go/blob/main/CHANGELOG.md#release-v144141-2022-11-18) and [aws-sdk-go-v2/service/route53 v1.24.0](https://github.com/aws/aws-sdk-go-v2/blob/main/service/route53/CHANGELOG.md#v1240-2022-11-15) to update service endpoints.
+
 ## v0.84.0 [2022-11-17]
 
 _Enhancements_
