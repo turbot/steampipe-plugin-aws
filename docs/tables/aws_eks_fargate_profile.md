@@ -1,4 +1,4 @@
-# Table: aws_eks_cluster
+# Table: aws_eks_fargate_profile
 
 The Fargate profile allows an administrator to declare which pods run on Fargate. Each profile can have up to five selectors that contain a namespace and optional labels. You must define a namespace for every selector. The label field consists of multiple optional key-value pairs. Pods that match a selector (by matching a namespace for the selector and all of the labels specified in the selector) are scheduled on Fargate.
 
