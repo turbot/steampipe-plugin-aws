@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -59,14 +60,54 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 
 	// Retrieve regions list from the AWS plugin steampipe connection config
 	awsConfig := GetConfig(d.Connection)
-	defaultAwsRegion := getDefaultAwsRegion(d)
 
-	// If regions are not mentioned in the plugin steampipe connection config
-	// get the default aws region and prepare the matrix
+	// If the regions are not set in the aws.spc, this should try to pick the
+	// AWS region based on the SDK logic similar to the AWS CLI command
+	// "aws configure list"
 	if awsConfig.Regions == nil {
-		plugin.Logger(ctx).Debug("BuildRegionList", "connection_name", d.Connection.Name, "region", defaultAwsRegion)
+		region := ""
+		session, err := session.NewSessionWithOptions(session.Options{
+			SharedConfigState: session.SharedConfigEnable,
+		})
+		if err != nil {
+			panic(err)
+		}
+		if session != nil && session.Config != nil {
+			region = *session.Config.Region
+		}
+
+		/*
+			AWS CLI behaviour if region is not found through "aws configure list"
+
+			plugins/steampipe-plugin-aws|main⚡ ⇒  aws configure list
+			Name                    Value             Type    Location
+			----                    -----             ----    --------
+			profile                <not set>             None    None
+			access_key     ###############ABCD shared-credentials-file
+			secret_key     ###############/g/w shared-credentials-file
+			region                <not set>             None    None
+
+			Global services work without any issue, if region is not set
+
+			plugins/steampipe-plugin-aws|main⚡ ⇒  aws s3 ls
+			2022-02-15 12:24:02 aws-cloudtrail-111122223333
+			2021-08-16 22:06:46 aws-cloudtrail-111122223333
+			.....
+
+			Regional services fail with an warning to set the region
+
+			plugins/steampipe-plugin-aws|main⚡ ⇒  aws sns list-topics
+			You must specify a region. You can also configure your region by running "aws configure".
+		*/
+		if region == "" {
+			panic("you must specify a region in \"regions\" in ~/.steampipe/config/aws.spc. Edit your connection configuration file and then restart Steampipe.")
+		}
+
 		matrix := []map[string]interface{}{
-			{matrixKeyRegion: defaultAwsRegion},
+			// TODO
+			// If the region is a invalid region. It will lead to long retry with error message like
+			// dial tcp: lookup <service>.<invalid-region>.amazonaws.com: no such host (SQLSTATE HV000)
+			{matrixKeyRegion: region},
 		}
 
 		// set cache
