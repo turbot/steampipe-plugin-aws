@@ -1,6 +1,6 @@
 # Table: aws_eks_cluster
 
-As an administrator, you can use a Fargate profile to declare which pods run on Fargate. You can do this through the profile’s selectors. You can add up to five selectors to each profile. Each selector contains a namespace and optional labels. For every selector, you must define a namespace for every selector. The label field consists of multiple optional key-value pairs.
+The Fargate profile allows an administrator to declare which pods run on Fargate. Each profile can have up to five selectors that contain a namespace and optional labels. You must define a namespace for every selector. The label field consists of multiple optional key-value pairs. Pods that match a selector (by matching a namespace for the selector and all of the labels specified in the selector) are scheduled on Fargate.
 
 ## Examples
 
@@ -20,7 +20,7 @@ from
 
 ### List fargate profiles which are inactive
 ```sql
-  select
+select
   fargate_profile_name,
   fargate_profile_arn,
   cluster_name,
@@ -29,7 +29,7 @@ from
 from
   aws_eks_fargate_profile
 where
-  state <> 'ACTIVE';
+  status <> 'ACTIVE';
 ```
 
 ### Get the subnet configuration for each fargate profile
@@ -51,7 +51,7 @@ where
   s.subnet_id = subnet_id;
 ```
 
-### List fargate profiles for clusters not running Kubernetes version 1.19
+### List fargate profiles for clusters not running Kubernetes version greater than 1.19
 
 ```sql
 select
@@ -67,5 +67,5 @@ from
   aws_eks_fargate_profile as f,
   aws_eks_cluster as c
 where
-  c.version <> '1.19' and f.cluster_name = c.name;
+  c.version::float > 1.19 and f.cluster_name = c.name;
 ```

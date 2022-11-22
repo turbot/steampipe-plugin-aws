@@ -115,9 +115,11 @@ func listEKSFargateProfiles(ctx context.Context, d *plugin.QueryData, h *plugin.
 			return nil, nil
 		}
 	}
+
 	if clusterName == nil {
 		return nil, nil
 	}
+	
 	// Create client
 	svc, err := EKSClient(ctx, d)
 	if err != nil {
@@ -193,6 +195,10 @@ func getEKSFargateProfile(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 	if svc == nil {
 		// Unsupported region check
+		return nil, nil
+	}
+
+	if clusterName == "" || fargateProfileName == "" {
 		return nil, nil
 	}
 
