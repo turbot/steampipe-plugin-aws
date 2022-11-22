@@ -1,4 +1,4 @@
-# Table: aws_kms_key
+# Table: aws_kms_alias
 
 The AWS Key Management Service (KMS) Alias resource specifies a display name for a KMS key. You can use an alias to identify a KMS key in the AWS KMS console, in the DescribeKey operation, and in cryptographic operations, such as Decrypt and GenerateDataKey.
 
