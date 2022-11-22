@@ -148,7 +148,7 @@ func listCloudSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	// Doesn't support paginator for CloudSearch ListDomainNames API
-	for domainName, _ := range resp.DomainNames {
+	for domainName := range resp.DomainNames {
 		d.StreamListItem(ctx, types.DomainStatus{DomainName: aws.String(domainName)})
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
