@@ -347,9 +347,6 @@ func CloudSearchClient(ctx context.Context, d *plugin.QueryData) (*cloudsearch.C
 	if cfg == nil {
 		return nil, nil
 	}
-	if err != nil {
-		return nil, err
-	}
 	return cloudsearch.NewFromConfig(*cfg), nil
 }
 

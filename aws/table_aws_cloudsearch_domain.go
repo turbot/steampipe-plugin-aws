@@ -20,7 +20,7 @@ func tableAwsCloudSearchDomain(_ context.Context) *plugin.Table {
 		Description: "AWS CloudSearch Domain",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("domain_name"),
-			Hydrate: getCloudSearchDomain,
+			Hydrate:    getCloudSearchDomain,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudSearchDomains,
