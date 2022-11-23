@@ -21,11 +21,6 @@ func tableAwsKmsAlias(ctx context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate:         listKmsKeys,
 			Hydrate:               listKmsAliases,
-			KeyColumns: plugin.KeyColumnSlice{
-				{
-					Name: "target_key_id", Require: plugin.Optional,
-				},
-			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -78,20 +73,9 @@ func tableAwsKmsAlias(ctx context.Context) *plugin.Table {
 
 func listKmsAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	keyInfo := h.Item.(types.KeyListEntry)
-
 	var keyId string
 
-	if keyInfo.KeyId != nil {
-		keyId = *keyInfo.KeyId
-	}
-
-	if d.KeyColumnQuals["target_key_id"].GetStringValue() != "" {
-		if *keyInfo.KeyId != d.KeyColumnQuals["target_key_id"].GetStringValue() {
-			return nil, nil
-		}
-	}
-
-	// Create Session
+	// Create Client
 	svc, err := KMSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_kms_key_alias.listKmsAliases", "connection_error", err)
