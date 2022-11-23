@@ -256,6 +256,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_kinesis_video_stream":                                     tableAwsKinesisVideoStream(ctx),
 			"aws_kinesisanalyticsv2_application":                           tableAwsKinesisAnalyticsV2Application(ctx),
 			"aws_kms_key":                                                  tableAwsKmsKey(ctx),
+			"aws_kms_alias":                                                tableAwsKmsAlias(ctx),
 			"aws_lambda_alias":                                             tableAwsLambdaAlias(ctx),
 			"aws_lambda_function":                                          tableAwsLambdaFunction(ctx),
 			"aws_lambda_function_metric_duration_daily":                    tableAwsLambdaFunctionMetricDurationDaily(ctx),
