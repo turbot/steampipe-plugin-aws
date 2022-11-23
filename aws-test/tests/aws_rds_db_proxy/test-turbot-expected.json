@@ -1,0 +1,13 @@
+[
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"db_proxy_name": "{{ resourceName }}",
+		"tags": [
+			{
+				"Key": "Name",
+				"Value": "{{ resourceName }}"
+			}
+		],
+		"title": "{{ resourceName }}"
+	}
+]
