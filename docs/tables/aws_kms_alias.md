@@ -47,7 +47,7 @@ where
   k.id = a.target_key_id and key_state = 'PendingDeletion';
 ```
 
-### Count of alias by Key id
+### Count of aliases by key id
 
 ```sql
 select
