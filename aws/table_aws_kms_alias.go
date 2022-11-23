@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 
@@ -89,7 +88,7 @@ func listKmsAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	maxItems := int32(100)
 	input := &kms.ListAliasesInput{
-		KeyId: aws.String(keyId),
+		KeyId: keyId,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
