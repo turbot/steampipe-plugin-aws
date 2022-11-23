@@ -73,7 +73,7 @@ func tableAwsKmsAlias(ctx context.Context) *plugin.Table {
 
 func listKmsAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	keyInfo := h.Item.(types.KeyListEntry)
-	var keyId string
+	keyId := keyInfo.KeyId
 
 	// Create Client
 	svc, err := KMSClient(ctx, d)
