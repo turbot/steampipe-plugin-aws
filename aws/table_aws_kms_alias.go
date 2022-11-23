@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 
@@ -18,8 +19,8 @@ func tableAwsKmsAlias(ctx context.Context) *plugin.Table {
 		Name:        "aws_kms_alias",
 		Description: "AWS KMS Alias",
 		List: &plugin.ListConfig{
-			ParentHydrate:         listKmsKeys,
-			Hydrate:               listKmsAliases,
+			ParentHydrate: listKmsKeys,
+			Hydrate:       listKmsAliases,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
