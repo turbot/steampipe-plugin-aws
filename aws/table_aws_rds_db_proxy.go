@@ -82,7 +82,6 @@ func tableAwsRDSDBProxy(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) for the IAM role that the proxy uses to access Amazon Secrets Manager.",
 				Type:        proto.ColumnType_STRING,
 			},
-
 			{
 				Name:        "updated_date",
 				Description: "The date and time when the proxy was last updated.",
