@@ -180,7 +180,7 @@ func getCloudSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Get client
 	svc, err := CloudSearchClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudsearch_domain.getCloudsearchDomain", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudsearch_domain.getCloudsearchDomain", "client_error", err)
 		return nil, err
 	}
 
