@@ -28,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudsearch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -115,6 +116,7 @@ import (
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
+	cloudsearchEndpoint "github.com/aws/aws-sdk-go/service/cloudsearch"
 	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
 	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
 	codecommitEndpoint "github.com/aws/aws-sdk-go/service/codecommit"
@@ -335,6 +337,17 @@ func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Cli
 		return nil, err
 	}
 	return cloudfront.NewFromConfig(*cfg), nil
+}
+
+func CloudSearchClient(ctx context.Context, d *plugin.QueryData) (*cloudsearch.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cloudsearchEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cloudsearch.NewFromConfig(*cfg), nil
 }
 
 func CloudTrailClient(ctx context.Context, d *plugin.QueryData) (*cloudtrail.Client, error) {
