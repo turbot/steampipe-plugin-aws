@@ -22,7 +22,7 @@ select
   db_proxy_name,
   engine_family,
   a ->> 'AuthScheme' as auth_scheme,
-  a ->> 'Description' as description,
+  a ->> 'Description' as auth_description,
   a ->> 'IAMAuth' as iam_auth,
   a ->> 'SecretArn' as secret_arn,
   a ->> 'UserName' as user_name
