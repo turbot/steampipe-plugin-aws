@@ -211,7 +211,7 @@ func getRDSDBProxy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
-	if op.DBProxies != nil && len(op.DBProxies) > 0 {
+	if  len(op.DBProxies) > 0 {
 		return op.DBProxies[0], nil
 	}
 	return nil, nil
