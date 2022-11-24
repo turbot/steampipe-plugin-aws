@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsEksFargateProfile(_ context.Context) *plugin.Table {
+func tableAwsEKSFargateProfile(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_eks_fargate_profile",
 		Description: "AWS Elastic Kubernetes Service Fargate Profile",
@@ -110,8 +110,8 @@ func listEKSFargateProfiles(ctx context.Context, d *plugin.QueryData, h *plugin.
 	cluster := h.Item.(types.Cluster)
 	clusterName := cluster.Name
 
-	if d.KeyColumnQuals["cluster_name"].GetStringValue() != "" {
-		if *clusterName != d.KeyColumnQuals["cluster_name"].GetStringValue() {
+	if d.KeyColumnQuals["cluster_name"] != nil {
+		if *clusterName != d.KeyColumnQualString("cluster_name") {
 			return nil, nil
 		}
 	}
