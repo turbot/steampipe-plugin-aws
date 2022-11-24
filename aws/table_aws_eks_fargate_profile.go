@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsEKSFargateProfile(_ context.Context) *plugin.Table {
+func tableAwsEksFargateProfile(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_eks_fargate_profile",
 		Description: "AWS Elastic Kubernetes Service Fargate Profile",
