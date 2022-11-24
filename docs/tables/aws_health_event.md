@@ -12,6 +12,8 @@ select
   availability_zone,
   start_time,
   end_time,
+  event_type_category,
+  event_type_code,
   event_scope_code,
   service,
   region
@@ -26,6 +28,8 @@ select
   arn,
   start_time,
   end_time,
+  event_type_category,
+  event_type_code,
   event_scope_code,
   status_code,
   service
@@ -42,6 +46,8 @@ select
   arn,
   start_time,
   end_time,
+  event_type_category,
+  event_type_code,
   event_scope_code,
   status_code,
   service
@@ -59,6 +65,8 @@ select
   availability_zone,
   start_time,
   end_time,
+  event_type_category,
+  event_type_code,
   event_scope_code,
   status_code,
   service
