@@ -35,7 +35,7 @@ where
   status_code = 'upcoming';
 ```
 
-### List events by service
+### List event details for the EC2 service
 
 ```sql
 select
@@ -51,7 +51,7 @@ where
   service = 'EC2';
 ```
 
-### List events for a availability zone
+### List event details for an availability zone
 
 ```sql
 select
