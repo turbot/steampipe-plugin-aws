@@ -196,7 +196,7 @@ func getCloudSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// execute list call
 	item, err := svc.DescribeDomains(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudsearch_domain.getCloudsearchDomain", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudsearch_domain.getCloudsearchDomain", "api_error", err)
 		return nil, err
 	}
 
