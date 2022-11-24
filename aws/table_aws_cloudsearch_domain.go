@@ -40,7 +40,7 @@ func tableAwsCloudSearchDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "An internally generated unique identifier for a domain.",
+				Description: "The Amazon Resource Name (ARN) of the search domain.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCloudSearchDomain,
 				Transform:   transform.FromField("ARN"),
