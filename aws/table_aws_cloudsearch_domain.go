@@ -65,7 +65,7 @@ func tableAwsCloudSearchDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "requires_index_documents",
-				Description: "True if IndexDocuments needs to be called to activate the current domain configuration.",
+				Description: "True if Index Documents need to be called to activate the current domain configuration.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getCloudSearchDomain,
 			},
