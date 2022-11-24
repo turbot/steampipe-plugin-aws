@@ -4,7 +4,7 @@ RDS Proxy can allow applications to pool and share database connections to impro
 
 ## Examples
 
-### List of DB proxy and corresponding engine family
+### List of DB proxies and corresponding engine families
 
 ```sql
 select
