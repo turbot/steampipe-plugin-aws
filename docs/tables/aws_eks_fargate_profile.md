@@ -36,13 +36,13 @@ where
 
 ```sql
 select
-  f.fargate_profile_name as fargate_profile_name,
-  f.cluster_name as cluster_name,
+  f.fargate_profile_name,
+  f.cluster_name,
   f.status as fargate_profile_status,
-  s.availability_zone as availability_zone,
-  s.available_ip_address_count as available_ip_address_count,
-  s.cidr_block as cidr_block,
-  s.vpc_id as vpc_id
+  s.availability_zone,
+  s.available_ip_address_count,
+  s.cidr_block,
+  s.vpc_id
 from
   aws_eks_fargate_profile as f,
   aws_vpc_subnet as s,
