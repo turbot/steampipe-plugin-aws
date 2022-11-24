@@ -15,7 +15,7 @@ from
   aws_rds_db_proxy;
 ```
 
-### Authentication info of each DB proxy.
+### Authentication info of each DB proxy
 
 ```sql
 select
