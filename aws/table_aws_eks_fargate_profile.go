@@ -75,13 +75,13 @@ func tableAwsEksFargateProfile(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "subnets",
-				Description: "The selectors to match for pods to use this Fargate profile.",
+				Description: "The subnets used by the Fargate profile.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEKSFargateProfile,
 			},
 			{
 				Name:        "tags",
-				Description: "A list of tags assigned to the table",
+				Description: "A list of tags assigned to the Fargate profile.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEKSFargateProfile,
 			},
