@@ -1,3 +1,9 @@
+## v0.84.2 [2022-11-22]
+
+_Bug fixes_
+
+- Fixed the plugin to use environment variables like `AWS_REGION`, `AWS_DEFAULT_REGION` etc., when no regions are specified in the `aws.spc` file. ([#1411](https://github.com/turbot/steampipe-plugin-aws/pull/1411))
+
 ## v0.84.1 [2022-11-18]
 
 _Dependencies_
