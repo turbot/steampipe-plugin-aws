@@ -313,6 +313,10 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Error could not be caught by ignore config, we need to handle it manually
+			if strings.Contains(err.Error(), "ServiceNotFoundException") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_ecs_task.listEcsTasks", "list_tasks_api_error", err)
 			return nil, err
 		}
