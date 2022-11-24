@@ -228,6 +228,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_guardduty_member":                                         tableAwsGuardDutyMember(ctx),
 			"aws_guardduty_publishing_destination":                         tableAwsGuardDutyPublishingDestination(ctx),
 			"aws_guardduty_threat_intel_set":                               tableAwsGuardDutyThreatIntelSet(ctx),
+			"aws_health_event":                                             tableAwsHealthEvent(ctx),
 			"aws_iam_access_advisor":                                       tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                                           tableAwsIamAccessKey(ctx),
 			"aws_iam_account_password_policy":                              tableAwsIamAccountPasswordPolicy(ctx),
