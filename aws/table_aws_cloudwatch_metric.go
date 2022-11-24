@@ -24,22 +24,10 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "name",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "namespace",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "dimension_name",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "dimension_value",
-					Require: plugin.Optional,
-				},
+				{Name: "name", Require: plugin.Optional},
+				{Name: "namespace", Require: plugin.Optional},
+				// {Name: "dimension_name", Require: plugin.Optional},
+				// {Name: "dimension_value", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -56,14 +44,9 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "dimension_name",
+				Name:        "dimensions",
 				Description: "The dimension name for the metric.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "dimension_value",
-				Description: "The dimension value for the metric.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 			},
 
 			// Steampipe standard columns
@@ -132,26 +115,12 @@ func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			return nil, err
 		}
 
-		for _, metricDetail := range output.Metrics {
-			if metricDetail.Dimensions == nil {
-				d.StreamListItem(ctx, MetricDetails{
-					MetricName: *metricDetail.MetricName,
-					Namespace:  *metricDetail.Namespace,
-				})
-			} else {
-				for _, dimension := range metricDetail.Dimensions {
-					d.StreamListItem(ctx, MetricDetails{
-						MetricName:     *metricDetail.MetricName,
-						Namespace:      *metricDetail.Namespace,
-						DimensionName:  *dimension.Name,
-						DimensionValue: *dimension.Value,
-					})
-				}
+		for _, metric := range output.Metrics {
+			d.StreamListItem(ctx, metric)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return nil, nil
-				}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
