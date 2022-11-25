@@ -26,6 +26,9 @@ func tableAwsRDSDBProxy(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBProxies,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
+			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -137,6 +140,9 @@ func listRDSDBProxies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	// Create Session
 	svc, err := RDSClient(ctx, d)
+	if svc == nil {
+		return nil, nil
+	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_proxy.listRDSDBProxies", "connection_error", err)
 		return nil, err
@@ -196,6 +202,9 @@ func getRDSDBProxy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 	// Create service
 	svc, err := RDSClient(ctx, d)
+	if svc == nil {
+		return nil, nil
+	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_proxy.getRDSDBProxy", "connection_error", err)
 		return nil, err
@@ -211,7 +220,7 @@ func getRDSDBProxy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
-	if  len(op.DBProxies) > 0 {
+	if len(op.DBProxies) > 0 {
 		return op.DBProxies[0], nil
 	}
 	return nil, nil
