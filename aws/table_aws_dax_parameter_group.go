@@ -20,9 +20,6 @@ func tableAwsDaxParameterGroup(_ context.Context) *plugin.Table {
 		Description: "AWS DAX Parameter Group",
 		List: &plugin.ListConfig{
 			Hydrate: listDaxParameterGroups,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ParameterGroupNotFoundFault"}),
-			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "parameter_group_name",

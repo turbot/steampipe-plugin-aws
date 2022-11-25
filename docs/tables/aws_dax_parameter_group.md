@@ -1,4 +1,4 @@
-# Table: aws_dax_subnet_group
+# Table: aws_dax_parameter_group
 
 Amazon DynamoDB Accelerator (DAX) Parameter Group is a named set of parameters that are applied to every node in the cluster. You can use a parameter group to specify cache TTL behavior.
 
