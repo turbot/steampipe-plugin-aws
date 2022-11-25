@@ -21,6 +21,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.10.13
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.10
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0
+	github.com/aws/aws-sdk-go-v2/service/cloudsearch v1.13.19
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.21.6
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.14
@@ -56,6 +57,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/globalaccelerator v1.15.2
 	github.com/aws/aws-sdk-go-v2/service/glue v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/guardduty v1.15.9
+	github.com/aws/aws-sdk-go-v2/service/health v1.15.22
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/inspector v1.12.15

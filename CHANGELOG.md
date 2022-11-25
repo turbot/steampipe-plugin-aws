@@ -1,3 +1,19 @@
+## v0.85.0 [2022-11-24]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudsearch_domain](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudsearch_domain) ([#1413](https://github.com/turbot/steampipe-plugin-aws/pull/1413))
+  - [aws_eks_fargate_profile](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_fargate_profile) ([#1409](https://github.com/turbot/steampipe-plugin-aws/pull/1409))
+  - [aws_health_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_health_event) ([#1167](https://github.com/turbot/steampipe-plugin-aws/pull/1167))
+  - [aws_kms_alias](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_kms_alias) ([#1405](https://github.com/turbot/steampipe-plugin-aws/pull/1405))
+  - [aws_rds_db_proxy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_proxy) ([#1414](https://github.com/turbot/steampipe-plugin-aws/pull/1414))
+
+_Bug fixes_
+
+- Fixed the `ServiceNotFoundException` error in the `aws_ecs_task` table to return an empty row when an invalid value is passed in the `service_name` filter. ([#1418](https://github.com/turbot/steampipe-plugin-aws/pull/1418))
+- Fixed the `ResourceNotFoundException` in the `aws_cloudwatch_log_metric_filter` table to return an empty row when an invalid value is passed in the `log_group_name` filter. ([#1420](https://github.com/turbot/steampipe-plugin-aws/pull/1420))
+
 ## v0.84.2 [2022-11-22]
 
 _Bug fixes_

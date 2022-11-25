@@ -22,6 +22,9 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogMetricFilters,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",

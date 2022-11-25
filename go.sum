@@ -129,6 +129,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.10 h1:Stmfzuj3KSEBB3tb
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.10/go.mod h1:25Dm6AWo23nKPF1kmGP3MpgCWixf4t8ViwWemcTFXQU=
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0 h1:LoDc6Bpr5S2vDemfPpdy1QnMPOFyS4ofsfcPYoOhr68=
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0/go.mod h1:8xLCTMp8Lp0TFMitgMZUGC1LQvt0aaLCt4PHxblxvT0=
+github.com/aws/aws-sdk-go-v2/service/cloudsearch v1.13.19 h1:hwu8/vgXIafQ0PLySa+b0BTiTtxK80JjEJYWzigMK0o=
+github.com/aws/aws-sdk-go-v2/service/cloudsearch v1.13.19/go.mod h1:bqx3SdiUkTqYur8DDKCqXZhMnPOU5BNRAEuEpbYL1AI=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8 h1:8y6EWV7zcggA+1mhI4AndodYLaDwTAD2m8kG2BGKQ48=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8/go.mod h1:DAYVFTQuWYLg/8haillTZEi0k1w/QAFEahIkreT4DMY=
 github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.21.6 h1:Mwb2A5ygEijjkxgM3hVEiWSHwdH82nkyU2wgP4u/Hxk=
@@ -199,6 +201,8 @@ github.com/aws/aws-sdk-go-v2/service/glue v1.32.0 h1:7Kacs7LCbDmMSwW5nHk4OExP9Jl
 github.com/aws/aws-sdk-go-v2/service/glue v1.32.0/go.mod h1:aupHsCJmK66t1MQ542c6qBSuJYEA2IwKmwi4M3jdT1M=
 github.com/aws/aws-sdk-go-v2/service/guardduty v1.15.9 h1:c4cDiLROLNl0glOnn4ywlvKhN5KIoWHEZJiHI+mw3I8=
 github.com/aws/aws-sdk-go-v2/service/guardduty v1.15.9/go.mod h1:+yj8D0vZZYAQQzeMR7Mv1ZPmNReqbnNVGdov8cd//UE=
+github.com/aws/aws-sdk-go-v2/service/health v1.15.22 h1:vXjgMU7QB2z+caFg1g+xYRiiPf5loUHn+kqEqrB61ZY=
+github.com/aws/aws-sdk-go-v2/service/health v1.15.22/go.mod h1:lLMZtXjjAlwWsc8qonviX8rkall/9MHABV2V1ZcR2h8=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9 h1:pVHvEz+KIsTwRKufwvGZr90X/YJ7swVshaBZNY4ESIY=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9/go.mod h1:ARVuo+lYC2ibYxny/PKC3maaWKLAg25KSq0dkSkE2WE=
 github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5 h1:FjeDPNsb1ihheLCMVBnTk69lPzfsmkNB9UxVNeCkTGY=

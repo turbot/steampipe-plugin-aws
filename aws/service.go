@@ -28,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudsearch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -63,6 +64,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
+	"github.com/aws/aws-sdk-go-v2/service/health"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
@@ -115,6 +117,7 @@ import (
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
+	cloudsearchEndpoint "github.com/aws/aws-sdk-go/service/cloudsearch"
 	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
 	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
 	codecommitEndpoint "github.com/aws/aws-sdk-go/service/codecommit"
@@ -335,6 +338,17 @@ func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Cli
 		return nil, err
 	}
 	return cloudfront.NewFromConfig(*cfg), nil
+}
+
+func CloudSearchClient(ctx context.Context, d *plugin.QueryData) (*cloudsearch.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cloudsearchEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cloudsearch.NewFromConfig(*cfg), nil
 }
 
 func CloudTrailClient(ctx context.Context, d *plugin.QueryData) (*cloudtrail.Client, error) {
@@ -680,6 +694,14 @@ func GuardDutyClient(ctx context.Context, d *plugin.QueryData) (*guardduty.Clien
 		return nil, err
 	}
 	return guardduty.NewFromConfig(*cfg), nil
+}
+
+func HealthClient(ctx context.Context, d *plugin.QueryData) (*health.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return health.NewFromConfig(*cfg), nil
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
