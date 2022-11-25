@@ -134,6 +134,11 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "capacity_allocations",
+				Description: "Information about instance capacity usage.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "tag_src",
 				Description: "Any tags assigned to the capacity reservation.",
 				Type:        proto.ColumnType_JSON,
