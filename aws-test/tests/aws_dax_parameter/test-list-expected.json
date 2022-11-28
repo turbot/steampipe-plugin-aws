@@ -1,0 +1,8 @@
+[
+  {
+    "parameter_group_name": "{{ output.parameter_group_name.value }}",
+    "parameter_name": "query-ttl-millis",
+    "parameter_value": "100000",
+    "region": "{{ output.aws_region.value }}"
+  }
+]
