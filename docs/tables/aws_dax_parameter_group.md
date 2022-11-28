@@ -15,7 +15,7 @@ from
   aws_dax_parameter_group;
 ```
 
-### Get cluster details that associated with parameter group
+### Get cluster details associated with the parameter group
 
 ```sql
 select
