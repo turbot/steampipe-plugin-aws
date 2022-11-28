@@ -117,12 +117,12 @@ func listCloudTrailEventDataStores(ctx context.Context, d *plugin.QueryData, _ *
 	// Get client
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_event_data_store.listCloudwatchLogTrailEventDataStores", "client_error", err)
+		plugin.Logger(ctx).Info("aws_cloudtrail_event_data_store.listCloudTrailEventDataStores", "client_error", err)
 		return nil, err
 	}
 
 	// Limiting the results
-	maxLimit := int32(100)
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
@@ -148,7 +148,7 @@ func listCloudTrailEventDataStores(ctx context.Context, d *plugin.QueryData, _ *
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_cloudtrail_event_data_store.listCloudwatchLogTrailEventDataStores", "api_error", err)
+			plugin.Logger(ctx).Error("aws_cloudtrail_event_data_store.listCloudTrailEventDataStores", "api_error", err)
 			return nil, err
 		}
 
