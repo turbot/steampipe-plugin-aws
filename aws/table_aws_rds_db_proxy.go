@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
@@ -140,10 +139,13 @@ func tableAwsRDSDBProxy(_ context.Context) *plugin.Table {
 func listRDSDBProxies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := RDSClient(ctx, d)
+	svc, err := RDSDBProxyClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_proxy.listRDSDBProxies", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -172,10 +174,6 @@ func listRDSDBProxies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// For unsupported regions instead of API client the API throws the error "Error: operation error RDS: DescribeDBProxies, https response error StatusCode: 400, RequestID: 10095563-b2ea-45d3-9c44-852645e209a5, api error InvalidAction: DescribeDBProxies is not supported" this error need to to be handle in API itself.
-			if strings.Contains(err.Error(), "DescribeDBProxies is not supported") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_rds_db_proxy.listRDSDBProxies", "api_error", err)
 			return nil, err
 		}
@@ -203,10 +201,13 @@ func getRDSDBProxy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	}
 
 	// Create service
-	svc, err := RDSClient(ctx, d)
+	svc, err := RDSDBProxyClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_proxy.getRDSDBProxy", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
 	}
 
 	params := &rds.DescribeDBProxiesInput{
