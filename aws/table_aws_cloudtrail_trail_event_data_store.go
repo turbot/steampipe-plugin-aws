@@ -20,7 +20,7 @@ func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
 		Description: "AWS CloudTrail Event Data Store",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"event_data_store_arn"}),
-			Hydrate: getCloudTrailEventDataStore,
+			Hydrate:    getCloudTrailEventDataStore,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudTrailEventDataStores,
@@ -42,56 +42,48 @@ func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
 				Description: "The status of an event data store.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCloudTrailEventDataStore,
-				Transform:   transform.FromField("Status"),
 			},
 			{
 				Name:        "created_timestamp",
 				Description: "The timestamp of the event data store's creation.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getCloudTrailEventDataStore,
-				Transform:   transform.FromField("CreatedTimestamp"),
 			},
 			{
 				Name:        "multi_region_enabled",
 				Description: "Indicates whether the event data store includes events from all regions, or only from the region in which it was created.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getCloudTrailEventDataStore,
-				Transform:   transform.FromField("MultiRegionEnabled"),
 			},
 			{
 				Name:        "organization_enabled",
 				Description: "Indicates that an event data store is collecting logged events for an organization.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getCloudTrailEventDataStore,
-				Transform:   transform.FromField("OrganizationEnabled"),
 			},
 			{
 				Name:        "retention_period",
-				Description: "This field is being deprecated. The retention period, in days.",
+				Description: "The retention period, in days.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getCloudTrailEventDataStore,
-				Transform:   transform.FromField("RetentionPeriod"),
 			},
 			{
 				Name:        "termination_protection_enabled",
 				Description: "Indicates whether the event data store is protected from termination.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getCloudTrailEventDataStore,
-				Transform:   transform.FromField("TerminationProtectionEnabled"),
 			},
 			{
 				Name:        "updated_timestamp",
 				Description: "The timestamp showing when an event data store was updated, if applicable. UpdatedTimestamp is always either the same or newer than the time shown in CreatedTimestamp.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getCloudTrailEventDataStore,
-				Transform:   transform.FromField("UpdatedTimestamp"),
 			},
 			{
 				Name:        "advanced_event_selectors",
 				Description: "The advanced event selectors that were used to select events for the data store.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudTrailEventDataStore,
-				Transform:   transform.FromField("AdvancedEventSelectors"),
 			},
 
 			// Steampipe standard columns
