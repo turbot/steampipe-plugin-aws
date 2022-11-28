@@ -104,6 +104,11 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Default:     "self",
 			},
 			{
+				Name:        "imds_support",
+				Description: "Indicates that IMDSv2 is specified in the AMI",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "kernel_id",
 				Description: "The kernel associated with the image, if any. Only applicable for machine images.",
 				Type:        proto.ColumnType_STRING,
