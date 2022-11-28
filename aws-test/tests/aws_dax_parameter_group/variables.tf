@@ -83,5 +83,5 @@ output "resource_id" {
 }
 
 output "resource_aka" {
-  value = "arn:${data.aws_partition.current.partition}:dax:${data.aws_region.primary.name}::parametergroup:${var.resource_name}"
+  value = "arn:${data.aws_partition.current.partition}:dax:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:parametergroup/${var.resource_name}"
 }

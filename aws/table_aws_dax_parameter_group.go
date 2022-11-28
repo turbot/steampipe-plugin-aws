@@ -139,7 +139,7 @@ func getDaxParameterGroupsAkas(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":dax:" + region + "::parametergroup:" + name}
+	akas := []string{"arn:" + commonColumnData.Partition + ":dax:" + region + ":" + commonColumnData.AccountId + ":parametergroup/" + name}
 
 	return akas, nil
 }
