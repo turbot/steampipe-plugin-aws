@@ -36,7 +36,7 @@ func tableAwsDaxParameterGroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "description",
-				Description: "A description of the parameter group.",
+				Description: "Description of the parameter group.",
 				Type:        proto.ColumnType_STRING,
 			},
 
