@@ -902,7 +902,7 @@ func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 
 func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 
-		// AWS RDS Db Proxy's endpoint ID is the same as AWS RDS's, but me-central-1 and ap-northeast-3 does not support for it
+	// AWS RDS DD Proxy's endpoint ID is the same as AWS RDS's, but me-central-1 and ap-northeast-3 does not support for it
 	//cfg, err := getClientForQuerySupportedRegion(ctx, d, rdxEndpoint.EndpointsID)
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
