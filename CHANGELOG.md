@@ -7,7 +7,7 @@ _What's new?_
 
 _Bug fixes_
 
-- Fixed the `aws_rds_db_proxy table` table to return an empty row for unsupported regions instead of an error. ([#1427](https://github.com/turbot/steampipe-plugin-aws/pull/1427))
+- Fixed the `aws_rds_db_proxy table` table to return empty rows for unsupported regions instead of an error. ([#1427](https://github.com/turbot/steampipe-plugin-aws/pull/1427))
 
 ## v0.85.0 [2022-11-24]
 
