@@ -20,7 +20,7 @@ func tableAwsRDSDBProxy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_proxy_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBProxyNotFoundFault", "InvalidAction"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBProxyNotFoundFault"}),
 			},
 			Hydrate: getRDSDBProxy,
 		},
