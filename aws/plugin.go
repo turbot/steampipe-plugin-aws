@@ -84,6 +84,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudsearch_domain":                                       tableAwsCloudSearchDomain(ctx),
 			"aws_cloudtrail_trail":                                         tableAwsCloudtrailTrail(ctx),
 			"aws_cloudtrail_trail_event":                                   tableAwsCloudtrailTrailEvent(ctx),
+			"aws_cloudtrail_event_data_store": tableAwsCloudtrailEventDataStore(ctx),
 			"aws_cloudwatch_alarm":                                         tableAwsCloudWatchAlarm(ctx),
 			"aws_cloudwatch_log_event":                                     tableAwsCloudwatchLogEvent(ctx),
 			"aws_cloudwatch_log_group":                                     tableAwsCloudwatchLogGroup(ctx),
