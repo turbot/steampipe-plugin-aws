@@ -81,7 +81,3 @@ output "resource_name" {
 output "resource_id" {
   value = aws_dax_parameter_group.named_test_resource.id
 }
-
-output "resource_aka" {
-  value = "arn:${data.aws_partition.current.partition}:dax:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:parametergroup/${var.resource_name}"
-}

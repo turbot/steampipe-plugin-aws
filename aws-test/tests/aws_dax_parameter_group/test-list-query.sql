@@ -5,4 +5,4 @@ select
 from
   aws_dax_parameter_group
 where
-  akas::text = '["{{ output.resource_aka.value }}"]';
+  parameter_group_name = '{{ resourceName }}';

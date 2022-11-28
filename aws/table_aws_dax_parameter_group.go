@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
-	"github.com/aws/aws-sdk-go-v2/service/dax/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -20,6 +19,9 @@ func tableAwsDaxParameterGroup(_ context.Context) *plugin.Table {
 		Description: "AWS DAX Parameter Group",
 		List: &plugin.ListConfig{
 			Hydrate: listDaxParameterGroups,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ParameterGroupNotFoundFault"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "parameter_group_name",
@@ -46,13 +48,6 @@ func tableAwsDaxParameterGroup(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ParameterGroupName"),
-			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getDaxParameterGroupsAkas,
-				Transform:   transform.FromValue(),
 			},
 		}),
 	}
@@ -123,23 +118,4 @@ func listDaxParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	return nil, nil
-}
-
-//// HYDRATE FUNCTION
-
-func getDaxParameterGroupsAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	name := *h.Item.(types.ParameterGroup).ParameterGroupName
-
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_dax_parameter_group.getDaxParameterGroupsAkas", "cache_error", err)
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	akas := []string{"arn:" + commonColumnData.Partition + ":dax:" + region + ":" + commonColumnData.AccountId + ":parametergroup/" + name}
-
-	return akas, nil
 }
