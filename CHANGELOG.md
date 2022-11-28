@@ -1,3 +1,14 @@
+## v0.86.0 [2022-11-28]
+
+_What's new?_
+
+- New tables added
+  - [aws_dax_parameter_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dax_parameter_group) ([#1426](https://github.com/turbot/steampipe-plugin-aws/pull/1426))
+
+_Bug fixes_
+
+- Fixed the `aws_rds_db_proxy table` table to return empty rows for unsupported regions instead of an error. ([#1427](https://github.com/turbot/steampipe-plugin-aws/pull/1427))
+
 ## v0.85.0 [2022-11-24]
 
 _What's new?_
