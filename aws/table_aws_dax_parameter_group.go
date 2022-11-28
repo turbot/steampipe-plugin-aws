@@ -39,6 +39,13 @@ func tableAwsDaxParameterGroup(_ context.Context) *plugin.Table {
 				Description: "A description of the parameter group.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "parameters",
+				Description: "A list of parameters within a parameter group.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDaxParameters,
+				Transform:   transform.FromValue(),
+			},
 
 			// Steampipe standard columns
 			{
@@ -56,6 +63,19 @@ func tableAwsDaxParameterGroup(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+type Parameter struct {
+	AllowedValues          string
+	ChangeType             string
+	DataType               string
+	Description            string
+	IsModifiable           string
+	NodeTypeSpecificValues []types.NodeTypeSpecificValue
+	ParameterName          string
+	ParameterType          string
+	ParameterValue         string
+	Source                 string
 }
 
 //// LIST FUNCTION
@@ -126,6 +146,74 @@ func listDaxParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 //// HYDRATE FUNCTION
+
+func getDaxParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	parameterGroup := h.Item.(types.ParameterGroup)
+
+	// Create Client
+	svc, err := DAXClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxParameters", "connection_error", err)
+		return nil, err
+	}
+
+	params := &dax.DescribeParametersInput{
+		ParameterGroupName: parameterGroup.ParameterGroupName,
+	}
+
+	var parameters []Parameter
+
+	for {
+		op, err := svc.DescribeParameters(ctx, params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_dax_cluster.getDaxParameters", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range op.Parameters {
+			param := &Parameter{}
+			if item.AllowedValues != nil {
+				param.AllowedValues = *item.AllowedValues
+			}
+			if item.ChangeType != "" {
+				param.ChangeType = string(item.ChangeType)
+			}
+			if item.DataType != nil {
+				param.DataType = *item.DataType
+			}
+			if item.Description != nil {
+				param.Description = *item.Description
+			}
+			if item.IsModifiable != "" {
+				param.IsModifiable = string(item.IsModifiable)
+			}
+			if item.NodeTypeSpecificValues != nil {
+				param.NodeTypeSpecificValues = item.NodeTypeSpecificValues
+			}
+			if item.ParameterName != nil {
+				param.ParameterName = *item.ParameterName
+			}
+			if item.ParameterType != "" {
+				param.ParameterType = string(item.ParameterType)
+			}
+			if item.ParameterValue != nil {
+				param.ParameterValue = *item.ParameterValue
+			}
+			if item.Source != nil {
+				param.Source = *item.Source
+			}
+			parameters = append(parameters, *param)
+		}
+
+		if op.NextToken != nil {
+			params.NextToken = op.NextToken
+		} else {
+			break
+		}
+	}
+
+	return parameters, nil
+}
 
 func getDaxParameterGroupsAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
