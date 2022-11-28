@@ -58,19 +58,6 @@ func tableAwsDaxParameterGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-type Parameter struct {
-	AllowedValues          string
-	ChangeType             string
-	DataType               string
-	Description            string
-	IsModifiable           string
-	NodeTypeSpecificValues []types.NodeTypeSpecificValue
-	ParameterName          string
-	ParameterType          string
-	ParameterValue         string
-	Source                 string
-}
-
 //// LIST FUNCTION
 
 func listDaxParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
