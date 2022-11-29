@@ -29,7 +29,7 @@ func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the trail.",
+				Description: "The name of the event data store.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
