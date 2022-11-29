@@ -49,7 +49,7 @@ func tableAwsDaxParameter(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "description",
-				Description: "A description of the parameter.",
+				Description: "Description of the parameter.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -107,7 +107,7 @@ func listDaxParameters(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["parameter_group_name"] != nil {
-		if *parameterGroup.ParameterGroupName != d. KeyColumnQuals["parameter_group_name"].GetStringValue() {
+		if *parameterGroup.ParameterGroupName != d.KeyColumnQuals["parameter_group_name"].GetStringValue() {
 			return nil, nil
 		}
 	}

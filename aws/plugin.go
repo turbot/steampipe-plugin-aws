@@ -82,7 +82,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudfront_origin_request_policy":                         tableAwsCloudFrontOriginRequestPolicy(ctx),
 			"aws_cloudfront_response_headers_policy":                       tableAwsCloudFrontResponseHeadersPolicy(ctx),
 			"aws_cloudsearch_domain":                                       tableAwsCloudSearchDomain(ctx),
-			"aws_cloudtrail_event_data_store":                              tableAwsCloudtrailEventDataStore(ctx),
 			"aws_cloudtrail_trail":                                         tableAwsCloudtrailTrail(ctx),
 			"aws_cloudtrail_trail_event":                                   tableAwsCloudtrailTrailEvent(ctx),
 			"aws_cloudwatch_alarm":                                         tableAwsCloudWatchAlarm(ctx),

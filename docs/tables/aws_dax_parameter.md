@@ -26,8 +26,7 @@ select
 from
   aws_dax_parameter
 group by
-  parameter_group_name
-
+  parameter_group_name;
 ```
 
 ### List modifiable parameters
@@ -46,7 +45,7 @@ where
   is_modifiable = 'TRUE';
 ```
 
-### List parameters which are not user defines
+### List parameters which are not user define
 
 ```sql
 select
@@ -61,3 +60,4 @@ from
   aws_dax_parameter
 where
   source <> 'user';
+  ```
