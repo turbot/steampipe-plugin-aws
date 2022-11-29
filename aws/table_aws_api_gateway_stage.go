@@ -253,7 +253,6 @@ func getAPIGatewayStageARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	apiStage := h.Item.(*stageRowData)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

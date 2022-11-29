@@ -56,7 +56,7 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 				Name:        "partition",
 				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
+				Hydrate:     getCommonColumnsCached,
 			},
 			{
 				Name:        "region",
@@ -68,7 +68,7 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 				Name:        "account_id",
 				Description: "The AWS Account ID in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
+				Hydrate:     getCommonColumnsCached,
 				Transform:   transform.FromCamel(),
 			},
 		},
@@ -141,7 +141,6 @@ func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 func getAwsRegionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := h.Item.(types.Region)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

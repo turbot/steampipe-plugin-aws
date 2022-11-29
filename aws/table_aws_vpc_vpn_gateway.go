@@ -170,7 +170,6 @@ func getVpcVpnGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	vpnGateway := h.Item.(types.VpnGateway)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_vpn_gateway.getVpcVpnGatewayTurbotAkas", "common_data_error", err)

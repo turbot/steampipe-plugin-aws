@@ -197,7 +197,6 @@ func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getVpcDhcpOptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	dhcpOption := h.Item.(types.DhcpOptions)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_dhcp_options.getVpcDhcpOptionAkas", "common_data_error", err)

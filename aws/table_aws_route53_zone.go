@@ -324,7 +324,6 @@ func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	hostedZone := h.Item.(HostedZoneResult)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

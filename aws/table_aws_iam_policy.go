@@ -248,7 +248,6 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 // isPolicyAwsManaged returns true if policy is aws managed
 func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	policy := h.Item.(types.Policy)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

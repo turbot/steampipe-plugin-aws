@@ -265,7 +265,6 @@ func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 // getAwsEBSSnapshotCreateVolumePermissions :: Describes the users and groups that have the permissions for creating volumes from the snapshot
 func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	snapshotData := h.Item.(types.Snapshot)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
@@ -300,7 +299,6 @@ func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	plugin.Logger(ctx).Trace("getEBSSnapshotARN")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshotData := h.Item.(types.Snapshot)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
@@ -364,7 +362,6 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 		ownerFilter.Values = []string{equalQuals["owner_id"].GetStringValue()}
 	} else {
 		// Use this section later and compare the results
-		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 		c, err := getCommonColumnsCached(ctx, d, h)
 		if err != nil {
 			return filters

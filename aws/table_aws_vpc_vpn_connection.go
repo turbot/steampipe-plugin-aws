@@ -213,7 +213,6 @@ func getVpcVpnConnectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 	vpnConnection := h.Item.(types.VpnConnection)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_vpn_connection.getVpcVpnConnectionARN", "common_data_error", err)

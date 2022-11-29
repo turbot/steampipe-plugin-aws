@@ -253,7 +253,6 @@ func classicRuleGroupTagListToTurbotTags(ctx context.Context, d *transform.Trans
 func classicRuleGroupData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
 	data := map[string]string{}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rule_group.classicRuleGroupData", "cache_error", err)

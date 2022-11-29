@@ -304,7 +304,6 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 }
 
 func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailStatus", "common_data_error", err)
@@ -346,7 +345,6 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 }
 
 func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "common_data_error", err)
@@ -388,7 +386,6 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 }
 
 func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailTags", "common_data_error", err)

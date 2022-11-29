@@ -238,7 +238,6 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 func getAwsEfsMountTargetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.MountTargetDescription)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTargetAkas", "common_data_error", err)

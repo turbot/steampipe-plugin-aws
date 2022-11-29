@@ -309,7 +309,6 @@ func getRoute53DomainARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	name := domainName(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

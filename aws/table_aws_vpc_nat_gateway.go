@@ -218,7 +218,6 @@ func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getVpcNatGatewayARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	natGateway := h.Item.(types.NatGateway)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.getVpcNatGatewayARN", "common_data_error", err)

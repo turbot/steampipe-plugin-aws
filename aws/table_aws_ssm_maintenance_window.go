@@ -357,7 +357,6 @@ func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h 
 	plugin.Logger(ctx).Trace("getAwsSSMMaintenanceWindowAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := maintenanceWindowID(h.Item)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

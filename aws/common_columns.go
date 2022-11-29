@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -16,19 +17,19 @@ func commonAwsRegionalColumns() []*plugin.Column {
 		{
 			Name:        "partition",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
+			Hydrate:     getCommonColumnsCached,
 			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
 			Name:        "region",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
+			Hydrate:     getCommonColumnsCached,
 			Description: "The AWS Region in which the resource is located.",
 		},
 		{
 			Name:        "account_id",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
+			Hydrate:     getCommonColumnsCached,
 			Description: "The AWS Account ID in which the resource is located.",
 			Transform:   transform.FromCamel(),
 		},
@@ -41,13 +42,13 @@ func commonColumns() []*plugin.Column {
 		{
 			Name:        "partition",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
+			Hydrate:     getCommonColumnsCached,
 			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
 			Name:        "account_id",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
+			Hydrate:     getCommonColumnsCached,
 			Transform:   transform.FromCamel(),
 			Description: "The AWS Account ID in which the resource is located.",
 		},
@@ -59,7 +60,7 @@ func commonAwsColumns() []*plugin.Column {
 		{
 			Name:        "partition",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
+			Hydrate:     getCommonColumnsCached,
 			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
@@ -71,7 +72,7 @@ func commonAwsColumns() []*plugin.Column {
 		{
 			Name:        "account_id",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
+			Hydrate:     getCommonColumnsCached,
 			Description: "The AWS Account ID in which the resource is located.",
 			Transform:   transform.FromCamel(),
 		},
@@ -105,8 +106,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	var commonColumnData *awsCommonColumnData
-	getCallerIdentityCached := plugin.HydrateFunc(getCallerIdentity).WithCache()
-	getCallerIdentityData, err := getCallerIdentityCached(ctx, d, h)
+	getCallerIdentityData, err := getCallerIdentity(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -122,14 +122,20 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return commonColumnData, nil
 }
 
-func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	cacheKey := "GetCallerIdentity"
-
-	// if found in cache, return the result
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.(*sts.GetCallerIdentityOutput), nil
+// build a cache key for the call to getCommonColumns, including the region if this is a multi region call
+// NOTE: this could be done more generically but this functionality will probably move to the sdk
+func getCommonColumnsCacheKey() plugin.HydrateFunc {
+	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+		region := d.KeyColumnQualString(matrixKeyRegion)
+		key := fmt.Sprintf("getCommonColumns%s", region)
+		return key, nil
 	}
+}
 
+// define cached version of getCommonColumns
+var getCommonColumnsCached = plugin.HydrateFunc(getCommonColumns).WithCache(getCommonColumnsCacheKey())
+
+func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// get the service connection for the service
 	svc, err := STSClient(ctx, d)
 	if err != nil {
@@ -142,7 +148,5 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
-	// save to extension cache
-	d.ConnectionManager.Cache.Set(cacheKey, callerIdentity)
 	return callerIdentity, nil
 }

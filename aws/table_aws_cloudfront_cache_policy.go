@@ -195,7 +195,6 @@ func getCloudFrontCachePolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 
 func getCloudfrontCachePolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := cloudFrontCachePolicyAka(h.Item)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudfront_cache_policy.getCloudfrontCachePolicyAkas", "common_data_error", err)

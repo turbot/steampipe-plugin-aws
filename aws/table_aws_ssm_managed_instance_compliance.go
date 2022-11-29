@@ -165,7 +165,6 @@ func getSSMManagedInstanceComplianceAkas(ctx context.Context, d *plugin.QueryDat
 	data := h.Item.(types.ComplianceItem)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_managed_instance_compliance.getSSMInstanceComplianceAkas", "common_data_error", err)

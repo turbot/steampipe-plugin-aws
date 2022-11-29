@@ -177,7 +177,6 @@ func getETagValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 func getAccountARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get common columns which will be used to create the ARN
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	response, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudfront_response_headers_policy.getAccountARN", "common_data_error", err)

@@ -144,7 +144,6 @@ func getDaxSubnetGroupsAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	name := *h.Item.(types.SubnetGroup).SubnetGroupName
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dax_subnet_group.getDaxSubnetGroupsAkas", "cache_error", err)

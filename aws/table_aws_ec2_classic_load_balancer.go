@@ -399,7 +399,6 @@ func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *p
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getEc2ClassicLoadBalancerARN", "get_common_data_error", err)

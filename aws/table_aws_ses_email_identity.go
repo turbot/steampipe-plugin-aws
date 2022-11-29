@@ -187,7 +187,6 @@ func getSESIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	identity := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ses_email_identity.getSESIdentityARN", "api_error", err)

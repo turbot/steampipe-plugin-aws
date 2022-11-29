@@ -178,7 +178,6 @@ func getapiGatewayV2DomainNameAkas(ctx context.Context, d *plugin.QueryData, h *
 		domainName = *h.Item.(types.DomainName).DomainName
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

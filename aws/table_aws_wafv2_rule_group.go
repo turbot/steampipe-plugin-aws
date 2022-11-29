@@ -121,7 +121,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Name:        "partition",
 				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
+				Hydrate:     getCommonColumnsCached,
 			},
 			{
 				Name:        "region",
@@ -133,7 +133,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Name:        "account_id",
 				Description: "The AWS Account ID in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
+				Hydrate:     getCommonColumnsCached,
 			},
 		},
 	}

@@ -217,7 +217,6 @@ func getBackupSelectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := selectionID(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
