@@ -23,7 +23,7 @@ from
 select
   parameter_group_name,
   region,
-  count(parameter_name) number_of_parameters
+  count(parameter_name) as number_of_parameters
 from
   aws_dax_parameter
 group by
