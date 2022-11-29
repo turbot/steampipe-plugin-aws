@@ -191,7 +191,7 @@ func getCloudtrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// execute list call
 	op, err := svc.DescribeQuery(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_lake_query.getCloudtrailTrail", "api_error", err)
+		plugin.Logger(ctx).Info("aws_cloudtrail_lake_query.getCloudtrailLakeQuery", "api_error", err)
 		return nil, err
 	}
 
