@@ -27,7 +27,8 @@ select
 from
   aws_dax_parameter
 group by
-  parameter_group_name, region;
+  parameter_group_name, 
+  region;
 ```
 
 ### List modifiable parameters
