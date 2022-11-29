@@ -46,7 +46,7 @@ where
   is_modifiable = 'TRUE';
 ```
 
-### List parameters which are not user define
+### List parameters that are not user defined
 
 ```sql
 select
