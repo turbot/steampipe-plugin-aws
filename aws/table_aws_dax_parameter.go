@@ -44,7 +44,7 @@ func tableAwsDaxParameter(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "parameter_value",
-				Description: "The value for the parameter.",
+				Description: "The value of the parameter.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
