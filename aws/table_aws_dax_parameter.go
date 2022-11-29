@@ -74,7 +74,7 @@ func tableAwsDaxParameter(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "parameter_type",
-				Description: "Determines whether the parameter can be applied to any nodes, or only nodes of a particular type.",
+				Description: "Determines whether the parameter can be applied to any node or only nodes of a particular type.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
