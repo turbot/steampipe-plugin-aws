@@ -22,11 +22,12 @@ from
 ```sql
 select
   parameter_group_name,
+  region,
   count(parameter_name) number_of_parameters
 from
   aws_dax_parameter
 group by
-  parameter_group_name;
+  parameter_group_name, region;
 ```
 
 ### List modifiable parameters
