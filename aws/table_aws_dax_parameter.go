@@ -59,7 +59,7 @@ func tableAwsDaxParameter(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "change_type",
-				Description: "The conditions under which changes to this parameter can be applied.",
+				Description: "The conditions under which changes to this parameter can be applied. Possible values are 'IMMEDIATE', 'REQUIRES_REBOOT'.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -69,12 +69,12 @@ func tableAwsDaxParameter(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "is_modifiable",
-				Description: "Whether the customer is allowed to modify the parameter.",
+				Description: "Whether the customer is allowed to modify the parameter. Possible values are 'TRUE', 'FALSE' 'CONDITIONAL'.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "parameter_type",
-				Description: "Determines whether the parameter can be applied to any node or only nodes of a particular type.",
+				Description: "Determines whether the parameter can be applied to any node or only nodes of a particular type. Possible values are 'DEFAULT', 'NODE_TYPE_SPECIFIC'.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
