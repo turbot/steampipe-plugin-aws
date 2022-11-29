@@ -115,7 +115,7 @@ func listDaxParameters(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// Create Client
 	svc, err := DAXClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxParameters", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_dax_cluster. listDaxParameters", "connection_error", err)
 		return nil, err
 	}
 
