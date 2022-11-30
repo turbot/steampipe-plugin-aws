@@ -112,7 +112,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "imds_support",
-				Description: "Indicates that IMDSv2 is specified in the AMI",
+				Description: "If v2.0, it indicates that IMDSv2 is specified in the AMI.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
