@@ -44,6 +44,11 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "subscription_status",
+				Description: "Subscription status of the Amazon Security Lake subscriber account.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "updated_at",
 				Description: "The date and time when the subscription was updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -64,7 +69,7 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "SnsArn",
+				Name:        "sns_arn",
 				Description: "The Amazon Resource Name (ARN) for the Amazon Simple Notification Service.",
 				Type:        proto.ColumnType_STRING,
 			},
@@ -79,13 +84,8 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "SubscriptionProtocol",
+				Name:        "subscription_protocol",
 				Description: "The subscription protocol to which exception messages are posted.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "SubscriptionStatus",
-				Description: "Subscription status of the Amazon Security Lake subscriber account.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
