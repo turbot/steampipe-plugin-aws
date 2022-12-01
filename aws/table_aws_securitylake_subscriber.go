@@ -16,62 +16,86 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_securitylake_subscriber",
 		Description: "AWS Security Lake Subscriber",
-		// Get: &plugin.GetConfig{
-		// 	KeyColumns: plugin.SingleColumn("product_arn"),
-		// 	IgnoreConfig: &plugin.IgnoreConfig{
-		// 		ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
-		// 	},
-		// 	Hydrate: getSecurityHubProduct,
-		// },
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.SingleColumn("subscription_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
+			},
+			Hydrate: getSecurityLakeSubscriber,
+		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityLakeSubscribers,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "name",
-				Description: "The name of the product.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ProductName"),
-			},
-			{
-				Name:        "product_arn",
-				Description: "The ARN assigned to the product.",
+				Name:        "subscriber_name",
+				Description: "The name of your Amazon Security Lake subscriber account.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "activation_url",
-				Description: "The URL used to activate the product.",
+				Name:        "subscription_id",
+				Description: "The subscription ID of the Amazon Security Lake subscriber account.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "company_name",
-				Description: "The name of the company that provides the product.",
+				Name:        "created_at",
+				Description: "The date and time when the subscription was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "updated_at",
+				Description: "The date and time when the subscription was updated.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "external_id",
+				Description: "The external ID of the subscriber.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "description",
-				Description: "A description of the product.",
+				Name:        "role_arn",
+				Description: "The Amazon Resource Name (ARN) specifying the role of the subscriber.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "marketplace_url",
-				Description: "The URL for the page that contains more information about the product.",
+				Name:        "s3_bucket_arn",
+				Description: "The Amazon Resource Name (ARN) for the Amazon S3 bucket.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "categories",
-				Description: "The categories assigned to the product.",
+				Name:        "SnsArn",
+				Description: "The Amazon Resource Name (ARN) for the Amazon Simple Notification Service.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "subscriber_description",
+				Description: "The subscriber descriptions for a subscriber account.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "subscription_endpoint",
+				Description: "The subscription endpoint to which exception messages are posted.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "SubscriptionProtocol",
+				Description: "The subscription protocol to which exception messages are posted.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "SubscriptionStatus",
+				Description: "Subscription status of the Amazon Security Lake subscriber account.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "access_types",
+				Description: "You can choose to notify subscribers of new objects with an Amazon Simple Queue Service (Amazon SQS) queue or through messaging to an HTTPS endpoint provided by the subscriber. Subscribers can consume data by directly querying Lake Formation tables in your S3 bucket via services like Amazon Athena. This subscription type is defined as LAKEFORMATION.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "integration_types",
-				Description: "The types of integration that the product supports.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "product_subscription_resource_policy",
-				Description: "The resource policy associated with the product.",
+				Name:        "source_types",
+				Description: "Amazon Security Lake supports logs and events collection for the natively-supported Amazon Web Services services.",
 				Type:        proto.ColumnType_JSON,
 			},
 
@@ -80,7 +104,7 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ProductName"),
+				Transform:   transform.FromField("SubscriberName"),
 			},
 			{
 				Name:        "akas",
