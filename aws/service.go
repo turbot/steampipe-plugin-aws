@@ -83,6 +83,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
@@ -1066,6 +1067,14 @@ func SecurityHubClientConfig(ctx context.Context, d *plugin.QueryData) (*aws.Con
 		return nil, nil
 	}
 	return cfg, nil
+}
+
+func SecurityLakeClient(ctx context.Context, d *plugin.QueryData) (*securitylake.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return securitylake.NewFromConfig(*cfg), nil
 }
 
 func SESClient(ctx context.Context, d *plugin.QueryData) (*ses.Client, error) {
