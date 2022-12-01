@@ -183,7 +183,6 @@ func getAwsWAFRegionalRuleArn(ctx context.Context, d *plugin.QueryData, h *plugi
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := regionalRuleData(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRuleArn", "api_error", err)

@@ -209,7 +209,6 @@ func getEmrInstanceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(*emrInstanceInfo)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_emr_instance.getEmrInstanceAkas", "common_data_error", err)

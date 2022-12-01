@@ -141,12 +141,12 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func getIamAccessKeyAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	accessKey := h.Item.(types.AccessKeyMetadata)
 
-	commonColumnData, err := getCommonColumns(ctx, d, h)
+	commonColumnData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-
 	awsCommonData := commonColumnData.(*awsCommonColumnData)
+
 	aka := []string{"arn:" + awsCommonData.Partition + ":iam::" + awsCommonData.AccountId + ":user/" + *accessKey.UserName + "/accesskey/" + *accessKey.AccessKeyId}
 	return aka, nil
 }

@@ -227,7 +227,7 @@ func codeDeployApplicationArn(ctx context.Context, d *plugin.QueryData, h *plugi
 	name := *h.Item.(*types.ApplicationInfo).ApplicationName
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	logger := plugin.Logger(ctx)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_codedeploy_app.getCodeDeployApplicationArn", "caching_error", err)

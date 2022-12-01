@@ -178,7 +178,6 @@ func getCloudFrontOriginAccessIdentity(ctx context.Context, d *plugin.QueryData,
 func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	originAccessIdentityData := *originAccessIdentityID(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudfront_origin_access_identity.getCloudFrontOriginAccessIdentityARN", "common_data_error", err)

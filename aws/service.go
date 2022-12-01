@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"os"
@@ -1422,20 +1423,14 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 		return cachedData.([]string), nil
 	}
 
-	// Get the partition of the AWS account plugin is connected to
-	if cachedData, ok := d.ConnectionManager.Cache.Get("getCommonColumns"); ok {
-		partitionName = cachedData.(*awsCommonColumnData).Partition
+	// get the partition of the AWS account plugin is connected to
+	// using the cached version of getCommonColumns
+	commonColumnData, err := getCommonColumnsCached(ctx, d, nil)
+	if err != nil {
+		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition name", err)
+		return nil, err
 	}
-
-	// If partition name is not available in cache, try to fetch it from "STS GetCallerIdentity" API
-	if partitionName == "" {
-		commonColumnData, err := getCommonColumns(ctx, d, nil)
-		if err != nil {
-			plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition name", err)
-			return nil, err
-		}
-		partitionName = commonColumnData.(*awsCommonColumnData).Partition
-	}
+	partitionName = commonColumnData.(*awsCommonColumnData).Partition
 
 	// Get AWS partition based on the partition name
 	switch partitionName {
@@ -1480,6 +1475,7 @@ func getDefaultAwsRegion(d *plugin.QueryData) string {
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(string)
 	}
+	log.Printf("[WARN] Fetching default AWS region... Connection Name: %s", d.Connection.Name)
 
 	// Get AWS config info
 	awsConfig := GetConfig(d.Connection)

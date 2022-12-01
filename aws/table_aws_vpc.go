@@ -219,7 +219,6 @@ func getVpcARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	vpc := h.Item.(types.Vpc)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc.getVpcARN", "common_data_error", err)

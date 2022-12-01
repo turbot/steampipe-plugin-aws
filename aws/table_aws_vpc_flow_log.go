@@ -243,7 +243,7 @@ func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 func getVpcFlowlogAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	vpcFlowlog := h.Item.(types.FlowLog)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_flow_log.getVpcFlowlogAkas", "common_data_error", err)

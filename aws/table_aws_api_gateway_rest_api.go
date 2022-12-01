@@ -228,7 +228,6 @@ func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin
 		id = *h.Item.(types.RestApi).Id
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

@@ -711,7 +711,7 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucket := h.Item.(types.Bucket)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketARN", "get_common_columns_error", err)

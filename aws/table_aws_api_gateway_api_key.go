@@ -207,7 +207,6 @@ func getAwsAPIKeysAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		id = *h.Item.(types.ApiKey).Id
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

@@ -191,7 +191,6 @@ func getVpcRouteTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	routeTable := h.Item.(types.RouteTable)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_route_table.getVpcRouteTableAkas", "common_data_error", err)

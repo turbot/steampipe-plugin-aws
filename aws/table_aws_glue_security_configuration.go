@@ -162,7 +162,7 @@ func getGlueSecurityConfigurationArn(ctx context.Context, d *plugin.QueryData, h
 	data := h.Item.(types.SecurityConfiguration)
 
 	// Get common columns
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_security_configuration.getGlueSecurityConfigurationArn", "common_data_error", err)

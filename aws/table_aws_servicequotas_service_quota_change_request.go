@@ -276,7 +276,7 @@ func getServiceQuotaChangeRequestAkas(ctx context.Context, d *plugin.QueryData, 
 	data := h.Item.(types.RequestedServiceQuotaChange)
 
 	// Get common columns
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.getServiceQuotaChangeRequestAkas", "common_data_error", err)

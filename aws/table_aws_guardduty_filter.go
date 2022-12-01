@@ -203,7 +203,6 @@ func getAwsGuardDutyFilterAkas(ctx context.Context, d *plugin.QueryData, h *plug
 	data := h.Item.(filterInfo)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_guardduty_filter.getAwsGuardDutyFilterAkas", "api_error", err)

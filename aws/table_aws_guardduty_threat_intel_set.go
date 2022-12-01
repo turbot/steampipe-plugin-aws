@@ -204,7 +204,6 @@ func getAwsGuardDutyThreatIntelSetAkas(ctx context.Context, d *plugin.QueryData,
 	data := h.Item.(threatIntelSetInfo)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_guardduty_threat_intel_set.getAwsGuardDutyThreatIntelSetAkas", "api_error", err)

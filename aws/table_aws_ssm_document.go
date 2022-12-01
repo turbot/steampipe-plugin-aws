@@ -367,7 +367,7 @@ func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData,
 func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	name := documentName(h.Item)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentAkas", "common_data_error", err)

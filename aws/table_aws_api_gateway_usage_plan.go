@@ -178,7 +178,6 @@ func getUsagePlanAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		id = *h.Item.(types.UsagePlan).Id
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

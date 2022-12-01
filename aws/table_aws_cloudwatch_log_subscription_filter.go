@@ -207,7 +207,6 @@ func getCloudwatchLogSubscriptionFilterAkas(ctx context.Context, d *plugin.Query
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	subscriptionFilter := h.Item.(types.SubscriptionFilter)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilterAkas", "cache_error", err)

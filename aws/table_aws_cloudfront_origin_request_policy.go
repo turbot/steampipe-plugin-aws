@@ -191,7 +191,6 @@ func getCloudFrontOriginRequestPolicy(ctx context.Context, d *plugin.QueryData, 
 func getCloudFrontOriginRequestPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	policyID := *originRequestPolicyID(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
