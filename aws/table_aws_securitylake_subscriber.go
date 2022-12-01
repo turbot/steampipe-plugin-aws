@@ -126,6 +126,10 @@ func listSecurityLakeSubscribers(ctx context.Context, d *plugin.QueryData, _ *pl
 		plugin.Logger(ctx).Error("aws_securitylake_subscriber.listSecurityLakeSubscribers", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -179,6 +183,10 @@ func getSecurityLakeSubscriber(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_securitylake_subscriber.getSecurityLakeSubscriber", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params

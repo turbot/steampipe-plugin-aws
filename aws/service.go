@@ -148,6 +148,7 @@ import (
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
 	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
+	securitylakeEndpoint "github.com/aws/aws-sdk-go/service/securitylake"
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	servicequotasEndpoint "github.com/aws/aws-sdk-go/service/servicequotas"
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
@@ -1070,9 +1071,12 @@ func SecurityHubClientConfig(ctx context.Context, d *plugin.QueryData) (*aws.Con
 }
 
 func SecurityLakeClient(ctx context.Context, d *plugin.QueryData) (*securitylake.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securitylakeEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return securitylake.NewFromConfig(*cfg), nil
 }
