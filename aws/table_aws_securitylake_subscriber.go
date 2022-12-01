@@ -19,7 +19,7 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("subscription_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getSecurityLakeSubscriber,
 		},
@@ -176,7 +176,10 @@ func listSecurityLakeSubscribers(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getSecurityLakeSubscriber(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	id := d.KeyColumnQuals["id"].GetStringValue()
+	id := d.KeyColumnQuals["subscription_id"].GetStringValue()
+	if id == "" {
+		return nil, nil
+	}
 
 	// Create session
 	svc, err := SecurityLakeClient(ctx, d)
