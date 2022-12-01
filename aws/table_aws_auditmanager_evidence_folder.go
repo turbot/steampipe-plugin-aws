@@ -257,7 +257,6 @@ func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	evidenceFolderID := *h.Item.(types.AssessmentEvidenceFolder).Id
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_auditmanager_evidence_folder.getAuditManagerEvidenceFolderARN", "common_data_error", err)

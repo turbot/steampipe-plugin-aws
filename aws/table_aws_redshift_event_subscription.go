@@ -198,7 +198,7 @@ func getRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _ *p
 func getRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(types.EventSubscription)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_redshift_event_subscription.getRedshiftEventSubscriptionAkas", "getCommonColumnsCached_error", err)

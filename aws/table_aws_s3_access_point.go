@@ -146,7 +146,7 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 
 func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.listS3AccessPoints", "common_data_error", err)
@@ -222,7 +222,7 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPoint", "common_data_error", err)
@@ -276,7 +276,7 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicyStatus", "common_data_error", err)
@@ -324,7 +324,7 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicy", "common_data_error", err)
@@ -373,7 +373,7 @@ func getAccessPointArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getAccessPointArn", "common_data_error", err)

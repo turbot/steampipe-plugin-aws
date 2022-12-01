@@ -249,7 +249,7 @@ func getGlueCrawlerArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	data := h.Item.(types.Crawler)
 
 	// Get common columns
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_crawler.getGlueCrawlerArn", "common_data_error", err)

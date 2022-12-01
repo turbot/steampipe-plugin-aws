@@ -356,7 +356,6 @@ func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData
 func getDirectoryARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	directory := h.Item.(types.DirectoryDescription)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

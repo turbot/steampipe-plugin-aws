@@ -269,7 +269,7 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get region, partition, account id
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return ""

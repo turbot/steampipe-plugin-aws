@@ -165,7 +165,6 @@ func getEc2SslPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.SslPolicy)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

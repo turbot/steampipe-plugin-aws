@@ -262,7 +262,7 @@ func getGlueCatalogTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 	data := h.Item.(types.Table)
 
 	// Get common columns
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_catalog_table.getGlueCatalogTableAkas", "common_data_error", err)

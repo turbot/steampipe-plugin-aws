@@ -200,7 +200,6 @@ func getAPIGatewayAuthorizerAkas(ctx context.Context, d *plugin.QueryData, h *pl
 		id = *item.Id
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

@@ -158,7 +158,7 @@ func listEc2TransitGatewayRoute(ctx context.Context, d *plugin.QueryData, h *plu
 func getAwsEc2TransitGatewayRouteAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	route := h.Item.(*RouteDetails)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err

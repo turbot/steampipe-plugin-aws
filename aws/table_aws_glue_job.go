@@ -291,7 +291,7 @@ func getGlueJobArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	data := h.Item.(types.Job)
 
 	// Get common columns
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobArn", "common_error", err)
