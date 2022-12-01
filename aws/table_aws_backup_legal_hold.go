@@ -153,7 +153,7 @@ func getAwsBackupLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Create Session
 	svc, err := BackupClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_legal_hold.listAwsBackupLegalHolds", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_backup_legal_hold.getAwsBackupLegalHold", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -180,7 +180,7 @@ func getAwsBackupLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	op, err := svc.GetLegalHold(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_legal_hold.listAwsBackupLegalHolds", "api_error", err)
+		plugin.Logger(ctx).Error("aws_backup_legal_hold.getAwsBackupLegalHold", "api_error", err)
 	}
 
 	return op, nil
