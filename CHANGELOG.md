@@ -1,3 +1,10 @@
+## v0.87.0 [TBD]
+
+_Breaking changes_
+
+- The `aws_cloudwatch_metric` table rows now contain a CloudWatch metric each, instead of a dimension name/value pair. Dimensions for each metric can be found in the `dimensions` column and to filter on specific dimensions, you can pass dimensions through the `dimensions_filter` key column. Please see [aws_cloudwatch_metric Examples](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_metric#examples) for query examples using the new columns.
+- Renamed column `name` to `metric_name` in the `aws_cloudwatch_metric` table.
+
 ## v0.86.0 [2022-11-28]
 
 _What's new?_
