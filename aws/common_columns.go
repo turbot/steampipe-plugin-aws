@@ -104,7 +104,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if region == "" {
 		region = "global"
 	}
-	plugin.Logger(ctx).Info("getCallerIdentity", "Fetching data for common columns...", "Connection Name", d.Connection.Name, "Region", region)
+	plugin.Logger(ctx).Info("getCallerIdentity", "connection_name", d.Connection.Name, "region", region)
 
 	// use the cached version of the getCallerIdentity to reduce the number of request
 	var commonColumnData *awsCommonColumnData
@@ -126,7 +126,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 // returns details about the IAM user or role whose credentials are used to call the operation
 func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Info("getCallerIdentity", "Fetching caller identity...", "Connection Name", d.Connection.Name)
+	plugin.Logger(ctx).Info("getCallerIdentity", "connection_name", d.Connection.Name)
 
 	// get the service connection for the service
 	svc, err := STSClient(ctx, d)
@@ -143,7 +143,7 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	return callerIdentity, nil
 }
 
-// build a cache key for the call to getCommonColumns, including the region since this is a multi region call
+// build a cache key for the call to getCommonColumns, including the region since this is a multi-region call
 func getCommonColumnsCacheKey() plugin.HydrateFunc {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 		region := d.KeyColumnQualString(matrixKeyRegion)
@@ -153,5 +153,10 @@ func getCommonColumnsCacheKey() plugin.HydrateFunc {
 }
 
 // define cached version of getCallerIdentity and getCommonColumns
+// by default, WithCache cached the data per connection
+// if no argument is passed in WithCache, the cache key will be in the format of <function_name>-<connection_name>
 var getCallerIdentityCached = plugin.HydrateFunc(getCallerIdentity).WithCache()
+
+// if the caching is required other than per connection, build a cache key for the call and use it in WithCache
+// since getCommonColumns is a multi-region call, caching should be per connection per region
 var getCommonColumnsCached = plugin.HydrateFunc(getCommonColumns).WithCache(getCommonColumnsCacheKey())
