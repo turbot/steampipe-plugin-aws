@@ -17,7 +17,7 @@ import (
 func tableAwsBackupLegalHold(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_backup_legal_hold",
-		Description: "AWS Backup Legal 	Hold",
+		Description: "AWS Backup Legal Hold",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("legal_hold_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -96,7 +96,7 @@ func listAwsBackupLegalHolds(ctx context.Context, d *plugin.QueryData, _ *plugin
 	// Create session
 	svc, err := BackupClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_legal_hold.listAwsBackupLegalHolds", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_backup_legal_hold.listAwsBackupLegalHolds", "client_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -153,7 +153,7 @@ func getAwsBackupLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Create Session
 	svc, err := BackupClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_legal_hold.getAwsBackupLegalHold", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_backup_legal_hold.getAwsBackupLegalHold", "client_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -163,8 +163,8 @@ func getAwsBackupLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	var id string
 	if h.Item != nil {
-		plan := h.Item.(types.LegalHold)
-		id = *plan.LegalHoldId
+		backupHold := h.Item.(types.LegalHold)
+		id         = *backupHold.LegalHoldId
 	} else {
 		id = d.KeyColumnQuals["legal_hold_id"].GetStringValue()
 	}
