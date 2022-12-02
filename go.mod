@@ -3,7 +3,7 @@ module github.com/turbot/steampipe-plugin-aws
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go v1.44.141
+	github.com/aws/aws-sdk-go v1.44.150
 	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.21
@@ -90,6 +90,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.48.0
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.23.5
+	github.com/aws/aws-sdk-go-v2/service/securitylake v1.0.0
 	github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository v1.11.17
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.13.18
 	github.com/aws/aws-sdk-go-v2/service/ses v1.14.18
