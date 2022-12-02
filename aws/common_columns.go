@@ -104,7 +104,9 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if region == "" {
 		region = "global"
 	}
-	plugin.Logger(ctx).Info("getCallerIdentity", "connection_name", d.Connection.Name, "region", region)
+
+	// Trace logging to debug cache and execution flows
+	plugin.Logger(ctx).Info("getCommonColumns", "status", "starting", "connection_name", d.Connection.Name, "region", region)
 
 	// use the cached version of the getCallerIdentity to reduce the number of request
 	var commonColumnData *awsCommonColumnData
@@ -126,7 +128,13 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 // returns details about the IAM user or role whose credentials are used to call the operation
 func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Info("getCallerIdentity", "connection_name", d.Connection.Name)
+
+	// Trace logging to debug cache and execution flows
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		region = "global"
+	}
+	plugin.Logger(ctx).Info("getCallerIdentity", "status", "starting", "connection_name", d.Connection.Name, "region", region)
 
 	// get the service connection for the service
 	svc, err := STSClient(ctx, d)
@@ -136,7 +144,6 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 	callerIdentity, err := svc.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
-		// let the cache know that we have failed to fetch this item
 		return nil, err
 	}
 
