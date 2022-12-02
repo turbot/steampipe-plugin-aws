@@ -83,6 +83,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
@@ -147,6 +148,7 @@ import (
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
 	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
+	securitylakeEndpoint "github.com/aws/aws-sdk-go/service/securitylake"
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	servicequotasEndpoint "github.com/aws/aws-sdk-go/service/servicequotas"
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
@@ -1066,6 +1068,17 @@ func SecurityHubClientConfig(ctx context.Context, d *plugin.QueryData) (*aws.Con
 		return nil, nil
 	}
 	return cfg, nil
+}
+
+func SecurityLakeClient(ctx context.Context, d *plugin.QueryData) (*securitylake.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securitylakeEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return securitylake.NewFromConfig(*cfg), nil
 }
 
 func SESClient(ctx context.Context, d *plugin.QueryData) (*ses.Client, error) {
