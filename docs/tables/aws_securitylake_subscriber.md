@@ -51,7 +51,7 @@ where
   s.role_arn = r.arn;
 ```
 
-## Get bucket details for the subscribers
+## Get S3 bucket details for each subscriber
 
 ```sql
 select
