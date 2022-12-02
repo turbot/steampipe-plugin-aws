@@ -21,17 +21,6 @@ type RegionsData struct {
 	APIRetrivedList bool
 }
 
-var (
-	// https://docs.aws.amazon.com/general/latest/gr/rande.html#regional-endpoints
-	awsStandardRegions = []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-central-2", "eu-north-1", "eu-south-1", "eu-south-2", "eu-west-1", "eu-west-2", "eu-west-3", "me-central-1", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
-
-	awsUsGovRegions  = []string{"us-gov-east-1", "us-gov-west-1"}
-	awsChinaRegions  = []string{"cn-north-1", "cn-northwest-1"}
-	awsUsIsoRegions  = []string{"us-iso-east-1", "us-iso-west-1"}
-	awsUsIsobRegions = []string{"us-isob-east-1"}
-)
-
 // BuildRegionList :: return a list of matrix items, one per region specified in the connection config.
 // Plugin supports wildcards "*" and "?" in the connection config for the regions.
 //
@@ -54,9 +43,6 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 
 	// Trace logging to debug cache and execution flows
 	logRegion := d.KeyColumnQualString(matrixKeyRegion)
-	if logRegion == "" {
-		logRegion = "global"
-	}
 	plugin.Logger(ctx).Trace("BuildRegionList", "status", "starting", "connection_name", d.Connection.Name, "region", logRegion)
 
 	// Cache region list matrix
@@ -150,11 +136,12 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 		finalRegions = helpers.StringSliceDistinct(finalRegions)
 	}
 
-	plugin.Logger(ctx).Debug("BuildRegionList", "connection_name", d.Connection.Name, "regions", strings.Join(finalRegions, ", "))
 	matrix := make([]map[string]interface{}, len(finalRegions))
 	for i, region := range finalRegions {
 		matrix[i] = map[string]interface{}{matrixKeyRegion: region}
 	}
+
+	plugin.Logger(ctx).Debug("BuildRegionList", "status", "result", "connection_name", d.Connection.Name, "region", logRegion, "matrix", matrix)
 
 	// set cache
 	d.ConnectionManager.Cache.Set(cacheKey, matrix)
@@ -185,17 +172,17 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 		return cachedData.(RegionsData), nil
 	}
 
-	defaultRegions := awsStandardRegions
+	defaultRegions := awsCommercialRegions()
 
 	defaultRegion := getDefaultAwsRegion(d)
 	if strings.HasPrefix(defaultRegion, "us-gov") {
-		defaultRegions = awsUsGovRegions
+		defaultRegions = awsUsGovRegions()
 	} else if strings.HasPrefix(defaultRegion, "cn") {
-		defaultRegions = awsChinaRegions
+		defaultRegions = awsChinaRegions()
 	} else if strings.HasPrefix(defaultRegion, "us-isob") {
-		defaultRegions = awsUsIsobRegions
+		defaultRegions = awsUsIsobRegions()
 	} else if strings.HasPrefix(defaultRegion, "us-iso") {
-		defaultRegions = awsUsIsoRegions
+		defaultRegions = awsUsIsoRegions()
 	}
 
 	data := RegionsData{
@@ -251,4 +238,71 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 	// save to extension cache
 	d.ConnectionManager.Cache.Set(cacheKey, data)
 	return data, err
+}
+
+//
+// AWS STANDARD REGIONS
+//
+// Source: https://docs.aws.amazon.com/general/latest/gr/rande.html#regional-endpoints
+//
+// Maintain a hard coded list of regions to use when API calls to the region
+// list endpoint are not possible. This list must be updated manually as new
+// regions are announced.
+//
+
+func awsCommercialRegions() []string {
+	return []string{
+		"af-south-1",
+		"ap-east-1",
+		"ap-northeast-1",
+		"ap-northeast-2",
+		"ap-northeast-3",
+		"ap-south-1",
+		"ap-southeast-1",
+		"ap-southeast-2",
+		"ap-southeast-3",
+		"ca-central-1",
+		"eu-central-1",
+		"eu-central-2",
+		"eu-north-1",
+		"eu-south-1",
+		"eu-south-2",
+		"eu-west-1",
+		"eu-west-2",
+		"eu-west-3",
+		"me-central-1",
+		"me-south-1",
+		"sa-east-1",
+		"us-east-1",
+		"us-east-2",
+		"us-west-1",
+		"us-west-2",
+	}
+}
+
+func awsUsGovRegions() []string {
+	return []string{
+		"us-gov-east-1",
+		"us-gov-west-1",
+	}
+}
+
+func awsChinaRegions() []string {
+	return []string{
+		"cn-north-1",
+		"cn-northwest-1",
+	}
+}
+
+func awsUsIsoRegions() []string {
+	return []string{
+		"us-iso-east-1",
+		"us-iso-west-1",
+	}
+}
+
+func awsUsIsobRegions() []string {
+	return []string{
+		"us-isob-east-1",
+	}
 }
