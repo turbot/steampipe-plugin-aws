@@ -17,7 +17,7 @@ import (
 func tableAwsBackupLegalHold(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_backup_legal_hold",
-		Description: "AWS Backup LegalHold",
+		Description: "AWS Backup Legal 	Hold",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("legal_hold_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -64,7 +64,7 @@ func tableAwsBackupLegalHold(_ context.Context) *plugin.Table {
 			{
 				Name:        "retain_record_until",
 				Description: "This is the date and time until which the legal hold record will be retained.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsBackupLegalHold,
 			},
 			{

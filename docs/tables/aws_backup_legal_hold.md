@@ -33,7 +33,7 @@ order by
   creation_date;
 ```
 
-### Get recovery point selection details for legal holds
+### Get recovery point selection details for each legal hold
 
 ```sql
 select
