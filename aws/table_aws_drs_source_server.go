@@ -2,10 +2,10 @@ package aws
 
 import (
 	"context"
-	"math"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/drs"
-
+	"github.com/aws/aws-sdk-go-v2/service/drs/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -18,11 +18,14 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "source_server_id", Require: plugin.Optional},
+				{Name: "staging_account_id", Require: plugin.Optional},
+				{Name: "hardware_id", Require: plugin.Optional},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException"}),
+				// UninitializedAccountException - This error comes up when default replication settings are not set for a particular region.
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException", "BadRequestException"}),
 			},
-			Hydrate: listAwsDRSSourceServer,
+			Hydrate: listAwsDRSSourceServers,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -41,7 +44,6 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Name:        "recovery_instance_id",
 				Description: "The ID of the Recovery Instance associated with this Source Server.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("RecoveryInstanceId"),
 			},
 			{
 				Name:        "source_properties",
@@ -72,7 +74,6 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Name:        "reversed_direction_source_server_arn",
 				Description: "For EC2-originated Source Servers which have been failed over and then failed back, this value will mean the ARN of the Source Server on the opposite replication direction.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ReversedDirectionSourceServerArn"),
 			},
 			{
 				Name:        "source_cloud_properties",
@@ -84,6 +85,19 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Description: "The staging area of the source server.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "staging_account_id",
+				Description: "The staging account ID that extended source servers belong to.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("StagingArea.StagingAccountID"),
+			},
+			{
+				Name:        "hardware_id",
+				Description: "An ID that describes the hardware of the Source Server. This is either an EC2 instance id, a VMware uuid or a mac address.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("hardware_id"),
+			},
+
 			// Steampipe standard columns
 			{
 				Name:        "title",
@@ -109,12 +123,12 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsDRSSourceServer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create service
 	svc, err := DRSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_drs_source_server.listAwsDRSSourceServer", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_drs_source_server.listAwsDRSSourceServers", "connection_error", err)
 		return nil, err
 	}
 
@@ -129,16 +143,35 @@ func listAwsDRSSourceServer(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
-		maxItems = int32(math.Min(float64(maxItems), float64(limit)))
-		maxItems = int32(math.Max(1, float64(maxItems)))
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
 	}
-	input.MaxResults = int32(maxItems)
 
+	input.MaxResults = int32(maxItems)
 	sourceServerId := d.KeyColumnQualString("source_server_id")
+	stagingAccountId := d.KeyColumnQualString("staging_account_id")
+	hardwareId := d.KeyColumnQualString("hardware_id")
+
+	filter := &types.DescribeSourceServersRequestFilters{}
 
 	if sourceServerId != "" {
-		input.Filters.SourceServerIDs = []string{sourceServerId}
+		filter.SourceServerIDs = []string{sourceServerId}
 	}
+
+	if stagingAccountId != "" {
+		filter.StagingAccountIDs = []string{stagingAccountId}
+	}
+
+	if hardwareId != "" {
+		filter.HardwareId = aws.String(hardwareId)
+	}
+
+	input.Filters = filter
 
 	paginator := drs.NewDescribeSourceServersPaginator(svc, &input, func(o *drs.DescribeSourceServersPaginatorOptions) {
 		o.Limit = maxItems
@@ -148,7 +181,7 @@ func listAwsDRSSourceServer(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_drs_source_server.listAwsDRSSourceServer", "api_error", err)
+			plugin.Logger(ctx).Error("aws_drs_source_server.listAwsDRSSourceServers", "api_error", err)
 			return nil, err
 		}
 
