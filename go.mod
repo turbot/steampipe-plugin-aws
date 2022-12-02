@@ -30,7 +30,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/codecommit v1.13.17
 	github.com/aws/aws-sdk-go-v2/service/codedeploy v1.14.16
 	github.com/aws/aws-sdk-go-v2/service/codepipeline v1.13.15
-	github.com/aws/aws-sdk-go-v2/service/configservice v1.26.1
+	github.com/aws/aws-sdk-go-v2/service/configservice v1.28.0
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2
 	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.21.10
 	github.com/aws/aws-sdk-go-v2/service/dax v1.11.15

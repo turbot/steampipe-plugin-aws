@@ -149,6 +149,8 @@ github.com/aws/aws-sdk-go-v2/service/codepipeline v1.13.15 h1:2G2MLWFTuQUthcGdl4
 github.com/aws/aws-sdk-go-v2/service/codepipeline v1.13.15/go.mod h1:dgLPQSGyVApizubbVkV28uzElgdIiEqmXlCWxmrrEic=
 github.com/aws/aws-sdk-go-v2/service/configservice v1.26.1 h1:AXRaDlKTpTwZSNDJ45lFBNffVr7HgsnKJVCsIGOazfU=
 github.com/aws/aws-sdk-go-v2/service/configservice v1.26.1/go.mod h1:gUkX23mhePjv7vi+bUA+i9YHjN3n+cowzwa+o8GeEGQ=
+github.com/aws/aws-sdk-go-v2/service/configservice v1.28.0 h1:geHY2zZSPf/SS0Ylx4jOK9ekbiOpcV0LKbyGXq4FIGQ=
+github.com/aws/aws-sdk-go-v2/service/configservice v1.28.0/go.mod h1:YRQyy4b5FEc0SCSKOlZU68rzv6xnIWfw5fFkxPr5sgc=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2 h1:nJaGBmIqOTCjTchh2O8BAAOW8bbKqlJNtYw+ZA3yyq4=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2/go.mod h1:ZMw6d2oE+YYAAoSmoLO1BhW7jIUcKvtLyiLlwHWpG1o=
 github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.21.10 h1:hgc5d0hwVa5/7mYtgtvElieuSK2Z/ub5F6vsZdBnwPw=
