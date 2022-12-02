@@ -34,7 +34,7 @@ where
   created_at <= created_at - interval '30' day;
 ```
 
-## Get role details that is associated with the subscribers
+## Get IAM role details for each subscriber
 
 ```sql
 select
