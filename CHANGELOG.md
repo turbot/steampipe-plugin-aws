@@ -1,4 +1,18 @@
-## v0.87.0 [TBD]
+## v0.87.0 [2022-12-02]
+
+_What's new?_
+
+- New tables added
+  - [aws_backup_legal_hold](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_legal_hold) ([#1464](https://github.com/turbot/steampipe-plugin-aws/pull/1464))
+  - [aws_dax_parameter](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dax_parameter) ([#1434](https://github.com/turbot/steampipe-plugin-aws/pull/1434))
+  - [aws_securitylake_subscriber](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_securitylake_subscriber) ([#1463](https://github.com/turbot/steampipe-plugin-aws/pull/1463))
+
+_Enhancements_
+
+- Added `evaluation_modes` column to the `aws_config_rule` table. ([#1476](https://github.com/turbot/steampipe-plugin-aws/pull/1476))
+- Added `snap_start` column to the `aws_lambda_function` table. ([#1477](https://github.com/turbot/steampipe-plugin-aws/pull/1477))
+- Added `capacity_allocations` column to the `aws_ec2_capacity_reservation` table. ([#1428](https://github.com/turbot/steampipe-plugin-aws/pull/1428))
+- Added `imds_support` column to `aws_ec2_ami` and `aws_ec2_ami_shared` tables. ([#1430](https://github.com/turbot/steampipe-plugin-aws/pull/1430))
 
 _Breaking changes_
 
