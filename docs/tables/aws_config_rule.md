@@ -67,7 +67,7 @@ from
   jsonb_array_elements(compliance_by_config_rule) as compliance_status;
 ```
 
-### List config rules that runs in proactive mode
+### List config rules that run in proactive mode
 
 ```sql
 select
