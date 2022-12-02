@@ -121,8 +121,8 @@ github.com/aws/aws-sdk-go-v2/service/auditmanager v1.20.4 h1:+dyF5gNP9auo6gBo85P
 github.com/aws/aws-sdk-go-v2/service/auditmanager v1.20.4/go.mod h1:KbME5wPkstkZPjSRZEs0BxTJJlG+ml9iVFBoUTOWRk4=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.10 h1:D6U34TKBxZ2rtP9QO0gqMmy0yU2zfXzkgmFcwr64Fv0=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.10/go.mod h1:9XhGxXdcX9/pZwXc3BzvVQtSBVJCwL2IH2AtrfsUGBY=
-github.com/aws/aws-sdk-go-v2/service/backup v1.17.5 h1:A1k/+YvERRARB85JDOwxfB3KPSPiUjWgznbBL8Y3gpI=
-github.com/aws/aws-sdk-go-v2/service/backup v1.17.5/go.mod h1:YdQTY5o6tKND+zBNxS0GZsLE32zOZuF8tT2HbxYNd+Q=
+github.com/aws/aws-sdk-go-v2/service/backup v1.18.0 h1:pJqREyLFWSKeunO4gfbx4DZGo/DCNfUJA0KknZnSJQ0=
+github.com/aws/aws-sdk-go-v2/service/backup v1.18.0/go.mod h1:W9rt/y8Vb/HDsJ9XW4s+fl0mLXecNbn32yQ81uv4OlA=
 github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.10.13 h1:xhSAgYTn/eYnhxkLY+tYgVuJjdPxzwpVcwaUjqacIJo=
 github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.10.13/go.mod h1:6cZhqflW9WupWCj4J9QiUdTEP0BY6+iM4XaZ3zCSu5I=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.10 h1:Stmfzuj3KSEBB3tbz7MScXjdmXZbDWo/qLYdpu9uX30=
