@@ -52,6 +52,13 @@ var (
 // regions="me-south-1, ap-south-1, ap-northeast-3, ap-northeast-2, ap-northeast-1, ap-southeast-1, ap-southeast-2, us-east-1, us-east-2, us-west-1, us-west-2"
 func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
 
+	// Trace logging to debug cache and execution flows
+	logRegion := d.KeyColumnQualString(matrixKeyRegion)
+	if logRegion == "" {
+		logRegion = "global"
+	}
+	plugin.Logger(ctx).Trace("BuildRegionList", "status", "starting", "connection_name", d.Connection.Name, "region", logRegion)
+
 	// Cache region list matrix
 	cacheKey := "RegionListMatrix"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
