@@ -34,9 +34,15 @@ func tableAWSResourceExplorerSupportedResourceType(_ context.Context) *plugin.Ta
 
 //// LIST FUNCTION
 
-func listAWSExplorerSupportedTypes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAWSExplorerSupportedTypes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region, err := getPreferredRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
 	// Create Session
-	svc, err := ResourceExplorerClient(ctx, d, getDefaultAwsRegion(d))
+	svc, err := ResourceExplorerClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_resource_explorer_supported_resource_type.listAWSExplorerSupportedTypes", "connnection_error", err)
 		return nil, err

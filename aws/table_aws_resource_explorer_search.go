@@ -81,6 +81,12 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region, err := getPreferredRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
 	searchParams := &resourceexplorer2.SearchInput{
 		QueryString: aws.String(""),
 	}
@@ -94,7 +100,6 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 	accountID := commonData.(*awsCommonColumnData).AccountId
 
-	region := getDefaultAwsRegion(d)
 	hasViewARN := false
 	if d.KeyColumnQuals["view_arn"] != nil {
 		hasViewARN = true

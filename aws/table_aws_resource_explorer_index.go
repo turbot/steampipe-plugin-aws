@@ -49,9 +49,15 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region, err := getPreferredRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
 	params := &resourceexplorer2.ListIndexesInput{}
-	region := getDefaultAwsRegion(d)
+
 	if d.KeyColumnQuals["region"] != nil {
 		region = d.KeyColumnQualString("region")
 		params.Regions = []string{region}

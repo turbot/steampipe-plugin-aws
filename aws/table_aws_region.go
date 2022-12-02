@@ -77,12 +77,15 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	defaultRegion := getDefaultAwsRegion(d)
+	preferredRegion, err := getPreferredRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, defaultRegion)
+	svc, err := EC2RegionsClient(ctx, d, preferredRegion)
 	if err != nil {
 		logger.Error("aws_region.listAwsRegions", "connnection.error", err)
 		return nil, err
@@ -108,11 +111,14 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := getDefaultAwsRegion(d)
+func getAwsRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	preferredRegion, err := getPreferredRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
 
 	// Create service
-	svc, err := EC2RegionsClient(ctx, d, defaultRegion)
+	svc, err := EC2RegionsClient(ctx, d, preferredRegion)
 	if err != nil {
 		return nil, err
 	}
