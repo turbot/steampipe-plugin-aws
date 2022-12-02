@@ -52,7 +52,7 @@ resource "aws_config_configuration_recorder" "aws_config_rule" {
 }
 
 resource "aws_iam_role" "r" {
-  name = "awsconfig-example"
+  name = var.resource_name
 
   assume_role_policy = <<POLICY
 {
