@@ -111,6 +111,11 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "imds_support",
+				Description: "If v2.0, it indicates that IMDSv2 is specified in the AMI.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "kernel_id",
 				Description: "The kernel associated with the image, if any. Only applicable for machine images.",
 				Type:        proto.ColumnType_STRING,
