@@ -242,15 +242,18 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 	}
 }
 
-//// LIST FUNCTION
+func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := getDefaultAwsRegion(d)
-
-	// Get client
-	svc, err := S3Client(ctx, d, defaultRegion)
+	// Unlike most services, S3 buckets are a global list. They can be retrieved
+	// from any single region. It's best to use the preferred region of the user
+	// (e.g. closest to them).
+	preferredRegion, err := getPreferredRegion(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err)
+		return nil, err
+	}
+	svc, err := S3Client(ctx, d, preferredRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err, "preferredRegion", preferredRegion)
 		return nil, err
 	}
 
@@ -258,13 +261,12 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	input := &s3.ListBucketsInput{}
 	bucketsResult, err := svc.ListBuckets(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err, "preferredRegion", preferredRegion)
 		return nil, err
 	}
 
 	for _, bucket := range bucketsResult.Buckets {
 		d.StreamListItem(ctx, bucket)
-
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			return nil, nil
@@ -274,18 +276,21 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	return nil, nil
 }
 
-//// HYDRATE FUNCTIONS
-
 // do not have a get call for s3 bucket.
 // using list api call to create get function
-func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := getDefaultAwsRegion(d)
+func getS3Bucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
-	// Create client
-	svc, err := S3Client(ctx, d, defaultRegion)
+	// Unlike most services, S3 buckets are a global list. They can be retrieved
+	// from any single region. It's best to use the preferred region of the user
+	// (e.g. closest to them).
+	preferredRegion, err := getPreferredRegion(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getS3Bucket", "client_error", err)
+		return nil, err
+	}
+	svc, err := S3Client(ctx, d, preferredRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.getS3Bucket", "get_client_error", err, "preferredRegion", preferredRegion)
 		return nil, err
 	}
 
@@ -293,7 +298,7 @@ func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	input := &s3.ListBucketsInput{}
 	bucketsResult, err := svc.ListBuckets(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getS3Bucket", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.getS3Bucket", "api_error", err, "preferredRegion", preferredRegion)
 		return nil, err
 	}
 
@@ -346,12 +351,17 @@ func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.Q
 
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucket := h.Item.(types.Bucket)
-	defaultRegion := getDefaultAwsRegion(d)
 
-	// Create client
-	svc, err := S3Client(ctx, d, defaultRegion)
+	// Unlike most services, S3 buckets are a global list. They can be retrieved
+	// from any single region. It's best to use the preferred region of the user
+	// (e.g. closest to them).
+	preferredRegion, err := getPreferredRegion(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "client_error", err)
+		return nil, err
+	}
+	svc, err := S3Client(ctx, d, preferredRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "get_client_error", err, "preferredRegion", preferredRegion)
 		return nil, err
 	}
 

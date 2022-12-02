@@ -3,12 +3,10 @@ package aws
 import (
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"math/rand"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -106,8 +104,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
-	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -119,7 +117,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/aws/session"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
@@ -192,12 +189,9 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 }
 
 func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
 	}
 	return account.NewFromConfig(*cfg), nil
 }
@@ -347,7 +341,7 @@ func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudforma
 }
 
 func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -452,7 +446,7 @@ func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Clie
 
 // CostExplorerClient returns the connection client for AWS Cost Explorer service
 func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -730,7 +724,7 @@ func HealthClient(ctx context.Context, d *plugin.QueryData) (*health.Client, err
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -902,7 +896,7 @@ func OpenSearchClient(ctx context.Context, d *plugin.QueryData) (*opensearch.Cli
 }
 
 func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -933,7 +927,7 @@ func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
 	// Pricing API is a global API that supports only us-east-1 and ap-south-1 regions
-	// getDefaultAwsRegion doesn't return the good region at the moment (it should use specified API endpoints but it doesn't).
+	// getDefaultRegion doesn't return the good region at the moment (it should use specified API endpoints but it doesn't).
 	// Set us-east-1 for now
 	cfg, err := getClient(ctx, d, "us-east-1")
 	if err != nil {
@@ -1029,7 +1023,7 @@ func ResourceGroupsTaggingClient(ctx context.Context, d *plugin.QueryData) (*res
 }
 
 func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1037,7 +1031,7 @@ func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, e
 }
 
 func Route53DomainsClient(ctx context.Context, d *plugin.QueryData) (*route53domains.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1223,7 +1217,7 @@ func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
 	// TODO - Should STS be regional instead?
 	// By default, the AWS Security Token Service (AWS STS) is available as a global service, and all AWS STS requests go to a single endpoint at https://sts.amazonaws.com. AWS recommends using Regional AWS STS endpoints instead of the global endpoint to reduce latency, build in redundancy, and increase session token validity.
 	// https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1243,7 +1237,7 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 }
 
 func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1375,6 +1369,15 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 	}
 	// Supported region, so get and return the session
 	return getClient(ctx, d, region)
+}
+
+// Helper function to get the session for the default region in this partition
+func getClientForDefaultRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	defaultRegion, err := getDefaultRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+	return getClient(ctx, d, defaultRegion)
 }
 
 // Helper function to get the session for a region set in query data
@@ -1548,56 +1551,4 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 	// Save valid regions in the cache
 	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
 	return validRegions, nil
-}
-
-// getDefaultAwsRegion returns the default region for AWS partiton
-func getDefaultAwsRegion(d *plugin.QueryData) string {
-	// Have we already created and cached the service?
-	serviceCacheKey := "getDefaultAwsRegion"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(string)
-	}
-	log.Printf("[WARN] Fetching default AWS region... Connection Name: %s", d.Connection.Name)
-
-	// Get AWS config info
-	awsConfig := GetConfig(d.Connection)
-
-	var regions []string
-	var region string
-
-	if awsConfig.Regions != nil {
-		regions = awsConfig.Regions
-		// Pick the first region from the regions list as a best guess to determine
-		// the default region for the AWS partition based on the region prefix.
-		region = regions[0]
-	} else {
-		// If the regions are not set in the aws.spc, this will try to pick the
-		// AWS region based on the SDK logic similar to the AWS CLI command
-		// "aws configure list"
-		session, err := session.NewSessionWithOptions(session.Options{
-			SharedConfigState: session.SharedConfigEnable,
-		})
-		if err != nil {
-			panic(err)
-		}
-		if session != nil && session.Config != nil {
-			region = *session.Config.Region
-		}
-	}
-
-	// Most of the global services like IAM, S3, Route 53, target these regions
-	if strings.HasPrefix(region, "us-gov") {
-		region = "us-gov-west-1"
-	} else if strings.HasPrefix(region, "cn") {
-		region = "cn-northwest-1"
-	} else if strings.HasPrefix(region, "us-isob") {
-		region = "us-isob-east-1"
-	} else if strings.HasPrefix(region, "us-iso") {
-		region = "us-iso-east-1"
-	} else {
-		region = "us-east-1"
-	}
-
-	d.ConnectionManager.Cache.Set(serviceCacheKey, region)
-	return region
 }

@@ -110,7 +110,10 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 
 	// If regions are mentioned in the connection config
 	// Get the list of AWS region from EC2 DescribeRegions API
-	regionData, _ := listRegions(ctx, d)
+	regionData, err := listRegions(ctx, d, nil)
+	if err != nil {
+		panic(err)
+	}
 	var finalRegions []string
 
 	// If the list was retrived from AWS API - just looks for Active Regions
@@ -164,7 +167,7 @@ func BuildWafRegionList(ctx context.Context, d *plugin.QueryData) []map[string]i
 	return matrix
 }
 
-func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) {
+func listRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (RegionsData, error) {
 	cacheKey := "listRegions"
 
 	// if found in cache, return the result
@@ -172,29 +175,41 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 		return cachedData.(RegionsData), nil
 	}
 
-	defaultRegions := awsCommercialRegions()
-
-	defaultRegion := getDefaultAwsRegion(d)
-	if strings.HasPrefix(defaultRegion, "us-gov") {
-		defaultRegions = awsUsGovRegions()
-	} else if strings.HasPrefix(defaultRegion, "cn") {
-		defaultRegions = awsChinaRegions()
-	} else if strings.HasPrefix(defaultRegion, "us-isob") {
-		defaultRegions = awsUsIsobRegions()
-	} else if strings.HasPrefix(defaultRegion, "us-iso") {
-		defaultRegions = awsUsIsoRegions()
-	}
-
+	// Default region data to use if everything else fails
 	data := RegionsData{
-		AllRegions:      defaultRegions,
-		ActiveRegions:   defaultRegions,
 		APIRetrivedList: false,
 	}
+
+	// The preferred region is used for two things:
+	// 1. To make API calls to get the region list (if possible).
+	// 2. To guess the partition we want to list regions from (if #1 fails).
+	preferredRegion, err := getPreferredRegion(ctx, d, h)
+	if err != nil {
+		return data, err
+	}
+
+	// If the preferred region is not AWS commercial (our default) then update
+	// the full region list from a best guess based on the preferred region.
+	allRegionsForPreferredPartition := awsCommercialRegions()
+	if strings.HasPrefix(preferredRegion, "us-gov") {
+		allRegionsForPreferredPartition = awsUsGovRegions()
+	} else if strings.HasPrefix(preferredRegion, "cn") {
+		allRegionsForPreferredPartition = awsChinaRegions()
+	} else if strings.HasPrefix(preferredRegion, "us-isob") {
+		allRegionsForPreferredPartition = awsUsIsobRegions()
+	} else if strings.HasPrefix(preferredRegion, "us-iso") {
+		allRegionsForPreferredPartition = awsUsIsoRegions()
+	}
+
+	// We try to get the accurate region list via an API call below, but as a
+	// safe fallback assume all regions for the preferred partition
+	data.AllRegions = allRegionsForPreferredPartition
+	data.ActiveRegions = allRegionsForPreferredPartition
 
 	// We can query EC2 for the list of supported regions. If credentials
 	// are insufficient this query will retry many times, so we create
 	// a special client with a small number of retries to prevent hangs.
-	svc, err := EC2RegionsClient(ctx, d, defaultRegion)
+	svc, err := EC2RegionsClient(ctx, d, preferredRegion)
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache
@@ -238,6 +253,76 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 	// save to extension cache
 	d.ConnectionManager.Cache.Set(cacheKey, data)
 	return data, err
+}
+
+// Get the preferred region for AWS API calls that need to go to a central /
+// non-regional endpoint (e.g. list S3 buckets). Typically this should be the
+// region closest to the user. We don't currently have a way to specify this
+// region, so we assume the default region is closest. This is not always true
+// (i.e. not everyone lives near us-east-1), but it's the best we can do.
+// OPTIONS / TODO:
+//  1. Add a way to specify the preferred region in the connection config.
+//  2. Assume the first region in the regions config list. We currently use
+//     this model to guess the best partition.
+func getPreferredRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
+	return getDefaultRegion(ctx, d, h)
+}
+
+// The default region is the "primary" / most common region wtihin the AWS partition.
+// This region is used for API calls that must go to the base endpoint. In general,
+// it's better to use the preferred region (see getPreferredRegion) if possible, this
+// should be the last resort.
+func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
+	regionInterface, err := getDefaultRegionCached(ctx, d, h)
+	if err != nil {
+		return "", err
+	}
+	region := regionInterface.(string)
+	return region, nil
+}
+
+var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).WithCache()
+
+func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	awsConfig := GetConfig(d.Connection)
+
+	var regions []string
+	var region string
+
+	if awsConfig.Regions != nil {
+		regions = awsConfig.Regions
+		// Pick the first region from the regions list as a best guess to determine
+		// the default region for the AWS partition based on the region prefix.
+		region = regions[0]
+	} else {
+		// If the regions are not set in the aws.spc, this will try to pick the
+		// AWS region based on the SDK logic similar to the AWS CLI command
+		// "aws configure list"
+		session, err := session.NewSessionWithOptions(session.Options{
+			SharedConfigState: session.SharedConfigEnable,
+		})
+		if err != nil {
+			panic(err)
+		}
+		if session != nil && session.Config != nil {
+			region = *session.Config.Region
+		}
+	}
+
+	// Most of the global services like IAM, S3, Route 53, target these regions
+	if strings.HasPrefix(region, "us-gov") {
+		region = "us-gov-west-1"
+	} else if strings.HasPrefix(region, "cn") {
+		region = "cn-northwest-1"
+	} else if strings.HasPrefix(region, "us-isob") {
+		region = "us-isob-east-1"
+	} else if strings.HasPrefix(region, "us-iso") {
+		region = "us-iso-east-1"
+	} else {
+		region = "us-east-1"
+	}
+
+	return region, nil
 }
 
 //
