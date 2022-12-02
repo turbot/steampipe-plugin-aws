@@ -106,7 +106,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// Trace logging to debug cache and execution flows
-	plugin.Logger(ctx).Info("getCommonColumns", "status", "starting", "connection_name", d.Connection.Name, "region", region)
+	plugin.Logger(ctx).Trace("getCommonColumns", "status", "starting", "connection_name", d.Connection.Name, "region", region)
 
 	// use the cached version of the getCallerIdentity to reduce the number of request
 	var commonColumnData *awsCommonColumnData
@@ -134,7 +134,7 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	if region == "" {
 		region = "global"
 	}
-	plugin.Logger(ctx).Info("getCallerIdentity", "status", "starting", "connection_name", d.Connection.Name, "region", region)
+	plugin.Logger(ctx).Trace("getCallerIdentity", "status", "starting", "connection_name", d.Connection.Name, "region", region)
 
 	// get the service connection for the service
 	svc, err := STSClient(ctx, d)
