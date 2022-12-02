@@ -1,4 +1,4 @@
-# Table: aws_cloudtrail_lake_query
+# Table: aws_cloudtrail_query
 
 AWS CloudTrail Lake lets you run SQL-based queries on your events. CloudTrail Lake converts existing events in row-based JSON format to Apache ORC format. ORC is a columnar storage format that is optimized for fast retrieval of data.
 
@@ -16,7 +16,7 @@ select
   events_matched,
   events_scanned
 from
-  aws_cloudtrail_lake_query;
+  aws_cloudtrail_query;
 ```
 
 ### List queries that are failed
@@ -30,7 +30,7 @@ select
   query_string,
   execution_time_in_millis
 from
-  aws_cloudtrail_lake_query
+  aws_cloudtrail_query
 where
   query_status = 'FAILED';
 ```
@@ -47,7 +47,7 @@ select
   s.termination_protection_enabled as termination_protection_enabled,
   s.updated_timestamp as event_data_store_updated_timestamp
 from
-  aws_cloudtrail_lake_query as q,
+  aws_cloudtrail_query as q,
   aws_cloudtrail_event_data_store as s
 where
  s.event_data_store_arn = q.event_data_store_arn;

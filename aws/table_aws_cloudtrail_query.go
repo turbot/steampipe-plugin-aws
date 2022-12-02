@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -15,10 +16,10 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsCloudtrailLakeQuery(_ context.Context) *plugin.Table {
+func tableAwsCloudtrailQuery(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_cloudtrail_lake_query",
-		Description: "AWS CloudTrail Lake Query",
+		Name:        "aws_cloudtrail_query",
+		Description: "AWS CloudTrail Query",
 		List: &plugin.ListConfig{
 			ParentHydrate: listCloudTrailEventDataStores,
 			Hydrate:       listCloudtrailLakeQueries,
@@ -26,6 +27,15 @@ func tableAwsCloudtrailLakeQuery(_ context.Context) *plugin.Table {
 				{
 					Name:    "event_data_store_arn",
 					Require: plugin.Optional,
+				},
+				{
+					Name:    "query_status",
+					Require: plugin.Optional,
+				},
+				{
+					Name:      "creation_time",
+					Require:   plugin.Optional,
+					Operators: []string{"=", "<=", "<", ">", ">="},
 				},
 			},
 		},
@@ -103,11 +113,11 @@ func tableAwsCloudtrailLakeQuery(_ context.Context) *plugin.Table {
 // 3. Both list/get API call return different stracture with dfferent data
 type QueryInfo struct {
 	EventDataStoreArn *string
-	CreationTime     *time.Time
-	QueryId          *string
-	QueryStatus      types.QueryStatus
-	QueryString      *string
-	QueryStatistics  *types.QueryStatisticsForDescribeQuery
+	CreationTime      *time.Time
+	QueryId           *string
+	QueryStatus       types.QueryStatus
+	QueryString       *string
+	QueryStatistics   *types.QueryStatisticsForDescribeQuery
 }
 
 //// LIST FUNCTION
@@ -146,6 +156,22 @@ func listCloudtrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 		EventDataStore: eventDataStore.EventDataStoreArn,
 	}
 
+	if d.KeyColumnQualString("query_status") != "" {
+		input.QueryStatus = types.QueryStatus(d.KeyColumnQualString("query_status"))
+	}
+
+	if d.Quals["creation_time"] != nil {
+		for _, q := range d.Quals["creation_time"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case "<", "<=", "=":
+				input.EndTime = aws.Time(timestamp)
+			case ">", ">=":
+				input.StartTime = aws.Time(timestamp)
+			}
+		}
+	}
+
 	paginator := cloudtrail.NewListQueriesPaginator(svc, input, func(o *cloudtrail.ListQueriesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
@@ -154,6 +180,10 @@ func listCloudtrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 	if paginator.HasMorePages() {
 		op, err := paginator.NextPage(ctx)
 		if err != nil {
+				// You cannot act on an event data store that is inactive. This error could not be caught by configuring it in ignore config
+			if strings.Contains(err.Error(), "InactiveEventDataStoreException") {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_cloudtrail_lake_query.listCloudtrailLakeQueries", "api_error", err)
 			return nil, err
 		}
