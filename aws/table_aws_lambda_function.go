@@ -218,6 +218,11 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
+				Name:        "snap_start",
+				Description: "Set ApplyOn to PublishedVersions to create a snapshot of the initialized execution environment when you publish a function version.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "url_config",
 				Description: "The function URL configuration details of the function.",
 				Type:        proto.ColumnType_JSON,
