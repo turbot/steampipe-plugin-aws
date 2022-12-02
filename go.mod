@@ -66,7 +66,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.12.14
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
-	github.com/aws/aws-sdk-go-v2/service/lambda v1.24.6
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.26.0
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/macie2 v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17
