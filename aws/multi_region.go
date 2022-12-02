@@ -281,6 +281,8 @@ func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return region, nil
 }
 
+// The default region is cached on a per-connection basis to prevent re-lookup and
+// recalculations from the configuration.
 var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).WithCache()
 
 func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
