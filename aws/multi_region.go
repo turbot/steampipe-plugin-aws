@@ -269,6 +269,33 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	return data, nil
 }
 
+// The default region is the "primary" / most common region wtihin the AWS partition.
+// This region is used for API calls that must go to the base endpoint. In general,
+// it's better to use the preferred region (see getPreferredRegion) if possible, this
+// should be the last resort.
+func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
+
+	region, err := getPreferredRegion(ctx, d, h)
+	if err != nil {
+		return "", err
+	}
+
+	// Most of the global services like IAM, S3, Route 53, target these regions
+	if strings.HasPrefix(region, "us-gov") {
+		region = "us-gov-west-1"
+	} else if strings.HasPrefix(region, "cn") {
+		region = "cn-northwest-1"
+	} else if strings.HasPrefix(region, "us-isob") {
+		region = "us-isob-east-1"
+	} else if strings.HasPrefix(region, "us-iso") {
+		region = "us-iso-east-1"
+	} else {
+		region = "us-east-1"
+	}
+
+	return region, nil
+}
+
 // Get the preferred region for AWS API calls that need to go to a central /
 // non-regional endpoint (e.g. list S3 buckets). Typically this should be the
 // region closest to the user. We don't currently have a way to specify this
@@ -279,15 +306,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //  2. Assume the first region in the regions config list. We currently use
 //     this model to guess the best partition.
 func getPreferredRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
-	return getDefaultRegion(ctx, d, h)
-}
-
-// The default region is the "primary" / most common region wtihin the AWS partition.
-// This region is used for API calls that must go to the base endpoint. In general,
-// it's better to use the preferred region (see getPreferredRegion) if possible, this
-// should be the last resort.
-func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
-	regionInterface, err := getDefaultRegionCached(ctx, d, h)
+	regionInterface, err := getPreferredRegionCached(ctx, d, h)
 	if err != nil {
 		return "", err
 	}
@@ -295,17 +314,17 @@ func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return region, nil
 }
 
-// The default region is cached on a per-connection basis to prevent re-lookup and
+// The preferred region is cached on a per-connection basis to prevent re-lookup and
 // recalculations from the configuration.
-var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).WithCache()
+var getPreferredRegionCached = plugin.HydrateFunc(getPreferredRegionUncached).WithCache()
 
-func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getPreferredRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	awsConfig := GetConfig(d.Connection)
 
 	var regions []string
 	var region string
 
-	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "awsConfig.Regions", awsConfig.Regions)
+	plugin.Logger(ctx).Trace("getPreferredRegionUncached", "connection_name", d.Connection.Name, "awsConfig.Regions", awsConfig.Regions)
 
 	if awsConfig.Regions != nil {
 		regions = awsConfig.Regions
@@ -327,22 +346,7 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 	}
 
-	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region from config", region)
-
-	// Most of the global services like IAM, S3, Route 53, target these regions
-	if strings.HasPrefix(region, "us-gov") {
-		region = "us-gov-west-1"
-	} else if strings.HasPrefix(region, "cn") {
-		region = "cn-northwest-1"
-	} else if strings.HasPrefix(region, "us-isob") {
-		region = "us-isob-east-1"
-	} else if strings.HasPrefix(region, "us-iso") {
-		region = "us-iso-east-1"
-	} else {
-		region = "us-east-1"
-	}
-
-	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region)
+	plugin.Logger(ctx).Trace("getPreferredRegionUncached", "connection_name", d.Connection.Name, "region", region)
 
 	return region, nil
 }
