@@ -167,26 +167,36 @@ func BuildWafRegionList(ctx context.Context, d *plugin.QueryData) []map[string]i
 	return matrix
 }
 
+// The default region is the "primary" / most common region wtihin the AWS partition.
+// This region is used for API calls that must go to the base endpoint. In general,
+// it's better to use the preferred region (see getPreferredRegion) if possible, this
+// should be the last resort.
 func listRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (RegionsData, error) {
-	cacheKey := "listRegions"
-
-	// if found in cache, return the result
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.(RegionsData), nil
+	dataInterface, err := listRegionsCached(ctx, d, h)
+	if err != nil {
+		data := RegionsData{
+			APIRetrivedList: false,
+		}
+		return data, err
 	}
+	result := dataInterface.(RegionsData)
+	return result, nil
+}
 
-	// Default region data to use if everything else fails
-	data := RegionsData{
-		APIRetrivedList: false,
-	}
+// The list of regions is constant on a per-connection basis, so we cache it.
+var listRegionsCached = plugin.HydrateFunc(listRegionsUncached).WithCache()
+
+func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// The preferred region is used for two things:
 	// 1. To make API calls to get the region list (if possible).
 	// 2. To guess the partition we want to list regions from (if #1 fails).
 	preferredRegion, err := getPreferredRegion(ctx, d, h)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
+
+	plugin.Logger(ctx).Trace("listRegions", "status", "starting", "connection_name", d.Connection.Name, "region", preferredRegion)
 
 	// If the preferred region is not AWS commercial (our default) then update
 	// the full region list from a best guess based on the preferred region.
@@ -201,10 +211,15 @@ func listRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 		allRegionsForPreferredPartition = awsUsIsoRegions()
 	}
 
+	// Default region data to use if everything else fails
+	data := RegionsData{
+		APIRetrivedList: false,
+		AllRegions:      allRegionsForPreferredPartition,
+		ActiveRegions:   allRegionsForPreferredPartition,
+	}
+
 	// We try to get the accurate region list via an API call below, but as a
 	// safe fallback assume all regions for the preferred partition
-	data.AllRegions = allRegionsForPreferredPartition
-	data.ActiveRegions = allRegionsForPreferredPartition
 
 	// We can query EC2 for the list of supported regions. If credentials
 	// are insufficient this query will retry many times, so we create
@@ -213,7 +228,6 @@ func listRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache
-		d.ConnectionManager.Cache.Set(cacheKey, data)
 		return data, nil
 	}
 
@@ -225,7 +239,6 @@ func listRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	resp, err := svc.DescribeRegions(ctx, params)
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
-		d.ConnectionManager.Cache.Set(cacheKey, data)
 		return data, nil
 	}
 
@@ -250,9 +263,10 @@ func listRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 		APIRetrivedList: true,
 	}
 
+	plugin.Logger(ctx).Trace("listRegions", "status", "finished", "connection_name", d.Connection.Name, "region", preferredRegion, "data", data)
+
 	// save to extension cache
-	d.ConnectionManager.Cache.Set(cacheKey, data)
-	return data, err
+	return data, nil
 }
 
 // Get the preferred region for AWS API calls that need to go to a central /
