@@ -305,6 +305,8 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	var regions []string
 	var region string
 
+	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "awsConfig.Regions", awsConfig.Regions)
+
 	if awsConfig.Regions != nil {
 		regions = awsConfig.Regions
 		// Pick the first region from the regions list as a best guess to determine
@@ -325,6 +327,8 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 	}
 
+	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region from config", region)
+
 	// Most of the global services like IAM, S3, Route 53, target these regions
 	if strings.HasPrefix(region, "us-gov") {
 		region = "us-gov-west-1"
@@ -337,6 +341,8 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	} else {
 		region = "us-east-1"
 	}
+
+	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region)
 
 	return region, nil
 }
