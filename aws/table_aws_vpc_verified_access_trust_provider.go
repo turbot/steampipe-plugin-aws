@@ -18,7 +18,7 @@ func tableAwsVpcVerifiedAccessTrustProvider(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_verified_access_trust_provider",
 		Description: "AWS VPC Verified Access Trust Provider",
 		List: &plugin.ListConfig{
-			Hydrate: listVpcVerifiedAccessTrustProvider,
+			Hydrate: listVpcVerifiedAccessTrustProviders,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
@@ -99,7 +99,7 @@ func tableAwsVpcVerifiedAccessTrustProvider(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcVerifiedAccessTrustProvider(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listVpcVerifiedAccessTrustProviders(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
 	svc, err := EC2Client(ctx, d)
