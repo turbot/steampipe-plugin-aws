@@ -16,7 +16,7 @@ import (
 func tableAwsVpcVerifiedAccessTrustProvider(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc_verified_access_trust_provider",
-		Description: "AWS VPC Verified Access Point",
+		Description: "AWS VPC Verified Access Trust Provider",
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVerifiedAccessTrustProvider,
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -85,7 +85,7 @@ func tableAwsVpcVerifiedAccessTrustProvider(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("VerifiedAccessTrustProviderId"),
+				Transform:   transform.FromP(trustProviderTurbotData, "Title"),
 			},
 			{
 				Name:        "tags",
@@ -125,7 +125,7 @@ func listVpcVerifiedAccessTrustProvider(ctx context.Context, d *plugin.QueryData
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	if d.KeyColumnQualString("verified_access_group_id") != "" {
+	if d.KeyColumnQualString("verified_access_trust_provider_id") != "" {
 		input.VerifiedAccessTrustProviderIds = []string{d.KeyColumnQualString("verified_access_trust_provider_id")}
 	}
 
@@ -160,6 +160,8 @@ func listVpcVerifiedAccessTrustProvider(ctx context.Context, d *plugin.QueryData
 
 func trustProviderTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	accessPoint := d.HydrateItem.(types.VerifiedAccessTrustProvider)
+	param := d.Param.(string)
+	title := accessPoint.VerifiedAccessTrustProviderId
 
 	// Get the resource tags
 	var turbotTagsMap map[string]string
@@ -167,11 +169,18 @@ func trustProviderTurbotData(_ context.Context, d *transform.TransformData) (int
 		turbotTagsMap = map[string]string{}
 		for _, i := range accessPoint.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
-			// if *i.Key == "Name" {
-			// 	title = i.Value
-			// }
+			if *i.Key == "Name" {
+				title = i.Value
+			}
 		}
 	}
 
-	return turbotTagsMap, nil
+	if param == "Tags" {
+		if accessPoint.Tags == nil {
+			return nil, nil
+		}
+		return turbotTagsMap, nil
+	}
+
+	return title, nil
 }
