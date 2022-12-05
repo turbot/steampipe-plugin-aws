@@ -134,7 +134,7 @@ func listVpcVerifiedAccessTrustProviders(ctx context.Context, d *plugin.QueryDat
 		resp, err := svc.DescribeVerifiedAccessTrustProviders(ctx, input)
 
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_vpc_verified_access_trust_provider.listVpcVerifiedAccessTrustProvider", "api_error", err)
+			plugin.Logger(ctx).Error("aws_vpc_verified_access_trust_provider.listVpcVerifiedAccessTrustProviders", "api_error", err)
 			return nil, nil
 		}
 
