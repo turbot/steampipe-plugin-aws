@@ -104,7 +104,7 @@ func listVpcVerifiedAccessTrustProviders(ctx context.Context, d *plugin.QueryDat
 	// Create session
 	svc, err := EC2Client(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_vpc_verified_access_trust_provider.listVpcVerifiedAccessTrustProvider", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_vpc_verified_access_trust_provider.listVpcVerifiedAccessTrustProviders", "connection_error", err)
 		return nil, err
 	}
 
