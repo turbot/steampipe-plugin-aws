@@ -144,8 +144,8 @@ func listVpcVerifiedAccessGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 			return nil, nil
 		}
 
-		for _, instance := range resp.VerifiedAccessGroups {
-			d.StreamListItem(ctx, instance)
+		for _, group := range resp.VerifiedAccessGroups {
+			d.StreamListItem(ctx, group)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -167,7 +167,7 @@ func listVpcVerifiedAccessGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 func verifiedAccessGroupTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	group := d.HydrateItem.(types.VerifiedAccessGroup)
 	param := d.Param.(string)
-	title := group.VerifiedAccessInstanceId
+	title := group.VerifiedAccessGroupId
 
 	// Get the resource tags
 	var turbotTagsMap map[string]string
