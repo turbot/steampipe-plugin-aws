@@ -19,7 +19,7 @@ from
   aws_cloudtrail_event_data_store;
 ```
 
-### List cloudtrail event stores which are not enabled
+### List event data stores which are not enabled
 
 ```sql
 select
