@@ -70,6 +70,13 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "data_protection_policy",
+				Description: "Log group data protection policy.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudwatchLogGroupDataProtectionPolicy,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
@@ -188,6 +195,30 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	return nil, nil
+}
+
+func getCloudwatchLogGroupDataProtectionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logGroup := h.Item.(types.LogGroup)
+
+	// Get client
+	svc, err := CloudWatchLogsClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroupDataProtectionPolicy", "client_error", err)
+		return nil, err
+	}
+
+	params := &cloudwatchlogs.GetDataProtectionPolicyInput{
+		LogGroupIdentifier: logGroup.LogGroupName,
+	}
+
+	// Get data protection policy
+	dataProtectionPolicyData, err := svc.GetDataProtectionPolicy(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroupDataProtectionPolicy", "api_error", err)
+		return nil, err
+	}
+
+	return dataProtectionPolicyData.PolicyDocument, nil
 }
 
 func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
