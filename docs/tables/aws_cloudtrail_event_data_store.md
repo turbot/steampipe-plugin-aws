@@ -1,6 +1,6 @@
 # Table: aws_cloudtrail_event_data_store
 
-AWS CloudTrail Event data store stores data for up to seven years, or 2557 days. By default, event data is retained for 2557 days, and termination protection is enabled for an event data store.
+AWS CloudTrail event data stores retain data for up to seven years, or 2557 days. By default, event data is retained for 2557 days, and termination protection is enabled for an event data store.
 
 ## Examples
 
