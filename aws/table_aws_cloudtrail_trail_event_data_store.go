@@ -14,7 +14,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
+func tableAwsCloudTrailEventDataStore(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cloudtrail_event_data_store",
 		Description: "AWS CloudTrail Event Data Store",
