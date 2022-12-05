@@ -18,7 +18,7 @@ from
   aws_vpc_verified_access_trust_provider;
 ```
 
-### List trusted providers that are of type user
+### List trusted providers that are of the user type
 
 ```sql
 select
