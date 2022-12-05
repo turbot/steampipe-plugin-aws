@@ -34,7 +34,7 @@ where
   trust_provider_type = 'user';
 ```
 
-### List trusted providers that older than 90 days
+### List trusted providers older than 90 days
 
 ```sql
 select
