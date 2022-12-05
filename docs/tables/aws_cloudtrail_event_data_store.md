@@ -36,7 +36,7 @@ where
   status <> 'ENABLED';
 ```
 
-### List cloudtrail event stores with termination protection disabled
+### List event data stores with termination protection disabled
 
 ```sql
 select
