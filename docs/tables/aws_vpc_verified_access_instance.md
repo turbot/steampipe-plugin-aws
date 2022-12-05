@@ -28,7 +28,7 @@ select
 from
   aws_vpc_verified_access_instance
 where
-  creation_time >= now() - interval '30' day;
+  creation_time <= now() - interval '30' day;
 ```
 
 ### Get trusted provider details for each instance
