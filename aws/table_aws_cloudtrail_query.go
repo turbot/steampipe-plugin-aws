@@ -16,7 +16,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsCloudtrailQuery(_ context.Context) *plugin.Table {
+func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cloudtrail_query",
 		Description: "AWS CloudTrail Query",
