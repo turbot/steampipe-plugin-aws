@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -130,11 +131,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Trace logging to debug cache and execution flows
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		region = "global"
-	}
-	plugin.Logger(ctx).Trace("getCallerIdentity", "status", "starting", "connection_name", d.Connection.Name, "region", region)
+	plugin.Logger(ctx).Trace("getCallerIdentity", "status", "starting", "connection_name", d.Connection.Name)
 
 	// get the service connection for the service
 	svc, err := STSClient(ctx, d)
@@ -142,11 +139,14 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
+	now := time.Now()
 	callerIdentity, err := svc.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	plugin.Logger(ctx).Trace("getCallerIdentity", "STS.GetCallerIdentity response time", time.Since(now), "connection_name", d.Connection.Name)
 	if err != nil {
 		return nil, err
 	}
 
+	plugin.Logger(ctx).Trace("getCallerIdentity", "status", "finished", "connection_name", d.Connection.Name)
 	return callerIdentity, nil
 }
 
