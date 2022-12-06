@@ -23,6 +23,9 @@ func tableAwsS3MultiRegionAccessPoint(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "InvalidRequest"}),
 			},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "account_id", Require: plugin.Optional},
+			},
 		},
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "account_id"}),
@@ -106,6 +109,10 @@ func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.listS3MultiRegionAccessPoints", "client_error", err)
 		return nil, err
+	}
+	ownerAccountId := d.KeyColumnQuals["account_id"].GetStringValue()
+	if ownerAccountId != "" && ownerAccountId != commonColumnData.AccountId {
+		return nil, nil
 	}
 
 	maxItems := int32(100)
@@ -216,8 +223,7 @@ func getS3MultiRegionAccessPointPolicy(ctx context.Context, d *plugin.QueryData,
 	}
 
 	var name, ownerAccountId string
-	multiRegionAccessPoint := h.Item.(types.MultiRegionAccessPointReport)
-	name = *multiRegionAccessPoint.Name
+	name = multiRegionAccessPointName(h.Item)
 	ownerAccountId = commonColumnData.AccountId
 
 	// Build params
