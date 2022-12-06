@@ -110,17 +110,17 @@ func getCommonColumnsCacheKey() plugin.HydrateFunc {
 
 // if the caching is required other than per connection, build a cache key for the call and use it in WithCache
 // since getCommonColumns is a multi-region call, caching should be per connection per region
-var getCommonColumnsCached = plugin.HydrateFunc(getCommonColumns).WithCache(getCommonColumnsCacheKey())
+var getCommonColumnsCached = plugin.HydrateFunc(getCommonColumnsUncached).WithCache(getCommonColumnsCacheKey())
 
 // get columns which are returned with all tables: region, partition and account
-func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		region = "global"
 	}
 
 	// Trace logging to debug cache and execution flows
-	plugin.Logger(ctx).Trace("getCommonColumns", "status", "starting", "connection_name", d.Connection.Name, "region", region)
+	plugin.Logger(ctx).Trace("getCommonColumnsUncached", "status", "starting", "connection_name", d.Connection.Name, "region", region)
 
 	// use the cached version of the getCallerIdentity to reduce the number of request
 	var commonColumnData *awsCommonColumnData
