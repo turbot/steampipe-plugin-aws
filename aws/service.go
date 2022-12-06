@@ -1371,13 +1371,22 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 	return getClient(ctx, d, region)
 }
 
-// Helper function to get the session for the default region in this partition
-func getClientForDefaultRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
-	defaultRegion, err := getDefaultRegion(ctx, d, nil)
+// Helper function to get the session for the preferred region in this partition
+func getClientForClientRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	r, err := getClientRegion(ctx, d, nil)
 	if err != nil {
 		return nil, err
 	}
-	return getClient(ctx, d, defaultRegion)
+	return getClient(ctx, d, r)
+}
+
+// Helper function to get the session for the default region in this partition
+func getClientForDefaultRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	r, err := getDefaultRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+	return getClient(ctx, d, r)
 }
 
 // Helper function to get the session for a region set in query data
