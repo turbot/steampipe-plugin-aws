@@ -1132,10 +1132,9 @@ func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 }
 
 func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
-	// TODO - Should STS be regional instead?
-	// By default, the AWS Security Token Service (AWS STS) is available as a global service, and all AWS STS requests go to a single endpoint at https://sts.amazonaws.com. AWS recommends using Regional AWS STS endpoints instead of the global endpoint to reduce latency, build in redundancy, and increase session token validity.
-	// https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	// STS is available in each region, so we can use the client_region
+	// closest to the user.
+	cfg, err := getClientForClientRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
