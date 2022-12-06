@@ -139,7 +139,7 @@ func listCloudtrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Limiting the results
-	maxLimit := int32(500)
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
