@@ -9,11 +9,10 @@ Amazon S3 Multi-Region Access Points provide a global endpoint that applications
 ```sql
 select
   alias,
-  access_point_arn,
   status,
   created_at
 from
-  aws_s3_access_point;
+  aws_s3_multi_region_access_point;
 ```
 
 ### List multi region access points that do not block public access
