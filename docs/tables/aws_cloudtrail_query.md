@@ -5,7 +5,6 @@ AWS CloudTrail Lake lets you run SQL-based queries on your events. CloudTrail La
 **Important notes:**
 
 - The table returns queries from the past 7 days.
-- In order to get results older than seven days, you can include `creation_time` in a `where` clause.
 
 ## Examples
 
