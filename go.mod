@@ -3,7 +3,7 @@ module github.com/turbot/steampipe-plugin-aws
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go v1.44.141
+	github.com/aws/aws-sdk-go v1.44.150
 	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.21
@@ -17,7 +17,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/applicationautoscaling v1.15.18
 	github.com/aws/aws-sdk-go-v2/service/auditmanager v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.10
-	github.com/aws/aws-sdk-go-v2/service/backup v1.17.5
+	github.com/aws/aws-sdk-go-v2/service/backup v1.18.0
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.10.13
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.10
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0
@@ -30,7 +30,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/codecommit v1.13.17
 	github.com/aws/aws-sdk-go-v2/service/codedeploy v1.14.16
 	github.com/aws/aws-sdk-go-v2/service/codepipeline v1.13.15
-	github.com/aws/aws-sdk-go-v2/service/configservice v1.26.1
+	github.com/aws/aws-sdk-go-v2/service/configservice v1.28.0
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2
 	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.21.10
 	github.com/aws/aws-sdk-go-v2/service/dax v1.11.15
@@ -38,7 +38,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dlm v1.12.4
 	github.com/aws/aws-sdk-go-v2/service/docdb v1.19.11
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.52.1
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.72.1
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.17.16
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.15
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.19
@@ -66,7 +66,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.12.14
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
-	github.com/aws/aws-sdk-go-v2/service/lambda v1.24.6
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.26.0
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/macie2 v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17
@@ -90,6 +90,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.48.0
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.23.5
+	github.com/aws/aws-sdk-go-v2/service/securitylake v1.0.0
 	github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository v1.11.17
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.13.18
 	github.com/aws/aws-sdk-go-v2/service/ses v1.14.18
@@ -127,7 +128,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.17 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.23 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.6 // indirect

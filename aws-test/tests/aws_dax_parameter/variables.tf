@@ -1,6 +1,7 @@
+
 variable "resource_name" {
   type        = string
-  default     = "turbot-test-20200125-create-update"
+  default     = "turbot-test-20200125"
   description = "Name of the resource used throughout the test."
 }
 
@@ -46,51 +47,22 @@ data "null_data_source" "resource" {
   }
 }
 
-resource "aws_config_configuration_recorder" "aws_config_rule" {
-  name     = "default"
-  role_arn = aws_iam_role.r.arn
-}
-
-resource "aws_iam_role" "r" {
+resource "aws_dax_parameter_group" "named_test_resource" {
   name = var.resource_name
+  description = var.resource_name
 
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "config.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-POLICY
-}
-
-# Create AWS > Config > Rule
-resource "aws_config_config_rule" "named_test_resource" {
-  name = var.resource_name
-  tags = {
-    name = var.resource_name
+  parameters {
+    name  = "query-ttl-millis"
+    value = "100000"
   }
-  source {
-    owner             = "AWS"
-    source_identifier = "S3_BUCKET_VERSIONING_ENABLED"
-  }
-  depends_on = [aws_config_configuration_recorder.aws_config_rule]
+
 }
-
-
 
 output "account_id" {
   value = data.aws_caller_identity.current.account_id
 }
 
-output "region_name" {
+output "aws_region" {
   value = data.aws_region.primary.name
 }
 
@@ -98,14 +70,18 @@ output "aws_partition" {
   value = data.aws_partition.current.partition
 }
 
-output "resource_name" {
+output "parameter_group_name" {
   value = var.resource_name
 }
 
-output "resource_aka" {
-  value = aws_config_config_rule.named_test_resource.arn
+output "resource_name" {
+  value = "query-ttl-millis"
 }
 
-output "rule_id" {
-  value = aws_config_config_rule.named_test_resource.rule_id
+output "parameter_value" {
+  value = "100000"
+}
+
+output "resource_id" {
+  value = aws_dax_parameter_group.named_test_resource.id
 }

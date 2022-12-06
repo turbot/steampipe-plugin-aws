@@ -1,3 +1,35 @@
+## v0.87.0 [2022-12-02]
+
+_Breaking changes_
+
+- The `aws_cloudwatch_metric` table rows now contain a CloudWatch metric each, instead of a dimension name/value pair. Dimensions for each metric can be found in the `dimensions` column and to filter on specific dimensions, you can pass dimensions through the `dimensions_filter` key column. Please see [aws_cloudwatch_metric Examples](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_metric#examples) for query examples using the new columns.
+- Renamed column `name` to `metric_name` in the `aws_cloudwatch_metric` table.
+
+_What's new?_
+
+- New tables added
+  - [aws_backup_legal_hold](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_legal_hold) ([#1464](https://github.com/turbot/steampipe-plugin-aws/pull/1464))
+  - [aws_dax_parameter](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dax_parameter) ([#1434](https://github.com/turbot/steampipe-plugin-aws/pull/1434))
+  - [aws_securitylake_subscriber](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_securitylake_subscriber) ([#1463](https://github.com/turbot/steampipe-plugin-aws/pull/1463))
+
+_Enhancements_
+
+- Added `evaluation_modes` column to the `aws_config_rule` table. ([#1476](https://github.com/turbot/steampipe-plugin-aws/pull/1476))
+- Added `snap_start` column to the `aws_lambda_function` table. ([#1477](https://github.com/turbot/steampipe-plugin-aws/pull/1477))
+- Added `capacity_allocations` column to the `aws_ec2_capacity_reservation` table. ([#1428](https://github.com/turbot/steampipe-plugin-aws/pull/1428))
+- Added `imds_support` column to `aws_ec2_ami` and `aws_ec2_ami_shared` tables. ([#1430](https://github.com/turbot/steampipe-plugin-aws/pull/1430))
+
+## v0.86.0 [2022-11-28]
+
+_What's new?_
+
+- New tables added
+  - [aws_dax_parameter_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dax_parameter_group) ([#1426](https://github.com/turbot/steampipe-plugin-aws/pull/1426))
+
+_Bug fixes_
+
+- Fixed the `aws_rds_db_proxy table` table to return empty rows for unsupported regions instead of an error. ([#1427](https://github.com/turbot/steampipe-plugin-aws/pull/1427))
+
 ## v0.85.0 [2022-11-24]
 
 _What's new?_

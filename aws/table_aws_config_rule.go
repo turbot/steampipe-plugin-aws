@@ -81,6 +81,11 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "evaluation_modes",
+				Description: "The modes the Config rule can be evaluated in. The valid values are distinct objects. By default, the value is Detective evaluation mode only.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "input_parameters",
 				Description: "A string, in JSON format, that is passed to the AWS Config rule Lambda function.",
 				Type:        proto.ColumnType_JSON,
