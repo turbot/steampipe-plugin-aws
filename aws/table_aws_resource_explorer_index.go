@@ -51,7 +51,7 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 
 func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	region, err := getPreferredRegion(ctx, d, h)
+	region, err := getClientRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
