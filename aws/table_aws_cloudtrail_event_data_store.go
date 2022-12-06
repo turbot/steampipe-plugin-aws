@@ -19,7 +19,7 @@ func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudtrail_event_data_store",
 		Description: "AWS CloudTrail Event Data Store",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"event_data_store_arn"}),
+			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getCloudTrailEventDataStore,
 		},
 		List: &plugin.ListConfig{
@@ -33,9 +33,10 @@ func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "event_data_store_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the event data store.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("EventDataStoreArn"),
 			},
 			{
 				Name:        "status",
@@ -118,11 +119,7 @@ func listCloudTrailEventDataStores(ctx context.Context, d *plugin.QueryData, _ *
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -161,6 +158,13 @@ func listCloudTrailEventDataStores(ctx context.Context, d *plugin.QueryData, _ *
 
 func getCloudTrailEventDataStore(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	dataStore := h.Item.(types.EventDataStore)
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["arn"] != nil {
+		if equalQuals["arn"].GetStringValue() != *dataStore.EventDataStoreArn {
+			return nil, nil
+		}
+	}
 
 	// Create session
 	svc, err := CloudTrailClient(ctx, d)

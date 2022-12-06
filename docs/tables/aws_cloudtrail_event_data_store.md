@@ -9,7 +9,7 @@ AWS CloudTrail event data stores retain data for up to seven years, or 2557 days
 ```sql
 select
   name,
-  event_data_store_arn,
+  arn,
   status,
   created_timestamp,
   multi_region_enabled,
@@ -24,7 +24,7 @@ from
 ```sql
 select
   name,
-  event_data_store_arn,
+  arn,
   status,
   created_timestamp,
   multi_region_enabled,
@@ -41,7 +41,7 @@ where
 ```sql
 select
   name,
-  event_data_store_arn,
+  arn,
   status,
   created_timestamp,
   multi_region_enabled,

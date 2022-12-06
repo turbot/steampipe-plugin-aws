@@ -1,6 +1,6 @@
 [
 	{
-		"event_data_store_arn": "{{ output.resource_aka.value }}",
+		"arn": "{{ output.resource_aka.value }}",
 		"name": "{{ resourceName }}"
 	}
 ]
