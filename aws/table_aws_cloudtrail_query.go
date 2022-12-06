@@ -130,7 +130,7 @@ type QueryInfo struct {
 
 //// LIST FUNCTION
 
-func listCloudtrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	eventDataStore := h.Item.(types.EventDataStore)
 
 	if d.KeyColumnQualString("event_data_store_arn") != "" {
