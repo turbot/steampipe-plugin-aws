@@ -143,11 +143,8 @@ func listCloudtrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
+
 		}
 	}
 
@@ -180,7 +177,7 @@ func listCloudtrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 	if paginator.HasMorePages() {
 		op, err := paginator.NextPage(ctx)
 		if err != nil {
-				// You cannot act on an event data store that is inactive. This error could not be caught by configuring it in ignore config
+			// You cannot act on an event data store that is inactive. This error could not be caught by configuring it in ignore config
 			if strings.Contains(err.Error(), "InactiveEventDataStoreException") {
 				return nil, nil
 			}
