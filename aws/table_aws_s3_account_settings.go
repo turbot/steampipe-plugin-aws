@@ -88,15 +88,15 @@ func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData,
 	s3Account := h.Item.(*awsCommonColumnData)
 
 	// Unlike most services, S3 buckets are a global list. They can be retrieved
-	// from any single region. It's best to use the preferred region of the user
+	// from any single region. It's best to use the client region of the user
 	// (e.g. closest to them).
-	preferredRegion, err := getPreferredRegion(ctx, d, h)
+	clientRegion, err := getClientRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-	svc, err := S3ControlClient(ctx, d, preferredRegion)
+	svc, err := S3ControlClient(ctx, d, clientRegion)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "get_client_error", err, "preferredRegion", preferredRegion)
+		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "get_client_error", err, "clientRegion", clientRegion)
 		return nil, err
 	}
 
@@ -122,7 +122,7 @@ func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData,
 				return defaultAccessBlock, nil
 			}
 		}
-		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "api_error", err, "preferredRegion", preferredRegion)
+		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "api_error", err, "clientRegion", clientRegion)
 		return nil, err
 	}
 
