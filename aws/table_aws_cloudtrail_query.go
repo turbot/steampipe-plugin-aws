@@ -222,7 +222,7 @@ func getCloudTrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Create session
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_lake_query.getCloudtrailLakeQuery", "client_error", err)
+		plugin.Logger(ctx).Info("aws_cloudtrail_lake_query.getCloudTrailLakeQuery", "client_error", err)
 		return nil, err
 	}
 
