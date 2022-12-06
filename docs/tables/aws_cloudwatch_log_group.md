@@ -49,7 +49,7 @@ from
 ```sql
 select
   name,
-  jsonb_pretty(data_protection_policy_document) as policy_document
+  jsonb_pretty(data_protection_policy) as policy
 from
   aws_cloudwatch_log_group;
 ```

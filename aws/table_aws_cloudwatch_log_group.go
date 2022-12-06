@@ -70,11 +70,18 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "data_protection_policy_document",
-				Description: "Log group data protection policy.",
+				Name:        "data_protection",
+				Description: "Log group data protection policy information.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudwatchLogGroupDataProtectionPolicy,
 				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "data_protection_policy",
+				Description: "The data protection policy document for a log group.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudwatchLogGroupDataProtectionPolicy,
+				Transform:   transform.FromField("PolicyDocument"),
 			},
 			{
 				Name:        "title",
@@ -218,7 +225,7 @@ func getCloudwatchLogGroupDataProtectionPolicy(ctx context.Context, d *plugin.Qu
 		return nil, err
 	}
 
-	return dataProtectionPolicyData.PolicyDocument, nil
+	return dataProtectionPolicyData, nil
 }
 
 func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
