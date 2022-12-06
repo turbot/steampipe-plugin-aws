@@ -68,5 +68,5 @@ select
 from
   aws_cloudtrail_query
 where
-  creation_time <= now() - interval '30' day;
+  creation_time <= now() - interval '3' day;
 ```
