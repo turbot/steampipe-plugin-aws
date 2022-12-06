@@ -66,13 +66,13 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 
 func listAwsRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	preferredRegion, err := getPreferredRegion(ctx, d, h)
+	clientRegion, err := getClientRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, preferredRegion)
+	svc, err := EC2RegionsClient(ctx, d, clientRegion)
 	if err != nil {
 		logger.Error("aws_region.listAwsRegions", "connnection.error", err)
 		return nil, err
@@ -99,13 +99,13 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 //// HYDRATE FUNCTIONS
 
 func getAwsRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	preferredRegion, err := getPreferredRegion(ctx, d, h)
+	clientRegion, err := getClientRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create service
-	svc, err := EC2RegionsClient(ctx, d, preferredRegion)
+	svc, err := EC2RegionsClient(ctx, d, clientRegion)
 	if err != nil {
 		return nil, err
 	}
