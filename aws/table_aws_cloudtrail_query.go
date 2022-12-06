@@ -20,6 +20,13 @@ func tableAwsCloudtrailQuery(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cloudtrail_query",
 		Description: "AWS CloudTrail Query",
+		Get: &plugin.GetConfig{
+			Hydrate:    getCloudtrailLakeQuery,
+			KeyColumns: plugin.AllColumns([]string{"event_data_store_arn", "query_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EventDataStoreNotFoundException"}),
+			},
+		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listCloudTrailEventDataStores,
 			Hydrate:       listCloudtrailLakeQueries,
@@ -55,6 +62,7 @@ func tableAwsCloudtrailQuery(_ context.Context) *plugin.Table {
 				Name:        "creation_time",
 				Description: "The creation time of the query.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("CreationTime", "QueryStatistics.CreationTime"),
 			},
 			{
 				Name:        "query_status",
@@ -201,7 +209,15 @@ func listCloudtrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 //// HYDRATE FUNCTIONS
 
 func getCloudtrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	queryInfo := h.Item.(*QueryInfo)
+	var eventDataSourceArn, queryId string
+	if h.Item != nil {
+		data := h.Item.(*QueryInfo)
+		eventDataSourceArn = *data.EventDataStoreArn
+		queryId = *data.QueryId
+	} else {
+		eventDataSourceArn = d.KeyColumnQualString("event_data_store_arn")
+		queryId = d.KeyColumnQualString("query_id")
+	}
 
 	// Create session
 	svc, err := CloudTrailClient(ctx, d)
@@ -211,8 +227,8 @@ func getCloudtrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	params := &cloudtrail.DescribeQueryInput{
-		EventDataStore: queryInfo.EventDataStoreArn,
-		QueryId:        queryInfo.QueryId,
+		EventDataStore: aws.String(eventDataSourceArn),
+		QueryId:        aws.String(queryId),
 	}
 
 	// execute list call
@@ -222,5 +238,5 @@ func getCloudtrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
-	return &QueryInfo{queryInfo.EventDataStoreArn, nil, op.QueryId, op.QueryStatus, op.QueryString, op.QueryStatistics}, nil
+	return &QueryInfo{aws.String(eventDataSourceArn), nil, op.QueryId, op.QueryStatus, op.QueryString, op.QueryStatistics}, nil
 }
