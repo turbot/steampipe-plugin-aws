@@ -70,9 +70,9 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "data_protection_policy",
+				Name:        "data_protection_policy_document",
 				Description: "Log group data protection policy.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudwatchLogGroupDataProtectionPolicy,
 				Transform:   transform.FromValue(),
 			},
@@ -231,7 +231,7 @@ func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 
-	// Removing extra characters from the end of Arn
+	// Removing extra characters from the end of ARN
 	logGroupArn := string(*logGroup.Arn)
 	logGroupArn = logGroupArn[0 : len(logGroupArn)-2]
 
