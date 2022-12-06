@@ -2,9 +2,7 @@
 
 AWS CloudTrail Lake lets you run SQL-based queries on your events. CloudTrail Lake converts existing events in row-based JSON format to Apache ORC format. ORC is a columnar storage format that is optimized for fast retrieval of data.
 
-**Important notes:**
-
-- The table returns queries from the past 7 days.
+Only queries from the past seven days are returned from the API. If you'd like to shorten the list of results, you can specify a specific `creation_time` and/or `query_status` in the query.
 
 ## Examples
 
