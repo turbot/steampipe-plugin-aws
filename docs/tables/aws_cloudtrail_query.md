@@ -55,7 +55,7 @@ where
  s.event_data_store_arn = q.event_data_store_arn;
 ```
 
-## List queries created within the last 30 days
+## List queries created within the last 3 days
 
 ```sql
 select
