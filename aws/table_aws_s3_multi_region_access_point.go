@@ -21,7 +21,7 @@ func tableAwsS3MultiRegionAccessPoint(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listS3MultiRegionAccessPoints,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchAccessPoint", "InvalidParameter", "InvalidRequest"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "InvalidRequest"}),
 			},
 		},
 		Get: &plugin.GetConfig{
