@@ -60,7 +60,7 @@ group by
   bucket_name;
 ```
 
-## Get bucket details for multi region access points
+## Get bucket details for each multi region access point
 
 ```sql
 select
