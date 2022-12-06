@@ -208,7 +208,7 @@ func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 
 //// HYDRATE FUNCTIONS
 
-func getCloudtrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudTrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var eventDataSourceArn, queryId string
 	if h.Item != nil {
 		data := h.Item.(*QueryInfo)
