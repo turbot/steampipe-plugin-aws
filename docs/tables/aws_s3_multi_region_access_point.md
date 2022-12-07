@@ -2,6 +2,8 @@
 
 Amazon S3 Multi-Region Access Point provides a global endpoint that applications can use to fulfill requests from S3 buckets located in multiple AWS Regions. You can use Multi-Region Access Points to build multi-region applications with the same architecture that's used in a single region, and then run those applications anywhere in the world. Instead of sending requests over the congested public internet, Multi-Region Access Points provide built-in network resilience with the acceleration of internet-based requests to Amazon S3.
 
+you must grant the s3:ListAllMyBuckets permission to the user, role, or other IAM entity that makes a request to manage a Multi-Region Access Point
+
 ## Examples
 
 ### Basic info

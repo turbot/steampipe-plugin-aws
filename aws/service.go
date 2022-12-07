@@ -1027,8 +1027,20 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 	return s3control.NewFromConfig(*cfg), nil
 }
 
+// All requests to create or maintain Multi-Region Access Points are routed to the US West (Oregon) Region.
+// This is true regardless of which Region you are in when making the request, or what Regions the Multi-Region Access Point supports.
+// https://docs.aws.amazon.com/AmazonS3/latest/userguide/ManagingMultiRegionAccessPoints.html
+// S3 multi-region access point supports in China but not in US Gov or US ISO
 func S3ControlMultiRegionAccessClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	var endpointRegion string
+	if strings.HasPrefix(region, "cn") {
+		endpointRegion = "cn-northwest-1"
+	} else if strings.HasPrefix(region, "us-gov") || strings.HasPrefix(region, "us-isob") {
+		return nil, nil
+	} else {
+		endpointRegion = "us-west-2"
+	}
+	cfg, err := getClient(ctx, d, endpointRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -1537,11 +1549,6 @@ func getDefaultAwsRegion(d *plugin.QueryData) string {
 		region = "us-isob-east-1"
 	} else if strings.HasPrefix(region, "us-iso") {
 		region = "us-iso-east-1"
-	} else if d.Table.Name == "aws_s3_multi_region_access_point" {
-		// All requests to create or maintain Multi-Region Access Points are routed to the US West (Oregon) Region.
-		// This is true regardless of which Region you are in when making the request, or what Regions the Multi-Region Access Point supports.
-		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/ManagingMultiRegionAccessPoints.html
-		region = "us-west-2"
 	} else {
 		region = "us-east-1"
 	}

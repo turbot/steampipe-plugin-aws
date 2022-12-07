@@ -61,13 +61,6 @@ func tableAwsS3MultiRegionAccessPoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "policy",
-				Description: "The PublicAccessBlock configuration that you want to apply to this Amazon S3 account.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getS3MultiRegionAccessPointPolicy,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "regions",
 				Description: "A collection of the Regions and buckets associated with the Multi-Region Access Point.",
 				Type:        proto.ColumnType_JSON,
@@ -110,6 +103,10 @@ func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *
 		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.listS3MultiRegionAccessPoints", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		return nil, nil
+	}
+
 	ownerAccountId := d.KeyColumnQuals["account_id"].GetStringValue()
 	if ownerAccountId != "" && ownerAccountId != commonColumnData.AccountId {
 		return nil, nil
@@ -176,6 +173,9 @@ func getS3MultiRegionAccessPoint(ctx context.Context, d *plugin.QueryData, h *pl
 		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.getS3MultiRegionAccessPoint", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		return nil, nil
+	}
 
 	var name, ownerAccountId string
 	if h.Item != nil {
@@ -201,45 +201,6 @@ func getS3MultiRegionAccessPoint(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	return item.AccessPoint, nil
-}
-
-func getS3MultiRegionAccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
-
-	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.getS3MultiRegionAccessPointPolicy", "common_data_error", err)
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	// Create Session
-	svc, err := S3ControlMultiRegionAccessClient(ctx, d, matrixRegion)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.getS3MultiRegionAccessPointPolicy", "client_error", err)
-		return nil, err
-	}
-
-	var name, ownerAccountId string
-	name = multiRegionAccessPointName(h.Item)
-	ownerAccountId = commonColumnData.AccountId
-
-	// Build params
-	params := &s3control.GetMultiRegionAccessPointPolicyInput{
-		Name:      aws.String(name),
-		AccountId: aws.String(ownerAccountId),
-	}
-
-	// execute list call
-	item, err := svc.GetMultiRegionAccessPointPolicy(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.getS3MultiRegionAccessPointPolicy", "api_error", err)
-		return nil, err
-	}
-
-	return item.Policy, nil
 }
 
 func getMultiRegionAccessPointArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
