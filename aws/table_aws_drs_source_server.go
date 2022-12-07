@@ -137,7 +137,8 @@ func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, nil
 	}
 
-	maxItems := int32(10000)
+	// The API has no limit on MaxResults and the default max number of source servers per region is 3000, so use 1000 as a sensible default
+	maxItems := int32(1000)
 	input := drs.DescribeSourceServersInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -153,22 +154,22 @@ func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	input.MaxResults = int32(maxItems)
-	sourceServerId := d.KeyColumnQualString("source_server_id")
-	stagingAccountId := d.KeyColumnQualString("staging_account_id")
-	hardwareId := d.KeyColumnQualString("hardware_id")
+	sourceServerID := d.KeyColumnQualString("source_server_id")
+	stagingAccountID := d.KeyColumnQualString("staging_account_id")
+	hardwareID := d.KeyColumnQualString("hardware_id")
 
 	filter := &types.DescribeSourceServersRequestFilters{}
 
-	if sourceServerId != "" {
-		filter.SourceServerIDs = []string{sourceServerId}
+	if sourceServerID != "" {
+		filter.SourceServerIDs = []string{sourceServerID}
 	}
 
-	if stagingAccountId != "" {
-		filter.StagingAccountIDs = []string{stagingAccountId}
+	if stagingAccountID != "" {
+		filter.StagingAccountIDs = []string{stagingAccountID}
 	}
 
-	if hardwareId != "" {
-		filter.HardwareId = aws.String(hardwareId)
+	if hardwareID != "" {
+		filter.HardwareId = aws.String(hardwareID)
 	}
 
 	input.Filters = filter
