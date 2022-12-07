@@ -65,7 +65,7 @@ from
   aws_pipes_pipe;
 ```
 
-## List pipes created in the last 30 days
+## List pipes created within last 30 days
 
 ```sql
 select
@@ -78,7 +78,7 @@ select
 from
   aws_pipes_pipe
 where
-  creation_time <= now() - interval '30' day;
+  creation_time >= now() - interval '30' day;
 ```
 
 ## Get role details for pipes
