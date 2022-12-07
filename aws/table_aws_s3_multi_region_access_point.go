@@ -96,9 +96,8 @@ func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	// Create Session
-	svc, err := S3ControlMultiRegionAccessClient(ctx, d, region)
+	svc, err := S3ControlMultiRegionAccessClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.listS3MultiRegionAccessPoints", "client_error", err)
 		return nil, err
@@ -156,7 +155,6 @@ func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *
 //// HYDRATE FUNCTIONS
 
 func getS3MultiRegionAccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -168,7 +166,7 @@ func getS3MultiRegionAccessPoint(ctx context.Context, d *plugin.QueryData, h *pl
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlMultiRegionAccessClient(ctx, d, matrixRegion)
+	svc, err := S3ControlMultiRegionAccessClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.getS3MultiRegionAccessPoint", "client_error", err)
 		return nil, err
