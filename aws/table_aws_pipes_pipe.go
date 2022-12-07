@@ -26,7 +26,10 @@ func tableAwsPipes(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsPipes,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "name", Require: plugin.Optional},
+				{Name: "current_state", Require: plugin.Optional},
+				{Name: "desired_state", Require: plugin.Optional},
+				{Name: "source_prefix", Require: plugin.Optional},
+				{Name: "target_prefix", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -84,6 +87,12 @@ func tableAwsPipes(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "source_prefix",
+				Description: "The prefix matching the pipe source.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("source_prefix"),
+			},
+			{
 				Name:        "state_reason",
 				Description: "The reason the pipe is in its current state.",
 				Type:        proto.ColumnType_STRING,
@@ -93,6 +102,12 @@ func tableAwsPipes(_ context.Context) *plugin.Table {
 				Name:        "target",
 				Description: "The ARN of the target resource.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "target_prefix",
+				Description: "The prefix matching the pipe target.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("target_prefix"),
 			},
 			{
 				Name:        "enrichment_parameters",
@@ -159,6 +174,19 @@ func listAwsPipes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		Limit: aws.Int32(maxLimit),
 	}
 
+	if d.KeyColumnQualString("current_state") != "" {
+		params.CurrentState = types.PipeState(d.KeyColumnQualString("current_state"))
+	}
+	if d.KeyColumnQualString("desired_state") != "" {
+		params.DesiredState = types.RequestedPipeState(d.KeyColumnQualString("desired_state"))
+	}
+	if d.KeyColumnQualString("source_prefix") != "" {
+		params.SourcePrefix = aws.String(d.KeyColumnQualString("desired_state"))
+	}
+	if d.KeyColumnQualString("target_prefix") != "" {
+		params.TargetPrefix = aws.String(d.KeyColumnQualString("target_prefix"))
+	}
+
 	// API doesn't support aws-go-sdk-v2 paginator as of date
 	for pagesLeft {
 		output, err := svc.ListPipes(ctx, params)
@@ -223,25 +251,3 @@ func getAwsPipe(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 
 	return data, nil
 }
-
-//// TRANSFORM FUNCTION
-
-// func eventBridgeBusTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-// 	plugin.Logger(ctx).Trace("eventBridgeBusTagListToTurbotTags")
-// 	tagList := d.HydrateItem.(*eventbridge.ListTagsForResourceOutput)
-
-// 	if tagList.Tags == nil {
-// 		return nil, nil
-// 	}
-
-// 	// Mapping the resource tags inside turbotTags
-// 	var turbotTagsMap map[string]string
-// 	if tagList != nil {
-// 		turbotTagsMap = map[string]string{}
-// 		for _, i := range tagList.Tags {
-// 			turbotTagsMap[*i.Key] = *i.Value
-// 		}
-// 	}
-
-// 	return turbotTagsMap, nil
-// }
