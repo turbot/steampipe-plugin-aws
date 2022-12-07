@@ -239,7 +239,7 @@ func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Removing extra characters from the end of ARN
-	logGroupArn := string(*logGroup.Arn)
+	logGroupArn := *logGroup.Arn
 	logGroupArn = logGroupArn[0 : len(logGroupArn)-2]
 
 	params := &cloudwatchlogs.ListTagsForResourceInput{
