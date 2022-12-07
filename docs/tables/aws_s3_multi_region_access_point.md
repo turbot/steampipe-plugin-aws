@@ -47,7 +47,7 @@ from
   aws_s3_multi_region_access_point;
 ```
 
-### Count the number of multi region access points per bucket
+### Count the number of multi-region access points per bucket
 
 ```sql
 select
