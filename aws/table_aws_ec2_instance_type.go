@@ -174,26 +174,13 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// get the primary region for aws based on its partition
-
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region, err := getAWSDefaultRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	region := "us-east-1"
-	if commonColumnData.Partition == "aws-us-gov" {
-		region = "us-gov-east-1"
-	} else if commonColumnData.Partition == "aws-cn" {
-		region = "cn-north-1"
-	} else if commonColumnData.Partition == "aws-iso" {
-		region = "us-iso-east-1"
-	} else if commonColumnData.Partition == "aws-iso-b" {
-		region = "us-isob-east-1"
-	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, region)
+	svc, err := EC2RegionsClient(ctx, d, *region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.listAwsInstanceTypesOfferings", "connection_error", err)
 		return nil, err
@@ -223,7 +210,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	var filters []types.Filter
-	filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{region}})
+	filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{*region}})
 	input.Filters = filters
 
 	paginator := ec2.NewDescribeInstanceTypeOfferingsPaginator(svc, input, func(o *ec2.DescribeInstanceTypeOfferingsPaginatorOptions) {
@@ -264,22 +251,13 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// get the primary region for aws based on its partition
-
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region, err := getAWSDefaultRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	region := "us-east-1"
-	if commonColumnData.Partition == "aws-us-gov" {
-		region = "us-gov-east-1"
-	} else if commonColumnData.Partition == "aws-cn" {
-		region = "cn-north-1"
-	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, region)
+	svc, err := EC2RegionsClient(ctx, d, *region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.describeInstanceType", "connection_error", err)
 		return nil, err
