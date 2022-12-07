@@ -1031,16 +1031,8 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 // This is true regardless of which Region you are in when making the request, or what Regions the Multi-Region Access Point supports.
 // https://docs.aws.amazon.com/AmazonS3/latest/userguide/ManagingMultiRegionAccessPoints.html
 // S3 multi-region access point supports in China but not in US Gov or US ISO
-func S3ControlMultiRegionAccessClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
-	var endpointRegion string
-	if strings.HasPrefix(region, "cn") {
-		endpointRegion = "cn-northwest-1"
-	} else if strings.HasPrefix(region, "us-gov") || strings.HasPrefix(region, "us-isob") {
-		return nil, nil
-	} else {
-		endpointRegion = "us-west-2"
-	}
-	cfg, err := getClient(ctx, d, endpointRegion)
+func S3ControlMultiRegionAccessClient(ctx context.Context, d *plugin.QueryData) (*s3control.Client, error) {
+	cfg, err := getClient(ctx, d, "us-west-2")
 	if err != nil {
 		return nil, err
 	}
