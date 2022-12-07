@@ -36,7 +36,7 @@ and
   public_access_block ->> 'RestrictPublicBuckets':: text = 'true';
 ```
 
-### Get policy details for each multi region access point
+### Get policy details of each multi-region access point
 
 ```sql
 select
