@@ -15,7 +15,7 @@ from
   aws_s3_multi_region_access_point;
 ```
 
-### List multi region access points that do not block public access
+### List multi-region access points that do not block public access
 
 ```sql
 select
