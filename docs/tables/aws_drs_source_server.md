@@ -61,3 +61,33 @@ select
 from
   aws_drs_source_server;
 ```
+
+### List source servers that failed last recovery launch
+
+```sql
+select
+  title,
+  arn,
+  last_launch_result,
+  source_server_id
+from
+  aws_drs_source_server
+where
+  last_launch_result = 'FAILED';
+```
+
+### List source servers that are in disconnected data replication state
+
+```sql
+select
+  title,
+  arn,
+  data_replication_info ->> 'DataReplicationState' as data_replication_state,
+  data_replication_info ->> 'DataReplicationError' as data_replication_error,
+  data_replication_info -> 'DataReplicationInitiation' ->> 'StartDateTime' as data_replication_start_date_time,
+  data_replication_info -> 'DataReplicationInitiation' ->> 'NextAttemptDateTime' as data_replication_next_attempt_date_time
+from
+  aws_drs_source_server
+where
+  data_replication_info ->> 'DataReplicationState' = 'DISCONNECTED';
+```

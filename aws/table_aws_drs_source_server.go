@@ -58,7 +58,7 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 			{
 				Name:        "last_launch_result",
 				Description: "The status of the last recovery launch of this Source Server.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "life_cycle",
@@ -68,7 +68,7 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 			{
 				Name:        "replication_direction",
 				Description: "Replication direction of the Source Server.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "reversed_direction_source_server_arn",
