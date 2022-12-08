@@ -926,10 +926,29 @@ func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error
 }
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
+	// get Pricing API supported regions
+	pricingAPISupportedRegions, err := GetSupportedRegionsForClient(ctx, d, "api.pricing")
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the client region for AWS API calls
+	// Typically this should be the region closest to the user
+	clientRegion, err := getClientRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	// Pricing API is a global API that supports only us-east-1 and ap-south-1 regions
-	// getDefaultRegion doesn't return the good region at the moment (it should use specified API endpoints but it doesn't).
-	// Set us-east-1 for now
-	cfg, err := getClient(ctx, d, "us-east-1")
+	// If a preferred region is set using client_region, or in the AWS config files,
+	// and the API supports that region, use that as the endpoint
+	// Default set to us-east-1 for now
+	queryRegion := "us-east-1"
+	if helpers.StringSliceContains(pricingAPISupportedRegions, clientRegion) {
+		queryRegion = clientRegion
+	}
+
+	cfg, err := getClient(ctx, d, queryRegion)
 	if err != nil {
 		return nil, err
 	}
