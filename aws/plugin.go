@@ -98,6 +98,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_codeartifact_repository":                                  tableAwsCodeArtifactRepository(ctx),
 			"aws_codebuild_project":                                        tableAwsCodeBuildProject(ctx),
 			"aws_codebuild_source_credential":                              tableAwsCodeBuildSourceCredential(ctx),
+			"aws_codecatalyst_space":                                       tableAwsCodeCatalystSpace(ctx),
 			"aws_codecommit_repository":                                    tableAwsCodeCommitRepository(ctx),
 			"aws_codedeploy_app":                                           tableAwsCodeDeployApplication(ctx),
 			"aws_codepipeline_pipeline":                                    tableAwsCodepipelinePipeline(ctx),

@@ -34,6 +34,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codecatalyst"
 	"github.com/aws/aws-sdk-go-v2/service/codecommit"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
@@ -83,7 +84,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
-	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
@@ -98,6 +98,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
@@ -408,6 +409,15 @@ func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Clien
 		return nil, nil
 	}
 	return codebuild.NewFromConfig(*cfg), nil
+}
+
+func CodeCatalystClient(ctx context.Context, d *plugin.QueryData, region string) (*codecatalyst.Client, error) {
+	cfg, err := getClient(ctx, d, region)
+	plugin.Logger(ctx).Error("Region ====>>>> ", region)
+	if err != nil {
+		return nil, err
+	}
+	return codecatalyst.NewFromConfig(*cfg), nil
 }
 
 func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Client, error) {
