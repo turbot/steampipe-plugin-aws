@@ -22,9 +22,9 @@ from
 select
   arn,
   title,
-  source_cloud_properties ->> 'OriginAccountID' as source_cloud_properties_origin_account_id,
-  source_cloud_properties ->> 'OriginAvailabilityZone' as source_cloud_properties_origin_availability_zone,
-  source_cloud_properties ->> 'OriginRegion' as source_cloud_properties_origin_region
+  source_cloud_properties ->> 'OriginAccountID' as source_cloud_origin_account_id,
+  source_cloud_properties ->> 'OriginAvailabilityZone' as source_cloud_origin_availability_zone,
+  source_cloud_properties ->> 'OriginRegion' as source_cloud_origin_region
 from
   aws_drs_source_server;
 ```
@@ -76,7 +76,7 @@ where
   last_launch_result = 'FAILED';
 ```
 
-### List source servers that are in disconnected data replication state
+### List disconnected source servers
 
 ```sql
 select
