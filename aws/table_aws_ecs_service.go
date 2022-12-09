@@ -105,6 +105,11 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "platform_family",
+				Description: "The operating system that your tasks in the service run on.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "propagate_tags",
 				Description: "Specifies whether to propagate the tags from the task definition or the service to the task. If no value is specified, the tags are not propagated.",
 				Type:        proto.ColumnType_STRING,
