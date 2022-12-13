@@ -85,13 +85,13 @@ func tableAwsVpcVerifiedAccessTrustProvider(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromP(trustProviderTurbotData, "Title"),
+				Transform:   transform.From(trustProviderTitle),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromP(trustProviderTurbotData, "Tags"),
+				Transform:   transform.From(trustProviderTurbotTags),
 			},
 		}),
 	}
@@ -158,9 +158,23 @@ func listVpcVerifiedAccessTrustProvider(ctx context.Context, d *plugin.QueryData
 
 //// TRANSFORM FUNCTIONS
 
-func trustProviderTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func trustProviderTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	accessPoint := d.HydrateItem.(types.VerifiedAccessTrustProvider)
-	param := d.Param.(string)
+
+	// Get the resource tags
+	var turbotTagsMap map[string]string
+	if accessPoint.Tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range accessPoint.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
+}
+
+func trustProviderTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	accessPoint := d.HydrateItem.(types.VerifiedAccessTrustProvider)
 	title := accessPoint.VerifiedAccessTrustProviderId
 
 	// Get the resource tags
@@ -173,13 +187,6 @@ func trustProviderTurbotData(_ context.Context, d *transform.TransformData) (int
 				title = i.Value
 			}
 		}
-	}
-
-	if param == "Tags" {
-		if accessPoint.Tags == nil {
-			return nil, nil
-		}
-		return turbotTagsMap, nil
 	}
 
 	return title, nil
