@@ -54,7 +54,7 @@ from
   aws_pipes_pipe;
 ```
 
-## Get enrichment parameters details for each pipe
+## Get enrichment parameter details for each pipe
 
 ```sql
 select
