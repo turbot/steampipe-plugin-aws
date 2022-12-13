@@ -177,12 +177,8 @@ func trustProviderTitle(_ context.Context, d *transform.TransformData) (interfac
 	accessPoint := d.HydrateItem.(types.VerifiedAccessTrustProvider)
 	title := accessPoint.VerifiedAccessTrustProviderId
 
-	// Get the resource tags
-	var turbotTagsMap map[string]string
 	if accessPoint.Tags != nil {
-		turbotTagsMap = map[string]string{}
 		for _, i := range accessPoint.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
 			if *i.Key == "Name" {
 				title = i.Value
 			}
