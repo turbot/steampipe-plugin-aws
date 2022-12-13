@@ -50,7 +50,7 @@ func tableAwsVpcVerifiedAccessInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "verified_access_trust_providers",
-				Description: "The IDs of the AWS Verified Access instance.",
+				Description: "The IDs of the AWS Verified Access trusted providers.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
