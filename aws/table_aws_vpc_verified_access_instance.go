@@ -65,13 +65,13 @@ func tableAwsVpcVerifiedAccessInstance(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromP(verifiedAccessInstanceTurbotData, "Title"),
+				Transform:   transform.From(verifiedAccessInstanceTitle),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromP(verifiedAccessInstanceTurbotData, "Tags"),
+				Transform:   transform.From(verifiedAccessInstanceTurbotTags),
 			},
 		}),
 	}
@@ -138,10 +138,8 @@ func listVpcVerifiedAccessInstances(ctx context.Context, d *plugin.QueryData, _ 
 
 //// TRANSFORM FUNCTIONS
 
-func verifiedAccessInstanceTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func verifiedAccessInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	accessPoint := d.HydrateItem.(types.VerifiedAccessInstance)
-	param := d.Param.(string)
-	title := accessPoint.VerifiedAccessInstanceId
 
 	// Get the resource tags
 	var turbotTagsMap map[string]string
@@ -149,17 +147,23 @@ func verifiedAccessInstanceTurbotData(_ context.Context, d *transform.TransformD
 		turbotTagsMap = map[string]string{}
 		for _, i := range accessPoint.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+
+	return turbotTagsMap, nil
+}
+
+func verifiedAccessInstanceTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	accessPoint := d.HydrateItem.(types.VerifiedAccessInstance)
+	title := accessPoint.VerifiedAccessInstanceId
+
+	if accessPoint.Tags != nil {
+		for _, i := range accessPoint.Tags {
 			if *i.Key == "Name" {
 				title = i.Value
 			}
 		}
-	}
-
-	if param == "Tags" {
-		if accessPoint.Tags == nil {
-			return nil, nil
-		}
-		return turbotTagsMap, nil
 	}
 
 	return title, nil
