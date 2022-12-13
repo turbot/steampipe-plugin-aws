@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
@@ -24,7 +23,7 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 			Hydrate:    getCloudTrailLakeQuery,
 			KeyColumns: plugin.AllColumns([]string{"event_data_store_arn", "query_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EventDataStoreNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EventDataStoreNotFoundException", "QueryIdNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -63,6 +62,24 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 				Description: "The creation time of the query.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("CreationTime", "QueryStatistics.CreationTime"),
+			},
+			{
+				Name:        "delivery_s3_uri",
+				Description: "The URI for the S3 bucket where CloudTrail delivered query results, if applicable.",
+				Hydrate:     getCloudTrailLakeQuery,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "delivery_status",
+				Description: "The delivery status.",
+				Hydrate:     getCloudTrailLakeQuery,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "error_message",
+				Description: "The error message returned if a query failed.",
+				Hydrate:     getCloudTrailLakeQuery,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "query_status",
@@ -119,13 +136,14 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 // 1. EventDataStoreArn is required for joing the queries
 // 2. list/get call do not provide the EventDataStoreArn
 // 3. Both list/get API call return different stracture with dfferent data
-type QueryInfo struct {
+type ListQueryInfo struct {
 	EventDataStoreArn *string
-	CreationTime      *time.Time
-	QueryId           *string
-	QueryStatus       types.QueryStatus
-	QueryString       *string
-	QueryStatistics   *types.QueryStatisticsForDescribeQuery
+	types.Query
+}
+
+type GetQueryInfo struct {
+	EventDataStoreArn *string
+	*cloudtrail.DescribeQueryOutput
 }
 
 //// LIST FUNCTION
@@ -194,7 +212,7 @@ func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 
 		for _, item := range op.Queries {
-			d.StreamListItem(ctx, &QueryInfo{eventDataStore.EventDataStoreArn, item.CreationTime, item.QueryId, item.QueryStatus, aws.String(""), &types.QueryStatisticsForDescribeQuery{}})
+			d.StreamListItem(ctx, &ListQueryInfo{eventDataStore.EventDataStoreArn, item})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -211,7 +229,7 @@ func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 func getCloudTrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var eventDataSourceArn, queryId string
 	if h.Item != nil {
-		data := h.Item.(*QueryInfo)
+		data := h.Item.(*ListQueryInfo)
 		eventDataSourceArn = *data.EventDataStoreArn
 		queryId = *data.QueryId
 	} else {
@@ -238,5 +256,5 @@ func getCloudTrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
-	return &QueryInfo{aws.String(eventDataSourceArn), nil, op.QueryId, op.QueryStatus, op.QueryString, op.QueryStatistics}, nil
+	return &GetQueryInfo{aws.String(eventDataSourceArn), op}, nil
 }
