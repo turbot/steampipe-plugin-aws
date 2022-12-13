@@ -18,7 +18,7 @@ from
   aws_vpc_verified_access_group;
 ```
 
-### List groups that older than 30 days
+### List groups that are older than 30 days
 
 ```sql
 select
