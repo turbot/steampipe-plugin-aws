@@ -18,7 +18,7 @@ func tableAwsVpcVerifiedAccessTrustProvider(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_verified_access_trust_provider",
 		Description: "AWS VPC Verified Access Trust Provider",
 		List: &plugin.ListConfig{
-			Hydrate: listVpcVerifiedAccessTrustProvider,
+			Hydrate: listVpcVerifiedAccessTrustProviders,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
@@ -99,12 +99,12 @@ func tableAwsVpcVerifiedAccessTrustProvider(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcVerifiedAccessTrustProvider(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listVpcVerifiedAccessTrustProviders(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
 	svc, err := EC2Client(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_vpc_verified_access_trust_provider.listVpcVerifiedAccessTrustProvider", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_vpc_verified_access_trust_provider.listVpcVerifiedAccessTrustProviders", "connection_error", err)
 		return nil, err
 	}
 
@@ -134,7 +134,7 @@ func listVpcVerifiedAccessTrustProvider(ctx context.Context, d *plugin.QueryData
 		resp, err := svc.DescribeVerifiedAccessTrustProviders(ctx, input)
 
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_vpc_verified_access_trust_provider.listVpcVerifiedAccessTrustProvider", "api_error", err)
+			plugin.Logger(ctx).Error("aws_vpc_verified_access_trust_provider.listVpcVerifiedAccessTrustProviders", "api_error", err)
 			return nil, nil
 		}
 

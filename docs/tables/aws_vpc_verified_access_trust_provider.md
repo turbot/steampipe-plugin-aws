@@ -18,7 +18,7 @@ from
   aws_vpc_verified_access_trust_provider;
 ```
 
-### List trusted providers that are of type user
+### List trusted providers that are of the user type
 
 ```sql
 select
@@ -34,7 +34,7 @@ where
   trust_provider_type = 'user';
 ```
 
-### List trusted providers that older than 90 days
+### List trusted providers older than 90 days
 
 ```sql
 select
@@ -46,5 +46,5 @@ select
 from
   aws_vpc_verified_access_trust_provider
 where
-  creation_time >= now() - interval '90' day;
+  creation_time >= now() - interval '90' days;
 ```
