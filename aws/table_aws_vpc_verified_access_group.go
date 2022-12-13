@@ -17,13 +17,22 @@ func tableAwsVpcVerifiedAccessGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc_verified_access_group",
 		Description: "AWS VPC Verified Access Group",
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.SingleColumn("verified_access_group_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "InvalidVerifiedAccessGroupId.NotFound", "InvalidAction"}),
+			},
+			Hydrate: getVpcVerifiedAccessGroup,
+		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVerifiedAccessGroups,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
+			// DescribeVerifiedAccessGroups API accept group id as input param.
+			// We are passing MaxResults value as DescribeVerifiedAccessGroups api input
+			// We can not pass both MaxResults and VerifiedAccessGroupId at a time in the same input, we have to pass either one. So verified_access_group_id can not be added as optional quals and added get config for filtering out the group by their id.
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "verified_access_group_id", Require: plugin.Optional},
 				{Name: "verified_access_instance_id", Require: plugin.Optional},
 			},
 		},
@@ -128,9 +137,6 @@ func listVpcVerifiedAccessGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	if d.KeyColumnQualString("verified_access_group_id") != "" {
-		input.VerifiedAccessGroupIds = []string{d.KeyColumnQualString("verified_access_group_id")}
-	}
 	if d.KeyColumnQualString("verified_access_instance_id") != "" {
 		input.VerifiedAccessInstanceId = aws.String(d.KeyColumnQualString("verified_access_instance_id"))
 	}
@@ -160,6 +166,42 @@ func listVpcVerifiedAccessGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	return nil, err
+}
+
+//// HYDRATED FUNCTION
+
+func getVpcVerifiedAccessGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	groupId := d.KeyColumnQuals["verified_access_group_id"].GetStringValue()
+
+	// Empty check
+	if groupId == "" {
+		return nil, nil
+	}
+
+	// Create session
+	svc, err := EC2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_verified_access_group.getVpcVerifiedAccessGroup", "connection_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	input := &ec2.DescribeVerifiedAccessGroupsInput{
+		VerifiedAccessGroupIds: []string{groupId},
+	}
+
+	// Get call
+	op, err := svc.DescribeVerifiedAccessGroups(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_verified_access_group.getVpcVerifiedAccessGroup", "api_error", err)
+		return nil, err
+	}
+
+	if op.VerifiedAccessGroups != nil && len(op.VerifiedAccessGroups) > 0 {
+		return op.VerifiedAccessGroups[0], nil
+	}
+	return nil, nil
 }
 
 //// TRANSFORM FUNCTIONS
