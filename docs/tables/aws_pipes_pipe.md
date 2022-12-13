@@ -1,6 +1,6 @@
 # Table: aws_pipes_pipe
 
-Amazon EventBridge Pipes connects sources to targets. It reduces the need for specialized knowledge and integration code when developing event driven architectures, fostering consistency across your company’s applications. To set up a pipe, you choose the source, add optional filtering, define optional enrichment, and choose the target for the event data.
+Amazon EventBridge Pipes connect sources to targets. It reduces the need for specialized knowledge and integration code when developing event-driven architectures, fostering consistency across your company’s applications. To set up a pipe, you choose the source, add optional filtering, define optional enrichment, and choose the target for the event data.
 
 ## Examples
 
