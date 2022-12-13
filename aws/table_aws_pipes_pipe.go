@@ -111,7 +111,7 @@ func tableAwsPipes(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "enrichment_parameters",
-				Description: "The ARN of the target resource.",
+				Description: "The parameters required to set up enrichment on your pipe.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsPipe,
 			},
