@@ -17,7 +17,7 @@ from
   aws_vpc_verified_access_instance;
 ```
 
-### List trusted providers that are older than 30 days
+### List trusted providers older than 30 days
 
 ```sql
 select
