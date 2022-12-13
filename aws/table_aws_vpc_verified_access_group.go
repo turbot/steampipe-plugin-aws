@@ -31,12 +31,12 @@ func tableAwsVpcVerifiedAccessGroup(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "verified_access_group_id",
-				Description: "The ID of the Verified Access group.",
+				Description: "The ID of the verified access group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "arn",
-				Description: "The ARN of the Verified Access group.",
+				Description: "The ARN of the verified access group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("VerifiedAccessGroupArn"),
 			},
@@ -57,7 +57,7 @@ func tableAwsVpcVerifiedAccessGroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "description",
-				Description: "A description for the AWS Verified Access group.",
+				Description: "A description for the AWS verified access group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
