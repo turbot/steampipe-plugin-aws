@@ -41,7 +41,7 @@ select
   target_parameters ->> 'BatchJobParameters' as batch_job_parameters,
   target_parameters ->> 'CloudWatchLogsParameters' as cloud_watch_logs_parameters,
   target_parameters ->> 'EcsTaskParameters' as ecs_task_parameters,
-  target_parameters ->> 'EventBridgeEventBusParameters' as event_bridge_event_bus_parameters,
+  target_parameters ->> 'EventBridgeEventBusParameters' as eventbridge_event_bus_parameters,
   target_parameters ->> 'HttpParameters' as http_parameters,
   target_parameters ->> 'InputTemplate' as input_template,
   target_parameters ->> 'KinesisStreamParameters' as kinesis_stream_parameters,
