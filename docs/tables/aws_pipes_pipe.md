@@ -81,7 +81,7 @@ where
   creation_time >= now() - interval '30' day;
 ```
 
-## Get role details for pipes
+### Get IAM role details for pipes
 
 ```sql
 select
