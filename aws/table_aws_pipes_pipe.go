@@ -221,7 +221,7 @@ func getAwsPipe(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	// Create Session
 	svc, err := PipesClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_pipes_pipe.getAwsPipe", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_pipes_pipe.getAwsPipe", "client_error", err)
 		return nil, err
 	}
 	if svc == nil {
