@@ -151,7 +151,7 @@ func listAwsPipes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	// Get client
 	svc, err := PipesClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_pipes_pipe.listAwsPipes", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_pipes_pipe.listAwsPipes", "client_error", err)
 		return nil, err
 	}
 	if svc == nil {
