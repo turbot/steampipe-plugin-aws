@@ -181,7 +181,7 @@ func listAwsPipes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		params.DesiredState = types.RequestedPipeState(d.KeyColumnQualString("desired_state"))
 	}
 	if d.KeyColumnQualString("source_prefix") != "" {
-		params.SourcePrefix = aws.String(d.KeyColumnQualString("desired_state"))
+		params.SourcePrefix = aws.String(d.KeyColumnQualString("source_prefix"))
 	}
 	if d.KeyColumnQualString("target_prefix") != "" {
 		params.TargetPrefix = aws.String(d.KeyColumnQualString("target_prefix"))
