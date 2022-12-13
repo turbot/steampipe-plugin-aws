@@ -65,7 +65,7 @@ from
   aws_pipes_pipe;
 ```
 
-## List pipes created within last 30 days
+### List pipes created within the last 30 days
 
 ```sql
 select
