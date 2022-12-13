@@ -869,7 +869,7 @@ func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client,
 }
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
-	// get Pricing API supported regions
+	// Get Pricing API supported regions
 	pricingAPISupportedRegions, err := GetSupportedRegionsForClient(ctx, d, "api.pricing")
 	if err != nil {
 		return nil, err
@@ -885,10 +885,14 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	// Pricing API is a global API that supports only us-east-1 and ap-south-1 regions
 	// If a preferred region is set using client_region, or in the AWS config files,
 	// and the API supports that region, use that as the endpoint
+	// As of Dec 13, 2022, AWS Pricing API only supports in AWS Commercial Cloud
 	// Default set to us-east-1 for now
-	queryRegion := "us-east-1"
-	if helpers.StringSliceContains(pricingAPISupportedRegions, clientRegion) {
-		queryRegion = clientRegion
+	queryRegion := clientRegion
+	if !helpers.StringSliceContains(pricingAPISupportedRegions, queryRegion) {
+		queryRegion, err = getDefaultRegion(ctx, d, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	cfg, err := getClient(ctx, d, queryRegion)
