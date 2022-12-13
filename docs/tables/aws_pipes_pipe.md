@@ -39,7 +39,7 @@ where
 select
   name,
   target_parameters ->> 'BatchJobParameters' as batch_job_parameters,
-  target_parameters ->> 'CloudWatchLogsParameters' as cloud_watch_logs_parameters,
+  target_parameters ->> 'CloudWatchLogsParameters' as cloudwatch_logs_parameters,
   target_parameters ->> 'EcsTaskParameters' as ecs_task_parameters,
   target_parameters ->> 'EventBridgeEventBusParameters' as eventbridge_event_bus_parameters,
   target_parameters ->> 'HttpParameters' as http_parameters,
