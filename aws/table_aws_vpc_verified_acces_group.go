@@ -82,13 +82,13 @@ func tableAwsVpcVerifiedAccessGroup(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromP(verifiedAccessGroupTurbotData, "Title"),
+				Transform:   transform.From(verifiedAccessGroupTitle),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromP(verifiedAccessGroupTurbotData, "Tags"),
+				Transform:   transform.From(verifiedAccessGroupTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -164,10 +164,8 @@ func listVpcVerifiedAccessGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// TRANSFORM FUNCTIONS
 
-func verifiedAccessGroupTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func verifiedAccessGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	group := d.HydrateItem.(types.VerifiedAccessGroup)
-	param := d.Param.(string)
-	title := group.VerifiedAccessGroupId
 
 	// Get the resource tags
 	var turbotTagsMap map[string]string
@@ -175,17 +173,22 @@ func verifiedAccessGroupTurbotData(_ context.Context, d *transform.TransformData
 		turbotTagsMap = map[string]string{}
 		for _, i := range group.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
+}
+
+func verifiedAccessGroupTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	group := d.HydrateItem.(types.VerifiedAccessGroup)
+	title := group.VerifiedAccessGroupId
+
+	if group.Tags != nil {
+		for _, i := range group.Tags {
 			if *i.Key == "Name" {
 				title = i.Value
 			}
 		}
-	}
-
-	if param == "Tags" {
-		if group.Tags == nil {
-			return nil, nil
-		}
-		return turbotTagsMap, nil
 	}
 
 	return title, nil
