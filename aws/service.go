@@ -176,7 +176,23 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 }
 
 func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	// Get the client region
+	clientRegion, err := getClientRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use the client preferred region for the API calls
+	// If empty, use the default region, i.e. us-east-1
+	queryRegion := clientRegion
+	if queryRegion == "" {
+		queryRegion, err = getDefaultRegion(ctx, d, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cfg, err := getClient(ctx, d, queryRegion)
 	if err != nil {
 		return nil, err
 	}
