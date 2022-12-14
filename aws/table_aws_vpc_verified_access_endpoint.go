@@ -16,7 +16,7 @@ import (
 func tableAwsVpcVerifiedAccessEndpoint(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc_verified_access_endpoint",
-		Description: "AWS VPC Verified Access Endpoint",
+		Description: "AWS VPC verified access Endpoint",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("verified_access_endpoint_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -30,7 +30,7 @@ func tableAwsVpcVerifiedAccessEndpoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 			// DescribeVerifiedAccessEndpoints API accept endpoint id as input param.
-			// We are passing MaxResults value as DescribeVerifiedAccessEndpoints api input
+			// We have to pass MaxResults value to DescribeVerifiedAccessEndpoints as input to perform pagination.
 			// We can not pass both MaxResults and VerifiedAccessEndpointId at a time in the same input, we have to pass either one. So verified_access_endpoint_id can not be added as optional quals and added get config for filtering out the endpoint by their id.
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "verified_access_group_id", Require: plugin.Optional},
@@ -72,7 +72,7 @@ func tableAwsVpcVerifiedAccessEndpoint(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "attachment_type",
-				Description: "The type of attachment used to provide connectivity between the AWS Verified Access endpoint and the application.",
+				Description: "The type of attachment used to provide connectivity between the AWS verified access endpoint and the application.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -102,7 +102,7 @@ func tableAwsVpcVerifiedAccessEndpoint(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "endpoint_type",
-				Description: "The type of AWS Verified Access endpoint. Incoming application requests will be sent to an IP address, load balancer or a network interface depending on the endpoint type specified. Possible values are load-balancer or network-interface.",
+				Description: "The type of AWS verified access endpoint. Incoming application requests will be sent to an IP address, load balancer or a network interface depending on the endpoint type specified. Possible values are load-balancer or network-interface.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -112,7 +112,7 @@ func tableAwsVpcVerifiedAccessEndpoint(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "load_balancer_options",
-				Description: "The load balancer details if creating the AWS Verified Access endpoint as load-balancertype.",
+				Description: "The load balancer details if creating the AWS verified access endpoint as load-balancertype.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -161,7 +161,7 @@ func listVpcVerifiedAccessEndpoints(ctx context.Context, d *plugin.QueryData, _ 
 	}
 
 	// AWS doc says the MaxResults value can be between 5-1000(https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVerifiedAccessEndpoints.html) but API throws 'InvalidParameterValue' error for MaxResults value 1000.
-	// api error InvalidParameterValue: The parameter MaxResults must be between 5 and 200
+	// Error: api error InvalidParameterValue: The parameter MaxResults must be between 5 and 200
 	// Limiting the results
 	maxLimit := int32(200)
 	if d.QueryContext.Limit != nil {
@@ -216,7 +216,6 @@ func listVpcVerifiedAccessEndpoints(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATED FUNCTION
 
 func getVpcVerifiedAccessEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
 	endpointId := d.KeyColumnQuals["verified_access_endpoint_id"].GetStringValue()
 
 	// Empty check
