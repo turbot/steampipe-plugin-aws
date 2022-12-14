@@ -56,13 +56,13 @@ where
 select
   e.verified_access_endpoint_id,
   e.creation_time,
-  i.creation_time as group_create_time,
-  i.verified_access_group_id
+  g.verified_access_group_id,
+  g.creation_time as group_create_time
 from
   aws_vpc_verified_access_endpoint as e,
-  aws_vpc_verified_access_group as i
+  aws_vpc_verified_access_group as g
 where
-  g.verified_access_group_id = i.verified_access_group_id;
+  e.verified_access_group_id = g.verified_access_group_id;
 ```
 
 ### Get trusted provider details for each endpoint
