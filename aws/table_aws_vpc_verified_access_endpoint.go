@@ -160,7 +160,7 @@ func listVpcVerifiedAccessEndpoints(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
-	// AWS doc says the MaxResults value can be between 5-1000(https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVerifiedAccessEndpoints.html) but API throws 'InvalidParameterValue' error for MaxResults 1000.
+	// AWS doc says the MaxResults value can be between 5-1000(https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVerifiedAccessEndpoints.html) but API throws 'InvalidParameterValue' error for MaxResults value 1000.
 	// api error InvalidParameterValue: The parameter MaxResults must be between 5 and 200
 	// Limiting the results
 	maxLimit := int32(200)
@@ -189,10 +189,9 @@ func listVpcVerifiedAccessEndpoints(ctx context.Context, d *plugin.QueryData, _ 
 	for {
 		// List call
 		resp, err := svc.DescribeVerifiedAccessEndpoints(ctx, input)
-		plugin.Logger(ctx).Error("RESPONSE =====>>", resp)
 
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_vpc_verified_access_endpoint.listVpcVerifiedAccessTrustProviders", "api_error", err)
+			plugin.Logger(ctx).Error("aws_vpc_verified_access_endpoint.listVpcVerifiedAccessEndpoints", "api_error", err)
 			return nil, nil
 		}
 

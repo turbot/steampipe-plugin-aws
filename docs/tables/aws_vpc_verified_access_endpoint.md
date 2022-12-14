@@ -93,7 +93,7 @@ group by
   verified_access_instance_id;
 ```
 
-### Get network interface details for endpoint
+### Get network interface details for each endpoint
 
 ```sql
 select
