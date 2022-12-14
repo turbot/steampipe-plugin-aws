@@ -72,7 +72,7 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, clientRegion)
+	svc, err := EC2RegionsClientWithMaxRetires(ctx, d, clientRegion)
 	if err != nil {
 		logger.Error("aws_region.listAwsRegions", "connnection.error", err)
 		return nil, err
@@ -105,7 +105,7 @@ func getAwsRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	// Create service
-	svc, err := EC2RegionsClient(ctx, d, clientRegion)
+	svc, err := EC2RegionsClientWithMaxRetires(ctx, d, clientRegion)
 	if err != nil {
 		return nil, err
 	}

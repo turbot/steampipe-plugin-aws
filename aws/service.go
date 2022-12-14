@@ -525,6 +525,14 @@ func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 }
 
 func EC2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	return ec2.NewFromConfig(*cfg), nil
+}
+
+func EC2RegionsClientWithMaxRetires(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
 	// We can query EC2 for the list of supported regions. But, if credentials
 	// are insufficient this query will retry many times, so we create a special
 	// client with a small number of retries to prevent hangs.

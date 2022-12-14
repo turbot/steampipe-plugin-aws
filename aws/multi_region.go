@@ -77,10 +77,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -448,29 +446,6 @@ func getClientRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin
 	plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "region", region)
 
 	return region, nil
-}
-
-// Get the default region region for AWS based on its partition
-func getAWSDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*string, error) {
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	region := "us-east-1"
-	switch commonColumnData.Partition {
-	case endpoints.AwsUsGovPartitionID:
-		region = "us-gov-west-1"
-	case endpoints.AwsCnPartitionID:
-		region = "cn-northwest-1"
-	case endpoints.AwsIsoPartitionID:
-		region = "us-iso-east-1"
-	case endpoints.AwsIsoBPartitionID:
-		region = "us-isob-east-1"
-	}
-
-	return types.String(region), nil
 }
 
 //

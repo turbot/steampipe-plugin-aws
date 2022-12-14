@@ -173,14 +173,14 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 
 func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	// get the primary region for aws based on its partition
-	region, err := getAWSDefaultRegion(ctx, d, h)
+	// Get the default AWS region for aws based on its partition
+	region, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, *region)
+	svc, err := EC2RegionsClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.listAwsInstanceTypesOfferings", "connection_error", err)
 		return nil, err
@@ -210,7 +210,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	var filters []types.Filter
-	filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{*region}})
+	filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{region}})
 	input.Filters = filters
 
 	paginator := ec2.NewDescribeInstanceTypeOfferingsPaginator(svc, input, func(o *ec2.DescribeInstanceTypeOfferingsPaginatorOptions) {
@@ -250,14 +250,14 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		instanceType = types.InstanceType(d.KeyColumnQuals["instance_type"].GetStringValue())
 	}
 
-	// get the primary region for aws based on its partition
-	region, err := getAWSDefaultRegion(ctx, d, h)
+	// Get the default AWS region for aws based on its partition
+	region, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, *region)
+	svc, err := EC2RegionsClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.describeInstanceType", "connection_error", err)
 		return nil, err
