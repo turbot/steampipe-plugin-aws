@@ -557,6 +557,13 @@ func ECRPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Clien
 	if err != nil {
 		return nil, err
 	}
+
+	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
+	// DescribeRepositories command is only supported in us-east-1
+	if cfg.Region != "us-east-1" {
+		return nil, nil
+	}
+
 	return ecrpublic.NewFromConfig(*cfg), nil
 }
 
