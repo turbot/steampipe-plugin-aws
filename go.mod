@@ -38,10 +38,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dlm v1.12.4
 	github.com/aws/aws-sdk-go-v2/service/docdb v1.19.11
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.72.1
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.74.1
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.17.16
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.15
-	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.19
+	github.com/aws/aws-sdk-go-v2/service/ecs v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/efs v1.17.15
 	github.com/aws/aws-sdk-go-v2/service/eks v1.22.1
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.22.10
@@ -125,10 +125,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.20 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.24 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.14 // indirect
+	github.com/aws/aws-sdk-go-v2/service/drs v1.9.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.20 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/pipes v1.0.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.23 // indirect
