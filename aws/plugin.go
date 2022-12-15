@@ -394,6 +394,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_security_group":                                       tableAwsVpcSecurityGroup(ctx),
 			"aws_vpc_security_group_rule":                                  tableAwsVpcSecurityGroupRule(ctx),
 			"aws_vpc_subnet":                                               tableAwsVpcSubnet(ctx),
+			"aws_vpc_verified_access_endpoint":                             tableAwsVpcVerifiedAccessEndpoint(ctx),
 			"aws_vpc_verified_access_instance":                             tableAwsVpcVerifiedAccessInstance(ctx),
 			"aws_vpc_verified_access_trust_provider":                       tableAwsVpcVerifiedAccessTrustProvider(ctx),
 			"aws_vpc_vpn_connection":                                       tableAwsVpcVpnConnection(ctx),
