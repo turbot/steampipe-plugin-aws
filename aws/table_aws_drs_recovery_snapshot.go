@@ -94,7 +94,7 @@ func listAwsDRSRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, nil
 	}
 
-	// The API has no limit on MaxResults and the default max number of source servers per region is 3000, so use 1000 as a sensible default
+	// The API has no limit on MaxResults, so use 1000 as a sensible default
 	maxItems := int32(1000)
 	input := drs.DescribeRecoverySnapshotsInput{
 		SourceServerID: aws.String(sourceServerID),
