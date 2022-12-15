@@ -31,7 +31,7 @@ func tableAwsVpcVerifiedAccessGroup(_ context.Context) *plugin.Table {
 			},
 			// DescribeVerifiedAccessGroups API accept group id as input param.
 			// We are passing MaxResults value as DescribeVerifiedAccessGroups api input
-			// We can not pass both MaxResults and VerifiedAccessGroupId at a time in the same input, we have to pass either one. So verified_access_group_id can not be added as optional quals and added get config for filtering out the group by their id.
+			// We cannot pass both MaxResults and VerifiedAccessGroupId at a time in the same input, we have to pass either one. So verified_access_group_id cannot be added as optional quals. Added get config for filtering out the group by its id.
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "verified_access_instance_id", Require: plugin.Optional},
 			},
