@@ -140,6 +140,8 @@ func getAwsOAMSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	}
 
 	// Get call
+	// If we pass an INVALID ARN regardless of region, the API throws a ResourceNotFoundException.
+	// If we supply a VALID ARN and the region where the resource is NOT AVAILABLE, the API throws an AccessDeniedException instead of a ResourceNotFoundException. In the ignore configuration, we don't handle the AccessDeniedException.
 	resp, err := svc.GetSink(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_oam_sink.getAwsOAMSink", "api_error", err)

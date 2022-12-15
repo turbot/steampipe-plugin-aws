@@ -27,5 +27,5 @@ select
 from
   aws_oam_sink
 where
-  id = 'hfj44c81-7bdf-3847-r7i3-5dfc61b17483'
+  id = 'hfj44c81-7bdf-3847-r7i3-5dfc61b17483';
 ```
