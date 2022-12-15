@@ -51,7 +51,7 @@ select
   failback -> 'FailbackLaunchType' as failback_launch_type,
   failback -> 'FailbackToOriginalServer' as failback_to_original_server,
   failback -> 'FirstByteDateTime' as failback_first_byte_date_time,
-  failback -> 'State' as failback_state,
+  failback -> 'State' as failback_state
 from
   aws_drs_recovery_instance;
 ```
