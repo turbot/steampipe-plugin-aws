@@ -13,7 +13,7 @@ import (
 func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_drs_recovery_instance",
-		Description: "AWS DRS Recovery Instance",
+		Description: "AWS DRS recovery instance",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "source_server_id", Require: plugin.Optional},
@@ -40,7 +40,7 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "source_server_id",
-				Description: "The Source Server ID that this Recovery Instance is associated with.",
+				Description: "The Source Server ID that this recovery instance is associated with.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SourceServerID"),
 			},
@@ -57,7 +57,7 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "is_drill",
-				Description: "Whether this Recovery Instance was created for a drill or for an actual recovery event.",
+				Description: "Whether this recovery instance was created for a drill or for an actual recovery event.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
@@ -73,7 +73,7 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "point_in_time_snapshot_date_time",
-				Description: "The date and time of the Point in Time (PIT) snapshot that this Recovery Instance was launched from.",
+				Description: "The date and time of the Point in Time (PIT) snapshot that this recovery instance was launched from.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
