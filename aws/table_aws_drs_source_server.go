@@ -92,6 +92,13 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("StagingArea.StagingAccountID"),
 			},
 			{
+				Name:        "launch_configuration",
+				Description: "The launch configuration settings of the source server.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsDRSSourceServerLaunchConfiguration,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "hardware_id",
 				Description: "An ID that describes the hardware of the Source Server. This is either an EC2 instance id, a VMware uuid or a mac address.",
 				Type:        proto.ColumnType_STRING,
@@ -124,7 +131,6 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
 	// Create service
 	svc, err := DRSClient(ctx, d)
 	if err != nil {
@@ -197,4 +203,29 @@ func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	return nil, nil
+}
+
+func getAwsDRSSourceServerLaunchConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	sourceServer := h.Item.(types.SourceServer)
+
+	// Create Session
+	svc, err := DRSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_drs_source_server.getAwsDRSSourceServerLaunchConfiguration", "connection_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &drs.GetLaunchConfigurationInput{
+		SourceServerID: sourceServer.SourceServerID,
+	}
+
+	// Get call
+	launchConfiguration, err := svc.GetLaunchConfiguration(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_drs_source_server.getAwsDRSSourceServerLaunchConfiguration", "api_error", err)
+		return nil, err
+	}
+
+	return launchConfiguration, nil
 }

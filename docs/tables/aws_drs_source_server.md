@@ -62,6 +62,24 @@ from
   aws_drs_source_server;
 ```
 
+### Get launch configuration settings of all source servers
+
+```sql
+select
+  arn,
+  title,
+  launch_configuration ->> 'Name' as launch_configuration_name,
+  launch_configuration ->> 'CopyPrivateIp' as launch_configuration_copy_private_ip,
+  launch_configuration ->> 'CopyTags' as launch_configuration_copy_tags,
+  launch_configuration ->> 'Ec2LaunchTemplateID' as ec2_launch_template_id,
+  launch_configuration ->> 'LaunchDisposition' as launch_configuration_disposition,
+  launch_configuration ->> 'TargetInstanceTypeRightSizingMethod' as target_instance_type_right_sizing_method,
+  launch_configuration -> 'Licensing' as launch_configuration_licensing,
+  launch_configuration -> 'ResultMetadata' as launch_configuration_result_metadata
+from
+  aws_drs_source_server;
+```
+
 ### List source servers that failed last recovery launch
 
 ```sql
