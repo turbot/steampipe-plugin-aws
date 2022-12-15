@@ -24,7 +24,7 @@ func tableAwsOAMSink(_ context.Context) *plugin.Table {
 			Hydrate: getAwsOAMSink,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsOAMLinks,
+			Hydrate: listAwsOAMSinks,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -68,7 +68,7 @@ func tableAwsOAMSink(_ context.Context) *plugin.Table {
 	}
 }
 
-func listAwsOAMLinks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsOAMSinks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
