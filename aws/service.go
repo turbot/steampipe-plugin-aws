@@ -141,6 +141,7 @@ import (
 	mediastoreEndpoint "github.com/aws/aws-sdk-go/service/mediastore"
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
+	pricingEndpoint "github.com/aws/aws-sdk-go/service/pricing"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
@@ -558,8 +559,10 @@ func ECRPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Clien
 		return nil, err
 	}
 
+	// Amazon ecr-public actions are only supported when providing us-east-1.
+	// Amazon ECR Public repositories can be created in many other regions, but
+	// the client requires authentication in the us-east-1
 	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
-	// DescribeRepositories command is only supported in us-east-1
 	if cfg.Region != "us-east-1" {
 		return nil, nil
 	}
@@ -901,7 +904,7 @@ func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client,
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
 	// Get Pricing API supported regions
-	pricingAPISupportedRegions, err := GetSupportedRegionsForClient(ctx, d, "api.pricing")
+	pricingAPISupportedRegions, err := GetSupportedRegionsForClient(ctx, d, pricingEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

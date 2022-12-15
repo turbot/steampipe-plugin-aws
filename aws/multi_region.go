@@ -408,7 +408,12 @@ func getClientRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin
 	session, err := session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	})
-	if session != nil && session.Config != nil && err == nil {
+	if err != nil {
+		plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "awsConfig.Regions", awsConfig.Regions, "session_error", err)
+		return nil, err
+	}
+
+	if session != nil && session.Config != nil {
 		// We have a home region from the SDK level
 		region = *session.Config.Region
 		plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "AWS SDK lookup")
