@@ -1070,7 +1070,7 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	cfg, err := getClientForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
