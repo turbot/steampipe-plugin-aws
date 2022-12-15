@@ -65,7 +65,7 @@ where
   e.verified_access_group_id = g.verified_access_group_id;
 ```
 
-### Get trusted provider details for each endpoint
+### Get trusted provider details of each endpoint
 
 ```sql
 select
