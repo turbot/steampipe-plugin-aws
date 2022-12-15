@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/drs"
@@ -118,7 +119,7 @@ func listAwsDRSRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *pl
 	quals := d.Quals
 	if quals["timestamp"] != nil {
 		for _, q := range quals["timestamp"].Quals {
-			timestamp := q.Value.GetTimestampValue().String()
+			timestamp := q.Value.GetTimestampValue().AsTime().Format(time.RFC3339)
 			switch q.Operator {
 			case ">=", ">":
 				filter.FromDateTime = aws.String(timestamp)

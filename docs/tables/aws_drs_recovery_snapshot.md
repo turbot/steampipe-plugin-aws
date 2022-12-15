@@ -59,4 +59,25 @@ where
   timestamp <= now() - interval '30' day;
 ```
 
-<!-- Add snapshot details example query-->
+### Get EBS snapshot details for a recovery snapshot
+
+```sql
+select
+  r.snapshot_id,
+  r.source_server_id,
+  s as ebs_snapshot_id,
+  e.state as snapshot_state,
+  e.volume_size,
+  e.volume_id,
+  e.encrypted,
+  e.kms_key_id,
+  e.data_encryption_key_id
+from
+  aws_drs_recovery_snapshot as r,
+  jsonb_array_elements_text(ebs_snapshots) as s,
+  aws_ebs_snapshot as e
+where
+  r.snapshot_id = 'pit-3367d3f930778a9c3'
+and
+  s = e.snapshot_id;
+```
