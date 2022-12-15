@@ -50,7 +50,7 @@ where
   status_code <> 'active';
 ```
 
-### Get group details for each endpoint
+### Get group details of each endpoint
 
 ```sql
 select
