@@ -86,7 +86,7 @@ where
 ```sql
 select
   verified_access_instance_id,
-  count(verified_access_endpoint_id) instance_count
+  count(verified_access_endpoint_id) as instance_count
 from
   aws_vpc_verified_access_endpoint
 group by
