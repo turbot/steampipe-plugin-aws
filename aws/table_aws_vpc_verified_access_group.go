@@ -198,7 +198,7 @@ func getVpcVerifiedAccessGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	if op.VerifiedAccessGroups != nil && len(op.VerifiedAccessGroups) > 0 {
+	if len(op.VerifiedAccessGroups) > 0 {
 		return op.VerifiedAccessGroups[0], nil
 	}
 	return nil, nil
