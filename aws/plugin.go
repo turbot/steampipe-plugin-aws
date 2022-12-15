@@ -281,6 +281,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_neptune_db_cluster":                                       tableAwsNeptuneDBCluster(ctx),
 			"aws_networkfirewall_firewall_policy":                          tableAwsNetworkFirewallPolicy(ctx),
 			"aws_networkfirewall_rule_group":                               tableAwsNetworkFirewallRuleGroup(ctx),
+			"aws_oam_sink":                                                 tableAwsOAMSink(ctx),
 			"aws_opensearch_domain":                                        tableAwsOpenSearchDomain(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
 			"aws_pinpoint_app":                                             tableAwsPinpointApp(ctx),
