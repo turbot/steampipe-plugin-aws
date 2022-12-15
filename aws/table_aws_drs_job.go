@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
@@ -20,8 +21,8 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "job_id", Require: plugin.Optional},
-				{Name: "from_date", Require: plugin.Optional},
-				{Name: "to_date", Require: plugin.Optional},
+				{Name: "creation_date_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<=", "="}},
+				{Name: "end_date_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<=", "="}},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException", "BadRequestException"}),
@@ -42,24 +43,9 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "creation_date_time",
-				Description: "The date and time of when the Job was created.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "end_date_time",
-				Description: "The date and time of when the Job ended.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
 				Name:        "initiated_by",
 				Description: "A string representing who initiated the Job.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "participating_servers",
-				Description: "A list of servers that the Job is acting upon.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "status",
@@ -72,16 +58,19 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "from_date",
-				Description: "The start date in a date range query.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("from_date"),
+				Name:        "creation_date_time",
+				Description: "The date and time of when the Job was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "to_date",
-				Description: "The end date in a date range query.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("to_date"),
+				Name:        "end_date_time",
+				Description: "The date and time of when the Job ended.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "participating_servers",
+				Description: "A list of servers that the Job is acting upon.",
+				Type:        proto.ColumnType_JSON,
 			},
 			// Steampipe standard columns
 			{
@@ -138,22 +127,43 @@ func listAwsDRSJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	input.MaxResults = int32(maxItems)
-	jobID := d.KeyColumnQualString("job_id")
-	fromDate := d.KeyColumnQualString("from_date")
-	toDate := d.KeyColumnQualString("to_date")
 
 	filter := &types.DescribeJobsRequestFilters{}
 
+	jobID := d.KeyColumnQualString("job_id")
 	if jobID != "" {
 		filter.JobIDs = []string{jobID}
 	}
 
-	if fromDate != "" {
-		filter.FromDate = aws.String(fromDate)
+	quals := d.Quals
+	if quals["creation_date_time"] != nil {
+		for _, q := range quals["creation_date_time"].Quals {
+			creationDateTime := q.Value.GetTimestampValue().AsTime().Format(time.RFC3339)
+			switch q.Operator {
+			case ">=", ">":
+				filter.FromDate = aws.String(creationDateTime)
+			case "<=", "<":
+				filter.ToDate = aws.String(creationDateTime)
+			case "=":
+				filter.FromDate = aws.String(creationDateTime)
+				filter.ToDate = aws.String(creationDateTime)
+			}
+		}
 	}
 
-	if toDate != "" {
-		filter.ToDate = aws.String(toDate)
+	if quals["end_date_time"] != nil {
+		for _, q := range quals["end_date_time"].Quals {
+			endDateTime := q.Value.GetTimestampValue().AsTime().Format(time.RFC3339)
+			switch q.Operator {
+			case ">=", ">":
+				filter.FromDate = aws.String(endDateTime)
+			case "<=", "<":
+				filter.ToDate = aws.String(endDateTime)
+			case "=":
+				filter.FromDate = aws.String(endDateTime)
+				filter.ToDate = aws.String(endDateTime)
+			}
+		}
 	}
 
 	input.Filters = filter
