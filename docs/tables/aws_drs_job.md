@@ -45,5 +45,5 @@ select
 from
   aws_drs_job
 where
-  creation_date_time >= now() - interval '30' day ;
+  creation_date_time >= now() - interval '30' day;
 ```
