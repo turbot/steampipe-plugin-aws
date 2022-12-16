@@ -21,10 +21,10 @@ func tableAwsOAMSink(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "ResourceNotFoundException"}),
 			},
-			Hydrate: getAwsOAMSink,
+			Hydrate: getAwsOamSink,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsOAMSinks,
+			Hydrate: listAwsOamSinks,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -55,7 +55,7 @@ func tableAwsOAMSink(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAwsOAMSinkTags,
+				Hydrate:     listAwsOamSinkTags,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -68,11 +68,11 @@ func tableAwsOAMSink(_ context.Context) *plugin.Table {
 	}
 }
 
-func listAwsOAMSinks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsOamSinks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOAMLinks", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinks", "connection_error", err)
 		return nil, err
 	}
 
@@ -98,7 +98,7 @@ func listAwsOAMSinks(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_oam_sink.listAwsOAMLinks", "api_error", err)
+			plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinks", "api_error", err)
 			return nil, err
 		}
 
@@ -117,7 +117,7 @@ func listAwsOAMSinks(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getAwsOAMSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsOamSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	arn := d.KeyColumnQualString("arn")
 	if arn == "" {
 		return nil, nil
@@ -126,7 +126,7 @@ func getAwsOAMSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	// Create Client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.getAwsOAMSink", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.getAwsOamSink", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -140,24 +140,22 @@ func getAwsOAMSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	}
 
 	// Get call
-	// If we pass an INVALID ARN regardless of region, the API throws a ResourceNotFoundException.
-	// If we supply a VALID ARN and the region where the resource is NOT AVAILABLE, the API throws an AccessDeniedException instead of a ResourceNotFoundException. In the ignore configuration, we don't handle the AccessDeniedException.
 	resp, err := svc.GetSink(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.getAwsOAMSink", "api_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.getAwsOamSink", "api_error", err)
 		return nil, err
 	}
 
 	return resp, nil
 }
 
-func listAwsOAMSinkTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsOamSinkTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	arn := getSinkArn(h.Item)
 
 	// Create Client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOAMSinkTags", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinkTags", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -173,7 +171,7 @@ func listAwsOAMSinkTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Get call
 	resp, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOAMSinkTags", "api_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinkTags", "api_error", err)
 		return nil, err
 	}
 
