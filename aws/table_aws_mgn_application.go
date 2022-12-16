@@ -47,7 +47,7 @@ func tableAwsMGNApplication(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "Application ARN.",
+				Description: "The Amazon Resource Name (ARN) of the application",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -106,7 +106,7 @@ func tableAwsMGNApplication(_ context.Context) *plugin.Table {
 
 // // LIST FUNCTION
 func ListAwsMGNApplication(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	svc, err := MGNClirnt(ctx, d)
+	svc, err := MGNClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_mgn_application.ListAwsMGNApplication", "connection_error", err)
 		return nil, err

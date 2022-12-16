@@ -846,7 +846,7 @@ func MediaStoreClient(ctx context.Context, d *plugin.QueryData) (*mediastore.Cli
 	return mediastore.NewFromConfig(*cfg), nil
 }
 
-func MGNClirnt(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
+func MGNClient(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, mgnEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
