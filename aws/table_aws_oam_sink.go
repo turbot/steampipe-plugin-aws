@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/oam/types"
 )
 
-func tableAwsOAMSink(_ context.Context) *plugin.Table {
+func tableAwsOamSink(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_oam_sink",
 		Description: "AWS OAM Sink",
@@ -74,6 +74,10 @@ func listAwsOamSinks(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinks", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -150,17 +154,13 @@ func getAwsOamSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 }
 
 func listAwsOamSinkTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	arn := getSinkArn(h.Item)
+	arn := getOamSinkArn(h.Item)
 
 	// Create Client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinkTags", "connection_error", err)
 		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region check
-		return nil, nil
 	}
 
 	// Build the params
@@ -184,7 +184,7 @@ func listAwsOamSinkTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// UTILITY FUNCTION
 
-func getSinkArn(item interface{}) string {
+func getOamSinkArn(item interface{}) string {
 	switch item := item.(type) {
 	case types.ListSinksItem:
 		return *item.Arn

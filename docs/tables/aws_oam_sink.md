@@ -17,7 +17,7 @@ from
   aws_oam_sink;
 ```
 
-### Get sink by id
+### Get sink by ID
 
 ```sql
 select
