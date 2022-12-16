@@ -276,6 +276,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lightsail_instance":                                       tableAwsLightsailInstance(ctx),
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
 			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
+			"aws_mgn_application":                                          tableAwsMGNApplication(ctx),
 			"aws_msk_cluster":                                              tableAwsMSKCluster(ctx),
 			"aws_msk_serverless_cluster":                                   tableAwsMSKServerlessCluster(ctx),
 			"aws_neptune_db_cluster":                                       tableAwsNeptuneDBCluster(ctx),
