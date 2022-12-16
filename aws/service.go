@@ -103,6 +103,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
@@ -156,6 +157,7 @@ import (
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	servicequotasEndpoint "github.com/aws/aws-sdk-go/service/servicequotas"
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
+	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	wafregionalEnpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
@@ -1138,6 +1140,17 @@ func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequot
 		return nil, nil
 	}
 	return servicequotas.NewFromConfig(*cfg), nil
+}
+
+func SimSpaceWeaverClient(ctx context.Context, d *plugin.QueryData) (*simspaceweaver.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, simspaceWeaverEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return simspaceweaver.NewFromConfig(*cfg), nil
 }
 
 func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client, error) {
