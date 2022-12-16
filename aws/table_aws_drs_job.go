@@ -33,7 +33,7 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "job_id",
-				Description: "The ID of the Job.",
+				Description: "The ID of the job.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("JobID"),
 			},
