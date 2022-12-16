@@ -21,15 +21,12 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsSimSpaceWeaverSimulation,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSimSpaceWeaverSimulations,
-		},
-		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -139,7 +136,6 @@ func listAwsSimSpaceWeaverSimulations(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	// Limiting the results
-
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -189,6 +185,7 @@ func getAwsSimSpaceWeaverSimulation(ctx context.Context, d *plugin.QueryData, h 
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
+	// Empty Check
 	if name == "" {
 		return nil, nil
 	}
@@ -196,7 +193,7 @@ func getAwsSimSpaceWeaverSimulation(ctx context.Context, d *plugin.QueryData, h 
 	// Create session
 	svc, err := SimSpaceWeaverClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.listAwsSimSpaceWeaverSimulations", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulation", "get_client_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -210,7 +207,7 @@ func getAwsSimSpaceWeaverSimulation(ctx context.Context, d *plugin.QueryData, h 
 
 	op, err := svc.DescribeSimulation(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.listAwsSimSpaceWeaverSimulations", "api_error", err)
+		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulation", "api_error", err)
 		return nil, err
 	}
 	return op, nil
