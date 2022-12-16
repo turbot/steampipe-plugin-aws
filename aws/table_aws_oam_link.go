@@ -21,10 +21,10 @@ func tableAwsOAMLink(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Hydrate: getAwsOAMLink,
+			Hydrate: getAwsOamLink,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsOAMLinks,
+			Hydrate: listAwsOamLinks,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -83,11 +83,11 @@ func tableAwsOAMLink(_ context.Context) *plugin.Table {
 	}
 }
 
-func listAwsOAMLinks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsOamLinks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_link.listAwsOAMLinks", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_oam_link.listAwsOamLinks", "connection_error", err)
 		return nil, err
 	}
 
@@ -113,7 +113,7 @@ func listAwsOAMLinks(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_oam_link.listAwsOAMLinks", "api_error", err)
+			plugin.Logger(ctx).Error("aws_oam_link.listAwsOamLinks", "api_error", err)
 			return nil, err
 		}
 
@@ -132,7 +132,7 @@ func listAwsOAMLinks(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getAwsOAMLink(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsOamLink(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var arn string
 	if h.Item != nil {
 		arn = *h.Item.(types.ListLinksItem).Arn
@@ -148,7 +148,7 @@ func getAwsOAMLink(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	// Create Client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_link.getAwsOAMLink", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_oam_link.getAwsOamLink", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -162,11 +162,9 @@ func getAwsOAMLink(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Get call
-	// If we pass an INVALID ARN regardless of region, the API throws a ResourceNotFoundException.
-	// If we supply a VALID ARN and the region where the resource is NOT AVAILABLE, the API throws an AccessDeniedException instead of a ResourceNotFoundException. In the ignore configuration, we do not handle the AccessDeniedException.
 	resp, err := svc.GetLink(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_link.getAwsOAMLink", "api_error", err)
+		plugin.Logger(ctx).Error("aws_oam_link.getAwsOamLink", "api_error", err)
 		return nil, err
 	}
 
