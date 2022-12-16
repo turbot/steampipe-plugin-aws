@@ -47,8 +47,6 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 				Name:        "access_point_arn",
 				Description: "Amazon Resource Name (ARN) of the access point.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAccessPointArn,
-				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "bucket_name",
@@ -135,8 +133,7 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAccessPointArn,
-				Transform:   transform.FromValue().Transform(arnToAkas),
+				Transform:   transform.FromField("AccessPointArn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -154,6 +151,8 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	// The S3 Access Point location is the same as the location of the associated bucket.
+	// Make requests one per region specified in the connection config.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	// Create Session
 	svc, err := S3ControlClient(ctx, d, region)
@@ -344,23 +343,6 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	return op, nil
-}
-
-func getAccessPointArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	accessPointName := accessPointName(h.Item)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// Get account details
-
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_access_point.getAccessPointArn", "common_data_error", err)
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":s3:" + region + ":" + commonColumnData.AccountId + ":accesspoint/" + accessPointName
-
-	return arn, nil
 }
 
 func accessPointName(item interface{}) string {

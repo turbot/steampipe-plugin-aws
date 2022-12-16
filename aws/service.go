@@ -177,13 +177,14 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 }
 
 func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
-	// Get the client region
+	// AWS Account APIs can be called from any single region. It's best to use
+	// the client region of the user (e.g. closest to them)
 	clientRegion, err := getClientRegion(ctx, d, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// Use the client preferred region for the API calls
+	// Use the client region as default
 	// If empty, use the default region, i.e. us-east-1
 	queryRegion := clientRegion
 	if queryRegion == "" {
@@ -525,6 +526,7 @@ func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 	return ec2.NewFromConfig(*cfg), nil
 }
 
+// EC2RegionsClient returns the service connection for Amazon EC2 with a specific region endpoint
 func EC2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
 	cfg, err := getClient(ctx, d, region)
 	if err != nil {
@@ -533,6 +535,7 @@ func EC2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (
 	return ec2.NewFromConfig(*cfg), nil
 }
 
+// EC2RegionsClientWithMaxRetires returns the service connection for Amazon EC2 with a specific region endpoint and the capability of modifying the default retry mechanism.
 func EC2RegionsClientWithMaxRetires(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
 	// We can query EC2 for the list of supported regions. But, if credentials
 	// are insufficient this query will retry many times, so we create a special
@@ -553,18 +556,19 @@ func ECRClient(ctx context.Context, d *plugin.QueryData) (*ecr.Client, error) {
 	return ecr.NewFromConfig(*cfg), nil
 }
 
+// ECRPublicClient returns the service connection for Amazon ECR Public endpoints
 func ECRPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
 	// Amazon ecr-public actions are only supported when providing us-east-1.
 	// Amazon ECR Public repositories can be created in many other regions, but
 	// the client requires authentication in the us-east-1
 	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
-	if cfg.Region != "us-east-1" {
-		return nil, nil
+	//
+	// As of December 16, 2022, Amazon ecr-public actions are not supported in AWS US Gov Cloud
+	// Using the gov cloud creds will results in an error
+	// api error UnrecognizedClientException: The security token included in the request is invalid.
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
 
 	return ecrpublic.NewFromConfig(*cfg), nil

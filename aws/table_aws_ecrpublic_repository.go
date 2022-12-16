@@ -32,7 +32,6 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				{Name: "registry_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

@@ -294,7 +294,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// We can query EC2 for the list of supported regions. If credentials
 	// are insufficient this query will retry many times, so we create
 	// a special client with a small number of retries to prevent hangs.
-	svc, err := EC2RegionsClient(ctx, d, clientRegion)
+	svc, err := EC2RegionsClientWithMaxRetires(ctx, d, clientRegion)
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache

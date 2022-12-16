@@ -173,7 +173,11 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 
 func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	// Get the default AWS region for aws based on its partition
+	// Get the default AWS region for aws based on its partition.
+	// Using a region returns the instance types offered in that particular region.
+	// Using client region might result in missing some instance types due to
+	// unavailability in that particular region, hence using
+	// the default region (i.e. us-east-1), since the majority of the types are supported in that region.
 	region, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
@@ -250,7 +254,11 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		instanceType = types.InstanceType(d.KeyColumnQuals["instance_type"].GetStringValue())
 	}
 
-	// Get the default AWS region for aws based on its partition
+	// Get the default AWS region for aws based on its partition.
+	// Using a region returns the instance types offered in that particular region.
+	// Using client region might result in missing some instance types due to
+	// unavailability in that particular region, hence using
+	// the default region (i.e. us-east-1), since the majority of the types are supported in that region.
 	region, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
