@@ -17,7 +17,7 @@ from
   aws_drs_recovery_snapshot;
 ```
 
-### Get source server details for each recovery snapshot
+### Get source server details of each recovery snapshot
 
 ```sql
 select
@@ -59,7 +59,7 @@ where
   timestamp <= now() - interval '30' day;
 ```
 
-### Get EBS snapshot details for a recovery snapshot
+### Get EBS snapshot details of a recovery snapshot
 
 ```sql
 select
