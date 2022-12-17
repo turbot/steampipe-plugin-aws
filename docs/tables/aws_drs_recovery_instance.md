@@ -1,6 +1,6 @@
 # Table: aws_drs_recovery_instance
 
-Once your source servers have been added to Elastic Disaster Recovery (DRS), you can monitor and interact with them from the Source Servers page. The Source Servers page is the default view in the Elastic Disaster Recovery Console, and will be the page that you interact with the most. On the Source Servers page, you can view all of your source servers, monitor their recovery readiness and data replication state, see the last recovery result, see any pending actions, and sort your servers by a variety of categories. You can also perform a variety of commands from the Source Servers page through the command menus. These menus allow you to fully control your servers by launching Drill and Recovery instances and performing a variety of actions, such as adding servers, editing settings, disconnecting, and deleting servers.
+AWS Elastic Disaster Recovery (AWS DRS) minimizes downtime and data loss with fast, reliable recovery of on-premises and cloud-based applications using affordable storage, minimal compute, and point-in-time recovery. If you need to recover applications, you can launch recovery instances on AWS within minutes, using the most up-to-date server state or a previous point in time.
 
 ## Examples
 
@@ -17,7 +17,7 @@ from
   aws_drs_recovery_instance;
 ```
 
-### Get recovery instance properties for each recovery instance
+### Get recovery instance properties of each recovery instance
 
 ```sql
 select
@@ -34,7 +34,7 @@ from
   aws_drs_recovery_instance;
 ```
 
-### Get failback details for each recovery instance
+### Get failback details of each recovery instance
 
 ```sql
 select
@@ -56,7 +56,7 @@ from
   aws_drs_recovery_instance;
 ```
 
-### Get data replication info for each recovery instance
+### Get data replication info of each recovery instance
 
 ```sql
 select
@@ -84,5 +84,6 @@ select
   job_id
 from
   aws_drs_recovery_instance
-where not is_drill;
+where
+  not is_drill;
 ```

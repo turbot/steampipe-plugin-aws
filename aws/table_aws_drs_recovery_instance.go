@@ -10,7 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
+func tableAwsDrsRecoveryInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_drs_recovery_instance",
 		Description: "AWS DRS recovery instance",
@@ -23,7 +23,7 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 				// UninitializedAccountException - This error comes up when default replication settings are not set for a particular region.
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException", "BadRequestException"}),
 			},
-			Hydrate: listAwsDRSRecoveryInstances,
+			Hydrate: listAwsDrsRecoveryInstances,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -40,7 +40,7 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "source_server_id",
-				Description: "The Source Server ID that this recovery instance is associated with.",
+				Description: "The source server ID that this recovery instance is associated with.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SourceServerID"),
 			},
@@ -68,7 +68,7 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "origin_environment",
-				Description: "Environment (On Premises / AWS) of the instance that the recovery instance originated from.",
+				Description: "Environment (On Premises/AWS) of the instance that the recovery instance originated from.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -117,12 +117,12 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsDRSRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsDrsRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create service
 	svc, err := DRSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_drs_recovery_instance.listAwsDRSRecoveryInstances", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_drs_recovery_instance.listAwsDrsRecoveryInstances", "connection_error", err)
 		return nil, err
 	}
 
@@ -171,7 +171,7 @@ func listAwsDRSRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_drs_recovery_instance.listAwsDRSRecoveryInstances", "api_error", err)
+			plugin.Logger(ctx).Error("aws_drs_recovery_instance.listAwsDrsRecoveryInstances", "api_error", err)
 			return nil, err
 		}
 
