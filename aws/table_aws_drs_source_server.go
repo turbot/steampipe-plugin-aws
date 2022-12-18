@@ -95,7 +95,7 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Name:        "launch_configuration",
 				Description: "The launch configuration settings of the source server.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsDRSSourceServerLaunchConfiguration,
+				Hydrate:     getAwsDrsSourceServerLaunchConfiguration,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -205,13 +205,13 @@ func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin
 	return nil, nil
 }
 
-func getAwsDRSSourceServerLaunchConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsDrsSourceServerLaunchConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	sourceServer := h.Item.(types.SourceServer)
 
 	// Create Session
 	svc, err := DRSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_drs_source_server.getAwsDRSSourceServerLaunchConfiguration", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_drs_source_server.getAwsDrsSourceServerLaunchConfiguration", "connection_error", err)
 		return nil, err
 	}
 
@@ -223,7 +223,7 @@ func getAwsDRSSourceServerLaunchConfiguration(ctx context.Context, d *plugin.Que
 	// Get call
 	launchConfiguration, err := svc.GetLaunchConfiguration(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_drs_source_server.getAwsDRSSourceServerLaunchConfiguration", "api_error", err)
+		plugin.Logger(ctx).Error("aws_drs_source_server.getAwsDrsSourceServerLaunchConfiguration", "api_error", err)
 		return nil, err
 	}
 
