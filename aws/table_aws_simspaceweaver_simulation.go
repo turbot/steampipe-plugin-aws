@@ -103,7 +103,7 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Attributes.SubscriptionArn").Transform(arnToTitle),
+				Transform:   transform.FromField("Name").Transform(arnToTitle),
 			},
 			{
 				Name:        "tags",
@@ -127,7 +127,7 @@ func listAwsSimSpaceWeaverSimulations(ctx context.Context, d *plugin.QueryData, 
 	// Create  Client
 	svc, err := SimSpaceWeaverClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.listAwsSimSpaceWeaverSimulations", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.listAwsSimSpaceWeaverSimulations", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -193,7 +193,7 @@ func getAwsSimSpaceWeaverSimulation(ctx context.Context, d *plugin.QueryData, h 
 	// Create session
 	svc, err := SimSpaceWeaverClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulation", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulation", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -222,7 +222,7 @@ func listAwsSimSpaceWeaverSimulationTags(ctx context.Context, d *plugin.QueryDat
 	// Create session
 	svc, err := SimSpaceWeaverClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulationTags", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulationTags", "connection_error", err)
 		return nil, err
 	}
 
