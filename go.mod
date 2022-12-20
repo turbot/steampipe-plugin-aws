@@ -55,7 +55,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14
 	github.com/aws/aws-sdk-go-v2/service/glacier v1.13.17
 	github.com/aws/aws-sdk-go-v2/service/globalaccelerator v1.15.2
-	github.com/aws/aws-sdk-go-v2/service/glue v1.32.0
+	github.com/aws/aws-sdk-go-v2/service/glue v1.38.1
 	github.com/aws/aws-sdk-go-v2/service/guardduty v1.15.9
 	github.com/aws/aws-sdk-go-v2/service/health v1.15.22
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
