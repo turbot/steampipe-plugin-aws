@@ -45,3 +45,16 @@ from
 where
   standards_status <> 'READY';
 ```
+
+### List standards that are not managed by AWS
+
+```sql
+select
+  name,
+  standards_arn,
+  standards_managed_by ->> 'Company' as standards_managed_by
+from
+  aws_securityhub_standards_subscription
+where
+  standards_managed_by ->> 'Company' <> 'AWS';
+```
