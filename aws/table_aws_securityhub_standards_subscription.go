@@ -71,7 +71,7 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "standards_managed_by",
-				Description: "A key-value pair of input for the standard.",
+				Description: "Provides details about the management of a security standard.",
 				Type:        proto.ColumnType_JSON,
 			},
 
