@@ -22,7 +22,7 @@ func tableAwsCloudtrailImport(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("import_id"),
 			Hydrate:    getCloudTrailImport,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnsupportedOperationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnsupportedOperationException", "ImportNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -158,13 +158,16 @@ func listCloudTrailImports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getCloudTrailImport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := h.Item.(types.ImportsListItem)
+	var importId string
+	if h.Item != nil {
+		importId = *h.Item.(types.ImportsListItem).ImportId
+	} else {
+		importId = d.KeyColumnQuals["import_id"].GetStringValue()
+	}
 
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["import_id"] != nil {
-		if equalQuals["import_id"].GetStringValue() != *data.ImportId {
-			return nil, nil
-		}
+	// Empty check
+	if importId == "" {
+		return nil, nil
 	}
 
 	// Create session
@@ -175,7 +178,7 @@ func getCloudTrailImport(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	params := &cloudtrail.GetImportInput{
-		ImportId: data.ImportId,
+		ImportId: &importId,
 	}
 
 	// execute list call
