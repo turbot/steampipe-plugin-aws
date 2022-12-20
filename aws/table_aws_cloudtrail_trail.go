@@ -201,7 +201,7 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				Name:        "insight_selectors",
 				Description: "A JSON string that contains the insight types you want to log on a trail.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCloudtrailTrailEventSelector,
+				Hydrate:     getCloudtrailTrailInsightSelector,
 			},
 			{
 				Name:        "tags_src",
@@ -382,6 +382,48 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 			}
 		}
 		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "api_error", err)
+		return nil, err
+	}
+	return item, nil
+}
+
+func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "common_data_error", err)
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+	trail := h.Item.(types.Trail)
+
+	// Avoid api call if accountId is not equal to the accountId available in arn
+	accountId := arnToAccountId(*trail.TrailARN)
+	if commonColumnData.AccountId != accountId {
+		return nil, nil
+	}
+
+	// Create session
+	svc, err := CloudTrailRegionsClient(ctx, d, *trail.HomeRegion)
+	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "client_error", err)
+		return nil, err
+	}
+
+	params := &cloudtrail.GetInsightSelectorsInput{
+		TrailName: trail.TrailARN,
+	}
+
+	// List resource tags
+	item, err := svc.GetInsightSelectors(ctx, params)
+	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if helpers.StringSliceContains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException", "InsightNotEnabledException"}, ae.ErrorCode()) {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "api_error", err)
 		return nil, err
 	}
 	return item, nil
