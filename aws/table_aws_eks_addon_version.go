@@ -42,6 +42,13 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "addon_configuration",
+				Description: "The configuration for the add-on.",
+				Hydrate:     getEksAddonConfiguration,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "architecture",
 				Description: "The architectures that the version supports.",
 				Type:        proto.ColumnType_JSON,
@@ -140,6 +147,37 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 }
 
 //// HYDRATE FUNCTIONS
+
+func getEksAddonConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	data := h.Item.(addonVersion)
+	version := data.AddonVersion
+	addonName := data.AddonName
+
+	// create service
+	svc, err := EKSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon_version.getEksAddonConfiguration", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	params := &eks.DescribeAddonConfigurationInput{
+		AddonName:    addonName,
+		AddonVersion: version,
+	}
+
+	op, err := svc.DescribeAddonConfiguration(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon_version.getEksAddonConfiguration", "api_error", err)
+		return nil, err
+	}
+
+	return op.ConfigurationSchema, nil
+}
 
 func getAddonVersionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
