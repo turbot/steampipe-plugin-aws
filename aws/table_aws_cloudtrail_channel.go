@@ -32,7 +32,7 @@ func tableAwsCloudtrailChannel(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the CloudTrail channel.",
+				Description: "The name of the cloudtrail channel.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -50,13 +50,13 @@ func tableAwsCloudtrailChannel(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "source",
-				Description: "The event source for the CloudTrail channel.",
+				Description: "The event source for the cloudtrail channel.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCloudTrailChannel,
 			},
 			{
 				Name:        "advanced_event_selectors",
-				Description: "The Amazon Web Services service that created the service-linked channel.",
+				Description: "The advanced event selectors that are configured for the channel.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudTrailChannel,
 				Transform:   transform.FromField("SourceConfig.AdvancedEventSelectors"),
