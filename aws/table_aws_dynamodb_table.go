@@ -389,7 +389,7 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		if err != nil {
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
-				// Added to support regex in not found errors
+				// Handled not found error code
 				if ok, _ := path.Match("ResourceNotFoundException", ae.ErrorCode()); ok {
 					return nil, nil
 				}
