@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
@@ -171,10 +170,6 @@ func getCloudTrailChannel(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// execute list call
 	op, err := svc.GetChannel(ctx, params)
 	if err != nil {
-		// API throws no such host error for the region where connection could not be established.
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Info("aws_cloudtrail_channel.getCloudTrailChannel", "api_error", err)
 		return nil, err
 	}
