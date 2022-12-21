@@ -388,12 +388,12 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		result, err := svc.ListTagsOfResource(ctx, params)
 		if err != nil {
 			var ae smithy.APIError
-		if errors.As(err, &ae) {
-			// Added to support regex in not found errors
-			if ok, _ := path.Match("ResourceNotFoundException", ae.ErrorCode()); ok {
-				return nil, nil
+			if errors.As(err, &ae) {
+				// Added to support regex in not found errors
+				if ok, _ := path.Match("ResourceNotFoundException", ae.ErrorCode()); ok {
+					return nil, nil
+				}
 			}
-		}
 			plugin.Logger(ctx).Error("aws_dynamodb_table.getTableTagging", "api_error", err)
 			return nil, err
 		}
