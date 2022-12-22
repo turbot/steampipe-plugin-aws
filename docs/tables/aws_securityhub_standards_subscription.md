@@ -52,7 +52,7 @@ where
 select
   name,
   standards_arn,
-  standards_managed_by ->> 'Company' as standards_managed_by
+  standards_managed_by ->> 'Company' as standards_managed_by_company
 from
   aws_securityhub_standards_subscription
 where
