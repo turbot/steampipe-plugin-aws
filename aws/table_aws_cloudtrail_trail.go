@@ -419,7 +419,7 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException", "InsightNotEnabledException"}, ae.ErrorCode()) {
+			if helpers.StringSliceContains([]string{"InsightNotEnabledException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}
