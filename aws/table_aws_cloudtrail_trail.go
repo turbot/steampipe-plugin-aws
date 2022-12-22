@@ -406,7 +406,7 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	// Create session
 	svc, err := CloudTrailRegionsClient(ctx, d, *trail.HomeRegion)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "client_error", err)
 		return nil, err
 	}
 
