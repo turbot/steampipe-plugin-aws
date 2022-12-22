@@ -10,7 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-func tableAwsDrsRecoveryInstance(_ context.Context) *plugin.Table {
+func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_drs_recovery_instance",
 		Description: "AWS DRS recovery instance",
@@ -23,7 +23,7 @@ func tableAwsDrsRecoveryInstance(_ context.Context) *plugin.Table {
 				// UninitializedAccountException - This error comes up when default replication settings are not set for a particular region.
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException", "BadRequestException"}),
 			},
-			Hydrate: listAwsDrsRecoveryInstances,
+			Hydrate: listAwsDRSRecoveryInstances,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -117,12 +117,12 @@ func tableAwsDrsRecoveryInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsDrsRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsDRSRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create service
 	svc, err := DRSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_drs_recovery_instance.listAwsDrsRecoveryInstances", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_drs_recovery_instance.listAwsDRSRecoveryInstances", "connection_error", err)
 		return nil, err
 	}
 
@@ -171,12 +171,12 @@ func listAwsDrsRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_drs_recovery_instance.listAwsDrsRecoveryInstances", "api_error", err)
+			plugin.Logger(ctx).Error("aws_drs_recovery_instance.listAwsDRSRecoveryInstances", "api_error", err)
 			return nil, err
 		}
 
-		for _, resoveryInstance := range output.Items {
-			d.StreamListItem(ctx, resoveryInstance)
+		for _, recoveryInstance := range output.Items {
+			d.StreamListItem(ctx, recoveryInstance)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
