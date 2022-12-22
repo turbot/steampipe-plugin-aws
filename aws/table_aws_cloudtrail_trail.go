@@ -391,7 +391,7 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "common_data_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
