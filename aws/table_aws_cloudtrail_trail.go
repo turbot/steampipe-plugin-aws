@@ -313,7 +313,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	commonColumnData := commonData.(*awsCommonColumnData)
 	trail := h.Item.(types.Trail)
 
-	// Avoid api call if accountId is not equal to the accountId available in arn
+	// Avoid API call if Account ID of the client is not equal to the Account ID available in Trail ARN
 	accountId := arnToAccountId(*trail.TrailARN)
 	if commonColumnData.AccountId != accountId {
 		return nil, nil
