@@ -32,7 +32,7 @@ func tableAwsDrsRecoverySnapShot(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_id",
-				Description: "The ID of the source server that the snapshot was taken for.",
+				Description: "The ID of the snapshot.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SnapshotID"),
 			},
