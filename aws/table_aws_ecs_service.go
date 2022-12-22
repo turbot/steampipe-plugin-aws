@@ -100,6 +100,11 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "platform_family",
+				Description: "The operating system that your tasks in the service run on.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "platform_version",
 				Description: "The platform version on which to run your service.",
 				Type:        proto.ColumnType_STRING,

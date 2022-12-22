@@ -44,6 +44,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
+	"github.com/aws/aws-sdk-go-v2/service/drs"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
@@ -82,6 +83,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
+	"github.com/aws/aws-sdk-go-v2/service/pipes"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
@@ -126,6 +128,7 @@ import (
 	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
 	dlmEndpoint "github.com/aws/aws-sdk-go/service/dlm"
+	drsEndpoint "github.com/aws/aws-sdk-go/service/drs"
 	dynamodbEndpoint "github.com/aws/aws-sdk-go/service/dynamodb"
 	eksEndpoint "github.com/aws/aws-sdk-go/service/eks"
 	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
@@ -144,6 +147,7 @@ import (
 	mediastoreEndpoint "github.com/aws/aws-sdk-go/service/mediastore"
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
+	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
@@ -494,6 +498,17 @@ func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error
 		return nil, err
 	}
 	return docdb.NewFromConfig(*cfg), nil
+}
+
+func DRSClient(ctx context.Context, d *plugin.QueryData) (*drs.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, drsEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return drs.NewFromConfig(*cfg), nil
 }
 
 func DynamoDBClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
@@ -873,6 +888,17 @@ func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client,
 		return nil, nil
 	}
 	return pinpoint.NewFromConfig(*cfg), nil
+}
+
+func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, pipesEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return pipes.NewFromConfig(*cfg), nil
 }
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
