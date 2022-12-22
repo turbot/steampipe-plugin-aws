@@ -20,7 +20,7 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudtrail_query",
 		Description: "AWS CloudTrail Query",
 		Get: &plugin.GetConfig{
-			Hydrate:    getCloudTrailLakeQuery,
+			Hydrate:    getCloudTrailQuery,
 			KeyColumns: plugin.AllColumns([]string{"event_data_store_arn", "query_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EventDataStoreNotFoundException", "QueryIdNotFoundException"}),
@@ -66,19 +66,19 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 			{
 				Name:        "delivery_s3_uri",
 				Description: "The URI for the S3 bucket where CloudTrail delivered query results, if applicable.",
-				Hydrate:     getCloudTrailLakeQuery,
+				Hydrate:     getCloudTrailQuery,
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "delivery_status",
 				Description: "The delivery status.",
-				Hydrate:     getCloudTrailLakeQuery,
+				Hydrate:     getCloudTrailQuery,
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "error_message",
 				Description: "The error message returned if a query failed.",
-				Hydrate:     getCloudTrailLakeQuery,
+				Hydrate:     getCloudTrailQuery,
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -90,35 +90,35 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 				Name:        "bytes_scanned",
 				Description: "Gets metadata about a query, including the number of events that were matched, the total number of events scanned, the query run time in milliseconds, and the query's creation time.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getCloudTrailLakeQuery,
+				Hydrate:     getCloudTrailQuery,
 				Transform:   transform.FromField("QueryStatistics.BytesScanned"),
 			},
 			{
 				Name:        "events_matched",
 				Description: "The number of events that matched a query.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getCloudTrailLakeQuery,
+				Hydrate:     getCloudTrailQuery,
 				Transform:   transform.FromField("QueryStatistics.EventsMatched"),
 			},
 			{
 				Name:        "events_scanned",
 				Description: "The number of events that the query scanned in the event data store.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getCloudTrailLakeQuery,
+				Hydrate:     getCloudTrailQuery,
 				Transform:   transform.FromField("QueryStatistics.EventsScanned"),
 			},
 			{
 				Name:        "execution_time_in_millis",
 				Description: "The query's run time, in milliseconds.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getCloudTrailLakeQuery,
+				Hydrate:     getCloudTrailQuery,
 				Transform:   transform.FromField("QueryStatistics.ExecutionTimeInMillis"),
 			},
 			{
 				Name:        "query_string",
 				Description: "The SQL code of a query.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCloudTrailLakeQuery,
+				Hydrate:     getCloudTrailQuery,
 			},
 
 			// steampipe standard columns
@@ -226,7 +226,7 @@ func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 
 //// HYDRATE FUNCTIONS
 
-func getCloudTrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudTrailQuery(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var eventDataSourceArn, queryId string
 	if h.Item != nil {
 		data := h.Item.(*ListQueryInfo)
@@ -240,7 +240,7 @@ func getCloudTrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Create session
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_query.getCloudTrailLakeQuery", "client_error", err)
+		plugin.Logger(ctx).Info("aws_cloudtrail_query.getCloudTrailQuery", "client_error", err)
 		return nil, err
 	}
 
@@ -252,7 +252,7 @@ func getCloudTrailLakeQuery(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// execute list call
 	op, err := svc.DescribeQuery(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_query.getCloudTrailLakeQuery", "api_error", err)
+		plugin.Logger(ctx).Info("aws_cloudtrail_query.getCloudTrailQuery", "api_error", err)
 		return nil, err
 	}
 
