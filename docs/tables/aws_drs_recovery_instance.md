@@ -71,7 +71,7 @@ from
   aws_drs_recovery_instance;
 ```
 
-### List recovery instances which are created for an actual recovery event
+### List recovery instances that are created for an actual recovery event
 
 ```sql
 select
