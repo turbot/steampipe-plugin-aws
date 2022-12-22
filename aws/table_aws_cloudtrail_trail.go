@@ -423,7 +423,7 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 				return nil, nil
 			}
 		}
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "api_error", err)
 		return nil, err
 	}
 	return item, nil
