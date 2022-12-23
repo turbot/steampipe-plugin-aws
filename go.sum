@@ -137,8 +137,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0 h1:LoDc6Bpr5S2vDemfPpdy1
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0/go.mod h1:8xLCTMp8Lp0TFMitgMZUGC1LQvt0aaLCt4PHxblxvT0=
 github.com/aws/aws-sdk-go-v2/service/cloudsearch v1.13.19 h1:hwu8/vgXIafQ0PLySa+b0BTiTtxK80JjEJYWzigMK0o=
 github.com/aws/aws-sdk-go-v2/service/cloudsearch v1.13.19/go.mod h1:bqx3SdiUkTqYur8DDKCqXZhMnPOU5BNRAEuEpbYL1AI=
-github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8 h1:8y6EWV7zcggA+1mhI4AndodYLaDwTAD2m8kG2BGKQ48=
-github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8/go.mod h1:DAYVFTQuWYLg/8haillTZEi0k1w/QAFEahIkreT4DMY=
+github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.20.4 h1:oSnjrEeZ2fnvTERLBsW4MoVmx6pa7s11npKh7k9nIyo=
+github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.20.4/go.mod h1:yyEuVBXpQE/3dSFCq4Cg1Ltf04pQXnqbOrVc4gxdFKQ=
 github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.21.6 h1:Mwb2A5ygEijjkxgM3hVEiWSHwdH82nkyU2wgP4u/Hxk=
 github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.21.6/go.mod h1:CCrqOzLQ6d1+zauyTah8o50m9dQu0NS/kaC0heWCu0c=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.14 h1:SO5LdqjF9dlURPzk3LNMzCz9RA5K8/yNOf6WpdoffJU=
@@ -177,12 +177,12 @@ github.com/aws/aws-sdk-go-v2/service/ecr v1.17.16 h1:Fl+PSDkwzeNnI42wHAfRvreL6r7
 github.com/aws/aws-sdk-go-v2/service/ecr v1.17.16/go.mod h1:PKNfdxgouO2lS7Hl3p3LlEOsGS9ZHMu+P6E2ZfrdVxM=
 github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.15 h1:nY5bV/eL9iLzHDgZAxD8F793o28wrvukgrmQriQx0Ec=
 github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.15/go.mod h1:yHCiufyonR2GP3Vv4h7WfiZTPqVIPHeqPBN85Kawg0w=
-github.com/aws/aws-sdk-go-v2/service/ecs v1.20.1 h1:V86rF7/7aPVtyHYXIT3otMiub/WIGEWY4VNocgem72k=
-github.com/aws/aws-sdk-go-v2/service/ecs v1.20.1/go.mod h1:aFinYZKw5gyuAeRRRoE/pEmpLfiN7vVoTSr+w9y6flI=
+github.com/aws/aws-sdk-go-v2/service/ecs v1.21.0 h1:R08G2JJirqVJy+ovWt4MAJK/M7znlQIPe8nuuIZ88sM=
+github.com/aws/aws-sdk-go-v2/service/ecs v1.21.0/go.mod h1:YXZ3cd8LDvvQytFpWjqbgdmHRAyJi4qbIT5dYdyhfeM=
 github.com/aws/aws-sdk-go-v2/service/efs v1.17.15 h1:HgRxrC7KIUJW6gFf4AEjFPvrgh73aADaa1XZpiFsfgA=
 github.com/aws/aws-sdk-go-v2/service/efs v1.17.15/go.mod h1:xwXDmrVGNncQhSXhMbm7pE14Vcyc3QbzblKsvNms0/E=
-github.com/aws/aws-sdk-go-v2/service/eks v1.22.1 h1:f07Bk+xMm0Q8PCzvrBg8Bd6m67CTvZSxQWB0H7ZEJOU=
-github.com/aws/aws-sdk-go-v2/service/eks v1.22.1/go.mod h1:YoafRRQM4SnTFwb49e4LCAel6n99q2DMxkeAfbgvq8s=
+github.com/aws/aws-sdk-go-v2/service/eks v1.26.0 h1:YgH4p2ZmNkpsEWOB1xcd4ncvD+JACPhYy7o5EydX0m4=
+github.com/aws/aws-sdk-go-v2/service/eks v1.26.0/go.mod h1:H/748RFDDxPmaxe03lhX0ufIQHIO2ctqjTfxuX4N7Vg=
 github.com/aws/aws-sdk-go-v2/service/elasticache v1.22.10 h1:QFLruWwQeR6LWtNwVORmbk7dfCoimNtgpUbFNNGXt6w=
 github.com/aws/aws-sdk-go-v2/service/elasticache v1.22.10/go.mod h1:DUZW0DuaDQHJVgiRl2AFiveurN9HPd+dkcSUtjWc3a4=
 github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk v1.14.18 h1:w+VyGXpRZvj51v8+QFjV5Be7BGUWVpYw51/XZYNYmqc=
@@ -251,6 +251,8 @@ github.com/aws/aws-sdk-go-v2/service/neptune v1.17.12 h1:QxMwblYXBaAUnQsSbGGmGlq
 github.com/aws/aws-sdk-go-v2/service/neptune v1.17.12/go.mod h1:0arQRjGdCQgRNLiCIv5FEFCgQkDMUiLkv0mkrUbSrNE=
 github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0 h1:4dnMXC5HDrGKJ84gnIYBE5SsrDj1w7frMPbYCSD9MjA=
 github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0/go.mod h1:r80Jezlc9aM2OqNM1XjLmiIx+w6IjBoSvkgjQPZxuYs=
+github.com/aws/aws-sdk-go-v2/service/oam v1.0.2 h1:+0WlFOdyRwbfvw2vpActO0G8MG4liBpALJ4khlOzckk=
+github.com/aws/aws-sdk-go-v2/service/oam v1.0.2/go.mod h1:gzw1UuOMfeCZidBCOsLyXqI42Oa4d+5qopF+G3KFSPQ=
 github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10 h1:YCqIdYDeOYrrvSxSJGWDI9GW6JPypISUQP+dg2k6T3s=
 github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10/go.mod h1:28S5BnLe/L5tAa/O+HUehabvkxDxxVKiz6X0ztVwcCY=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8 h1:ay2kKjWoadTWcvMBmvpnsrzQxf/Ic+yYDeyPK8HN3Dk=
@@ -287,8 +289,8 @@ github.com/aws/aws-sdk-go-v2/service/sagemaker v1.48.0 h1:8+QpHzNlngLqjO3D9qK4fi
 github.com/aws/aws-sdk-go-v2/service/sagemaker v1.48.0/go.mod h1:399X+P/GvxXrwvZStU+rIyRGUAOnaYFeVwmZQ8+nuaM=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.16.2 h1:3x1Qilin49XQ1rK6pDNAfG+DmCFPfB7Rrpl+FUDAR/0=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.16.2/go.mod h1:HEBBc70BYi5eUvxBqC3xXjU/04NO96X/XNUe5qhC7Bc=
-github.com/aws/aws-sdk-go-v2/service/securityhub v1.23.5 h1:jA6VOKxMvwEZSbUmidVkubHxEd5/CllfpdUSPQ7wwv4=
-github.com/aws/aws-sdk-go-v2/service/securityhub v1.23.5/go.mod h1:2nUG9O81bApzrD7ixZ//VGGXXwooek/N+EQqeXb9208=
+github.com/aws/aws-sdk-go-v2/service/securityhub v1.26.0 h1:ADiYU3u1T3H1Ga/3n+n96RdIYWrGwzIkXyQUwvvPCiM=
+github.com/aws/aws-sdk-go-v2/service/securityhub v1.26.0/go.mod h1:jCcQtGvdKbsciK2qopdoByZRHkJRcIz+uebk4fSj8CA=
 github.com/aws/aws-sdk-go-v2/service/securitylake v1.0.0 h1:STy0TStuLv3GOQJhpJs2f+jeZeQIrhG0RSvT67CKrh4=
 github.com/aws/aws-sdk-go-v2/service/securitylake v1.0.0/go.mod h1:Vhz7QP8URvKEXnQ85WKvCaytdEXH8T2BVRpwB0Hdsxc=
 github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository v1.11.17 h1:GAV3rrPkNxn9pbYVIywkd5IHP3RMYfba/sdTFOsGQ+w=
