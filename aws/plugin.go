@@ -358,7 +358,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
 			"aws_ses_domain_identity":                                      tableAwsSESDomainIdentity(ctx),
 			"aws_ses_email_identity":                                       tableAwsSESEmailIdentity(ctx),
-			"aws_sim_space_weaver_simulation":                              tableAwsSimSpaceWeaverSimulation(ctx),
+			"aws_simspaceweaver_simulation":                                tableAwsSimSpaceWeaverSimulation(ctx),
 			"aws_sfn_state_machine_execution_history":                      tableAwsStepFunctionsStateMachineExecutionHistory(ctx),
 			"aws_sfn_state_machine_execution":                              tableAwsStepFunctionsStateMachineExecution(ctx),
 			"aws_sfn_state_machine":                                        tableAwsStepFunctionsStateMachine(ctx),

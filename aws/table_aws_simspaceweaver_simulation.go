@@ -16,7 +16,7 @@ import (
 
 func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_sim_space_weaver_simulation",
+		Name:        "aws_simspaceweaver_simulation",
 		Description: "AWS SimSpace Weaver Simulation",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
@@ -127,7 +127,7 @@ func listAwsSimSpaceWeaverSimulations(ctx context.Context, d *plugin.QueryData, 
 	// Create  Client
 	svc, err := SimSpaceWeaverClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.listAwsSimSpaceWeaverSimulations", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_simspaceweaver_simulation.listAwsSimSpaceWeaverSimulations", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -140,11 +140,7 @@ func listAwsSimSpaceWeaverSimulations(ctx context.Context, d *plugin.QueryData, 
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -159,7 +155,7 @@ func listAwsSimSpaceWeaverSimulations(ctx context.Context, d *plugin.QueryData, 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.listAwsSimSpaceWeaverSimulations", "api_error", err)
+			plugin.Logger(ctx).Error("aws_simspaceweaver_simulation.listAwsSimSpaceWeaverSimulations", "api_error", err)
 			return nil, err
 		}
 		for _, simulation := range output.Simulations {
@@ -193,7 +189,7 @@ func getAwsSimSpaceWeaverSimulation(ctx context.Context, d *plugin.QueryData, h 
 	// Create session
 	svc, err := SimSpaceWeaverClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulation", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_simspaceweaver_simulation.getAwsSimSpaceWeaverSimulation", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -207,7 +203,7 @@ func getAwsSimSpaceWeaverSimulation(ctx context.Context, d *plugin.QueryData, h 
 
 	op, err := svc.DescribeSimulation(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulation", "api_error", err)
+		plugin.Logger(ctx).Error("aws_simspaceweaver_simulation.getAwsSimSpaceWeaverSimulation", "api_error", err)
 		return nil, err
 	}
 	return op, nil
@@ -222,7 +218,7 @@ func listAwsSimSpaceWeaverSimulationTags(ctx context.Context, d *plugin.QueryDat
 	// Create session
 	svc, err := SimSpaceWeaverClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulationTags", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_simspaceweaver_simulation.getAwsSimSpaceWeaverSimulationTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -232,7 +228,7 @@ func listAwsSimSpaceWeaverSimulationTags(ctx context.Context, d *plugin.QueryDat
 
 	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sim_space_weaver_simulation.getAwsSimSpaceWeaverSimulationTags", "api_error", err)
+		plugin.Logger(ctx).Error("aws_simspaceweaver_simulation.getAwsSimSpaceWeaverSimulationTags", "api_error", err)
 		return nil, err
 	}
 
