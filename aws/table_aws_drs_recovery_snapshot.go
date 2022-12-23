@@ -12,7 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-func tableAwsDrsRecoverySnapShot(_ context.Context) *plugin.Table {
+func tableAwsDRSRecoverySnapshot(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_drs_recovery_snapshot",
 		Description: "AWS DRS Recovery Snapshot",
@@ -26,7 +26,7 @@ func tableAwsDrsRecoverySnapShot(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException", "BadRequestException"}),
 			},
 			ParentHydrate: listAwsDRSSourceServers,
-			Hydrate:       listAwsDrsRecoverySnapshots,
+			Hydrate:       listAwsDRSRecoverySnapshots,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -71,7 +71,7 @@ func tableAwsDrsRecoverySnapShot(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsDrsRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsDRSRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var sourceServerID string
 	if h.Item != nil {
 		sourceServerID = *h.Item.(types.SourceServer).SourceServerID
@@ -85,7 +85,7 @@ func listAwsDrsRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *pl
 	// Create service
 	svc, err := DRSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_drs_recovery_snapshot.listAwsDrsRecoverySnapshots", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_drs_recovery_snapshot.listAwsDRSRecoverySnapshots", "connection_error", err)
 		return nil, err
 	}
 
@@ -142,7 +142,7 @@ func listAwsDrsRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *pl
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_drs_recovery_snapshot.listAwsDrsRecoverySnapshots", "api_error", err)
+			plugin.Logger(ctx).Error("aws_drs_recovery_snapshot.listAwsDRSRecoverySnapshots", "api_error", err)
 			return nil, err
 		}
 
