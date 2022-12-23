@@ -78,7 +78,7 @@ func getSecurityLakeDataLake(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	// Limiting the results
-	maxLimit := int32(100)
+	var maxLimit = int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
