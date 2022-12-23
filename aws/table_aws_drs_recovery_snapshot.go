@@ -49,7 +49,7 @@ func tableAwsDrsRecoverySnapShot(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "timestamp",
-				Description: "The actual timestamp that the snapshot was taken.",
+				Description: "The actual timestamp when the snapshot was taken.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
