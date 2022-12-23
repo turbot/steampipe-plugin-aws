@@ -353,6 +353,10 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		plugin.Logger(ctx).Error("aws_rds_db_cluster.listRDSDBClusters", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -430,6 +434,10 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		plugin.Logger(ctx).Error("aws_rds_db_cluster.getRDSDBCluster", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBClustersInput{
 		DBClusterIdentifier: aws.String(dbClusterIdentifier),
@@ -455,6 +463,10 @@ func getRDSDBClusterPendingMaintenanceAction(ctx context.Context, d *plugin.Quer
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_cluster.getRDSDBClusterPendingMaintenanceAction", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	filter := &types.Filter{

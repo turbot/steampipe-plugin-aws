@@ -109,6 +109,10 @@ func listRDSDBEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *pl
 		plugin.Logger(ctx).Error("aws_rds_db_event_subscription.listRDSDBEventSubscriptions", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -163,6 +167,10 @@ func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_event_subscription.getRDSDBEventSubscription", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &rds.DescribeEventSubscriptionsInput{

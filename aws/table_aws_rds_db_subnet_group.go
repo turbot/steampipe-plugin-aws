@@ -106,6 +106,10 @@ func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		plugin.Logger(ctx).Error("aws_rds_db_subnet_group.listRDSDBSubnetGroups", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -161,6 +165,10 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_rds_db_subnet_group.getRDSDBSubnetGroup", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBSubnetGroupsInput{
 		DBSubnetGroupName: aws.String(name),
@@ -187,6 +195,10 @@ func getRDSDBSubnetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_subnet_group.getRDSDBSubnetGroupTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &rds.ListTagsForResourceInput{

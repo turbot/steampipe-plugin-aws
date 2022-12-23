@@ -148,6 +148,7 @@ import (
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
 	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
+	rdsEndpoint "github.com/aws/aws-sdk-go/service/rds"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
@@ -921,9 +922,12 @@ func RAMClient(ctx context.Context, d *plugin.QueryData) (*ram.Client, error) {
 }
 
 func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, rdsEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return rds.NewFromConfig(*cfg), nil
 }

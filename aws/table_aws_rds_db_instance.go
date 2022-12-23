@@ -447,6 +447,10 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		plugin.Logger(ctx).Error("aws_rds_db_instance.listRDSDBInstances", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -507,6 +511,10 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstance", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBInstancesInput{
 		DBInstanceIdentifier: aws.String(dbInstanceIdentifier),
@@ -532,6 +540,10 @@ func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.Que
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstancePendingMaintenanceAction", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	filter := &types.Filter{
@@ -562,6 +574,10 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceCertificate", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &rds.DescribeCertificatesInput{

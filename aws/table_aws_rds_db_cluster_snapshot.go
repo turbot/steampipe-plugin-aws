@@ -191,6 +191,10 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.listRDSDBClusterSnapshots", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	// select * from aws_rds_db_cluster_snapshot limit 3
@@ -255,6 +259,10 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getRDSDBClusterSnapshot", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBClusterSnapshotsInput{
 		DBClusterSnapshotIdentifier: aws.String(snapshotIdentifier),
@@ -281,6 +289,10 @@ func getAwsRDSDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getAwsRDSDBClusterSnapshotAttributes", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &rds.DescribeDBClusterSnapshotAttributesInput{

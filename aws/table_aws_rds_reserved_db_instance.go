@@ -155,6 +155,10 @@ func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 		plugin.Logger(ctx).Error("aws_rds_reserved_db_instance.listRDSReservedDBInstances", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -237,6 +241,10 @@ func getRDSReservedDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_reserved_db_instance.getRDSReservedDBInstance", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &rds.DescribeReservedDBInstancesInput{

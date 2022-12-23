@@ -119,6 +119,10 @@ func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		logger.Error("aws_rds_db_option_group.listRDSDBOptionGroups", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -184,6 +188,10 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_rds_db_option_group.getRDSDBOptionGroup", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	params := &rds.DescribeOptionGroupsInput{
 		OptionGroupName: aws.String(name),
@@ -211,6 +219,10 @@ func getAwsRDSOptionGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_option_group.getAwsRDSOptionGroupTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &rds.ListTagsForResourceInput{

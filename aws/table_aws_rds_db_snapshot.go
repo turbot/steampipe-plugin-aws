@@ -230,6 +230,10 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		plugin.Logger(ctx).Error("aws_rds_db_snapshot.listRDSDBSnapshots", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -290,6 +294,10 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		plugin.Logger(ctx).Error("aws_rds_db_snapshot.getRDSDBSnapshot", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBSnapshotsInput{
 		DBSnapshotIdentifier: aws.String(dbSnapshotIdentifier),
@@ -316,6 +324,10 @@ func getAwsRDSDBSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_snapshot.getAwsRDSDBSnapshotAttributes", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &rds.DescribeDBSnapshotAttributesInput{

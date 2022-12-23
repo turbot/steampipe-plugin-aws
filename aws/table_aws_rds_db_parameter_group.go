@@ -102,6 +102,10 @@ func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.listRDSDBParameterGroups", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -157,6 +161,10 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.getRDSDBParameterGroup", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBParameterGroupsInput{
 		DBParameterGroupName: aws.String(name),
@@ -183,6 +191,10 @@ func getRDSParameterGroupParameters(ctx context.Context, d *plugin.QueryData, h 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.getRDSParameterGroupParameters", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &rds.DescribeDBParametersInput{
@@ -215,6 +227,10 @@ func getRDSParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_rds_db_parameter_group.getRDSParameterGroupTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &rds.ListTagsForResourceInput{
