@@ -77,15 +77,6 @@ func getSecurityLakeDataLake(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, nil
 	}
 
-	// Limiting the results
-	var maxLimit = int32(100)
-	if d.QueryContext.Limit != nil {
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxLimit {
-			maxLimit = limit
-		}
-	}
-
 	input := &securitylake.GetDatalakeInput{}
 
 	resp, err := svc.GetDatalake(ctx, input)
