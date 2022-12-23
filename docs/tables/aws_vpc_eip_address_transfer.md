@@ -1,4 +1,4 @@
-# Table: aws_vpc_eip
+# Table: aws_vpc_eip_address_transfer
 
 An Elastic IP Address Transfer is a static, public IPv4 address that transfer from AWS account (source account) to any other AWS account in the same AWS Region.
 
