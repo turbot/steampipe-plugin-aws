@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/oam/types"
 )
 
-func tableAwsOamSink(_ context.Context) *plugin.Table {
+func tableAwsOAMSink(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_oam_sink",
 		Description: "AWS OAM Sink",
@@ -21,10 +21,10 @@ func tableAwsOamSink(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "ResourceNotFoundException"}),
 			},
-			Hydrate: getAwsOamSink,
+			Hydrate: getAwsOAMSink,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsOamSinks,
+			Hydrate: listAwsOAMSinks,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -35,7 +35,7 @@ func tableAwsOamSink(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "id",
-				Description: "The random ID string that Amazon Web Services generated as part of the sink ARN.",
+				Description: "The random ID string that Amazon Web Service generates as part of the sink ARN.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -55,7 +55,7 @@ func tableAwsOamSink(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAwsOamSinkTags,
+				Hydrate:     listAwsOAMSinkTags,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -68,11 +68,11 @@ func tableAwsOamSink(_ context.Context) *plugin.Table {
 	}
 }
 
-func listAwsOamSinks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsOAMSinks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinks", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOAMSinks", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -102,7 +102,7 @@ func listAwsOamSinks(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinks", "api_error", err)
+			plugin.Logger(ctx).Error("aws_oam_sink.listAwsOAMSinks", "api_error", err)
 			return nil, err
 		}
 
@@ -121,7 +121,7 @@ func listAwsOamSinks(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getAwsOamSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsOAMSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	arn := d.KeyColumnQualString("arn")
 	if arn == "" {
 		return nil, nil
@@ -130,7 +130,7 @@ func getAwsOamSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	// Create Client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.getAwsOamSink", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.getAwsOAMSink", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -146,20 +146,20 @@ func getAwsOamSink(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	// Get call
 	resp, err := svc.GetSink(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.getAwsOamSink", "api_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.getAwsOAMSink", "api_error", err)
 		return nil, err
 	}
 
 	return resp, nil
 }
 
-func listAwsOamSinkTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	arn := getOamSinkArn(h.Item)
+func listAwsOAMSinkTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	arn := getOAMSinkArn(h.Item)
 
 	// Create Client
 	svc, err := OAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinkTags", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOAMSinkTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -171,7 +171,7 @@ func listAwsOamSinkTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Get call
 	resp, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOamSinkTags", "api_error", err)
+		plugin.Logger(ctx).Error("aws_oam_sink.listAwsOAMSinkTags", "api_error", err)
 		return nil, err
 	}
 
@@ -184,7 +184,7 @@ func listAwsOamSinkTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// UTILITY FUNCTION
 
-func getOamSinkArn(item interface{}) string {
+func getOAMSinkArn(item interface{}) string {
 	switch item := item.(type) {
 	case types.ListSinksItem:
 		return *item.Arn

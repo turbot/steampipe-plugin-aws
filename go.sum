@@ -253,6 +253,8 @@ github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0 h1:4dnMXC5HDrGKJ84g
 github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0/go.mod h1:r80Jezlc9aM2OqNM1XjLmiIx+w6IjBoSvkgjQPZxuYs=
 github.com/aws/aws-sdk-go-v2/service/oam v1.0.1 h1:8gr7qbuK6Cq2njlzGddsaHyEsBSzc+GxMCQliBXFZeU=
 github.com/aws/aws-sdk-go-v2/service/oam v1.0.1/go.mod h1:saff+NI9S16Le5gK8qKcmbFGDP3+rCvbzWNo8/NMa/w=
+github.com/aws/aws-sdk-go-v2/service/oam v1.0.2 h1:+0WlFOdyRwbfvw2vpActO0G8MG4liBpALJ4khlOzckk=
+github.com/aws/aws-sdk-go-v2/service/oam v1.0.2/go.mod h1:gzw1UuOMfeCZidBCOsLyXqI42Oa4d+5qopF+G3KFSPQ=
 github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10 h1:YCqIdYDeOYrrvSxSJGWDI9GW6JPypISUQP+dg2k6T3s=
 github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10/go.mod h1:28S5BnLe/L5tAa/O+HUehabvkxDxxVKiz6X0ztVwcCY=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8 h1:ay2kKjWoadTWcvMBmvpnsrzQxf/Ic+yYDeyPK8HN3Dk=
