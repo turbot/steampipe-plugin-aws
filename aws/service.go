@@ -84,6 +84,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
+	"github.com/aws/aws-sdk-go-v2/service/pipes"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
@@ -148,6 +149,7 @@ import (
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
 	oamEndpoint "github.com/aws/aws-sdk-go/service/oam"
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
+	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
@@ -899,6 +901,17 @@ func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client,
 		return nil, nil
 	}
 	return pinpoint.NewFromConfig(*cfg), nil
+}
+
+func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, pipesEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return pipes.NewFromConfig(*cfg), nil
 }
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
