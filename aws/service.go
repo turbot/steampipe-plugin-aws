@@ -1047,7 +1047,6 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
-	// cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, s3ControlEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
