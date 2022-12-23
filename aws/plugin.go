@@ -384,6 +384,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_dhcp_options":                                         tableAwsVpcDhcpOptions(ctx),
 			"aws_vpc_egress_only_internet_gateway":                         tableAwsVpcEgressOnlyIGW(ctx),
 			"aws_vpc_eip":                                                  tableAwsVpcEip(ctx),
+			"aws_vpc_eip_address_transfer":                                 tableAwsVpcEipAddressTransfer(ctx),
 			"aws_vpc_endpoint_service":                                     tableAwsVpcEndpointService(ctx),
 			"aws_vpc_endpoint":                                             tableAwsVpcEndpoint(ctx),
 			"aws_vpc_flow_log_event":                                       tableAwsVpcFlowLogEvent(ctx),
