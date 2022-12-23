@@ -1,6 +1,6 @@
 # Table: aws_oam_link
 
-Amazon CloudWatch Observability Access Manager (OAM) link shares their observability data with the monitoring account. The shared observability data can include metrics in Amazon CloudWatch, logs in Amazon CloudWatch Logs, and traces in AWS X-Ray.
+Amazon CloudWatch Observability Access Manager (OAM) link shares the observability data with the monitoring account. The shared observability data can include metrics in Amazon CloudWatch, logs in Amazon CloudWatch Logs, and traces in AWS X-Ray.
 
 ## Example
 
@@ -17,7 +17,7 @@ from
   aws_oam_link;
 ```
 
-### Get sink details for each link
+### Get sink details of each link
 
 ```sql
 select
@@ -30,7 +30,7 @@ from
   aws_oam_sink as s;
 ```
 
-### List links that share data for Cloudwatch log group resource type
+### List links that share data of CloudWatch log group resource type
 
 ```sql
 select
