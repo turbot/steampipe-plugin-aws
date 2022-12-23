@@ -69,6 +69,11 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     GetEnabledStandards,
 			},
+			{
+				Name:        "standards_managed_by",
+				Description: "Provides details about the management of a security standard.",
+				Type:        proto.ColumnType_JSON,
+			},
 
 			// Standard columns for all tables
 			{
