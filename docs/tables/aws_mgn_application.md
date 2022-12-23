@@ -34,7 +34,7 @@ where
   is_archived;
 ```
 
-### Get aggregated status details for a application
+### Get aggregated status details for an application
 
 ```sql
 select
@@ -47,7 +47,7 @@ from
   aws_mgn_application;
 ```
 
-### List applications that have been created in the last 30 days
+### List applications older than 30 days
 
 ```sql
 select
