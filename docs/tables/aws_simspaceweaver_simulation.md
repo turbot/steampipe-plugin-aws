@@ -46,7 +46,7 @@ where
   status = 'FAILED';
 ```
 
-### Get logging configurations for simulations
+### Get logging configurations of simulations
 
 ```sql
 select
@@ -58,7 +58,7 @@ from
   jsonb_array_elements(logging_configuration -> 'Destinations') as d;
 ```
 
-### Get bucket details for simulations
+### Get S3 bucket details of simulations
 
 ```sql
 select

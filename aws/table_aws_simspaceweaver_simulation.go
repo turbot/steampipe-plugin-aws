@@ -135,6 +135,7 @@ func listAwsSimSpaceWeaverSimulations(ctx context.Context, d *plugin.QueryData, 
 		return nil, nil
 	}
 
+	// MaxResult value has not been specified in the docs.
 	// Limiting the results
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
