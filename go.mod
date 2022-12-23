@@ -71,6 +71,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/macie2 v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17
+	github.com/aws/aws-sdk-go-v2/service/mgn v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/neptune v1.17.12
 	github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0
 	github.com/aws/aws-sdk-go-v2/service/oam v1.0.2

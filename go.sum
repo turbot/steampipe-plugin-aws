@@ -247,12 +247,12 @@ github.com/aws/aws-sdk-go-v2/service/macie2 v1.23.4 h1:/Rv3JOYOob2slAUhk+M9xuUuN
 github.com/aws/aws-sdk-go-v2/service/macie2 v1.23.4/go.mod h1:nbbOVAuwoF7LhTtZqLTsM735THLvmm30Oak6hVwfIR4=
 github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17 h1:XMYHc24lhxNr0SDLtGELpdXb3m7RyqPcq5FnQIxG4mM=
 github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17/go.mod h1:syXhqQV9llxfKxGdzv+rPDkSfSApNl2te4nICjCvSfw=
+github.com/aws/aws-sdk-go-v2/service/mgn v1.16.2 h1:TflJ4gYYiVhhCdGiy/o0y5GcyoNpROJ7B/2MOiV+BCs=
+github.com/aws/aws-sdk-go-v2/service/mgn v1.16.2/go.mod h1:up+ZyvBjd1NjSYXErQqLUMYbrZsqt1e6uIl5Kx3qrwQ=
 github.com/aws/aws-sdk-go-v2/service/neptune v1.17.12 h1:QxMwblYXBaAUnQsSbGGmGlqj5/lHJKaEr1HcMXnnaok=
 github.com/aws/aws-sdk-go-v2/service/neptune v1.17.12/go.mod h1:0arQRjGdCQgRNLiCIv5FEFCgQkDMUiLkv0mkrUbSrNE=
 github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0 h1:4dnMXC5HDrGKJ84gnIYBE5SsrDj1w7frMPbYCSD9MjA=
 github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0/go.mod h1:r80Jezlc9aM2OqNM1XjLmiIx+w6IjBoSvkgjQPZxuYs=
-github.com/aws/aws-sdk-go-v2/service/oam v1.0.1 h1:8gr7qbuK6Cq2njlzGddsaHyEsBSzc+GxMCQliBXFZeU=
-github.com/aws/aws-sdk-go-v2/service/oam v1.0.1/go.mod h1:saff+NI9S16Le5gK8qKcmbFGDP3+rCvbzWNo8/NMa/w=
 github.com/aws/aws-sdk-go-v2/service/oam v1.0.2 h1:+0WlFOdyRwbfvw2vpActO0G8MG4liBpALJ4khlOzckk=
 github.com/aws/aws-sdk-go-v2/service/oam v1.0.2/go.mod h1:gzw1UuOMfeCZidBCOsLyXqI42Oa4d+5qopF+G3KFSPQ=
 github.com/aws/aws-sdk-go-v2/service/opensearch v1.10.10 h1:YCqIdYDeOYrrvSxSJGWDI9GW6JPypISUQP+dg2k6T3s=
