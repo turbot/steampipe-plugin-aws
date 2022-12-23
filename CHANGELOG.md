@@ -22,7 +22,6 @@ _Enhancements_
 _Bug fixes_
 
 - Fixed the `insight_selectors` column in `aws_cloudtrail_trail` table to correctly return data instead of `nil`. ([#1512](https://github.com/turbot/steampipe-plugin-aws/pull/1512))
-- Fixed: Handle ResourceNotFoundException in ListTagsOfResource API of aws_dynamodb_table ([#1518](https://github.com/turbot/steampipe-plugin-aws/pull/1518))
 - Fixed the `tags` and `tags_src` column in `aws_dynamodb_table` table to correctly handle the `ResourceNotFoundException` error and return `nil`, when an invalid `arn` is passed in the where clause. ([#1518](https://github.com/turbot/steampipe-plugin-aws/pull/1518))
 
 ## v0.88.0 [2022-12-15]
