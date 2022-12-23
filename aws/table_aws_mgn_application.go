@@ -47,7 +47,7 @@ func tableAwsMGNApplication(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) of the application",
+				Description: "The Amazon Resource Name (ARN) of the application.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -85,7 +85,7 @@ func tableAwsMGNApplication(_ context.Context) *plugin.Table {
 			// Steampipe standard columns
 			{
 				Name:        "tags",
-				Description: "A list of tags attached to the Cluster.",
+				Description: "A list of tags attached to the application.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
