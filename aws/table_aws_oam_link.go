@@ -30,7 +30,7 @@ func tableAwsOAMLink(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
-				Description: "The random ID string that Amazon Web Services generated as part of the link ARN.",
+				Description: "The random ID string that Amazon Web Service generates as part of the link ARN.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
