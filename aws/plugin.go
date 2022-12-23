@@ -127,6 +127,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_docdb_cluster":                                            tableAwsDocDBCluster(ctx),
 			"aws_drs_job":                                                  tableAwsDRSJob(ctx),
 			"aws_drs_recovery_instance":                                    tableAwsDRSRecoveryInstance(ctx),
+			"aws_drs_recovery_snapshot":                                    tableAwsDRSRecoverySnapshot(ctx),
 			"aws_drs_source_server":                                        tableAwsDRSSourceServer(ctx),
 			"aws_dynamodb_backup":                                          tableAwsDynamoDBBackup(ctx),
 			"aws_dynamodb_global_table":                                    tableAwsDynamoDBGlobalTable(ctx),
