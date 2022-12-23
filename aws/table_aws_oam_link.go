@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/oam/types"
 )
 
-func tableAwsOamLink(_ context.Context) *plugin.Table {
+func tableAwsOAMLink(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_oam_link",
 		Description: "AWS OAM Link",
