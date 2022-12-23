@@ -150,6 +150,7 @@ import (
 	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
+	s3ControlEndpoint "github.com/aws/aws-sdk-go/service/s3control"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
 	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
 	securitylakeEndpoint "github.com/aws/aws-sdk-go/service/securitylake"
@@ -1046,9 +1047,13 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, s3ControlEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return s3control.NewFromConfig(*cfg), nil
 }
