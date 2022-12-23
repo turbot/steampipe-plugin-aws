@@ -30,7 +30,7 @@ from
   aws_oam_sink as s;
 ```
 
-### List links that share data for loggroup resource type
+### List links that share data for Cloudwatch log group resource type
 
 ```sql
 select
