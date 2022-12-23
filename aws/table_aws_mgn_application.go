@@ -21,9 +21,9 @@ func tableAwsMGNApplication(_ context.Context) *plugin.Table {
 		Name:        "aws_mgn_application",
 		Description: "AWS MGN Application",
 		List: &plugin.ListConfig{
-			Hydrate: ListAwsMGNApplication,
+			Hydrate: ListAwsMGNApplications,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				// UninitializedAccountException - This error comes up when default template are not set for a particular region.
+				// UninitializedAccountException - This error comes up when the service is not enabled for the account.
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
@@ -105,19 +105,19 @@ func tableAwsMGNApplication(_ context.Context) *plugin.Table {
 }
 
 // // LIST FUNCTION
-func ListAwsMGNApplication(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func ListAwsMGNApplications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	svc, err := MGNClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_mgn_application.ListAwsMGNApplication", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_mgn_application.ListAwsMGNApplications", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
-		// Unsupport region, return no data
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	maxLimit := int32(100)
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
@@ -144,7 +144,7 @@ func ListAwsMGNApplication(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_mgn_application.ListAwsMGNApplication", "api_error", err)
+			plugin.Logger(ctx).Error("aws_mgn_application.ListAwsMGNApplications", "api_error", err)
 			return nil, err
 		}
 
