@@ -2,10 +2,13 @@ package aws
 
 import (
 	"context"
+	"errors"
+	"path"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/aws/smithy-go"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -384,6 +387,13 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	for pagesLeft {
 		result, err := svc.ListTagsOfResource(ctx, params)
 		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				// Handled not found error code
+				if ok, _ := path.Match("ResourceNotFoundException", ae.ErrorCode()); ok {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_dynamodb_table.getTableTagging", "api_error", err)
 			return nil, err
 		}
