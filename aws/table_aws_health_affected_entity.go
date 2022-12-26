@@ -17,7 +17,7 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 		Name:        "aws_health_affected_entity",
 		Description: "AWS Health Affected Entity",
 		List: &plugin.ListConfig{
-			Hydrate: listHealthEvents,
+			Hydrate: listHealthAffectedEntities,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionRequiredException"}),
 			},
