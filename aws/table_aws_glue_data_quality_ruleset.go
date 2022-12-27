@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/glue/types"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -21,14 +22,21 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException", "ValidationException", "UnknownOperationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException", "UnknownOperationException"}),
 			},
 			Hydrate: getGlueDataQualityRuleset,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlueDataQualityRulesets,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnknownOperationException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnknownOperationException"}),
+			},
+			KeyColumns: []*plugin.KeyColumn{
+				// We need to pass both database name and table name all together.
+				// If the database name and table name are passes as input parameters, the API gives a validation error, thus they are eliminated from the option quals.
+				// api error ValidationException: 1 validation error detected: Value null at 'filter.targetTable.name' failed to satisfy constraint: Member must not be null
+				{Name: "created_on", Require: plugin.Optional, Operators: []string{"<=", "<", ">=", ">"}},
+				{Name: "last_modified_on", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -84,7 +92,7 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 			{
 				Name:        "target_table",
 				Description: "An object representing an Glue table.",
-				Type:        proto.ColumnType_INT,
+				Type:        proto.ColumnType_JSON,
 			},
 
 			// Steampipe standard columns
@@ -125,8 +133,12 @@ func listGlueDataQualityRulesets(ctx context.Context, d *plugin.QueryData, _ *pl
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	// List call
+	filter := buildGlueDataQualityRulesetFilter(d.Quals)
+	if filter != nil {
+		input.Filter = filter
+	}
 
+	// List call
 	paginator := glue.NewListDataQualityRulesetsPaginator(svc, input, func(o *glue.ListDataQualityRulesetsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
@@ -189,4 +201,42 @@ func getGlueDataQualityRuleset(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 	return data, nil
+}
+
+//// UTILITY FUNCTION
+
+// Build glue data quality ruleset list call input filter
+func buildGlueDataQualityRulesetFilter(quals plugin.KeyColumnQualMap) *types.DataQualityRulesetFilterCriteria {
+	filter := &types.DataQualityRulesetFilterCriteria{}
+	columns := map[string]string{
+		"created_on":       "timestamp",
+		"last_modified_on": "timestamp",
+	}
+
+	for columnName, dataType := range columns {
+		if quals[columnName] != nil {
+			switch dataType {
+			case "timestamp":
+				for _, q := range quals[columnName].Quals {
+					value := q.Value.GetTimestampValue().AsTime()
+					switch columnName {
+					case "created_on":
+						if helpers.StringSliceContains([]string{"<=", "<"}, q.Operator) {
+							filter.CreatedBefore = &value
+						} else if helpers.StringSliceContains([]string{">=", ">"}, q.Operator) {
+							filter.CreatedAfter = &value
+						}
+					case "last_modified_on":
+						if helpers.StringSliceContains([]string{"<=", "<"}, q.Operator) {
+							filter.LastModifiedBefore = &value
+						} else if helpers.StringSliceContains([]string{">=", ">"}, q.Operator) {
+							filter.LastModifiedBefore = &value
+						}
+					}
+				}
+
+			}
+		}
+	}
+	return filter
 }
