@@ -48,13 +48,13 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "database_name",
-				Description: "The name of the database where the Glue table exists.",
+				Description: "The name of the database where the glue table exists.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("TargetTable.DatabaseName"),
 			},
 			{
 				Name:        "table_name",
-				Description: "The name of the Glue table.",
+				Description: "The name of the glue table.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("TargetTable.TableName"),
 			},
@@ -91,7 +91,7 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "target_table",
-				Description: "An object representing an Glue table.",
+				Description: "An object representing an glue table.",
 				Type:        proto.ColumnType_JSON,
 			},
 
@@ -100,7 +100,7 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("EndpointName"),
+				Transform:   transform.FromField("Name"),
 			},
 		}),
 	}
