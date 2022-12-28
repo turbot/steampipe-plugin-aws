@@ -27,7 +27,7 @@ func tableAwsSecurityLakeDataLake(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "replication_role_arn",
-				Description: "Replication settings for the Amazon S3 buckets. This parameter uses the IAM role created by you that is managed by Security Lake, to ensure the replication setting is correct.",
+				Description: "This parameter uses the IAM role created by you that is managed by Security Lake, to ensure the replication setting is correct.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
