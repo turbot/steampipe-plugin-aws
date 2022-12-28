@@ -170,7 +170,7 @@ func getCloudTrailChannel(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// execute list call
 	op, err := svc.GetChannel(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_channel.getCloudTrailChannel", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_channel.getCloudTrailChannel", "api_error", err)
 		return nil, err
 	}
 
