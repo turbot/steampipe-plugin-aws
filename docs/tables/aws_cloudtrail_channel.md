@@ -1,4 +1,5 @@
 # Table: aws_cloudtrail_channel
+
 AWS services can create a service-linked channel to receive CloudTrail events on your behalf. The AWS service creating the service-linked channel configures advanced event selectors for the channel and specifies whether the channel applies to all regions, or a single region.
 
 ## Examples
