@@ -27,7 +27,7 @@ func tableAwsCloudtrailImport(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudTrailImports,
-			// For that location where the API operation is not supported, we receive UnsupportedOperationException.
+			// For the location where the API operation is not supported, we receive UnsupportedOperationException.
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnsupportedOperationException"}),
 			},
