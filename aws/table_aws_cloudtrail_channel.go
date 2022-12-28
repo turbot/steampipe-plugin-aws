@@ -159,7 +159,7 @@ func getCloudTrailChannel(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Create session
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_channel.getCloudTrailChannel", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_channel.getCloudTrailChannel", "client_error", err)
 		return nil, err
 	}
 
