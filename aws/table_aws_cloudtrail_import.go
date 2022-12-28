@@ -173,7 +173,7 @@ func getCloudTrailImport(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Create session
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_import.getCloudTrailImport", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_import.getCloudTrailImport", "client_error", err)
 		return nil, err
 	}
 
