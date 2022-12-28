@@ -48,7 +48,7 @@ from
   jsonb_array_elements(retention_settings) as r;
 ```
 
-### List data lakes that are not compleated
+### List data lakes where the configuration operation is in a pending state
 
 ```sql
 select
