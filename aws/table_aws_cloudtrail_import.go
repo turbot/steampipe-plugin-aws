@@ -184,7 +184,7 @@ func getCloudTrailImport(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// execute list call
 	op, err := svc.GetImport(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_import.getCloudTrailImport", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_import.getCloudTrailImport", "api_error", err)
 		return nil, err
 	}
 
