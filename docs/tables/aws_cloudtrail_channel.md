@@ -31,7 +31,7 @@ where
   not apply_to_all_regions;
 ```
 
-### Get advance event selector details for each channel
+### Get advance event selector details of each channel
 
 ```sql
 select
