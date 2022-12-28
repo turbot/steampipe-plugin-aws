@@ -33,7 +33,7 @@ where
   l.s3_bucket_arn = b.arn;
 ```
 
-### Get retention setting details of data lakes
+### Get retention setting details of data lake
 
 ```sql
 select
