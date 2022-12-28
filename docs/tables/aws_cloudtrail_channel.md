@@ -16,7 +16,7 @@ from
   aws_cloudtrail_channel;
 ```
 
-### List channels that are not applyed to all region
+### List channels that are not applied to all regions
 
 ```sql
 select
