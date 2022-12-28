@@ -16,7 +16,7 @@ from
   aws_securitylake_data_lake;
 ```
 
-### Get S3 bucket details for each data lake
+### Get S3 bucket details of each data lake
 
 ```sql
 select

@@ -69,7 +69,7 @@ func getSecurityLakeDataLake(ctx context.Context, d *plugin.QueryData, _ *plugin
 	// Create Client
 	svc, err := SecurityLakeClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_securitylake_data_lake.listSecurityLakeDataLakes", "client_error", err)
+		plugin.Logger(ctx).Error("aws_securitylake_data_lake.getSecurityLakeDataLake", "client_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -81,7 +81,7 @@ func getSecurityLakeDataLake(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	resp, err := svc.GetDatalake(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_securitylake_data_lake.listSecurityLakeDataLakes", "api_error", err)
+		plugin.Logger(ctx).Error("aws_securitylake_data_lake.getSecurityLakeDataLake", "api_error", err)
 		return nil, err
 	}
 
