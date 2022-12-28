@@ -69,7 +69,7 @@ func tableAwsCloudtrailChannel(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "source_config",
-				Description: "Provides information about the advanced event selectors configured for the channel, and whether the channel applies to all regions or a single region.",
+				Description: "Configuration information about the channel.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudTrailChannel,
 			},
