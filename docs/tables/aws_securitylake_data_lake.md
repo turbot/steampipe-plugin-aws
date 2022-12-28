@@ -59,5 +59,5 @@ select
 from
   aws_securitylake_data_lake
 where
-  status <> 'COMPLETED';
+  status = 'PENDING';
 ```
