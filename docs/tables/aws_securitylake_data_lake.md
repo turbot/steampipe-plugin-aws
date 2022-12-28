@@ -2,7 +2,7 @@
 
 Amazon Security Lake automatically centralizes your security data from the cloud, on-premises, and custom sources into a data lake stored in your account.
 
-### Examples
+## Examples
 
 ### Basic info
 
