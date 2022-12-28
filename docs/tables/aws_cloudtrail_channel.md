@@ -31,7 +31,7 @@ where
   not apply_to_all_regions;
 ```
 
-### Get advance event selector details of each channel
+### Get advanced event selector details of each channel
 
 ```sql
 select
@@ -39,7 +39,7 @@ select
   a ->> 'Name' as advanced_event_selector_name,
   a ->> 'FieldSelectors' as field_selectors
 from
-  aws_cloudtrail_channel
+  aws_cloudtrail_channel,
   jsonb_array_elements(advanced_event_selectors) as a;
 ```
 
