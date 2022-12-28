@@ -57,13 +57,13 @@ func tableAwsCloudtrailImport(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "end_event_time",
-				Description: "Used with StartEventTime to bound a StartImport request, and limit imported trail events to only those events logged within a specified time period.",
+				Description: "Used with EndEventTime to bound a StartImport request, and limit imported trail events to only those events logged within a specified time period.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getCloudTrailImport,
 			},
 			{
 				Name:        "start_event_time",
-				Description: "Used with EndEventTime to bound a StartImport request, and limit imported trail events to only those events logged within a specified time period.",
+				Description: "Used with StartEventTime to bound a StartImport request, and limit imported trail events to only those events logged within a specified time period.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getCloudTrailImport,
 			},
