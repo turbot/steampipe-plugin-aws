@@ -16,13 +16,6 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ebs_snapshot",
 		Description: "AWS EBS Snapshot",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("snapshot_id"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue"}),
-			},
-			Hydrate: getAwsEBSSnapshot,
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEBSSnapshots,
 			KeyColumns: []*plugin.KeyColumn{
@@ -34,17 +27,22 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 					Name:    "encrypted",
 					Require: plugin.Optional,
 				},
+
+				// issue-1529 - CacheMatch added for getting details of the shared snapshots with the owner not being the caller account
 				{
-					Name:    "owner_alias",
-					Require: plugin.Optional,
+					Name:       "owner_alias",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 				{
-					Name:    "owner_id",
-					Require: plugin.Optional,
+					Name:       "owner_id",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 				{
-					Name:    "snapshot_id",
-					Require: plugin.Optional,
+					Name:       "snapshot_id",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 				{
 					Name:    "state",
@@ -234,34 +232,6 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	snapshotID := d.KeyColumnQuals["snapshot_id"].GetStringValue()
-
-	// get service
-	svc, err := EC2Client(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ebs_snapshot.getAwsEBSSnapshot", "connection_error", err)
-		return nil, err
-	}
-
-	// Build the params
-	params := &ec2.DescribeSnapshotsInput{
-		SnapshotIds: []string{snapshotID},
-	}
-
-	// Get call
-	data, err := svc.DescribeSnapshots(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ebs_snapshot.getAwsEBSSnapshot", "api_error", err)
-		return nil, err
-	}
-
-	if data.Snapshots != nil {
-		return data.Snapshots[0], nil
-	}
-	return nil, nil
-}
-
 // getAwsEBSSnapshotCreateVolumePermissions :: Describes the users and groups that have the permissions for creating volumes from the snapshot
 func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	snapshotData := h.Item.(types.Snapshot)
@@ -362,8 +332,9 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if equalQuals["owner_id"] != nil {
 		ownerFilter.Name = aws.String("owner-id")
 		ownerFilter.Values = []string{equalQuals["owner_id"].GetStringValue()}
-	} else {
+	} else if equalQuals["owner_alias"] == nil && equalQuals["snapshot_id"] == nil {
 		// Use this section later and compare the results
+		// Add default filter for owner_id if filter for owner_alias, owner_id or snapshot_id is not applied
 		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 		c, err := getCommonColumnsCached(ctx, d, h)
 		if err != nil {
@@ -374,6 +345,9 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 		ownerFilter.Values = []string{commonColumnData.AccountId}
 	}
 
-	filters = append(filters, ownerFilter)
+	if ownerFilter.Name != nil {
+		filters = append(filters, ownerFilter)
+	}
+	plugin.Logger(ctx).Error("Filter", filters)
 	return filters
 }
