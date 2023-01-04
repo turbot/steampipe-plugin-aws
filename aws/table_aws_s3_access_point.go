@@ -162,6 +162,11 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
 	maxItems := int32(100)
 
 	// If the requested number of items is less than the paging max limit
@@ -232,6 +237,11 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
 	var name, region string
 	if h.Item != nil {
 		name = *h.Item.(types.AccessPoint).Name
@@ -280,6 +290,12 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicyStatus", "client_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
 	accessPointName := accessPointName(h.Item)
 
 	// Build params
@@ -322,6 +338,12 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicy", "client_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
 	accessPointName := accessPointName(h.Item)
 
 	// Build params
