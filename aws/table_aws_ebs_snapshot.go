@@ -19,7 +19,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEBSSnapshots,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue", "InvalidUserID.Malformed"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -310,6 +310,7 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 		"description": "description",
 		"encrypted":   "encrypted",
 		"owner_alias": "owner-alias",
+		"snapshot_id": "snapshot-id",
 		"state":       "status",
 		"progress":    "progress",
 		"volume_id":   "volume-id",
@@ -336,9 +337,8 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 	 */
 	if equalQuals["owner_id"] != nil {
 		input.OwnerIds = append(input.OwnerIds, equalQuals["owner_id"].GetStringValue())
-	} else if equalQuals["snapshot_id"] != nil {
-		input.OwnerIds = append(input.SnapshotIds, equalQuals["snapshot_id"].GetStringValue())
-	} else if equalQuals["owner_alias"] == nil {
+	}
+	if equalQuals["owner_alias"] == nil && equalQuals["owner_id"] == nil && equalQuals["snapshot_id"] == nil {
 		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 		c, err := getCommonColumnsCached(ctx, d, h)
 		if err != nil {
@@ -347,5 +347,6 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 		commonColumnData := c.(*awsCommonColumnData)
 		input.OwnerIds = append(input.OwnerIds, commonColumnData.AccountId)
 	}
+	plugin.Logger(ctx).Error("input - ", input.OwnerIds, "filter-", filters)
 	return filters
 }
