@@ -28,7 +28,6 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 
-				// issue-1529 - CacheMatch added for getting details of the shared snapshots with the owner not being the caller account
 				{
 					Name:       "owner_alias",
 					Require:    plugin.Optional,
@@ -201,7 +200,7 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// Build filter for ebs snapshot
-	filters := buildEbsSnapshotFilter(ctx, d, h, d.KeyColumnQuals)
+	filters := buildEbsSnapshotFilter(ctx, d, h, d.KeyColumnQuals, input)
 	input.Filters = filters
 
 	paginator := ec2.NewDescribeSnapshotsPaginator(svc, input, func(o *ec2.DescribeSnapshotsPaginatorOptions) {
@@ -302,14 +301,13 @@ func ec2SnapshotTurbotTags(_ context.Context, d *transform.TransformData) (inter
 //// UTILITY FUNCTION
 
 // build ebs snapshot list call input filter
-func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, equalQuals plugin.KeyColumnEqualsQualMap) []types.Filter {
+func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, equalQuals plugin.KeyColumnEqualsQualMap, input *ec2.DescribeSnapshotsInput) []types.Filter {
 	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"description": "description",
 		"encrypted":   "encrypted",
 		"owner_alias": "owner-alias",
-		"snapshot_id": "snapshot-id",
 		"state":       "status",
 		"progress":    "progress",
 		"volume_id":   "volume-id",
@@ -328,26 +326,24 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 			filters = append(filters, filter)
 		}
 	}
-	ownerFilter := types.Filter{}
+
+	/*
+	 * Details for all the snapshots including the caller account's snapshots and public snapshots returned if no owner_id filter is applied
+	 * Filter for owner_alias, owner_id or snapshot_id could be set to fetch public/shared snapshots which are not a part of the caller account.
+	 * Use calling account id as default filter for owner_id, if filter for owner_alias, owner_id or snapshot_id is not applied.
+	 */
 	if equalQuals["owner_id"] != nil {
-		ownerFilter.Name = aws.String("owner-id")
-		ownerFilter.Values = []string{equalQuals["owner_id"].GetStringValue()}
-	} else if equalQuals["owner_alias"] == nil && equalQuals["snapshot_id"] == nil {
-		// Use this section later and compare the results
-		// Add default filter for owner_id if filter for owner_alias, owner_id or snapshot_id is not applied
+		input.OwnerIds = append(input.OwnerIds, equalQuals["owner_id"].GetStringValue())
+	} else if equalQuals["snapshot_id"] != nil {
+		input.OwnerIds = append(input.SnapshotIds, equalQuals["snapshot_id"].GetStringValue())
+	} else if equalQuals["owner_alias"] == nil {
 		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 		c, err := getCommonColumnsCached(ctx, d, h)
 		if err != nil {
 			return filters
 		}
 		commonColumnData := c.(*awsCommonColumnData)
-		ownerFilter.Name = aws.String("owner-id")
-		ownerFilter.Values = []string{commonColumnData.AccountId}
+		input.OwnerIds = append(input.OwnerIds, commonColumnData.AccountId)
 	}
-
-	if ownerFilter.Name != nil {
-		filters = append(filters, ownerFilter)
-	}
-	plugin.Logger(ctx).Error("Filter", filters)
 	return filters
 }
