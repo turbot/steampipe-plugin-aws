@@ -116,6 +116,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cost_by_service_monthly":                                  tableAwsCostByServiceMonthly(ctx),
 			"aws_cost_by_service_usage_type_daily":                         tableAwsCostByServiceUsageTypeDaily(ctx),
 			"aws_cost_by_service_usage_type_monthly":                       tableAwsCostByServiceUsageTypeMonthly(ctx),
+			"aws_cost_by_tag_monthly":                       								tableAwsCostByTagMonthly(ctx),
 			"aws_cost_forecast_daily":                                      tableAwsCostForecastDaily(ctx),
 			"aws_cost_forecast_monthly":                                    tableAwsCostForecastMonthly(ctx),
 			"aws_cost_usage":                                               tableAwsCostAndUsage(ctx),

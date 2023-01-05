@@ -121,8 +121,8 @@ func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.Get
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
-	dim1 := strings.ToUpper(keyQuals["dimension_type_1"].GetStringValue())
-	dim2 := strings.ToUpper(keyQuals["dimension_type_2"].GetStringValue())
+	//dim1 := strings.ToUpper(keyQuals["dimension_type_1"].GetStringValue())
+	//dim2 := strings.ToUpper(keyQuals["dimension_type_2"].GetStringValue())
 
 	params := &costexplorer.GetCostAndUsageInput{
 		TimePeriod: &types.DateInterval{
@@ -133,18 +133,29 @@ func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.Get
 		Metrics:     AllCostMetrics(),
 	}
 	var groupings []types.GroupDefinition
+
+	dim1 := keyQuals["dimension_type_1"].GetStringValue()
 	if dim1 != "" {
-		groupings = append(groupings, types.GroupDefinition{
-			Type: types.GroupDefinitionType("DIMENSION"),
-			Key:  aws.String(dim1),
-		})
+		groupings = append(groupings, buildGroupingDefinition(dim1))
 	}
+
+	dim2 := keyQuals["dimension_type_2"].GetStringValue()
 	if dim2 != "" {
-		groupings = append(groupings, types.GroupDefinition{
-			Type: types.GroupDefinitionType("DIMENSION"),
-			Key:  aws.String(dim2),
-		})
+		groupings = append(groupings, buildGroupingDefinition(dim2))
 	}
+
+	// if dim1 != "" {
+	// 	groupings = append(groupings, types.GroupDefinition{
+	// 		Type: types.GroupDefinitionType("DIMENSION"), 
+	// 		Key:  aws.String(dim1),
+	// 	})
+	// }
+	// if dim2 != "" {
+	// 	groupings = append(groupings, types.GroupDefinition{
+	// 		Type: types.GroupDefinitionType("DIMENSION"),
+	// 		Key:  aws.String(dim2),
+	// 	})
+	// }
 	params.GroupBy = groupings
 
 	return params
@@ -166,3 +177,25 @@ func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.Get
 // }
 
 ///////////
+
+func getDimKeyAndValue(dimensionString string) (string, string) {
+	dim := strings.Split(dimensionString, ":")
+	if len(dim) == 1 {
+		return strings.ToUpper(dim[0]), ""
+	}
+	return strings.ToUpper(dim[0]), dim[1]
+}
+
+func buildGroupingDefinition(dimensionString string) types.GroupDefinition {
+	k, v :=  getDimKeyAndValue(dimensionString)
+	if k == "TAG" {
+		return types.GroupDefinition{
+			Type: types.GroupDefinitionType("TAG"),
+			Key:  aws.String(v),
+		}
+	}
+	return types.GroupDefinition{
+		Type: types.GroupDefinitionType("DIMENSION"),
+		Key:  aws.String(k),
+	}
+}
