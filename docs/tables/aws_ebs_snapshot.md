@@ -86,3 +86,16 @@ from
 where
   snapshot_id = 'snap-07bf4f91353ad71ae';
 ```
+
+### List snapshots owned by amazon
+
+```sql
+select
+  snapshot_id,
+  arn,
+  encrypted
+from
+  aws_ebs_snapshot
+where
+  owner_alias= 'amazon'
+```
