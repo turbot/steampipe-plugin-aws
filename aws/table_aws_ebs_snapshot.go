@@ -330,14 +330,14 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 		}
 	}
 
-	/*
-	 * Details for all the snapshots including the caller account's snapshots and public snapshots returned if no owner_id filter is applied
-	 * Filter for owner_alias, owner_id or snapshot_id could be set to fetch public/shared snapshots which are not a part of the caller account.
-	 * Use calling account id as default filter for owner_id, if filter for owner_alias, owner_id or snapshot_id is not applied.
-	 */
 	if equalQuals["owner_id"] != nil {
 		input.OwnerIds = append(input.OwnerIds, equalQuals["owner_id"].GetStringValue())
 	}
+
+	/*
+	 * By default, DescribeSnapshots API returns all the snapshots, including public & shared ones, which will be too many and can cause performance issues for the table.
+	 * If the user did not provide any of the below filters in the where clause, then by default owner ID will be set to the caller account ID, and API will return snapshots from the same account. This will help in table performance.
+	 */
 	if equalQuals["owner_alias"] == nil && equalQuals["owner_id"] == nil && equalQuals["snapshot_id"] == nil {
 		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 		c, err := getCommonColumnsCached(ctx, d, h)
@@ -347,6 +347,6 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 		commonColumnData := c.(*awsCommonColumnData)
 		input.OwnerIds = append(input.OwnerIds, commonColumnData.AccountId)
 	}
-	
+
 	return filters
 }

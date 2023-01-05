@@ -2,6 +2,10 @@
 
 An EBS snapshot is a point-in-time copy of Amazon EBS volume, which is copied to Amazon Simple Storage Service.
 
+The `aws_ebs_snapshot` table lists all private snapshots by default.
+
+**You should specify an owner ID** in the `where` clause (`where owner_id='`) to list public or shared snapshots from a specific AWS account.
+
 ## Examples
 
 ### List of snapshots which are not encrypted
@@ -55,4 +59,17 @@ from
   aws_ebs_snapshot
 group by
   volume_id;
+```
+
+### List snapshots owned by a specific AWS account
+
+```sql
+select
+  snapshot_id,
+  arn,
+  encrypted
+from
+  aws_ebs_snapshot
+where
+  owner_id = '859788737657';
 ```
