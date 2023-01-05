@@ -230,6 +230,12 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "protection",
+				Description: "Protection status of task in an Amazon ECS service.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsTaskProtection,
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with task.",
 				Type:        proto.ColumnType_JSON,
@@ -352,6 +358,37 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	return nil, nil
+}
+
+func getEcsTaskProtection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	task := h.Item.(types.Task)
+
+	clusterArn := task.ClusterArn
+	taskArn := task.TaskArn
+
+	// Create Session
+	svc, err := ECSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_task_definition.getEcsTaskProtection", "connection_error", err)
+		return nil, err
+	}
+
+	params := &ecs.GetTaskProtectionInput{
+		Cluster: clusterArn,
+		Tasks:   []string{*taskArn},
+	}
+
+	protections, err := svc.GetTaskProtection(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_task_definition.getEcsTaskProtection", "api_error", err)
+		return nil, err
+	}
+
+	if len(protections.ProtectedTasks) == 0 {
+		return nil, nil
+	}
+
+	return protections.ProtectedTasks[0], nil
 }
 
 //// TRANSFORM FUNCTIONS

@@ -78,13 +78,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore"
+	"github.com/aws/aws-sdk-go-v2/service/mgn"
 	"github.com/aws/aws-sdk-go-v2/service/neptune"
 	"github.com/aws/aws-sdk-go-v2/service/networkfirewall"
+	"github.com/aws/aws-sdk-go-v2/service/oam"
 	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
+	"github.com/aws/aws-sdk-go-v2/service/pipes"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
-	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
@@ -99,9 +101,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
@@ -144,16 +148,21 @@ import (
 	lightsailEndpoint "github.com/aws/aws-sdk-go/service/lightsail"
 	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
 	mediastoreEndpoint "github.com/aws/aws-sdk-go/service/mediastore"
+	mgnEndpoint "github.com/aws/aws-sdk-go/service/mgn"
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
+	oamEndpoint "github.com/aws/aws-sdk-go/service/oam"
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
+	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
+	s3ControlEndpoint "github.com/aws/aws-sdk-go/service/s3control"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
 	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
 	securitylakeEndpoint "github.com/aws/aws-sdk-go/service/securitylake"
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	servicequotasEndpoint "github.com/aws/aws-sdk-go/service/servicequotas"
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
+	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	wafregionalEnpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
@@ -220,11 +229,11 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 }
 
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
-	// APIGatewayV2's endpoint ID is the same as APIGateway's, but me-central-1 does not support API Gateway v2 yet
+	// APIGatewayV2's endpoint ID is the same as APIGateway's, but me-central-1 and ap-southeast-3 do not support API Gateway v2 yet
 	//cfg, err := getClientForQuerySupportedRegion(ctx, d, apigatewayv2Endpoint.EndpointsID)
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	validRegions := []string{"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "cn-north-1", "cn-northwest-1", "us-gov-east-1", "us-gov-west-1", "us-iso-east-1"}
+	validRegions := []string{"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "cn-north-1", "cn-northwest-1", "us-gov-east-1", "us-gov-west-1", "us-iso-east-1"}
 
 	if !helpers.StringSliceContains(validRegions, region) {
 		return nil, nil
@@ -842,6 +851,17 @@ func MediaStoreClient(ctx context.Context, d *plugin.QueryData) (*mediastore.Cli
 	return mediastore.NewFromConfig(*cfg), nil
 }
 
+func MGNClient(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, mgnEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return mgn.NewFromConfig(*cfg), nil
+}
+
 func NeptuneClient(ctx context.Context, d *plugin.QueryData) (*neptune.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -859,6 +879,17 @@ func NetworkFirewallClient(ctx context.Context, d *plugin.QueryData) (*networkfi
 		return nil, nil
 	}
 	return networkfirewall.NewFromConfig(*cfg), nil
+}
+
+func OAMClient(ctx context.Context, d *plugin.QueryData) (*oam.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, oamEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return oam.NewFromConfig(*cfg), nil
 }
 
 func OpenSearchClient(ctx context.Context, d *plugin.QueryData) (*opensearch.Client, error) {
@@ -886,6 +917,17 @@ func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client,
 		return nil, nil
 	}
 	return pinpoint.NewFromConfig(*cfg), nil
+}
+
+func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, pipesEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return pipes.NewFromConfig(*cfg), nil
 }
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
@@ -1033,9 +1075,12 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, s3ControlEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return s3control.NewFromConfig(*cfg), nil
 }
@@ -1125,6 +1170,17 @@ func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequot
 		return nil, nil
 	}
 	return servicequotas.NewFromConfig(*cfg), nil
+}
+
+func SimSpaceWeaverClient(ctx context.Context, d *plugin.QueryData) (*simspaceweaver.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, simspaceWeaverEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return simspaceweaver.NewFromConfig(*cfg), nil
 }
 
 func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client, error) {
