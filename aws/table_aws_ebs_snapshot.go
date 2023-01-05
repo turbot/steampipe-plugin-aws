@@ -347,6 +347,6 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 		commonColumnData := c.(*awsCommonColumnData)
 		input.OwnerIds = append(input.OwnerIds, commonColumnData.AccountId)
 	}
-	plugin.Logger(ctx).Error("input - ", input.OwnerIds, "filter-", filters)
+	
 	return filters
 }
