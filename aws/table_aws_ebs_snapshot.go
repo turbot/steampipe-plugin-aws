@@ -18,6 +18,9 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 		Description: "AWS EBS Snapshot",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEBSSnapshots,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "description",
@@ -27,7 +30,6 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 					Name:    "encrypted",
 					Require: plugin.Optional,
 				},
-
 				{
 					Name:       "owner_alias",
 					Require:    plugin.Optional,
