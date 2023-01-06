@@ -66,23 +66,6 @@ and
   r.name = 'ruleset1';
 ```
 
-### Get Glue table details for a ruleset
-
-```sql
-select
-  r.name,
-  r.database_name,
-  t.catalog_id,
-  t.create_time as table_create_time,
-  t.table_type
-from
-  aws_glue_data_quality_ruleset as r,
-  aws_glue_catalog_table as t
-where
-  r.table_name = t.name
-and
-  r.name = 'ruleset1';
-```
 
 ### Count rules per ruleset
 
