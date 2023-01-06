@@ -67,7 +67,7 @@ and
 ```
 
 
-### Count rules per ruleset
+### Count rules per data quality ruleset
 
 ```sql
 select
