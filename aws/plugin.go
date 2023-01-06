@@ -230,6 +230,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_glue_connection":                                          tableAwsGlueConnection(ctx),
 			"aws_glue_crawler":                                             tableAwsGlueCrawler(ctx),
 			"aws_glue_data_catalog_encryption_settings":                    tableAwsGlueDataCatalogEncryptionSettings(ctx),
+			"aws_glue_data_quality_ruleset":                                tableAwsGlueDataQualityRuleset(ctx),
 			"aws_glue_dev_endpoint":                                        tableAwsGlueDevEndpoint(ctx),
 			"aws_glue_job":                                                 tableAwsGlueJob(ctx),
 			"aws_glue_security_configuration":                              tableAwsGlueSecurityConfiguration(ctx),
