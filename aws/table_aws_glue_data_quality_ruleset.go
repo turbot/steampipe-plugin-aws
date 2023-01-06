@@ -33,7 +33,7 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				// We need to pass both database name and table name all together.
-				// If the database name and table name are passes as input parameters, the API gives a validation error, thus they are eliminated from the option quals.
+				// If the database name and table name are passed as input parameters, the API gives a validation error, thus they are eliminated from the optional quals.
 				// api error ValidationException: 1 validation error detected: Value null at 'filter.targetTable.name' failed to satisfy constraint: Member must not be null
 				{Name: "created_on", Require: plugin.Optional, Operators: []string{"<=", "<", ">=", ">"}},
 				{Name: "last_modified_on", Require: plugin.Optional},
