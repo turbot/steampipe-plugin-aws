@@ -91,7 +91,7 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "target_table",
-				Description: "An object representing an glue table.",
+				Description: "An object representing a glue table.",
 				Type:        proto.ColumnType_JSON,
 			},
 
