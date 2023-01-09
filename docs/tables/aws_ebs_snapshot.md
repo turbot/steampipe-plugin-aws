@@ -67,35 +67,38 @@ group by
 select
   snapshot_id,
   arn,
-  encrypted
+  encrypted,
+  owner_id
 from
   aws_ebs_snapshot
 where
   owner_id = '859788737657';
 ```
 
-### Get a snapshot owned by a specific AWS account
+### Get a specific snapshot by ID
 
 ```sql
 select
   snapshot_id,
   arn,
-  encrypted
+  encrypted,
+  owner_id
 from
   aws_ebs_snapshot
 where
   snapshot_id = 'snap-07bf4f91353ad71ae';
 ```
 
-### List snapshots owned by amazon
+### List snapshots owned by Amazon (Note: This will attempt to list ALL public snapshots)
 
 ```sql
 select
   snapshot_id,
   arn,
-  encrypted
+  encrypted,
+  owner_id
 from
   aws_ebs_snapshot
 where
-  owner_alias= 'amazon'
+  owner_alias = 'amazon'
 ```
