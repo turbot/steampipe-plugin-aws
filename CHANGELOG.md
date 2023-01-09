@@ -1,3 +1,15 @@
+## v0.91.0 [2023-01-09]
+
+_What's new?_
+
+- New tables added
+  - [aws_glue_data_quality_ruleset](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_data_quality_ruleset) ([#1513](https://github.com/turbot/steampipe-plugin-aws/pull/1513))
+
+_Bug fixes_
+
+- Fixed `aws_s3_access_point` table to return access points from all the configured regions instead of only `us-east-1`. ([#1522](https://github.com/turbot/steampipe-plugin-aws/pull/1522))
+- Fixed the `aws_ebs_snapshot` table to return snapshots from different AWS accounts when an `owner_alias` or an `owner_id` or a `snapshot_id` is passed in the `where` clause. ([#1530](https://github.com/turbot/steampipe-plugin-aws/pull/1530))
+
 ## v0.90.0 [2022-12-28]
 
 _What's new?_
