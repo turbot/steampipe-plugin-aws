@@ -20,13 +20,6 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_ami_shared",
 		Description: "AWS EC2 AMI - All public, private, and shared AMIs",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("image_id"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
-			},
-			Hydrate: getEc2Ami,
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listAmisByOwner,
 			KeyColumns: []*plugin.KeyColumn{
@@ -35,6 +28,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				{Name: "description", Require: plugin.Optional},
 				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "hypervisor", Require: plugin.Optional},
+				{Name: "image_id", Require: plugin.Optional},
 				{Name: "image_type", Require: plugin.Optional},
 				{Name: "public", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "kernel_id", Require: plugin.Optional},
@@ -281,7 +275,7 @@ func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string, ctx
 		"description":         "description",
 		"ena_support":         "ena-support",
 		"hypervisor":          "hypervisor",
-		"image_id ":           "image-id ",
+		"image_id":            "image-id",
 		"image_type":          "image-type",
 		"kernel_id":           "kernel-id",
 		"name":                "name",
