@@ -34,7 +34,7 @@ where
   status_code = 'UNIMPAIRED';
 ```
 
-### Get health event details for each entity
+### Get health event details of each entity
 
 ```sql
 select
