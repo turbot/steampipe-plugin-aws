@@ -4,7 +4,7 @@ An Amazon Machine Image is a special type of virtual appliance that is used to c
 
 The `aws_ec2_ami_shared` table only lists public and shared images. To list private images, use the `aws_ec2_ami` table.
 
-**You must specify an owner ID** in a `where` clause (`where owner_id='`).
+**You must specify an owner ID or Image ID** in a `where` clause (`where owner_id='`), (`where image_id='`).
 
 ## Examples
 
