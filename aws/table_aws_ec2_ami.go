@@ -39,7 +39,6 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				{Name: "kernel_id", Require: plugin.Optional},
 				{Name: "platform", Require: plugin.Optional},
 				{Name: "name", Require: plugin.Optional},
-				{Name: "owner_id", Require: plugin.Optional},
 				{Name: "ramdisk_id", Require: plugin.Optional},
 				{Name: "root_device_name", Require: plugin.Optional},
 				{Name: "root_device_type", Require: plugin.Optional},
@@ -252,7 +251,7 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	imageID := d.KeyColumnQuals["image_id"].GetStringValue()
 
 	// create service
@@ -262,8 +261,17 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
+	// Use this section later and compare the results
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
 	params := &ec2.DescribeImagesInput{
 		ImageIds: []string{imageID},
+		Owners:   []string{commonColumnData.AccountId},
 	}
 
 	op, err := svc.DescribeImages(ctx, params)
@@ -397,21 +405,14 @@ func buildAmisWithOwnerFilter(input *ec2.DescribeImagesInput, quals plugin.KeyCo
 		}
 	}
 
-	ownerFilter := types.Filter{}
-	if quals["owner_id"] != nil {
-		input.Owners = []string{getQualsValueByColumn(quals, "owner_id", "string").(string)}
-	} else {
-		// Use this section later and compare the results
-		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-		c, err := getCommonColumnsCached(ctx, d, h)
-		if err != nil {
-			return filters
-		}
-		commonColumnData := c.(*awsCommonColumnData)
-		input.Owners = []string{commonColumnData.AccountId}
+	// Use this section later and compare the results
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return filters
 	}
-
-	filters = append(filters, ownerFilter)
+	commonColumnData := c.(*awsCommonColumnData)
+	input.Owners = []string{commonColumnData.AccountId}
 
 	return filters
 }
