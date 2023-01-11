@@ -24,12 +24,12 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAmisByOwner,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "architecture", Require: plugin.Optional},
 				{Name: "description", Require: plugin.Optional},
 				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "hypervisor", Require: plugin.Optional},
-				{Name: "image_id", Require: plugin.Optional},
+				{Name: "image_id", Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "image_type", Require: plugin.Optional},
 				{Name: "public", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "kernel_id", Require: plugin.Optional},
