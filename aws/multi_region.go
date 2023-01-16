@@ -328,7 +328,7 @@ func listRawAwsRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, clientRegion)
+	svc, err := EC2LowRetryClientForRegion(ctx, d, clientRegion)
 	if err != nil {
 		logger.Error("aws_region.listRawAwsRegionsUncached", "connnection_error", err, "clientRegion", clientRegion)
 		return nil, err

@@ -85,7 +85,7 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, *region.RegionName)
+	svc, err := EC2ClientForRegion(ctx, d, *region.RegionName)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_availability.listAwsAvailableInstanceTypes", "connection_error", err)
 		return nil, err

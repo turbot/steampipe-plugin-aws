@@ -541,11 +541,20 @@ func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 	return ec2.NewFromConfig(*cfg), nil
 }
 
-func EC2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
-	// We can query EC2 for the list of supported regions. But, if credentials
-	// are insufficient this query will retry many times, so we create a special
-	// client with a small number of retries to prevent hangs.
-	// Note - This is not cached, but usually the result of using this service will be.
+// Get an EC2 client for a specific region. Used by various hydrate functions
+// pulling data from regions other than the query region.
+func EC2ClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	return ec2.NewFromConfig(*cfg), nil
+}
+
+// Get an EC2 client with a small number of retries. Used in very specific
+// situations like listing regions where fast failure is preferred over a long
+// retry/backoff loop. Do not use for general tables.
+func EC2LowRetryClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
 	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
 	if err != nil {
 		return nil, err

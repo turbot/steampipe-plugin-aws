@@ -114,7 +114,7 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, *region.RegionName)
+	svc, err := EC2ClientForRegion(ctx, d, *region.RegionName)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_availability_zone.listAwsAvailabilityZones", "connection_error", err)
 		return nil, err
@@ -165,7 +165,7 @@ func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	regionName := d.KeyColumnQuals["region_name"].GetStringValue()
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, regionName)
+	svc, err := EC2ClientForRegion(ctx, d, regionName)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_availability_zone.getAwsAvailabilityZone", "connection_error", err)
 		return nil, err
