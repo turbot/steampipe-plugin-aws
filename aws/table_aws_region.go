@@ -3,30 +3,21 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-//// TABLE DEFINITION
-
 func tableAwsRegion(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_region",
 		Description: "AWS Region",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
-			},
-			Hydrate: getAwsRegion,
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRegions,
 		},
+		// Get is not implemented because the API is not paged anyway, so
+		// the List has the same cost but better caching benefit.
 		Columns: awsDefaultColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -62,74 +53,16 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 	}
 }
 
-//// LIST FUNCTION
-
 func listAwsRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	clientRegion, err := getClientRegion(ctx, d, h)
+	iRegions, err := listRawAwsRegions(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-
-	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, clientRegion)
-	if err != nil {
-		logger.Error("aws_region.listAwsRegions", "connnection.error", err)
-		return nil, err
-	}
-
-	params := &ec2.DescribeRegionsInput{
-		AllRegions: aws.Bool(true),
-	}
-
-	// execute list call
-	resp, err := svc.DescribeRegions(ctx, params)
-	if err != nil {
-		logger.Error("aws_region.listAwsRegions", "api.error", err)
-		return nil, err
-	}
-
-	for _, region := range resp.Regions {
+	for _, region := range iRegions.([]types.Region) {
 		d.StreamListItem(ctx, region)
 	}
-
-	return nil, err
-}
-
-//// HYDRATE FUNCTIONS
-
-func getAwsRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	clientRegion, err := getClientRegion(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create service
-	svc, err := EC2RegionsClient(ctx, d, clientRegion)
-	if err != nil {
-		return nil, err
-	}
-	regionName := d.KeyColumnQuals["name"].GetStringValue()
-
-	params := &ec2.DescribeRegionsInput{
-		AllRegions:  aws.Bool(true),
-		RegionNames: []string{regionName},
-	}
-
-	// execute list call
-	op, err := svc.DescribeRegions(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(op.Regions) > 0 {
-		return op.Regions[0], nil
-	}
-
 	return nil, nil
 }
-
-//// TRANSFORM FUNCTIONS
 
 func getAwsRegionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := h.Item.(types.Region)

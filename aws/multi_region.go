@@ -77,6 +77,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -281,24 +282,12 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		ActiveRegions:   allRegionsForClientPartition,
 	}
 
-	// We can query EC2 for the list of supported regions. If credentials
-	// are insufficient this query will retry many times, so we create
-	// a special client with a small number of retries to prevent hangs.
-	svc, err := EC2RegionsClient(ctx, d, clientRegion)
+	// Get the AWS region list from the EC2 API (via cache)
+	iRegions, err := listRawAwsRegions(ctx, d, h)
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache
-		return data, nil
-	}
-
-	params := &ec2.DescribeRegionsInput{
-		AllRegions: aws.Bool(true),
-	}
-
-	// execute list call
-	resp, err := svc.DescribeRegions(ctx, params)
-	if err != nil {
-		// handle in case user doesn't have access to ec2 service
+		plugin.Logger(ctx).Warn("listRegionsUncached", "regions_error", err, "starting", "connection_name", d.Connection.Name, "region", clientRegion)
 		return data, nil
 	}
 
@@ -306,9 +295,8 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	var notOptedRegions []string // All not enabled regions in the account.
 	var allRegions []string      // All regions listed by the API DescribeRegions.
 
-	for _, region := range resp.Regions {
+	for _, region := range iRegions.([]types.Region) {
 		allRegions = append(allRegions, *region.RegionName)
-
 		if *region.OptInStatus != "not-opted-in" {
 			activeRegions = append(activeRegions, *region.RegionName)
 		} else {
@@ -327,6 +315,37 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// save to extension cache
 	return data, nil
+}
+
+var listRawAwsRegions = plugin.HydrateFunc(listRawAwsRegionsUncached).WithCache()
+
+func listRawAwsRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	clientRegion, err := getClientRegion(ctx, d, h)
+	if err != nil {
+		logger.Error("aws_region.listRawAwsRegionsUncached", "region_error", err)
+		return nil, err
+	}
+
+	// Create Session
+	svc, err := EC2RegionsClient(ctx, d, clientRegion)
+	if err != nil {
+		logger.Error("aws_region.listRawAwsRegionsUncached", "connnection_error", err, "clientRegion", clientRegion)
+		return nil, err
+	}
+
+	params := &ec2.DescribeRegionsInput{
+		AllRegions: aws.Bool(true),
+	}
+
+	// execute list call
+	resp, err := svc.DescribeRegions(ctx, params)
+	if err != nil {
+		logger.Error("aws_region.listRawAwsRegionsUncached", "api_error", err, "params", params)
+		return nil, err
+	}
+
+	return resp.Regions, nil
 }
 
 // The default region is the "primary" / most common region wtihin the AWS partition.
