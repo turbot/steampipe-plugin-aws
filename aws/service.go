@@ -190,23 +190,14 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 	return accessanalyzer.NewFromConfig(*cfg), nil
 }
 
+// AccountClient is used to query general information about an AWS account.
 func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
-	// Get the client region
-	clientRegion, err := getClientRegion(ctx, d, nil)
+	// Use the client region if possible, since this is a global service but
+	// available in all regions.
+	queryRegion, err := getClientRegion(ctx, d, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	// Use the client preferred region for the API calls
-	// If empty, use the default region, i.e. us-east-1
-	queryRegion := clientRegion
-	if queryRegion == "" {
-		queryRegion, err = getDefaultRegion(ctx, d, nil)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	cfg, err := getClient(ctx, d, queryRegion)
 	if err != nil {
 		return nil, err
