@@ -221,19 +221,17 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 	return matrix
 }
 
-// BuildWafRegionList :: return a list of matrix items for AWS WAF resources, one per region specified in the connection config
+// BuildWafRegionList returns the general region list, with a special region
+// called "global" added. This is a specific region name used only by the WAF
+// service.
+// Note that the global region is always included in WAF results, even if the
+// target region list is limited to specific regions. Currently, there is no
+// way to exclude it except by filtering the results.
 func BuildWafRegionList(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
-	var regionMatrix []map[string]interface{}
-	if cachedData, ok := d.ConnectionManager.Cache.Get("RegionListMatrix"); ok {
-		regionMatrix = cachedData.([]map[string]interface{})
-	} else {
-		regionMatrix = BuildRegionList(ctx, d)
-	}
-
+	regionMatrix := BuildRegionList(ctx, d)
 	matrix := make([]map[string]interface{}, 1, len(regionMatrix)+1)
 	matrix[0] = map[string]interface{}{matrixKeyRegion: "global"}
 	matrix = append(matrix, regionMatrix...)
-
 	return matrix
 }
 
