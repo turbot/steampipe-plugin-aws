@@ -118,6 +118,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
@@ -151,6 +154,7 @@ import (
 	oamEndpoint "github.com/aws/aws-sdk-go/service/oam"
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
 	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
+	pricingEndpoint "github.com/aws/aws-sdk-go/service/pricing"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	s3ControlEndpoint "github.com/aws/aws-sdk-go/service/s3control"
@@ -166,8 +170,6 @@ import (
 	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
 	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -927,7 +929,7 @@ func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
 	// Get Pricing API supported regions
-	pricingAPISupportedRegions, err := GetSupportedRegionsForClient(ctx, d, "api.pricing")
+	pricingAPISupportedRegions, err := GetSupportedRegionsForClient(ctx, d, pricingEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
