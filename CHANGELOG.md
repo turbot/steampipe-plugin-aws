@@ -1,3 +1,9 @@
+## v0.91.1 [2023-01-17]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.9](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v419-2022-11-30) which fixes caching for aggregator connections. ([#1540](https://github.com/turbot/steampipe-plugin-aws/pull/1540))
+
 ## v0.91.0 [2023-01-09]
 
 _What's new?_
