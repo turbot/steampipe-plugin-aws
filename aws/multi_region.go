@@ -178,12 +178,14 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 		return matrix
 	}
 
-	// If regions are mentioned in the connection config
-	// Get the list of AWS region from EC2 DescribeRegions API
-	regionData, err := listRegions(ctx, d, nil)
+	// Get information about the regions for this account, considering
+	// the partition, opt-ins, etc.
+	iRegionData, err := listRegionsCached(ctx, d, nil)
 	if err != nil {
 		panic(err)
 	}
+	regionData := iRegionData.(RegionsData)
+
 	var finalRegions []string
 
 	// If the list was retrived from AWS API - just looks for Active Regions
@@ -235,25 +237,15 @@ func BuildWafRegionList(ctx context.Context, d *plugin.QueryData) []map[string]i
 	return matrix
 }
 
-// The default region is the "primary" / most common region wtihin the AWS partition.
-// This region is used for API calls that must go to the base endpoint. In general,
-// it's better to use the client region (see getClientRegion) if possible, this
-// should be the last resort.
-func listRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (RegionsData, error) {
-	dataInterface, err := listRegionsCached(ctx, d, h)
-	if err != nil {
-		data := RegionsData{
-			APIRetrivedList: false,
-		}
-		return data, err
-	}
-	result := dataInterface.(RegionsData)
-	return result, nil
-}
-
 // The list of regions is constant on a per-connection basis, so we cache it.
 var listRegionsCached = plugin.HydrateFunc(listRegionsUncached).WithCache()
 
+// Region data is complicated. Every account may have different combinations
+// of regions based on opt-ins, partition, etc. This function is responsible
+// for building a data structure representing region data for the account.
+// The data is cached, and includes calls to APIs in it's construction when
+// possible (e.g. region list API). But, it will also fall back to defaults
+// like a full region list.
 func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// The client region is used for two things:
@@ -279,15 +271,15 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		allRegionsForClientPartition = awsUsIsoRegions()
 	}
 
+	// We try to get the accurate region list via an API call below, but as a
+	// safe fallback assume all regions for the client partition
+
 	// Default region data to use if everything else fails
 	data := RegionsData{
 		APIRetrivedList: false,
 		AllRegions:      allRegionsForClientPartition,
 		ActiveRegions:   allRegionsForClientPartition,
 	}
-
-	// We try to get the accurate region list via an API call below, but as a
-	// safe fallback assume all regions for the client partition
 
 	// We can query EC2 for the list of supported regions. If credentials
 	// are insufficient this query will retry many times, so we create
