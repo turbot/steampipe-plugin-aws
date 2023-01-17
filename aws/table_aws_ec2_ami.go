@@ -407,7 +407,7 @@ func buildAmisWithOwnerFilter(input *ec2.DescribeImagesInput, quals plugin.KeyCo
 		}
 	}
 
-	// By default, the owner is the accountId
+	// By default, the accountId is set to the owner
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
