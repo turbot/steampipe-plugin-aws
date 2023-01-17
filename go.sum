@@ -205,8 +205,6 @@ github.com/aws/aws-sdk-go-v2/service/glacier v1.13.17 h1:oOw5Y/aRQWOr+G9rC9SUgSE
 github.com/aws/aws-sdk-go-v2/service/glacier v1.13.17/go.mod h1:l6wthXw/l38/jEr0Bz7LJYcZKEbzwKNaw0+ftgql0cM=
 github.com/aws/aws-sdk-go-v2/service/globalaccelerator v1.15.2 h1:aE3ixQEEHnl9cECMW6B4ZLE8en0ujwDbSs+mF1stjTo=
 github.com/aws/aws-sdk-go-v2/service/globalaccelerator v1.15.2/go.mod h1:CGZQXBY0qZXO0idVOQnRsq/uaHJ8T05Z9GCMX7uzYKw=
-github.com/aws/aws-sdk-go-v2/service/glue v1.32.0 h1:7Kacs7LCbDmMSwW5nHk4OExP9JlYK5P9r3iQ853yoOE=
-github.com/aws/aws-sdk-go-v2/service/glue v1.32.0/go.mod h1:aupHsCJmK66t1MQ542c6qBSuJYEA2IwKmwi4M3jdT1M=
 github.com/aws/aws-sdk-go-v2/service/glue v1.38.1 h1:t4H6jJJEq11K+3Xrm3GKcSepdZxveO1BGdeCA5gg1Mc=
 github.com/aws/aws-sdk-go-v2/service/glue v1.38.1/go.mod h1:kXio9ACrVjRndIledemYxonQhqmfDFbgDH3/AIBx3Hk=
 github.com/aws/aws-sdk-go-v2/service/guardduty v1.15.9 h1:c4cDiLROLNl0glOnn4ywlvKhN5KIoWHEZJiHI+mw3I8=
@@ -698,8 +696,8 @@ github.com/tkrajina/go-reflector v0.5.4 h1:dS9aJEa/eYNQU/fwsb5CSiATOxcNyA/gG/A7a
 github.com/tkrajina/go-reflector v0.5.4/go.mod h1:9PyLgEOzc78ey/JmQQHbW8cQJ1oucLlNQsg8yFvkVk8=
 github.com/turbot/go-kit v0.4.0 h1:EdD7Bf2EGAjvHRGQxRiWpDawzZSk3T+eghqbj74qiSc=
 github.com/turbot/go-kit v0.4.0/go.mod h1:SBdPRngbEfYubiR81iAVtO43oPkg1+ASr+XxvgbH7/k=
-github.com/turbot/steampipe-plugin-sdk/v4 v4.1.8 h1:4/fEpsrWNSKA/p2otsibzijBCf4f35Y8jIgUcJgd0Ng=
-github.com/turbot/steampipe-plugin-sdk/v4 v4.1.8/go.mod h1:t1uwq6KylUr2CzIinxeTafoktJvX8yWmhaoWCJJc4YI=
+github.com/turbot/steampipe-plugin-sdk/v4 v4.1.9 h1:4yV/tR22tAQ0ZSCcj1cSAos/orhDH3/1pEHvYOCnxUc=
+github.com/turbot/steampipe-plugin-sdk/v4 v4.1.9/go.mod h1:t1uwq6KylUr2CzIinxeTafoktJvX8yWmhaoWCJJc4YI=
 github.com/vmihailenco/msgpack/v4 v4.3.12/go.mod h1:gborTTJjAo/GWTqqRjrLCn9pgNN+NXzzngzBKDPIqw4=
 github.com/vmihailenco/tagparser v0.1.1/go.mod h1:OeAg3pn3UbLjkWt+rN9oFYB6u/cQgqMEUPoW2WPyhdI=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
