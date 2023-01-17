@@ -34,6 +34,20 @@ where
   public;
 ```
 
+### List failed AMIs
+
+```sql
+select
+  name,
+  image_id,
+  public,
+  state
+from
+  aws_ec2_ami
+where
+  state = 'failed';
+```
+
 ### Get volume info for each AMI
 
 ```sql

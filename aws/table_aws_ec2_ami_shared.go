@@ -305,7 +305,9 @@ func buildSharedAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, ctx context.C
 			filter := types.Filter{
 				Name: go_kit_pack.String(filterName),
 			}
-			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
+
+			//check Bool columns
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) {
 				value := getQualsValueByColumn(quals, columnName, "boolean")
 				filter.Values = []string{fmt.Sprint(value)}
 			} else {

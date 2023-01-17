@@ -26,6 +26,24 @@ where
   owner_id = '137112412989';
 ```
 
+### List arm64 AMIs
+
+```sql
+select
+  name,
+  image_id,
+  state,
+  image_location,
+  creation_date,
+  public,
+  root_device_name
+from
+  aws_ec2_ami_shared
+where
+  owner_id = '137112412989'
+  and architecture = 'arm64';
+```
+
 ### List EC2 instances using AMIs owned by a specific AWS account
 
 ```sql

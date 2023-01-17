@@ -391,7 +391,9 @@ func buildAmisWithOwnerFilter(input *ec2.DescribeImagesInput, quals plugin.KeyCo
 			filter := types.Filter{
 				Name: go_kit_pack.String(filterName),
 			}
-			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
+
+			//check Bool columns
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) {
 				value := getQualsValueByColumn(quals, columnName, "boolean")
 				filter.Values = []string{fmt.Sprint(value)}
 			} else {
@@ -405,7 +407,7 @@ func buildAmisWithOwnerFilter(input *ec2.DescribeImagesInput, quals plugin.KeyCo
 		}
 	}
 
-	// Use this section later and compare the results
+	// By default, the owner is the accountId
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
