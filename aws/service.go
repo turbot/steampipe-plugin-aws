@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -302,26 +301,11 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 	// configuration in aws.spc - but, good enough for something that is rarely used
 	// anyway.
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("CloudControlClient called without a region in QueryData")
-	}
-
-	// Use a service level cache since we are going around the standard
-	// getSession with its caching.
-	serviceCacheKey := fmt.Sprintf("cloudcontrol-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*cloudcontrol.Client), nil
-	}
-
 	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
-	svc := cloudcontrol.NewFromConfig(*cfg)
-
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return cloudcontrol.NewFromConfig(*cfg), nil
 }
 
 func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Client, error) {
@@ -1060,7 +1044,7 @@ func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region str
 	// Get the list of supported regions for the service
 	resourceExplorerRegions, err := GetSupportedRegionsForClient(ctx, d, resourceexplorer2Endpoint.EndpointsID)
 	if err != nil {
-		return nil, errors.New("ResourceExplorerClient: failed to get supported regions")
+		return nil, fmt.Errorf("ResourceExplorerClient: failed to get supported regions")
 	}
 
 	// Verify the requested region is supported, otherwise return nil which
@@ -1129,10 +1113,12 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 
 	var svc *s3.Client
 
-	awsConfig := GetConfig(d.Connection)
-	if awsConfig.S3ForcePathStyle != nil {
+	// Depending on their configuration, the S3 client may need to be configured
+	// to use path-style addressing.
+	awsSpcConfig := GetConfig(d.Connection)
+	if awsSpcConfig.S3ForcePathStyle != nil {
 		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
-			o.UsePathStyle = *awsConfig.S3ForcePathStyle
+			o.UsePathStyle = *awsSpcConfig.S3ForcePathStyle
 		})
 	} else {
 		svc = s3.NewFromConfig(*cfg)
@@ -1520,6 +1506,10 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 
 	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+
+	if region == "" {
+		return nil, fmt.Errorf("getClientWithMaxRetries called with an empty region")
+	}
 
 	// Start with the shared config for the account, and then customize
 	// for this specific region etc.
