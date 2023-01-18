@@ -121,15 +121,8 @@ func tableAwsAPIGatewayV2Route(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("IntegrationId"),
+				Transform:   transform.FromField("RouteId"),
 			},
-			// {
-			// 	Name:        "akas",
-			// 	Description: resourceInterfaceDescription("akas"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getAPIGatewayV2IntegrationARN,
-			// 	Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
-			// },
 		}),
 	}
 }
