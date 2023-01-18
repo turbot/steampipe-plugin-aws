@@ -29,7 +29,7 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 			Hydrate: listAwsWafv2IpSets,
 		},
 		GetMatrixItemFunc: BuildWafRegionList,
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the IP set.",

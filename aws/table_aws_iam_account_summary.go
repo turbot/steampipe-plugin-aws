@@ -54,7 +54,7 @@ func tableAwsIamAccountSummary(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAccountSummary,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "access_keys_per_user_quota",
 				Description: "Specifies the allowed quota of access keys per user.",

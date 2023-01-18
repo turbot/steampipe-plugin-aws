@@ -31,7 +31,7 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listWafWebAcls,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Web ACL. You cannot change the name of a Web ACL after you create it.",

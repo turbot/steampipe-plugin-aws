@@ -22,7 +22,7 @@ func tableAwsAccount(ctx context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAccountAlias,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "account_aliases",
 				Description: "A list of aliases associated with the account, if applicable.",

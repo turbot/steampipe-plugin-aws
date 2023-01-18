@@ -27,7 +27,7 @@ func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listTrafficPolicies,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name that you specified when traffic policy was created.",

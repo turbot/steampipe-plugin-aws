@@ -29,7 +29,7 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listHostedZones,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the domain. For public hosted zones, this is the name that is registered with your DNS registrar.",

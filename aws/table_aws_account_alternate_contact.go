@@ -35,7 +35,7 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name associated with this alternate contact.",

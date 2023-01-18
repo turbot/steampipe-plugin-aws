@@ -17,7 +17,7 @@ func tableAWSResourceExplorerSupportedResourceType(_ context.Context) *plugin.Ta
 		List: &plugin.ListConfig{
 			Hydrate: listAWSExplorerSupportedTypes,
 		},
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "resource_type",
 				Description: "The unique identifier of the resource type.",

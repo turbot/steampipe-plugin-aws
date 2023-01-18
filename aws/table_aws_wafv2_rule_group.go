@@ -29,7 +29,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 			Hydrate: listAwsWafv2RuleGroups,
 		},
 		GetMatrixItemFunc: BuildWafRegionList,
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the rule group.",

@@ -26,7 +26,7 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listTrafficPolicyInstances,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The DNS name for which Amazon Route 53 responds to queries.",

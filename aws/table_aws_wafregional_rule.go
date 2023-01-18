@@ -33,7 +33,7 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 			Hydrate: listAwsWAFRegionalRules,
 		},
 		GetMatrixItemFunc: BuildRegionList,
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The friendly name or description for the Rule.",

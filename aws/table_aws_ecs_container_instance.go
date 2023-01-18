@@ -21,7 +21,7 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 			Hydrate:       listEcsContainerInstances,
 		},
 		GetMatrixItemFunc: BuildRegionList,
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The namespace Amazon Resource Name (ARN) of the container instance.",

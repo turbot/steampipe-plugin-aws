@@ -25,7 +25,7 @@ func tableAwsRoute53Domain(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listRoute53Domains,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
 				Description: "The name of the domain.",

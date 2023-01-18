@@ -24,7 +24,7 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 				{Name: "assignment_status", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "serial_number",
 				Description: "The serial number associated with VirtualMFADevice.",

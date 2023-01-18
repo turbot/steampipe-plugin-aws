@@ -12,8 +12,27 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// column definitions for the common columns
-func commonAwsRegionalColumns() []*plugin.Column {
+// Columns defined on every account-level resource (e.g. aws_iam_access_key)
+func commonColumnsForAccountResource() []*plugin.Column {
+	return []*plugin.Column{
+		{
+			Name:        "partition",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
+		},
+		{
+			Name:        "account_id",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Transform:   transform.FromCamel(),
+			Description: "The AWS Account ID in which the resource is located.",
+		},
+	}
+}
+
+// Columns defined on every region-level resource (e.g. aws_ec2_instance)
+func commonColumnsForRegionalResource() []*plugin.Column {
 	return []*plugin.Column{
 		{
 			Name:        "partition",
@@ -37,8 +56,8 @@ func commonAwsRegionalColumns() []*plugin.Column {
 	}
 }
 
-// column definitions for the common columns
-func commonColumns() []*plugin.Column {
+// Columns defined on every global-region-level resource (e.g. aws_waf_rule)
+func commonColumnsForGlobalRegionResource() []*plugin.Column {
 	return []*plugin.Column{
 		{
 			Name:        "partition",
@@ -47,26 +66,9 @@ func commonColumns() []*plugin.Column {
 			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
-			Name:        "account_id",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
-			Transform:   transform.FromCamel(),
-			Description: "The AWS Account ID in which the resource is located.",
-		},
-	}
-}
-
-func commonAwsColumns() []*plugin.Column {
-	return []*plugin.Column{
-		{
-			Name:        "partition",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
-			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-		},
-		{
-			Name:        "region",
-			Type:        proto.ColumnType_STRING,
+			Name: "region",
+			Type: proto.ColumnType_STRING,
+			// Region is hard-coded to special global region
 			Transform:   transform.FromConstant("global"),
 			Description: "The AWS Region in which the resource is located.",
 		},
@@ -80,18 +82,19 @@ func commonAwsColumns() []*plugin.Column {
 	}
 }
 
-// append the common aws columns for REGIONAL resources onto the column list
+// Append columns for account-level resource (e.g. aws_iam_access_key)
 func awsRegionalColumns(columns []*plugin.Column) []*plugin.Column {
-	return append(columns, commonAwsRegionalColumns()...)
+	return append(columns, commonColumnsForRegionalResource()...)
 }
 
-// append the common aws columns for GLOBAL resources onto the column list
-func awsColumns(columns []*plugin.Column) []*plugin.Column {
-	return append(columns, commonAwsColumns()...)
+// Append columns for region-level resource (e.g. aws_ec2_instance)
+func awsGlobalRegionColumns(columns []*plugin.Column) []*plugin.Column {
+	return append(columns, commonColumnsForGlobalRegionResource()...)
 }
 
-func awsDefaultColumns(columns []*plugin.Column) []*plugin.Column {
-	return append(columns, commonColumns()...)
+// Append columns for global-region-level resource (e.g. aws_waf_rule)
+func awsAccountColumns(columns []*plugin.Column) []*plugin.Column {
+	return append(columns, commonColumnsForAccountResource()...)
 }
 
 // struct to store the common column data

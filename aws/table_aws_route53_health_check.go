@@ -27,7 +27,7 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listHealthChecks,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "id",
 				Description: "The identifier that Amazon Route 53 assigned to the health check.",

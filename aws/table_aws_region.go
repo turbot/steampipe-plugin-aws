@@ -18,7 +18,7 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 		},
 		// Get is not implemented because the API is not paged anyway, so
 		// the List has the same cost but better caching benefit.
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the region",

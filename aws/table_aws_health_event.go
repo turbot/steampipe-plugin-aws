@@ -31,7 +31,7 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the HealthEvent.",

@@ -28,7 +28,7 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listIamSamlProviders,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the IAM policy.",

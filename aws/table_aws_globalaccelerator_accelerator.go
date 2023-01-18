@@ -27,7 +27,7 @@ func tableAwsGlobalAcceleratorAccelerator(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listGlobalAcceleratorAccelerators,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the accelerator.",

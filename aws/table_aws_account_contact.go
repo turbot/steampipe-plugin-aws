@@ -28,7 +28,7 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "full_name",
 				Description: "The full name of the primary contact address.",

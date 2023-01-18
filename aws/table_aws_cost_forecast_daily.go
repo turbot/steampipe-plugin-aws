@@ -20,7 +20,7 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostForecastDaily,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "period_start",
 				Description: "Start timestamp for this cost metric",

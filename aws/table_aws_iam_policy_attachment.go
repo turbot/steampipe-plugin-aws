@@ -25,7 +25,7 @@ func tableAwsIamPolicyAttachment(_ context.Context) *plugin.Table {
 				{Name: "is_attached", Require: plugin.Optional, Operators: []string{"<>", "="}},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "policy_arn",
 				Description: "The Amazon Resource Name (ARN) specifying the IAM policy.",

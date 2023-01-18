@@ -25,7 +25,7 @@ func tableAwsIamUserServiceSpecificCredential(ctx context.Context) *plugin.Table
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "service_name",
 				Description: "The name of the service associated with the service-specific credential.",

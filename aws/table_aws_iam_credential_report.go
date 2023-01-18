@@ -47,7 +47,7 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCredentialReports,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "user_name",
 				Description: "The friendly name of the user.",

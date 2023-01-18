@@ -73,7 +73,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
 		},
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The user friendly name of the bucket.",

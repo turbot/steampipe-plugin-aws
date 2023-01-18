@@ -33,7 +33,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 			Hydrate: listAwsWafv2WebAcls,
 		},
 		GetMatrixItemFunc: BuildWafRegionList,
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Web ACL. You cannot change the name of a Web ACL after you create it.",

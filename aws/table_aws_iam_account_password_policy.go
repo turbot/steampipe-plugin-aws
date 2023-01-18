@@ -19,7 +19,7 @@ func tableAwsIamAccountPasswordPolicy(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAccountPasswordPolicies,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "allow_users_to_change_password",
 				Description: "Specifies whether IAM users are allowed to change their own password.",
