@@ -123,6 +123,12 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Stage.Description"),
 			},
 			{
+				Name:        "access_log_settings",
+				Description: "Access log settings of the stage.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Stage.AccessLogSettings"),
+			},
+			{
 				Name:        "stage_variables",
 				Description: "A map that defines the stage variables for a stage resource",
 				Type:        proto.ColumnType_JSON,
