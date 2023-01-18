@@ -1335,70 +1335,6 @@ func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Cli
 	return workspaces.NewFromConfig(*cfg), nil
 }
 
-func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
-	h := &plugin.HydrateData{Item: region}
-	i, err := getClientCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	return i.(*aws.Config), nil
-}
-
-func getClientCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := h.Item.(string)
-	key := fmt.Sprintf("getClient-%s", region)
-	return key, nil
-}
-
-var getClientCached = plugin.HydrateFunc(getClientUncached).WithCache(getClientCacheKey)
-
-func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	region := h.Item.(string)
-
-	plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "starting")
-
-	awsConfig := GetConfig(d.Connection)
-
-	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
-	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
-	// waiting too long to return results
-	maxRetries := 9
-	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
-
-	// Set max retry count from config file or env variable (config file has precedence)
-	if awsConfig.MaxErrorRetryAttempts != nil {
-		maxRetries = *awsConfig.MaxErrorRetryAttempts
-	} else if os.Getenv("AWS_MAX_ATTEMPTS") != "" {
-		maxRetriesEnvVar, err := strconv.Atoi(os.Getenv("AWS_MAX_ATTEMPTS"))
-		if err != nil || maxRetriesEnvVar < 1 {
-			panic("invalid value for environment variable \"AWS_MAX_ATTEMPTS\". It should be an integer value greater than or equal to 1")
-		}
-		maxRetries = maxRetriesEnvVar
-	}
-
-	// Set min delay time from config file
-	if awsConfig.MinErrorRetryDelay != nil {
-		minRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
-	}
-
-	if maxRetries < 1 {
-		panic("\nconnection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
-	}
-	if minRetryDelay < 1 {
-		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
-	}
-
-	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
-	if err != nil {
-		plugin.Logger(ctx).Error("getService.getClientWithMaxRetries", "region", region, "err", err)
-	}
-
-	plugin.Logger(ctx).Warn("getClient", "connection_name", d.Connection.Name, "region", region, "status", "done")
-
-	return sess, err
-}
-
 // Get a session for the region defined in query data, but only after checking it's
 // a supported region for the given serviceID.
 func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
@@ -1456,61 +1392,84 @@ func getClientForRegion(ctx context.Context, d *plugin.QueryData, region string)
 	return getClient(ctx, d, region)
 }
 
-func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
-	tmp, err := getBaseClientForAccountCached(ctx, d, nil)
+// Get the AWS client for a given region. This is cached on a per-connection-region
+// basis internally.
+func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
+	// Create custom hydrate data to pass through the region. Hydrate data
+	// is normally per-column, but we can hijack it for this case to pass
+	// through the context we need.
+	h := &plugin.HydrateData{Item: region}
+	i, err := getClientCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-	return tmp.(*aws.Config), nil
+	return i.(*aws.Config), nil
 }
 
-var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).WithCache()
+// Cached form of getClient, using the per-connection and parallel safe
+// WithCache() method.
+var getClientCached = plugin.HydrateFunc(getClientUncached).WithCache(getClientCacheKey)
 
-func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+// getClient is per-region, but WithCache() is per-connection, so a setup
+// a custom cache key with region information in it.
+func getClientCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Extract the region from the hydrate data. This is not per-row data,
+	// but a clever pass through of context for our case.
+	region := h.Item.(string)
+	key := fmt.Sprintf("getClient-%s", region)
+	return key, nil
+}
 
-	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
+// getClientUncached is the actual implementation of getClient, which should
+// be run only once per region per connection. Do not call this directly, use
+// getClient instead.
+func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	// Extract the region from the hydrate data. This is not per-row data,
+	// but a clever pass through of context for our case.
+	region := h.Item.(string)
+
+	plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
 	awsSpcConfig := GetConfig(d.Connection)
 
-	var configOptions []func(*config.LoadOptions) error
+	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
+	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
+	// waiting too long to return results
+	maxRetries := 9
+	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
 
-	// TODO - how do we choose the right region here? A region is required
-	// for STS calls etc while creating the session.
-	configOptions = append(configOptions, config.WithRegion("us-east-1"))
-
-	if awsSpcConfig.Profile != nil {
-		profile := aws.ToString(awsSpcConfig.Profile)
-		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
-		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
-	}
-
-	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
-	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
-	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
-		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
-		sessionToken := ""
-		if awsSpcConfig.SessionToken != nil {
-			plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
-			sessionToken = *awsSpcConfig.SessionToken
+	// Set max retry count from config file or env variable (config file has precedence)
+	if awsSpcConfig.MaxErrorRetryAttempts != nil {
+		maxRetries = *awsSpcConfig.MaxErrorRetryAttempts
+	} else if os.Getenv("AWS_MAX_ATTEMPTS") != "" {
+		maxRetriesEnvVar, err := strconv.Atoi(os.Getenv("AWS_MAX_ATTEMPTS"))
+		if err != nil || maxRetriesEnvVar < 1 {
+			panic("invalid value for environment variable \"AWS_MAX_ATTEMPTS\". It should be an integer value greater than or equal to 1")
 		}
-		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
-		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
+		maxRetries = maxRetriesEnvVar
 	}
 
-	plugin.Logger(ctx).Warn("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+	// Set min delay time from config file
+	if awsSpcConfig.MinErrorRetryDelay != nil {
+		minRetryDelay = time.Duration(*awsSpcConfig.MinErrorRetryDelay) * time.Millisecond
+	}
 
-	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
+	if maxRetries < 1 {
+		panic("\nconnection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+	}
+	if minRetryDelay < 1 {
+		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+	}
+
+	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
 	if err != nil {
-		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
+		plugin.Logger(ctx).Error("getService.getClientWithMaxRetries", "region", region, "err", err)
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
-
-	return &cfg, err
-
+	plugin.Logger(ctx).Warn("getClient", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	return sess, err
 }
 
 func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
@@ -1564,6 +1523,80 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
 
 	return &cfg, err
+}
+
+// Helper function to get an AWS config object for each connection. This object
+// is then copied and shared across regions. This approach avoids unnecssary
+// creation work for sessions, particularly when using a shared service like IDMS.
+// The client is actually cached indefinitely which is desirable since the AWS
+// SDK will automatically refresh as needed. We used to time this cache out
+// (every 5 mins), but that caused a lof of session resets and termination of
+// things like SSO sessions before they expired.
+// Previously we'd create a new session for each region, but this leads to
+// throttling on the IDMS service - consider 10 connections with 10 regions, that's
+// 100 sessions which leads to 300 IDMS calls in very quick succession. It was
+// even worse when the cache was not safe against parallel runs, causing many to
+// be recreated. Using a base client creation and combining with the safety of
+// WithCache() is a much better approach.
+func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	tmp, err := getBaseClientForAccountCached(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+	return tmp.(*aws.Config), nil
+}
+
+// Cached form of the base client.
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).WithCache()
+
+// Do the actual work of creating an AWS config object for reuse across many
+// regions. This client has the minimal reusable configuration on it, so it
+// can be modified in the higher level client functions.
+func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
+
+	awsSpcConfig := GetConfig(d.Connection)
+
+	var configOptions []func(*config.LoadOptions) error
+
+	// TODO - how do we choose the right region here? A region is required
+	// for STS calls etc while creating the session.
+	configOptions = append(configOptions, config.WithRegion("us-east-1"))
+
+	if awsSpcConfig.Profile != nil {
+		profile := aws.ToString(awsSpcConfig.Profile)
+		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
+		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
+	}
+
+	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
+	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
+	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
+		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
+		sessionToken := ""
+		if awsSpcConfig.SessionToken != nil {
+			plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
+			sessionToken = *awsSpcConfig.SessionToken
+		}
+		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
+		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
+	}
+
+	plugin.Logger(ctx).Warn("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+
+	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
+	if err != nil {
+		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
+		return nil, err
+	}
+
+	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
+
+	return &cfg, err
+
 }
 
 // ExponentialJitterBackoff provides backoff delays with jitter based on the
