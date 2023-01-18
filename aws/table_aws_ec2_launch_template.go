@@ -18,18 +18,16 @@ func tableAwsEc2LaunchTemplate(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_launch_template",
 		Description: "AWS EC2 Launch Template",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("launch_template_id"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction", "InvalidParameter", "InvalidParameterValue"}),
-			},
-			Hydrate: getEc2LaunchTemplate,
-		},
 		List: &plugin.ListConfig{
-			Hydrate: listEc2LaunchTemplates,
+			ParentHydrate: listEc2Instance,
+			Hydrate:       listEc2LaunchTemplates,
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "launch_template_name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "launch_template_id",
 					Require: plugin.Optional,
 				},
 			},
@@ -65,6 +63,13 @@ func tableAwsEc2LaunchTemplate(_ context.Context) *plugin.Table {
 				Name:        "latest_version_number",
 				Description: "The name of the Application-Layer Protocol Negotiation (ALPN) policy.",
 				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "launch_template_data",
+				Description: "The configuration data of the specified instance.",
+				Hydrate:     getEc2LaunchTemplateData,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags_src",
@@ -121,6 +126,9 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if name != "" {
 		input.LaunchTemplateNames = []string{name}
 	}
+	if d.KeyColumnQualString("launch_template_id") != "" {
+		input.LaunchTemplateIds = []string{d.KeyColumnQualString("launch_template_id")}
+	}
 
 	paginator := ec2.NewDescribeLaunchTemplatesPaginator(svc, input, func(o *ec2.DescribeLaunchTemplatesPaginatorOptions) {
 		o.Limit = maxLimit
@@ -131,7 +139,7 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.listEc2LoadBalancers", "api_error", err)
+			plugin.Logger(ctx).Error("aws_ec2_launch_template.listEc2LoadBalancers", "api_error", err)
 			return nil, err
 		}
 
@@ -146,33 +154,28 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getEc2LaunchTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2LaunchTemplateData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get the details of load balancer
-	launchTemplateId := d.KeyColumnQuals["launch_template_id"].GetStringValue()
+	instance := h.Item.(types.Instance)
 
 	// create service
 	svc, err := EC2Client(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2Instance", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_launch_template.getEc2LaunchTemplateData", "connection_error", err)
 		return nil, err
 	}
 
-	params := &ec2.DescribeLaunchTemplatesInput{
-		LaunchTemplateIds: []string{launchTemplateId},
+	params := &ec2.GetLaunchTemplateDataInput{
+		InstanceId: instance.InstanceId,
 	}
 
-	op, err := svc.DescribeLaunchTemplates(ctx, params)
+	op, err := svc.GetLaunchTemplateData(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2Instance", "api_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_launch_template.getEc2LaunchTemplateData", "api_error", err)
 		return nil, err
 	}
 
-	if op.LaunchTemplates != nil && len(op.LaunchTemplates) > 0 {
-
-		return op.LaunchTemplates[0], nil
-	}
-
-	return nil, err
+	return op.LaunchTemplateData, err
 }
 
 //// TRANSFORM FUNCTIONS
