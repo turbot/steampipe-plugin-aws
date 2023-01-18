@@ -116,20 +116,20 @@ func tableAwsAPIGatewayV2Route(_ context.Context) *plugin.Table {
 				Transform: transform.FromField("GetRouteOutput.RequestParameters"),
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("IntegrationId"),
 			},
-			// {
-			// 	Name:        "akas",
-			// 	Description: resourceInterfaceDescription("akas"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getAPIGatewayV2IntegrationARN,
-			// 	Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
-			// },
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAPIGatewayV2RouteARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
+			},
 		}),
 	}
 }
@@ -255,4 +255,20 @@ func getAPIGatewayV2Route(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 
 	return nil, nil
+}
+
+func getAPIGatewayV2RouteARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	data := h.Item.(*RouteInfo)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := commonData.(*awsCommonColumnData)
+// arn:partition:apigateway:region::/apis/api-id/routes/id
+	arn := "arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/apis/" + data.ApiId + "/routes/" + *data.RouteId
+
+	return arn, nil
 }
