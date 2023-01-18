@@ -1469,6 +1469,10 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 
 	var configOptions []func(*config.LoadOptions) error
 
+	// TODO - how do we choose the right region here? A region is required
+	// for STS calls etc while creating the session.
+	configOptions = append(configOptions, config.WithRegion("us-east-1"))
+
 	if awsSpcConfig.Profile != nil {
 		profile := aws.ToString(awsSpcConfig.Profile)
 		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
