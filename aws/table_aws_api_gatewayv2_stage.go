@@ -124,7 +124,7 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "access_log_settings",
-				Description: "Settings for logging access in this stage.",
+				Description: "Access log settings of the stage.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Stage.AccessLogSettings"),
 			},
