@@ -4,7 +4,7 @@ A stage is a named reference to a deployment, which is a snapshot of the API.
 
 ## Examples
 
-### List of API gateway v2 stages which does not send logs to cloud watch log
+### List of API gateway V2 stages which does not send logs to cloud watch log
 
 ```sql
 select
@@ -17,7 +17,7 @@ where
   not default_route_data_trace_enabled;
 ```
 
-### Default route settings info of each API gateway v2 stages
+### Default route settings info of each API gateway V2 stage
 
 ```sql
 select
@@ -31,7 +31,7 @@ from
   aws_api_gatewayv2_stage;
 ```
 
-### Count of api gatewayv2 stages by APIs
+### Count of API gateway V2 stages by APIs
 
 ```sql
 select
@@ -43,7 +43,7 @@ group by
   api_id;
 ```
 
-### Get access log settings for the stages
+### Get access log settings of API gateway V2 stages
 
 ```sql
 select
