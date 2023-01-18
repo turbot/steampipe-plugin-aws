@@ -1336,19 +1336,27 @@ func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Cli
 }
 
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
+	h := &plugin.HydrateData{Item: region}
+	i, err := getClientCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	return i.(*aws.Config), nil
+}
+
+func getClientCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := h.Item.(string)
+	key := fmt.Sprintf("getClient-%s", region)
+	return key, nil
+}
+
+var getClientCached = plugin.HydrateFunc(getClientUncached).WithCache(getClientCacheKey)
+
+func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region := h.Item.(string)
 
 	plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "starting")
-
-	// TODO - this function gets called often in parallel, causing this
-	// cache to be set multiple times. We should look at a way to use
-	// WithCache() instead, which will automatically wrap it in a mutex.
-	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
-		plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "done_cached")
-		return cachedData.(*aws.Config), nil
-	}
-
-	plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "not_cached")
 
 	awsConfig := GetConfig(d.Connection)
 
@@ -1384,9 +1392,6 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
 	if err != nil {
 		plugin.Logger(ctx).Error("getService.getClientWithMaxRetries", "region", region, "err", err)
-	} else {
-		plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "set_cache")
-		d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 30*24*time.Hour)
 	}
 
 	plugin.Logger(ctx).Warn("getClient", "connection_name", d.Connection.Name, "region", region, "status", "done")
