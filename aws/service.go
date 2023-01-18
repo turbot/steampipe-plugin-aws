@@ -432,7 +432,6 @@ func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Cli
 	return codedeploy.NewFromConfig(*cfg), nil
 }
 
-// CodePipelineClient returns the service connection for AWS CodePipeline service
 func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, codepipelineEndpoint.EndpointsID)
 	if err != nil {
@@ -452,7 +451,6 @@ func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Clie
 	return configservice.NewFromConfig(*cfg), nil
 }
 
-// CostExplorerClient returns the connection client for AWS Cost Explorer service
 func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
 	// Cost Explorer is a global service that operates from a single
 	// region (ce.us-east-1.amazonaws.com).
@@ -709,8 +707,12 @@ func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, e
 }
 
 func GlobalAcceleratorClient(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.Client, error) {
-	// Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
-	// the us-west-2 (Oregon) Region to create or update accelerators.
+	// Global Accelerator is a global service with a single DNS endpoint
+	// (globalaccelerator.amazonaws.com). As of 2023-01-18, it's only
+	// available in the us-west-2 region. It doesn't resolve if we use
+	// client region, and it's not using the default region, so we have no
+	// choice but to hard code it here.
+	// https://docs.aws.amazon.com/general/latest/gr/global_accelerator.html
 	cfg, err := getClient(ctx, d, "us-west-2")
 	if err != nil {
 		return nil, err
@@ -1479,7 +1481,7 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// but a clever pass through of context for our case.
 	region := h.Item.(string)
 
-	plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+	plugin.Logger(ctx).Trace("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
 	awsSpcConfig := GetConfig(d.Connection)
 
@@ -1514,11 +1516,11 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
 	if err != nil {
-		plugin.Logger(ctx).Error("getService.getClientWithMaxRetries", "region", region, "err", err)
+		plugin.Logger(ctx).Error("getClientUncached", "region", region, "err", err)
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	plugin.Logger(ctx).Trace("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "done")
 	return sess, err
 }
 
