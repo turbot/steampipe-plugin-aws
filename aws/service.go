@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -116,12 +117,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
+
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
+	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
 	cloudsearchEndpoint "github.com/aws/aws-sdk-go/service/cloudsearch"
@@ -155,7 +158,9 @@ import (
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
 	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
 	pricingEndpoint "github.com/aws/aws-sdk-go/service/pricing"
+	rdsEndpoint "github.com/aws/aws-sdk-go/service/rds"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
+	resourceexplorer2Endpoint "github.com/aws/aws-sdk-go/service/resourceexplorer2"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	s3ControlEndpoint "github.com/aws/aws-sdk-go/service/s3control"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
@@ -166,8 +171,9 @@ import (
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
-	wafregionalEnpoint "github.com/aws/aws-sdk-go/service/wafregional"
-	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
+	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
+	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
+	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
 	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
 )
@@ -192,13 +198,8 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 
 // AccountClient is used to query general information about an AWS account.
 func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
-	// Use the client region if possible, since this is a global service but
-	// available in all regions.
-	queryRegion, err := getClientRegion(ctx, d, nil)
-	if err != nil {
-		return nil, err
-	}
-	cfg, err := getClient(ctx, d, queryRegion)
+	// Use the client region - service is global but available in all regions.
+	cfg, err := getClientForClientRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -233,17 +234,10 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 }
 
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
-	// APIGatewayV2's endpoint ID is the same as APIGateway's, but me-central-1 and ap-southeast-3 do not support API Gateway v2 yet
-	//cfg, err := getClientForQuerySupportedRegion(ctx, d, apigatewayv2Endpoint.EndpointsID)
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	validRegions := []string{"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "cn-north-1", "cn-northwest-1", "us-gov-east-1", "us-gov-west-1", "us-iso-east-1"}
-
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
-	cfg, err := getClientForQueryRegion(ctx, d)
+	// APIGatewayV2 uses the APIGateway endpoints under the hood, but
+	// APIGatewayV2 actually supports less regions. Remove them manually here.
+	excludeRegions := []string{"ap-southeast-3", "me-central-1"}
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, apigatewayv2Endpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +344,12 @@ func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudforma
 }
 
 func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Client, error) {
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	// CloudFront a global service with a single DNS endpoint
+	// (cloudfront.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/cf_region.html
+	// So, while requests will go to the global endpoint, we can still prefer /
+	// reuse the client region.
+	cfg, err := getClientForClientRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -455,7 +454,12 @@ func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Clie
 
 // CostExplorerClient returns the connection client for AWS Cost Explorer service
 func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	// Cost Explorer is a global service that operates from a single
+	// region (ce.us-east-1.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/billing.html
+	// Testing shows it works with either the default or client region object,
+	// so use client region for higher reuse.
+	cfg, err := getClientForClientRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -742,7 +746,11 @@ func HealthClient(ctx context.Context, d *plugin.QueryData) (*health.Client, err
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	// IAM a global service with a single DNS endpoint (iam.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/iam-service.html
+	// So, while requests will go to the global endpoint, we can still prefer /
+	// reuse the client region.
+	cfg, err := getClientForClientRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -914,7 +922,13 @@ func OpenSearchClient(ctx context.Context, d *plugin.QueryData) (*opensearch.Cli
 }
 
 func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	// Organizations is a global service that operates from a single
+	// region (organizations.us-east-1.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/ao.html
+	// So, we must specify the default region rather than the client region.
+	// Testing shows it works with either the default or client region object,
+	// so use client region for higher reuse.
+	cfg, err := getClientForClientRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -944,6 +958,16 @@ func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error
 }
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
+
+	// The Pricing API is different from other services. It's a global service,
+	// but only available from two regions:
+	// - us-east-1
+	// - ap-south-1
+	// There is a big latency difference between these regions, so we do our
+	// best here to use the region you've chosen.  This could be smarter (e.g.
+	// choose closest), but for now it just tries to use your client region if
+	// it can and otherwise falls back to the default region us-east-1.
+
 	// Get Pricing API supported regions
 	pricingAPISupportedRegions, err := GetSupportedRegionsForClient(ctx, d, pricingEndpoint.EndpointsID)
 	if err != nil {
@@ -974,6 +998,7 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	if err != nil {
 		return nil, err
 	}
+
 	return pricing.NewFromConfig(*cfg), nil
 }
 
@@ -994,18 +1019,10 @@ func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 }
 
 func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
-
-	// AWS RDS DD Proxy's endpoint ID is the same as AWS RDS's, but me-central-1 and ap-northeast-3 does not support for it
-	//cfg, err := getClientForQuerySupportedRegion(ctx, d, rdxEndpoint.EndpointsID)
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	validRegions := []string{"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "cn-north-1", "cn-northwest-1", "us-gov-east-1", "us-gov-west-1", "us-iso-east-1"}
-
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
-	cfg, err := getClientForQueryRegion(ctx, d)
+	// RDS DB Proxy has the same endpoint as RDS, but covers less regions.
+	// Remove them manually here.
+	excludeRegions := []string{"ap-southeast-3", "me-central-1"}
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
 	}
@@ -1035,15 +1052,24 @@ func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshi
 }
 
 func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region string) (*resourceexplorer2.Client, error) {
-	// https://aws.amazon.com/about-aws/whats-new/2022/11/announcing-aws-resource-explorer/
-	// AWS Resource Explorer is generally available in the following AWS Regions, with more Regions coming soon: US East (Ohio), US East (N. Virginia), US West (N. California), US West (Oregon), Asia Pacific (Mumbai), Asia Pacific (Osaka), Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), Europe (London), Europe (Paris), Europe (Stockholm), and South America (São Paulo).
-	var resourceExplorerRegions = []string{"ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-west-1", "eu-west-2", "eu-west-3", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
+
+	// Resource Explorer can be called in any specific region. It's normally
+	// used from the client region, but the region can be optionally provided
+	// as a qual in the query. So, in this function we take the desired region
+	// and check that a valid endpoint for the service before using it.
 
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed ResourceExplorerClient")
+		return nil, fmt.Errorf("ResourceExplorerClient requires a region")
 	}
 
-	// If not a supported region return nil client
+	// Get the list of supported regions for the service
+	resourceExplorerRegions, err := GetSupportedRegionsForClient(ctx, d, resourceexplorer2Endpoint.EndpointsID)
+	if err != nil {
+		return nil, errors.New("ResourceExplorerClient: failed to get supported regions")
+	}
+
+	// Verify the requested region is supported, otherwise return nil which
+	// will mean zero results are returned for the query.
 	if !helpers.StringSliceContains(resourceExplorerRegions, region) {
 		return nil, nil
 	}
@@ -1052,6 +1078,7 @@ func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region str
 	if err != nil {
 		return nil, err
 	}
+
 	return resourceexplorer2.NewFromConfig(*cfg), nil
 }
 
@@ -1064,7 +1091,12 @@ func ResourceGroupsTaggingClient(ctx context.Context, d *plugin.QueryData) (*res
 }
 
 func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, error) {
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	// Route53 is a global service with a single DNS endpoint
+	// (route53.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/r53.html
+	// So, while requests will go to the global endpoint, but we can still
+	// prefer / reuse the client region.
+	cfg, err := getClientForClientRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1072,6 +1104,10 @@ func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, e
 }
 
 func Route53DomainsClient(ctx context.Context, d *plugin.QueryData) (*route53domains.Client, error) {
+	// Route53 Domains is a global service that operates from a single
+	// region (route53domains.us-east-1.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/r53.html
+	// So, we must specify the default region rather than the client region.
 	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
@@ -1265,8 +1301,7 @@ func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
 }
 
 func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
-	// https://github.com/aws/aws-sdk-go/blob/main/aws/endpoints/defaults.go#L17417
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "portal.sso")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssoEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -1277,7 +1312,12 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 }
 
 func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	// WAF Classic a global service with a single DNS endpoint
+	// (waf.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/waf-classic.html
+	// So, while requests will go to the global endpoint, we can still prefer /
+	// reuse the client region.
+	cfg, err := getClientForClientRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1285,7 +1325,7 @@ func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
 }
 
 func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafregionalEnpoint.EndpointsID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafregionalEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -1296,19 +1336,12 @@ func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.C
 }
 
 func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
-	validRegions, err := GetSupportedRegionsForClient(ctx, d, wafv2Enpoint.EndpointsID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	if !helpers.StringSliceContains(validRegions, region) {
-		// We choose to ignore unsupported regions rather than returning an error
-		// for them - it's a better user experience. So, return a nil session rather
-		// than an error. The caller must handle this case.
+	if cfg == nil {
 		return nil, nil
-	}
-	cfg, err := getClientForRegion(ctx, d, region)
-	if err != nil {
-		return nil, err
 	}
 	return wafv2.NewFromConfig(*cfg), nil
 }
@@ -1335,17 +1368,33 @@ func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Cli
 	return workspaces.NewFromConfig(*cfg), nil
 }
 
-// Get a session for the region defined in query data, but only after checking it's
-// a supported region for the given serviceID.
+// Get a session for the region defined in query data, but only after checking
+// it's a supported region for the given serviceID.
 func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
+	return getClientForQuerySupportedRegionWithExclusions(ctx, d, serviceID, []string{})
+}
+
+// Get a session for the region defined in query data, but only after checking
+// it's a supported region for the given serviceID and that it's not in the
+// list of excluded regions. This is useful for cases where the service regions
+// in the AWS SDK are actually wrong (e.g. APIGatewayV2 has less regions than
+// APIGateway but uses the same service definition.)
+func getClientForQuerySupportedRegionWithExclusions(ctx context.Context, d *plugin.QueryData, serviceID string, excludeRegions []string) (*aws.Config, error) {
+
+	// Verify we have good region data
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
+
+	// Work out which regions are valid for this service
 	validRegions, err := GetSupportedRegionsForClient(ctx, d, serviceID)
 	if err != nil {
 		return nil, err
 	}
+
+	// Remove the excluded regions from the valid list
+	validRegions = helpers.RemoveFromStringSlice(validRegions, excludeRegions...)
 
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
@@ -1353,6 +1402,7 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 		// than an error. The caller must handle this case.
 		return nil, nil
 	}
+
 	// Supported region, so get and return the session
 	return getClient(ctx, d, region)
 }
@@ -1669,7 +1719,9 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 
 	var validRegions []string
 
-	// Get the list of the service regions based on the service ID
+	// Get the list of the service regions based on the service ID.  Ultimately,
+	// this is using data from
+	// https://github.com/aws/aws-sdk-go/blob/main/models/endpoints/endpoints.json
 	services := partition.Services()
 	serviceInfo, ok := services[serviceID]
 	if !ok {
