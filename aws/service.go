@@ -1468,7 +1468,7 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Warn("getClient", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "done")
 	return sess, err
 }
 
@@ -1585,7 +1585,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
-	plugin.Logger(ctx).Warn("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
 
 	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
 	if err != nil {
