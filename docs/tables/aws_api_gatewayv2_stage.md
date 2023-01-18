@@ -17,7 +17,6 @@ where
   not default_route_data_trace_enabled;
 ```
 
-
 ### Default route settings info of each API gateway v2 stages
 
 ```sql
@@ -32,7 +31,6 @@ from
   aws_api_gatewayv2_stage;
 ```
 
-
 ### Count of api gatewayv2 stages by APIs
 
 ```sql
@@ -43,4 +41,16 @@ from
   aws_api_gatewayv2_stage
 group by
   api_id;
+```
+
+### Get access log settings for the stages
+
+```sql
+select
+  stage_name,
+  api_id,
+  default_route_data_trace_enabled,
+  jsonb_pretty(access_log_settings) as access_log_settings
+from
+  aws_api_gatewayv2_stage;
 ```
