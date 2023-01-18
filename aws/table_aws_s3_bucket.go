@@ -337,7 +337,7 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// S3 supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region).
 	location, err := svc.GetBucketLocation(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "bucket_name", *bucket.Name, "clientRegion", clientRegion, "api_error", err)
 		return nil, err
 	}
 
