@@ -1336,10 +1336,19 @@ func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Cli
 }
 
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
+
+	plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+
+	// TODO - this function gets called often in parallel, causing this
+	// cache to be set multiple times. We should look at a way to use
+	// WithCache() instead, which will automatically wrap it in a mutex.
 	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
+		plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "done_cached")
 		return cachedData.(*aws.Config), nil
 	}
+
+	plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "not_cached")
 
 	awsConfig := GetConfig(d.Connection)
 
@@ -1376,15 +1385,11 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 	if err != nil {
 		plugin.Logger(ctx).Error("getService.getClientWithMaxRetries", "region", region, "err", err)
 	} else {
-		// Caching sessions saves about 10ms, which is significant when there are
-		// multiple instantiations (per account region) and when doing queries that
-		// often take <100ms total. But, it's not that important compared to having
-		// fresh credentials all the time. So, set a short cache length to ensure
-		// we don't get tripped up by credential rotation on short lived roles etc.
-		// The minimum assume role time is 15 minutes, so 5 minutes feels like a
-		// reasonable balance - I certainly wouldn't do longer.
-		d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+		plugin.Logger(ctx).Trace("getClient", "connection_name", d.Connection.Name, "region", region, "status", "set_cache")
+		d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 30*24*time.Hour)
 	}
+
+	plugin.Logger(ctx).Warn("getClient", "connection_name", d.Connection.Name, "region", region, "status", "done")
 
 	return sess, err
 }
@@ -1446,8 +1451,75 @@ func getClientForRegion(ctx context.Context, d *plugin.QueryData, region string)
 	return getClient(ctx, d, region)
 }
 
+func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	tmp, err := getBaseClientForAccountCached(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+	return tmp.(*aws.Config), nil
+}
+
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).WithCache()
+
+func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
+
+	awsSpcConfig := GetConfig(d.Connection)
+
+	var configOptions []func(*config.LoadOptions) error
+
+	if awsSpcConfig.Profile != nil {
+		profile := aws.ToString(awsSpcConfig.Profile)
+		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
+		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
+	}
+
+	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
+	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
+	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
+		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
+		sessionToken := ""
+		if awsSpcConfig.SessionToken != nil {
+			plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
+			sessionToken = *awsSpcConfig.SessionToken
+		}
+		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
+		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
+	}
+
+	plugin.Logger(ctx).Warn("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+
+	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
+	if err != nil {
+		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
+		return nil, err
+	}
+
+	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
+
+	return &cfg, err
+
+}
+
 func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 
+	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+
+	// Start with the shared config for the account, and then customize
+	// for this specific region etc.
+	baseCfg, err := getBaseClientForAccount(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	cfg := baseCfg.Copy()
+
+	// Set the region for this client
+	cfg.Region = region
+
+	// Add the retryer definition
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		// reseting state of rand to generate different random values
 		rand.Seed(time.Now().UnixNano())
@@ -1456,61 +1528,31 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
 		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 	})
-
-	awsConfig := GetConfig(d.Connection)
-	configOptions := []func(*config.LoadOptions) error{
-		config.WithRegion(region),
-		config.WithRetryer(func() aws.Retryer {
-			return retryer
-		}),
+	cfg.Retryer = func() aws.Retryer {
+		return retryer
 	}
 
-	// handle custom endpoint URL, if any
+	// Plugin level config
+	awsSpcConfig := GetConfig(d.Connection)
+
+	// If there is a custom endpoint, use it
 	var awsEndpointUrl string
-
 	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
-	if awsConfig.EndpointUrl != nil {
-		awsEndpointUrl = *awsConfig.EndpointUrl
-	}
-
-	if awsEndpointUrl != "" {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           awsEndpointUrl,
-				SigningRegion: region,
-			}, nil
-		})
-
-		configOptions = append(configOptions, config.WithEndpointResolverWithOptions(customResolver))
-	}
-
-	// awsConfig.S3ForcePathStyle - Moved to service specific client (i.e. in S3V2Client)
-
-	if awsConfig.Profile != nil {
-		configOptions = append(configOptions, config.WithSharedConfigProfile(aws.ToString(awsConfig.Profile)))
-	}
-
-	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
-	} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
-	} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
-		var provider credentials.StaticCredentialsProvider
-
-		if awsConfig.SessionToken != nil {
-			provider = credentials.NewStaticCredentialsProvider(*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken)
-		} else {
-			provider = credentials.NewStaticCredentialsProvider(*awsConfig.AccessKey, *awsConfig.SecretKey, "")
+	if awsSpcConfig.EndpointUrl != nil {
+		awsEndpointUrl = *awsSpcConfig.EndpointUrl
+		if awsEndpointUrl != "" {
+			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					PartitionID:   "aws",
+					URL:           awsEndpointUrl,
+					SigningRegion: region,
+				}, nil
+			})
+			cfg.EndpointResolverWithOptions = customResolver
 		}
-		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
-	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
-	if err != nil {
-		plugin.Logger(ctx).Error("getAwsConfigWithMaxRetries", "load_default_config", err)
-		return nil, err
-	}
+	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
 
 	return &cfg, err
 }
