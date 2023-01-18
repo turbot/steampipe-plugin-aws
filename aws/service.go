@@ -593,10 +593,6 @@ func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	if cfg == nil {
-		return nil, nil
-	}
 	return efs.NewFromConfig(*cfg), nil
 }
 
@@ -724,9 +720,6 @@ func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) 
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
 	}
 	return glue.NewFromConfig(*cfg), nil
 }
