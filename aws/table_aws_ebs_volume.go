@@ -306,7 +306,7 @@ func getEBSVolumeARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	volume := h.Item.(types.Volume)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

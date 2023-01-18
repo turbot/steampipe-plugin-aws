@@ -94,7 +94,7 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	granularity := "ACTION_LEVEL"
 	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_access_advisor.listAccessAdvisor", "get_common_data_error", err)
 		return nil, err

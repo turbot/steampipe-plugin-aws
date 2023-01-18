@@ -183,7 +183,7 @@ func getEmrInstanceFleetARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(instanceFleetDetails)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_emr_instance_fleet.getEmrInstanceFleetARN", "common_data_error", err)
 		return nil, err

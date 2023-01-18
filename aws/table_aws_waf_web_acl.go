@@ -279,7 +279,7 @@ func classicWebAclData(item interface{}, ctx context.Context, d *plugin.QueryDat
 	case types.WebACLSummary:
 		data["ID"] = *item.WebACLId
 
-		commonData, err := getCommonColumnsCached(ctx, d, h)
+		commonData, err := getCommonColumns(ctx, d, h)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_waf_web_acl.classicWebAclData", "api_error", err)
 			return nil

@@ -173,7 +173,7 @@ func getVpcCustomerGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	customerGateway := h.Item.(types.CustomerGateway)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_customer_gateway.getVpcCustomerGatewayTurbotAkas", "common_data_error", err)
 		return nil, err

@@ -67,7 +67,7 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 func getAwsRegionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := h.Item.(types.Region)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

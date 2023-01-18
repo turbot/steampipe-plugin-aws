@@ -220,7 +220,7 @@ func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(detectorInfo)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_guardduty_detector.getGuardDutyDetectorARN", "error", err)
 		return nil, err

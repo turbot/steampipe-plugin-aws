@@ -278,7 +278,7 @@ func apiGatewayV2StageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	data := h.Item.(*v2StageRowData)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

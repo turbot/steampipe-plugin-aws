@@ -1643,7 +1643,7 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 
 	// get the partition of the AWS account plugin is connected to
 	// using the cached version of getCommonColumns
-	commonColumnData, err := getCommonColumnsCached(ctx, d, nil)
+	commonColumnData, err := getCommonColumns(ctx, d, nil)
 	if err != nil {
 		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition name", err)
 		return nil, err

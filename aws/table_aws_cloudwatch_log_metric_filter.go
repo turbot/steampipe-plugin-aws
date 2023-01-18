@@ -207,7 +207,7 @@ func getCloudwatchLogMetricFilterAkas(ctx context.Context, d *plugin.QueryData, 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	metricFilter := h.Item.(types.MetricFilter)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_metric_filter.getCloudwatchLogMetricFilter", "api_error", err)
 		return nil, err

@@ -318,7 +318,7 @@ func getAwsSSMParameterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(types.ParameterMetadata)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameterTags", "common_data_error", err)
 		return nil, err

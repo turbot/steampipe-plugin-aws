@@ -348,7 +348,7 @@ func getAuditManagerEvidenceARN(ctx context.Context, d *plugin.QueryData, h *plu
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	evidenceID := *h.Item.(evidenceInfo).Evidence.Id
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_auditmanager_evidence.getAuditManagerEvidenceARN", "common_data_error", err)
 		return nil, err

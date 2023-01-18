@@ -142,7 +142,7 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, nil
 	}
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glacier_vault.listGlacierVault", "api_error", err)
 		return nil, err
@@ -195,7 +195,7 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	quals := d.KeyColumnQuals
 	vaultName := quals["vault_name"].GetStringValue()
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVault", "api_error", err)
 		return nil, err

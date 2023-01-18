@@ -93,7 +93,7 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// If a view ARN is passed in, check if it's from a different account to
 	// avoid an unsuccessful API call
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_resource_explorer_search.awsResourceExplorerSearchs", "common_data_error", err)
 		return nil, err

@@ -255,7 +255,7 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 func getImageOwnerAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	image := h.Item.(types.Image)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string, ctx
 		} else {
 			// Use this section later and compare the results
 
-			c, err := getCommonColumnsCached(ctx, d, h)
+			c, err := getCommonColumns(ctx, d, h)
 			if err != nil {
 				return filters
 			}

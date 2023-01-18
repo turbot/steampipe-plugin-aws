@@ -173,7 +173,7 @@ func getAwsVpcRouteTurbotData(ctx context.Context, d *plugin.QueryData, h *plugi
 	routeData := h.Item.(*routeTableRoute)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

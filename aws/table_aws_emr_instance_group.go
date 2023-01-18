@@ -216,7 +216,7 @@ func getEmrInstanceGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(instanceGroupDetails)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

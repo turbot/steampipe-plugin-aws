@@ -18,19 +18,19 @@ func commonAwsRegionalColumns() []*plugin.Column {
 		{
 			Name:        "partition",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumnsCached,
+			Hydrate:     getCommonColumns,
 			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
 			Name:        "region",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumnsCached,
+			Hydrate:     getCommonColumns,
 			Description: "The AWS Region in which the resource is located.",
 		},
 		{
 			Name:        "account_id",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumnsCached,
+			Hydrate:     getCommonColumns,
 			Description: "The AWS Account ID in which the resource is located.",
 			Transform:   transform.FromCamel(),
 		},
@@ -43,13 +43,13 @@ func commonColumns() []*plugin.Column {
 		{
 			Name:        "partition",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumnsCached,
+			Hydrate:     getCommonColumns,
 			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
 			Name:        "account_id",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumnsCached,
+			Hydrate:     getCommonColumns,
 			Transform:   transform.FromCamel(),
 			Description: "The AWS Account ID in which the resource is located.",
 		},
@@ -61,7 +61,7 @@ func commonAwsColumns() []*plugin.Column {
 		{
 			Name:        "partition",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumnsCached,
+			Hydrate:     getCommonColumns,
 			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
@@ -73,7 +73,7 @@ func commonAwsColumns() []*plugin.Column {
 		{
 			Name:        "account_id",
 			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumnsCached,
+			Hydrate:     getCommonColumns,
 			Description: "The AWS Account ID in which the resource is located.",
 			Transform:   transform.FromCamel(),
 		},
@@ -99,18 +99,16 @@ type awsCommonColumnData struct {
 	Partition, Region, AccountId string
 }
 
-// build a cache key for the call to getCommonColumns, including the region since this is a multi-region call
-func getCommonColumnsCacheKey() plugin.HydrateFunc {
-	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-		region := d.KeyColumnQualString(matrixKeyRegion)
-		key := fmt.Sprintf("getCommonColumns-%s", region)
-		return key, nil
-	}
-}
-
 // if the caching is required other than per connection, build a cache key for the call and use it in WithCache
 // since getCommonColumns is a multi-region call, caching should be per connection per region
-var getCommonColumnsCached = plugin.HydrateFunc(getCommonColumnsUncached).WithCache(getCommonColumnsCacheKey())
+var getCommonColumns = plugin.HydrateFunc(getCommonColumnsUncached).WithCache(getCommonColumnsCacheKey)
+
+// build a cache key for the call to getCommonColumns, including the region since this is a multi-region call
+func getCommonColumnsCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	key := fmt.Sprintf("getCommonColumns-%s", region)
+	return key, nil
+}
 
 // get columns which are returned with all tables: region, partition and account
 func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

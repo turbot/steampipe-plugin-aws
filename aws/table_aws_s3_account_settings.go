@@ -71,7 +71,7 @@ func tableAwsS3AccountSettings(_ context.Context) *plugin.Table {
 
 func listS3Account(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_account_settings.listS3Account", "common_data_error", err)
 		return nil, err

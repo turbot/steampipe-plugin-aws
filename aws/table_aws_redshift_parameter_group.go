@@ -200,9 +200,9 @@ func getAwsRedshiftParameterGroupAkas(ctx context.Context, d *plugin.QueryData, 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(types.ClusterParameterGroup)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getAwsRedshiftParameterGroupAkas", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getAwsRedshiftParameterGroupAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

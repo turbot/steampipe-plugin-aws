@@ -522,9 +522,9 @@ func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	instance := h.Item.(types.Instance)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

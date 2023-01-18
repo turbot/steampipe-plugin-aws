@@ -200,7 +200,7 @@ func getAPIGatewayAuthorizerAkas(ctx context.Context, d *plugin.QueryData, h *pl
 		id = *item.Id
 	}
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

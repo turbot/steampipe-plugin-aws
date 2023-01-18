@@ -175,7 +175,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 
 	// get the primary region for aws based on its partition
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	// get the primary region for aws based on its partition
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +318,7 @@ func instanceTypeDataToAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 		instanceType = h.Item.(types.InstanceTypeInfo).InstanceType
 	}
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.instanceTypeDataToAkas", "common_data_error", err)
 		return nil, err

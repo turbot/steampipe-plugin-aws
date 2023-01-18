@@ -225,7 +225,7 @@ func getPublishingDestinationArn(ctx context.Context, d *plugin.QueryData, h *pl
 	data := h.Item.(DestinationInfo)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_guardduty_publishing_destination.getPublishingDestinationArn", "api_error", err)
 		return nil, err

@@ -216,7 +216,7 @@ func getSsmManagedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plugi
 	data := h.Item.(types.InstanceInformation)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_managed_instance.getSsmManagedInstanceARN", "common_data_error", err)
 		return nil, err

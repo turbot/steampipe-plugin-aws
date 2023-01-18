@@ -199,9 +199,9 @@ func getRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryData, 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(types.EventSubscription)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_redshift_event_subscription.getRedshiftEventSubscriptionAkas", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("aws_redshift_event_subscription.getRedshiftEventSubscriptionAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

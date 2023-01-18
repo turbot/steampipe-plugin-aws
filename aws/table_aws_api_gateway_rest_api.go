@@ -228,7 +228,7 @@ func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin
 		id = *h.Item.(types.RestApi).Id
 	}
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

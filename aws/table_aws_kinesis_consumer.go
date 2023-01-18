@@ -81,7 +81,7 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
 		return nil, err

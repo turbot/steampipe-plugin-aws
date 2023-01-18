@@ -368,7 +368,7 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 	sgRule := h.Item.(types.SecurityGroupRule)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getSecurityGroupRuleTurbotData", "common_data_error", err)
 		return nil, err

@@ -355,7 +355,7 @@ func getAwsEc2NetworkInterfaceAkas(ctx context.Context, d *plugin.QueryData, h *
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	networkInterface := h.Item.(types.NetworkInterface)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

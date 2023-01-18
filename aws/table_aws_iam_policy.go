@@ -249,7 +249,7 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	policy := h.Item.(types.Policy)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

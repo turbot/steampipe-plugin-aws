@@ -193,7 +193,7 @@ func listAwsWafRateBasedRuleTags(ctx context.Context, d *plugin.QueryData, h *pl
 		id = d.KeyColumnQuals["rule_id"].GetStringValue()
 	}
 
-	commonAwsColumns, err := getCommonColumnsCached(ctx, d, h)
+	commonAwsColumns, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +225,7 @@ func listAwsWafRateBasedRuleTags(ctx context.Context, d *plugin.QueryData, h *pl
 func getAwsWafRateBasedRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := rateBasedRuleData(h.Item)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rate_based_rule.getAwsWafRateBasedRuleAkas", "get_client_error", err)

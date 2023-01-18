@@ -208,7 +208,7 @@ func getAPIGatewayV2APIAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 		id = *h.Item.(types.Api).ApiId
 	}
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

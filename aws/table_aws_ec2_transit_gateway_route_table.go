@@ -206,7 +206,7 @@ func getAwsEc2TransitGatewayRouteTableTurbotData(ctx context.Context, d *plugin.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	transitGatewayRouteTable := h.Item.(types.TransitGatewayRouteTable)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_route_table.getAwsEc2TransitGatewayRouteTableTurbotData", "api_error", err)
 		return nil, err

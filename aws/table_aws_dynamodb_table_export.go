@@ -160,7 +160,7 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dynamodb_table_export.listTableExports", "common_data_error", err)
 		return nil, err

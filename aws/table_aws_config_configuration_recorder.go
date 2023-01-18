@@ -177,7 +177,7 @@ func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h 
 
 	configurationRecorder := h.Item.(types.ConfigurationRecorder)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getAwsConfigurationRecorderARN", "api_error", err)
 		return nil, err

@@ -183,7 +183,7 @@ func getAddonVersionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	version := h.Item.(addonVersion)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_addon_version.getAddonVersionAkas", "api_error", err)
 		return nil, err

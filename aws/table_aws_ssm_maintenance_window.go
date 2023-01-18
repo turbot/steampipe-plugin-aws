@@ -358,7 +358,7 @@ func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := maintenanceWindowID(h.Item)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

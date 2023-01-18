@@ -193,7 +193,7 @@ func getArnFormat(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := h.Item.(types.Application).Id
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_appconfig_application.getArnFormat", "cache_error", err)
 		return ""

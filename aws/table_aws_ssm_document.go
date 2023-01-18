@@ -368,7 +368,7 @@ func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	name := documentName(h.Item)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentAkas", "common_data_error", err)
 		return nil, err

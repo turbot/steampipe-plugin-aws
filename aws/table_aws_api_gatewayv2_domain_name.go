@@ -178,7 +178,7 @@ func getapiGatewayV2DomainNameAkas(ctx context.Context, d *plugin.QueryData, h *
 		domainName = *h.Item.(types.DomainName).DomainName
 	}
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

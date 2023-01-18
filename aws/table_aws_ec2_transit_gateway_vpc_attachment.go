@@ -217,7 +217,7 @@ func getAwsEc2TransitGatewayVpcAttachmentAkas(ctx context.Context, d *plugin.Que
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	transitGatewayAttachment := h.Item.(types.TransitGatewayAttachment)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

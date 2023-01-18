@@ -176,9 +176,9 @@ func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.ClusterSubnetGroup)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_redshift_subnet_group.getRedshiftSubnetGroupAkas", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("aws_redshift_subnet_group.getRedshiftSubnetGroupAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

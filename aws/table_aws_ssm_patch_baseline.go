@@ -311,7 +311,7 @@ func getAwsSSMPatchBaselineAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	baselineId := getPatchBaselineID(h.Item)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_patch_baseline.getAwsSSMPatchBaselineAkas", "common_data_error", err)
 		return nil, err

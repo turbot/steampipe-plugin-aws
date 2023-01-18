@@ -193,7 +193,7 @@ func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getAwsAvailabilityZoneAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	zone := h.Item.(types.AvailabilityZone)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

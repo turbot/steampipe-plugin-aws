@@ -320,7 +320,7 @@ func getSSMAssociationARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	associationData := associationID(h.Item)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_association.getSSMAssociationARN", "common_data_error", err)
 		return nil, err

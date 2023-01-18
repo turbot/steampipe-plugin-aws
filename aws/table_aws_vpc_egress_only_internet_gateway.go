@@ -156,7 +156,7 @@ func getVpcEgressOnlyInternetGatewayTurbotAkas(ctx context.Context, d *plugin.Qu
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	egw := h.Item.(types.EgressOnlyInternetGateway)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_egress_only_internet_gateway.getVpcEgressOnlyInternetGatewayTurbotAkas", "common_data_error", err)
 		return nil, err

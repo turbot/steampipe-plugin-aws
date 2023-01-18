@@ -207,7 +207,7 @@ func getVpcSecurityGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 	securityGroup := h.Item.(types.SecurityGroup)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_security_group.getVpcSecurityGroupARN", "common_data_error", err)
 		return nil, err

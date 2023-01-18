@@ -141,7 +141,7 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func getIamAccessKeyAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	accessKey := h.Item.(types.AccessKeyMetadata)
 
-	commonColumnData, err := getCommonColumnsCached(ctx, d, h)
+	commonColumnData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

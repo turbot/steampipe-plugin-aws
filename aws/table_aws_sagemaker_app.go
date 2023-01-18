@@ -238,7 +238,7 @@ func sageMakerAppArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	switch item := h.Item.(type) {
 	case types.AppDetails:
 
-		c, err := getCommonColumnsCached(ctx, d, h)
+		c, err := getCommonColumns(ctx, d, h)
 		if err != nil {
 			return "", err
 		}

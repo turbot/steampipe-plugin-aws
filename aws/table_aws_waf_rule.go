@@ -179,7 +179,7 @@ func getAwsWAFRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		id = d.KeyColumnQuals["rule_id"].GetStringValue()
 	}
 
-	commonAwsColumns, err := getCommonColumnsCached(ctx, d, h)
+	commonAwsColumns, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rule.getAwsWAFRuleTags", "api_error", err)
 		return nil, err
@@ -212,7 +212,7 @@ func getAwsWAFRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getAwsWAFRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := ruleData(h.Item)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rule.getAwsWAFRuleAkas", "api_error", err)
 		return nil, err

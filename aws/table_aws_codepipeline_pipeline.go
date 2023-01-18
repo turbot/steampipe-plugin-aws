@@ -270,7 +270,7 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 	// Get region, partition, account id
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return ""
 	}

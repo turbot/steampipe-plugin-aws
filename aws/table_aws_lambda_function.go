@@ -400,7 +400,7 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	functionName := functionName(h.Item)
 
-	commonColumnData, err := getCommonColumnsCached(ctx, d, h)
+	commonColumnData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_lambda_function.getLambdaFunctionUrlConfig", "get_common_columns_error", err)
 		return nil, err

@@ -309,7 +309,7 @@ func getRoute53DomainARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	name := domainName(h.Item)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

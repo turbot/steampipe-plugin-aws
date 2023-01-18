@@ -253,7 +253,7 @@ func getEc2ReservedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plug
 	instance := h.Item.(types.ReservedInstances)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

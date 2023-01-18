@@ -310,7 +310,7 @@ func getAwsEc2AmiAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	image := h.Item.(types.Image)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -147,7 +147,7 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get account details
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.listS3AccessPoints", "common_data_error", err)
 		return nil, err
@@ -223,7 +223,7 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	// Get account details
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPoint", "common_data_error", err)
 		return nil, err
@@ -277,7 +277,7 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 
 	// Get account details
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicyStatus", "common_data_error", err)
 		return nil, err
@@ -325,7 +325,7 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	// Get account details
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicy", "common_data_error", err)
 		return nil, err
@@ -374,7 +374,7 @@ func getAccessPointArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	// Get account details
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getAccessPointArn", "common_data_error", err)
 		return nil, err

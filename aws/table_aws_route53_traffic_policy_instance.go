@@ -187,7 +187,7 @@ func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugi
 func getRoute53TrafficPolicyInstanceTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instanceId := *h.Item.(types.TrafficPolicyInstance).Id
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.getRoute53TrafficPolicyInstanceTurbotAkas", "api_error", err)
 		return nil, err

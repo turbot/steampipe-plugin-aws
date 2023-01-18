@@ -99,7 +99,7 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 
 	standardsArn := *h.Item.(types.Standard).StandardsArn
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

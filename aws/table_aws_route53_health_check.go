@@ -244,7 +244,7 @@ func getHealthCheckTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func getRoute53HealthCheckTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	healthCheck := h.Item.(types.HealthCheck)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

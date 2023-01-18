@@ -345,9 +345,9 @@ func getRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshot := h.Item.(types.Snapshot)
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_redshift_snapshot.getRedshiftSnapshotAkas", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("aws_redshift_snapshot.getRedshiftSnapshotAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 

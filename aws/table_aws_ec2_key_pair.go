@@ -147,7 +147,7 @@ func getAwsEc2KeyPairAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	keyPair := h.Item.(types.KeyPairInfo)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_key_pair.getAwsEc2KeyPairAkas", "common_data_error", err)
 		return nil, err

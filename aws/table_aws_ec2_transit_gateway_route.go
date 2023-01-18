@@ -159,7 +159,7 @@ func getAwsEc2TransitGatewayRouteAka(ctx context.Context, d *plugin.QueryData, h
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	route := h.Item.(*RouteDetails)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

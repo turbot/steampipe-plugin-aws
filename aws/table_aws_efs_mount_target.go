@@ -239,7 +239,7 @@ func getAwsEfsMountTargetAkas(ctx context.Context, d *plugin.QueryData, h *plugi
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.MountTargetDescription)
 
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTargetAkas", "common_data_error", err)
 		return nil, err

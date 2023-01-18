@@ -214,7 +214,7 @@ func getGlueConnectionArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	// Get common columns
 
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.getGlueConnectionArn", "api_error", err)
 		return nil, err
