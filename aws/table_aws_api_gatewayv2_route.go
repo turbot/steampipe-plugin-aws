@@ -22,7 +22,7 @@ func tableAwsAPIGatewayV2Route(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"route_id", "api_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException", "TooManyRequestsException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIGatewayV2Route,
 		},
