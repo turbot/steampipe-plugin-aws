@@ -13,7 +13,7 @@ _Enhancements_
 _Bug fixes_
 
 - Fixed the `aws_ec2_ami` table to only return images owned by the AWS account. ([#1535](https://github.com/turbot/steampipe-plugin-aws/pull/1535))
-- Fixed the `aws_ec2_ami_shared` table return images shared by other AWS accounts when an `owner_id` or an `image_id` is passed in the `where` clause. ([#1535](https://github.com/turbot/steampipe-plugin-aws/pull/1535))
+- Fixed the `aws_ec2_ami_shared` table to return images from any AWS account (images owned by the AWS account or shared by other accounts) when either an `owner_id` or an `image_id` or both the parameters are passed in the `where` clause. ([#1535](https://github.com/turbot/steampipe-plugin-aws/pull/1535))
 
 ## v0.91.1 [2023-01-17]
 
