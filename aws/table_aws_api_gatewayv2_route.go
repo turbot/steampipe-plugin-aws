@@ -267,7 +267,7 @@ func getAPIGatewayV2RouteARN(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-// arn:partition:apigateway:region::/apis/api-id/routes/id
+        // arn:partition:apigateway:region::/apis/api-id/routes/id
 	arn := "arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/apis/" + data.ApiId + "/routes/" + *data.RouteId
 
 	return arn, nil
