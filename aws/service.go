@@ -105,8 +105,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
-	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -1075,7 +1075,20 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, s3ControlEndpoint.EndpointsID)
+	var cfg *aws.Config
+	var err error
+	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
+
+	// The tables aws_s3_access_point and aws_s3_account_settings are using this client.
+	// aws_s3_account_settings table do not have 'BuildRegionList' function, we will not get any region if we run a query for this table.
+	// In this case we will get an error 'getClientForQuerySupportedRegion called without a region in QueryData'.
+	// For resolving this error we should have the below condition.
+	if matrixRegion == "" {
+		cfg, err = getClientForRegion(ctx, d, region)
+	} else {
+		cfg, err = getClientForQuerySupportedRegion(ctx, d, s3ControlEndpoint.EndpointsID)
+	}
+
 	if err != nil {
 		return nil, err
 	}
