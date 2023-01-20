@@ -56,6 +56,11 @@ func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 
 func listCostAndUsageByTags(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	params := buildInputFromTagKeyAndTagValueQuals(ctx, d)
+	// If any of the optional quals are not given, the streamCostAndUsage function still returns the result, indicating that we have a param check for optional quals.
+	// If user does not provide any of the tag key then return empty row.
+	if len(params.GroupBy) <= 0 {
+		return nil, nil
+	}
 	return streamCostAndUsage(ctx, d, params)
 }
 
