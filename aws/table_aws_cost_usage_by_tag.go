@@ -8,9 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
+	goKitTypes "github.com/turbot/go-kit/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
@@ -20,8 +22,8 @@ func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "granularity", Require: plugin.Required},
-				{Name: "tag_key_1", Require: plugin.Optional, Operators: []string{"="}},
-				{Name: "tag_key_2", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "tag_key_1", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "tag_key_2", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
 			},
 			Hydrate: listCostAndUsageByTags,
 		},
@@ -37,15 +39,27 @@ func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 				},
 				{
 					Name:        "tag_key_1",
-					Description: "",
+					Description: "The tag key to group by.",
 					Type:        proto.ColumnType_STRING,
 					Hydrate:     hydrateCostAndUsageQuals,
 				},
 				{
 					Name:        "tag_key_2",
-					Description: "",
+					Description: "A secondary tag key to group by.",
 					Type:        proto.ColumnType_STRING,
 					Hydrate:     hydrateCostAndUsageQuals,
+				},
+				{
+					Name:        "tag_value_1",
+					Description: "The primary tag value grouped by",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1").Transform(splitCETagValue),
+				},
+				{
+					Name:        "tag_value_2",
+					Description: "A secondary tag value grouped by",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension2").Transform(splitCETagValue),
 				},
 			}),
 		),
@@ -106,4 +120,20 @@ func buildInputFromTagKeyAndTagValueQuals(ctx context.Context, d *plugin.QueryDa
 	}
 
 	return params
+}
+
+//// TRANSFORM FUNCTIONS
+
+func splitCETagValue(_ context.Context, d *transform.TransformData) (interface{}, error) {
+
+	// get the value of policy safely
+	tagString := goKitTypes.SafeString(d.Value)
+
+	tag := strings.Split(tagString, "$")
+
+	if len(tag) == 1 {
+		return nil, nil
+	}
+
+	return strings.Join(tag[1:], "$"), nil
 }
