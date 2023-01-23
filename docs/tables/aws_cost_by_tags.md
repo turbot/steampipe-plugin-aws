@@ -1,6 +1,6 @@
 # Table: aws_cost_by_tags
 
-Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_tags` table provides a simplified view of cost by tags in your account. ou must specify a granularity (`MONTHLY`, `DAILY`), and any of the tag keys `tag_key_1` or `tag_key_2`. Otherwise the table will return an empty row.
+Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_tags` table provides a simplified view of cost by tags in your account. ou must specify a granularity (`MONTHLY`, `DAILY`) and `tag_key_1`. `tag_key_2` is optional for the table.
 
 Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01.
 

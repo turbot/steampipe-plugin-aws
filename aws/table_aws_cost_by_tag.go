@@ -22,7 +22,7 @@ func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "granularity", Require: plugin.Required},
-				{Name: "tag_key_1", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "tag_key_1", Require: plugin.Required},
 				{Name: "tag_key_2", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
 			},
 			Hydrate: listCostAndUsageByTags,
@@ -70,11 +70,6 @@ func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 
 func listCostAndUsageByTags(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	params := buildInputFromTagKeyAndTagValueQuals(ctx, d)
-	// If any of the optional quals are not given, the streamCostAndUsage function still returns the result, indicating that we have a param check for optional quals.
-	// If user does not provide any of the tag key then return empty row.
-	if len(params.GroupBy) <= 0 {
-		return nil, nil
-	}
 	return streamCostAndUsage(ctx, d, params)
 }
 
@@ -95,29 +90,25 @@ func buildInputFromTagKeyAndTagValueQuals(ctx context.Context, d *plugin.QueryDa
 		Granularity: types.Granularity(granularity),
 		Metrics:     AllCostMetrics(),
 	}
+	tagKey1 := d.KeyColumnQualString("tag_key_1")
+	tagKey2 := d.KeyColumnQualString("tag_key_2")
+
 	var groupsBy []types.GroupDefinition
 
-	for _, keyQual := range d.Table.List.KeyColumns {
-		filterQual := d.Quals[keyQual.Name]
-		if filterQual == nil {
-			continue
-		}
-		if keyQual.Name == "tag_key_1" || keyQual.Name == "tag_key_2" {
-			for _, qual := range filterQual.Quals {
-				if qual.Value != nil {
-					value := qual.Value
-					groupBy := types.GroupDefinition{
-						Type: "TAG",
-						Key:  aws.String(value.GetStringValue()),
-					}
-					groupsBy = append(groupsBy, groupBy)
-				}
-			}
-		}
+	groupBy := types.GroupDefinition{
+		Type: "TAG",
+		Key:  aws.String(tagKey1),
 	}
-	if len(groupsBy) > 0 {
-		params.GroupBy = groupsBy
+	groupsBy = append(groupsBy, groupBy)
+
+	if tagKey2 != "" {
+		groupsBy = append(groupsBy, types.GroupDefinition{
+			Type: "TAG",
+			Key:  aws.String(tagKey2),
+		})
 	}
+
+	params.GroupBy = groupsBy
 
 	return params
 }
