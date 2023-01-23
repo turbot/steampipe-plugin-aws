@@ -378,6 +378,12 @@ func getS3BucketObjectOwnershipControl(ctx context.Context, d *plugin.QueryData,
 
 	conf, err := svc.GetBucketOwnershipControls(ctx, input)
 	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "OwnershipControlsNotFoundError" {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("aws_s3_bucket.getS3BucketObjectOwnershipControl", "api_error", err)
 		return nil, err
 	}
