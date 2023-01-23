@@ -19,8 +19,10 @@ func tableAwsEc2LaunchTemplate(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_launch_template",
 		Description: "AWS EC2 Launch Template",
 		List: &plugin.ListConfig{
-			ParentHydrate: listEc2Instance,
-			Hydrate:       listEc2LaunchTemplates,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidLaunchTemplateName.NotFoundException", "InvalidLaunchTemplateId.NotFound", "InvalidLaunchTemplateId.Malformed"}),
+			},
+			Hydrate: listEc2LaunchTemplates,
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "launch_template_name",
@@ -65,13 +67,6 @@ func tableAwsEc2LaunchTemplate(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "launch_template_data",
-				Description: "The configuration data of the specified instance.",
-				Hydrate:     getEc2LaunchTemplateData,
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "tags_src",
 				Description: "The tags for the launch template.",
 				Type:        proto.ColumnType_JSON,
@@ -90,6 +85,13 @@ func tableAwsEc2LaunchTemplate(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.From(launchTemplateTurbotTags),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     launchTemplateAkas,
+				Transform:   transform.FromValue(),
 			},
 		}),
 	}
@@ -154,28 +156,21 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getEc2LaunchTemplateData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Get the details of load balancer
-	instance := h.Item.(types.Instance)
-
-	// create service
-	svc, err := EC2Client(ctx, d)
+func launchTemplateAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	launchTemplate := h.Item.(types.LaunchTemplate)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_launch_template.getEc2LaunchTemplateData", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_launch_template.launchTemplateArn", "common_data_error", err)
 		return nil, err
 	}
+	commonColumnData := commonData.(*awsCommonColumnData)
 
-	params := &ec2.GetLaunchTemplateDataInput{
-		InstanceId: instance.InstanceId,
-	}
+	// Get data for turbot defined properties
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":launch-template/" + *launchTemplate.LaunchTemplateId}
 
-	op, err := svc.GetLaunchTemplateData(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_launch_template.getEc2LaunchTemplateData", "api_error", err)
-		return nil, err
-	}
-
-	return op.LaunchTemplateData, err
+	return akas, nil
 }
 
 //// TRANSFORM FUNCTIONS
