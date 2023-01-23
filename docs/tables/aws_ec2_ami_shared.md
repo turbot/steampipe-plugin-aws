@@ -2,9 +2,10 @@
 
 An Amazon Machine Image is a special type of virtual appliance that is used to create a virtual machine within the Amazon Elastic Compute Cloud.
 
-The `aws_ec2_ami_shared` table only lists public and shared images. To list private images, use the `aws_ec2_ami` table.
+**You must specify an Owner ID or Image ID** in a `where` clause (`where owner_id='`), (`where image_id='`).
 
-**You must specify an owner ID** in a `where` clause (`where owner_id='`).
+The `aws_ec2_ami_shared` table can list any image but you must specify `owner_id` or `image_id`.
+If you want to list all of the images in your account then you can use the `aws_ec2_ami` table.
 
 ## Examples
 
@@ -23,6 +24,24 @@ from
   aws_ec2_ami_shared
 where
   owner_id = '137112412989';
+```
+
+### List arm64 AMIs
+
+```sql
+select
+  name,
+  image_id,
+  state,
+  image_location,
+  creation_date,
+  public,
+  root_device_name
+from
+  aws_ec2_ami_shared
+where
+  owner_id = '137112412989'
+  and architecture = 'arm64';
 ```
 
 ### List EC2 instances using AMIs owned by a specific AWS account

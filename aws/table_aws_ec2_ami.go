@@ -2,10 +2,13 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
+	go_kit_pack "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -36,7 +39,6 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				{Name: "kernel_id", Require: plugin.Optional},
 				{Name: "platform", Require: plugin.Optional},
 				{Name: "name", Require: plugin.Optional},
-				{Name: "owner_id", Require: plugin.Optional},
 				{Name: "ramdisk_id", Require: plugin.Optional},
 				{Name: "root_device_name", Require: plugin.Optional},
 				{Name: "root_device_type", Require: plugin.Optional},
@@ -225,7 +227,7 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 	input := &ec2.DescribeImagesInput{}
 
-	filters := buildAmisWithOwnerFilter(d.Quals, "AMI", ctx, d, h)
+	filters := buildAmisWithOwnerFilter(input, d.Quals, ctx, d, h)
 	if len(filters) != 0 {
 		input.Filters = filters
 	}
@@ -249,7 +251,7 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	imageID := d.KeyColumnQuals["image_id"].GetStringValue()
 
 	// create service
@@ -259,8 +261,17 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
+	// By default, the accountId is set to the owner
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
 	params := &ec2.DescribeImagesInput{
 		ImageIds: []string{imageID},
+		Owners:   []string{commonColumnData.AccountId},
 	}
 
 	op, err := svc.DescribeImages(ctx, params)
@@ -348,4 +359,62 @@ func getEc2AmiTurbotTitle(_ context.Context, d *transform.TransformData) (interf
 	}
 
 	return title, nil
+}
+
+// // UTILITY FUNCTION
+// Build AMI's list call input filter
+func buildAmisWithOwnerFilter(input *ec2.DescribeImagesInput, quals plugin.KeyColumnQualMap, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) []types.Filter {
+	filters := make([]types.Filter, 0)
+
+	filterQuals := map[string]string{
+		"architecture":        "architecture",
+		"description":         "description",
+		"ena_support":         "ena-support",
+		"hypervisor":          "hypervisor",
+		"image_type":          "image-type",
+		"kernel_id":           "kernel-id",
+		"name":                "name",
+		"platform":            "platform",
+		"public":              "is-public",
+		"ramdisk_id":          "ramdisk-id",
+		"root_device_name":    "root-device-name",
+		"root_device_type":    "root-device-type",
+		"state":               "state",
+		"sriov_net_support":   "sriov-net-support",
+		"virtualization_type": "virtualization-type",
+	}
+
+	columnsBool := []string{"ena_support", "public"}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := types.Filter{
+				Name: go_kit_pack.String(filterName),
+			}
+
+			//check Bool columns
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) {
+				value := getQualsValueByColumn(quals, columnName, "boolean")
+				filter.Values = []string{fmt.Sprint(value)}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []string{val}
+				}
+			}
+			filters = append(filters, filter)
+		}
+	}
+
+	// By default, the accountId is set to the owner
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return filters
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+	input.Owners = []string{commonColumnData.AccountId}
+
+	return filters
 }

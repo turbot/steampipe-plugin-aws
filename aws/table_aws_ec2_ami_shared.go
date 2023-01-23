@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -20,21 +21,15 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_ami_shared",
 		Description: "AWS EC2 AMI - All public, private, and shared AMIs",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("image_id"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
-			},
-			Hydrate: getEc2Ami,
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listAmisByOwner,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "owner_id", Require: plugin.Required},
+				{Name: "owner_id", Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "architecture", Require: plugin.Optional},
 				{Name: "description", Require: plugin.Optional},
 				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "hypervisor", Require: plugin.Optional},
+				{Name: "image_id", Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "image_type", Require: plugin.Optional},
 				{Name: "public", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "kernel_id", Require: plugin.Optional},
@@ -215,8 +210,13 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
 	owner_id := d.KeyColumnQuals["owner_id"].GetStringValue()
+	image_id := d.KeyColumnQuals["image_id"].GetStringValue()
+
+	// check if owner_id and image_id is empty
+	if owner_id == "" && image_id == "" {
+		return nil, errors.New("please provide either owner_id or image_id")
+	}
 
 	// Create Session
 	svc, err := EC2Client(ctx, d)
@@ -225,16 +225,20 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		return nil, err
 	}
 
-	input := &ec2.DescribeImagesInput{
-		Owners: []string{owner_id},
+	input := &ec2.DescribeImagesInput{}
+
+	if owner_id != "" {
+		input.Owners = []string{owner_id}
+	}
+	if image_id != "" {
+		input.ImageIds = []string{image_id}
 	}
 
-	filters := buildAmisWithOwnerFilter(d.Quals, "SHARED_AMI", ctx, d, h)
+	filters := buildSharedAmisWithOwnerFilter(d.Quals, ctx, d, h)
 
 	if len(filters) != 0 {
 		input.Filters = filters
 	}
-
 	// There is no MaxResult property in param, through which we can limit the number of results
 	resp, err := svc.DescribeImages(ctx, input)
 	if err != nil {
@@ -273,7 +277,7 @@ func getImageOwnerAlias(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 // // UTILITY FUNCTION
 // Build AMI's list call input filter
-func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) []types.Filter {
+func buildSharedAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) []types.Filter {
 	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
@@ -281,7 +285,6 @@ func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string, ctx
 		"description":         "description",
 		"ena_support":         "ena-support",
 		"hypervisor":          "hypervisor",
-		"image_id ":           "image-id ",
 		"image_type":          "image-type",
 		"kernel_id":           "kernel-id",
 		"name":                "name",
@@ -302,7 +305,9 @@ func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string, ctx
 			filter := types.Filter{
 				Name: go_kit_pack.String(filterName),
 			}
-			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
+
+			//check Bool columns
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) {
 				value := getQualsValueByColumn(quals, columnName, "boolean")
 				filter.Values = []string{fmt.Sprint(value)}
 			} else {
@@ -316,24 +321,5 @@ func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string, ctx
 		}
 	}
 
-	ownerFilter := types.Filter{}
-	if amiType != "SHARED_AMI" {
-		if quals["owner_id"] != nil {
-			ownerFilter.Name = go_kit_pack.String("owner-id")
-			ownerFilter.Values = []string{getQualsValueByColumn(quals, "owner_id", "string").(string)}
-		} else {
-			// Use this section later and compare the results
-			getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-			c, err := getCommonColumnsCached(ctx, d, h)
-			if err != nil {
-				return filters
-			}
-			commonColumnData := c.(*awsCommonColumnData)
-			ownerFilter.Name = go_kit_pack.String("owner-id")
-			ownerFilter.Values = []string{commonColumnData.AccountId}
-		}
-
-		filters = append(filters, ownerFilter)
-	}
 	return filters
 }
