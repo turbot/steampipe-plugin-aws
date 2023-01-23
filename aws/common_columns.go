@@ -127,6 +127,7 @@ func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugi
 	var commonColumnData *awsCommonColumnData
 	getCallerIdentityData, err := getCallerIdentity(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("getCommonColumnsUncached", "status", "failed", "connection_name", d.Connection.Name, "region", region, "error", err)
 		return nil, err
 	}
 
@@ -137,6 +138,8 @@ func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugi
 		AccountId: *callerIdentity.Account,
 		Region:    region,
 	}
+
+	plugin.Logger(ctx).Trace("getCommonColumnsUncached", "status", "starting", "connection_name", d.Connection.Name, "common_column_data", *commonColumnData)
 
 	return commonColumnData, nil
 }
@@ -155,6 +158,7 @@ func getCallerIdentityUncached(ctx context.Context, d *plugin.QueryData, _ *plug
 	// get the service connection for the service
 	svc, err := STSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("getCallerIdentityUncached", "status", "failed", "connection_name", d.Connection.Name, "client_error", err)
 		return nil, err
 	}
 
@@ -162,6 +166,7 @@ func getCallerIdentityUncached(ctx context.Context, d *plugin.QueryData, _ *plug
 	callerIdentity, err := svc.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	plugin.Logger(ctx).Trace("getCallerIdentityUncached", "STS.GetCallerIdentity response time", time.Since(now), "connection_name", d.Connection.Name)
 	if err != nil {
+		plugin.Logger(ctx).Error("getCallerIdentityUncached", "status", "failed", "connection_name", d.Connection.Name, "api_error", err)
 		return nil, err
 	}
 

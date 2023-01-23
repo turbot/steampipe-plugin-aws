@@ -203,7 +203,7 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "api_error", err)
+			plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "api_error", err, "connection_name", d.Connection.Name, "region", d.KeyColumnQualString(matrixKeyRegion))
 			return nil, err
 		}
 
@@ -241,7 +241,7 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	// Get call
 	op, err := svc.DescribeSubnets(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "api_error", err)
+		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "api_error", err, "connection_name", d.Connection.Name, "region", d.KeyColumnQualString(matrixKeyRegion))
 		return nil, err
 	}
 

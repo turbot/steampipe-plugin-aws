@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"os"
@@ -1661,6 +1662,11 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	if retryTime > time.Duration(5*time.Minute) {
 		retryTime = time.Duration(5 * time.Minute)
 	}
+
+	// Low level method to log retries since we don't have context etc here.
+	// Logging is helpful for visibility into retries and choke points in using
+	// the API.
+	log.Printf("[WARN] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
 
 	return retryTime, nil
 }

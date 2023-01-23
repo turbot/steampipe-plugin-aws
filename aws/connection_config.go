@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/schema"
@@ -70,11 +71,23 @@ func GetConfig(connection *plugin.Connection) awsConfig {
 	}
 	config, _ := connection.Config.(awsConfig)
 
-	// Setting "regions = []" in the connection config is not valid
-	if config.Regions != nil && len(config.Regions) == 0 {
-		errorMessage := fmt.Sprintf("\nconnection %s has invalid value for \"regions\", it must contain at least 1 region.", connection.Name)
-		panic(errorMessage)
+	if config.Regions != nil {
+		if len(config.Regions) == 0 {
+			// Setting "regions = []" in the connection config is not valid
+			errorMessage := fmt.Sprintf("connection %s has invalid value for \"regions\", it must contain at least 1 region.", connection.Name)
+			panic(errorMessage)
+		}
+
+		for i, r := range config.Regions {
+			config.Regions[i] = NormalizeRegion(r)
+		}
 	}
 
 	return config
+}
+
+func NormalizeRegion(region string) string {
+	// ensure regions are lower case, to work consistently in matching
+	// and comparisons
+	return strings.ToLower(region)
 }
