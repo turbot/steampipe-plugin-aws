@@ -436,7 +436,6 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Bucket location will be nil if getBucketLocation returned an error but
 	// was ignored through ignore_error_codes config arg
-	plugin.Logger(ctx).Error("Bucket Region getBucketIsPublic =>> ", h.HydrateResults["getBucketLocation"])
 	if h.HydrateResults["getBucketLocation"] == nil {
 		return nil, nil
 	}
