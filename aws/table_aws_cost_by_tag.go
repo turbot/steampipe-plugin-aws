@@ -17,7 +17,7 @@ import (
 
 func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_cost_usage_by_tags",
+		Name:        "aws_cost_by_tags",
 		Description: "AWS Cost Explorer - Cost and Usage By Tags",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
