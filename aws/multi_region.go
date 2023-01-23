@@ -257,7 +257,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Trace("listRegions", "status", "starting", "connection_name", d.Connection.Name, "region", clientRegion)
+	plugin.Logger(ctx).Trace("listRegionsUncached", "status", "starting", "connection_name", d.Connection.Name, "region", clientRegion)
 
 	// If the client region is not AWS commercial (our default) then update
 	// the full region list from a best guess based on the client region.
@@ -287,7 +287,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache
-		plugin.Logger(ctx).Warn("listRegionsUncached", "regions_error", err, "starting", "connection_name", d.Connection.Name, "region", clientRegion)
+		plugin.Logger(ctx).Warn("listRegionsUncached", "regions_error", err, "status", "starting", "connection_name", d.Connection.Name, "region", clientRegion)
 		return data, nil
 	}
 
@@ -311,7 +311,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		APIRetrivedList: true,
 	}
 
-	plugin.Logger(ctx).Trace("listRegions", "status", "finished", "connection_name", d.Connection.Name, "region", clientRegion, "data", data)
+	plugin.Logger(ctx).Trace("listRegionsUncached", "status", "finished", "connection_name", d.Connection.Name, "region", clientRegion, "data", data)
 
 	// save to extension cache
 	return data, nil

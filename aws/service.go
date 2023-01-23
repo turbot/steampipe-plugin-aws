@@ -1607,9 +1607,9 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
+		return nil, fmt.Errorf("partial credentials found in connection config, missing: secret_key")
 	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
+		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
 	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
 		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
 		sessionToken := ""
