@@ -397,17 +397,16 @@ var getClientRegionCached = plugin.HydrateFunc(getClientRegionUncached).WithCach
 func getClientRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	awsConfig := GetConfig(d.Connection)
 
-	//var regions []string
 	var region string
 
 	plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "awsConfig.Regions", awsConfig.Regions)
 
 	if awsConfig.ClientRegion != nil {
-		// The user has defined a specific home_region in their config. We use it
-		// without further review. For example, they can have a home_region that is
-		// not in the regions list.
+		// The user has defined a specific client_region in their config. We use
+		// it without further review. For example, they can have a client_region
+		// that is not in the regions list.
 		region = *awsConfig.ClientRegion
-		plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "home_region in config file")
+		plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "client_region in config file")
 		return region, nil
 	}
 
