@@ -2,7 +2,7 @@
 
 _Dependencies_
 
-- Recompiled plugin with [steampipe-plugin-sdk v4.1.11](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v4111-2023-01-24) which fixes the issue of non-caching of all the columns of the queried table. ([#1554](https://github.com/turbot/steampipe-plugin-aws/pull/1554))
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.11](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v4111-2023-01-24) which fixes the issue of non-caching of all the columns of the queried table. ([#1557](https://github.com/turbot/steampipe-plugin-aws/pull/1557))
 
 ## v0.92.0 [2023-01-19]
 
