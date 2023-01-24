@@ -248,7 +248,7 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	// get the actual creation_time of the bucket, in all other regions the list
 	// returns the time when the bucket was last modified. See
 	// https://www.marksayson.com/blog/s3-bucket-creation-dates-s3-master-regions/
-	defaultRegion, err := getDefaultRegion(ctx, d, h)
+	defaultRegion, err := getLastResortRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

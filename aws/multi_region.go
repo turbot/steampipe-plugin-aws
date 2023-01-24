@@ -348,11 +348,12 @@ func listRawAwsRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plug
 	return resp.Regions, nil
 }
 
-// The default region is the "primary" / most common region wtihin the AWS partition.
+// The "last resort" region is generally the oldest / best final failsafe region
+// to use for a given partition. For example, in AWS Commercial it's us-east-1.
 // This region is used for API calls that must go to the base endpoint. In general,
 // it's better to use the client region (see getClientRegion) if possible, this
 // should be the last resort.
-func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
+func getLastResortRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
 
 	region, err := getClientRegion(ctx, d, h)
 	if err != nil {

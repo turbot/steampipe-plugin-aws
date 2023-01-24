@@ -968,7 +968,7 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	// Default set to us-east-1 for now
 	queryRegion := clientRegion
 	if !helpers.StringSliceContains(pricingAPISupportedRegions, queryRegion) {
-		queryRegion, err = getDefaultRegion(ctx, d, nil)
+		queryRegion, err = getLastResortRegion(ctx, d, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -1088,7 +1088,7 @@ func Route53DomainsClient(ctx context.Context, d *plugin.QueryData) (*route53dom
 	// region (route53domains.us-east-1.amazonaws.com).
 	// https://docs.aws.amazon.com/general/latest/gr/r53.html
 	// So, we must specify the default region rather than the client region.
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	cfg, err := getClientForLastResortRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1399,8 +1399,8 @@ func getClientForClientRegion(ctx context.Context, d *plugin.QueryData) (*aws.Co
 }
 
 // Helper function to get the session for the default region in this partition
-func getClientForDefaultRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
-	r, err := getDefaultRegion(ctx, d, nil)
+func getClientForLastResortRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	r, err := getLastResortRegion(ctx, d, nil)
 	if err != nil {
 		return nil, err
 	}
