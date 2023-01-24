@@ -17,7 +17,7 @@ import (
 
 func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_cost_by_tags",
+		Name:        "aws_cost_by_tag",
 		Description: "AWS Cost Explorer - Cost and Usage By Tags",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
@@ -33,7 +33,7 @@ func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 				// Quals columns - to filter the lookups
 				{
 					Name:        "granularity",
-					Description: "",
+					Description: "The granularity for cost and usage metric data. Possible values are: DAILY|MONTHLY.",
 					Type:        proto.ColumnType_STRING,
 					Hydrate:     hydrateCostAndUsageQuals,
 				},
@@ -44,20 +44,20 @@ func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 					Hydrate:     hydrateCostAndUsageQuals,
 				},
 				{
+					Name:        "tag_value_1",
+					Description: "The primary tag value grouped by.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1").Transform(splitCETagValue),
+				},
+				{
 					Name:        "tag_key_2",
 					Description: "A secondary tag key to group by.",
 					Type:        proto.ColumnType_STRING,
 					Hydrate:     hydrateCostAndUsageQuals,
 				},
 				{
-					Name:        "tag_value_1",
-					Description: "The primary tag value grouped by",
-					Type:        proto.ColumnType_STRING,
-					Transform:   transform.FromField("Dimension1").Transform(splitCETagValue),
-				},
-				{
 					Name:        "tag_value_2",
-					Description: "A secondary tag value grouped by",
+					Description: "A secondary tag value grouped by.",
 					Type:        proto.ColumnType_STRING,
 					Transform:   transform.FromField("Dimension2").Transform(splitCETagValue),
 				},

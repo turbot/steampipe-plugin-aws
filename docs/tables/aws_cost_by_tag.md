@@ -1,6 +1,6 @@
-# Table: aws_cost_by_tags
+# Table: aws_cost_by_tag
 
-Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_tags` table provides a simplified view of cost by tags in your account. ou must specify a granularity (`MONTHLY`, `DAILY`) and `tag_key_1`. `tag_key_2` is optional for the table.
+Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_tag` table provides a simplified view of cost by tags in your account. ou must specify a granularity (`MONTHLY`, `DAILY`), `tag_key_1` is required, and `tag_key_2` is optional for the table.
 
 Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01.
 
@@ -19,7 +19,7 @@ select
   net_unblended_cost_amount::numeric::money,
   net_amortized_cost_amount::numeric::money
 from
-  aws_cost_by_tags
+  aws_cost_by_tag
 where
   granularity = 'DAILY'
 and
@@ -36,7 +36,7 @@ select
   max(unblended_cost_amount)::numeric::money as max,
   avg(unblended_cost_amount)::numeric::money as average
 from
-  aws_cost_by_tags
+  aws_cost_by_tag
 where
   granularity = 'DAILY'
 and
@@ -56,7 +56,7 @@ with ranked_costs as (
     unblended_cost_amount::numeric::money,
     rank() over(partition by tag_key_1 order by unblended_cost_amount desc)
   from
-  aws_cost_by_tags
+  aws_cost_by_tag
 where
   granularity = 'DAILY'
 and
