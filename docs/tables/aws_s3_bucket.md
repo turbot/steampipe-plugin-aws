@@ -181,7 +181,7 @@ where
   object_lock_configuration ->> 'ObjectLockEnabled' = 'Enabled';
 ```
 
-### List buckets ownership control rules
+### List buckets object ownership control rules
 
 ```sql
 select
