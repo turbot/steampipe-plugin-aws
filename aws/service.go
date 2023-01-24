@@ -1704,8 +1704,8 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 	case endpoints.AwsIsoBPartitionID:
 		partition = endpoints.AwsIsoBPartition()
 	default:
-		plugin.Logger(ctx).Error("service_v2.GetSupportedRegionsForClient", "invalid_partition_error", fmt.Errorf("%s is an invalid partition", partitionName))
-		return nil, fmt.Errorf("service_v2.GetSupportedRegionsForClient:: '%s' is an invalid partition", partitionName)
+		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "invalid_partition_error", fmt.Errorf("%s is an invalid partition", partitionName))
+		return nil, fmt.Errorf("GetSupportedRegionsForClient:: '%s' is an invalid partition", partitionName)
 	}
 
 	var validRegions []string
@@ -1716,7 +1716,7 @@ func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serv
 	services := partition.Services()
 	serviceInfo, ok := services[serviceID]
 	if !ok {
-		return nil, fmt.Errorf("service_v2.SupportedRegionsForClient called with invalid service ID: %s", serviceID)
+		return nil, fmt.Errorf("SupportedRegionsForClient called with invalid service ID: %s", serviceID)
 	}
 
 	regions := serviceInfo.Regions()
