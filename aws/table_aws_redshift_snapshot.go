@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 
+	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -34,7 +36,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				{Name: "snapshot_create_time", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_identifier",

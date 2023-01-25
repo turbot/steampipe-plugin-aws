@@ -15,7 +15,7 @@ func tableAwsDynamoDBMetricAccountProvisionedWriteCapacityUtilization(_ context.
 		List: &plugin.ListConfig{
 			Hydrate: listDynamoDBMetricAccountProvisionedWriteCapacityUtilization,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns:           awsRegionalColumns(cwMetricColumns([]*plugin.Column{})),
 	}
 }

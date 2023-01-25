@@ -19,7 +19,7 @@ func tableAwsLambdaFunctionMetricInvocationsDaily(_ context.Context) *plugin.Tab
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaFunctionMetricInvocationsDaily,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

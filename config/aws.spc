@@ -4,7 +4,7 @@ connection "aws" {
   # `regions` defines the list of regions that Steampipe should target for
   # each query. API calls are made to multiple regions in parallel. The regions
   # list may include wildcards (e.g. *, us-*, us-??st-1).
-  # If `regions` is not specified, Steampipe will target the `preferred_region`
+  # If `regions` is not specified, Steampipe will target the `default_region`
   # only.
   #regions = ["*"] # All regions
   #regions = ["eu-*"] # All EU regions
@@ -12,12 +12,13 @@ connection "aws" {
 
   # Some AWS APIs (e.g. describe EC2 regions, S3 get bucket location) have
   # global results, so can be run against any region. For faster results, you
-  # may set your client (closest) region to use for these situations.
-  # If not specified, the client_region will be set in the same resolution
-  # order as the AWS CLI:
+  # may set your default (closest) region to use for these situations.
+  # If not specified, it is resolved in this order:
   #  1. The `AWS_REGION` or `AWS_DEFAULT_REGION` environment variable
   #  2. The region specified in the active profile (`AWS_PROFILE` or default)
-  #client_region = "eu-west-2"
+  #  3. The main region for the partition as best guessed from the `regions` list.
+  #  4. us-east-1, the main region for the most common partition.
+  #default_region = "eu-west-2"
 
   # If no credentials are specified, the plugin will use the AWS credentials
   # resolver to get the current credentials in the same manner as the CLI.

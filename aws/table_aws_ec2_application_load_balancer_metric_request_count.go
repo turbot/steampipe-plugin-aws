@@ -20,7 +20,7 @@ func tableAwsEc2ApplicationLoadBalancerMetricRequestCount(_ context.Context) *pl
 			ParentHydrate: listEc2ApplicationLoadBalancers,
 			Hydrate:       listEc2ApplicationLoadBalancerMetricRequestCount,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

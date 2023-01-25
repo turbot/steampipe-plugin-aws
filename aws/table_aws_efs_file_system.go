@@ -6,6 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/efs"
 	"github.com/aws/aws-sdk-go-v2/service/efs/types"
+
+	efsv1 "github.com/aws/aws-sdk-go/service/efs"
+
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -32,7 +35,7 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				{Name: "creation_token", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(efsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

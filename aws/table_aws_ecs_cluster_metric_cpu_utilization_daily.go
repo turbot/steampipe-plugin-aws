@@ -21,7 +21,7 @@ func tableAwsEcsClusterMetricCpuUtilizationDaily(_ context.Context) *plugin.Tabl
 			ParentHydrate: listEcsClusters,
 			Hydrate:       listEcsClusterMetricCpuUtilizationDaily,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/fsx/types"
 
+	fsxv1 "github.com/aws/aws-sdk-go/service/fsx"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -28,7 +30,7 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listFsxFileSystems,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(fsxv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "file_system_id",

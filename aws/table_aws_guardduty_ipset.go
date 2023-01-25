@@ -5,6 +5,9 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
+
+	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -34,7 +37,7 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 				{Name: "detector_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -4,6 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -15,20 +18,11 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc_route",
 		Description: "AWS VPC Route",
-		// TODO -- get call returning a list of items
-
-		// Get: &plugin.GetConfig{
-		// 	KeyColumns:        plugin.SingleColumn("route_table_id"),
-		// IgnoreConfig: &plugin.IgnoreConfig{
-		// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
-		// }
-		// 	Hydrate:           getAwsVpcRoute,
-		// },
 		List: &plugin.ListConfig{
 			ParentHydrate: listVpcRouteTables,
 			Hydrate:       listAwsVpcRoute,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",

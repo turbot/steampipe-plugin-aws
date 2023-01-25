@@ -5,6 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
+
+	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -17,7 +20,7 @@ func tableAwsConfigAggregateAuthorization(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listConfigAggregateAuthorizations,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

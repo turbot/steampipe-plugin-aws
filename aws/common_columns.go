@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -162,9 +161,7 @@ func getCallerIdentityUncached(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	now := time.Now()
 	callerIdentity, err := svc.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
-	plugin.Logger(ctx).Trace("getCallerIdentityUncached", "STS.GetCallerIdentity response time", time.Since(now), "connection_name", d.Connection.Name)
 	if err != nil {
 		plugin.Logger(ctx).Error("getCallerIdentityUncached", "status", "failed", "connection_name", d.Connection.Name, "api_error", err)
 		return nil, err

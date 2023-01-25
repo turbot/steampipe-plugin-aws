@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -22,7 +25,7 @@ func tableAwsEc2RegionalSettings(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listEc2RegionalSettings,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "default_ebs_encryption_enabled",

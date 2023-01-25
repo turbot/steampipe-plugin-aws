@@ -20,7 +20,7 @@ func tableAwsEcsClusterMetricCpuUtilization(_ context.Context) *plugin.Table {
 			ParentHydrate: listEcsClusters,
 			Hydrate:       listEcsClusterMetricCpuUtilization,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

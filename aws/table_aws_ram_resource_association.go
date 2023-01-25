@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/ram/types"
 
+	ramv1 "github.com/aws/aws-sdk-go/service/ram"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -20,7 +22,7 @@ func tableAwsRAMResourceAssociation(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listResourceShareAssociations(associationType),
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ramv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "resource_share_name",

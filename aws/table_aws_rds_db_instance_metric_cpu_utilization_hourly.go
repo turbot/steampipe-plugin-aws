@@ -19,7 +19,7 @@ func tableAwsRdsInstanceMetricCpuUtilizationHourly(_ context.Context) *plugin.Ta
 			ParentHydrate: listRDSDBInstances,
 			Hydrate:       listRdsInstanceMetricCpuUtilizationHourly,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

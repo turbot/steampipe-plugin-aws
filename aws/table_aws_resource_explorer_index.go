@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -51,7 +52,7 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 
 func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	region, err := getClientRegion(ctx, d, h)
+	region, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

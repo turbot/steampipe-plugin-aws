@@ -7,6 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
+
+	elasticachev1 "github.com/aws/aws-sdk-go/service/elasticache"
+
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -30,7 +33,7 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheClusters,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_cluster_id",

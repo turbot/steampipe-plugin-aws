@@ -10,7 +10,7 @@ import (
 
 type awsConfig struct {
 	Regions               []string `cty:"regions"`
-	ClientRegion          *string  `cty:"client_region"`
+	DefaultRegion         *string  `cty:"default_region"`
 	Profile               *string  `cty:"profile"`
 	AccessKey             *string  `cty:"access_key"`
 	SecretKey             *string  `cty:"secret_key"`
@@ -27,7 +27,7 @@ var ConfigSchema = map[string]*schema.Attribute{
 		Type: schema.TypeList,
 		Elem: &schema.Attribute{Type: schema.TypeString},
 	},
-	"client_region": {
+	"default_region": {
 		Type: schema.TypeString,
 	},
 	"profile": {

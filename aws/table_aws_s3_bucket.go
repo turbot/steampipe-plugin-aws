@@ -321,7 +321,7 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// Unlike most services, S3 buckets are a global list. They can be retrieved
 	// from any single region. It's best to use the client region of the user
 	// (e.g. closest to them).
-	clientRegion, err := getClientRegion(ctx, d, h)
+	clientRegion, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

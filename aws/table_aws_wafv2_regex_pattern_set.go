@@ -28,7 +28,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RegexPatternSets,
 		},
-		GetMatrixItemFunc: BuildWafRegionList,
+		GetMatrixItemFunc: WAFRegionMatrix,
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",

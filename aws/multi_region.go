@@ -11,7 +11,7 @@ package aws
 // - Partitions: AWS partitions are logical groupings of regions. There are three main
 //   partitions: AWS Commercial, AWS GovCloud, and AWS China. Each partition has its own
 //   set of regions.
-// - Default region: The default region is the "primary" / most common region wtihin
+// - Last resort region: The default region is the "primary" / most common region within
 //   the AWS partition. This region is used for API calls that must go to the base
 //   endpoint. In general, it's better to use the client region (see below) if
 //   possible, this should be the last resort.
@@ -23,7 +23,7 @@ package aws
 //   not), so it can change at any time.
 //
 // Steampipe config for regions:
-// - `client_region`: Region that the Steampipe client (and likely AWS
+// - `default_region`: Region that the Steampipe client (and likely AWS
 //   CLI) is configured to use. This is the region that the client will use for
 //   API calls that don't have a specific region specified.
 // - `regions`: List of regions that the user has configured to use in
@@ -32,54 +32,50 @@ package aws
 //   include all enabled regions.
 //
 // Calculated for a connection at runtime:
-// - query_regions: The set of regions that Steampipe will use for a given query.
+// - Query regions: The set of regions that Steampipe will use for a given query.
 //   This is the set of Enabled Regions that match the `regions` config.
-// - query_client_region: The region that the Steampipe client will use for global
-//   API calls (e.g. list S3 buckets).
-// - query_default_region: The region the Steampipe client will use for primary
-//   API calls on a default region (e.g. us-east-1).
 //
-// Bootstrapping and validating the region configuration is tricky because:
-// * We calculate the partition from a region.
-// * We can only determine enabled regions by running a query against a region.
-// * The configuration may be invalid (a bad region name).
-// * The configuration may be impossible (mix regions across partitions, e.g. us-east-1 and us-gov-east-1).
-// * The configuration may be incomplete (no regions specified).
-// * The configuration may have a client_region that is not in the regions list.
+// Query regions is based on these factors:
+// - All regions in the partition
+// - All regions available for service X in the partition
+// - Hard-coded exclusions (sometimes the definition of service X is wrong)
+// - Filter by regions enabled for this account (e.g. some might not be opted-in)
+// - Filter by configured query `regions` in aws.spc
 //
-// First, we calculate the client_region:
-// 1. `client_region` from the config.
-// 2. Region returned by the AWS SDK (e.g. from the `AWS_REGION` environment variable).
-// 3. First valid region in the regions list. This may require expansion of the
-//    regions, and we don't know the correct partition yet.
-// 4. Assume us-east-1, default region for the AWS Commercial partition
+// How to guess the partition (and thus full region set):
+// The basis for all decisions in the partition. We have two possible ways to determine
+// the partition:
+// 1. A guess from the default_region. (fast, no API call required)
+// 2. GetCallerIdentity from the common columns. (cached, more accurate)
 //
-// Second, with a client_region, we can calculate:
-// 1. The partition
-// 2. Default region for the partition
-// 3. Available regions for the partition
-// 4. Enabled regions for the account (by querying the client_region). If this fails, default to the available regions.
-//
-// Third, to calculate the query_regions:
-// 1. If the regions list is empty, default to the client_region.
-// 2. Expand the query regions by matching it against the enabled regions.
-// 3. If any specific regions in the config are not in the query regions then error, the config is invalid. This will catch partition mismatches and more.
-// 4. If the client_region is not in the query regions then issue a warning, but continue.
-//
-// Fourth, calculate specific global regions:
-// 1. The query_client_region is the client_region if it is in the query regions, otherwise the first region in the query regions.
-// 2. The query_default_region is the default region for the partition if it is in the query regions, otherwise ????
+// Notes about region config & implementation:
+// - It's complicated with multiple layers of lookups & filters. It's not just you.
+// - Regions are not validated (other than to lower case).
+// - We always try to make things work, even if the config is non-existent.
+// - Try not to guess a default region, if guessing go to the last resort region
+//   rather than using the `regions` list. This is not awesome, but consistency is
+//   better than getting something "random" (e.g. alphabetical).
+// - There is a tension between accurate data (e.g. via an API lookup) vs fast data
+//   that can be obtained without needing permissions. For example, without being
+//   given a region we have no idea what partition the account is in or what regions
+//   are enabled. Much of the code is trying to balance this in a consistent way.
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go/aws/session"
+
+	cloudwatchv1 "github.com/aws/aws-sdk-go/service/cloudwatch"
+
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+
 	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v4/logging"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -92,150 +88,262 @@ type RegionsData struct {
 	APIRetrivedList bool
 }
 
-// BuildRegionList :: return a list of matrix items, one per region specified in the connection config.
-// Plugin supports wildcards "*" and "?" in the connection config for the regions.
+// Return a matrix of all regions for tables that target every region.
+// It's normally better to use SupportedRegionMatrix instead, as it will
+// filter out regions that are not enabled for the specific service.
+func AllRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
+	return SupportedRegionMatrixWithExclusions("", []string{})(ctx, d)
+}
+
+// _metric_ tables must all be limited to the CloudWatch service regions.
+// This is a convenience function for them to use.
+func CloudWatchRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
+	return SupportedRegionMatrixWithExclusions(cloudwatchv1.EndpointsID, []string{})(ctx, d)
+}
+
+// Return a matrix of regions supported by serviceID, which will then be
+// queried for the table in parallel. This result factors in things like
+// regions that are opted-in, regions for the service and even the `regions`
+// config in aws.spc.
+func SupportedRegionMatrix(serviceID string) func(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
+	return SupportedRegionMatrixWithExclusions(serviceID, []string{})
+}
+
+// Similar to SupportedRegionMatrix, but excludes the regions in excludeRegions
+// for manual overrides if the service definition is incorrect.
+func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []string) func(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
+	return func(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
+		logging.LogTime("SupportedRegionMatrixWithExlusions start")
+		defer logging.LogTime("SupportedRegionMatrixWithExlusions end")
+		// Default to an empty list of regions
+		matrix := []map[string]interface{}{}
+		// Get the regions enabled for this account
+		queryRegions, err := listQueryRegionsForConnection(ctx, d)
+		if err != nil {
+			plugin.Logger(ctx).Error("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "query_regions_error", err)
+			return []map[string]interface{}{}
+		}
+		plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "query_regions", queryRegions)
+		// Get the possible regions for this service
+		var serviceRegions []string
+		if serviceID == "" {
+			// No service given, assume all regions are in scope
+			serviceRegions = queryRegions
+			plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions_using_query_regions", serviceRegions)
+		} else {
+			serviceRegions, err = listRegionsForServiceWithExclusions(ctx, d, serviceID, excludeRegions)
+			if err != nil {
+				plugin.Logger(ctx).Error("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions_error", err)
+				return []map[string]interface{}{}
+			}
+			plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions", serviceRegions)
+		}
+		// Find all regions in both the query regions and the service regions
+		for _, region := range queryRegions {
+			if helpers.StringSliceContains(serviceRegions, region) {
+				obj := map[string]interface{}{matrixKeyRegion: region}
+				matrix = append(matrix, obj)
+			}
+		}
+		plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "matrix", matrix)
+		return matrix
+	}
+}
+
+// Calculate the regions that the user has requested to query for this
+// connection.  Basically, we generate a possible list of regions (enabled
+// regions for the account, or all regions for the partition) and then filter it
+// by the `regions` config setting in aws.spc.
 //
-// This function will build the regions list dynamically based the activated region in the AWS account.
-// For this it uses https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeRegions.html
+// The list is unique for each region specified in the connection config.
+// Plugin supports wildcards "*" and "?" in the connection config for the
+// regions.
+//
+// This function will build the regions list dynamically based the activated
+// region in the AWS account. For this it uses
+// https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeRegions.html
 //
 // Some scenarios
 // When no regions mentioned in connection config
-// region = "us-east-1"
+//
+//	result = "us-east-1"
 //
 // When no regions mentioned in connection config and started steampipe as AWS_REGION=ap-south-1 steampipe query
-// region = "ap-south-1"
 //
-// regions = ["*"]
-// regions="af-south-1, eu-north-1, ap-south-1, eu-west-3, eu-west-2, eu-south-1, eu-west-1, ap-northeast-3, ap-northeast-2, me-south-1, ap-northeast-1, sa-east-1, ca-central-1, ap-southeast-1, ap-southeast-2, eu-central-1, us-east-1, us-east-2, us-west-1, us-west-2"
+//	result = "ap-south-1"
 //
-// regions = ["me-*", "ap-*", "us-*"]
-// regions="me-south-1, ap-south-1, ap-northeast-3, ap-northeast-2, ap-northeast-1, ap-southeast-1, ap-southeast-2, us-east-1, us-east-2, us-west-1, us-west-2"
-func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
-
-	// Trace logging to debug cache and execution flows
-	logRegion := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("BuildRegionList", "status", "starting", "connection_name", d.Connection.Name, "region", logRegion)
-
-	// Cache region list matrix
-	cacheKey := "RegionListMatrix"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]map[string]interface{})
-	}
+// Wildcard:
+//
+//	regions = ["*"]
+//	regions = [af-south-1, eu-north-1, ap-south-1, eu-west-3, eu-west-2, eu-south-1, eu-west-1, ap-northeast-3, ap-northeast-2, me-south-1, ap-northeast-1, sa-east-1, ca-central-1, ap-southeast-1, ap-southeast-2, eu-central-1, us-east-1, us-east-2, us-west-1, us-west-2]
+//
+// Partial wildcard:
+//
+//	regions = ["me-*", "ap-*", "us-*"]
+//	result = [me-south-1, ap-south-1, ap-northeast-3, ap-northeast-2, ap-northeast-1, ap-southeast-1, ap-southeast-2, us-east-1, us-east-2, us-west-1, us-west-2]
+func listQueryRegionsForConnection(ctx context.Context, d *plugin.QueryData) ([]string, error) {
 
 	// Retrieve regions list from the AWS plugin steampipe connection config
-	awsConfig := GetConfig(d.Connection)
+	awsSpcConfig := GetConfig(d.Connection)
 
-	// If the regions are not set in the aws.spc, this should try to pick the
-	// AWS region based on the SDK logic similar to the AWS CLI command
-	// "aws configure list"
-	if awsConfig.Regions == nil {
-		region := ""
-		session, err := session.NewSessionWithOptions(session.Options{
-			SharedConfigState: session.SharedConfigEnable,
-		})
-		if err != nil {
-			panic(err)
+	// If there is no regions defined in SPC, then we default to targeting
+	// the default region only for queries.
+	if awsSpcConfig.Regions == nil {
+		region, err := getDefaultRegion(ctx, d, nil)
+		if err != nil || region == "" {
+			plugin.Logger(ctx).Error("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "default_region_error", err)
+			return nil, fmt.Errorf("regions or default_region must be defined")
 		}
-		if session != nil && session.Config != nil {
-			region = *session.Config.Region
-		}
-
-		/*
-			AWS CLI behaviour if region is not found through "aws configure list"
-
-			plugins/steampipe-plugin-aws|main⚡ ⇒  aws configure list
-			Name                    Value             Type    Location
-			----                    -----             ----    --------
-			profile                <not set>             None    None
-			access_key     ###############ABCD shared-credentials-file
-			secret_key     ###############/g/w shared-credentials-file
-			region                <not set>             None    None
-
-			Global services work without any issue, if region is not set
-
-			plugins/steampipe-plugin-aws|main⚡ ⇒  aws s3 ls
-			2022-02-15 12:24:02 aws-cloudtrail-111122223333
-			2021-08-16 22:06:46 aws-cloudtrail-111122223333
-			.....
-
-			Regional services fail with an warning to set the region
-
-			plugins/steampipe-plugin-aws|main⚡ ⇒  aws sns list-topics
-			You must specify a region. You can also configure your region by running "aws configure".
-		*/
-		if region == "" {
-			panic("you must specify a region in \"regions\" in ~/.steampipe/config/aws.spc. Edit your connection configuration file and then restart Steampipe.")
-		}
-
-		matrix := []map[string]interface{}{
-			// TODO
-			// If the region is a invalid region. It will lead to long retry with error message like
-			// dial tcp: lookup <service>.<invalid-region>.amazonaws.com: no such host (SQLSTATE HV000)
-			{matrixKeyRegion: region},
-		}
-
-		// set cache
-		d.ConnectionManager.Cache.Set(cacheKey, matrix)
-		return matrix
+		// Return the default region as the only query region for this connection
+		plugin.Logger(ctx).Trace("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "using default region", region)
+		return []string{region}, nil
 	}
+
+	// PRE: there is a list of regions in the config to match against
 
 	// Get information about the regions for this account, considering
 	// the partition, opt-ins, etc.
 	iRegionData, err := listRegionsCached(ctx, d, nil)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	regionData := iRegionData.(RegionsData)
 
-	var finalRegions []string
-
-	// If the list was retrived from AWS API - just looks for Active Regions
+	// If we have a list of regions from the API, then it's the most accurate.
+	// Otherwise just assume all regions for the account.
+	maxTargetRegions := regionData.AllRegions
 	if regionData.APIRetrivedList {
-		for _, pattern := range awsConfig.Regions {
-			for _, validRegion := range regionData.ActiveRegions {
-				if ok, _ := path.Match(pattern, validRegion); ok {
-					finalRegions = append(finalRegions, validRegion)
-				}
-			}
-			finalRegions = helpers.StringSliceDistinct(finalRegions)
-		}
-	} else {
-		// If the list was not retrived from AWS API
-		// match for regions from all regions list
-		for _, pattern := range awsConfig.Regions {
-			for _, validRegion := range regionData.AllRegions {
-				if ok, _ := path.Match(pattern, validRegion); ok {
-					finalRegions = append(finalRegions, validRegion)
-				}
-			}
-		}
-		finalRegions = helpers.StringSliceDistinct(finalRegions)
+		maxTargetRegions = regionData.ActiveRegions
 	}
 
-	matrix := make([]map[string]interface{}, len(finalRegions))
-	for i, region := range finalRegions {
-		matrix[i] = map[string]interface{}{matrixKeyRegion: region}
+	// Filter to regions that match the patterns in the config
+	var targetRegions []string
+	for _, pattern := range awsSpcConfig.Regions {
+		for _, validRegion := range maxTargetRegions {
+			if ok, _ := path.Match(pattern, validRegion); ok {
+				targetRegions = append(targetRegions, validRegion)
+			}
+		}
 	}
+	targetRegions = helpers.StringSliceDistinct(targetRegions)
 
-	plugin.Logger(ctx).Debug("BuildRegionList", "status", "result", "connection_name", d.Connection.Name, "region", logRegion, "matrix", matrix)
+	plugin.Logger(ctx).Trace("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "targetRegions", targetRegions)
 
-	// set cache
-	d.ConnectionManager.Cache.Set(cacheKey, matrix)
-	return matrix
+	return targetRegions, nil
 }
 
-// BuildWafRegionList returns the general region list, with a special region
+// WAFRegionMatrix returns the general region list, with a special region
 // called "global" added. This is a specific region name used only by the WAF
 // service.
 // Note that the global region is always included in WAF results, even if the
 // target region list is limited to specific regions. Currently, there is no
 // way to exclude it except by filtering the results.
-func BuildWafRegionList(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
-	regionMatrix := BuildRegionList(ctx, d)
+func WAFRegionMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
+	regionMatrix := CloudWatchRegionsMatrix(ctx, d)
 	matrix := make([]map[string]interface{}, 1, len(regionMatrix)+1)
 	matrix[0] = map[string]interface{}{matrixKeyRegion: "global"}
 	matrix = append(matrix, regionMatrix...)
 	return matrix
+}
+
+/*
+// Not used (yet), included for reference / future
+// List all regions for a given service in the partition for this connection.
+func listRegionsForService(ctx context.Context, d *plugin.QueryData, serviceID string) ([]string, error) {
+	return listRegionsForServiceWithExclusions(ctx, d, serviceID, []string{})
+}
+*/
+
+// List all regions for a given service, defined to work with WithCache().
+// Call listRegionsForService() instead of using this directly.
+var listRegionsForServiceCached = plugin.HydrateFunc(listRegionsForServiceUncached).WithCache(listRegionsForServiceCacheKey)
+
+// List all regions for a given service in the partition for this connection, but
+// manually exclude any regions in excludeRegions.
+func listRegionsForServiceWithExclusions(ctx context.Context, d *plugin.QueryData, serviceID string, excludeRegions []string) ([]string, error) {
+	h := &plugin.HydrateData{Item: serviceID}
+	// Get all regions for the service
+	iRegions, err := listRegionsForServiceCached(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("listRegionsForServiceWithExclusions", "serviceID", serviceID, "excludeRegions", excludeRegions, "error", err)
+		return nil, err
+	}
+	serviceRegions := iRegions.([]string)
+	// Remove the excluded regions from the valid list
+	serviceRegions = helpers.RemoveFromStringSlice(serviceRegions, excludeRegions...)
+	return serviceRegions, nil
+}
+
+// getClient is per-region, but WithCache() is per-connection, so a setup
+// a custom cache key with region information in it.
+func listRegionsForServiceCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Extract the region from the hydrate data. This is not per-row data,
+	// but a clever pass through of context for our case.
+	serviceID := h.Item.(string)
+	key := fmt.Sprintf("listRegionsForService-%s", serviceID)
+	return key, nil
+}
+
+// Use the AWS SDK to get a list of regions that the given service (in hydrate
+// data) supports.
+// Implementation notes:
+//   - Use AWS SDK v1 because v2 does not expose this data (ugh).
+//   - Use getCommonColumns to get the accurate partition for the account (via
+//     GetCallerIdentity). This is more accurate than guessing from the default
+//     region.
+func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	var partitionName string
+	var partition endpoints.Partition
+
+	// Service ID is passed through the hydrate data
+	serviceID := h.Item.(string)
+
+	// We use getCommonColumns to get the partition name, which is more accurate
+	// than guessing from the default region. It does include an API call to
+	// GetCallerIdentity under the hood, but that is cached and used for almost
+	// all tables / query results anyway.
+	commonColumnData, err := getCommonColumns(ctx, d, nil)
+	if err != nil {
+		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition name", err)
+		return nil, err
+	}
+	partitionName = commonColumnData.(*awsCommonColumnData).Partition
+
+	// Get AWS partition based on the partition name
+	switch partitionName {
+	case endpoints.AwsPartitionID:
+		partition = endpoints.AwsPartition()
+	case endpoints.AwsCnPartitionID:
+		partition = endpoints.AwsCnPartition()
+	case endpoints.AwsIsoPartitionID:
+		partition = endpoints.AwsIsoPartition()
+	case endpoints.AwsUsGovPartitionID:
+		partition = endpoints.AwsUsGovPartition()
+	case endpoints.AwsIsoBPartitionID:
+		partition = endpoints.AwsIsoBPartition()
+	default:
+		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "invalid_partition_error", fmt.Errorf("%s is an invalid partition", partitionName))
+		return nil, fmt.Errorf("GetSupportedRegionsForClient:: '%s' is an invalid partition", partitionName)
+	}
+
+	var regionsForService []string
+
+	// Get the list of the service regions based on the service ID.  Ultimately,
+	// this is using data from
+	// https://github.com/aws/aws-sdk-go/blob/main/models/endpoints/endpoints.json
+	services := partition.Services()
+	serviceInfo, ok := services[serviceID]
+	if !ok {
+		return nil, fmt.Errorf("SupportedRegionsForClient called with invalid service ID: %s", serviceID)
+	}
+
+	regions := serviceInfo.Regions()
+	for rs := range regions {
+		regionsForService = append(regionsForService, rs)
+	}
+
+	return regionsForService, nil
 }
 
 // The list of regions is constant on a per-connection basis, so we cache it.
@@ -252,7 +360,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// The client region is used for two things:
 	// 1. To make API calls to get the region list (if possible).
 	// 2. To guess the partition we want to list regions from (if #1 fails).
-	clientRegion, err := getClientRegion(ctx, d, h)
+	clientRegion, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -317,20 +425,26 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	return data, nil
 }
 
+// Cached list of regions actually active in the AWS account.
 var listRawAwsRegions = plugin.HydrateFunc(listRawAwsRegionsUncached).WithCache()
 
+// List regions for this AWS account connection by calling the EC2
+// DescribeRegions API. The call is done using the default region (hopefully
+// close to the user) and then cached. This region list is used as an input to
+// which regions are opted-in (active) for the account.
 func listRawAwsRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	clientRegion, err := getClientRegion(ctx, d, h)
+
+	clientRegion, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
-		logger.Error("aws_region.listRawAwsRegionsUncached", "region_error", err)
+		logger.Error("listRawAwsRegionsUncached", "connection_name", d.Connection.Name, "clientRegion", clientRegion, "region_error", err)
 		return nil, err
 	}
 
 	// Create Session
 	svc, err := EC2LowRetryClientForRegion(ctx, d, clientRegion)
 	if err != nil {
-		logger.Error("aws_region.listRawAwsRegionsUncached", "connnection_error", err, "clientRegion", clientRegion)
+		logger.Error("listRawAwsRegionsUncached", "connection_name", d.Connection.Name, "clientRegion", clientRegion, "connnection_error", err)
 		return nil, err
 	}
 
@@ -341,9 +455,11 @@ func listRawAwsRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plug
 	// execute list call
 	resp, err := svc.DescribeRegions(ctx, params)
 	if err != nil {
-		logger.Error("aws_region.listRawAwsRegionsUncached", "api_error", err, "params", params)
+		logger.Error("listRawAwsRegionsUncached", "connection_name", d.Connection.Name, "clientRegion", clientRegion, "params", params, "api_error", err)
 		return nil, err
 	}
+
+	logger.Trace("listRawAwsRegionsUncached", "connection_name", d.Connection.Name, "clientRegion", clientRegion, "len(resp.Regions)", len(resp.Regions))
 
 	return resp.Regions, nil
 }
@@ -351,39 +467,31 @@ func listRawAwsRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plug
 // The "last resort" region is generally the oldest / best final failsafe region
 // to use for a given partition. For example, in AWS Commercial it's us-east-1.
 // This region is used for API calls that must go to the base endpoint. In general,
-// it's better to use the client region (see getClientRegion) if possible, this
+// it's better to use the client region (see getDefaultRegion) if possible, this
 // should be the last resort.
 func getLastResortRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
 
-	region, err := getClientRegion(ctx, d, h)
+	region, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
 		return "", err
 	}
 
-	// Most of the global services like IAM, S3, Route 53, target these regions
-	if strings.HasPrefix(region, "us-gov") {
-		region = "us-gov-west-1"
-	} else if strings.HasPrefix(region, "cn") {
-		region = "cn-northwest-1"
-	} else if strings.HasPrefix(region, "us-isob") {
-		region = "us-isob-east-1"
-	} else if strings.HasPrefix(region, "us-iso") {
-		region = "us-iso-east-1"
-	} else {
-		region = "us-east-1"
+	// Get the last resort region for the partition
+	lastResortRegion := awsLastResortRegionFromRegionWildcard(region)
+	if lastResortRegion != "" {
+		return lastResortRegion, nil
 	}
 
-	return region, nil
+	// If the given region didn't match any known partition then we are
+	// stuck.
+	return "", fmt.Errorf("cannot calculate last resort region for default region %s", region)
 }
 
-// Get the client region for AWS API calls that need to go to a central /
+// Get the default region for AWS API calls that need to go to a central /
 // non-regional endpoint (e.g. describe EC2 regions). Typically this should be
-// the region closest to the user. Until we have a specific config option for
-// it, we treat the first region in the regions list as the client region. If
-// not given in the regions config, then try to read from the AWS config files.
-// As a last resort, fall back to the default region for the partition.
-func getClientRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
-	regionInterface, err := getClientRegionCached(ctx, d, h)
+// the region closest to the user.
+func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (string, error) {
+	regionInterface, err := getDefaultRegionCached(ctx, d, h)
 	if err != nil {
 		return "", err
 	}
@@ -391,70 +499,95 @@ func getClientRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	return region, nil
 }
 
-// The client region is cached on a per-connection basis to prevent re-lookup and
-// recalculations from the configuration.
-var getClientRegionCached = plugin.HydrateFunc(getClientRegionUncached).WithCache()
+// The default region is cached on a per-connection basis to prevent re-lookup
+// and recalculations from the configuration.
+var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).WithCache()
 
-func getClientRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	awsConfig := GetConfig(d.Connection)
+// Calculate the region we want to use by default for the plugin.
+// It's complicated, because there are many different configuration sources
+// (spc files, environment variables, AWS config files, etc.) and some choices
+// are filters (e.g. regions = [ "*" ].
+// Here is the order of precedence:
+// 1. default_region in the aws.spc file.
+// 2. The region as calculated by the AWS SDK (AWS_REGION env var, ~/.aws/config, etc).
+// 3. The last resort region for the partition best matched by each region added to regions in the aws.spc file.
+// 4. us-east-1 (last resort region for the most common partition).
+func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	var region string
 
-	plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "awsConfig.Regions", awsConfig.Regions)
+	awsSpcConfig := GetConfig(d.Connection)
+	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name)
 
-	if awsConfig.ClientRegion != nil {
-		// The user has defined a specific client_region in their config. We use
-		// it without further review. For example, they can have a client_region
+	if awsSpcConfig.DefaultRegion != nil {
+		// The user has defined a specific default_region in their config. We use
+		// it without further review. For example, they can have a default_region
 		// that is not in the regions list.
-		region = *awsConfig.ClientRegion
-		plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "client_region in config file")
+		// Notes on default_region:
+		// - It can be a region that is not in the regions list.
+		region = *awsSpcConfig.DefaultRegion
+		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "default_region in config file")
 		return region, nil
 	}
 
 	// Get the region from the AWS SDK. This will use the region defined in the
 	// AWS config files, or the AWS_REGION environment variable, or the default
 	// region for the partition.
-	session, err := session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	})
-	if session != nil && session.Config != nil && err == nil {
-		// We have a home region from the SDK level
-		region = *session.Config.Region
-		plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "AWS SDK lookup")
+	// TODO - this should use our standard config loader with the profile etc?
+	// otherwise it may read in the wrong default region for the account.
+	//cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := getBaseClientForAccount(ctx, d)
+	if cfg != nil && cfg.Region != "" && err == nil {
+		region = cfg.Region
+		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "AWS SDK resolution")
 		return region, nil
 	}
 
-	/*
-
-		TODO - fall back through other client region choices
-
-		regions = awsConfig.Regions
-
-		if awsConfig.Regions != nil {
-			regions = awsConfig.Regions
-			// Pick the first region from the regions list as a best guess to determine
-			// the default region for the AWS partition based on the region prefix.
-			region = regions[0]
-		} else {
-			// If the regions are not set in the aws.spc, this will try to pick the
-			// AWS region based on the SDK logic similar to the AWS CLI command
-			// "aws configure list"
-			session, err := session.NewSessionWithOptions(session.Options{
-				SharedConfigState: session.SharedConfigEnable,
-			})
-			if err != nil {
-				panic(err)
-			}
-			if session != nil && session.Config != nil {
-				region = *session.Config.Region
+	// Look through the list of regions, checking if any of them have enough
+	// information to indicate our preferred partition. If available, then we
+	// use the last resort region for the partition.
+	// We've decided that it's better to default to a last resort region rather
+	// than make the order of the regions list significant. For example, someone
+	// may make the list alphabetical, and suddenly their first region is in Asia
+	// Pacific.
+	if awsSpcConfig.Regions != nil {
+		for _, r := range awsSpcConfig.Regions {
+			lastResort := awsLastResortRegionFromRegionWildcard(r)
+			if lastResort != "" {
+				plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
+				return lastResort, nil
 			}
 		}
+	}
 
-	*/
-
-	plugin.Logger(ctx).Trace("getClientRegionUncached", "connection_name", d.Connection.Name, "region", region)
-
+	// If all else fails, and we just don't know what to do ... default to
+	// us-east-1 (the last resort region for the most common partition).
+	region = "us-east-1"
+	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "last resort region in most common partition")
 	return region, nil
+}
+
+// Given a region (including wildcards), guess at the best last resort region
+// based on the partition. Examples:
+//
+//	us-gov-* -> us-gov-west-1
+//	cn* -> cn-northwest-1
+//	us-west-2 -> us-east-1
+//	* -> us-east-1
+//	crap -> ""
+func awsLastResortRegionFromRegionWildcard(regionWildcard string) string {
+	if strings.HasPrefix(regionWildcard, "us-gov") {
+		return "us-gov-west-1"
+	} else if strings.HasPrefix(regionWildcard, "cn") {
+		return "cn-northwest-1"
+	} else if strings.HasPrefix(regionWildcard, "us-isob") {
+		return "us-isob-east-1"
+	} else if strings.HasPrefix(regionWildcard, "us-iso") {
+		return "us-iso-east-1"
+	} else if strings.HasPrefix(regionWildcard, "us") {
+		return "us-east-1"
+	}
+	return ""
 }
 
 //

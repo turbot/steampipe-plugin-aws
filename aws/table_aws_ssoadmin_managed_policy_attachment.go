@@ -8,6 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
+
+	ssoadminv1 "github.com/aws/aws-sdk-go/service/ssoadmin"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -21,7 +24,7 @@ func tableAwsSsoAdminManagedPolicyAttachment(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"permission_set_arn"}),
 			Hydrate:    listSsoAdminManagedPolicyAttachments,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "permission_set_arn",

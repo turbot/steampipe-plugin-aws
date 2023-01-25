@@ -28,7 +28,7 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2IpSets,
 		},
-		GetMatrixItemFunc: BuildWafRegionList,
+		GetMatrixItemFunc: WAFRegionMatrix,
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",

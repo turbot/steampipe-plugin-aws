@@ -32,7 +32,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2WebAcls,
 		},
-		GetMatrixItemFunc: BuildWafRegionList,
+		GetMatrixItemFunc: WAFRegionMatrix,
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",

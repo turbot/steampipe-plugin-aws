@@ -28,7 +28,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RuleGroups,
 		},
-		GetMatrixItemFunc: BuildWafRegionList,
+		GetMatrixItemFunc: WAFRegionMatrix,
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",

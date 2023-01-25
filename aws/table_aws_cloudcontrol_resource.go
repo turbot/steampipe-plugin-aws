@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol/types"
 
+	cloudcontrolapiv1 "github.com/aws/aws-sdk-go/service/cloudcontrolapi"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -31,7 +33,7 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 			},
 			Hydrate: getCloudControlResource,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudcontrolapiv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "type_name",

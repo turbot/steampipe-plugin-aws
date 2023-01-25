@@ -8,6 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
+
+	kmsv1 "github.com/aws/aws-sdk-go/service/kms"
+
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/go-kit/helpers"
@@ -32,7 +35,7 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listKmsKeys,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(kmsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
