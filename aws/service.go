@@ -118,8 +118,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
 
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
@@ -949,7 +947,7 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	// it can and otherwise falls back to the default region us-east-1.
 
 	// Get Pricing API supported regions
-	pricingAPISupportedRegions, err := GetSupportedRegionsForClient(ctx, d, pricingEndpoint.EndpointsID)
+	pricingAPISupportedRegions, err := listRegionsForService(ctx, d, pricingEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -1042,7 +1040,7 @@ func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region str
 	}
 
 	// Get the list of supported regions for the service
-	resourceExplorerRegions, err := GetSupportedRegionsForClient(ctx, d, resourceexplorer2Endpoint.EndpointsID)
+	resourceExplorerRegions, err := listRegionsForService(ctx, d, resourceexplorer2Endpoint.EndpointsID)
 	if err != nil {
 		return nil, fmt.Errorf("ResourceExplorerClient: failed to get supported regions")
 	}
@@ -1369,7 +1367,7 @@ func getClientForQuerySupportedRegionWithExclusions(ctx context.Context, d *plug
 	}
 
 	// Work out which regions are valid for this service
-	validRegions, err := GetSupportedRegionsForClient(ctx, d, serviceID)
+	validRegions, err := listRegionsForService(ctx, d, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -1670,65 +1668,4 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	log.Printf("[WARN] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
 
 	return retryTime, nil
-}
-
-// GetSupportedRegionsForClient lists valid regions for a service based on service ID
-func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceID string) ([]string, error) {
-	var partitionName string
-	var partition endpoints.Partition
-
-	// If valid regions list is already available in cache, return it
-	cacheKey := fmt.Sprintf("supported-regions-%s", serviceID)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]string), nil
-	}
-
-	// NOTE: Use SDK v1 for endspoints information since it's not readily
-	// available in SDK v2 - https://stackoverflow.com/q/65843812
-
-	// get the partition of the AWS account plugin is connected to
-	// using the cached version of getCommonColumns
-	commonColumnData, err := getCommonColumns(ctx, d, nil)
-	if err != nil {
-		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition name", err)
-		return nil, err
-	}
-	partitionName = commonColumnData.(*awsCommonColumnData).Partition
-
-	// Get AWS partition based on the partition name
-	switch partitionName {
-	case endpoints.AwsPartitionID:
-		partition = endpoints.AwsPartition()
-	case endpoints.AwsCnPartitionID:
-		partition = endpoints.AwsCnPartition()
-	case endpoints.AwsIsoPartitionID:
-		partition = endpoints.AwsIsoPartition()
-	case endpoints.AwsUsGovPartitionID:
-		partition = endpoints.AwsUsGovPartition()
-	case endpoints.AwsIsoBPartitionID:
-		partition = endpoints.AwsIsoBPartition()
-	default:
-		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "invalid_partition_error", fmt.Errorf("%s is an invalid partition", partitionName))
-		return nil, fmt.Errorf("GetSupportedRegionsForClient:: '%s' is an invalid partition", partitionName)
-	}
-
-	var validRegions []string
-
-	// Get the list of the service regions based on the service ID.  Ultimately,
-	// this is using data from
-	// https://github.com/aws/aws-sdk-go/blob/main/models/endpoints/endpoints.json
-	services := partition.Services()
-	serviceInfo, ok := services[serviceID]
-	if !ok {
-		return nil, fmt.Errorf("SupportedRegionsForClient called with invalid service ID: %s", serviceID)
-	}
-
-	regions := serviceInfo.Regions()
-	for rs := range regions {
-		validRegions = append(validRegions, rs)
-	}
-
-	// Save valid regions in the cache
-	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
-	return validRegions, nil
 }

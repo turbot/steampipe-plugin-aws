@@ -246,13 +246,10 @@ func WAFRegionMatrix(ctx context.Context, d *plugin.QueryData) []map[string]inte
 	return matrix
 }
 
-/*
-// Not used (yet), included for reference / future
 // List all regions for a given service in the partition for this connection.
 func listRegionsForService(ctx context.Context, d *plugin.QueryData, serviceID string) ([]string, error) {
 	return listRegionsForServiceWithExclusions(ctx, d, serviceID, []string{})
 }
-*/
 
 // List all regions for a given service, defined to work with WithCache().
 // Call listRegionsForService() instead of using this directly.
