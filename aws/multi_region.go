@@ -533,9 +533,6 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// Get the region from the AWS SDK. This will use the region defined in the
 	// AWS config files, or the AWS_REGION environment variable, or the default
 	// region for the partition.
-	// TODO - this should use our standard config loader with the profile etc?
-	// otherwise it may read in the wrong default region for the account.
-	//cfg, err := config.LoadDefaultConfig(ctx)
 	cfg, err := getBaseClientForAccount(ctx, d)
 	if cfg != nil && cfg.Region != "" && err == nil {
 		region = cfg.Region
