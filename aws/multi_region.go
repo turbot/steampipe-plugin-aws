@@ -395,7 +395,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache
-		plugin.Logger(ctx).Warn("listRegionsUncached", "regions_error", err, "status", "starting", "connection_name", d.Connection.Name, "region", clientRegion)
+		plugin.Logger(ctx).Warn("listRegionsUncached", "connection_name", d.Connection.Name, "region", clientRegion, "regions_error", err)
 		return data, nil
 	}
 
