@@ -19,7 +19,7 @@ func tableAwsElasticacheRedisMetricCacheHitsHourly(_ context.Context) *plugin.Ta
 			ParentHydrate: listElastiCacheClusters,
 			Hydrate:       listElastiCacheMetricCacheHitsHourly,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

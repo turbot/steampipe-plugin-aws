@@ -28,7 +28,7 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 			Hydrate:    getIamServerCertificate,
 			KeyColumns: plugin.AllColumns([]string{"name"}),
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name that identifies the server certificate.",

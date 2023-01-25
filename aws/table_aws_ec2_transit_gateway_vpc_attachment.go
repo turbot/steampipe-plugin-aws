@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -38,7 +40,7 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_attachment_id",
@@ -217,8 +219,7 @@ func getAwsEc2TransitGatewayVpcAttachmentAkas(ctx context.Context, d *plugin.Que
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	transitGatewayAttachment := h.Item.(types.TransitGatewayAttachment)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

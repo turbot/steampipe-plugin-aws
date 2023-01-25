@@ -28,7 +28,7 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "full_name",
 				Description: "The full name of the primary contact address.",
@@ -128,8 +128,7 @@ type accountContactData = struct {
 func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

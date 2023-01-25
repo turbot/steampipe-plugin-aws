@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -81,6 +82,12 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region, err := getDefaultRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
 	searchParams := &resourceexplorer2.SearchInput{
 		QueryString: aws.String(""),
 	}
@@ -94,7 +101,6 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 	accountID := commonData.(*awsCommonColumnData).AccountId
 
-	region := getDefaultAwsRegion(d)
 	hasViewARN := false
 	if d.KeyColumnQuals["view_arn"] != nil {
 		hasViewARN = true

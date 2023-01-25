@@ -6,6 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/glue/types"
+
+	gluev1 "github.com/aws/aws-sdk-go/service/glue"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -27,7 +30,7 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listGlueDevEndpoints,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "endpoint_name",
@@ -273,8 +276,8 @@ func getGlueDevEndpointArn(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	data := h.Item.(types.DevEndpoint)
 
 	// Get common columns
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpointArn", "coomon_data_error", err)
 		return nil, err

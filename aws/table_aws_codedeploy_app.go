@@ -6,6 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy/types"
+
+	codedeployv1 "github.com/aws/aws-sdk-go/service/codedeploy"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -27,7 +30,7 @@ func tableAwsCodeDeployApplication(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCodeDeployApplications,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(codedeployv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "application_id",
@@ -227,8 +230,8 @@ func codeDeployApplicationArn(ctx context.Context, d *plugin.QueryData, h *plugi
 	name := *h.Item.(*types.ApplicationInfo).ApplicationName
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	logger := plugin.Logger(ctx)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_codedeploy_app.getCodeDeployApplicationArn", "caching_error", err)
 		return ""

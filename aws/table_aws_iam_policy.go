@@ -31,7 +31,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The friendly name that identifies the iam policy.",
@@ -248,8 +248,8 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 // isPolicyAwsManaged returns true if policy is aws managed
 func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	policy := h.Item.(types.Policy)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

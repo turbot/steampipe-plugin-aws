@@ -6,6 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -37,7 +40,7 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subnet_id",
@@ -203,7 +206,7 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "api_error", err)
+			plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "api_error", err, "connection_name", d.Connection.Name, "region", d.KeyColumnQualString(matrixKeyRegion))
 			return nil, err
 		}
 
@@ -241,7 +244,7 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	// Get call
 	op, err := svc.DescribeSubnets(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "api_error", err)
+		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "api_error", err, "connection_name", d.Connection.Name, "region", d.KeyColumnQualString(matrixKeyRegion))
 		return nil, err
 	}
 

@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty/types"
 
+	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -41,7 +43,7 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 				{Name: "detector_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "destination_id",
@@ -225,8 +227,7 @@ func getPublishingDestinationArn(ctx context.Context, d *plugin.QueryData, h *pl
 	data := h.Item.(DestinationInfo)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_guardduty_publishing_destination.getPublishingDestinationArn", "api_error", err)
 		return nil, err

@@ -5,13 +5,15 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/mgn"
 	"github.com/aws/aws-sdk-go-v2/service/mgn/types"
+
+	mgnv1 "github.com/aws/aws-sdk-go/service/mgn"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINATION
@@ -32,7 +34,7 @@ func tableAwsMGNApplication(_ context.Context) *plugin.Table {
 				{Name: "is_archived", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(mgnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

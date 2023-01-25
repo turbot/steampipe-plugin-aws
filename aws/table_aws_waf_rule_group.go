@@ -28,7 +28,7 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listWafRuleGroups,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the rule group.",
@@ -253,8 +253,7 @@ func classicRuleGroupTagListToTurbotTags(ctx context.Context, d *transform.Trans
 func classicRuleGroupData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
 	data := map[string]string{}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rule_group.classicRuleGroupData", "cache_error", err)
 		return nil

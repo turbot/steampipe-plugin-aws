@@ -19,7 +19,7 @@ func tableAwsRdsInstanceMetricWriteIops(_ context.Context) *plugin.Table {
 			ParentHydrate: listRDSDBInstances,
 			Hydrate:       listRdsInstanceMetricWriteIops,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

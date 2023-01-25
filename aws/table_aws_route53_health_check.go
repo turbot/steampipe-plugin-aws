@@ -27,7 +27,7 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listHealthChecks,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "id",
 				Description: "The identifier that Amazon Route 53 assigned to the health check.",
@@ -243,8 +243,8 @@ func getHealthCheckTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 func getRoute53HealthCheckTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	healthCheck := h.Item.(types.HealthCheck)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

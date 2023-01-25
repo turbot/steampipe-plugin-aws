@@ -27,7 +27,7 @@ func tableAwsPricingProduct(_ context.Context) *plugin.Table {
 				{Name: "filters", Require: plugin.Optional, CacheMatch: "exact"},
 			},
 		},
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{Name: "rate_code", Description: "A unique code for a product/ offer/ pricing-tier combination.", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.PriceDimension.RateCode")},
 			{Name: "service_code", Description: "This identifies the specific AWS service to the customer as a unique short abbreviation.", Type: proto.ColumnType_STRING, Transform: transform.FromField("ServiceCode")},
 			{Name: "term", Description: "Whether your AWS usage is Reserved or On-Demand.", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.Term")},

@@ -3,13 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
@@ -63,7 +65,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_id",
@@ -236,8 +238,8 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 // getAwsEBSSnapshotCreateVolumePermissions :: Describes the users and groups that have the permissions for creating volumes from the snapshot
 func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	snapshotData := h.Item.(types.Snapshot)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -271,8 +273,8 @@ func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	plugin.Logger(ctx).Trace("getEBSSnapshotARN")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshotData := h.Item.(types.Snapshot)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -339,8 +341,7 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 	 * If the user did not provide any of the below filters in the where clause, then by default owner ID will be set to the caller account ID, and API will return snapshots from the same account. This will help in table performance.
 	 */
 	if equalQuals["owner_alias"] == nil && equalQuals["owner_id"] == nil && equalQuals["snapshot_id"] == nil {
-		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-		c, err := getCommonColumnsCached(ctx, d, h)
+		c, err := getCommonColumns(ctx, d, h)
 		if err != nil {
 			return filters
 		}

@@ -31,7 +31,7 @@ func tableAwsGlobalAcceleratorListener(_ context.Context) *plugin.Table {
 			ParentHydrate: listGlobalAcceleratorAccelerators,
 			Hydrate:       listGlobalAcceleratorListeners,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the listener.",

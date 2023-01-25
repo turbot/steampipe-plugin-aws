@@ -4,6 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
+
+	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -30,7 +33,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listGuardDutyDetectors,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "detector_id",
@@ -220,8 +223,7 @@ func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(detectorInfo)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_guardduty_detector.getGuardDutyDetectorARN", "error", err)
 		return nil, err

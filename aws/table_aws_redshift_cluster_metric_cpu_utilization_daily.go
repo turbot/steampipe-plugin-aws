@@ -19,7 +19,7 @@ func tableAwsRedshiftClusterMetricCpuUtilizationDaily(_ context.Context) *plugin
 			ParentHydrate: listRedshiftClusters,
 			Hydrate:       listRedshiftClusterMetricCpuUtilizationDaily,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

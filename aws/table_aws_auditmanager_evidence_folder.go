@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
 
+	auditmanagerv1 "github.com/aws/aws-sdk-go/service/auditmanager"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -30,7 +32,7 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 			ParentHydrate: listAwsAuditManagerAssessments,
 			Hydrate:       listAuditManagerEvidenceFolders,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -257,8 +259,7 @@ func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	evidenceFolderID := *h.Item.(types.AssessmentEvidenceFolder).Id
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_auditmanager_evidence_folder.getAuditManagerEvidenceFolderARN", "common_data_error", err)
 		return nil, err

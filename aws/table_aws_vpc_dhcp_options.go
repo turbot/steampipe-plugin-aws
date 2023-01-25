@@ -6,6 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -28,7 +31,7 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 				{Name: "owner_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "dhcp_options_id",
@@ -197,8 +200,8 @@ func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getVpcDhcpOptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	dhcpOption := h.Item.(types.DhcpOptions)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_dhcp_options.getVpcDhcpOptionAkas", "common_data_error", err)
 		return nil, err

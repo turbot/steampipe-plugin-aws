@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/amplify"
 
+	amplifyv1 "github.com/aws/aws-sdk-go/service/amplify"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -27,7 +29,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAmplifyApps,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(amplifyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "app_id",

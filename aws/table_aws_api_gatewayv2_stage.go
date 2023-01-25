@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 
+	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -30,7 +32,7 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 			ParentHydrate: listAPIGatewayV2API,
 			Hydrate:       listAPIGatewayV2Stages,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stage_name",
@@ -283,8 +285,8 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 func apiGatewayV2StageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*v2StageRowData)
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

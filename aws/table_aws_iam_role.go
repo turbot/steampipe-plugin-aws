@@ -35,7 +35,7 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			// "Key" Columns
 			{
 				Name:        "name",

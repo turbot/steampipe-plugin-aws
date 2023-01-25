@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/types"
 
+	elbv1 "github.com/aws/aws-sdk-go/service/elb"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -28,7 +30,7 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ClassicLoadBalancers,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(elbv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -399,8 +401,8 @@ func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *p
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getEc2ClassicLoadBalancerARN", "get_common_data_error", err)
 		return nil, err

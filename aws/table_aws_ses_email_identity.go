@@ -6,6 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+
+	sesv1 "github.com/aws/aws-sdk-go/service/ses"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -18,7 +21,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSESEmailIdentities,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sesv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity",
@@ -187,8 +190,7 @@ func getSESIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	identity := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ses_email_identity.getSESIdentityARN", "api_error", err)
 		return nil, err

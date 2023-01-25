@@ -6,6 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig/types"
+
+	appconfigv1 "github.com/aws/aws-sdk-go/service/appconfig"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -24,7 +27,7 @@ func tableAwsAppConfigApplication(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAppConfigApplication,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(appconfigv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -193,8 +196,7 @@ func getArnFormat(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := h.Item.(types.Application).Id
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_appconfig_application.getArnFormat", "cache_error", err)
 		return ""

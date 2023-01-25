@@ -7,6 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore/types"
+
+	mediastorev1 "github.com/aws/aws-sdk-go/service/mediastore"
+
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/go-kit/helpers"
@@ -32,7 +35,7 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ContainerInUseException"}),
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(mediastorev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

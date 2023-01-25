@@ -6,6 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 	"github.com/aws/aws-sdk-go-v2/service/emr/types"
+
+	emrv1 "github.com/aws/aws-sdk-go/service/emr"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -26,7 +29,7 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 				{Name: "instance_group_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -209,8 +212,7 @@ func getEmrInstanceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(*emrInstanceInfo)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_emr_instance.getEmrInstanceAkas", "common_data_error", err)
 		return nil, err

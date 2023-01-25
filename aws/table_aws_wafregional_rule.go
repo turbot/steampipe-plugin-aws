@@ -8,6 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional/types"
+
+	wafregionalv1 "github.com/aws/aws-sdk-go/service/wafregional"
+
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -32,8 +35,8 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 			},
 			Hydrate: listAwsWAFRegionalRules,
 		},
-		GetMatrixItemFunc: BuildRegionList,
-		Columns: awsColumns([]*plugin.Column{
+		GetMatrixItemFunc: SupportedRegionMatrix(wafregionalv1.EndpointsID),
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The friendly name or description for the Rule.",
@@ -183,8 +186,7 @@ func getAwsWAFRegionalRuleArn(ctx context.Context, d *plugin.QueryData, h *plugi
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := regionalRuleData(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRuleArn", "api_error", err)
 		return nil, err

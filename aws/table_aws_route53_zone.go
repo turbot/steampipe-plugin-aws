@@ -29,7 +29,7 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listHostedZones,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the domain. For public hosted zones, this is the name that is registered with your DNS registrar.",
@@ -324,8 +324,8 @@ func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	hostedZone := h.Item.(HostedZoneResult)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

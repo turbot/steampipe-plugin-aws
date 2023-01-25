@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticsearchservice"
 	"github.com/aws/aws-sdk-go-v2/service/elasticsearchservice/types"
 
+	elasticsearchservicev1 "github.com/aws/aws-sdk-go/service/elasticsearchservice"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -31,7 +33,7 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Depends: []plugin.HydrateFunc{getAwsElasticsearchDomain},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticsearchservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",

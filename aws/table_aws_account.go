@@ -22,7 +22,7 @@ func tableAwsAccount(ctx context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAccountAlias,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "account_aliases",
 				Description: "A list of aliases associated with the account, if applicable.",
@@ -116,8 +116,7 @@ func listAccountAlias(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_account.listAccountAlias", "common_data_error", err)
 		return nil, err

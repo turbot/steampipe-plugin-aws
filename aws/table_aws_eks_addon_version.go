@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 
+	eksv1 "github.com/aws/aws-sdk-go/service/eks"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -24,7 +26,7 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 				{Name: "addon_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "addon_name",
@@ -183,8 +185,7 @@ func getAddonVersionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	version := h.Item.(addonVersion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_addon_version.getAddonVersionAkas", "api_error", err)
 		return nil, err

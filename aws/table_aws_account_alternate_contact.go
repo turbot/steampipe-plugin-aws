@@ -35,7 +35,7 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name associated with this alternate contact.",
@@ -93,8 +93,7 @@ type accountAlternateContactData = struct {
 func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

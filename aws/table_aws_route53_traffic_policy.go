@@ -27,7 +27,7 @@ func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listTrafficPolicies,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name that you specified when traffic policy was created.",
@@ -230,8 +230,8 @@ func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 func getRoute53TrafficPolicyTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	trafficPolicy := h.Item.(types.TrafficPolicy)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

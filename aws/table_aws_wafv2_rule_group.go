@@ -28,8 +28,8 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RuleGroups,
 		},
-		GetMatrixItemFunc: BuildWafRegionList,
-		Columns: []*plugin.Column{
+		GetMatrixItemFunc: WAFRegionMatrix,
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the rule group.",
@@ -118,24 +118,12 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 
 			// AWS standard columns
 			{
-				Name:        "partition",
-				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-			{
 				Name:        "region",
 				Description: "The AWS Region in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(ruleGroupRegion),
 			},
-			{
-				Name:        "account_id",
-				Description: "The AWS Account ID in which the resource is located.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-		},
+		}),
 	}
 }
 

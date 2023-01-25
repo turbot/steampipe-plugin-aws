@@ -5,6 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/drs"
 	"github.com/aws/aws-sdk-go-v2/service/drs/types"
+
+	drsv1 "github.com/aws/aws-sdk-go/service/drs"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -25,7 +28,7 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 			},
 			Hydrate: listAwsDRSRecoveryInstances,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(drsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "recovery_instance_id",

@@ -22,7 +22,7 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"granularity", "dimension_type_1", "dimension_type_2"}),
 			Hydrate:    listCostAndUsage,
 		},
-		Columns: awsColumns(
+		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
 				{
 					Name:        "dimension_1",

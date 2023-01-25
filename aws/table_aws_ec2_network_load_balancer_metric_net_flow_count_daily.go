@@ -21,7 +21,7 @@ func tableAwsEc2NetworkLoadBalancerMetricNetFlowCountDaily(_ context.Context) *p
 			ParentHydrate: listEc2NetworkLoadBalancers,
 			Hydrate:       listEc2NetworkLoadBalancerMetricNetFlowCountDaily,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

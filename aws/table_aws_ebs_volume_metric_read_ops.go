@@ -19,7 +19,7 @@ func tableAwsEbsVolumeMetricReadOps(_ context.Context) *plugin.Table {
 			ParentHydrate: listEBSVolume,
 			Hydrate:       listEbsVolumeMetricReadOps,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

@@ -8,6 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -40,7 +43,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				{Name: "volume_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "volume_id",
@@ -306,8 +309,7 @@ func getEBSVolumeARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	volume := h.Item.(types.Volume)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

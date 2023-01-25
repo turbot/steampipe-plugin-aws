@@ -15,7 +15,7 @@ func tableAwsCostByRecordTypeDaily(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostByRecordTypeDaily,
 		},
-		Columns: awsColumns(
+		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
 
 				{

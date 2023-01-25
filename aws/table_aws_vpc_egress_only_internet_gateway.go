@@ -6,6 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -25,7 +28,7 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEgressOnlyInternetGateways,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -155,8 +158,8 @@ func getVpcEgressOnlyInternetGatewayTurbotAkas(ctx context.Context, d *plugin.Qu
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	egw := h.Item.(types.EgressOnlyInternetGateway)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_egress_only_internet_gateway.getVpcEgressOnlyInternetGatewayTurbotAkas", "common_data_error", err)
 		return nil, err

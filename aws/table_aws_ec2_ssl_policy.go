@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 
+	elbv2v1 "github.com/aws/aws-sdk-go/service/elbv2"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -28,7 +30,7 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listEc2SslPolicies,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(elbv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -165,8 +167,7 @@ func getEc2SslPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.SslPolicy)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -3,11 +3,11 @@ package aws
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -105,8 +105,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
-	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -117,10 +117,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/aws/session"
+
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
+	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
 	cloudsearchEndpoint "github.com/aws/aws-sdk-go/service/cloudsearch"
@@ -153,7 +155,10 @@ import (
 	oamEndpoint "github.com/aws/aws-sdk-go/service/oam"
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
 	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
+	pricingEndpoint "github.com/aws/aws-sdk-go/service/pricing"
+	rdsEndpoint "github.com/aws/aws-sdk-go/service/rds"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
+	resourceexplorer2Endpoint "github.com/aws/aws-sdk-go/service/resourceexplorer2"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	s3ControlEndpoint "github.com/aws/aws-sdk-go/service/s3control"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
@@ -164,12 +169,11 @@ import (
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
-	wafregionalEnpoint "github.com/aws/aws-sdk-go/service/wafregional"
-	wafv2Enpoint "github.com/aws/aws-sdk-go/service/wafv2"
+	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
+	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
+	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
 	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -190,13 +194,12 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 	return accessanalyzer.NewFromConfig(*cfg), nil
 }
 
+// AccountClient is used to query general information about an AWS account.
 func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// Use the client region - service is global but available in all regions.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
 	}
 	return account.NewFromConfig(*cfg), nil
 }
@@ -229,17 +232,10 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 }
 
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
-	// APIGatewayV2's endpoint ID is the same as APIGateway's, but me-central-1 and ap-southeast-3 do not support API Gateway v2 yet
-	//cfg, err := getClientForQuerySupportedRegion(ctx, d, apigatewayv2Endpoint.EndpointsID)
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	validRegions := []string{"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "cn-north-1", "cn-northwest-1", "us-gov-east-1", "us-gov-west-1", "us-iso-east-1"}
-
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
-	cfg, err := getClientForQueryRegion(ctx, d)
+	// APIGatewayV2 uses the APIGateway endpoints under the hood, but
+	// APIGatewayV2 actually supports less regions. Remove them manually here.
+	excludeRegions := []string{"ap-southeast-3", "me-central-1"}
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, apigatewayv2Endpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
 	}
@@ -304,26 +300,11 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 	// configuration in aws.spc - but, good enough for something that is rarely used
 	// anyway.
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("CloudControlClient called without a region in QueryData")
-	}
-
-	// Use a service level cache since we are going around the standard
-	// getSession with its caching.
-	serviceCacheKey := fmt.Sprintf("cloudcontrol-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*cloudcontrol.Client), nil
-	}
-
 	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
-	svc := cloudcontrol.NewFromConfig(*cfg)
-
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return cloudcontrol.NewFromConfig(*cfg), nil
 }
 
 func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Client, error) {
@@ -346,7 +327,12 @@ func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudforma
 }
 
 func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// CloudFront a global service with a single DNS endpoint
+	// (cloudfront.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/cf_region.html
+	// So, while requests will go to the global endpoint, we can still prefer /
+	// reuse the client region.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +415,6 @@ func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Cli
 	return codedeploy.NewFromConfig(*cfg), nil
 }
 
-// CodePipelineClient returns the service connection for AWS CodePipeline service
 func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, codepipelineEndpoint.EndpointsID)
 	if err != nil {
@@ -449,9 +434,13 @@ func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Clie
 	return configservice.NewFromConfig(*cfg), nil
 }
 
-// CostExplorerClient returns the connection client for AWS Cost Explorer service
 func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// Cost Explorer is a global service that operates from a single
+	// region (ce.us-east-1.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/billing.html
+	// Testing shows it works with either the default or client region object,
+	// so use client region for higher reuse.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -537,11 +526,20 @@ func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 	return ec2.NewFromConfig(*cfg), nil
 }
 
-func EC2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
-	// We can query EC2 for the list of supported regions. But, if credentials
-	// are insufficient this query will retry many times, so we create a special
-	// client with a small number of retries to prevent hangs.
-	// Note - This is not cached, but usually the result of using this service will be.
+// Get an EC2 client for a specific region. Used by various hydrate functions
+// pulling data from regions other than the query region.
+func EC2ClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	return ec2.NewFromConfig(*cfg), nil
+}
+
+// Get an EC2 client with a small number of retries. Used in very specific
+// situations like listing regions where fast failure is preferred over a long
+// retry/backoff loop. Do not use for general tables.
+func EC2LowRetryClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
 	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
 	if err != nil {
 		return nil, err
@@ -577,10 +575,6 @@ func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
-	}
-
-	if cfg == nil {
-		return nil, nil
 	}
 	return efs.NewFromConfig(*cfg), nil
 }
@@ -692,8 +686,12 @@ func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, e
 }
 
 func GlobalAcceleratorClient(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.Client, error) {
-	// Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
-	// the us-west-2 (Oregon) Region to create or update accelerators.
+	// Global Accelerator is a global service with a single DNS endpoint
+	// (globalaccelerator.amazonaws.com). As of 2023-01-18, it's only
+	// available in the us-west-2 region. It doesn't resolve if we use
+	// client region, and it's not using the default region, so we have no
+	// choice but to hard code it here.
+	// https://docs.aws.amazon.com/general/latest/gr/global_accelerator.html
 	cfg, err := getClient(ctx, d, "us-west-2")
 	if err != nil {
 		return nil, err
@@ -705,9 +703,6 @@ func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) 
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
 	}
 	return glue.NewFromConfig(*cfg), nil
 }
@@ -729,7 +724,11 @@ func HealthClient(ctx context.Context, d *plugin.QueryData) (*health.Client, err
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// IAM a global service with a single DNS endpoint (iam.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/iam-service.html
+	// So, while requests will go to the global endpoint, we can still prefer /
+	// reuse the client region.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -901,7 +900,13 @@ func OpenSearchClient(ctx context.Context, d *plugin.QueryData) (*opensearch.Cli
 }
 
 func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// Organizations is a global service that operates from a single
+	// region (organizations.us-east-1.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/ao.html
+	// So, we must specify the default region rather than the client region.
+	// Testing shows it works with either the default or client region object,
+	// so use client region for higher reuse.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -931,13 +936,46 @@ func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error
 }
 
 func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
-	// Pricing API is a global API that supports only us-east-1 and ap-south-1 regions
-	// getDefaultAwsRegion doesn't return the good region at the moment (it should use specified API endpoints but it doesn't).
-	// Set us-east-1 for now
-	cfg, err := getClient(ctx, d, "us-east-1")
+
+	// The Pricing API is different from other services. It's a global service,
+	// but only available from two regions:
+	// - us-east-1
+	// - ap-south-1
+	// There is a big latency difference between these regions, so we do our
+	// best here to use the region you've chosen.  This could be smarter (e.g.
+	// choose closest), but for now it just tries to use your client region if
+	// it can and otherwise falls back to the default region us-east-1.
+
+	// Get Pricing API supported regions
+	pricingAPISupportedRegions, err := listRegionsForService(ctx, d, pricingEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
+
+	// Get the client region for AWS API calls
+	// Typically this should be the region closest to the user
+	clientRegion, err := getDefaultRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Pricing API is a global API that supports only us-east-1 and ap-south-1 regions.
+	// If a preferred region is set using default_region, or in the AWS config files,
+	// and the API supports that region, use that as the endpoint.
+	// As of Dec 13, 2022, AWS Pricing API only works in AWS Commercial Cloud.
+	queryRegion := clientRegion
+	if !helpers.StringSliceContains(pricingAPISupportedRegions, queryRegion) {
+		queryRegion, err = getLastResortRegion(ctx, d, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cfg, err := getClient(ctx, d, queryRegion)
+	if err != nil {
+		return nil, err
+	}
+
 	return pricing.NewFromConfig(*cfg), nil
 }
 
@@ -958,18 +996,10 @@ func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 }
 
 func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
-
-	// AWS RDS DD Proxy's endpoint ID is the same as AWS RDS's, but me-central-1 and ap-northeast-3 does not support for it
-	//cfg, err := getClientForQuerySupportedRegion(ctx, d, rdxEndpoint.EndpointsID)
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	validRegions := []string{"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "cn-north-1", "cn-northwest-1", "us-gov-east-1", "us-gov-west-1", "us-iso-east-1"}
-
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
-	cfg, err := getClientForQueryRegion(ctx, d)
+	// RDS DB Proxy has the same endpoint as RDS, but covers less regions.
+	// Remove them manually here.
+	excludeRegions := []string{"ap-southeast-3", "me-central-1"}
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
 	}
@@ -999,15 +1029,24 @@ func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshi
 }
 
 func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region string) (*resourceexplorer2.Client, error) {
-	// https://aws.amazon.com/about-aws/whats-new/2022/11/announcing-aws-resource-explorer/
-	// AWS Resource Explorer is generally available in the following AWS Regions, with more Regions coming soon: US East (Ohio), US East (N. Virginia), US West (N. California), US West (Oregon), Asia Pacific (Mumbai), Asia Pacific (Osaka), Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), Europe (London), Europe (Paris), Europe (Stockholm), and South America (São Paulo).
-	var resourceExplorerRegions = []string{"ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-west-1", "eu-west-2", "eu-west-3", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
+
+	// Resource Explorer can be called in any specific region. It's normally
+	// used from the client region, but the region can be optionally provided
+	// as a qual in the query. So, in this function we take the desired region
+	// and check that a valid endpoint for the service before using it.
 
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed ResourceExplorerClient")
+		return nil, fmt.Errorf("ResourceExplorerClient requires a region")
 	}
 
-	// If not a supported region return nil client
+	// Get the list of supported regions for the service
+	resourceExplorerRegions, err := listRegionsForService(ctx, d, resourceexplorer2Endpoint.EndpointsID)
+	if err != nil {
+		return nil, fmt.Errorf("ResourceExplorerClient: failed to get supported regions")
+	}
+
+	// Verify the requested region is supported, otherwise return nil which
+	// will mean zero results are returned for the query.
 	if !helpers.StringSliceContains(resourceExplorerRegions, region) {
 		return nil, nil
 	}
@@ -1016,6 +1055,7 @@ func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region str
 	if err != nil {
 		return nil, err
 	}
+
 	return resourceexplorer2.NewFromConfig(*cfg), nil
 }
 
@@ -1028,7 +1068,12 @@ func ResourceGroupsTaggingClient(ctx context.Context, d *plugin.QueryData) (*res
 }
 
 func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// Route53 is a global service with a single DNS endpoint
+	// (route53.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/r53.html
+	// So, while requests will go to the global endpoint, but we can still
+	// prefer / reuse the client region.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1036,7 +1081,11 @@ func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, e
 }
 
 func Route53DomainsClient(ctx context.Context, d *plugin.QueryData) (*route53domains.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// Route53 Domains is a global service that operates from a single
+	// region (route53domains.us-east-1.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/r53.html
+	// So, we must specify the default region rather than the client region.
+	cfg, err := getClientForLastResortRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1062,10 +1111,12 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 
 	var svc *s3.Client
 
-	awsConfig := GetConfig(d.Connection)
-	if awsConfig.S3ForcePathStyle != nil {
+	// Depending on their configuration, the S3 client may need to be configured
+	// to use path-style addressing.
+	awsSpcConfig := GetConfig(d.Connection)
+	if awsSpcConfig.S3ForcePathStyle != nil {
 		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
-			o.UsePathStyle = *awsConfig.S3ForcePathStyle
+			o.UsePathStyle = *awsSpcConfig.S3ForcePathStyle
 		})
 	} else {
 		svc = s3.NewFromConfig(*cfg)
@@ -1219,10 +1270,9 @@ func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 }
 
 func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
-	// TODO - Should STS be regional instead?
-	// By default, the AWS Security Token Service (AWS STS) is available as a global service, and all AWS STS requests go to a single endpoint at https://sts.amazonaws.com. AWS recommends using Regional AWS STS endpoints instead of the global endpoint to reduce latency, build in redundancy, and increase session token validity.
-	// https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// STS is available in each region, so we can use the client_region
+	// closest to the user.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1230,8 +1280,7 @@ func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
 }
 
 func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
-	// https://github.com/aws/aws-sdk-go/blob/main/aws/endpoints/defaults.go#L17417
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, "portal.sso")
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssoEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -1242,7 +1291,12 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 }
 
 func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
-	cfg, err := getClient(ctx, d, getDefaultAwsRegion(d))
+	// WAF Classic a global service with a single DNS endpoint
+	// (waf.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/waf-classic.html
+	// So, while requests will go to the global endpoint, we can still prefer /
+	// reuse the client region.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -1250,7 +1304,7 @@ func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
 }
 
 func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafregionalEnpoint.EndpointsID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafregionalEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -1261,19 +1315,12 @@ func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.C
 }
 
 func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
-	validRegions, err := GetSupportedRegionsForClient(ctx, d, wafv2Enpoint.EndpointsID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	if !helpers.StringSliceContains(validRegions, region) {
-		// We choose to ignore unsupported regions rather than returning an error
-		// for them - it's a better user experience. So, return a nil session rather
-		// than an error. The caller must handle this case.
+	if cfg == nil {
 		return nil, nil
-	}
-	cfg, err := getClientForRegion(ctx, d, region)
-	if err != nil {
-		return nil, err
 	}
 	return wafv2.NewFromConfig(*cfg), nil
 }
@@ -1300,71 +1347,33 @@ func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Cli
 	return workspaces.NewFromConfig(*cfg), nil
 }
 
-func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
-	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
-		return cachedData.(*aws.Config), nil
-	}
-
-	awsConfig := GetConfig(d.Connection)
-
-	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
-	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
-	// waiting too long to return results
-	maxRetries := 9
-	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
-
-	// Set max retry count from config file or env variable (config file has precedence)
-	if awsConfig.MaxErrorRetryAttempts != nil {
-		maxRetries = *awsConfig.MaxErrorRetryAttempts
-	} else if os.Getenv("AWS_MAX_ATTEMPTS") != "" {
-		maxRetriesEnvVar, err := strconv.Atoi(os.Getenv("AWS_MAX_ATTEMPTS"))
-		if err != nil || maxRetriesEnvVar < 1 {
-			panic("invalid value for environment variable \"AWS_MAX_ATTEMPTS\". It should be an integer value greater than or equal to 1")
-		}
-		maxRetries = maxRetriesEnvVar
-	}
-
-	// Set min delay time from config file
-	if awsConfig.MinErrorRetryDelay != nil {
-		minRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
-	}
-
-	if maxRetries < 1 {
-		panic("\nconnection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
-	}
-	if minRetryDelay < 1 {
-		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
-	}
-
-	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
-	if err != nil {
-		plugin.Logger(ctx).Error("getService.getClientWithMaxRetries", "region", region, "err", err)
-	} else {
-		// Caching sessions saves about 10ms, which is significant when there are
-		// multiple instantiations (per account region) and when doing queries that
-		// often take <100ms total. But, it's not that important compared to having
-		// fresh credentials all the time. So, set a short cache length to ensure
-		// we don't get tripped up by credential rotation on short lived roles etc.
-		// The minimum assume role time is 15 minutes, so 5 minutes feels like a
-		// reasonable balance - I certainly wouldn't do longer.
-		d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
-	}
-
-	return sess, err
+// Get a session for the region defined in query data, but only after checking
+// it's a supported region for the given serviceID.
+func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
+	return getClientForQuerySupportedRegionWithExclusions(ctx, d, serviceID, []string{})
 }
 
-// Get a session for the region defined in query data, but only after checking it's
-// a supported region for the given serviceID.
-func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
+// Get a session for the region defined in query data, but only after checking
+// it's a supported region for the given serviceID and that it's not in the
+// list of excluded regions. This is useful for cases where the service regions
+// in the AWS SDK are actually wrong (e.g. APIGatewayV2 has less regions than
+// APIGateway but uses the same service definition.)
+func getClientForQuerySupportedRegionWithExclusions(ctx context.Context, d *plugin.QueryData, serviceID string, excludeRegions []string) (*aws.Config, error) {
+
+	// Verify we have good region data
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
-	validRegions, err := GetSupportedRegionsForClient(ctx, d, serviceID)
+
+	// Work out which regions are valid for this service
+	validRegions, err := listRegionsForService(ctx, d, serviceID)
 	if err != nil {
 		return nil, err
 	}
+
+	// Remove the excluded regions from the valid list
+	validRegions = helpers.RemoveFromStringSlice(validRegions, excludeRegions...)
 
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
@@ -1372,8 +1381,27 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 		// than an error. The caller must handle this case.
 		return nil, nil
 	}
+
 	// Supported region, so get and return the session
 	return getClient(ctx, d, region)
+}
+
+// Helper function to get the session for the preferred region in this partition
+func getClientForDefaultRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	r, err := getDefaultRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+	return getClient(ctx, d, r)
+}
+
+// Helper function to get the session for the last resort region in this partition
+func getClientForLastResortRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	r, err := getLastResortRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+	return getClient(ctx, d, r)
 }
 
 // Helper function to get the session for a region set in query data
@@ -1393,8 +1421,106 @@ func getClientForRegion(ctx context.Context, d *plugin.QueryData, region string)
 	return getClient(ctx, d, region)
 }
 
+// Get the AWS client for a given region. This is cached on a per-connection-region
+// basis internally.
+func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
+	// Create custom hydrate data to pass through the region. Hydrate data
+	// is normally per-column, but we can hijack it for this case to pass
+	// through the context we need.
+	h := &plugin.HydrateData{Item: region}
+	i, err := getClientCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	return i.(*aws.Config), nil
+}
+
+// Cached form of getClient, using the per-connection and parallel safe
+// WithCache() method.
+var getClientCached = plugin.HydrateFunc(getClientUncached).WithCache(getClientCacheKey)
+
+// getClient is per-region, but WithCache() is per-connection, so a setup
+// a custom cache key with region information in it.
+func getClientCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Extract the region from the hydrate data. This is not per-row data,
+	// but a clever pass through of context for our case.
+	region := h.Item.(string)
+	key := fmt.Sprintf("getClient-%s", region)
+	return key, nil
+}
+
+// getClientUncached is the actual implementation of getClient, which should
+// be run only once per region per connection. Do not call this directly, use
+// getClient instead.
+func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	// Extract the region from the hydrate data. This is not per-row data,
+	// but a clever pass through of context for our case.
+	region := h.Item.(string)
+
+	plugin.Logger(ctx).Trace("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+
+	awsSpcConfig := GetConfig(d.Connection)
+
+	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
+	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
+	// waiting too long to return results
+	maxRetries := 9
+	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
+
+	// Set max retry count from config file or env variable (config file has precedence)
+	if awsSpcConfig.MaxErrorRetryAttempts != nil {
+		maxRetries = *awsSpcConfig.MaxErrorRetryAttempts
+	} else if os.Getenv("AWS_MAX_ATTEMPTS") != "" {
+		maxRetriesEnvVar, err := strconv.Atoi(os.Getenv("AWS_MAX_ATTEMPTS"))
+		if err != nil || maxRetriesEnvVar < 1 {
+			panic("invalid value for environment variable \"AWS_MAX_ATTEMPTS\". It should be an integer value greater than or equal to 1")
+		}
+		maxRetries = maxRetriesEnvVar
+	}
+
+	// Set min delay time from config file
+	if awsSpcConfig.MinErrorRetryDelay != nil {
+		minRetryDelay = time.Duration(*awsSpcConfig.MinErrorRetryDelay) * time.Millisecond
+	}
+
+	if maxRetries < 1 {
+		panic("connection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1")
+	}
+	if minRetryDelay < 1 {
+		panic("connection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1")
+	}
+
+	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
+	if err != nil {
+		plugin.Logger(ctx).Error("getClientUncached", "region", region, "err", err)
+		return nil, err
+	}
+
+	plugin.Logger(ctx).Trace("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	return sess, err
+}
+
 func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 
+	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+
+	if region == "" {
+		return nil, fmt.Errorf("getClientWithMaxRetries called with an empty region")
+	}
+
+	// Start with the shared config for the account, and then customize
+	// for this specific region etc.
+	baseCfg, err := getBaseClientForAccount(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	cfg := baseCfg.Copy()
+
+	// Set the region for this client
+	cfg.Region = region
+
+	// Add the retryer definition
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		// reseting state of rand to generate different random values
 		rand.Seed(time.Now().UnixNano())
@@ -1403,63 +1529,109 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
 		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 	})
-
-	awsConfig := GetConfig(d.Connection)
-	configOptions := []func(*config.LoadOptions) error{
-		config.WithRegion(region),
-		config.WithRetryer(func() aws.Retryer {
-			return retryer
-		}),
+	cfg.Retryer = func() aws.Retryer {
+		return retryer
 	}
 
-	// handle custom endpoint URL, if any
+	// Plugin level config
+	awsSpcConfig := GetConfig(d.Connection)
+
+	// If there is a custom endpoint, use it
 	var awsEndpointUrl string
-
 	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
-	if awsConfig.EndpointUrl != nil {
-		awsEndpointUrl = *awsConfig.EndpointUrl
-	}
-
-	if awsEndpointUrl != "" {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           awsEndpointUrl,
-				SigningRegion: region,
-			}, nil
-		})
-
-		configOptions = append(configOptions, config.WithEndpointResolverWithOptions(customResolver))
-	}
-
-	// awsConfig.S3ForcePathStyle - Moved to service specific client (i.e. in S3V2Client)
-
-	if awsConfig.Profile != nil {
-		configOptions = append(configOptions, config.WithSharedConfigProfile(aws.ToString(awsConfig.Profile)))
-	}
-
-	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
-	} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
-	} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
-		var provider credentials.StaticCredentialsProvider
-
-		if awsConfig.SessionToken != nil {
-			provider = credentials.NewStaticCredentialsProvider(*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken)
-		} else {
-			provider = credentials.NewStaticCredentialsProvider(*awsConfig.AccessKey, *awsConfig.SecretKey, "")
+	if awsSpcConfig.EndpointUrl != nil {
+		awsEndpointUrl = *awsSpcConfig.EndpointUrl
+		if awsEndpointUrl != "" {
+			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					PartitionID:   "aws",
+					URL:           awsEndpointUrl,
+					SigningRegion: region,
+				}, nil
+			})
+			cfg.EndpointResolverWithOptions = customResolver
 		}
+	}
+
+	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
+
+	return &cfg, err
+}
+
+// Helper function to get an AWS config object for each connection. This object
+// is then copied and shared across regions. This approach avoids unnecssary
+// creation work for sessions, particularly when using a shared service like IDMS.
+// The client is actually cached indefinitely which is desirable since the AWS
+// SDK will automatically refresh as needed. We used to time this cache out
+// (every 5 mins), but that caused a lof of session resets and termination of
+// things like SSO sessions before they expired.
+// Previously we'd create a new session for each region, but this leads to
+// throttling on the IDMS service - consider 10 connections with 10 regions, that's
+// 100 sessions which leads to 300 IDMS calls in very quick succession. It was
+// even worse when the cache was not safe against parallel runs, causing many to
+// be recreated. Using a base client creation and combining with the safety of
+// WithCache() is a much better approach.
+func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	tmp, err := getBaseClientForAccountCached(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+	return tmp.(*aws.Config), nil
+}
+
+// Cached form of the base client.
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).WithCache()
+
+// Do the actual work of creating an AWS config object for reuse across many
+// regions. This client has the minimal reusable configuration on it, so it
+// can be modified in the higher level client functions.
+func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
+
+	awsSpcConfig := GetConfig(d.Connection)
+
+	var configOptions []func(*config.LoadOptions) error
+
+	// Note about region config: We deliberately do not set a region when
+	// creating the config. It will load the best region for this account
+	// (profile) from the ~/.aws shared config / env vars / etc. This is
+	// important, as this base client is even used when trying to guess the
+	// default region for the user based on these settings.
+
+	if awsSpcConfig.Profile != nil {
+		profile := aws.ToString(awsSpcConfig.Profile)
+		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
+		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
+	}
+
+	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
+		return nil, fmt.Errorf("partial credentials found in connection config, missing: secret_key")
+	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
+		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
+	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
+		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
+		sessionToken := ""
+		if awsSpcConfig.SessionToken != nil {
+			plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
+			sessionToken = *awsSpcConfig.SessionToken
+		}
+		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
+	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+
 	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
 	if err != nil {
-		plugin.Logger(ctx).Error("getAwsConfigWithMaxRetries", "load_default_config", err)
+		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
 		return nil, err
 	}
 
+	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
+
 	return &cfg, err
+
 }
 
 // ExponentialJitterBackoff provides backoff delays with jitter based on the
@@ -1490,118 +1662,10 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 		retryTime = time.Duration(5 * time.Minute)
 	}
 
+	// Low level method to log retries since we don't have context etc here.
+	// Logging is helpful for visibility into retries and choke points in using
+	// the API.
+	log.Printf("[WARN] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
+
 	return retryTime, nil
-}
-
-// GetSupportedRegionsForClient lists valid regions for a service based on service ID
-func GetSupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceID string) ([]string, error) {
-	var partitionName string
-	var partition endpoints.Partition
-
-	// If valid regions list is already available in cache, return it
-	cacheKey := fmt.Sprintf("supported-regions-%s", serviceID)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]string), nil
-	}
-
-	// Get the partition of the AWS account plugin is connected to
-	if cachedData, ok := d.ConnectionManager.Cache.Get("getCommonColumns"); ok {
-		partitionName = cachedData.(*awsCommonColumnData).Partition
-	}
-
-	// If partition name is not available in cache, try to fetch it from "STS GetCallerIdentity" API
-	if partitionName == "" {
-		commonColumnData, err := getCommonColumns(ctx, d, nil)
-		if err != nil {
-			plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition name", err)
-			return nil, err
-		}
-		partitionName = commonColumnData.(*awsCommonColumnData).Partition
-	}
-
-	// Get AWS partition based on the partition name
-	switch partitionName {
-	case endpoints.AwsPartitionID:
-		partition = endpoints.AwsPartition()
-	case endpoints.AwsCnPartitionID:
-		partition = endpoints.AwsCnPartition()
-	case endpoints.AwsIsoPartitionID:
-		partition = endpoints.AwsIsoPartition()
-	case endpoints.AwsUsGovPartitionID:
-		partition = endpoints.AwsUsGovPartition()
-	case endpoints.AwsIsoBPartitionID:
-		partition = endpoints.AwsIsoBPartition()
-	default:
-		plugin.Logger(ctx).Error("service_v2.GetSupportedRegionsForClient", "invalid_partition_error", fmt.Errorf("%s is an invalid partition", partitionName))
-		return nil, fmt.Errorf("service_v2.GetSupportedRegionsForClient:: '%s' is an invalid partition", partitionName)
-	}
-
-	var validRegions []string
-
-	// Get the list of the service regions based on the service ID
-	services := partition.Services()
-	serviceInfo, ok := services[serviceID]
-	if !ok {
-		return nil, fmt.Errorf("service_v2.SupportedRegionsForClient called with invalid service ID: %s", serviceID)
-	}
-
-	regions := serviceInfo.Regions()
-	for rs := range regions {
-		validRegions = append(validRegions, rs)
-	}
-
-	// Save valid regions in the cache
-	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
-	return validRegions, nil
-}
-
-// getDefaultAwsRegion returns the default region for AWS partiton
-func getDefaultAwsRegion(d *plugin.QueryData) string {
-	// Have we already created and cached the service?
-	serviceCacheKey := "getDefaultAwsRegion"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(string)
-	}
-
-	// Get AWS config info
-	awsConfig := GetConfig(d.Connection)
-
-	var regions []string
-	var region string
-
-	if awsConfig.Regions != nil {
-		regions = awsConfig.Regions
-		// Pick the first region from the regions list as a best guess to determine
-		// the default region for the AWS partition based on the region prefix.
-		region = regions[0]
-	} else {
-		// If the regions are not set in the aws.spc, this will try to pick the
-		// AWS region based on the SDK logic similar to the AWS CLI command
-		// "aws configure list"
-		session, err := session.NewSessionWithOptions(session.Options{
-			SharedConfigState: session.SharedConfigEnable,
-		})
-		if err != nil {
-			panic(err)
-		}
-		if session != nil && session.Config != nil {
-			region = *session.Config.Region
-		}
-	}
-
-	// Most of the global services like IAM, S3, Route 53, target these regions
-	if strings.HasPrefix(region, "us-gov") {
-		region = "us-gov-west-1"
-	} else if strings.HasPrefix(region, "cn") {
-		region = "cn-northwest-1"
-	} else if strings.HasPrefix(region, "us-isob") {
-		region = "us-isob-east-1"
-	} else if strings.HasPrefix(region, "us-iso") {
-		region = "us-iso-east-1"
-	} else {
-		region = "us-east-1"
-	}
-
-	d.ConnectionManager.Cache.Set(serviceCacheKey, region)
-	return region
 }

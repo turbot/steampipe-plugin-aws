@@ -25,7 +25,7 @@ func tableAwsRoute53Domain(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listRoute53Domains,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
 				Description: "The name of the domain.",
@@ -309,8 +309,7 @@ func getRoute53DomainARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	name := domainName(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

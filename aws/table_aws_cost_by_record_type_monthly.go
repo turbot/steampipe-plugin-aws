@@ -20,7 +20,7 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostByRecordTypeMonthly,
 		},
-		Columns: awsColumns(
+		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
 
 				{

@@ -27,7 +27,7 @@ func tableAwsCloudFrontOriginAccessIdentity(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginAccessIdentities,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "id",
 				Description: "The ID for the origin access identity.",
@@ -178,8 +178,7 @@ func getCloudFrontOriginAccessIdentity(ctx context.Context, d *plugin.QueryData,
 func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	originAccessIdentityData := *originAccessIdentityID(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudfront_origin_access_identity.getCloudFrontOriginAccessIdentityARN", "common_data_error", err)
 		return nil, err

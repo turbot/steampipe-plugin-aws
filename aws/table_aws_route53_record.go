@@ -31,7 +31,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHostedZone"}),
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the record.",
@@ -242,8 +242,8 @@ func flattenResourceRecords(_ context.Context, d *transform.TransformData) (inte
 
 func getRoute53RecordSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	recordData := h.Item.(*recordInfo)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Trace("aws_route53_record.getRoute53RecordSetAkas", "common_data_error", err)
 		return nil, err

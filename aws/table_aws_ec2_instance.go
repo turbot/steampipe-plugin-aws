@@ -9,7 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/turbot/go-kit/helpers"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -51,7 +54,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_id",
@@ -522,10 +525,9 @@ func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	instance := h.Item.(types.Instance)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

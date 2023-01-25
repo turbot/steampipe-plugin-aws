@@ -5,6 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
+
+	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -24,7 +27,7 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConfigurationRecorders,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -176,8 +179,8 @@ func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	configurationRecorder := h.Item.(types.ConfigurationRecorder)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getAwsConfigurationRecorderARN", "api_error", err)
 		return nil, err

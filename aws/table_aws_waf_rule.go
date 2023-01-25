@@ -25,7 +25,7 @@ func tableAwsWAFRule(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWAFRules,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name for the rule.",
@@ -212,8 +212,7 @@ func getAwsWAFRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getAwsWAFRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := ruleData(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rule.getAwsWAFRuleAkas", "api_error", err)
 		return nil, err

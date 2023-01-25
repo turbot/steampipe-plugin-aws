@@ -19,7 +19,7 @@ func tableAwsRdsInstanceMetricConnectionsHourly(_ context.Context) *plugin.Table
 			ParentHydrate: listRDSDBInstances,
 			Hydrate:       listRdsInstanceMetricConnectionsHourly,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

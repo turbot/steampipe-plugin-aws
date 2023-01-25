@@ -15,7 +15,7 @@ func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostForecastMonthly,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "period_start",
 				Description: "Start timestamp for this cost metric",

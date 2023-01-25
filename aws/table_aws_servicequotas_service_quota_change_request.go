@@ -7,6 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas/types"
+
+	servicequotasv1 "github.com/aws/aws-sdk-go/service/servicequotas"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -38,7 +41,7 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(servicequotasv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -276,8 +279,8 @@ func getServiceQuotaChangeRequestAkas(ctx context.Context, d *plugin.QueryData, 
 	data := h.Item.(types.RequestedServiceQuotaChange)
 
 	// Get common columns
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.getServiceQuotaChangeRequestAkas", "common_data_error", err)
 		return nil, err

@@ -3,13 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/dax/types"
+
+	daxv1 "github.com/aws/aws-sdk-go/service/dax"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -30,7 +32,7 @@ func tableAwsDaxSubnetGroup(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(daxv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subnet_group_name",
@@ -144,8 +146,7 @@ func getDaxSubnetGroupsAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	name := *h.Item.(types.SubnetGroup).SubnetGroupName
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dax_subnet_group.getDaxSubnetGroupsAkas", "cache_error", err)
 		return nil, err

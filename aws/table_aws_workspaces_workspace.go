@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces/types"
 
+	workspacesv1 "github.com/aws/aws-sdk-go/service/workspaces"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -33,7 +35,7 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(workspacesv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workspace_id",
@@ -300,8 +302,7 @@ func getWorkspaceArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	workspaceId := h.Item.(types.Workspace).WorkspaceId
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -3,13 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
 	"github.com/aws/aws-sdk-go-v2/service/dlm/types"
+
+	dlmv1 "github.com/aws/aws-sdk-go/service/dlm"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -28,7 +30,7 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listDLMLifecyclePolicies,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(dlmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "policy_id",

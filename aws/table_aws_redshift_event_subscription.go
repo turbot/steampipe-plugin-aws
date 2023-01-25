@@ -7,6 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
+
+	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -26,7 +29,7 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftEventSubscriptions,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cust_subscription_id",
@@ -198,10 +201,10 @@ func getRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _ *p
 func getRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(types.EventSubscription)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_redshift_event_subscription.getRedshiftEventSubscriptionAkas", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("aws_redshift_event_subscription.getRedshiftEventSubscriptionAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver/types"
 
+	route53resolverv1 "github.com/aws/aws-sdk-go/service/route53resolver"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -36,7 +38,7 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(route53resolverv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

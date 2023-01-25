@@ -8,6 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+
+	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -35,7 +38,7 @@ func tableAwsCloudwatchLogSubscriptionFilter(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -207,8 +210,7 @@ func getCloudwatchLogSubscriptionFilterAkas(ctx context.Context, d *plugin.Query
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	subscriptionFilter := h.Item.(types.SubscriptionFilter)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilterAkas", "cache_error", err)
 		return nil, err

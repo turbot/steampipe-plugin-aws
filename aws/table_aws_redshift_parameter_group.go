@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 
+	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -27,7 +29,7 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftParameterGroups,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -200,10 +202,9 @@ func getAwsRedshiftParameterGroupAkas(ctx context.Context, d *plugin.QueryData, 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(types.ClusterParameterGroup)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getAwsRedshiftParameterGroupAkas", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getAwsRedshiftParameterGroupAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

@@ -85,7 +85,7 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, *region.RegionName)
+	svc, err := EC2ClientForRegion(ctx, d, *region.RegionName)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_availability.listAwsAvailableInstanceTypes", "connection_error", err)
 		return nil, err
@@ -135,8 +135,8 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 
 func getAwsInstanceAvailableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instanceType := h.Item.(types.InstanceTypeOffering)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

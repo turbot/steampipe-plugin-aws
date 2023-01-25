@@ -6,6 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis/types"
+
+	kinesisv1 "github.com/aws/aws-sdk-go/service/kinesis"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -28,7 +31,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 			ParentHydrate: listStreams,
 			Hydrate:       listKinesisConsumers,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(kinesisv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "consumer_name",
@@ -81,8 +84,7 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
 		return nil, err

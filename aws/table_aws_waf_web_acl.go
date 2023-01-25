@@ -31,7 +31,7 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listWafWebAcls,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Web ACL. You cannot change the name of a Web ACL after you create it.",
@@ -278,8 +278,8 @@ func classicWebAclData(item interface{}, ctx context.Context, d *plugin.QueryDat
 		data["Name"] = *item.Name
 	case types.WebACLSummary:
 		data["ID"] = *item.WebACLId
-		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-		commonData, err := getCommonColumnsCached(ctx, d, h)
+
+		commonData, err := getCommonColumns(ctx, d, h)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_waf_web_acl.classicWebAclData", "api_error", err)
 			return nil

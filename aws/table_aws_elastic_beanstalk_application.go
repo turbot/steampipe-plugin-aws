@@ -6,6 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk/types"
+
+	elasticbeanstalkv1 "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -27,7 +30,7 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listElasticBeanstalkApplications,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

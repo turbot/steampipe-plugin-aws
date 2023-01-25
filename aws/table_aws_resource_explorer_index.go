@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -27,7 +28,7 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 				{Name: "region", Require: plugin.Optional},
 			},
 		},
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon resource name (ARN) of the index.",
@@ -49,9 +50,15 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region, err := getDefaultRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
 	params := &resourceexplorer2.ListIndexesInput{}
-	region := getDefaultAwsRegion(d)
+
 	if d.KeyColumnQuals["region"] != nil {
 		region = d.KeyColumnQualString("region")
 		params.Regions = []string{region}

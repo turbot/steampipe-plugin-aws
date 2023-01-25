@@ -8,6 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+
+	sagemakerv1 "github.com/aws/aws-sdk-go/service/sagemaker"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -34,7 +37,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				{Name: "domain_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -237,8 +240,8 @@ func getSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 func sageMakerAppArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	switch item := h.Item.(type) {
 	case types.AppDetails:
-		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-		c, err := getCommonColumnsCached(ctx, d, h)
+
+		c, err := getCommonColumns(ctx, d, h)
 		if err != nil {
 			return "", err
 		}

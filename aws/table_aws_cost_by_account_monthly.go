@@ -20,7 +20,7 @@ func tableAwsCostByLinkedAccountMonthly(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostByLinkedAccountMonthly,
 		},
-		Columns: awsColumns(
+		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
 
 				{

@@ -28,7 +28,7 @@ func tableAwsCloudFrontOriginRequestPolicy(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginRequestPolicies,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "A unique name to identify the origin request policy.",
@@ -191,8 +191,7 @@ func getCloudFrontOriginRequestPolicy(ctx context.Context, d *plugin.QueryData, 
 func getCloudFrontOriginRequestPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	policyID := *originRequestPolicyID(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

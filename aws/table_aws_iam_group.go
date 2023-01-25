@@ -35,7 +35,7 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The friendly name that identifies the group.",

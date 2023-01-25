@@ -9,6 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+
+	apigatewayv1 "github.com/aws/aws-sdk-go/service/apigateway"
+
 	go_kit_packs "github.com/turbot/go-kit/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -32,7 +35,7 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listRestAPI,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -228,8 +231,7 @@ func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin
 		id = *h.Item.(types.RestApi).Id
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

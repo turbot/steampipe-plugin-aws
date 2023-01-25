@@ -24,7 +24,7 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "access_key_id",
 				Description: "The ID for this access key.",
@@ -145,8 +145,8 @@ func getIamAccessKeyAka(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
-
 	awsCommonData := commonColumnData.(*awsCommonColumnData)
+
 	aka := []string{"arn:" + awsCommonData.Partition + ":iam::" + awsCommonData.AccountId + ":user/" + *accessKey.UserName + "/accesskey/" + *accessKey.AccessKeyId}
 	return aka, nil
 }
