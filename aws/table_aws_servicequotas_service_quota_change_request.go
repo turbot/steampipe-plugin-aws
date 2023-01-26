@@ -10,9 +10,9 @@ import (
 
 	servicequotasv1 "github.com/aws/aws-sdk-go/service/servicequotas"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -163,11 +163,11 @@ func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h 
 
 	maxItems := int32(100)
 	input := &servicequotas.ListRequestedServiceQuotaChangeHistoryInput{}
-	if d.KeyColumnQuals["service_code"] != nil {
-		input.ServiceCode = aws.String(d.KeyColumnQuals["service_code"].GetStringValue())
+	if d.EqualsQuals["service_code"] != nil {
+		input.ServiceCode = aws.String(d.EqualsQuals["service_code"].GetStringValue())
 	}
-	if d.KeyColumnQuals["status"] != nil {
-		input.Status = types.RequestStatus(d.KeyColumnQuals["status"].GetStringValue())
+	if d.EqualsQuals["status"] != nil {
+		input.Status = types.RequestStatus(d.EqualsQuals["status"].GetStringValue())
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -199,7 +199,7 @@ func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h 
 			d.StreamListItem(ctx, requestedQuota)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -212,7 +212,7 @@ func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h 
 
 func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	id := d.KeyColumnQuals["id"].GetStringValue()
+	id := d.EqualsQuals["id"].GetStringValue()
 
 	// check if id is empty
 	if id == "" {
@@ -275,7 +275,7 @@ func getServiceQuotaChangeRequestTags(ctx context.Context, d *plugin.QueryData, 
 }
 
 func getServiceQuotaChangeRequestAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	data := h.Item.(types.RequestedServiceQuotaChange)
 
 	// Get common columns

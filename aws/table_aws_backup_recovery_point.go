@@ -11,9 +11,9 @@ import (
 
 	backupv1 "github.com/aws/aws-sdk-go/service/backup"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -192,7 +192,7 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 	input.BackupVaultName = vault.BackupVaultName
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	// The ListRecoveryPointsByBackupVault returns results with ARNs like arn:aws:ec2:us-east-1::snapshot/snap-03ba1ca215342e331, but when trying
 	// to pass this value in, the API throws "Error: InvalidParameterValueException: Unsupported resource type: arn:aws:ec2:us-east-1::snapshot/snap-03ba1ca215342e331"
 	// Raised https://github.com/aws/aws-sdk-go-v2/issues/1904 to better understand what to pass in
@@ -226,7 +226,7 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 			d.StreamListItem(ctx, item)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -254,8 +254,8 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 		backupVaultName = *h.Item.(types.RecoveryPointByBackupVault).BackupVaultName
 		recoveryPointArn = *h.Item.(types.RecoveryPointByBackupVault).RecoveryPointArn
 	} else {
-		backupVaultName = d.KeyColumnQuals["backup_vault_name"].GetStringValue()
-		recoveryPointArn = d.KeyColumnQuals["recovery_point_arn"].GetStringValue()
+		backupVaultName = d.EqualsQuals["backup_vault_name"].GetStringValue()
+		recoveryPointArn = d.EqualsQuals["recovery_point_arn"].GetStringValue()
 	}
 
 	if recoveryPointArn == "" || backupVaultName == "" {
@@ -265,7 +265,7 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 	if arn.IsARN(recoveryPointArn) {
 		arnData, _ := arn.Parse(recoveryPointArn)
 		// Avoid cross-region queriying
-		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+		if arnData.Region != d.EqualsQualString(matrixKeyRegion) {
 			return nil, nil
 		}
 	}

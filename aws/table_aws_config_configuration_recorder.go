@@ -8,9 +8,9 @@ import (
 
 	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
@@ -109,7 +109,7 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 			d.StreamListItem(ctx, configurationRecorder)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -121,7 +121,7 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 //// HYDRATE FUNCTIONS
 
 func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
+	quals := d.EqualsQuals
 	name := quals["name"].GetStringValue()
 
 	// Create session
@@ -176,7 +176,7 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 }
 
 func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	configurationRecorder := h.Item.(types.ConfigurationRecorder)
 

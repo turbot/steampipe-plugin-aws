@@ -9,9 +9,9 @@ import (
 
 	identitystorev1 "github.com/aws/aws-sdk-go/service/identitystore"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
@@ -67,7 +67,7 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 
 func listIdentityStoreUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
+	identityStoreId := d.EqualsQuals["identity_store_id"].GetStringValue()
 
 	// Create Session
 	svc, err := IdentityStoreClient(ctx, d)
@@ -111,7 +111,7 @@ func listIdentityStoreUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			}
 			d.StreamListItem(ctx, item)
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -129,8 +129,8 @@ type IdentityStoreUser struct {
 
 func getIdentityStoreUser(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	userId := d.KeyColumnQuals["id"].GetStringValue()
-	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
+	userId := d.EqualsQuals["id"].GetStringValue()
+	identityStoreId := d.EqualsQuals["identity_store_id"].GetStringValue()
 
 	// Create Session
 	svc, err := IdentityStoreClient(ctx, d)

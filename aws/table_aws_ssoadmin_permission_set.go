@@ -10,9 +10,9 @@ import (
 	ssoadminv1 "github.com/aws/aws-sdk-go/service/ssoadmin"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSsoAdminPermissionSet(_ context.Context) *plugin.Table {
@@ -123,7 +123,7 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, nil
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	// Minimize the API call with the given layer name
 	if equalQuals["instance_arn"] != nil {
 		if equalQuals["instance_arn"].GetStringValue() != "" {
@@ -175,7 +175,7 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

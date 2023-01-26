@@ -9,9 +9,9 @@ import (
 
 	directoryservicev1 "github.com/aws/aws-sdk-go/service/directoryservice"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -243,7 +243,7 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["directory_id"] != nil {
 		input.DirectoryIds = []string{equalQuals["directory_id"].GetStringValue()}
 	}
@@ -262,7 +262,7 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 			d.StreamListItem(ctx, directory)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				pagesLeft = false
 			}
 		}
@@ -291,7 +291,7 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, nil
 	}
 
-	directoryID := d.KeyColumnQuals["directory_id"].GetStringValue()
+	directoryID := d.EqualsQuals["directory_id"].GetStringValue()
 	if directoryID == "" {
 		return nil, nil
 	}
@@ -364,7 +364,7 @@ func getDirectoryARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	arn := "arn:" + commonColumnData.Partition + ":ds:" + region + ":" + commonColumnData.AccountId + ":directory/" + *directory.DirectoryId
 

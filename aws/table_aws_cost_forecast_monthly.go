@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
@@ -49,7 +49,7 @@ func listCostForecastMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	params := buildCostForecastInput(d.KeyColumnQuals, "MONTHLY")
+	params := buildCostForecastInput(d.EqualsQuals, "MONTHLY")
 
 	output, err := svc.GetCostForecast(ctx, params)
 	if err != nil {
@@ -61,7 +61,7 @@ func listCostForecastMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for _, r := range output.ForecastResultsByTime {
 		d.StreamListItem(ctx, r)
 
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}

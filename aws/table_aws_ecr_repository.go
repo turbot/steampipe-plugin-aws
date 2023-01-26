@@ -13,9 +13,9 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -187,7 +187,7 @@ func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["registry_id"] != nil {
 		input.RegistryId = aws.String(equalQuals["registry_id"].GetStringValue())
 	}
@@ -209,7 +209,7 @@ func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -226,7 +226,7 @@ func getAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if h.Item != nil {
 		name = *h.Item.(types.Repository).RepositoryName
 	} else {
-		name = d.KeyColumnQuals["repository_name"].GetStringValue()
+		name = d.EqualsQuals["repository_name"].GetStringValue()
 	}
 
 	// Create Session

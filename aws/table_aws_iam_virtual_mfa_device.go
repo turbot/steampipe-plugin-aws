@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -116,7 +116,7 @@ func listIamVirtualMFADevices(ctx context.Context, d *plugin.QueryData, _ *plugi
 	maxItems := int32(1000)
 	input := iam.ListVirtualMFADevicesInput{}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["assignment_status"] != nil {
 		if equalQuals["assignment_status"].GetStringValue() != "" {
 			input.AssignmentStatus = types.AssignmentStatusType(equalQuals["assignment_status"].GetStringValue())
@@ -152,7 +152,7 @@ func listIamVirtualMFADevices(ctx context.Context, d *plugin.QueryData, _ *plugi
 			d.StreamListItem(ctx, mfaDevice)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

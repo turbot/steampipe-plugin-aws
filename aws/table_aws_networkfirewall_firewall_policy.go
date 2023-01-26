@@ -9,9 +9,9 @@ import (
 
 	networkfirewallv1 "github.com/aws/aws-sdk-go/service/networkfirewall"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -184,7 +184,7 @@ func listNetworkFirewallPolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, policy)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -203,8 +203,8 @@ func getNetworkFirewallPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 		name = *h.Item.(types.FirewallPolicyMetadata).Name
 		arn = *h.Item.(types.FirewallPolicyMetadata).Arn
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
 	// Build the params

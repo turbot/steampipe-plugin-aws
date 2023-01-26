@@ -11,9 +11,9 @@ import (
 
 	ssoadminv1 "github.com/aws/aws-sdk-go/service/ssoadmin"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSsoAdminManagedPolicyAttachment(_ context.Context) *plugin.Table {
@@ -62,7 +62,7 @@ func tableAwsSsoAdminManagedPolicyAttachment(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	permissionSetArn := d.KeyColumnQuals["permission_set_arn"].GetStringValue()
+	permissionSetArn := d.EqualsQuals["permission_set_arn"].GetStringValue()
 	instanceArn, err := getSsoInstanceArnFromResourceArn(permissionSetArn)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 				AttachedManagedPolicy: items,
 			})
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

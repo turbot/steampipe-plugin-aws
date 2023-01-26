@@ -9,9 +9,9 @@ import (
 
 	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type logStreamInfo = struct {
@@ -143,7 +143,7 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 	})
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["name"] != nil {
 		input.LogStreamNamePrefix = aws.String(equalQuals["name"].GetStringValue())
 	}
@@ -159,7 +159,7 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 			d.StreamListItem(ctx, logStreamInfo{logStream, *logGroup.LogGroupName})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -171,8 +171,8 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 //// HYDRATE FUNCTIONS
 
 func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.KeyColumnQuals["name"].GetStringValue()
-	logGroupName := d.KeyColumnQuals["log_group_name"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
+	logGroupName := d.EqualsQuals["log_group_name"].GetStringValue()
 
 	// Error: pq: rpc error: code = Unknown desc = InvalidParameter: 2 validation error(s) found.
 	// - minimum field size of 1, DescribeLogStreamsInput.LogGroupName.

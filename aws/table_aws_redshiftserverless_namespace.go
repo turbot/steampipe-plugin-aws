@@ -9,9 +9,9 @@ import (
 
 	redshiftserverlessv1 "github.com/aws/aws-sdk-go/service/redshiftserverless"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -166,7 +166,7 @@ func listRedshiftServerlessNamespaces(ctx context.Context, d *plugin.QueryData, 
 		}
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -178,7 +178,7 @@ func listRedshiftServerlessNamespaces(ctx context.Context, d *plugin.QueryData, 
 
 func getRedshiftServerlessNamespace(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	name := d.KeyColumnQuals["namespace_name"].GetStringValue()
+	name := d.EqualsQuals["namespace_name"].GetStringValue()
 	// Return nil, if no input provided
 	if name == "" {
 		return nil, nil

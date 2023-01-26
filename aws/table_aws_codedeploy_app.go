@@ -9,9 +9,9 @@ import (
 
 	codedeployv1 "github.com/aws/aws-sdk-go/service/codedeploy"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -141,7 +141,7 @@ func listCodeDeployApplications(ctx context.Context, d *plugin.QueryData, _ *plu
 			d.StreamListItem(ctx, item)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -159,7 +159,7 @@ func getCodeDeployApplication(ctx context.Context, d *plugin.QueryData, h *plugi
 	if h.Item != nil {
 		name = *h.Item.(*types.ApplicationInfo).ApplicationName
 	} else {
-		name = d.KeyColumnQuals["application_name"].GetStringValue()
+		name = d.EqualsQuals["application_name"].GetStringValue()
 	}
 
 	if name == "" {
@@ -194,7 +194,7 @@ func getCodeDeployApplicationTags(ctx context.Context, d *plugin.QueryData, h *p
 	if h.Item != nil {
 		name = *h.Item.(*types.ApplicationInfo).ApplicationName
 	} else {
-		name = d.KeyColumnQuals["application_name"].GetStringValue()
+		name = d.EqualsQuals["application_name"].GetStringValue()
 	}
 
 	if name == "" {
@@ -228,7 +228,7 @@ func getCodeDeployApplicationArn(ctx context.Context, d *plugin.QueryData, h *pl
 
 func codeDeployApplicationArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
 	name := *h.Item.(*types.ApplicationInfo).ApplicationName
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	logger := plugin.Logger(ctx)
 
 	commonData, err := getCommonColumns(ctx, d, h)

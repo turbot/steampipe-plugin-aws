@@ -9,9 +9,9 @@ import (
 
 	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
@@ -161,7 +161,7 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	tableName := h.Item.(types.TableDescription).TableName
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -217,7 +217,7 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 			d.StreamListItem(ctx, export)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -233,7 +233,7 @@ func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	if h.Item != nil {
 		arn = *h.Item.(types.ExportSummary).ExportArn
 	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
 	// Create Session

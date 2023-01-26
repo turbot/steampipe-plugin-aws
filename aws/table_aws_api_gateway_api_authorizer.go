@@ -10,9 +10,9 @@ import (
 
 	apigatewayv1 "github.com/aws/aws-sdk-go/service/apigateway"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -151,7 +151,7 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 		d.StreamLeafListItem(ctx, &authorizerRowData{authorizer, restAPI.Id})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -169,8 +169,8 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	authorizerID := d.KeyColumnQuals["id"].GetStringValue()
-	RestAPIID := d.KeyColumnQuals["rest_api_id"].GetStringValue()
+	authorizerID := d.EqualsQuals["id"].GetStringValue()
+	RestAPIID := d.EqualsQuals["rest_api_id"].GetStringValue()
 
 	params := &apigateway.GetAuthorizerInput{
 		AuthorizerId: aws.String(authorizerID),
@@ -190,7 +190,7 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 }
 
 func getAPIGatewayAuthorizerAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	authorizer := h.Item.(*authorizerRowData).Authorizer
 
 	id := ""

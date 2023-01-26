@@ -9,9 +9,9 @@ import (
 
 	sagemakerv1 "github.com/aws/aws-sdk-go/service/sagemaker"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
@@ -328,7 +328,7 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["training_job_status"] != nil {
 		input.StatusEquals = types.TrainingJobStatus(equalQuals["training_job_status"].GetStringValue())
 	}
@@ -375,7 +375,7 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -390,7 +390,7 @@ func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plu
 	if h.Item != nil {
 		name = *h.Item.(types.TrainingJobSummary).TrainingJobName
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// Create Client

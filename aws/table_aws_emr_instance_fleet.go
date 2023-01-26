@@ -11,9 +11,9 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -174,7 +174,7 @@ func listEmrInstanceFleets(ctx context.Context, d *plugin.QueryData, h *plugin.H
 			d.StreamListItem(ctx, instanceFleetDetails{instanceFleet, *clusterID})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -184,7 +184,7 @@ func listEmrInstanceFleets(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getEmrInstanceFleetARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	data := h.Item.(instanceFleetDetails)
 
 	commonData, err := getCommonColumns(ctx, d, h)

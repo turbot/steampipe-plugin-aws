@@ -9,9 +9,9 @@ import (
 
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -128,8 +128,8 @@ func listVpcVerifiedAccessTrustProviders(ctx context.Context, d *plugin.QueryDat
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	if d.KeyColumnQualString("verified_access_trust_provider_id") != "" {
-		input.VerifiedAccessTrustProviderIds = []string{d.KeyColumnQualString("verified_access_trust_provider_id")}
+	if d.EqualsQualString("verified_access_trust_provider_id") != "" {
+		input.VerifiedAccessTrustProviderIds = []string{d.EqualsQualString("verified_access_trust_provider_id")}
 	}
 
 	for {
@@ -145,7 +145,7 @@ func listVpcVerifiedAccessTrustProviders(ctx context.Context, d *plugin.QueryDat
 			d.StreamListItem(ctx, provider)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

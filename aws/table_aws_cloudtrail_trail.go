@@ -13,9 +13,9 @@ import (
 	"github.com/aws/smithy-go"
 	"github.com/turbot/go-kit/helpers"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -259,7 +259,7 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		d.StreamListItem(ctx, trail)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -270,14 +270,14 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// HYDRATE FUNCTIONS
 
 func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.KeyColumnQuals["name"].GetStringValue()
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
+	arn := d.EqualsQuals["arn"].GetStringValue()
 	if len(arn) > 0 {
 		data := strings.Split(arn, "/")
 		name = data[len(data)-1]
 	}
 
-	if d.KeyColumnQuals["name"] != nil && d.KeyColumnQuals["name"].GetStringValue() == "" {
+	if d.EqualsQuals["name"] != nil && d.EqualsQuals["name"].GetStringValue() == "" {
 		return nil, nil
 	}
 

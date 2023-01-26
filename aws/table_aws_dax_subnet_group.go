@@ -9,9 +9,9 @@ import (
 
 	daxv1 "github.com/aws/aws-sdk-go/service/dax"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -108,7 +108,7 @@ func listDaxSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["subnet_group_name"] != nil {
 		params.SubnetGroupNames = []string{equalQuals["subnet_group_name"].GetStringValue()}
 	}
@@ -124,7 +124,7 @@ func listDaxSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			d.StreamListItem(ctx, subnetGroups)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -143,7 +143,7 @@ func listDaxSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTION
 
 func getDaxSubnetGroupsAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	name := *h.Item.(types.SubnetGroup).SubnetGroupName
 
 	commonData, err := getCommonColumns(ctx, d, h)

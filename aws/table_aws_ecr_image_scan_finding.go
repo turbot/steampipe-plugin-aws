@@ -10,9 +10,9 @@ import (
 
 	ecrv1 "github.com/aws/aws-sdk-go/service/ecr"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -123,8 +123,8 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-	imageTag := d.KeyColumnQuals["image_tag"]
-	repositoryName := d.KeyColumnQuals["repository_name"]
+	imageTag := d.EqualsQuals["image_tag"]
+	repositoryName := d.EqualsQuals["repository_name"]
 	plugin.Logger(ctx).Trace("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "repositoryName", repositoryName, "imageTag", imageTag)
 
 	// Limiting the results
@@ -182,7 +182,7 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, result)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

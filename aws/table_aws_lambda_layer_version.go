@@ -13,9 +13,9 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
@@ -149,7 +149,7 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, nil
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	// Minimize the API call with the given layer name
 	if equalQuals["layer_name"] != nil {
 		if equalQuals["layer_name"].GetStringValue() != *layerName {
@@ -199,7 +199,7 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 			}})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -217,8 +217,8 @@ func getLambdaLayerVersion(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		layerName = h.Item.(LayerVersionInfo).LayerName
 		version = h.Item.(LayerVersionInfo).Version
 	} else {
-		layerName = d.KeyColumnQuals["layer_name"].GetStringValue()
-		version = d.KeyColumnQuals["version"].GetInt64Value()
+		layerName = d.EqualsQuals["layer_name"].GetStringValue()
+		version = d.EqualsQuals["version"].GetInt64Value()
 	}
 
 	if strings.TrimSpace(layerName) == "" {
@@ -261,8 +261,8 @@ func getLambdaLayerVersionPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 		layerName = h.Item.(LayerVersionInfo).LayerName
 		version = h.Item.(LayerVersionInfo).Version
 	} else {
-		layerName = d.KeyColumnQuals["layer_name"].GetStringValue()
-		version = d.KeyColumnQuals["version"].GetInt64Value()
+		layerName = d.EqualsQuals["layer_name"].GetStringValue()
+		version = d.EqualsQuals["version"].GetInt64Value()
 	}
 
 	// Create Session

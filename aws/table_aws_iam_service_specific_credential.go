@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -80,7 +80,7 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 		return nil, err
 	}
 
-	if d.KeyColumnQuals["user_name"].GetStringValue() != "" && *user.UserName != d.KeyColumnQuals["user_name"].GetStringValue() {
+	if d.EqualsQuals["user_name"].GetStringValue() != "" && *user.UserName != d.EqualsQuals["user_name"].GetStringValue() {
 		return nil, nil
 	}
 
@@ -88,8 +88,8 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 		UserName: user.UserName,
 	}
 
-	if d.KeyColumnQuals["service_name"].GetStringValue() != "" {
-		params.ServiceName = aws.String(d.KeyColumnQuals["service_name"].GetStringValue())
+	if d.EqualsQuals["service_name"].GetStringValue() != "" {
+		params.ServiceName = aws.String(d.EqualsQuals["service_name"].GetStringValue())
 	}
 
 	userData, err := svc.ListServiceSpecificCredentials(ctx, params)
@@ -103,7 +103,7 @@ func listAwsIamUserServiceSpecificCredentials(ctx context.Context, d *plugin.Que
 			d.StreamListItem(ctx, cred)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

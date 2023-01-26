@@ -8,9 +8,9 @@ import (
 
 	daxv1 "github.com/aws/aws-sdk-go/service/dax"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -90,7 +90,7 @@ func listDaxParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["parameter_group_name"] != nil {
 		params.ParameterGroupNames = []string{equalQuals["parameter_group_name"].GetStringValue()}
 	}
@@ -106,7 +106,7 @@ func listDaxParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			d.StreamListItem(ctx, parameterGroup)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

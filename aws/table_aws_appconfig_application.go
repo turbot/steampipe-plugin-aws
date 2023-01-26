@@ -9,9 +9,9 @@ import (
 
 	appconfigv1 "github.com/aws/aws-sdk-go/service/appconfig"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -119,7 +119,7 @@ func listAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugi
 		for _, application := range output.Items {
 			d.StreamListItem(ctx, application)
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -140,7 +140,7 @@ func getAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	id := d.KeyColumnQuals["id"].GetStringValue()
+	id := d.EqualsQuals["id"].GetStringValue()
 	params := &appconfig.GetApplicationInput{
 		ApplicationId: aws.String(id),
 	}
@@ -193,7 +193,7 @@ func getAppConfigApplicationArn(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getArnFormat(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	id := h.Item.(types.Application).Id
 
 	commonData, err := getCommonColumns(ctx, d, h)

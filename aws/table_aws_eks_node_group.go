@@ -9,9 +9,9 @@ import (
 
 	eksv1 "github.com/aws/aws-sdk-go/service/eks"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -196,7 +196,7 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 
 func listEKSNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get cluster details
-	cluster := d.KeyColumnQuals["cluster_name"].GetStringValue()
+	cluster := d.EqualsQuals["cluster_name"].GetStringValue()
 	clusterName := *h.Item.(types.Cluster).Name
 
 	if cluster != "" {
@@ -253,7 +253,7 @@ func listEKSNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -271,8 +271,8 @@ func getEKSNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		clusterName = *h.Item.(*types.Nodegroup).ClusterName
 		nodegroupName = *h.Item.(*types.Nodegroup).NodegroupName
 	} else {
-		clusterName = d.KeyColumnQuals["cluster_name"].GetStringValue()
-		nodegroupName = d.KeyColumnQuals["nodegroup_name"].GetStringValue()
+		clusterName = d.EqualsQuals["cluster_name"].GetStringValue()
+		nodegroupName = d.EqualsQuals["nodegroup_name"].GetStringValue()
 	}
 
 	// check if clusterName or nodegroupName is empty

@@ -11,9 +11,9 @@ import (
 
 	auditmanagerv1 "github.com/aws/aws-sdk-go/service/auditmanager"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type evidenceInfo struct {
@@ -253,7 +253,7 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 			d.StreamLeafListItem(ctx, evidenceInfo{data.Evidence, data.AssessmentID, data.ControlSetID})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -316,10 +316,10 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, nil
 	}
 
-	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
-	controlSetID := d.KeyColumnQuals["control_set_id"].GetStringValue()
-	evidenceFolderID := d.KeyColumnQuals["evidence_folder_id"].GetStringValue()
-	evidenceID := d.KeyColumnQuals["id"].GetStringValue()
+	assessmentID := d.EqualsQuals["assessment_id"].GetStringValue()
+	controlSetID := d.EqualsQuals["control_set_id"].GetStringValue()
+	evidenceFolderID := d.EqualsQuals["evidence_folder_id"].GetStringValue()
+	evidenceID := d.EqualsQuals["id"].GetStringValue()
 
 	// Build params
 	params := &auditmanager.GetEvidenceInput{
@@ -347,7 +347,7 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 func getAuditManagerEvidenceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidenceARN")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	evidenceID := *h.Item.(evidenceInfo).Evidence.Id
 
 	c, err := getCommonColumns(ctx, d, h)

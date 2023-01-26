@@ -10,9 +10,9 @@ import (
 
 	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type integrationInfo = struct {
@@ -217,7 +217,7 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 			d.StreamLeafListItem(ctx, integrationInfo{integration, *api.ApiId})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -248,8 +248,8 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, nil
 	}
 
-	api := d.KeyColumnQuals["api_id"].GetStringValue()
-	key := d.KeyColumnQuals["integration_id"].GetStringValue()
+	api := d.EqualsQuals["api_id"].GetStringValue()
+	key := d.EqualsQuals["integration_id"].GetStringValue()
 	params := &apigatewayv2.GetIntegrationInput{
 		ApiId:         aws.String(api),
 		IntegrationId: aws.String(key),
@@ -293,7 +293,7 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plu
 
 func getAPIGatewayV2IntegrationARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(integrationInfo)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {

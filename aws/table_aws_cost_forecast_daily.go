@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
@@ -54,7 +54,7 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-	params := buildCostForecastInput(d.KeyColumnQuals, "DAILY")
+	params := buildCostForecastInput(d.EqualsQuals, "DAILY")
 
 	output, err := svc.GetCostForecast(ctx, params)
 	if err != nil {
@@ -66,7 +66,7 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	for _, r := range output.ForecastResultsByTime {
 		d.StreamListItem(ctx, r)
 
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}

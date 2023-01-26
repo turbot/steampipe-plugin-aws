@@ -10,9 +10,9 @@ import (
 
 	cloudtrailv1 "github.com/aws/aws-sdk-go/service/cloudtrail"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -153,8 +153,8 @@ type GetQueryInfo struct {
 func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	eventDataStore := h.Item.(types.EventDataStore)
 
-	if d.KeyColumnQualString("event_data_store_arn") != "" {
-		if d.KeyColumnQualString("event_data_store_arn") != *eventDataStore.EventDataStoreArn {
+	if d.EqualsQualString("event_data_store_arn") != "" {
+		if d.EqualsQualString("event_data_store_arn") != *eventDataStore.EventDataStoreArn {
 			return nil, nil
 		}
 	}
@@ -181,8 +181,8 @@ func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 		EventDataStore: eventDataStore.EventDataStoreArn,
 	}
 
-	if d.KeyColumnQualString("query_status") != "" {
-		input.QueryStatus = types.QueryStatus(d.KeyColumnQualString("query_status"))
+	if d.EqualsQualString("query_status") != "" {
+		input.QueryStatus = types.QueryStatus(d.EqualsQualString("query_status"))
 	}
 
 	if d.Quals["creation_time"] != nil {
@@ -217,7 +217,7 @@ func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 			d.StreamListItem(ctx, &ListQueryInfo{eventDataStore.EventDataStoreArn, item})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -235,8 +235,8 @@ func getCloudTrailQuery(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		eventDataSourceArn = *data.EventDataStoreArn
 		queryId = *data.QueryId
 	} else {
-		eventDataSourceArn = d.KeyColumnQualString("event_data_store_arn")
-		queryId = d.KeyColumnQualString("query_id")
+		eventDataSourceArn = d.EqualsQualString("event_data_store_arn")
+		queryId = d.EqualsQualString("query_id")
 	}
 
 	// Create session

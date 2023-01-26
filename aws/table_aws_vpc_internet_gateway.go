@@ -9,9 +9,9 @@ import (
 
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
@@ -130,7 +130,7 @@ func listVpcInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -143,7 +143,7 @@ func listVpcInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	internetGatewayID := d.KeyColumnQuals["internet_gateway_id"].GetStringValue()
+	internetGatewayID := d.EqualsQuals["internet_gateway_id"].GetStringValue()
 
 	// get service
 	svc, err := EC2Client(ctx, d)
@@ -172,7 +172,7 @@ func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getVpcInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	internetGateway := h.Item.(types.InternetGateway)
 
 	commonData, err := getCommonColumns(ctx, d, h)

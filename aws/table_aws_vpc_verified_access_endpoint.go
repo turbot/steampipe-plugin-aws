@@ -9,9 +9,9 @@ import (
 
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -182,11 +182,11 @@ func listVpcVerifiedAccessEndpoints(ctx context.Context, d *plugin.QueryData, _ 
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	if d.KeyColumnQualString("verified_access_group_id") != "" {
-		input.VerifiedAccessGroupId = aws.String(d.KeyColumnQualString("verified_access_group_id"))
+	if d.EqualsQualString("verified_access_group_id") != "" {
+		input.VerifiedAccessGroupId = aws.String(d.EqualsQualString("verified_access_group_id"))
 	}
-	if d.KeyColumnQualString("verified_access_instance_id") != "" {
-		input.VerifiedAccessInstanceId = aws.String(d.KeyColumnQualString("verified_access_instance_id"))
+	if d.EqualsQualString("verified_access_instance_id") != "" {
+		input.VerifiedAccessInstanceId = aws.String(d.EqualsQualString("verified_access_instance_id"))
 	}
 
 	for {
@@ -202,7 +202,7 @@ func listVpcVerifiedAccessEndpoints(ctx context.Context, d *plugin.QueryData, _ 
 			d.StreamListItem(ctx, endpoint)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -219,7 +219,7 @@ func listVpcVerifiedAccessEndpoints(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATED FUNCTION
 
 func getVpcVerifiedAccessEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	endpointId := d.KeyColumnQuals["verified_access_endpoint_id"].GetStringValue()
+	endpointId := d.EqualsQuals["verified_access_endpoint_id"].GetStringValue()
 
 	// Empty check
 	if endpointId == "" {

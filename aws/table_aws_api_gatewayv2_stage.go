@@ -10,9 +10,9 @@ import (
 
 	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -221,7 +221,7 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 		d.StreamLeafListItem(ctx, &v2StageRowData{stage, apiGatewayv2API.ApiId})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -244,8 +244,8 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, nil
 	}
 
-	stageName := d.KeyColumnQuals["stage_name"].GetStringValue()
-	apiID := d.KeyColumnQuals["api_id"].GetStringValue()
+	stageName := d.EqualsQuals["stage_name"].GetStringValue()
+	apiID := d.EqualsQuals["api_id"].GetStringValue()
 
 	input := &apigatewayv2.GetStageInput{
 		ApiId:     aws.String(apiID),
@@ -284,7 +284,7 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func apiGatewayV2StageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*v2StageRowData)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {

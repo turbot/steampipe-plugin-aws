@@ -11,9 +11,9 @@ import (
 
 	sagemakerv1 "github.com/aws/aws-sdk-go/service/sagemaker"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -125,7 +125,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	sageMakerDomain := h.Item.(types.DomainDetails)
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 
 	if equalQuals["domain_id"].GetStringValue() != "" && equalQuals["domain_id"].GetStringValue() != *sageMakerDomain.DomainId {
 		return nil, nil
@@ -182,7 +182,7 @@ func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -200,7 +200,7 @@ func getSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if h.Item != nil {
 		params = sageMakerAppParams(h.Item)
 	} else {
-		equalQuals := d.KeyColumnQuals
+		equalQuals := d.EqualsQuals
 		appName := aws.String(equalQuals["name"].GetStringValue())
 		appType := aws.String(equalQuals["app_type"].GetStringValue())
 		userProfileName := aws.String(equalQuals["user_profile_name"].GetStringValue())

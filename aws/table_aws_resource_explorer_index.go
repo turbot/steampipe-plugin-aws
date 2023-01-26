@@ -6,8 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
 //// TABLE DEFINITION
@@ -59,8 +59,8 @@ func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	params := &resourceexplorer2.ListIndexesInput{}
 
-	if d.KeyColumnQuals["region"] != nil {
-		region = d.KeyColumnQualString("region")
+	if d.EqualsQuals["region"] != nil {
+		region = d.EqualsQualString("region")
 		params.Regions = []string{region}
 	}
 
@@ -75,8 +75,8 @@ func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, nil
 	}
 
-	if d.KeyColumnQuals["type"] != nil {
-		params.Type = types.IndexType(d.KeyColumnQualString("type"))
+	if d.EqualsQuals["type"] != nil {
+		params.Type = types.IndexType(d.EqualsQualString("type"))
 	}
 
 	paginator := resourceexplorer2.NewListIndexesPaginator(svc, params, func(o *resourceexplorer2.ListIndexesPaginatorOptions) {
@@ -95,7 +95,7 @@ func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, h *plugin.
 			d.StreamListItem(ctx, index)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

@@ -13,9 +13,9 @@ import (
 
 	go_kit_pack "github.com/turbot/go-kit/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -213,8 +213,8 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	owner_id := d.KeyColumnQuals["owner_id"].GetStringValue()
-	image_id := d.KeyColumnQuals["image_id"].GetStringValue()
+	owner_id := d.EqualsQuals["owner_id"].GetStringValue()
+	image_id := d.EqualsQuals["image_id"].GetStringValue()
 
 	// check if owner_id and image_id is empty
 	if owner_id == "" && image_id == "" {
@@ -252,7 +252,7 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		d.StreamListItem(ctx, image)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
