@@ -1580,7 +1580,12 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 }
 
 // Cached form of the base client.
-var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize()
+// This cache HAS A 30 DAY EXPIRATION! This is because the AWS SDK will
+// automatically refresh credentials as needed from this cached object.
+// If we expire the cache regularly we are causing SSO sessions to end
+// prematurely, and causing the AWS SDK to refresh credentials more often
+// using the IDMS service etc.
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(plugin.WithTtl(time.Hour * 24 * 30))
 
 // Do the actual work of creating an AWS config object for reuse across many
 // regions. This client has the minimal reusable configuration on it, so it
