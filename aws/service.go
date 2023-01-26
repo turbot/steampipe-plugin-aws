@@ -1619,6 +1619,35 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 
 	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
 
+	// NOTE: EC2 metadata service IMDS throttling and retries
+	//
+	// With a large number of connections all being setup on a single machine using
+	// IMDS credentials, we can hit the IMDS throttling limits. We only query IMDS
+	// once per connection (3 API calls under the hood), but it still throttles once
+	// over 200 connections or so (estimate, rate limits vary).
+	//
+	// I was unable to find a way to setup automatic retries and the information
+	// available online as of 2023-01-26 is limited. Best links I could find:
+	// * IDMS service - https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/feature/ec2/imds#pkg-overview
+	// * (Broken) example with ec2rolecreds - https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds#Provider
+	// * (Fixed) issue that it didn't work - https://github.com/aws/aws-sdk-go-v2/issues/1296
+	//
+	// // This code ran, but didn't seem to respect the idms.Options{...}
+	// // The debugHTTPClient did work to show requests / throttling.
+	// retryer := retry.NewStandard(func(o *retry.StandardOptions) {
+	//   // reseting state of rand to generate different random values
+	//   rand.Seed(time.Now().UnixNano())
+	//   o.MaxAttempts = 50
+	//   o.MaxBackoff = 5 * time.Minute
+	//   o.RateLimiter = NoOpRateLimit{} // With no rate limiter
+	//   o.Backoff = NewExponentialJitterBackoff(100*time.Millisecond, 5)
+	//   log.Printf("[WARN] retryer!")
+	// })
+	// configOptions = append(configOptions, config.WithEC2RoleCredentialOptions(func(opts *ec2rolecreds.Options) {
+	//   // debugHTTPClient per https://github.com/aws/aws-sdk-go-v2/issues/1296
+	//   opts.Client = imds.New(imds.Options{Retryer: retryer, ClientLogMode: aws.LogRetries | aws.LogRequest}, withDebugHTTPClient())
+	// }))
+
 	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
 	if err != nil {
 		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)

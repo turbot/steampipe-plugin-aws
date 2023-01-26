@@ -105,7 +105,8 @@ type awsCommonColumnData struct {
 // since getCommonColumns is a multi-region call, caching should be per connection per region
 var getCommonColumns = plugin.HydrateFunc(getCommonColumnsUncached).Memoize(plugin.WithCacheKeyFunction(getCommonColumnsCacheKey))
 
-// build a cache key for the call to getCommonColumns, including the region since this is a multi-region call
+// Build a cache key for the call to getCommonColumns, including the region since this is a multi-region call.
+// Notably, this may be called WITHOUT a region. In that case we just share a cache for non-region data.
 func getCommonColumnsCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.EqualsQualString(matrixKeyRegion)
 	key := fmt.Sprintf("getCommonColumns-%s", region)
