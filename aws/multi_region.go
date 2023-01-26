@@ -470,11 +470,15 @@ func getLastResortRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	region, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("getLastResortRegion", "connection_name", d.Connection.Name, "default_region_error", err)
 		return "", err
 	}
 
+	plugin.Logger(ctx).Trace("getLastResortRegion", "connection_name", d.Connection.Name, "region", region)
+
 	// Get the last resort region for the partition
 	lastResortRegion := awsLastResortRegionFromRegionWildcard(region)
+	plugin.Logger(ctx).Trace("getLastResortRegion", "connection_name", d.Connection.Name, "lastResortRegion", lastResortRegion)
 	if lastResortRegion != "" {
 		return lastResortRegion, nil
 	}
@@ -570,6 +574,8 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 //	* -> us-east-1
 //	crap -> ""
 func awsLastResortRegionFromRegionWildcard(regionWildcard string) string {
+
+	// Check prefixes for obscure partitions
 	if strings.HasPrefix(regionWildcard, "us-gov") {
 		return "us-gov-west-1"
 	} else if strings.HasPrefix(regionWildcard, "cn") {
@@ -578,9 +584,18 @@ func awsLastResortRegionFromRegionWildcard(regionWildcard string) string {
 		return "us-isob-east-1"
 	} else if strings.HasPrefix(regionWildcard, "us-iso") {
 		return "us-iso-east-1"
-	} else if strings.HasPrefix(regionWildcard, "us") {
-		return "us-east-1"
 	}
+
+	// Check if the prefix is for a commercial region.
+	// Must be done after obscure partitions, because they have the same
+	// prefixes but longer.
+	for _, prefix := range awsCommercialRegionPrefixes() {
+		if strings.HasPrefix(regionWildcard, prefix) {
+			return "us-east-1"
+		}
+	}
+
+	// Unknown partition
 	return ""
 }
 
@@ -593,6 +608,18 @@ func awsLastResortRegionFromRegionWildcard(regionWildcard string) string {
 // list endpoint are not possible. This list must be updated manually as new
 // regions are announced.
 //
+
+func awsCommercialRegionPrefixes() []string {
+	return []string{
+		"af",
+		"ap",
+		"ca",
+		"eu",
+		"me",
+		"sa",
+		"us",
+	}
+}
 
 func awsCommercialRegions() []string {
 	return []string{
