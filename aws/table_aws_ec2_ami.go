@@ -265,8 +265,7 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	}
 
 	// By default, the accountId is set to the owner
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -411,8 +410,7 @@ func buildAmisWithOwnerFilter(input *ec2.DescribeImagesInput, quals plugin.KeyCo
 	}
 
 	// By default, the accountId is set to the owner
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return filters
 	}

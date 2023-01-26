@@ -262,8 +262,7 @@ func getAPIGatewayV2Route(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 func getAPIGatewayV2RouteARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*RouteInfo)
 	region := d.EqualsQualString(matrixKeyRegion)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
