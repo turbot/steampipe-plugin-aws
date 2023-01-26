@@ -1,3 +1,21 @@
+## v0.93.0 [TBD]
+
+_What's new?_
+
+- Use `default_region` to set your preferred (closest) region to optimize API calls to global resources.
+
+_Enhancements_
+
+- Use EC2 Role & SSO credentials until they expire, reducing throttling & reloading.
+- Optimized API calls to use the default region, reducing latency for common APIs.
+- Optimized caching to reduce race conditions & extend timeouts (e.g. credentials).
+- Optimized per-region API calls to regions supported by the service only.
+- Optimized API client management to one per account, instead of one per region.
+
+_Dependencies_
+
+- Upgraded plugin to [steampipe-plugin-sdk v5.1.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v500-2022-11-16) with many cache improvements.
+
 ## v0.92.1 [2023-01-24]
 
 _Dependencies_
