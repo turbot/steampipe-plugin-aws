@@ -160,7 +160,6 @@ import (
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	resourceexplorer2Endpoint "github.com/aws/aws-sdk-go/service/resourceexplorer2"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
-	s3ControlEndpoint "github.com/aws/aws-sdk-go/service/s3control"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
 	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
 	securitylakeEndpoint "github.com/aws/aws-sdk-go/service/securitylake"
@@ -171,7 +170,6 @@ import (
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
-	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
 	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
 )
@@ -1126,12 +1124,9 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, s3ControlEndpoint.EndpointsID)
+	cfg, err := getClientForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
 	}
 	return s3control.NewFromConfig(*cfg), nil
 }
@@ -1315,12 +1310,9 @@ func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.C
 }
 
 func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
+	cfg, err := getClientForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
 	}
 	return wafv2.NewFromConfig(*cfg), nil
 }
