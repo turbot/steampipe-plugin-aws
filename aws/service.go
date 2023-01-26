@@ -1436,10 +1436,10 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 }
 
 // Cached form of getClient, using the per-connection and parallel safe
-// WithCache() method.
-var getClientCached = plugin.HydrateFunc(getClientUncached).WithCache(getClientCacheKey)
+// Memoize() method.
+var getClientCached = plugin.HydrateFunc(getClientUncached).Memoize(plugin.WithCacheKeyFunction(getClientCacheKey))
 
-// getClient is per-region, but WithCache() is per-connection, so a setup
+// getClient is per-region, but Memoize() is per-connection, so a setup
 // a custom cache key with region information in it.
 func getClientCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Extract the region from the hydrate data. This is not per-row data,
@@ -1570,7 +1570,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 // 100 sessions which leads to 300 IDMS calls in very quick succession. It was
 // even worse when the cache was not safe against parallel runs, causing many to
 // be recreated. Using a base client creation and combining with the safety of
-// WithCache() is a much better approach.
+// Memoize() is a much better approach.
 func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
 	tmp, err := getBaseClientForAccountCached(ctx, d, nil)
 	if err != nil {
@@ -1580,7 +1580,7 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 }
 
 // Cached form of the base client.
-var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).WithCache()
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize()
 
 // Do the actual work of creating an AWS config object for reuse across many
 // regions. This client has the minimal reusable configuration on it, so it

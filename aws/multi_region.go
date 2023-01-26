@@ -251,9 +251,9 @@ func listRegionsForService(ctx context.Context, d *plugin.QueryData, serviceID s
 	return listRegionsForServiceWithExclusions(ctx, d, serviceID, []string{})
 }
 
-// List all regions for a given service, defined to work with WithCache().
+// List all regions for a given service, defined to work with Memoize().
 // Call listRegionsForService() instead of using this directly.
-var listRegionsForServiceCached = plugin.HydrateFunc(listRegionsForServiceUncached).WithCache(listRegionsForServiceCacheKey)
+var listRegionsForServiceCached = plugin.HydrateFunc(listRegionsForServiceUncached).Memoize(plugin.WithCacheKeyFunction(listRegionsForServiceCacheKey))
 
 // List all regions for a given service in the partition for this connection, but
 // manually exclude any regions in excludeRegions.
@@ -271,7 +271,7 @@ func listRegionsForServiceWithExclusions(ctx context.Context, d *plugin.QueryDat
 	return serviceRegions, nil
 }
 
-// getClient is per-region, but WithCache() is per-connection, so a setup
+// getClient is per-region, but Memoize() is per-connection, so a setup
 // a custom cache key with region information in it.
 func listRegionsForServiceCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Extract the region from the hydrate data. This is not per-row data,
@@ -344,7 +344,7 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 }
 
 // The list of regions is constant on a per-connection basis, so we cache it.
-var listRegionsCached = plugin.HydrateFunc(listRegionsUncached).WithCache()
+var listRegionsCached = plugin.HydrateFunc(listRegionsUncached).Memoize()
 
 // Region data is complicated. Every account may have different combinations
 // of regions based on opt-ins, partition, etc. This function is responsible
@@ -423,7 +423,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 // Cached list of regions actually active in the AWS account.
-var listRawAwsRegions = plugin.HydrateFunc(listRawAwsRegionsUncached).WithCache()
+var listRawAwsRegions = plugin.HydrateFunc(listRawAwsRegionsUncached).Memoize()
 
 // List regions for this AWS account connection by calling the EC2
 // DescribeRegions API. The call is done using the default region (hopefully
@@ -498,7 +498,7 @@ func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 // The default region is cached on a per-connection basis to prevent re-lookup
 // and recalculations from the configuration.
-var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).WithCache()
+var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).Memoize()
 
 // Calculate the region we want to use by default for the plugin.
 // It's complicated, because there are many different configuration sources

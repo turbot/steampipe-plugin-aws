@@ -101,9 +101,9 @@ type awsCommonColumnData struct {
 	Partition, Region, AccountId string
 }
 
-// if the caching is required other than per connection, build a cache key for the call and use it in WithCache
+// if the caching is required other than per connection, build a cache key for the call and use it in Memoize
 // since getCommonColumns is a multi-region call, caching should be per connection per region
-var getCommonColumns = plugin.HydrateFunc(getCommonColumnsUncached).WithCache(getCommonColumnsCacheKey)
+var getCommonColumns = plugin.HydrateFunc(getCommonColumnsUncached).Memoize(plugin.WithCacheKeyFunction(getCommonColumnsCacheKey))
 
 // build a cache key for the call to getCommonColumns, including the region since this is a multi-region call
 func getCommonColumnsCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -144,9 +144,9 @@ func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugi
 }
 
 // define cached version of getCallerIdentity and getCommonColumns
-// by default, WithCache cached the data per connection
-// if no argument is passed in WithCache, the cache key will be in the format of <function_name>-<connection_name>
-var getCallerIdentity = plugin.HydrateFunc(getCallerIdentityUncached).WithCache()
+// by default, Memoize cached the data per connection
+// if no argument is passed in Memoize, the cache key will be in the format of <function_name>-<connection_name>
+var getCallerIdentity = plugin.HydrateFunc(getCallerIdentityUncached).Memoize()
 
 // returns details about the IAM user or role whose credentials are used to call the operation
 func getCallerIdentityUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
