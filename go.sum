@@ -696,8 +696,8 @@ github.com/tkrajina/go-reflector v0.5.4 h1:dS9aJEa/eYNQU/fwsb5CSiATOxcNyA/gG/A7a
 github.com/tkrajina/go-reflector v0.5.4/go.mod h1:9PyLgEOzc78ey/JmQQHbW8cQJ1oucLlNQsg8yFvkVk8=
 github.com/turbot/go-kit v0.4.0 h1:EdD7Bf2EGAjvHRGQxRiWpDawzZSk3T+eghqbj74qiSc=
 github.com/turbot/go-kit v0.4.0/go.mod h1:SBdPRngbEfYubiR81iAVtO43oPkg1+ASr+XxvgbH7/k=
-github.com/turbot/steampipe-plugin-sdk/v4 v4.1.9 h1:4yV/tR22tAQ0ZSCcj1cSAos/orhDH3/1pEHvYOCnxUc=
-github.com/turbot/steampipe-plugin-sdk/v4 v4.1.9/go.mod h1:t1uwq6KylUr2CzIinxeTafoktJvX8yWmhaoWCJJc4YI=
+github.com/turbot/steampipe-plugin-sdk/v4 v4.1.11 h1:ivNSOzskJICuF7HiiDjVFG5sIrxiqt/UiVEeob9Uo+A=
+github.com/turbot/steampipe-plugin-sdk/v4 v4.1.11/go.mod h1:t1uwq6KylUr2CzIinxeTafoktJvX8yWmhaoWCJJc4YI=
 github.com/vmihailenco/msgpack/v4 v4.3.12/go.mod h1:gborTTJjAo/GWTqqRjrLCn9pgNN+NXzzngzBKDPIqw4=
 github.com/vmihailenco/tagparser v0.1.1/go.mod h1:OeAg3pn3UbLjkWt+rN9oFYB6u/cQgqMEUPoW2WPyhdI=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
