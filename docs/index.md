@@ -61,7 +61,6 @@ steampipe plugin install aws
 | Permissions | Grant the `ReadOnlyAccess` policy to your user or role. |
 | Radius | Each connection represents a single AWS account. |
 | Resolution |  1. Credentials explicitly set in a Steampipe config file (`~/.steampipe/config/aws.spc`).<br />2. Credentials specified in environment variables e.g. `AWS_ACCESS_KEY_ID`.<br />3. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />4. Credentials for the Default profile from the credential file.<br />5. EC2 Instance Role Credentials (if running on an ec2 instance) |
-| Region Resolution | 1. Regions set for the connection via the `regions` argument in the config file (`~/.steampipe/config/aws.spc`).<br /> 2. The region specified in the `AWS_DEFAULT_REGION` or `AWS_REGION` environment variable<br />3. The region specified in the active profile (`AWS_PROFILE` or `default`). |
 
 ### Configuration
 
@@ -70,27 +69,41 @@ Installing the latest aws plugin will create a config file (`~/.steampipe/config
 connection "aws" {
   plugin = "aws"
 
-  # You may connect to one or more regions. If `regions` is not specified,
-  # Steampipe will use a single default region using the same resolution
-  # order as the AWS CLI:
-  #  1. The `AWS_DEFAULT_REGION` or `AWS_REGION` environment variable
+  # `regions` defines the list of regions that Steampipe should target for
+  # each query. API calls are made to multiple regions in parallel. The regions
+  # list may include wildcards (e.g. *, us-*, us-??st-1).
+  # If `regions` is not specified, Steampipe will target the `default_region`
+  # only.
+  #regions = ["*"] # All regions
+  #regions = ["eu-*"] # All EU regions
+  #regions = ["us-east-1", "eu-west-2"] # Specific regions
+
+  # Some AWS APIs (e.g. describe EC2 regions, S3 get bucket location) have
+  # global results, so can be run against any region. For faster results, you
+  # may set your default (closest) region to use for these situations.
+  # If not specified, it is resolved in this order:
+  #  1. The `AWS_REGION` or `AWS_DEFAULT_REGION` environment variable
   #  2. The region specified in the active profile (`AWS_PROFILE` or default)
-  #regions = ["us-east-1", "us-west-2"]
+  #  3. The main region for the partition as best guessed from the `regions` list.
+  #  4. us-east-1, the main region for the most common partition.
+  #default_region = "eu-west-2"
 
   # If no credentials are specified, the plugin will use the AWS credentials
-  # resolver to get the current credentials in the same manner as the CLI
+  # resolver to get the current credentials in the same manner as the CLI.
   # Alternatively, you may set static credentials with the `access_key`,
   # `secret_key`, and `session_token` arguments, or select a named profile
   # from an AWS credential file with the `profile` argument:
-  #profile = "profile2"
+  #profile = "myprofile"
 
   # The maximum number of attempts (including the initial call) Steampipe will
-  # make for failing API calls. Can also be set with the AWS_MAX_ATTEMPTS environment variable.
+  # make for failing API calls. Can also be set with the AWS_MAX_ATTEMPTS
+  # environment variable.
   # Defaults to 9 and must be greater than or equal to 1.
   #max_error_retry_attempts = 9
 
-  # The minimum retry delay in milliseconds after which retries will be performed.
-  # This delay is also used as a base value when calculating the exponential backoff retry times.
+  # The minimum retry delay in milliseconds after which retries will be
+  # performed.  This delay is also used as a base value when calculating the
+  # exponential backoff retry times.
   # Defaults to 25ms and must be greater than or equal to 1ms.
   #min_error_retry_delay = 25
 
@@ -110,17 +123,6 @@ connection "aws" {
 }
 ```
 
-- `access_key` - (Optional) AWS access key ID. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
-- `endpoint_url` - (Optional) The endpoint URL used when making requests to AWS services. If not set, the default AWS generated endpoint will be used. Can also be set with the `AWS_ENDPOINT_URL` environment variable.
-- `ignore_error_codes` - (Optional) List of additional AWS error codes to ignore for all queries. By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
-- `max_error_retry_attempts` - (Optional) The maximum number of attempts (including the initial call) Steampipe will make for failing API calls. Can also be set with the `AWS_MAX_ATTEMPTS` environment variable. Defaults to 9 and must be greater than or equal to 1.
-- `min_error_retry_delay` - (Optional) The minimum retry delay in milliseconds after which retries will be performed. This delay is also used as a base value when calculating the exponential backoff retry times. Defaults to 25ms and must be greater than or equal to 1ms.
-- `profile` - (Optional) AWS profile name to use for credentials. Can also be set with the `AWS_PROFILE` or `AWS_DEFAULT_PROFILE` environment variables.
-- `regions` - (Optional) List of AWS regions Steampipe will connect to. Can also be set with the `AWS_REGION` or `AWS_DEFAULT_REGION` environment variables, or the region specified in the active profile.
-- `secret_key` - (Optional) AWS secret key. Can also be set with the `AWS_SECRET_ACCESS_KEY` environment variable.
-- `session_token` - (Optional) Session token for validating temporary credentials. Can also be set with the `AWS_SESSION_TOKEN` environment variable.
-- `s3_force_path_style`- (Optional) Specifies whether to use path-style addressing, i.e., `https://s3.amazonaws.com/BUCKET/KEY`, or virtual hosted bucket addressing, i.e., `https://BUCKET.s3.amazonaws.com/KEY`. By default, the S3 client will use virtual hosted bucket addressing when possible.
-
 By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc). This provides a quick way to get started with Steampipe, but you will probably want to customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
 
 ## Multi-Region Connections
@@ -129,11 +131,11 @@ By default, AWS connections behave like the `aws` cli and connect to a single de
 ```hcl
 connection "aws" {
   plugin  = "aws"
-  regions = ["eu-west-1", "ca-central-1", "us-west-2", "ap-southeast-2", "sa-east-1", "ap-northeast-1", "eu-west-3", "ap-northeast-2", "us-east-1",  "eu-central-1", "us-west-1", "us-east-2", "ap-south-1", "eu-north-1",  "ap-southeast-1"]
+  regions = ["eu-west-1", "ca-central-1", "us-west-2"]
 }
 ```
 
-The `region` argument supports wildcards:
+The `regions` argument supports wildcards:
 - All standard regions
   ```hcl
   connection "aws" {
@@ -179,25 +181,37 @@ The `region` argument supports wildcards:
 
 AWS multi-region connections are common, but be aware that performance may be impacted by the number of regions and the latency to them.
 
+Steampipe will automatically guess your `default_region` from your AWS config
+(e.g. `AWS_REGION` env var) or `regions` list, but you may prefer to specify it
+to ensure where API calls are made for global resources (e.g. STS, EC2 describe
+regions):
+```hcl
+connection "aws" {
+  plugin  = "aws"
+  regions = ["us-*"]
+  default_region = "us-west-1"
+}
+```
+
 ## Multi-Account Connections
 
 You may create multiple aws connections:
 ```hcl
-connection "aws_01" {
+connection "aws_dev" {
   plugin  = "aws"
-  profile = "aws_01"
+  profile = "aws_dev"
   regions = ["us-east-1", "us-west-2"]
 }
 
-connection "aws_02" {
+connection "aws_qa" {
   plugin  = "aws"
-  profile = "aws_02"
+  profile = "aws_qa"
   regions = ["*"]
 }
 
-connection "aws_03" {
+connection "aws_prod" {
   plugin  = "aws"
-  profile = "aws_03"
+  profile = "aws_prod"
   regions = ["us-*"]
 }
 ```
@@ -205,27 +219,27 @@ connection "aws_03" {
 Each connection is implemented as a distinct [Postgres schema](https://www.postgresql.org/docs/current/ddl-schemas.html). As such, you can use qualified table names to query a specific connection:
 
 ```sql
-select * from aws_02.aws_account
+select * from aws_qa.aws_account
 ```
 
-Alternatively, can use an unqualified name and it will be resolved according to the [Search Path](https://steampipe.io/docs/using-steampipe/managing-connections#setting-the-search-path):
-```sql
-select * from aws_account
-```
-
-You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators). Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection:
+You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators). Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection. 
 
 ```hcl
 connection "aws_all" {
   plugin      = "aws"
   type        = "aggregator"
-  connections = ["aws_01", "aws_02", "aws_03"]
+  connections = ["aws_dev", "aws_qa", "aws_prod"]
 }
 ```
 
-Querying tables from this connection will return results from the `aws_01`, `aws_02`, and `aws_03` connections:
+Querying tables from this connection will return results from the `aws_dev`, `aws_qa`, and `aws_prod` connections:
 ```sql
 select * from aws_all.aws_account
+```
+
+Alternatively, can use an unqualified name and it will be resolved according to the [Search Path](https://steampipe.io/docs/guides/search-path). It's a good idea to name your aggregator first alphbetically, so that it is the first connection in the search path (i.e. `aws_all` comes before `aws_dev`):
+```sql
+select * from aws_account
 ```
 
 Steampipe supports the `*` wildcard in the connection names. For example, to aggregate all the AWS plugin connections whose names begin with `aws_`:

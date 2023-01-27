@@ -7,9 +7,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	sfnv1 "github.com/aws/aws-sdk-go/service/sfn"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table {
@@ -31,7 +34,7 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 				{Name: "state_machine_arn", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -128,7 +131,7 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 
 	arn := h.Item.(types.StateMachineListItem).StateMachineArn
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	// Minimize the API call with the given layer name
 	if equalQuals["state_machine_arn"] != nil {
 		if equalQuals["state_machine_arn"].GetStringValue() != "" {
@@ -173,7 +176,7 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 			d.StreamListItem(ctx, execution)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -194,7 +197,7 @@ func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryD
 	if h.Item != nil {
 		arn = *h.Item.(types.ExecutionListItem).ExecutionArn
 	} else {
-		arn = d.KeyColumnQuals["execution_arn"].GetStringValue()
+		arn = d.EqualsQuals["execution_arn"].GetStringValue()
 	}
 
 	// Create Session

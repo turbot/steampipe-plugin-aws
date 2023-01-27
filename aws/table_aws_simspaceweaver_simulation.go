@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	simspaceweaverv1 "github.com/aws/aws-sdk-go/service/simspaceweaver"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -28,7 +30,7 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSimSpaceWeaverSimulations,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(simspaceweaverv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -162,7 +164,7 @@ func listAwsSimSpaceWeaverSimulations(ctx context.Context, d *plugin.QueryData, 
 		for _, simulation := range output.Simulations {
 			d.StreamListItem(ctx, simulation)
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -179,7 +181,7 @@ func getAwsSimSpaceWeaverSimulation(ctx context.Context, d *plugin.QueryData, h 
 		data := h.Item.(types.SimulationMetadata)
 		name = *data.Name
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// Empty Check

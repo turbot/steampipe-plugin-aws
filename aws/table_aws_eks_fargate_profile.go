@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	eksv1 "github.com/aws/aws-sdk-go/service/eks"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -31,7 +34,7 @@ func tableAwsEksFargateProfile(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "fargate_profile_name",
@@ -110,8 +113,8 @@ func listEKSFargateProfiles(ctx context.Context, d *plugin.QueryData, h *plugin.
 	cluster := h.Item.(types.Cluster)
 	clusterName := cluster.Name
 
-	if d.KeyColumnQuals["cluster_name"] != nil {
-		if *clusterName != d.KeyColumnQualString("cluster_name") {
+	if d.EqualsQuals["cluster_name"] != nil {
+		if *clusterName != d.EqualsQualString("cluster_name") {
 			return nil, nil
 		}
 	}
@@ -119,7 +122,7 @@ func listEKSFargateProfiles(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if clusterName == nil {
 		return nil, nil
 	}
-	
+
 	// Create client
 	svc, err := EKSClient(ctx, d)
 	if err != nil {
@@ -166,7 +169,7 @@ func listEKSFargateProfiles(ctx context.Context, d *plugin.QueryData, h *plugin.
 			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -183,8 +186,8 @@ func getEKSFargateProfile(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		clusterName = *h.Item.(types.FargateProfile).ClusterName
 		fargateProfileName = *h.Item.(types.FargateProfile).FargateProfileName
 	} else {
-		clusterName = d.KeyColumnQuals["cluster_name"].GetStringValue()
-		fargateProfileName = d.KeyColumnQuals["fargate_profile_name"].GetStringValue()
+		clusterName = d.EqualsQuals["cluster_name"].GetStringValue()
+		fargateProfileName = d.EqualsQuals["fargate_profile_name"].GetStringValue()
 	}
 
 	// create service
