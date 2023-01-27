@@ -121,7 +121,7 @@ func listPricingProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	input := pricing.GetProductsInput{
 		ServiceCode:   aws.String(equalQual["service_code"].GetStringValue()),
 		FormatVersion: aws.String("aws_v1"),
-		MaxResults:    maxItems,
+		MaxResults:    aws.Int32(maxItems),
 	}
 
 	type OfferOutput struct {
