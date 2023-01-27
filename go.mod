@@ -114,7 +114,7 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2
 	github.com/turbot/go-kit v0.5.0
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.2.0-rc.0.0.20230126185615-f57ff9859eef
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.2.0-rc.2
 	golang.org/x/text v0.4.0
 )
 
@@ -153,6 +153,7 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gertd/go-pluralize v0.2.1 // indirect
+	github.com/gertd/wild v0.0.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
