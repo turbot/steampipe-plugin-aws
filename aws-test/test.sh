@@ -7,7 +7,7 @@
 
 # Define your function here
 run_test () {
-   echo -e "${BLACK}Running $1 ${ENDCOLOR}"
+   echo -e "${GREEN}Running $1 ${ENDCOLOR}"
  if ! ./tint.js $1 >> output.txt
    then
     echo -e "${RED}Failed -> $1 ${ENDCOLOR}"
