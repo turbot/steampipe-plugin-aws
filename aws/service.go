@@ -230,9 +230,18 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 }
 
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
-	// APIGatewayV2 uses the APIGateway endpoints under the hood, but
-	// APIGatewayV2 actually supports less regions. Remove them manually here.
-	excludeRegions := []string{"ap-southeast-3", "me-central-1"}
+	// API Gateway V2 has the same endpoint information in the SDK as API Gateway, but
+	// is actually available in less regions. We have to manually remove them
+	// here.
+	// Source - https://www.aws-services.info/apigatewayv2.html
+	excludeRegions := []string{
+		"ap-south-2",     // Hyderabad
+		"ap-southeast-3", // Jakarta
+		"ap-southeast-4", // Melbourne
+		"eu-central-2",   // Zurich
+		"eu-south-2",     // Spain
+		"me-central-1",   // UAE
+	}
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, apigatewayv2Endpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
@@ -994,9 +1003,20 @@ func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 }
 
 func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
-	// RDS DB Proxy has the same endpoint as RDS, but covers less regions.
-	// Remove them manually here.
-	excludeRegions := []string{"ap-southeast-3", "me-central-1"}
+	// RDS DB Proxy has the same endpoint information in the SDK as RDS, but
+	// is actually available in less regions. We have to manually remove them
+	// here.
+	// Source - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RDS_Fea_Regions_DB-eng.Feature.RDSProxy.html
+	excludeRegions := []string{
+		"ap-south-2",     // Hyderabad
+		"ap-southeast-3", // Jakarta
+		"ap-southeast-4", // Melbourne
+		"eu-central-2",   // Zurich
+		"eu-south-2",     // Spain
+		"me-central-1",   // UAE
+	}
+	excludeRegions = append(excludeRegions, awsChinaRegions()...)
+	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err

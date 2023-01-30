@@ -103,7 +103,7 @@ func listAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	params := &appconfig.ListApplicationsInput{
-		MaxResults: *aws.Int32(maxLimit),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	paginator := appconfig.NewListApplicationsPaginator(svc, params, func(o *appconfig.ListApplicationsPaginatorOptions) {
