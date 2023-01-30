@@ -30,26 +30,26 @@ run_test () {
 
 
 
-run_test sagemaker_endpoint_configuration
-run_test sagemaker_model
-run_test ssm_association
-run_test ssm_managed_instance
-run_test ssm_managed_instance_compliance
-run_test vpc
-run_test vpc_egress_only_internet_gateway
-run_test vpc_endpoint
-run_test vpc_endpoint_service
-run_test vpc_flow_log
-run_test vpc_internet_gateway
-run_test vpc_nat_gateway
-run_test vpc_network_acl
-run_test vpc_peering_connection
-run_test vpc_route
-run_test vpc_route_table
-run_test vpc_security_group
-run_test vpc_subnet
-run_test vpc_vpn_connection
-run_test vpc_vpn_gateway
+run_test aws_sagemaker_endpoint_configuration
+run_test aws_sagemaker_model
+run_test aws_ssm_association
+run_test aws_ssm_managed_instance
+run_test aws_ssm_managed_instance_compliance
+run_test aws_vpc
+run_test aws_vpc_egress_only_internet_gateway
+run_test aws_vpc_endpoint
+run_test aws_vpc_endpoint_service
+run_test aws_vpc_flow_log
+run_test aws_vpc_internet_gateway
+run_test aws_vpc_nat_gateway
+run_test aws_vpc_network_acl
+run_test aws_vpc_peering_connection
+run_test aws_vpc_route
+run_test aws_vpc_route_table
+run_test aws_vpc_security_group
+run_test aws_vpc_subnet
+run_test aws_vpc_vpn_connection
+run_test aws_vpc_vpn_gateway
 
 date >> output.txt
 date >> failed_tests.txt
