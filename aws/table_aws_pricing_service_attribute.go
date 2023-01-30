@@ -75,7 +75,7 @@ func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *p
 
 	input := &pricing.DescribeServicesInput{
 		FormatVersion: aws.String("aws_v1"),
-		MaxResults:    *aws.Int32(maxLimit),
+		MaxResults:    aws.Int32(maxLimit),
 	}
 
 	equalQual := d.EqualsQuals
@@ -141,7 +141,7 @@ func listAttributeValues(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	input := &pricing.GetAttributeValuesInput{
 		AttributeName: &attributeName,
 		ServiceCode:   serviceCode,
-		MaxResults:    maxLimit,
+		MaxResults:    aws.Int32(maxLimit),
 	}
 
 	attributeValues := []string{}
