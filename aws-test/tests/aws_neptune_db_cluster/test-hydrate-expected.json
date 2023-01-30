@@ -9,7 +9,7 @@
     "deletion_protection": false,
     "endpoint": "{{ output.endpoint.value }}",
     "engine": "neptune",
-    "engine_version": "1.1.1.0",
+    "engine_version": "1.2.0.2",
     "iam_database_authentication_enabled": false,
     "multi_az": false,
     "port": 8182,
