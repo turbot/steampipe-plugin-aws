@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -94,14 +94,14 @@ EOF
 }
 
 locals {
-  execution_path = "${path.cwd}/execution_path.json"
+  execution_path         = "${path.cwd}/execution_path.json"
   execution_history_path = "${path.cwd}/execution_history_path.json"
 }
 
 resource "null_resource" "execution" {
   depends_on = [aws_sfn_state_machine.named_test_resource]
   provisioner "local-exec" {
-    command  = "aws stepfunctions start-execution --state-machine-arn ${aws_sfn_state_machine.named_test_resource.arn}  --output json > ${local.execution_path}"
+    command = "aws stepfunctions start-execution --state-machine-arn ${aws_sfn_state_machine.named_test_resource.arn}  --output json > ${local.execution_path}"
   }
 }
 
@@ -113,7 +113,7 @@ data "local_file" "execution" {
 resource "null_resource" "execution_history" {
   depends_on = [null_resource.execution]
   provisioner "local-exec" {
-    command  = "aws stepfunctions get-execution-history --execution-arn ${jsondecode(data.local_file.execution.content).executionArn}  --output json > ${local.execution_history_path}"
+    command = "aws stepfunctions get-execution-history --execution-arn ${jsondecode(data.local_file.execution.content).executionArn}  --output json > ${local.execution_history_path}"
   }
 }
 

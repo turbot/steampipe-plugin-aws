@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -43,7 +43,7 @@ data "aws_region" "alternate" {
 resource "aws_ec2_capacity_reservation" "named_test_resource" {
   instance_type     = "t2.micro"
   instance_platform = "Linux/UNIX"
-  availability_zone = "us-east-1a"
+  availability_zone = "us-east-2a"
   instance_count    = 1
 }
 

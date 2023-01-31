@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -59,7 +59,7 @@ resource "aws_efs_access_point" "named_test_resource" {
   file_system_id = aws_efs_file_system.file_system.id
   tags = {
     Name = var.resource_name
-    foo = "bar"
+    foo  = "bar"
   }
 }
 
@@ -68,7 +68,7 @@ output "resource_name" {
 }
 
 output "resource_aka" {
-  value      = aws_efs_access_point.named_test_resource.arn
+  value = aws_efs_access_point.named_test_resource.arn
 }
 
 output "resource_id" {

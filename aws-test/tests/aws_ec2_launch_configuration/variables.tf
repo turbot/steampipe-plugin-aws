@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -48,7 +48,7 @@ data "null_data_source" "resource" {
 
 # Create AWS > EC2 > Volume
 resource "aws_ebs_volume" "my_volume" {
-  availability_zone = "us-east-1a"
+  availability_zone = "us-east-2a"
   size              = 1
   type              = "standard"
   tags = {

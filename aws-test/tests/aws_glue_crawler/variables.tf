@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -48,7 +48,7 @@ data "null_data_source" "resource" {
 
 resource "aws_glue_catalog_database" "named_test_resource" {
   depends_on = [aws_iam_role.named_test_resource]
-  name        = var.resource_name
+  name       = var.resource_name
 }
 
 resource "aws_iam_role" "named_test_resource" {
@@ -70,7 +70,7 @@ resource "aws_iam_role" "named_test_resource" {
 
 resource "aws_dynamodb_table" "named_test_resource" {
   depends_on = [aws_glue_catalog_database.named_test_resource]
-  name = var.resource_name
+  name       = var.resource_name
   tags = {
     name = var.resource_name
   }
@@ -85,11 +85,11 @@ resource "aws_dynamodb_table" "named_test_resource" {
 }
 
 resource "aws_glue_crawler" "named_test_resource" {
-  depends_on = [aws_dynamodb_table.named_test_resource]
+  depends_on    = [aws_dynamodb_table.named_test_resource]
   database_name = aws_glue_catalog_database.named_test_resource.name
   name          = var.resource_name
   role          = aws_iam_role.named_test_resource.arn
-  description = "integration testing"
+  description   = "integration testing"
 
   dynamodb_target {
     path = var.resource_name

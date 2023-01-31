@@ -6,4 +6,4 @@ select
 from
   aws_glue_data_catalog_encryption_settings
 where
-  region = 'us-east-1';
+  region = 'us-east-2';

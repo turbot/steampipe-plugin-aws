@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -56,7 +56,7 @@ resource "aws_vpc" "main" {
 
 resource "aws_vpc_endpoint" "named_test_resource" {
   vpc_id       = aws_vpc.main.id
-  service_name = "com.amazonaws.us-east-1.s3"
+  service_name = "com.amazonaws.us-east-2.s3"
   tags = {
     Name = var.resource_name
   }

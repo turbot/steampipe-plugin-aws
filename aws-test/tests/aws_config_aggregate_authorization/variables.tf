@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -64,11 +64,11 @@ output "region_name" {
 }
 
 output "authorized_account_id" {
-  value = split( "/", aws_config_aggregate_authorization.named_test_resource.arn)[1]
+  value = split("/", aws_config_aggregate_authorization.named_test_resource.arn)[1]
 }
 
 output "authorized_aws_region" {
-  value = split( "/", aws_config_aggregate_authorization.named_test_resource.arn)[2]
+  value = split("/", aws_config_aggregate_authorization.named_test_resource.arn)[2]
 }
 
 output "aws_partition" {

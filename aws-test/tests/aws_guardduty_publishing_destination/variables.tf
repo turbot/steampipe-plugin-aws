@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -169,13 +169,13 @@ output "resource_name" {
 }
 
 output "detector_id" {
-  value = split(":",aws_guardduty_publishing_destination.named_test_resource.id)[0]
+  value = split(":", aws_guardduty_publishing_destination.named_test_resource.id)[0]
 }
 
 output "resource_aka" {
-  value = "arn:${data.aws_partition.current.partition}:guardduty:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:detector/${split(":",aws_guardduty_publishing_destination.named_test_resource.id)[0]}/publishingDestination/${split(":",aws_guardduty_publishing_destination.named_test_resource.id)[1]}"
+  value = "arn:${data.aws_partition.current.partition}:guardduty:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:detector/${split(":", aws_guardduty_publishing_destination.named_test_resource.id)[0]}/publishingDestination/${split(":", aws_guardduty_publishing_destination.named_test_resource.id)[1]}"
 }
 
 output "resource_id" {
-  value = split(":",aws_guardduty_publishing_destination.named_test_resource.id)[1]
+  value = split(":", aws_guardduty_publishing_destination.named_test_resource.id)[1]
 }

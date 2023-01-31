@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -53,8 +53,8 @@ resource "aws_cloudfront_function" "named_test_resource" {
   publish = false
   code    = <<EOT
 function handler(event) {
-    // NOTE: This example function is for a viewer request event trigger. 
-    // Choose viewer request for event trigger when you associate this function with a distribution. 
+    // NOTE: This example function is for a viewer request event trigger.
+    // Choose viewer request for event trigger when you associate this function with a distribution.
     var response = {
         statusCode: 200,
         statusDescription: 'OK',

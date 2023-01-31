@@ -1,6 +1,6 @@
 variable "resource_name" {
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Name of the resource used throughout the test."
 }
 
@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -52,7 +52,7 @@ locals {
 
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
-    command = "aws wellarchitected create-workload --workload-name ${var.resource_name} --description 'testing-plugin'  --environment 'PREPRODUCTION' --review-owner 'abc' --lenses 'wellarchitected' --aws-regions 'us-east-1' > ${local.path}"
+    command = "aws wellarchitected create-workload --workload-name ${var.resource_name} --description 'testing-plugin'  --environment 'PREPRODUCTION' --review-owner 'abc' --lenses 'wellarchitected' --aws-regions 'us-east-2' > ${local.path}"
   }
 }
 
@@ -63,7 +63,7 @@ data "local_file" "input" {
 
 output "resource_id" {
   depends_on = [null_resource.named_test_resource]
-  value = jsondecode(data.local_file.input.content).WorkloadId
+  value      = jsondecode(data.local_file.input.content).WorkloadId
 }
 
 output "resource_name" {
@@ -81,17 +81,17 @@ output "aws_region" {
 data "template_file" "resource_aka" {
   template = "arn:$${partition}:wellarchitected:$${region}:$${account_id}:workload/$${resource_id}"
   vars = {
-    partition = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region = data.aws_region.primary.name
-    resource_id = jsondecode(data.local_file.input.content).WorkloadId
+    partition        = data.aws_partition.current.partition
+    account_id       = data.aws_caller_identity.current.account_id
+    region           = data.aws_region.primary.name
+    resource_id      = jsondecode(data.local_file.input.content).WorkloadId
     alternate_region = data.aws_region.alternate.name
   }
 }
 
 output "resource_aka" {
-  depends_on = [ null_resource.named_test_resource ]
-  value = data.template_file.resource_aka.rendered
+  depends_on = [null_resource.named_test_resource]
+  value      = data.template_file.resource_aka.rendered
 }
 
 output "aws_partition" {

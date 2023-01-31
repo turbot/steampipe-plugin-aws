@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -79,14 +79,14 @@ resource "aws_redshift_subnet_group" "my_subnet_group" {
 }
 
 resource "aws_redshift_cluster" "named_test_resource" {
-  cluster_identifier = var.resource_name
+  cluster_identifier        = var.resource_name
   cluster_subnet_group_name = aws_redshift_subnet_group.my_subnet_group.name
-  cluster_type = "single-node"
-  database_name = "testdb"
-  master_password = "test123Q"
-  master_username = "turbottest"
-  node_type = "dc2.large"
-  skip_final_snapshot = true
+  cluster_type              = "single-node"
+  database_name             = "testdb"
+  master_password           = "test123Q"
+  master_username           = "turbottest"
+  node_type                 = "dc2.large"
+  skip_final_snapshot       = true
   tags = {
     name = var.resource_name
   }

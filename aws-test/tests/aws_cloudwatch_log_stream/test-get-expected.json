@@ -3,6 +3,6 @@
     "arn": "{{ output.resource_aka.value }}",
     "log_group_name": "{{ resourceName }}",
     "name": "{{ resourceName }}",
-    "region": "us-east-1"
+    "region": "us-east-2"
   }
 ]

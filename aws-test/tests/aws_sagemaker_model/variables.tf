@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -91,8 +91,8 @@ resource "aws_sagemaker_model" "named_test_resource" {
   name               = var.resource_name
   execution_role_arn = aws_iam_role.named_test_resource.arn
   vpc_config {
-    security_group_ids = [ aws_security_group.named_test_resource.id ]
-    subnets = [ aws_subnet.named_test_resource.id ]
+    security_group_ids = [aws_security_group.named_test_resource.id]
+    subnets            = [aws_subnet.named_test_resource.id]
   }
   primary_container {
     image_config {

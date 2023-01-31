@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -55,7 +55,7 @@ resource "aws_vpc" "my_vpc" {
 }
 
 resource "aws_subnet" "my_subnet" {
-  vpc_id            = "${aws_vpc.my_vpc.id}"
+  vpc_id            = aws_vpc.my_vpc.id
   availability_zone = "${var.aws_region}a"
   cidr_block        = "10.0.1.0/24"
 }

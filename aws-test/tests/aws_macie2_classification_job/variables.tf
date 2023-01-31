@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -47,7 +47,7 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_s3_bucket" "test" {
-  bucket = var.resource_name  
+  bucket = var.resource_name
 }
 
 resource "aws_macie2_account" "test" {

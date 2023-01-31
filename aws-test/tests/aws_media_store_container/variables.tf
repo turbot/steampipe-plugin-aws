@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -67,13 +67,13 @@ output "aws_partition" {
 }
 
 output "resource_arn" {
-  depends_on  = [aws_media_store_container.named_test_resource]
-  value       = aws_media_store_container.named_test_resource.arn
+  depends_on = [aws_media_store_container.named_test_resource]
+  value      = aws_media_store_container.named_test_resource.arn
 }
 
 output "endpoint" {
-  depends_on  = [aws_media_store_container.named_test_resource]
-  value       = aws_media_store_container.named_test_resource.endpoint
+  depends_on = [aws_media_store_container.named_test_resource]
+  value      = aws_media_store_container.named_test_resource.endpoint
 }
 
 output "resource_name" {

@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -69,7 +69,7 @@ output "database_name" {
 }
 
 output "resource_aka" {
-  value = "arn:aws:glue:us-east-1:${data.aws_caller_identity.current.account_id}:security-configuration/${var.resource_name}"
+  value = "arn:aws:glue:us-east-2:${data.aws_caller_identity.current.account_id}:security-configuration/${var.resource_name}"
 }
 
 output "aws_region" {

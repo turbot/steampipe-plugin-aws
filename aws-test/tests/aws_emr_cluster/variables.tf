@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -65,8 +65,8 @@ resource "aws_iam_role" "iam_emr_service_role" {
 EOF
 }
 resource "aws_iam_role_policy" "iam_emr_service_policy" {
-  name = "${var.resource_name}_1"
-  role = aws_iam_role.iam_emr_service_role.id
+  name   = "${var.resource_name}_1"
+  role   = aws_iam_role.iam_emr_service_role.id
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -133,7 +133,7 @@ resource "aws_iam_role_policy" "iam_emr_service_policy" {
 EOF
 }
 resource "aws_iam_role" "iam_emr_profile_role" {
-  name = "${var.resource_name}_2"
+  name               = "${var.resource_name}_2"
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",
@@ -151,12 +151,12 @@ resource "aws_iam_role" "iam_emr_profile_role" {
 EOF
 }
 resource "aws_iam_instance_profile" "emr_profile" {
-  name  = var.resource_name
+  name = var.resource_name
   role = aws_iam_role.iam_emr_profile_role.name
 }
 resource "aws_iam_role_policy" "iam_emr_profile_policy" {
-  name = "${var.resource_name}_2"
-  role = aws_iam_role.iam_emr_profile_role.id
+  name   = "${var.resource_name}_2"
+  role   = aws_iam_role.iam_emr_profile_role.id
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -182,15 +182,15 @@ resource "aws_iam_role_policy" "iam_emr_profile_policy" {
 EOF
 }
 resource "aws_vpc" "my_vpc" {
-  cidr_block           = "168.31.0.0/16"
+  cidr_block = "168.31.0.0/16"
 }
 resource "aws_security_group" "emr_master" {
   vpc_id                 = aws_vpc.my_vpc.id
   revoke_rules_on_delete = true
   ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
+    from_port = 443
+    to_port   = 443
+    protocol  = "tcp"
   }
   egress {
     from_port   = 0
@@ -231,7 +231,7 @@ resource "aws_emr_cluster" "named_test_resource" {
   release_label = "emr-4.9.5"
   applications  = ["Spark"]
   ec2_attributes {
-    key_name = aws_key_pair.deployer.key_name
+    key_name                          = aws_key_pair.deployer.key_name
     subnet_id                         = aws_subnet.my_subnet.id
     emr_managed_master_security_group = aws_security_group.emr_master.id
     emr_managed_slave_security_group  = aws_security_group.emr_master.id
@@ -245,7 +245,7 @@ resource "aws_emr_cluster" "named_test_resource" {
     instance_count = 1
   }
   tags = {
-    name     = var.resource_name
+    name = var.resource_name
   }
   service_role = aws_iam_role.iam_emr_service_role.arn
 }

@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -47,7 +47,7 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_kms_key" "named_test_resource" {
-  description = "var.resource_name"
+  description             = "var.resource_name"
   deletion_window_in_days = 7
   tags = {
     name = var.resource_name

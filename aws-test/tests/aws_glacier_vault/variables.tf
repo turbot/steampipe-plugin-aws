@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -101,7 +101,7 @@ output "resource_name" {
 }
 
 output "resource_aka" {
-  value = "${aws_glacier_vault.named_test_resource.arn}"
+  value = aws_glacier_vault.named_test_resource.arn
 }
 
 output "resource_id" {

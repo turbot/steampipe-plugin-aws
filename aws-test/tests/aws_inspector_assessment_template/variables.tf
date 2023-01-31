@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -61,9 +61,9 @@ resource "aws_inspector_assessment_target" "assessment_target" {
 data "aws_inspector_rules_packages" "rules" {}
 
 resource "aws_inspector_assessment_template" "named_test_resource" {
-  name       = var.resource_name
-  target_arn = aws_inspector_assessment_target.assessment_target.arn
-  duration   = 3600
+  name               = var.resource_name
+  target_arn         = aws_inspector_assessment_target.assessment_target.arn
+  duration           = 3600
   rules_package_arns = data.aws_inspector_rules_packages.rules.arns
   tags = {
     foo = "bar"

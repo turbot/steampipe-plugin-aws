@@ -3,7 +3,7 @@
     "arn": "{{ output.resource_arn.value }}",
     "description": "steampipe-test",
     "name": "{{ resourceName }}",
-    "relay_state": "https://s3.console.aws.amazon.com/s3/home?region=us-east-1#",
+    "relay_state": "https://s3.console.aws.amazon.com/s3/home?region=us-east-2#",
     "session_duration": "PT1H"
   }
 ]

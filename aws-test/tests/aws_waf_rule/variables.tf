@@ -1,25 +1,25 @@
 
 variable "resource_name" {
-  type    = string
-  default = "turbot-test-20200125-create-update"
+  type        = string
+  default     = "turbot-test-20200125-create-update"
   description = "Name of the resource used throughout the test."
 }
 
 variable "aws_profile" {
-  type    = string
-  default = "default"
+  type        = string
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
 variable "aws_region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
 variable "aws_region_alternate" {
-  type    = string
-  default = "us-east-2"
+  type        = string
+  default     = "us-east-2"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -48,7 +48,7 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_waf_rule" "named_test_resource" {
-  name = var.resource_name
+  name        = var.resource_name
   metric_name = var.resource_name
   tags = {
     name = var.resource_name

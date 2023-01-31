@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -49,7 +49,7 @@ data "null_data_source" "resource" {
 
 # Create AWS > EventBridge > Rule
 resource "aws_cloudwatch_event_rule" "named_test_resource" {
-  name = var.resource_name
+  name          = var.resource_name
   event_pattern = "{\"detail-type\":[\"AWS Console Sign In via CloudTrail\"]}"
   tags = {
     name = var.resource_name

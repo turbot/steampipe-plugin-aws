@@ -2,7 +2,7 @@
   {
     "akas": ["{{ output.resource_aka.value }}"],
     "autoscaling_group_arn": "{{ output.resource_aka.value }}",
-    "availability_zones": ["us-east-1a"],
+    "availability_zones": ["us-east-2a"],
     "launch_configuration_name": "{{resourceName}}",
     "name": "{{ resourceName }}",
     "tags": {

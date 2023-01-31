@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -59,7 +59,7 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_subnet" "my_subnet1" {
   vpc_id            = aws_vpc.my_vpc.id
   cidr_block        = "10.0.0.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = "us-east-2a"
   depends_on = [
     aws_internet_gateway.igw
   ]
@@ -68,7 +68,7 @@ resource "aws_subnet" "my_subnet1" {
 resource "aws_subnet" "my_subnet2" {
   vpc_id            = aws_vpc.my_vpc.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1b"
+  availability_zone = "us-east-2b"
   depends_on = [
     aws_internet_gateway.igw
   ]

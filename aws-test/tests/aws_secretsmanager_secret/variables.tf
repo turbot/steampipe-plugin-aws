@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -47,8 +47,8 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_secretsmanager_secret" "named_test_resource" {
-  name             = var.resource_name
-  description      = "Test secret."
+  name        = var.resource_name
+  description = "Test secret."
   rotation_rules {
     automatically_after_days = 7
   }

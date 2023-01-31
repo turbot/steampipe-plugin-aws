@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -67,8 +67,8 @@ output "aws_partition" {
 }
 
 output "resource_arn" {
-  depends_on  = [aws_cloudwatch_event_bus.named_test_resource]
-  value       = aws_cloudwatch_event_bus.named_test_resource.arn
+  depends_on = [aws_cloudwatch_event_bus.named_test_resource]
+  value      = aws_cloudwatch_event_bus.named_test_resource.arn
 }
 
 output "resource_name" {
