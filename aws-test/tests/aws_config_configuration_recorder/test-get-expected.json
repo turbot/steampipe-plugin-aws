@@ -10,7 +10,7 @@
       "LastErrorCode": null,
       "LastErrorMessage": null,
       "LastStartTime": null,
-      "LastStatus": null,
+      "LastStatus": "",
       "LastStatusChangeTime": null,
       "LastStopTime": null,
       "Name": "{{resourceName}}",

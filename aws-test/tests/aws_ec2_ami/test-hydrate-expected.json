@@ -6,16 +6,16 @@
     "image_id": "{{ output.resource_id.value }}",
     "launch_permissions": [
       {
-        "Group":null,
-        "OrganizationArn": null,
-        "OrganizationalUnitArn": null,
-        "UserId":"388460667113"
-      },
-      {
-        "Group":null,
+        "Group":"",
         "OrganizationArn": null,
         "OrganizationalUnitArn": null,
         "UserId":"013122550996"
+      },
+      {
+        "Group":"",
+        "OrganizationArn": null,
+        "OrganizationalUnitArn": null,
+        "UserId":"388460667113"
       }
     ],
     "tags": {
