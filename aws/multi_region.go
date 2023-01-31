@@ -181,6 +181,12 @@ func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []stri
 //
 //	regions = ["me-*", "ap-*", "us-*"]
 //	result = [me-south-1, ap-south-1, ap-northeast-3, ap-northeast-2, ap-northeast-1, ap-southeast-1, ap-southeast-2, us-east-1, us-east-2, us-west-1, us-west-2]
+//
+// Mismatch with default region will return zero results:
+//
+//	default_region = "us-east-1"
+//	regions = ["us-gov-*"]
+//	result = []
 func listQueryRegionsForConnection(ctx context.Context, d *plugin.QueryData) ([]string, error) {
 
 	// Retrieve regions list from the AWS plugin steampipe connection config
@@ -214,9 +220,11 @@ func listQueryRegionsForConnection(ctx context.Context, d *plugin.QueryData) ([]
 	maxTargetRegions := regionData.AllRegions
 	if regionData.APIRetrivedList {
 		maxTargetRegions = regionData.ActiveRegions
+	} else {
+		plugin.Logger(ctx).Warn("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "status", "target regions not avaialble via EC2.DescribeRegions API, assuming all regions for partition are active", "targetRegions", maxTargetRegions)
 	}
 
-	// Filter to regions that match the patterns in the config
+	// Filter to regions that match the patterns in the config.
 	var targetRegions []string
 	for _, pattern := range awsSpcConfig.Regions {
 		for _, validRegion := range maxTargetRegions {
@@ -262,12 +270,13 @@ func listRegionsForServiceWithExclusions(ctx context.Context, d *plugin.QueryDat
 	// Get all regions for the service
 	iRegions, err := listRegionsForServiceCached(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("listRegionsForServiceWithExclusions", "serviceID", serviceID, "excludeRegions", excludeRegions, "error", err)
+		plugin.Logger(ctx).Error("listRegionsForServiceWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "error", err)
 		return nil, err
 	}
 	serviceRegions := iRegions.([]string)
 	// Remove the excluded regions from the valid list
 	serviceRegions = helpers.RemoveFromStringSlice(serviceRegions, excludeRegions...)
+	plugin.Logger(ctx).Trace("listRegionsForServiceWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "serviceRegions", serviceRegions)
 	return serviceRegions, nil
 }
 
@@ -302,7 +311,7 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 	// all tables / query results anyway.
 	commonColumnData, err := getCommonColumns(ctx, d, nil)
 	if err != nil {
-		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "unable to get partition name", err)
+		plugin.Logger(ctx).Error("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "unable to get partition name", err)
 		return nil, err
 	}
 	partitionName = commonColumnData.(*awsCommonColumnData).Partition
@@ -320,8 +329,9 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 	case endpoints.AwsIsoBPartitionID:
 		partition = endpoints.AwsIsoBPartition()
 	default:
-		plugin.Logger(ctx).Error("GetSupportedRegionsForClient", "invalid_partition_error", fmt.Errorf("%s is an invalid partition", partitionName))
-		return nil, fmt.Errorf("GetSupportedRegionsForClient:: '%s' is an invalid partition", partitionName)
+		err := fmt.Errorf("listRegionsForServiceUncached:: '%s' is an invalid partition", partitionName)
+		plugin.Logger(ctx).Error("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "invalid_partition_error", err)
+		return nil, err
 	}
 
 	var regionsForService []string
@@ -332,7 +342,9 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 	services := partition.Services()
 	serviceInfo, ok := services[serviceID]
 	if !ok {
-		return nil, fmt.Errorf("SupportedRegionsForClient called with invalid service ID: %s", serviceID)
+		err := fmt.Errorf("listRegionsForServiceUncached called with invalid service ID: %s", serviceID)
+		plugin.Logger(ctx).Error("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "partition", partition, "serviceID", serviceID, "error", err)
+		return nil, err
 	}
 
 	regions := serviceInfo.Regions()
@@ -340,6 +352,7 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 		regionsForService = append(regionsForService, rs)
 	}
 
+	plugin.Logger(ctx).Trace("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "partition", partition, "serviceID", serviceID, "regionsForService", regionsForService)
 	return regionsForService, nil
 }
 
@@ -538,7 +551,15 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if cfg != nil && cfg.Region != "" && err == nil {
 		region = cfg.Region
 		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "AWS SDK resolution")
-		return region, nil
+		// The AWS SDK will return us-east-1 if it can't find a region. So, we
+		// can only trust regions other than us-east-1 as being intentional from
+		// the config. Return those regions immediately as the default.
+		// If it is us-east-1, then fall through to check the regions config for
+		// a more reliable indication. If it's from a commercial partition (or
+		// not specified) then we fall through to us-east-1 at the end anyway.
+		if region != "us-east-1" {
+			return region, nil
+		}
 	}
 
 	// Look through the list of regions, checking if any of them have enough
