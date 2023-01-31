@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -63,11 +63,11 @@ resource "aws_s3_bucket_object" "MyIPSet" {
 }
 
 resource "aws_guardduty_ipset" "named_test_resource" {
-  name = var.resource_name
-  format = "TXT"
-  location = "https://s3.amazonaws.com/${aws_s3_bucket_object.MyIPSet.bucket}/${aws_s3_bucket_object.MyIPSet.key}"
+  name        = var.resource_name
+  format      = "TXT"
+  location    = "https://s3.amazonaws.com/${aws_s3_bucket_object.MyIPSet.bucket}/${aws_s3_bucket_object.MyIPSet.key}"
   detector_id = aws_guardduty_detector.primary.id
-  activate = "true"
+  activate    = "true"
 }
 
 output "account_id" {
@@ -91,7 +91,7 @@ output "resource_name" {
 }
 
 output "ipset_id" {
-  value = split(":",aws_guardduty_ipset.named_test_resource.id)[1]
+  value = split(":", aws_guardduty_ipset.named_test_resource.id)[1]
 }
 
 output "detector_id" {

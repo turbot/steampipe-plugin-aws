@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -52,7 +52,7 @@ resource "aws_ssoadmin_permission_set" "main" {
   name             = var.resource_name
   description      = "steampipe-test"
   instance_arn     = tolist(data.aws_ssoadmin_instances.main.arns)[0]
-  relay_state      = "https://s3.console.aws.amazon.com/s3/home?region=us-east-1#"
+  relay_state      = "https://s3.console.aws.amazon.com/s3/home?region=us-east-2#"
   session_duration = "PT1H"
 
   tags = {

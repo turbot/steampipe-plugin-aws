@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -81,18 +81,18 @@ resource "aws_internet_gateway" "testinternetgateway" {
 }
 
 resource "aws_route_table" "route" {
-  vpc_id = "${aws_vpc.my_vpc.id}"
+  vpc_id = aws_vpc.my_vpc.id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.testinternetgateway.id}"
+    gateway_id = aws_internet_gateway.testinternetgateway.id
   }
 }
 
 resource "aws_subnet" "my_subnet1" {
-  vpc_id            = "${aws_vpc.my_vpc.id}"
-  availability_zone = "${var.aws_region}b"
+  vpc_id                  = aws_vpc.my_vpc.id
+  availability_zone       = "${var.aws_region}b"
   map_public_ip_on_launch = "true"
-  cidr_block        = "10.0.2.0/24"
+  cidr_block              = "10.0.2.0/24"
 }
 
 resource "aws_route_table_association" "routeassociation1" {
@@ -101,29 +101,29 @@ resource "aws_route_table_association" "routeassociation1" {
 }
 
 resource "aws_security_group" "ssh-allowed" {
-    vpc_id = aws_vpc.my_vpc.id
-    egress {
-        from_port = 0
-        to_port = 0
-        protocol = -1
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-    ingress {
-        from_port = 22
-        to_port = 22
-        protocol = "tcp"
-        // This means, all ip address are allowed to ssh !
-        // Do not do it in the production.
-        // Put your office or home address in it!
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-    //If you do not add this rule, you can not reach the NGIX
-    ingress {
-        from_port = 80
-        to_port = 80
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+  vpc_id = aws_vpc.my_vpc.id
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port = 22
+    to_port   = 22
+    protocol  = "tcp"
+    // This means, all ip address are allowed to ssh !
+    // Do not do it in the production.
+    // Put your office or home address in it!
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  //If you do not add this rule, you can not reach the NGIX
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_elastic_beanstalk_application" "application_test" {
@@ -135,7 +135,7 @@ resource "aws_elastic_beanstalk_application" "application_test" {
 
 resource "aws_elastic_beanstalk_environment" "named_test_resource" {
   name                   = var.resource_name
-  application            = "${aws_elastic_beanstalk_application.application_test.name}"
+  application            = aws_elastic_beanstalk_application.application_test.name
   solution_stack_name    = "64bit Amazon Linux 2 v3.5.4 running Go 1"
   wait_for_ready_timeout = "45m"
   setting {
@@ -146,17 +146,17 @@ resource "aws_elastic_beanstalk_environment" "named_test_resource" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "VPCId"
-    value     = "${aws_vpc.my_vpc.id}"
+    value     = aws_vpc.my_vpc.id
   }
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBSubnets"
-    value     = "${aws_subnet.my_subnet1.id}"
+    value     = aws_subnet.my_subnet1.id
   }
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = "${aws_subnet.my_subnet1.id}"
+    value     = aws_subnet.my_subnet1.id
   }
 }
 

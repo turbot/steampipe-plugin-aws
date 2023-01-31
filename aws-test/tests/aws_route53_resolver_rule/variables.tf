@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -48,8 +48,8 @@ data "null_data_source" "resource" {
 
 resource "aws_route53_resolver_rule" "named_test_resource" {
   domain_name = "turbot.com"
-  rule_type = "SYSTEM"
-  name = var.resource_name
+  rule_type   = "SYSTEM"
+  name        = var.resource_name
   tags = {
     name = var.resource_name
   }

@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -99,14 +99,14 @@ resource "aws_vpc" "named_test_resource" {
 }
 
 resource "aws_subnet" "named_test_resource1" {
-  vpc_id     = aws_vpc.named_test_resource.id
-  cidr_block = "172.31.0.0/20"
+  vpc_id            = aws_vpc.named_test_resource.id
+  cidr_block        = "172.31.0.0/20"
   availability_zone = "${var.aws_region}b"
 }
 
 resource "aws_subnet" "named_test_resource2" {
-  vpc_id     = aws_vpc.named_test_resource.id
-  cidr_block = "172.31.32.0/20"
+  vpc_id            = aws_vpc.named_test_resource.id
+  cidr_block        = "172.31.32.0/20"
   availability_zone = "${var.aws_region}d"
 }
 

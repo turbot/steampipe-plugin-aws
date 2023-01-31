@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -85,7 +85,7 @@ output "aws_partition" {
 }
 
 output "status" {
-    value = aws_glue_dev_endpoint.named_test_resource.status
+  value = aws_glue_dev_endpoint.named_test_resource.status
 }
 
 output "resource_name" {

@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -58,14 +58,14 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "demosubnet" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1a"
+  availability_zone       = "us-east-2a"
   map_public_ip_on_launch = true
   tags = {
     Name = "Public Subnet"
   }
 }
 
-# Creating Internet Gateway 
+# Creating Internet Gateway
 resource "aws_internet_gateway" "demogateway" {
   vpc_id = aws_vpc.main.id
 }
@@ -86,9 +86,9 @@ resource "aws_route_table_association" "rt_associate_public" {
   route_table_id = aws_route_table.rt.id
 }
 
-# Creating Security Group 
+# Creating Security Group
 resource "aws_security_group" "demosg" {
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
   # Outbound Rules
   # Internet access to anywhere
   egress {
@@ -145,12 +145,12 @@ resource "aws_iam_role_policy_attachment" "test-attach" {
 
 # Creating EC2 instance in Public Subnet
 resource "aws_instance" "named_test_resource" {
-  ami           = data.aws_ami.linux.id
-  instance_type = "t2.micro"
-  vpc_security_group_ids = [ aws_security_group.demosg.id ]
-  subnet_id = aws_subnet.demosubnet.id
+  ami                         = data.aws_ami.linux.id
+  instance_type               = "t2.micro"
+  vpc_security_group_ids      = [aws_security_group.demosg.id]
+  subnet_id                   = aws_subnet.demosubnet.id
   associate_public_ip_address = true
-  iam_instance_profile = aws_iam_instance_profile.test_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.test_profile.name
   tags = {
     Name = var.resource_name
   }
@@ -172,7 +172,7 @@ resource "null_resource" "create_association" {
       aws ssm create-association --name "AWS-UpdateSSMAgent" --targets "Key=instanceids,Values=${aws_instance.named_test_resource.id}" --region ${data.aws_region.primary.name}
     EOF
   }
-} 
+}
 
 resource "null_resource" "delay_create_association" {
   depends_on = [

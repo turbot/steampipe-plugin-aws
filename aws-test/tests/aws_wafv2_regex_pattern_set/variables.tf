@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -61,7 +61,7 @@ resource "aws_wafv2_regex_pattern_set" "named_test_resource_regional" {
   }
 
   tags = {
-    foo = "bar"
+    foo   = "bar"
     scope = "regional"
   }
 }
@@ -80,7 +80,7 @@ resource "aws_wafv2_regex_pattern_set" "named_test_resource_global" {
   }
 
   tags = {
-    foo1 = "bar1"
+    foo1  = "bar1"
     scope = "global"
   }
 }

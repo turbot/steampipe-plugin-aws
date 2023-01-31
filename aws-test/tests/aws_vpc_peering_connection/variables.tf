@@ -18,7 +18,7 @@ variable "aws_region" {
 
 variable "aws_region_alternate" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -56,10 +56,10 @@ resource "aws_vpc" "second_vpc" {
 }
 
 resource "aws_vpc_peering_connection" "named_test_resource" {
-  depends_on    = [aws_vpc.second_vpc]
-  peer_vpc_id   = aws_vpc.second_vpc.id
-  vpc_id        = aws_vpc.first_vpc.id
-  auto_accept   = true
+  depends_on  = [aws_vpc.second_vpc]
+  peer_vpc_id = aws_vpc.second_vpc.id
+  vpc_id      = aws_vpc.first_vpc.id
+  auto_accept = true
 
   tags = {
     name = var.resource_name

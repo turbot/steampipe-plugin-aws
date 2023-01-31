@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -53,7 +53,7 @@ locals {
 
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
-    command  = "aws serverlessrepo create-application --author testAuthor --description testDescription --name ${var.resource_name} --output json > ${local.path}"
+    command = "aws serverlessrepo create-application --author testAuthor --description testDescription --name ${var.resource_name} --output json > ${local.path}"
   }
 }
 

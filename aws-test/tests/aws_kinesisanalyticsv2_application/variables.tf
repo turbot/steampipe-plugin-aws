@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -46,9 +46,9 @@ resource "aws_iam_role" "named_test_resource" {
 }
 
 resource "aws_kinesisanalyticsv2_application" "named_test_resource" {
-  name                    = var.resource_name
-  runtime_environment     = "SQL-1_0"
-  service_execution_role  = aws_iam_role.named_test_resource.arn
+  name                   = var.resource_name
+  runtime_environment    = "SQL-1_0"
+  service_execution_role = aws_iam_role.named_test_resource.arn
   tags = {
     Name = var.resource_name
   }

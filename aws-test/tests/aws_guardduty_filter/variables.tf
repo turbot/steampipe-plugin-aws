@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -86,9 +86,9 @@ output "resource_name" {
 }
 
 output "filter_name" {
-  value = split("/",aws_guardduty_filter.named_test_resource.arn)[3]
+  value = split("/", aws_guardduty_filter.named_test_resource.arn)[3]
 }
 
 output "detector_id" {
-  value = split("/",aws_guardduty_filter.named_test_resource.arn)[1]
+  value = split("/", aws_guardduty_filter.named_test_resource.arn)[1]
 }

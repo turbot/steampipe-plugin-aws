@@ -18,7 +18,7 @@ variable "aws_region" {
 
 variable "aws_region_alternate" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 

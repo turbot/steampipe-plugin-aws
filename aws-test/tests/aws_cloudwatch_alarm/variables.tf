@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -49,15 +49,15 @@ data "null_data_source" "resource" {
 
 # Create AWS > Cloudwatch > Alarm
 resource "aws_cloudwatch_metric_alarm" "named_test_resource" {
-  alarm_name = var.resource_name
+  alarm_name          = var.resource_name
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods = 2
-  metric_name = "CPUUtilization"
-  namespace = "AWS/EC2"
-  period = 120
-  statistic = "Average"
-  threshold = 80
-  alarm_description = var.resource_name
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 120
+  statistic           = "Average"
+  threshold           = 80
+  alarm_description   = var.resource_name
   tags = {
     name = var.resource_name
   }
