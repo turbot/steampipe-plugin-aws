@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -48,10 +48,10 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_waf_rate_based_rule" "named_test_resource" {
-  name = var.resource_name
+  name        = var.resource_name
   metric_name = var.resource_name
-  rate_key = "IP"
-  rate_limit = 100
+  rate_key    = "IP"
+  rate_limit  = 100
   tags = {
     name = var.resource_name
   }

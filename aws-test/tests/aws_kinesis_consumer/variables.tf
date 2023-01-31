@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -47,16 +47,16 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_kinesis_stream" "named_test_resource" {
-  name = var.resource_name
-  shard_count = 1
-  retention_period = 24
+  name                      = var.resource_name
+  shard_count               = 1
+  retention_period          = 24
   enforce_consumer_deletion = true
 }
 
 resource "null_resource" "named_test_resource" {
   depends_on = [aws_kinesis_stream.named_test_resource]
   provisioner "local-exec" {
-   command = "aws kinesis register-stream-consumer --stream-arn ${aws_kinesis_stream.named_test_resource.arn} --consumer-name ${var.resource_name} --profile ${var.aws_profile} --region  ${data.aws_region.primary.name}"
+    command = "aws kinesis register-stream-consumer --stream-arn ${aws_kinesis_stream.named_test_resource.arn} --consumer-name ${var.resource_name} --profile ${var.aws_profile} --region  ${data.aws_region.primary.name}"
   }
 }
 
@@ -78,7 +78,7 @@ data "local_file" "input" {
 
 output "resource_aka" {
   depends_on = [null_resource.output_test_resource]
-  value = jsondecode(data.local_file.input.content).Consumers[0].ConsumerARN
+  value      = jsondecode(data.local_file.input.content).Consumers[0].ConsumerARN
 }
 
 output "stream_aka" {

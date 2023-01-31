@@ -1,12 +1,12 @@
 variable "resource_name" {
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Name of the resource used throughout the test."
 }
 
 variable "turbot_profile" {
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Turbot credentials profile to use for the test run."
 }
 
@@ -15,20 +15,20 @@ provider "turbot" {
 }
 
 variable "aws_profile" {
-  type    = string
-  default = "default"
+  type        = string
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
 variable "aws_region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
 variable "aws_region_alternate" {
-  type    = string
-  default = "us-east-2"
+  type        = string
+  default     = "us-east-2"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -63,7 +63,7 @@ resource "null_resource" "delay" {
 }
 
 resource "null_resource" "named_test_resource" {
-  depends_on    = [null_resource.delay]
+  depends_on = [null_resource.delay]
   provisioner "local-exec" {
     command = <<EOT
       aws redshift delete-cluster-snapshot --snapshot-identifier ${var.resource_name} --profile ${var.aws_profile} --region ${var.aws_region};

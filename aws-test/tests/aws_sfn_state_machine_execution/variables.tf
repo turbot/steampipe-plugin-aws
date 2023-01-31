@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -100,7 +100,7 @@ locals {
 resource "null_resource" "named_test_resource" {
   depends_on = [aws_sfn_state_machine.named_test_resource]
   provisioner "local-exec" {
-    command  = "aws stepfunctions start-execution --state-machine-arn ${aws_sfn_state_machine.named_test_resource.arn}  --output json > ${local.path}"
+    command = "aws stepfunctions start-execution --state-machine-arn ${aws_sfn_state_machine.named_test_resource.arn}  --output json > ${local.path}"
   }
 }
 

@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -77,5 +77,5 @@ output "resource_name" {
 }
 
 output "resource_status" {
-    value = [for account in data.aws_organizations_organization.main.accounts : account.status if account.id == data.aws_organizations_organization.main.master_account_id][0]
+  value = [for account in data.aws_organizations_organization.main.accounts : account.status if account.id == data.aws_organizations_organization.main.master_account_id][0]
 }

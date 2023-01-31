@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -49,7 +49,7 @@ data "null_data_source" "resource" {
 
 # Create AWS > ECS > Task Definition
 resource "aws_ecs_task_definition" "named_test_resource" {
-  family = var.resource_name
+  family                = var.resource_name
   container_definitions = <<TASK_DEFINITION
   [
     {

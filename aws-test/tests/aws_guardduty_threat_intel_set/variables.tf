@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -91,7 +91,7 @@ output "resource_aka" {
 }
 
 output "resource_id" {
-  value = split(":",aws_guardduty_threatintelset.named_test_resource.id)[1]
+  value = split(":", aws_guardduty_threatintelset.named_test_resource.id)[1]
 }
 
 output "detector_id" {

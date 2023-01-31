@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -55,7 +55,7 @@ resource "aws_wafv2_ip_set" "named_test_resource_regional" {
   addresses          = ["1.2.3.4/32", "5.6.7.8/32"]
 
   tags = {
-    foo = "bar"
+    foo   = "bar"
     scope = "regional"
   }
 }
@@ -68,7 +68,7 @@ resource "aws_wafv2_ip_set" "named_test_resource_global" {
   addresses          = ["8.7.6.5/32", "4.3.2.1/32"]
 
   tags = {
-    foo1 = "bar1"
+    foo1  = "bar1"
     scope = "global"
   }
 }

@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -49,9 +49,9 @@ data "null_data_source" "resource" {
 data "aws_ssoadmin_instances" "main" {}
 
 resource "aws_ssoadmin_permission_set" "main" {
-  name             = var.resource_name
-  description      = "steampipe-test"
-  instance_arn     = tolist(data.aws_ssoadmin_instances.main.arns)[0]
+  name         = var.resource_name
+  description  = "steampipe-test"
+  instance_arn = tolist(data.aws_ssoadmin_instances.main.arns)[0]
 
   tags = {
     Name = var.resource_name

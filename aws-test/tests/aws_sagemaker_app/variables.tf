@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -133,5 +133,5 @@ output "resource_name" {
 }
 
 output "tags" {
-  value =  var.resource_name
+  value = var.resource_name
 }

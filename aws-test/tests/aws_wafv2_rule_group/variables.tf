@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -48,10 +48,10 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_wafv2_rule_group" "named_test_resource_regional" {
-  name     = "${var.resource_name}_regional"
+  name        = "${var.resource_name}_regional"
   description = "A regional rule group for testing."
-  scope    = "REGIONAL"
-  capacity = 2
+  scope       = "REGIONAL"
+  capacity    = 2
 
   rule {
     name     = "rule-1"
@@ -79,16 +79,16 @@ resource "aws_wafv2_rule_group" "named_test_resource_regional" {
   }
 
   tags = {
-    foo = "bar"
+    foo   = "bar"
     scope = "regional"
   }
 }
 
 resource "aws_wafv2_rule_group" "named_test_resource_global" {
-  name     = "${var.resource_name}_global"
+  name        = "${var.resource_name}_global"
   description = "A global rule group for testing."
-  scope    = "CLOUDFRONT"
-  capacity = 2
+  scope       = "CLOUDFRONT"
+  capacity    = 2
 
   rule {
     name     = "rule-1"
@@ -116,7 +116,7 @@ resource "aws_wafv2_rule_group" "named_test_resource_global" {
   }
 
   tags = {
-    foo1 = "bar1"
+    foo1  = "bar1"
     scope = "global"
   }
 }

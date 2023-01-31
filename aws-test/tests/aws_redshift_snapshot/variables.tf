@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -65,8 +65,8 @@ resource "aws_subnet" "my_subnet1" {
   availability_zone = "${var.aws_region}a"
   vpc_id            = aws_vpc.my_vpc.id
   depends_on = [
-      "aws_internet_gateway.igw"
-    ]
+    "aws_internet_gateway.igw"
+  ]
   tags = {
     Name = var.resource_name
   }
@@ -77,8 +77,8 @@ resource "aws_subnet" "my_subnet2" {
   availability_zone = "${var.aws_region}b"
   vpc_id            = aws_vpc.my_vpc.id
   depends_on = [
-      "aws_internet_gateway.igw"
-    ]
+    "aws_internet_gateway.igw"
+  ]
   tags = {
     Name = var.resource_name
   }
@@ -125,7 +125,7 @@ output "resource_id" {
 }
 
 output "resource_aka" {
-  value = "arn:${data.aws_partition.current.partition}:redshift:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:snapshot:${ var.resource_name }/${ var.resource_name }"
+  value = "arn:${data.aws_partition.current.partition}:redshift:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:snapshot:${var.resource_name}/${var.resource_name}"
 }
 
 output "resource_name" {

@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -59,7 +59,7 @@ resource "aws_subnet" "my_subnet" {
 resource "aws_redshift_subnet_group" "named_test_resource" {
   name        = var.resource_name
   description = "A test subnet group"
-  subnet_ids = [aws_subnet.my_subnet.id]
+  subnet_ids  = [aws_subnet.my_subnet.id]
   tags = {
     name = var.resource_name
   }
