@@ -46,5 +46,5 @@ select
 from
   aws_vpc_verified_access_trust_provider
 where
-  creation_time >= now() - interval '90' days;
+  creation_time >= now() - interval '90' day;
 ```
