@@ -8,9 +8,9 @@ import (
 
 	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -148,7 +148,7 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	input := &configservice.DescribeConfigRulesInput{}
 
 	// Additonal Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		input.ConfigRuleNames = []string{equalQuals["name"].GetStringValue()}
 	}
@@ -167,7 +167,7 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			d.StreamListItem(ctx, configRule)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -187,7 +187,7 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
-	name := d.EqualsQuals["name"].GetStringValue()
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Build params
 	params := &configservice.DescribeConfigRulesInput{

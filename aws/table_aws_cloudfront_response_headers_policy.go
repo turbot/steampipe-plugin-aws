@@ -8,9 +8,9 @@ import (
 
 	cloudfrontv1 "github.com/aws/aws-sdk-go/service/cloudfront"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -122,7 +122,7 @@ func listCloudFrontResponseHeadersPolicies(ctx context.Context, d *plugin.QueryD
 	}
 
 	// Additonal Filter
-	policyTypeColumn := d.EqualsQuals["type"]
+	policyTypeColumn := d.KeyColumnQuals["type"]
 	if policyTypeColumn != nil {
 		input.Type = types.ResponseHeadersPolicyType(policyTypeColumn.GetStringValue())
 	}

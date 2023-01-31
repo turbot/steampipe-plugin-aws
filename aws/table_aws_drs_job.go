@@ -10,9 +10,9 @@ import (
 
 	drsv1 "github.com/aws/aws-sdk-go/service/drs"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsDRSJob(_ context.Context) *plugin.Table {
@@ -131,7 +131,7 @@ func listAwsDRSJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 	filter := &types.DescribeJobsRequestFilters{}
 
-	jobID := d.EqualsQualString("job_id")
+	jobID := d.KeyColumnQualString("job_id")
 	if jobID != "" {
 		filter.JobIDs = []string{jobID}
 	}
@@ -185,7 +185,7 @@ func listAwsDRSJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 			d.StreamListItem(ctx, job)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

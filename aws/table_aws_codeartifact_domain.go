@@ -10,9 +10,9 @@ import (
 
 	codeartifactv1 "github.com/aws/aws-sdk-go/service/codeartifact"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -191,7 +191,7 @@ func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, item)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -210,8 +210,8 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		name = *data.Name
 		owner = *data.Owner
 	} else {
-		name = d.EqualsQuals["name"].GetStringValue()
-		owner = d.EqualsQuals["owner"].GetStringValue()
+		name = d.KeyColumnQuals["name"].GetStringValue()
+		owner = d.KeyColumnQuals["owner"].GetStringValue()
 	}
 
 	if name == "" {

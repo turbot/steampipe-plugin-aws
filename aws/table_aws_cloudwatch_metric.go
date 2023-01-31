@@ -11,9 +11,9 @@ import (
 
 	cloudwatchv1 "github.com/aws/aws-sdk-go/service/cloudwatch"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -91,7 +91,7 @@ func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	input := &cloudwatch.ListMetricsInput{}
 
 	// Additional filters
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 
 	if equalQuals["name"] != nil {
 		if equalQuals["name"].GetStringValue() != "" {
@@ -134,7 +134,7 @@ func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			d.StreamListItem(ctx, metricDetail)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

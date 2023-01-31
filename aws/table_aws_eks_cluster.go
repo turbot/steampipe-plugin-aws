@@ -9,9 +9,9 @@ import (
 
 	eksv1 "github.com/aws/aws-sdk-go/service/eks"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -185,7 +185,7 @@ func listEKSClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -201,7 +201,7 @@ func getEKSCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	if h.Item != nil {
 		clusterName = *h.Item.(types.Cluster).Name
 	} else {
-		clusterName = d.EqualsQuals["name"].GetStringValue()
+		clusterName = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// create service

@@ -8,9 +8,9 @@ import (
 
 	elasticachev1 "github.com/aws/aws-sdk-go/service/elasticache"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -207,7 +207,7 @@ func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 			d.StreamListItem(ctx, replicationGroup)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -226,7 +226,7 @@ func getElastiCacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
-	quals := d.EqualsQuals
+	quals := d.KeyColumnQuals
 	replicationGroupId := quals["replication_group_id"].GetStringValue()
 
 	params := &elasticache.DescribeReplicationGroupsInput{

@@ -10,9 +10,9 @@ import (
 
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
@@ -236,7 +236,7 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	input := &ec2.DescribeSecurityGroupRulesInput{}
 
-	groupId := d.EqualsQuals["group_id"].GetStringValue()
+	groupId := d.KeyColumnQuals["group_id"].GetStringValue()
 	if groupId != "" {
 		input.Filters = []types.Filter{
 			{
@@ -262,7 +262,7 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 			d.StreamListItem(ctx, securityGroupRule)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -274,7 +274,7 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	ruleID := d.EqualsQuals["security_group_rule_id"].GetStringValue()
+	ruleID := d.KeyColumnQuals["security_group_rule_id"].GetStringValue()
 
 	// check if rule id is empty
 	if ruleID == "" {
@@ -369,7 +369,7 @@ func getReferencedSecurityGroupDetails(ctx context.Context, d *plugin.QueryData,
 
 func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	sgRule := h.Item.(types.SecurityGroupRule)
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {

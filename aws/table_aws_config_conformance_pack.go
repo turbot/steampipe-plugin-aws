@@ -7,9 +7,9 @@ import (
 
 	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
@@ -119,7 +119,7 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 	}
 
 	// Additonal Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		input.ConformancePackNames = []string{equalQuals["name"].GetStringValue()}
 	}
@@ -138,7 +138,7 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 			d.StreamListItem(ctx, conformancePack)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -151,7 +151,7 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 
 func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	quals := d.EqualsQuals
+	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 
 	// Create Session

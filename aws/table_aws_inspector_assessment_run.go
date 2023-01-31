@@ -9,9 +9,9 @@ import (
 
 	inspectorv1 "github.com/aws/aws-sdk-go/service/inspector"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -158,15 +158,15 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	filter := &types.AssessmentRunFilter{}
 
-	if d.EqualsQuals["assessment_template_arn"].GetStringValue() != "" {
-		input.AssessmentTemplateArns = []string{d.EqualsQuals["assessment_template_arn"].GetStringValue()}
+	if d.KeyColumnQuals["assessment_template_arn"].GetStringValue() != "" {
+		input.AssessmentTemplateArns = []string{d.KeyColumnQuals["assessment_template_arn"].GetStringValue()}
 	}
-	if d.EqualsQuals["name"].GetStringValue() != "" {
-		filter.NamePattern = aws.String(d.EqualsQuals["name"].GetStringValue())
+	if d.KeyColumnQuals["name"].GetStringValue() != "" {
+		filter.NamePattern = aws.String(d.KeyColumnQuals["name"].GetStringValue())
 	}
-	if d.EqualsQuals["state"].GetStringValue() != "" {
+	if d.KeyColumnQuals["state"].GetStringValue() != "" {
 		filter.States = []types.AssessmentRunState{
-			types.AssessmentRunState(d.EqualsQuals["state"].GetStringValue()),
+			types.AssessmentRunState(d.KeyColumnQuals["state"].GetStringValue()),
 		}
 	}
 
@@ -224,7 +224,7 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, assessmentRun)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

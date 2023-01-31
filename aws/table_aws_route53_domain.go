@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
 	"github.com/aws/aws-sdk-go-v2/service/route53domains/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -239,7 +239,7 @@ func listRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 			d.StreamListItem(ctx, domain)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -256,7 +256,7 @@ func getRoute53Domain(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if h.Item != nil {
 		name = *h.Item.(types.DomainSummary).DomainName
 	} else {
-		name = d.EqualsQuals["domain_name"].GetStringValue()
+		name = d.KeyColumnQuals["domain_name"].GetStringValue()
 	}
 
 	// Create session

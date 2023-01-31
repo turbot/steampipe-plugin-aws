@@ -10,9 +10,9 @@ import (
 
 	efsv1 "github.com/aws/aws-sdk-go/service/efs"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -154,7 +154,7 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 			d.StreamListItem(ctx, mountTarget)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				pagesLeft = false
 			}
 		}
@@ -172,7 +172,7 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	mountTargetID := d.EqualsQuals["mount_target_id"].GetStringValue()
+	mountTargetID := d.KeyColumnQuals["mount_target_id"].GetStringValue()
 
 	if strings.TrimSpace(mountTargetID) == "" {
 		return nil, nil
@@ -238,7 +238,7 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 //// TRANSFORM FUNCTION
 
 func getAwsEfsMountTargetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.MountTargetDescription)
 
 	commonData, err := getCommonColumns(ctx, d, h)

@@ -9,9 +9,9 @@ import (
 
 	healthv1 "github.com/aws/aws-sdk-go/service/health"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsHealthEvent(_ context.Context) *plugin.Table {
@@ -146,7 +146,7 @@ func listHealthEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 			d.StreamListItem(ctx, item)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -174,8 +174,8 @@ func buildHealthEventFilter(d *plugin.QueryData) *types.EventFilter {
 	}
 
 	for columnName, dataType := range filterQuals {
-		if dataType == "string" && d.EqualsQualString(columnName) != "" {
-			value := d.EqualsQualString(columnName)
+		if dataType == "string" && d.KeyColumnQualString(columnName) != "" {
+			value := d.KeyColumnQualString(columnName)
 			switch columnName {
 			case "arn":
 				filter.EntityArns = ([]string{value})

@@ -9,9 +9,9 @@ import (
 
 	apigatewayv1 "github.com/aws/aws-sdk-go/service/apigateway"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -142,7 +142,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	}
 
 	// Additonal Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["customer_id"] != nil {
 		input.CustomerId = aws.String(equalQuals["customer_id"].GetStringValue())
 	}
@@ -163,7 +163,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -184,7 +184,7 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
-	id := d.EqualsQuals["id"].GetStringValue()
+	id := d.KeyColumnQuals["id"].GetStringValue()
 	params := &apigateway.GetApiKeyInput{
 		ApiKey: aws.String(id),
 	}
@@ -199,7 +199,7 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 
 func getAwsAPIKeysAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsAPIKeysAkas")
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := ""
 
 	switch h.Item.(type) {

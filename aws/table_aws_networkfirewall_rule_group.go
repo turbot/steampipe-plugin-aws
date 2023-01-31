@@ -9,9 +9,9 @@ import (
 
 	networkfirewallv1 "github.com/aws/aws-sdk-go/service/networkfirewall"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -191,7 +191,7 @@ func listNetworkFirewallRuleGroups(ctx context.Context, d *plugin.QueryData, _ *
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -208,8 +208,8 @@ func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *pl
 		name = *h.Item.(types.RuleGroupMetadata).Name
 		arn = *h.Item.(types.RuleGroupMetadata).Arn
 	} else {
-		name = d.EqualsQuals["rule_group_name"].GetStringValue()
-		arn = d.EqualsQuals["arn"].GetStringValue()
+		name = d.KeyColumnQuals["rule_group_name"].GetStringValue()
+		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 	// Create session
 	svc, err := NetworkFirewallClient(ctx, d)

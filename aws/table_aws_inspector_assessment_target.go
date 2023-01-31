@@ -9,9 +9,9 @@ import (
 
 	inspectorv1 "github.com/aws/aws-sdk-go/service/inspector"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -107,7 +107,7 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 	input := &inspector.ListAssessmentTargetsInput{
 		MaxResults: aws.Int32(maxLimit),
 	}
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		if equalQuals["name"].GetStringValue() != "" {
 			input.Filter = &types.AssessmentTargetFilter{AssessmentTargetNamePattern: aws.String(equalQuals["name"].GetStringValue())}
@@ -133,7 +133,7 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -149,7 +149,7 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 	if h.Item != nil {
 		assessmentTargetArn = *h.Item.(*types.AssessmentTarget).Arn
 	} else {
-		quals := d.EqualsQuals
+		quals := d.KeyColumnQuals
 		assessmentTargetArn = quals["arn"].GetStringValue()
 	}
 

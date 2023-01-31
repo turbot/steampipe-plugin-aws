@@ -9,9 +9,9 @@ import (
 
 	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -258,7 +258,7 @@ func listRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		}
 	}
 
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["cluster_identifier"] != nil {
 		if equalQuals["cluster_identifier"].GetStringValue() != "" {
 			input.ClusterIdentifier = aws.String(equalQuals["cluster_identifier"].GetStringValue())
@@ -295,7 +295,7 @@ func listRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -311,7 +311,7 @@ func getRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if h.Item != nil {
 		name = *h.Item.(types.Snapshot).SnapshotIdentifier
 	} else {
-		name = d.EqualsQuals["snapshot_identifier"].GetStringValue()
+		name = d.KeyColumnQuals["snapshot_identifier"].GetStringValue()
 	}
 
 	// Return nil, if no input provided
@@ -344,7 +344,7 @@ func getRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshot := h.Item.(types.Snapshot)
 
 	c, err := getCommonColumns(ctx, d, h)

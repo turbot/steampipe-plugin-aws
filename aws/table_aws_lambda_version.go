@@ -13,9 +13,9 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
@@ -196,7 +196,7 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, nil
 	}
 
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 
 	// Minimize the API call with the given function name
 	if equalQuals["function_name"] != nil {
@@ -240,7 +240,7 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 			d.StreamListItem(ctx, version)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -256,8 +256,8 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var functionVersion types.FunctionConfiguration
 
-	version := d.EqualsQuals["version"].GetStringValue()
-	functionName := d.EqualsQuals["function_name"].GetStringValue()
+	version := d.KeyColumnQuals["version"].GetStringValue()
+	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
 	if strings.TrimSpace(version) == "" || strings.TrimSpace(functionName) == "" {
 		return nil, nil
 	}

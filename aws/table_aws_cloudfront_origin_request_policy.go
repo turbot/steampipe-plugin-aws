@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -138,7 +138,7 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 			d.StreamListItem(ctx, policy)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -168,7 +168,7 @@ func getCloudFrontOriginRequestPolicy(ctx context.Context, d *plugin.QueryData, 
 	if h.Item != nil {
 		policyID = *h.Item.(types.OriginRequestPolicySummary).OriginRequestPolicy.Id
 	} else {
-		policyID = d.EqualsQuals["id"].GetStringValue()
+		policyID = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
 	if strings.TrimSpace(policyID) == "" {

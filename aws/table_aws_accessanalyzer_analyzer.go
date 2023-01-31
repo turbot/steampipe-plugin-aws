@@ -9,9 +9,9 @@ import (
 
 	accessanalyzerv1 "github.com/aws/aws-sdk-go/service/accessanalyzer"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -125,7 +125,7 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	input := &accessanalyzer.ListAnalyzersInput{}
 
 	// Additonal Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["type"] != nil {
 		input.Type = types.Type(equalQuals["type"].GetStringValue())
 	}
@@ -160,7 +160,7 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			d.StreamListItem(ctx, analyzer)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -172,7 +172,7 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.EqualsQuals["name"].GetStringValue()
+	name := d.KeyColumnQuals["name"].GetStringValue()
 	if strings.TrimSpace(name) == "" {
 		return nil, nil
 	}

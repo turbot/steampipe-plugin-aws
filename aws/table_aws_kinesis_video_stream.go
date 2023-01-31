@@ -9,9 +9,9 @@ import (
 
 	kinesisv1 "github.com/aws/aws-sdk-go/service/kinesis"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -149,7 +149,7 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 		for _, stream := range output.StreamInfoList {
 			d.StreamListItem(ctx, stream)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -164,7 +164,7 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if h.Item != nil {
 		streamName = *h.Item.(types.StreamInfo).StreamName
 	} else {
-		quals := d.EqualsQuals
+		quals := d.KeyColumnQuals
 		streamName = quals["stream_name"].GetStringValue()
 	}
 

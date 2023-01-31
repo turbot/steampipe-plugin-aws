@@ -9,9 +9,9 @@ import (
 
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
@@ -165,7 +165,7 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -178,7 +178,7 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	groupID := d.EqualsQuals["group_id"].GetStringValue()
+	groupID := d.KeyColumnQuals["group_id"].GetStringValue()
 
 	// get service
 	svc, err := EC2Client(ctx, d)
@@ -207,7 +207,7 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getVpcSecurityGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	securityGroup := h.Item.(types.SecurityGroup)
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {

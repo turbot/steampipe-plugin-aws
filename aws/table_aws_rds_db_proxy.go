@@ -9,9 +9,9 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -185,7 +185,7 @@ func listRDSDBProxies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -197,7 +197,7 @@ func listRDSDBProxies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getRDSDBProxy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	dbProxyName := d.EqualsQuals["db_proxy_name"].GetStringValue()
+	dbProxyName := d.KeyColumnQuals["db_proxy_name"].GetStringValue()
 
 	if dbProxyName == "" {
 		return nil, nil

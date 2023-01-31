@@ -10,9 +10,9 @@ import (
 
 	ecrpublicv1 "github.com/aws/aws-sdk-go/service/ecrpublic"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -119,7 +119,7 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
 	// DescribeRepositories command is only supported in us-east-1
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	if region != "us-east-1" {
 		return nil, nil
@@ -149,7 +149,7 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["registry_id"] != nil {
 		input.RegistryId = aws.String(equalQuals["registry_id"].GetStringValue())
 	}
@@ -171,7 +171,7 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -184,7 +184,7 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 
 func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
 	// DescribeRepositories command is only supported in us-east-1
@@ -192,7 +192,7 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, nil
 	}
 
-	name := d.EqualsQuals["repository_name"].GetStringValue()
+	name := d.KeyColumnQuals["repository_name"].GetStringValue()
 
 	// Create Session
 	svc, err := ECRPublicClient(ctx, d)

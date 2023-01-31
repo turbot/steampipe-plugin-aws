@@ -8,9 +8,9 @@ import (
 
 	elbv2v1 "github.com/aws/aws-sdk-go/service/elbv2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -172,7 +172,7 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 	maxLimit := int32(400)
 
 	// Additional Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		input.Names = []string{equalQuals["name"].GetStringValue()}
 	} else {
@@ -213,7 +213,7 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 				d.StreamListItem(ctx, items)
 
 				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.RowsRemaining(ctx) == 0 {
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return nil, nil
 				}
 			}
@@ -226,7 +226,7 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 //// HYDRATE FUNCTIONS
 
 func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	loadBalancerArn := d.EqualsQuals["arn"].GetStringValue()
+	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// check if arn is empty
 	if loadBalancerArn == "" {

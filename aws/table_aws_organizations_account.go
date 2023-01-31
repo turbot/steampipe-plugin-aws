@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
@@ -137,7 +137,7 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 			d.StreamListItem(ctx, account)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -149,7 +149,7 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 //// HYDRATE FUNCTIONS
 
 func getOrganizationsAccount(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	accountId := d.EqualsQuals["id"].GetStringValue()
+	accountId := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)

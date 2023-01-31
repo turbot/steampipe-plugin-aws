@@ -10,9 +10,9 @@ import (
 
 	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
@@ -127,7 +127,7 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	// Additonal Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		input.LogGroupNamePrefix = aws.String(equalQuals["name"].GetStringValue())
 	}
@@ -143,7 +143,7 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, logGroup)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -162,7 +162,7 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-	name := d.EqualsQuals["name"].GetStringValue()
+	name := d.KeyColumnQuals["name"].GetStringValue()
 	if strings.TrimSpace(name) == "" {
 		return nil, nil
 	}

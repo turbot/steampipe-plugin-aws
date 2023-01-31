@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 // Columns defined on every account-level resource (e.g. aws_iam_access_key)
@@ -103,19 +103,19 @@ type awsCommonColumnData struct {
 
 // if the caching is required other than per connection, build a cache key for the call and use it in Memoize
 // since getCommonColumns is a multi-region call, caching should be per connection per region
-var getCommonColumns = plugin.HydrateFunc(getCommonColumnsUncached).Memoize(plugin.WithCacheKeyFunction(getCommonColumnsCacheKey))
+var getCommonColumns = plugin.HydrateFunc(getCommonColumnsUncached).WithCache(getCommonColumnsCacheKey)
 
 // Build a cache key for the call to getCommonColumns, including the region since this is a multi-region call.
 // Notably, this may be called WITHOUT a region. In that case we just share a cache for non-region data.
 func getCommonColumnsCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	key := fmt.Sprintf("getCommonColumns-%s", region)
 	return key, nil
 }
 
 // get columns which are returned with all tables: region, partition and account
 func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		region = "global"
 	}
@@ -147,7 +147,7 @@ func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugi
 // define cached version of getCallerIdentity and getCommonColumns
 // by default, Memoize cached the data per connection
 // if no argument is passed in Memoize, the cache key will be in the format of <function_name>-<connection_name>
-var getCallerIdentity = plugin.HydrateFunc(getCallerIdentityUncached).Memoize()
+var getCallerIdentity = plugin.HydrateFunc(getCallerIdentityUncached).WithCache()
 
 // returns details about the IAM user or role whose credentials are used to call the operation
 func getCallerIdentityUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {

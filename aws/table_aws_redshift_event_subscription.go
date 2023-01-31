@@ -10,9 +10,9 @@ import (
 
 	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
@@ -154,7 +154,7 @@ func listRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ 
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -173,7 +173,7 @@ func getRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
-	name := d.EqualsQuals["cust_subscription_id"].GetStringValue()
+	name := d.KeyColumnQuals["cust_subscription_id"].GetStringValue()
 
 	// Return nil, if no input provided
 	if name == "" {
@@ -199,7 +199,7 @@ func getRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _ *p
 }
 
 func getRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(types.EventSubscription)
 
 	c, err := getCommonColumns(ctx, d, h)

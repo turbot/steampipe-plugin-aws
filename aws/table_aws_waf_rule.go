@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/waf/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsWAFRule(_ context.Context) *plugin.Table {
@@ -118,7 +118,7 @@ func listAwsWAFRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			d.StreamListItem(ctx, rule)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -147,7 +147,7 @@ func getAwsWAFRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	if h.Item != nil {
 		id = ruleData(h.Item)
 	} else {
-		id = d.EqualsQuals["rule_id"].GetStringValue()
+		id = d.KeyColumnQuals["rule_id"].GetStringValue()
 	}
 
 	// Build the params
@@ -176,7 +176,7 @@ func getAwsWAFRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if h.Item != nil {
 		id = ruleData(h.Item)
 	} else {
-		id = d.EqualsQuals["rule_id"].GetStringValue()
+		id = d.KeyColumnQuals["rule_id"].GetStringValue()
 	}
 
 	commonAwsColumns, err := getCommonColumns(ctx, d, h)

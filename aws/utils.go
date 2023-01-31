@@ -13,8 +13,8 @@ import (
 
 	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func arnToAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {

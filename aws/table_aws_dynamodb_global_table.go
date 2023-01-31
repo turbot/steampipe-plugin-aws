@@ -10,9 +10,9 @@ import (
 	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
 
 	go_kit_pack "github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
@@ -115,7 +115,7 @@ func listDynamoDBGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// Additonal Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["global_table_name"] != nil {
 		input.ExclusiveStartGlobalTableName = go_kit_pack.String(equalQuals["global_table_name"].GetStringValue())
 	}
@@ -133,7 +133,7 @@ func listDynamoDBGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plugi
 		})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.RowsRemaining(ctx) == 0 {
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			break
 		}
 	}
@@ -150,7 +150,7 @@ func getDynamoDBGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin.
 		data := h.Item.(types.GlobalTableDescription)
 		name = go_kit_pack.SafeString(data.GlobalTableName)
 	} else {
-		name = d.EqualsQuals["global_table_name"].GetStringValue()
+		name = d.KeyColumnQuals["global_table_name"].GetStringValue()
 	}
 
 	// Create Session

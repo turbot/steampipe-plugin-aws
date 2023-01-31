@@ -8,9 +8,9 @@ import (
 
 	drsv1 "github.com/aws/aws-sdk-go/service/drs"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
@@ -151,8 +151,8 @@ func listAwsDRSRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	input.MaxResults = int32(maxItems)
-	sourceServerID := d.EqualsQualString("source_server_id")
-	recoveryInstanceId := d.EqualsQualString("recovery_instance_id")
+	sourceServerID := d.KeyColumnQualString("source_server_id")
+	recoveryInstanceId := d.KeyColumnQualString("recovery_instance_id")
 
 	filter := &types.DescribeRecoveryInstancesRequestFilters{}
 
@@ -182,7 +182,7 @@ func listAwsDRSRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, recoveryInstance)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

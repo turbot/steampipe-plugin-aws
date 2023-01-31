@@ -8,9 +8,9 @@ import (
 
 	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -110,7 +110,7 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	hubArn := d.EqualsQuals["hub_arn"].GetStringValue()
+	hubArn := d.KeyColumnQuals["hub_arn"].GetStringValue()
 
 	// Create session
 	svc, err := SecurityHubClient(ctx, d)

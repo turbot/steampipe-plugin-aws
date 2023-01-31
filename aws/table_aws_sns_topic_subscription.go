@@ -10,9 +10,9 @@ import (
 
 	"github.com/turbot/go-kit/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -164,7 +164,7 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 				},
 			})
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -181,7 +181,7 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 		data := h.Item.(*sns.GetSubscriptionAttributesOutput)
 		arn = types.SafeString(data.Attributes["SubscriptionArn"])
 	} else {
-		arn = d.EqualsQuals["subscription_arn"].GetStringValue()
+		arn = d.KeyColumnQuals["subscription_arn"].GetStringValue()
 	}
 
 	if arn == "" {

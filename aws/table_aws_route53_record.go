@@ -10,9 +10,9 @@ import (
 	route53Types "github.com/aws/aws-sdk-go-v2/service/route53/types"
 	"github.com/turbot/go-kit/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsRoute53Record(_ context.Context) *plugin.Table {
@@ -141,7 +141,7 @@ type recordInfo struct {
 //// LIST FUNCTION
 
 func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	hostedZoneID := d.EqualsQuals["zone_id"].GetStringValue()
+	hostedZoneID := d.KeyColumnQuals["zone_id"].GetStringValue()
 
 	// Create session
 	svc, err := Route53Client(ctx, d)
@@ -167,7 +167,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		MaxItems:     aws.Int32(maxItems),
 	}
 
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
 
@@ -197,7 +197,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 			d.StreamListItem(ctx, &recordInfo{aws.String(hostedZoneID), record})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

@@ -9,9 +9,9 @@ import (
 
 	resourcegroupstaggingapiv1 "github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsTaggingResource(_ context.Context) *plugin.Table {
@@ -132,7 +132,7 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 			d.StreamListItem(ctx, resource)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -144,7 +144,7 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// HYDRATE FUNCTIONS
 
 func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	arn := d.EqualsQuals["arn"].GetStringValue()
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create session
 	svc, err := ResourceGroupsTaggingClient(ctx, d)

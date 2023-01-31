@@ -9,9 +9,9 @@ import (
 
 	pipesv1 "github.com/aws/aws-sdk-go/service/pipes"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsPipes(_ context.Context) *plugin.Table {
@@ -176,17 +176,17 @@ func listAwsPipes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		Limit: aws.Int32(maxLimit),
 	}
 
-	if d.EqualsQualString("current_state") != "" {
-		params.CurrentState = types.PipeState(d.EqualsQualString("current_state"))
+	if d.KeyColumnQualString("current_state") != "" {
+		params.CurrentState = types.PipeState(d.KeyColumnQualString("current_state"))
 	}
-	if d.EqualsQualString("desired_state") != "" {
-		params.DesiredState = types.RequestedPipeState(d.EqualsQualString("desired_state"))
+	if d.KeyColumnQualString("desired_state") != "" {
+		params.DesiredState = types.RequestedPipeState(d.KeyColumnQualString("desired_state"))
 	}
-	if d.EqualsQualString("source_prefix") != "" {
-		params.SourcePrefix = aws.String(d.EqualsQualString("source_prefix"))
+	if d.KeyColumnQualString("source_prefix") != "" {
+		params.SourcePrefix = aws.String(d.KeyColumnQualString("source_prefix"))
 	}
-	if d.EqualsQualString("target_prefix") != "" {
-		params.TargetPrefix = aws.String(d.EqualsQualString("target_prefix"))
+	if d.KeyColumnQualString("target_prefix") != "" {
+		params.TargetPrefix = aws.String(d.KeyColumnQualString("target_prefix"))
 	}
 
 	// API doesn't support aws-go-sdk-v2 paginator as of date
@@ -200,7 +200,7 @@ func listAwsPipes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		for _, item := range output.Pipes {
 			d.StreamListItem(ctx, item)
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -232,8 +232,8 @@ func getAwsPipe(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	}
 
 	var name string
-	if d.EqualsQualString("name") != "" {
-		name = d.EqualsQualString("name")
+	if d.KeyColumnQualString("name") != "" {
+		name = d.KeyColumnQualString("name")
 	} else {
 		pipe := h.Item.(types.Pipe)
 		name = *pipe.Name

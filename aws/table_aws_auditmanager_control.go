@@ -9,9 +9,9 @@ import (
 
 	auditmanagerv1 "github.com/aws/aws-sdk-go/service/auditmanager"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -190,7 +190,7 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 			d.StreamListItem(ctx, items)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -220,7 +220,7 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 			d.StreamListItem(ctx, items)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -247,7 +247,7 @@ func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if h.Item != nil {
 		id = *h.Item.(types.ControlMetadata).Id
 	} else {
-		id = d.EqualsQuals["id"].GetStringValue()
+		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
 	// Handle empty input id

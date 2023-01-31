@@ -9,9 +9,9 @@ import (
 
 	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
@@ -146,7 +146,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	// Additonal Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["backup_type"] != nil {
 		input.BackupType = types.BackupTypeFilter(equalQuals["backup_type"].GetStringValue())
 	}
@@ -170,7 +170,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			d.StreamListItem(ctx, backup)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				break
 			}
 		}
@@ -183,7 +183,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	arn := d.EqualsQuals["arn"].GetStringValue()
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create Session
 	svc, err := DynamoDBClient(ctx, d)

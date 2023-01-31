@@ -8,9 +8,9 @@ import (
 
 	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 type filterInfo = struct {
@@ -112,7 +112,7 @@ func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, err
 	}
 
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	// Minimize the API call with the given detector_id
 	if equalQuals["detector_id"] != nil {
 		if equalQuals["detector_id"].GetStringValue() != id {
@@ -149,7 +149,7 @@ func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin
 			d.StreamListItem(ctx, filterInfo{Name: item, DetectorId: id})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -175,8 +175,8 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		detectorID = h.Item.(filterInfo).DetectorId
 		name = h.Item.(filterInfo).Name
 	} else {
-		detectorID = d.EqualsQuals["detector_id"].GetStringValue()
-		name = d.EqualsQuals["name"].GetStringValue()
+		detectorID = d.KeyColumnQuals["detector_id"].GetStringValue()
+		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// check if name or detectorID is empty
@@ -204,7 +204,7 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func getAwsGuardDutyFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(filterInfo)
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {

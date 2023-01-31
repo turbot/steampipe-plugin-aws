@@ -10,9 +10,9 @@ import (
 
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
@@ -170,7 +170,7 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, endpointService)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -188,7 +188,7 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	serviceName := d.EqualsQuals["service_name"].GetStringValue()
+	serviceName := d.KeyColumnQuals["service_name"].GetStringValue()
 
 	// get service
 	svc, err := EC2Client(ctx, d)
@@ -290,7 +290,7 @@ func getVpcEndpointConnections(ctx context.Context, d *plugin.QueryData, h *plug
 
 func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	endpointService := h.Item.(types.ServiceDetail)
 
 	commonData, err := getCommonColumns(ctx, d, h)

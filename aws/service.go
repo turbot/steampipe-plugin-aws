@@ -119,7 +119,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
@@ -306,7 +306,7 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 	// number of retries to avoid hangs. In effect, this service IGNORES the retry
 	// configuration in aws.spc - but, good enough for something that is rarely used
 	// anyway.
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
 	if err != nil {
 		return nil, err
@@ -1373,7 +1373,7 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 func getClientForQuerySupportedRegionWithExclusions(ctx context.Context, d *plugin.QueryData, serviceID string, excludeRegions []string) (*aws.Config, error) {
 
 	// Verify we have good region data
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
@@ -1418,7 +1418,7 @@ func getClientForLastResortRegion(ctx context.Context, d *plugin.QueryData) (*aw
 
 // Helper function to get the session for a region set in query data
 func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
@@ -1449,7 +1449,7 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 
 // Cached form of getClient, using the per-connection and parallel safe
 // Memoize() method.
-var getClientCached = plugin.HydrateFunc(getClientUncached).Memoize(plugin.WithCacheKeyFunction(getClientCacheKey))
+var getClientCached = plugin.HydrateFunc(getClientUncached).WithCache(getClientCacheKey)
 
 // getClient is per-region, but Memoize() is per-connection, so a setup
 // a custom cache key with region information in it.
@@ -1597,7 +1597,7 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 // If we expire the cache regularly we are causing SSO sessions to end
 // prematurely, and causing the AWS SDK to refresh credentials more often
 // using the IDMS service etc.
-var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(plugin.WithTtl(time.Hour * 24 * 30))
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).WithCache()
 
 // Do the actual work of creating an AWS config object for reuse across many
 // regions. This client has the minimal reusable configuration on it, so it

@@ -10,9 +10,9 @@ import (
 
 	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -140,7 +140,7 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			d.StreamListItem(ctx, apiGatewayV2Api)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -171,7 +171,7 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, nil
 	}
 
-	id := d.EqualsQuals["api_id"].GetStringValue()
+	id := d.KeyColumnQuals["api_id"].GetStringValue()
 	params := &apigatewayv2.GetApiInput{
 		ApiId: aws.String(id),
 	}
@@ -200,7 +200,7 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 }
 
 func getAPIGatewayV2APIAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := ""
 
 	switch h.Item.(type) {

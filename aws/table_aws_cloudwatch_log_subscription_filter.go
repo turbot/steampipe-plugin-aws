@@ -11,9 +11,9 @@ import (
 
 	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsCloudwatchLogSubscriptionFilter(_ context.Context) *plugin.Table {
@@ -114,7 +114,7 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 	}
 
 	// Additonal Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		input.FilterNamePrefix = aws.String(equalQuals["name"].GetStringValue())
 	}
@@ -157,7 +157,7 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 			d.StreamListItem(ctx, subscriptionFilter)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -169,11 +169,11 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 //// HYDRATE FUNCTIONS
 
 func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	if d.EqualsQuals["name"] == nil || d.EqualsQuals["log_group_name"] == nil {
+	if d.KeyColumnQuals["name"] == nil || d.KeyColumnQuals["log_group_name"] == nil {
 		return nil, nil
 	}
-	name := d.EqualsQuals["name"].GetStringValue()
-	logGroupName := d.EqualsQuals["log_group_name"].GetStringValue()
+	name := d.KeyColumnQuals["name"].GetStringValue()
+	logGroupName := d.KeyColumnQuals["log_group_name"].GetStringValue()
 
 	// Empty input check
 	if strings.TrimSpace(name) == "" || strings.TrimSpace(logGroupName) == "" {
@@ -207,7 +207,7 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 }
 
 func getCloudwatchLogSubscriptionFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	subscriptionFilter := h.Item.(types.SubscriptionFilter)
 
 	commonData, err := getCommonColumns(ctx, d, h)

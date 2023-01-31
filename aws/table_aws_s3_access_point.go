@@ -12,9 +12,9 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -157,7 +157,7 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	// Create Session
 	svc, err := S3ControlClient(ctx, d, region)
 	if err != nil {
@@ -187,7 +187,7 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		MaxResults: maxItems,
 	}
 
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["bucket_name"] != nil {
 		if equalQuals["bucket_name"].GetStringValue() != "" {
 			input.Bucket = aws.String(equalQuals["bucket_name"].GetStringValue())
@@ -210,7 +210,7 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 			d.StreamListItem(ctx, accessPoint)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -222,7 +222,7 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	matrixRegion := d.EqualsQualString(matrixKeyRegion)
+	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
 
@@ -250,8 +250,8 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		name = *h.Item.(types.AccessPoint).Name
 		region = matrixRegion
 	} else {
-		name = d.EqualsQuals["name"].GetStringValue()
-		region = d.EqualsQuals["region"].GetStringValue()
+		name = d.KeyColumnQuals["name"].GetStringValue()
+		region = d.KeyColumnQuals["region"].GetStringValue()
 	}
 
 	// Return nil, if given region doesn't match config region
@@ -276,7 +276,7 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
 
@@ -324,7 +324,7 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 }
 
 func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
 
@@ -373,7 +373,7 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 func getAccessPointArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	accessPointName := accessPointName(h.Item)
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
 

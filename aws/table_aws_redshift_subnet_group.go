@@ -9,9 +9,9 @@ import (
 
 	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -131,7 +131,7 @@ func listRedshiftSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -143,7 +143,7 @@ func listRedshiftSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	clusterSubnetGroupName := d.EqualsQuals["cluster_subnet_group_name"].GetStringValue()
+	clusterSubnetGroupName := d.KeyColumnQuals["cluster_subnet_group_name"].GetStringValue()
 
 	// Return nil, if no input provided
 	if clusterSubnetGroupName == "" {
@@ -175,7 +175,7 @@ func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.ClusterSubnetGroup)
 
 	commonData, err := getCommonColumns(ctx, d, h)

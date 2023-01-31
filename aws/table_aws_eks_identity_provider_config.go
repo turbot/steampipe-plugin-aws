@@ -9,9 +9,9 @@ import (
 
 	eksv1 "github.com/aws/aws-sdk-go/service/eks"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 type IdentityProviderConfig struct {
@@ -182,7 +182,7 @@ func listEKSIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 			}})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -200,9 +200,9 @@ func getEKSIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *p
 		providerConfigName = *h.Item.(*IdentityProviderConfig).Name
 		providerConfigType = *h.Item.(*IdentityProviderConfig).Type
 	} else {
-		clusterName = d.EqualsQuals["cluster_name"].GetStringValue()
-		providerConfigName = d.EqualsQuals["name"].GetStringValue()
-		providerConfigType = d.EqualsQuals["type"].GetStringValue()
+		clusterName = d.KeyColumnQuals["cluster_name"].GetStringValue()
+		providerConfigName = d.KeyColumnQuals["name"].GetStringValue()
+		providerConfigType = d.KeyColumnQuals["type"].GetStringValue()
 	}
 
 	// create service

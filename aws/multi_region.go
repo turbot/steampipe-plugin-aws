@@ -75,8 +75,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v5/logging"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/logging"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 const matrixKeyRegion = "region"
@@ -253,7 +253,7 @@ func listRegionsForService(ctx context.Context, d *plugin.QueryData, serviceID s
 
 // List all regions for a given service, defined to work with Memoize().
 // Call listRegionsForService() instead of using this directly.
-var listRegionsForServiceCached = plugin.HydrateFunc(listRegionsForServiceUncached).Memoize(plugin.WithCacheKeyFunction(listRegionsForServiceCacheKey))
+var listRegionsForServiceCached = plugin.HydrateFunc(listRegionsForServiceUncached).WithCache(listRegionsForServiceCacheKey)
 
 // List all regions for a given service in the partition for this connection, but
 // manually exclude any regions in excludeRegions.
@@ -344,7 +344,7 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 }
 
 // The list of regions is constant on a per-connection basis, so we cache it.
-var listRegionsCached = plugin.HydrateFunc(listRegionsUncached).Memoize()
+var listRegionsCached = plugin.HydrateFunc(listRegionsUncached).WithCache()
 
 // Region data is complicated. Every account may have different combinations
 // of regions based on opt-ins, partition, etc. This function is responsible
@@ -423,7 +423,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 // Cached list of regions actually active in the AWS account.
-var listRawAwsRegions = plugin.HydrateFunc(listRawAwsRegionsUncached).Memoize()
+var listRawAwsRegions = plugin.HydrateFunc(listRawAwsRegionsUncached).WithCache()
 
 // List regions for this AWS account connection by calling the EC2
 // DescribeRegions API. The call is done using the default region (hopefully
@@ -502,7 +502,7 @@ func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 // The default region is cached on a per-connection basis to prevent re-lookup
 // and recalculations from the configuration.
-var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).Memoize()
+var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).WithCache()
 
 // Calculate the region we want to use by default for the plugin.
 // It's complicated, because there are many different configuration sources

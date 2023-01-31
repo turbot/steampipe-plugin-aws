@@ -8,9 +8,9 @@ import (
 
 	elasticsearchservicev1 "github.com/aws/aws-sdk-go/service/elasticsearchservice"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
@@ -242,7 +242,7 @@ func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *pl
 		})
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.RowsRemaining(ctx) == 0 {
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -257,7 +257,7 @@ func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plug
 	if h.Item != nil {
 		domainname = *h.Item.(types.ElasticsearchDomainStatus).DomainName
 	} else {
-		domainname = d.EqualsQuals["domain_name"].GetStringValue()
+		domainname = d.KeyColumnQuals["domain_name"].GetStringValue()
 	}
 
 	// Create Session

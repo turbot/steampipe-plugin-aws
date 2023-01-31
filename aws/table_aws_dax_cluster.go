@@ -10,9 +10,9 @@ import (
 
 	daxv1 "github.com/aws/aws-sdk-go/service/dax"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -195,7 +195,7 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	// Additonal Filter
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["cluster_name"] != nil {
 		params.ClusterNames = []string{equalQuals["cluster_name"].GetStringValue()}
 	}
@@ -211,7 +211,7 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			d.StreamListItem(ctx, cluster)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -242,7 +242,7 @@ func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, nil
 	}
 
-	quals := d.EqualsQuals
+	quals := d.KeyColumnQuals
 	name := quals["cluster_name"].GetStringValue()
 
 	params := &dax.DescribeClustersInput{

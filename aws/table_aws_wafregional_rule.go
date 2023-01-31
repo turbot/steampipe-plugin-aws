@@ -13,9 +13,9 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
@@ -125,7 +125,7 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, rule)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -158,7 +158,7 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if h.Item != nil {
 		id = regionalRuleData(h.Item)
 	} else {
-		id = d.EqualsQuals["rule_id"].GetStringValue()
+		id = d.KeyColumnQuals["rule_id"].GetStringValue()
 	}
 
 	// Build the params
@@ -183,7 +183,7 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getAwsWAFRegionalRuleArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := regionalRuleData(h.Item)
 
 	c, err := getCommonColumns(ctx, d, h)

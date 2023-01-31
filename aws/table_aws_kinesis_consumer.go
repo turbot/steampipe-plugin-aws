@@ -9,9 +9,9 @@ import (
 
 	kinesisv1 "github.com/aws/aws-sdk-go/service/kinesis"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -82,7 +82,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 
 func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -136,7 +136,7 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		for _, consumerData := range output.Consumers {
 			d.StreamListItem(ctx, consumerData)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -151,7 +151,7 @@ func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		i := h.Item.(types.Consumer)
 		arn = *i.ConsumerARN
 	} else {
-		arn = d.EqualsQuals["consumer_arn"].GetStringValue()
+		arn = d.KeyColumnQuals["consumer_arn"].GetStringValue()
 	}
 
 	// Create Session

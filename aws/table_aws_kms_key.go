@@ -14,9 +14,9 @@ import (
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -230,7 +230,7 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 			d.StreamListItem(ctx, key)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -242,7 +242,7 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 //// HYDRATE FUNCTIONS
 
 func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	keyID := d.EqualsQuals["id"].GetStringValue()
+	keyID := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Empty id check
 	if strings.TrimSpace(keyID) == "" {

@@ -8,9 +8,9 @@ import (
 
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -173,7 +173,7 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		d.StreamListItem(ctx, vpnConnection)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.RowsRemaining(ctx) == 0 {
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -185,7 +185,7 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	vpnConnectionID := d.EqualsQuals["vpn_connection_id"].GetStringValue()
+	vpnConnectionID := d.KeyColumnQuals["vpn_connection_id"].GetStringValue()
 
 	// Create session
 	svc, err := EC2Client(ctx, d)
@@ -214,7 +214,7 @@ func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getVpcVpnConnectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	vpnConnection := h.Item.(types.VpnConnection)
-	region := d.EqualsQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {

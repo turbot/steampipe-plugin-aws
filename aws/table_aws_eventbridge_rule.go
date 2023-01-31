@@ -10,9 +10,9 @@ import (
 
 	"github.com/turbot/go-kit/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
@@ -131,7 +131,7 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 		data := h.Item.(*eventbridge.DescribeEventBusOutput)
 		eventBusName = types.SafeString(data.Name)
 	} else {
-		eventBusName = d.EqualsQuals["name"].GetStringValue()
+		eventBusName = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// Get client
@@ -167,7 +167,7 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 		params.EventBusName = &eventBusName
 	}
 
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["name_prefix"] != nil {
 		params.NamePrefix = aws.String(equalQuals["name_prefix"].GetStringValue())
 	}
@@ -189,7 +189,7 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -212,7 +212,7 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if h.Item != nil {
 		name = *h.Item.(*eventbridge.DescribeRuleOutput).Name
 	} else {
-		name = d.EqualsQuals["name"].GetStringValue()
+		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// Create Session
@@ -327,8 +327,8 @@ func eventBridgeTagListToTurbotTags(ctx context.Context, d *transform.TransformD
 //// UTILITY FUNCTIONS
 
 func getNamePrefixValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	if d.EqualsQuals["name_prefix"].GetStringValue() != "" {
-		return d.EqualsQuals["name_prefix"].GetStringValue(), nil
+	if d.KeyColumnQuals["name_prefix"].GetStringValue() != "" {
+		return d.KeyColumnQuals["name_prefix"].GetStringValue(), nil
 	} else {
 		return h.Item.(*eventbridge.DescribeRuleOutput).Name, nil
 	}

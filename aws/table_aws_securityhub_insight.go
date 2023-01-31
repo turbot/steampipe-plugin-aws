@@ -8,9 +8,9 @@ import (
 
 	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -125,7 +125,7 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, insight)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -138,7 +138,7 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 func getSecurityHubInsight(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	arn := d.EqualsQuals["arn"].GetStringValue()
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Entry check
 	if arn == "" {

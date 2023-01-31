@@ -9,9 +9,9 @@ import (
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -213,7 +213,7 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		MaxResults: maxLimit,
 	}
 
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["workload_name"] != nil {
 		if equalQuals["workload_name"].GetStringValue() != "" {
 			input.WorkloadNamePrefix = aws.String(equalQuals["workload_name"].GetStringValue())
@@ -237,7 +237,7 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -253,7 +253,7 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 	if h.Item != nil {
 		id = workloadID(h.Item)
 	} else {
-		quals := d.EqualsQuals
+		quals := d.KeyColumnQuals
 		id = quals["workload_id"].GetStringValue()
 	}
 

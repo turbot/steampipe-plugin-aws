@@ -9,9 +9,9 @@ import (
 
 	ramv1 "github.com/aws/aws-sdk-go/service/ram"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsRAMResourceAssociation(_ context.Context) *plugin.Table {
@@ -140,7 +140,7 @@ func listResourceShareAssociations(associationType string) func(ctx context.Cont
 				d.StreamListItem(ctx, items)
 
 				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.RowsRemaining(ctx) == 0 {
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return nil, nil
 				}
 			}

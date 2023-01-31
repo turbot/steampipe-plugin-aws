@@ -4,12 +4,12 @@ import (
 	"context"
 
 	go_kit_types "github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 
 	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/account/types"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -152,8 +152,8 @@ func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	var linkedAccountID string
-	if d.EqualsQuals["linked_account_id"] != nil {
-		linkedAccountID = d.EqualsQuals["linked_account_id"].GetStringValue()
+	if d.KeyColumnQuals["linked_account_id"] != nil {
+		linkedAccountID = d.KeyColumnQuals["linked_account_id"].GetStringValue()
 	} else {
 		linkedAccountID = commonColumnData.AccountId
 	}

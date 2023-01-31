@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
@@ -176,7 +176,7 @@ func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, sv
 			d.StreamListItem(ctx, policies)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				pagesLeft = false
 			}
 		}
@@ -198,8 +198,8 @@ func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		id = *trafficPolicy.Id
 		version = *trafficPolicy.Version
 	} else {
-		id = d.EqualsQuals["id"].GetStringValue()
-		version = int32(d.EqualsQuals["version"].GetInt64Value())
+		id = d.KeyColumnQuals["id"].GetStringValue()
+		version = int32(d.KeyColumnQuals["version"].GetInt64Value())
 	}
 
 	// Validate if input params are empty

@@ -12,9 +12,9 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -199,7 +199,7 @@ func listElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, 
 		MaxRecords: aws.Int32(1000),
 	}
 
-	equalQuals := d.EqualsQuals
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["application_name"] != nil {
 		params.ApplicationName = aws.String(equalQuals["application_name"].GetStringValue())
 	}
@@ -229,7 +229,7 @@ func listElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, 
 			d.StreamListItem(ctx, environment)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -263,7 +263,7 @@ func getElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData, h 
 	if h.Item != nil {
 		name = *h.Item.(types.EnvironmentDescription).EnvironmentName
 	} else {
-		name = d.EqualsQuals["environment_name"].GetStringValue()
+		name = d.KeyColumnQuals["environment_name"].GetStringValue()
 	}
 
 	// Return nil, if no input provided

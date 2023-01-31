@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
@@ -108,7 +108,7 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostAndUsage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildInputFromQuals(d.EqualsQuals)
+	params := buildInputFromQuals(d.KeyColumnQuals)
 	return streamCostAndUsage(ctx, d, params)
 }
 
@@ -154,10 +154,10 @@ func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.Get
 
 // func hydrateKeyQuals(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 // 	plugin.Logger(ctx).Trace("hydrateKeyQuals")
-// 	plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
+// 	plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.KeyColumnQuals", d.KeyColumnQuals)
 // 	quals := make(map[string]interface{})
 
-// 	for k, v := range d.EqualsQuals {
+// 	for k, v := range d.KeyColumnQuals {
 // 		quals[k] = v.Value
 // 	}
 // 	plugin.Logger(ctx).Warn("hydrateKeyQuals", "quals", quals)
