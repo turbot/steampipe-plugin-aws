@@ -16,9 +16,11 @@
           },
           "Block": null,
           "Captcha": null,
+          "Challenge": null,
           "Count": null
         },
         "CaptchaConfig": null,
+        "ChallengeConfig": null,
         "Name": "rule-1",
         "OverrideAction": null,
         "Priority": 1,
