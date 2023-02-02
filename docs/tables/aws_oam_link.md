@@ -22,7 +22,7 @@ from
 ```sql
 select
   l.id,
-  l.arn
+  l.arn,
   s.name as sink_name,
   l.sink_arn
 from
