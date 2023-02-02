@@ -57,10 +57,9 @@ select
   name as firewall_policy_name,
   firewall_policy_status,
   firewall_policy -> 'StatefulDefaultActions' as stateful_default_actions,
-  r as stateful_rule_group_references
+  firewall_policy -> 'StatefulRuleGroupReferences' as stateful_rule_group_references
 from
-  aws_networkfirewall_firewall_policy,
-  jsonb_array_elements(firewall_policy -> 'StatefulRuleGroupReferences') as r;
+  aws_networkfirewall_firewall_policy;
 ```
 
 ### Get policy's default stateless actions and rule group details for full packets
@@ -71,10 +70,9 @@ select
   name as firewall_policy_name,
   firewall_policy_status,
   firewall_policy -> 'StatelessDefaultActions' as stateless_default_actions,
-  r as stateless_rule_group_references
+  firewall_policy -> 'StatelessRuleGroupReferences' as stateless_rule_group_references
 from
-  aws_networkfirewall_firewall_policy,
-  jsonb_array_elements(firewall_policy -> 'StatelessRuleGroupReferences') as r;
+  aws_networkfirewall_firewall_policy;
 ```
 
 ### Get policy's default stateless actions and rule group details for fragmented packets
