@@ -11,7 +11,7 @@ select
   id,
   arn,
   sink_arn,
-  lable,
+  label,
   resource_types
 from
   aws_oam_link;
