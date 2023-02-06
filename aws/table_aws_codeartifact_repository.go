@@ -41,7 +41,7 @@ func tableAwsCodeArtifactRepository(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCodeArtifactRepositories,
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getCodeArtifactRepositoryEndpoints,
 				Depends: []plugin.HydrateFunc{getCodeArtifactRepository},

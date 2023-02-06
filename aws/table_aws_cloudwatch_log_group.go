@@ -202,12 +202,12 @@ func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 
-	params := &cloudwatchlogs.ListTagsLogGroupInput{
-		LogGroupName: logGroup.LogGroupName,
+	params := &cloudwatchlogs.ListTagsForResourceInput{
+		ResourceArn: logGroup.Arn,
 	}
 
 	// List resource tags
-	logGroupData, err := svc.ListTagsLogGroup(ctx, params)
+	logGroupData, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getLogGroupTagging", "api_error", err)
 		return nil, err
