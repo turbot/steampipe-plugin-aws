@@ -20,7 +20,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Managed Prefix List",
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction", "InvalidRequest"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction", "InvalidRequest", "UnsupportedOperation"}),
 			},
 			Hydrate: listManagedPrefixList,
 			KeyColumns: []*plugin.KeyColumn{
