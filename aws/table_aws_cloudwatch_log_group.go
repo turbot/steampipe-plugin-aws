@@ -34,6 +34,10 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("LogGroupName"),
 			},
+
+			// Most CloudWatch APIs' inputs only accept a CloudWatch log group ARN without ":" at the end, but the
+			// DescribeLogGroups API returns an ARN with ":*", which we've chosen to keep to better match what AWS shows
+			// in their console and documentation.
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the log group.",
