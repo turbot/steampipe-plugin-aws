@@ -1609,6 +1609,9 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	awsSpcConfig := GetConfig(d.Connection)
 
 	var configOptions []func(*config.LoadOptions) error
+	// configOptions := []func(*config.LoadOptions) error{
+	// 	config.WithRegion("us-east-2"),
+	// }
 
 	// Note about region config: We deliberately do not set a region when
 	// creating the config. It will load the best region for this account
