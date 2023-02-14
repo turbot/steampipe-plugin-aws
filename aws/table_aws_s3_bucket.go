@@ -455,7 +455,7 @@ func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Create client
 	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketVersioning", "client_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketEncryption", "client_error", err)
 		return nil, err
 	}
 	params := &s3.GetBucketEncryptionInput{
