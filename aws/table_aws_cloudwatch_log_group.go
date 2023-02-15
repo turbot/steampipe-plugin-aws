@@ -25,12 +25,6 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogGroups,
-			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "name",
-					Require: plugin.Optional,
-				},
-			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -40,6 +34,10 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("LogGroupName"),
 			},
+
+			// Most CloudWatch APIs' inputs only accept a CloudWatch log group ARN without ":" at the end, but the
+			// DescribeLogGroups API returns an ARN with ":*", which we've chosen to keep to better match what AWS shows
+			// in their console and documentation.
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the log group.",
@@ -99,7 +97,7 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	// Get client
 	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.listCloudwatchLogGroups", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.listCloudwatchLogGroups", "client_error", err)
 		return nil, err
 	}
 
@@ -126,16 +124,10 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 		o.StopOnDuplicateToken = true
 	})
 
-	// Additonal Filter
-	equalQuals := d.EqualsQuals
-	if equalQuals["name"] != nil {
-		input.LogGroupNamePrefix = aws.String(equalQuals["name"].GetStringValue())
-	}
-
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Info("aws_cloudwatch_log_group.listCloudwatchLogGroups", "api_error", err)
+			plugin.Logger(ctx).Error("aws_cloudwatch_log_group.listCloudwatchLogGroups", "api_error", err)
 			return nil, err
 		}
 
@@ -158,10 +150,11 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	// Get client
 	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroup", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getCloudwatchLogGroup", "client_error", err)
 		return nil, err
 	}
 
+	// check if name is empty
 	name := d.EqualsQuals["name"].GetStringValue()
 	if strings.TrimSpace(name) == "" {
 		return nil, nil
@@ -171,22 +164,14 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		LogGroupNamePrefix: aws.String(name),
 	}
 
-	paginator := cloudwatchlogs.NewDescribeLogGroupsPaginator(svc, params, func(o *cloudwatchlogs.DescribeLogGroupsPaginatorOptions) {
-		o.StopOnDuplicateToken = true
-	})
+	item, err := svc.DescribeLogGroups(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getCloudwatchLogGroup", "api_error", err)
+		return nil, err
+	}
 
-	for paginator.HasMorePages() {
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroup", "api_error", err)
-			return nil, err
-		}
-
-		for _, logGroup := range output.LogGroups {
-			if *logGroup.LogGroupName == name {
-				return logGroup, nil
-			}
-		}
+	if len(item.LogGroups) > 0 {
+		return item.LogGroups[0], nil
 	}
 
 	return nil, nil
@@ -195,22 +180,28 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logGroup := h.Item.(types.LogGroup)
 
+	// https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/iam-access-control-overview-cwl.html
+	// DescribeLogGroups API returns the logGroup arn format arn:aws:logs:region:account-id:log-group:log_group_name:*
+	// ListTagsForResource API support the logGroup arn format arn:aws:logs:region:account-id:log-group:log_group_name
+	logGroupArn := strings.TrimSuffix(*logGroup.Arn, ":*")
+
 	// Create session
 	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getLogGroupTagging", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getLogGroupTagging", "client_error", err)
 		return nil, err
 	}
 
 	params := &cloudwatchlogs.ListTagsForResourceInput{
-		ResourceArn: logGroup.Arn,
+		ResourceArn: aws.String(logGroupArn),
 	}
 
 	// List resource tags
 	logGroupData, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getLogGroupTagging", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getLogGroupTagging", "api_error", err)
 		return nil, err
 	}
+
 	return logGroupData, nil
 }
