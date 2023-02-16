@@ -1528,9 +1528,17 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		return nil, err
 	}
 	cfg := baseCfg.Copy()
+	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "copy_base_config")
 
-	// Set the region for this client
+	// Set the region for this client, which may override the base client's
+	// region.
+	// The base client needs to have a region set as the AWS SDK will not use
+	// the region set directly in "cfg.Region" when making background
+	// sts:AssumeRole API calls for IAM role authentication, resulting in
+	// a signing error for future API calls:
+	// Error: operation error CloudFront: ListDistributions, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, failed to resolve service endpoint, an AWS region is required, but was not found
 	cfg.Region = region
+	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "set_client_region")
 
 	// Add the retryer definition
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
@@ -1672,6 +1680,29 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	if err != nil {
 		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
 		return nil, err
+	}
+
+	// Even though we create a client per region and set the region during that
+	// step, we need to pass a region in the config options if the AWS SDK could
+	// not resolve a region from environment variables or the AWS config.
+	// This region is used by the AWS SDK when making background sts:AssumeRole
+	// API calls for IAM role authentication, so if it's not set here, a signing
+	// error is thrown when making API calls:
+	// Error: operation error CloudFront: ListDistributions, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, failed to resolve service endpoint, an AWS region is required, but was not found
+	if cfg.Region == "" {
+		defaultRegion, err := getDefaultRegionFromConfig(ctx, d, nil)
+		if err != nil {
+			plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "get_default_region_error", err)
+			return nil, err
+		}
+
+		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "region", defaultRegion, "status", "set_default_region")
+		configOptions = append(configOptions, config.WithRegion(defaultRegion))
+		cfg, err = config.LoadDefaultConfig(ctx, configOptions...)
+		if err != nil {
+			plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
+			return nil, err
+		}
 	}
 
 	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
