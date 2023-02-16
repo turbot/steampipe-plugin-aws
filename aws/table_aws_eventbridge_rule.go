@@ -208,9 +208,11 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 
 func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
+	var eventbusname string
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*eventbridge.DescribeRuleOutput).Name
+		eventbusname = *h.Item.(*eventbridge.DescribeRuleOutput).EventBusName
 	} else {
 		name = d.EqualsQuals["name"].GetStringValue()
 	}
@@ -228,7 +230,8 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	// Build the params
 	params := &eventbridge.DescribeRuleInput{
-		Name: &name,
+		EventBusName: &eventbusname,
+		Name:         &name,
 	}
 
 	// Get call
