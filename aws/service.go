@@ -170,6 +170,7 @@ import (
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
+	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
 	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
 )
@@ -1330,9 +1331,12 @@ func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.C
 }
 
 func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
-	cfg, err := getClientForRegion(ctx, d, region)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return wafv2.NewFromConfig(*cfg), nil
 }
