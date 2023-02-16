@@ -1530,12 +1530,12 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	cfg := baseCfg.Copy()
 	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "copy_base_config")
 
-	// Set the region for this client, which may override the base client's
-	// region.
-	// The base client needs to have a region set as the AWS SDK will not use
-	// the region set directly in "cfg.Region" when making background
-	// sts:AssumeRole API calls for IAM role authentication, resulting in
-	// a signing error for future API calls:
+	// Set the region for this client
+	// Note: The region set directly in cfg.Region will not be used by the AWS
+	// SDK when making background sts:AssumeRole API calls for IAM role
+	// authentication. So even if we set a region here but the AWS SDK could not
+	// resolve a region and no region was passed into the base config's options,
+	// a signing error will be thrown for API calls with this client, e.g.,
 	// Error: operation error CloudFront: ListDistributions, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, failed to resolve service endpoint, an AWS region is required, but was not found
 	cfg.Region = region
 	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "set_client_region")
@@ -1686,8 +1686,8 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	// step, we need to pass a region in the config options if the AWS SDK could
 	// not resolve a region from environment variables or the AWS config.
 	// This region is used by the AWS SDK when making background sts:AssumeRole
-	// API calls for IAM role authentication, so if it's not set here, a signing
-	// error is thrown when making API calls:
+	// API calls for IAM role authentication; if it's not set here, a signing
+	// error is thrown for API calls with this client, e.g.,
 	// Error: operation error CloudFront: ListDistributions, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, failed to resolve service endpoint, an AWS region is required, but was not found
 	if cfg.Region == "" {
 		defaultRegion, err := getDefaultRegionFromConfig(ctx, d, nil)
