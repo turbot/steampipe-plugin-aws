@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	elbv2v1 "github.com/aws/aws-sdk-go/service/elbv2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -34,7 +36,7 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 				{Name: "target_group_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(elbv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "target_group_name",
@@ -187,7 +189,7 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	// Additional Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["target_group_name"] != nil {
 		input.Names = []string{equalQuals["target_group_name"].GetStringValue()}
 	}
@@ -208,7 +210,7 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -222,7 +224,7 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	targetGroupArn := d.KeyColumnQuals["target_group_arn"].GetStringValue()
+	targetGroupArn := d.EqualsQuals["target_group_arn"].GetStringValue()
 
 	// create service
 	svc, err := ELBV2Client(ctx, d)

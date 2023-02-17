@@ -3,13 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	databasemigrationservicev1 "github.com/aws/aws-sdk-go/service/databasemigrationservice"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -46,7 +48,7 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(databasemigrationservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_instance_identifier",
@@ -228,7 +230,7 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	var filter []types.Filter
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["replication_instance_identifier"] != nil {
 		paramFilter := types.Filter{
 			Name:   aws.String("replication-instance-id"),
@@ -276,7 +278,7 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -294,7 +296,7 @@ func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	arn := d.EqualsQuals["arn"].GetStringValue()
 
 	params := &databasemigrationservice.DescribeReplicationInstancesInput{
 		Filters: []types.Filter{

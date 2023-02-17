@@ -8,10 +8,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/glacier"
 	"github.com/aws/aws-sdk-go-v2/service/glacier/types"
+
+	glacierv1 "github.com/aws/aws-sdk-go/service/glacier"
+
 	"github.com/aws/smithy-go"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -30,7 +34,7 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listGlacierVault,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(glacierv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vault_name",
@@ -142,8 +146,7 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, nil
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glacier_vault.listGlacierVault", "api_error", err)
 		return nil, err
@@ -182,7 +185,7 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 			d.StreamListItem(ctx, vaults)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -193,11 +196,10 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
+	quals := d.EqualsQuals
 	vaultName := quals["vault_name"].GetStringValue()
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glacier_vault.getGlacierVault", "api_error", err)
 		return nil, err

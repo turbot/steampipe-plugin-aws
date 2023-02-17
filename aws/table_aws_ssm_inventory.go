@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSSMInventory(_ context.Context) *plugin.Table {
@@ -23,7 +25,7 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 				{Name: "type_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -132,7 +134,7 @@ func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 					})
 
 					// Context may get cancelled due to manual cancellation or if the limit has been reached
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					if d.RowsRemaining(ctx) == 0 {
 						return nil, nil
 					}
 				}

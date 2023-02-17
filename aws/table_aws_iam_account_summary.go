@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type awsIamAccountSummary struct {
@@ -54,7 +54,7 @@ func tableAwsIamAccountSummary(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAccountSummary,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "access_keys_per_user_quota",
 				Description: "Specifies the allowed quota of access keys per user.",

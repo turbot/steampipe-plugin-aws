@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 	"github.com/aws/aws-sdk-go-v2/service/emr/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	emrv1 "github.com/aws/aws-sdk-go/service/emr"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -26,7 +29,7 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 				{Name: "instance_group_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -158,24 +161,24 @@ func listEmrInstances(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	// Get cluster details
 	clusterID := h.Item.(types.ClusterSummary).Id
 
-	if d.KeyColumnQualString("cluster_id") != "" && d.KeyColumnQualString("cluster_id") != *clusterID {
+	if d.EqualsQualString("cluster_id") != "" && d.EqualsQualString("cluster_id") != *clusterID {
 		return nil, nil
 	}
 
-	if d.KeyColumnQualString("cluster_id") != "" {
-		clusterID = aws.String(d.KeyColumnQualString("cluster_id"))
+	if d.EqualsQualString("cluster_id") != "" {
+		clusterID = aws.String(d.EqualsQualString("cluster_id"))
 	}
 
 	input := &emr.ListInstancesInput{
 		ClusterId: clusterID,
 	}
 
-	if d.KeyColumnQualString("instance_fleet_id") != "" {
-		input.InstanceFleetId = aws.String(d.KeyColumnQualString("instance_fleet_id"))
+	if d.EqualsQualString("instance_fleet_id") != "" {
+		input.InstanceFleetId = aws.String(d.EqualsQualString("instance_fleet_id"))
 	}
 
-	if d.KeyColumnQualString("instance_group_id") != "" {
-		input.InstanceGroupId = aws.String(d.KeyColumnQualString("instance_group_id"))
+	if d.EqualsQualString("instance_group_id") != "" {
+		input.InstanceGroupId = aws.String(d.EqualsQualString("instance_group_id"))
 	}
 
 	paginator := emr.NewListInstancesPaginator(svc, input, func(o *emr.ListInstancesPaginatorOptions) {
@@ -196,7 +199,7 @@ func listEmrInstances(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -206,11 +209,10 @@ func listEmrInstances(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getEmrInstanceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	data := h.Item.(*emrInstanceInfo)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_emr_instance.getEmrInstanceAkas", "common_data_error", err)
 		return nil, err

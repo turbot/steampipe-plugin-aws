@@ -18,6 +18,7 @@
 .idea
 
 # Ignore swap files
+*.swn
 *.swo
 *.swp
 

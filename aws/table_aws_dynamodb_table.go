@@ -8,10 +8,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+
+	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
+
 	"github.com/aws/smithy-go"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
@@ -37,7 +41,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -238,7 +242,7 @@ func listDynamoDBTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["name"] != nil {
 		input.ExclusiveStartTableName = aws.String(equalQuals["name"].GetStringValue())
 	}
@@ -275,7 +279,7 @@ func listDynamoDBTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -295,7 +299,7 @@ func getDynamoDBTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 			name = *data.TableName
 		}
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// Create Session
@@ -355,11 +359,10 @@ func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *p
 
 func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	table := h.Item.(types.TableDescription)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

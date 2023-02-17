@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -27,7 +27,7 @@ func tableAwsCloudFrontOriginAccessIdentity(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginAccessIdentities,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "id",
 				Description: "The ID for the origin access identity.",
@@ -132,7 +132,7 @@ func listCloudFrontOriginAccessIdentities(ctx context.Context, d *plugin.QueryDa
 			d.StreamListItem(ctx, identity)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -155,7 +155,7 @@ func getCloudFrontOriginAccessIdentity(ctx context.Context, d *plugin.QueryData,
 	if h.Item != nil {
 		identityID = *h.Item.(types.CloudFrontOriginAccessIdentitySummary).Id
 	} else {
-		identityID = d.KeyColumnQuals["id"].GetStringValue()
+		identityID = d.EqualsQuals["id"].GetStringValue()
 	}
 
 	if strings.TrimSpace(identityID) == "" {
@@ -178,8 +178,7 @@ func getCloudFrontOriginAccessIdentity(ctx context.Context, d *plugin.QueryData,
 func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	originAccessIdentityData := *originAccessIdentityID(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudfront_origin_access_identity.getCloudFrontOriginAccessIdentityARN", "common_data_error", err)
 		return nil, err

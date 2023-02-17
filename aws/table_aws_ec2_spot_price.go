@@ -2,12 +2,16 @@ package aws
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -29,7 +33,7 @@ func tableAwsEc2SpotPrice(_ context.Context) *plugin.Table {
 				{Name: "end_time", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{Name: "availability_zone", Description: "The Availability Zone.", Type: proto.ColumnType_STRING},
 			{Name: "instance_type", Description: "The instance type.", Type: proto.ColumnType_STRING},
@@ -73,7 +77,7 @@ func listEc2SpotPrice(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		MaxResults: &maxItems,
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if d.Quals["availability_zone"] != nil {
 		input.AvailabilityZone = aws.String(equalQuals["availability_zone"].GetStringValue())
 	}
@@ -115,7 +119,7 @@ func listEc2SpotPrice(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		for _, spotPrice := range output.SpotPriceHistory {
 			d.StreamListItem(ctx, spotPrice)
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
