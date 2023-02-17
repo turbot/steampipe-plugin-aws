@@ -1,20 +1,20 @@
-## v0.93.0 [TBD]
+## v0.93.0 [2023-02-17]
 
 _What's new?_
 
-- Use `default_region` to set your preferred (closest) region to optimize API calls to global resources.
+- Added `default_region` config arg, which allows you to set your preferred (closest) region to optimize API calls to global resources. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
 
 _Enhancements_
 
-- Use EC2 Role & SSO credentials until they expire, reducing throttling & reloading.
-- Optimized API calls to use the default region, reducing latency for common APIs.
-- Optimized caching to reduce race conditions & extend timeouts (e.g. credentials).
-- Optimized per-region API calls to regions supported by the service only.
-- Optimized API client management to one per account, instead of one per region.
+- EC2 Role & SSO credentials are now used until they expire, reducing throttling & reloading. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+- Optimized API calls to use the default region, reducing latency for common APIs. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+- Optimized caching to reduce race conditions & extend timeouts (e.g. credentials). ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+- Optimized per-region API calls to regions supported by the service only. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+- Optimized API client management to one per account, instead of one per region. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
 
 _Dependencies_
 
-- Upgraded plugin to [steampipe-plugin-sdk v5.1.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v500-2022-11-16) with many cache improvements.
+- Recompiled plugin with [steampipe-plugin-sdk v5.2.0-rc.7](https://github.com/turbot/steampipe-plugin-sdk/blob/e26550be74f53fa902dbc66576d3f828980556c3/CHANGELOG.md#v520-tbd) which includes additional cache function wrappers and matrix function improvements. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
 
 ## v0.92.2 [2023-02-10]
 
