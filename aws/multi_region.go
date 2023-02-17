@@ -517,10 +517,64 @@ func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 // and recalculations from the configuration.
 var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).Memoize()
 
+// Helper function to get the default region from the Steampipe config
+func getConfigDefaultRegion(ctx context.Context, d *plugin.QueryData) string {
+	awsSpcConfig := GetConfig(d.Connection)
+
+	if awsSpcConfig.DefaultRegion == nil {
+		return ""
+	}
+
+	region := *awsSpcConfig.DefaultRegion
+	plugin.Logger(ctx).Trace("getConfigDefaultRegion", "connection_name", d.Connection.Name, "region", region)
+	return region
+}
+
+// Helper function to get the region from the AWS SDK. This will use the region
+// defined in the AWS config files, or the AWS_REGION environment variable,
+// or the default region for the partition.
+func getAwsSdkRegion(ctx context.Context, d *plugin.QueryData) string {
+	cfg, err := getBaseClientForAccount(ctx, d)
+	if cfg != nil && cfg.Region != "" && err == nil {
+		region := cfg.Region
+		plugin.Logger(ctx).Trace("getAwsSdkRegion", "connection_name", d.Connection.Name, "region", region)
+		// The AWS SDK will return us-east-1 if it can't find a region. So, we
+		// can only trust regions other than us-east-1 as being intentional from
+		// the config. Return those regions immediately as the default.
+		// If it is us-east-1, then fall through to check the regions config for
+		// a more reliable indication. If it's from a commercial partition (or
+		// not specified) then we fall through to us-east-1 at the end anyway.
+		if region != "us-east-1" {
+			return region
+		}
+	}
+
+	return ""
+}
+
+// Helper function to get the last resort region for the partition based on the
+// list of regions in the Steampipe config if any of them have enough
+// information to indicate our preferred partition.
+func getConfigLastResortRegion(ctx context.Context, d *plugin.QueryData) string {
+	awsSpcConfig := GetConfig(d.Connection)
+
+	if awsSpcConfig.Regions != nil {
+		for _, r := range awsSpcConfig.Regions {
+			lastResort := awsLastResortRegionFromRegionWildcard(r)
+			if lastResort != "" {
+				plugin.Logger(ctx).Trace("getConfigLastResortRegion", "connection_name", d.Connection.Name, "region", lastResort)
+				return lastResort
+			}
+		}
+	}
+
+	return ""
+}
+
 // Calculate the region we want to use by default for the plugin.
 // It's complicated, because there are many different configuration sources
 // (spc files, environment variables, AWS config files, etc.) and some choices
-// are filters (e.g. regions = [ "*" ].
+// are filters (e.g. regions = [ "*" ]).
 // Here is the order of precedence:
 // 1. default_region in the aws.spc file.
 // 2. The region as calculated by the AWS SDK (AWS_REGION env var, ~/.aws/config, etc).
@@ -530,36 +584,26 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	var region string
 
-	awsSpcConfig := GetConfig(d.Connection)
 	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name)
 
-	if awsSpcConfig.DefaultRegion != nil {
-		// The user has defined a specific default_region in their config. We use
-		// it without further review. For example, they can have a default_region
-		// that is not in the regions list.
-		// Notes on default_region:
-		// - It can be a region that is not in the regions list.
-		region = *awsSpcConfig.DefaultRegion
+	// The user has defined a specific default_region in their config. We use
+	// it without further review. For example, they can have a default_region
+	// that is not in the regions list.
+	// Notes on default_region:
+	// - It can be a region that is not in the regions list.
+	region = getConfigDefaultRegion(ctx, d)
+	if region != "" {
 		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "default_region in config file")
 		return region, nil
 	}
 
 	// Get the region from the AWS SDK. This will use the region defined in the
-	// AWS config files, or the AWS_REGION environment variable, or the default
+	// AWS config files, the AWS_REGION environment variable, or the default
 	// region for the partition.
-	cfg, err := getBaseClientForAccount(ctx, d)
-	if cfg != nil && cfg.Region != "" && err == nil {
-		region = cfg.Region
+	region = getAwsSdkRegion(ctx, d)
+	if region != "" {
 		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "AWS SDK resolution")
-		// The AWS SDK will return us-east-1 if it can't find a region. So, we
-		// can only trust regions other than us-east-1 as being intentional from
-		// the config. Return those regions immediately as the default.
-		// If it is us-east-1, then fall through to check the regions config for
-		// a more reliable indication. If it's from a commercial partition (or
-		// not specified) then we fall through to us-east-1 at the end anyway.
-		if region != "us-east-1" {
-			return region, nil
-		}
+		return region, nil
 	}
 
 	// Look through the list of regions, checking if any of them have enough
@@ -569,20 +613,62 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// than make the order of the regions list significant. For example, someone
 	// may make the list alphabetical, and suddenly their first region is in Asia
 	// Pacific.
-	if awsSpcConfig.Regions != nil {
-		for _, r := range awsSpcConfig.Regions {
-			lastResort := awsLastResortRegionFromRegionWildcard(r)
-			if lastResort != "" {
-				plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
-				return lastResort, nil
-			}
-		}
+	region = getConfigLastResortRegion(ctx, d)
+	if region != "" {
+		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
+		return region, nil
 	}
 
 	// If all else fails, and we just don't know what to do ... default to
 	// us-east-1 (the last resort region for the most common partition).
 	region = "us-east-1"
 	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "last resort region in most common partition")
+	return region, nil
+}
+
+// Calculate the region we want to use for the plugin based on the Steampipe
+// config.
+// Unlike getDefaultRegionUncached, do not attempt to get the region from the
+// SDK to avoid a circular dependency, since this function will primarily be
+// used in the getBaseClient function.
+// Here is the order of precedence:
+// 1. default_region in the aws.spc file.
+// 2. The last resort region for the partition best matched by each region added to regions in the aws.spc file.
+// 3. us-east-1 (last resort region for the most common partition).
+func getDefaultRegionFromConfig(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (string, error) {
+
+	var region string
+
+	plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name)
+
+	// The user has defined a specific default_region in their config. We use
+	// it without further review. For example, they can have a default_region
+	// that is not in the regions list.
+	// Notes on default_region:
+	// - It can be a region that is not in the regions list.
+	region = getConfigDefaultRegion(ctx, d)
+	if region != "" {
+		plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "default_region in config file")
+		return region, nil
+	}
+
+	// Look through the list of regions, checking if any of them have enough
+	// information to indicate our preferred partition. If available, then we
+	// use the last resort region for the partition.
+	// We've decided that it's better to default to a last resort region rather
+	// than make the order of the regions list significant. For example, someone
+	// may make the list alphabetical, and suddenly their first region is in Asia
+	// Pacific.
+	region = getConfigLastResortRegion(ctx, d)
+	if region != "" {
+		plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
+		return region, nil
+	}
+
+	// If all else fails, and we just don't know what to do ... default to
+	// us-east-1 (the last resort region for the most common partition).
+	region = "us-east-1"
+	plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "last resort region in most common partition")
 	return region, nil
 }
 
