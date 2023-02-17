@@ -518,7 +518,7 @@ func getDefaultRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).Memoize()
 
 // Helper function to get the default region from the Steampipe config
-func getConfigDefaultRegion(ctx context.Context, d *plugin.QueryData) string {
+func getAwsSpcConfigDefaultRegion(ctx context.Context, d *plugin.QueryData) string {
 	awsSpcConfig := GetConfig(d.Connection)
 
 	if awsSpcConfig.DefaultRegion == nil {
@@ -526,7 +526,7 @@ func getConfigDefaultRegion(ctx context.Context, d *plugin.QueryData) string {
 	}
 
 	region := *awsSpcConfig.DefaultRegion
-	plugin.Logger(ctx).Trace("getConfigDefaultRegion", "connection_name", d.Connection.Name, "region", region)
+	plugin.Logger(ctx).Trace("getAwsSpcConfigDefaultRegion", "connection_name", d.Connection.Name, "region", region)
 	return region
 }
 
@@ -555,14 +555,14 @@ func getAwsSdkRegion(ctx context.Context, d *plugin.QueryData) string {
 // Helper function to get the last resort region for the partition based on the
 // list of regions in the Steampipe config if any of them have enough
 // information to indicate our preferred partition.
-func getConfigLastResortRegion(ctx context.Context, d *plugin.QueryData) string {
+func awsLastResortRegionFromRegionsConfig(ctx context.Context, d *plugin.QueryData) string {
 	awsSpcConfig := GetConfig(d.Connection)
 
 	if awsSpcConfig.Regions != nil {
 		for _, r := range awsSpcConfig.Regions {
 			lastResort := awsLastResortRegionFromRegionWildcard(r)
 			if lastResort != "" {
-				plugin.Logger(ctx).Trace("getConfigLastResortRegion", "connection_name", d.Connection.Name, "region", lastResort)
+				plugin.Logger(ctx).Trace("awsLastResortRegionFromRegionsConfig", "connection_name", d.Connection.Name, "region", lastResort)
 				return lastResort
 			}
 		}
@@ -591,7 +591,7 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// that is not in the regions list.
 	// Notes on default_region:
 	// - It can be a region that is not in the regions list.
-	region = getConfigDefaultRegion(ctx, d)
+	region = getAwsSpcConfigDefaultRegion(ctx, d)
 	if region != "" {
 		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "default_region in config file")
 		return region, nil
@@ -613,7 +613,7 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// than make the order of the regions list significant. For example, someone
 	// may make the list alphabetical, and suddenly their first region is in Asia
 	// Pacific.
-	region = getConfigLastResortRegion(ctx, d)
+	region = awsLastResortRegionFromRegionsConfig(ctx, d)
 	if region != "" {
 		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
 		return region, nil
@@ -646,7 +646,7 @@ func getDefaultRegionFromConfig(ctx context.Context, d *plugin.QueryData, _ *plu
 	// that is not in the regions list.
 	// Notes on default_region:
 	// - It can be a region that is not in the regions list.
-	region = getConfigDefaultRegion(ctx, d)
+	region = getAwsSpcConfigDefaultRegion(ctx, d)
 	if region != "" {
 		plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "default_region in config file")
 		return region, nil
@@ -659,7 +659,7 @@ func getDefaultRegionFromConfig(ctx context.Context, d *plugin.QueryData, _ *plu
 	// than make the order of the regions list significant. For example, someone
 	// may make the list alphabetical, and suddenly their first region is in Asia
 	// Pacific.
-	region = getConfigLastResortRegion(ctx, d)
+	region = awsLastResortRegionFromRegionsConfig(ctx, d)
 	if region != "" {
 		plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
 		return region, nil
