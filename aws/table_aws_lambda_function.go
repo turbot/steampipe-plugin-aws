@@ -221,6 +221,12 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
+				Name:        "tracing_config",
+				Description: "The function's X-Ray tracing configuration.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.TracingConfig", "TracingConfig"),
+			},
+			{
 				Name:        "snap_start",
 				Description: "Set ApplyOn to PublishedVersions to create a snapshot of the initialized execution environment when you publish a function version.",
 				Type:        proto.ColumnType_JSON,
