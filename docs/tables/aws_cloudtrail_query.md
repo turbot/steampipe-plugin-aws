@@ -52,7 +52,7 @@ from
   aws_cloudtrail_query as q,
   aws_cloudtrail_event_data_store as s
 where
- s.event_data_store_arn = q.event_data_store_arn;
+ s.arn = q.event_data_store_arn;
 ```
 
 ## List queries created within the last 3 days

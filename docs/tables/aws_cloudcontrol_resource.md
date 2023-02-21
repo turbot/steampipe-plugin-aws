@@ -58,8 +58,8 @@ from
   aws_cloudcontrol_resource
 where
   type_name = 'AWS::ElasticLoadBalancingV2::Listener'
-  and resource_model = '{"LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/4e695b8755d7003c"}';
-  and region = 'us-east-1'
+  and resource_model = '{"LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/4e695b8755d7003c"}'
+  and region = 'us-east-1';
 ```
 
 ### Get details for a CloudTrail trail
