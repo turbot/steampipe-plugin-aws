@@ -1607,14 +1607,14 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 // using the IDMS service etc.
 var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(plugin.MemoizeTtl(time.Hour * 24 * 30))
 
-func validateConnectionConfig(c any) (any, error) {
+func validateConnectionConfig(c any) (any, []string, error) {
 	var awsSpcConfig, _ = c.(awsConfig)
 	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
-		return nil, fmt.Errorf("partial credentials found in connection config, missing: secret_key")
+		return nil, nil, fmt.Errorf("partial credentials found in connection config, missing: secret_key")
 	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
-		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
+		return nil, nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
 	}
-	return c, nil
+	return c, nil, nil
 }
 
 // Do the actual work of creating an AWS config object for reuse across many
