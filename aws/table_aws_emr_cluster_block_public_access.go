@@ -19,7 +19,7 @@ func tableAwsEmrClusterBlockPublicAccess(_ context.Context) *plugin.Table {
 		Name:        "aws_emr_cluster_block_public_access",
 		Description: "AWS EMR Cluster",
 		List: &plugin.ListConfig{
-			Hydrate: getBlockPublicAccessConfigurationRequest,
+			Hydrate: listBlockPublicAccessConfigurations,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -32,17 +32,18 @@ func tableAwsEmrClusterBlockPublicAccess(_ context.Context) *plugin.Table {
 			{
 				Name:        "block_public_security_group_rules",
 				Description: "Indicates whether Amazon EMR block public access is enabled (true) or disabled (false).",
-				Transform:   transform.FromField("BlockPublicAccessConfigurationMetadata.CreatedByArn"),
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("BlockPublicAccessConfiguration.BlockPublicSecurityGroupRules"),
 			},
 			{
 				Name:        "creation_date",
 				Description: "The date and time that the configuration was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("BlockPublicAccessConfiguration.BlockPublicSecurityGroupRules"),
+				Transform:   transform.FromField("BlockPublicAccessConfigurationMetadata.CreationDateTime"),
 			},
 			{
 				Name:        "classification",
-				Description: "The classification within a configuration..",
+				Description: "The classification within a configuration.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("BlockPublicAccessConfiguration.Classification"),
 			},
@@ -55,7 +56,7 @@ func tableAwsEmrClusterBlockPublicAccess(_ context.Context) *plugin.Table {
 			{
 				Name:        "permitted_public_security_group_rule_ranges",
 				Description: "Specifies ports and port ranges that are permitted to have security group rules that allow inbound traffic from all public sources.",
-				Transform:   transform.FromField("BlockPublicAccessConfiguration.BlockPublicSecurityGroupRules"),
+				Transform:   transform.FromField("BlockPublicAccessConfiguration.PermittedPublicSecurityGroupRuleRanges"),
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -68,10 +69,10 @@ func tableAwsEmrClusterBlockPublicAccess(_ context.Context) *plugin.Table {
 	}
 }
 
-func getBlockPublicAccessConfigurationRequest(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listBlockPublicAccessConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	svc, err := EMRClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_emr_cluster_block_public_access.getEmrClusterBlockPublicAccess", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_emr_cluster_block_public_access.listBlockPublicAccessConfigurations", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -83,8 +84,11 @@ func getBlockPublicAccessConfigurationRequest(ctx context.Context, d *plugin.Que
 
 	op, err := svc.GetBlockPublicAccessConfiguration(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_emr_cluster_block_public_access.getEmrClusterBlockPublicAccess", "api_error", err)
+		plugin.Logger(ctx).Error("aws_emr_cluster_block_public_access.listBlockPublicAccessConfigurations", "api_error", err)
 		return nil, err
 	}
-	return op, nil
+
+	d.StreamListItem(ctx, op)
+
+	return nil, nil
 }
