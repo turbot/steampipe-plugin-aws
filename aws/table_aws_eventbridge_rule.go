@@ -20,7 +20,7 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 		Name:        "aws_eventbridge_rule",
 		Description: "AWS EventBridge Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
+			KeyColumns: plugin.AllColumns([]string{"name", "event_bus_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
@@ -208,11 +208,14 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 
 func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	var name string
+	var name, eventBusName string
+
 	if h.Item != nil {
 		name = *h.Item.(*eventbridge.DescribeRuleOutput).Name
+		eventBusName = *h.Item.(*eventbridge.DescribeRuleOutput).EventBusName
 	} else {
 		name = d.EqualsQuals["name"].GetStringValue()
+		eventBusName = d.EqualsQuals["event_bus_name"].GetStringValue()
 	}
 
 	// Create Session
@@ -227,8 +230,10 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Build the params
+	// Always provide an event bus name since the default event bus is used if not specified
 	params := &eventbridge.DescribeRuleInput{
-		Name: &name,
+		EventBusName: &eventBusName,
+		Name:         &name,
 	}
 
 	// Get call
