@@ -17,7 +17,7 @@ import (
 func tableAwsEmrClusterBlockPublicAccess(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_emr_cluster_block_public_access",
-		Description: "AWS EMR Cluster",
+		Description: "AWS EMR Cluster Block Public Access",
 		List: &plugin.ListConfig{
 			Hydrate: getBlockPublicAccessConfigurationRequest,
 		},
