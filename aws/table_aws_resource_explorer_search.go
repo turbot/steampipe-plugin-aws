@@ -8,9 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -81,6 +82,12 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region, err := getDefaultRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
 	searchParams := &resourceexplorer2.SearchInput{
 		QueryString: aws.String(""),
 	}
@@ -94,11 +101,10 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 	accountID := commonData.(*awsCommonColumnData).AccountId
 
-	region := getDefaultAwsRegion(d)
 	hasViewARN := false
-	if d.KeyColumnQuals["view_arn"] != nil {
+	if d.EqualsQuals["view_arn"] != nil {
 		hasViewARN = true
-		viewARN := d.KeyColumnQualString("view_arn")
+		viewARN := d.EqualsQualString("view_arn")
 		if arn.IsARN(viewARN) {
 			arnData, _ := arn.Parse(viewARN)
 			// API throws UnauthorizedException for cross-region and cross-account
@@ -110,7 +116,7 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 				return nil, nil
 			}
 		}
-		searchParams.ViewArn = aws.String(d.KeyColumnQualString("view_arn"))
+		searchParams.ViewArn = aws.String(d.EqualsQualString("view_arn"))
 	}
 
 	svc, err := ResourceExplorerClient(ctx, d, region)
@@ -166,8 +172,8 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 	}
 
-	if d.KeyColumnQuals["query"] != nil {
-		searchParams.QueryString = aws.String(d.KeyColumnQualString("query"))
+	if d.EqualsQuals["query"] != nil {
+		searchParams.QueryString = aws.String(d.EqualsQualString("query"))
 	}
 
 	maxItems := int32(1000)
@@ -199,7 +205,7 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 			d.StreamListItem(ctx, SearchStreamItem{resource, output.ViewArn})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

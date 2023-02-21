@@ -5,9 +5,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securitylake"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	securitylakev1 "github.com/aws/aws-sdk-go/service/securitylake"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -26,7 +29,7 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityLakeSubscribers,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(securitylakev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subscriber_name",
@@ -164,7 +167,7 @@ func listSecurityLakeSubscribers(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, item)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -176,7 +179,7 @@ func listSecurityLakeSubscribers(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getSecurityLakeSubscriber(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	id := d.KeyColumnQuals["subscription_id"].GetStringValue()
+	id := d.EqualsQuals["subscription_id"].GetStringValue()
 	if id == "" {
 		return nil, nil
 	}

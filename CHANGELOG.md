@@ -1,3 +1,27 @@
+## v0.93.0 [2023-02-17]
+
+_What's new?_
+
+- Added `default_region` config arg, which allows you to set your preferred (closest) region to optimize API calls to global resources. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+
+_Enhancements_
+
+- EC2 Role & SSO credentials are now used until they expire, reducing throttling & reloading. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+- Optimized API calls to use the default region, reducing latency for common APIs. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+- Optimized caching to reduce race conditions & extend timeouts (e.g. credentials). ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+- Optimized per-region API calls to regions supported by the service only. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+- Optimized API client management to one per account, instead of one per region. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.2.0-rc.7](https://github.com/turbot/steampipe-plugin-sdk/blob/e26550be74f53fa902dbc66576d3f828980556c3/CHANGELOG.md#v520-tbd) which includes additional cache function wrappers and matrix function improvements. ([#1559](https://github.com/turbot/steampipe-plugin-aws/pull/1559))
+
+## v0.92.2 [2023-02-10]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.12](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v4112-2023-02-09) which fixes the query caching functionality. ([#1578](https://github.com/turbot/steampipe-plugin-aws/pull/1578))
+
 ## v0.92.1 [2023-01-24]
 
 _Dependencies_

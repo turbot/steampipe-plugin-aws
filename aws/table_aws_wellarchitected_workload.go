@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -30,7 +33,7 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 				{Name: "workload_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workload_name",
@@ -210,7 +213,7 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		MaxResults: maxLimit,
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["workload_name"] != nil {
 		if equalQuals["workload_name"].GetStringValue() != "" {
 			input.WorkloadNamePrefix = aws.String(equalQuals["workload_name"].GetStringValue())
@@ -234,7 +237,7 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -250,7 +253,7 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 	if h.Item != nil {
 		id = workloadID(h.Item)
 	} else {
-		quals := d.KeyColumnQuals
+		quals := d.EqualsQuals
 		id = quals["workload_id"].GetStringValue()
 	}
 

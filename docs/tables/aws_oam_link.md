@@ -11,7 +11,7 @@ select
   id,
   arn,
   sink_arn,
-  lable,
+  label,
   resource_types
 from
   aws_oam_link;
@@ -22,7 +22,7 @@ from
 ```sql
 select
   l.id,
-  l.arn
+  l.arn,
   s.name as sink_name,
   l.sink_arn
 from

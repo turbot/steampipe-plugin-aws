@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	inspectorv1 "github.com/aws/aws-sdk-go/service/inspector"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +27,7 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentTargets,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(inspectorv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -104,7 +107,7 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 	input := &inspector.ListAssessmentTargetsInput{
 		MaxResults: aws.Int32(maxLimit),
 	}
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["name"] != nil {
 		if equalQuals["name"].GetStringValue() != "" {
 			input.Filter = &types.AssessmentTargetFilter{AssessmentTargetNamePattern: aws.String(equalQuals["name"].GetStringValue())}
@@ -130,7 +133,7 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -146,7 +149,7 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 	if h.Item != nil {
 		assessmentTargetArn = *h.Item.(*types.AssessmentTarget).Arn
 	} else {
-		quals := d.KeyColumnQuals
+		quals := d.EqualsQuals
 		assessmentTargetArn = quals["arn"].GetStringValue()
 	}
 

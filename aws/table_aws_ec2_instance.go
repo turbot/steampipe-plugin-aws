@@ -9,10 +9,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -51,7 +54,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_id",
@@ -447,7 +450,7 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	input := &ec2.DescribeInstancesInput{
 		MaxResults: aws.Int32(maxLimit),
 	}
-	filters := buildEc2InstanceFilter(d.KeyColumnQuals)
+	filters := buildEc2InstanceFilter(d.EqualsQuals)
 
 	if len(filters) != 0 {
 		input.Filters = filters
@@ -472,13 +475,13 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 				d.StreamListItem(ctx, instance)
 				// Check if context has been cancelled or if the limit has been hit (if specified)
 				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				if d.RowsRemaining(ctx) == 0 {
 					return nil, nil
 				}
 			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -491,7 +494,7 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	instanceID := d.KeyColumnQuals["instance_id"].GetStringValue()
+	instanceID := d.EqualsQuals["instance_id"].GetStringValue()
 
 	// create service
 	svc, err := EC2Client(ctx, d)
@@ -520,12 +523,11 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instance := h.Item.(types.Instance)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

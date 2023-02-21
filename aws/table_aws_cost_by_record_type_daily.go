@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCostByRecordTypeDaily(_ context.Context) *plugin.Table {
@@ -15,7 +15,7 @@ func tableAwsCostByRecordTypeDaily(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostByRecordTypeDaily,
 		},
-		Columns: awsColumns(
+		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
 
 				{

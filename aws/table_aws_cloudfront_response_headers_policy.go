@@ -5,9 +5,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	cloudfrontv1 "github.com/aws/aws-sdk-go/service/cloudfront"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -25,7 +28,7 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 			},
 			Hydrate: listCloudFrontResponseHeadersPolicies,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudfrontv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -119,7 +122,7 @@ func listCloudFrontResponseHeadersPolicies(ctx context.Context, d *plugin.QueryD
 	}
 
 	// Additonal Filter
-	policyTypeColumn := d.KeyColumnQuals["type"]
+	policyTypeColumn := d.EqualsQuals["type"]
 	if policyTypeColumn != nil {
 		input.Type = types.ResponseHeadersPolicyType(policyTypeColumn.GetStringValue())
 	}
@@ -177,8 +180,8 @@ func getETagValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 func getAccountARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get common columns which will be used to create the ARN
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	response, err := getCommonColumnsCached(ctx, d, h)
+
+	response, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudfront_response_headers_policy.getAccountARN", "common_data_error", err)
 		return nil, err

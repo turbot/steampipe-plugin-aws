@@ -7,10 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	sqsTypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
 
+	sqsv1 "github.com/aws/aws-sdk-go/service/sqs"
+
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -32,7 +34,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sqsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "queue_url",
@@ -202,7 +204,7 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 				},
 			})
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -220,7 +222,7 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		data := h.Item.(*sqs.GetQueueAttributesOutput)
 		queueURL = types.SafeString(data.Attributes["QueueUrl"])
 	} else {
-		queueURL = d.KeyColumnQuals["queue_url"].GetStringValue()
+		queueURL = d.EqualsQuals["queue_url"].GetStringValue()
 	}
 
 	if queueURL == "" {
