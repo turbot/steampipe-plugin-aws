@@ -152,7 +152,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags associated with stack.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.From(cfnStackTagsToTurbotTags),
 			},
 
 			// Standard columns
