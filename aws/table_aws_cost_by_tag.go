@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	goKitTypes "github.com/turbot/go-kit/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
@@ -27,7 +27,7 @@ func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
 			},
 			Hydrate: listCostAndUsageByTags,
 		},
-		Columns: awsColumns(
+		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
 
 				// Quals columns - to filter the lookups
@@ -74,7 +74,7 @@ func listCostAndUsageByTags(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func buildInputFromTagKeyAndTagValueQuals(ctx context.Context, d *plugin.QueryData) *costexplorer.GetCostAndUsageInput {
-	granularity := strings.ToUpper(d.KeyColumnQualString("granularity"))
+	granularity := strings.ToUpper(d.EqualsQualString("granularity"))
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"
@@ -90,8 +90,8 @@ func buildInputFromTagKeyAndTagValueQuals(ctx context.Context, d *plugin.QueryDa
 		Granularity: types.Granularity(granularity),
 		Metrics:     AllCostMetrics(),
 	}
-	tagKey1 := d.KeyColumnQualString("tag_key_1")
-	tagKey2 := d.KeyColumnQualString("tag_key_2")
+	tagKey1 := d.EqualsQualString("tag_key_1")
+	tagKey2 := d.EqualsQualString("tag_key_2")
 
 	var groupsBy []types.GroupDefinition
 
