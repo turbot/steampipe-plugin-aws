@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -34,7 +36,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				{Name: "snapshot_create_time", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_identifier",
@@ -256,7 +258,7 @@ func listRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		}
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["cluster_identifier"] != nil {
 		if equalQuals["cluster_identifier"].GetStringValue() != "" {
 			input.ClusterIdentifier = aws.String(equalQuals["cluster_identifier"].GetStringValue())
@@ -293,7 +295,7 @@ func listRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -309,7 +311,7 @@ func getRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if h.Item != nil {
 		name = *h.Item.(types.Snapshot).SnapshotIdentifier
 	} else {
-		name = d.KeyColumnQuals["snapshot_identifier"].GetStringValue()
+		name = d.EqualsQuals["snapshot_identifier"].GetStringValue()
 	}
 
 	// Return nil, if no input provided
@@ -342,13 +344,12 @@ func getRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	snapshot := h.Item.(types.Snapshot)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_redshift_snapshot.getRedshiftSnapshotAkas", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("aws_redshift_snapshot.getRedshiftSnapshotAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 

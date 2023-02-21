@@ -7,9 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/drs"
 	"github.com/aws/aws-sdk-go-v2/service/drs/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	drsv1 "github.com/aws/aws-sdk-go/service/drs"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsDRSRecoverySnapshot(_ context.Context) *plugin.Table {
@@ -28,7 +31,7 @@ func tableAwsDRSRecoverySnapshot(_ context.Context) *plugin.Table {
 			ParentHydrate: listAwsDRSSourceServers,
 			Hydrate:       listAwsDRSRecoverySnapshots,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(drsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_id",
@@ -77,8 +80,8 @@ func listAwsDRSRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *pl
 		sourceServerID = *h.Item.(types.SourceServer).SourceServerID
 	}
 
-	if d.KeyColumnQualString("source_server_id") != "" {
-		if sourceServerID != d.KeyColumnQualString("source_server_id") {
+	if d.EqualsQualString("source_server_id") != "" {
+		if sourceServerID != d.EqualsQualString("source_server_id") {
 			return nil, nil
 		}
 	}
@@ -150,7 +153,7 @@ func listAwsDRSRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *pl
 			d.StreamListItem(ctx, recoverySnapshot)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

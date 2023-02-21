@@ -4,8 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
 //// TABLE DEFINITION
@@ -17,7 +18,7 @@ func tableAWSResourceExplorerSupportedResourceType(_ context.Context) *plugin.Ta
 		List: &plugin.ListConfig{
 			Hydrate: listAWSExplorerSupportedTypes,
 		},
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "resource_type",
 				Description: "The unique identifier of the resource type.",
@@ -34,9 +35,15 @@ func tableAWSResourceExplorerSupportedResourceType(_ context.Context) *plugin.Ta
 
 //// LIST FUNCTION
 
-func listAWSExplorerSupportedTypes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAWSExplorerSupportedTypes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region, err := getDefaultRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
 	// Create Session
-	svc, err := ResourceExplorerClient(ctx, d, getDefaultAwsRegion(d))
+	svc, err := ResourceExplorerClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_resource_explorer_supported_resource_type.listAWSExplorerSupportedTypes", "connnection_error", err)
 		return nil, err
@@ -62,7 +69,7 @@ func listAWSExplorerSupportedTypes(ctx context.Context, d *plugin.QueryData, _ *
 			d.StreamListItem(ctx, resourceType)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

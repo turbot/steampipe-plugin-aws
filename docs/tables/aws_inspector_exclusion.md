@@ -70,9 +70,9 @@ select
   jsonb_pretty(e.attributes) as attributes, 
   e.recommendation 
 from 
-  test_aab.aws_inspector_exclusion e, 
-  test_aab.aws_inspector_assessment_run r, 
-  test_aab.aws_inspector_assessment_template t 
+  aws_inspector_exclusion e, 
+  aws_inspector_assessment_run r, 
+  aws_inspector_assessment_template t 
 where 
   e.assessment_run_arn = r.arn 
 and 

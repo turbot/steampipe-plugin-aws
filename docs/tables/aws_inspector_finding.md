@@ -96,7 +96,7 @@ select
   i.instance_type,
   f.title,
   f.service,
-  f.severity
+  f.severity,
   f.confidence
 from
   aws_ec2_instance as i,

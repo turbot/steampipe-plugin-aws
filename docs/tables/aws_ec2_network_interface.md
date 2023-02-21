@@ -31,7 +31,7 @@ select
 from
   aws_ec2_network_interface
 where
-  private_ip_address :: cidr < <= '10.66.0.0/16';
+  private_ip_address :: cidr <<= '10.66.0.0/16';
 ```
 
 ### Count of ENIs by interface type

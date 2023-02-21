@@ -9,9 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -44,7 +46,7 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 				{Name: "offering_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "reserved_instance_id",
@@ -190,7 +192,7 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	filters := buildEc2ReservedInstanceFilter(d.Quals)
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["offering_class"] != nil {
 		input.OfferingClass = types.OfferingClassType(equalQuals["offering_class"].GetStringValue())
 	}
@@ -213,7 +215,7 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 		d.StreamListItem(ctx, reservedInstance)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -224,7 +226,7 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 func getEc2ReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	instanceID := d.KeyColumnQuals["reserved_instance_id"].GetStringValue()
+	instanceID := d.EqualsQuals["reserved_instance_id"].GetStringValue()
 
 	// create service
 	svc, err := EC2Client(ctx, d)
@@ -251,10 +253,9 @@ func getEc2ReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getEc2ReservedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instance := h.Item.(types.ReservedInstances)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
@@ -26,7 +26,7 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listTrafficPolicyInstances,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The DNS name for which Amazon Route 53 responds to queries.",
@@ -132,7 +132,7 @@ func listTrafficPolicyInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 			d.StreamListItem(ctx, policies)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				pagesLeft = false
 			}
 		}
@@ -156,7 +156,7 @@ func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugi
 	if h.Item != nil {
 		id = *h.Item.(types.TrafficPolicyInstance).Id
 	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
+		id = d.EqualsQuals["id"].GetStringValue()
 	}
 
 	// Validate if input params are empty
@@ -187,8 +187,7 @@ func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugi
 func getRoute53TrafficPolicyInstanceTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instanceId := *h.Item.(types.TrafficPolicyInstance).Id
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.getRoute53TrafficPolicyInstanceTurbotAkas", "api_error", err)
 		return nil, err
