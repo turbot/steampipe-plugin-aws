@@ -3,9 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+
+	healthv1 "github.com/aws/aws-sdk-go/service/health"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/health"
@@ -29,8 +31,8 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 				{Name: "last_updated_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<=", "="}},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
-		Columns: awsColumns([]*plugin.Column{
+		GetMatrixItemFunc: SupportedRegionMatrix(healthv1.EndpointsID),
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the health entity.",
@@ -129,7 +131,7 @@ func listHealthAffectedEntities(ctx context.Context, d *plugin.QueryData, h *plu
 			d.StreamListItem(ctx, item)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -153,8 +155,8 @@ func buildHealthAffectedEntityFilter(d *plugin.QueryData) *types.EntityFilter {
 	}
 
 	for columnName, dataType := range filterQuals {
-		if dataType == "string" && d.KeyColumnQualString(columnName) != "" {
-			value := d.KeyColumnQualString(columnName)
+		if dataType == "string" && d.EqualsQualString(columnName) != "" {
+			value := d.EqualsQualString(columnName)
 			switch columnName {
 			case "arn":
 				filter.EntityArns = ([]string{value})
