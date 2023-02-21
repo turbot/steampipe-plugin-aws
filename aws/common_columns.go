@@ -103,7 +103,7 @@ type awsCommonColumnData struct {
 
 // if the caching is required other than per connection, build a cache key for the call and use it in Memoize
 // since getCommonColumns is a multi-region call, caching should be per connection per region
-var getCommonColumns = plugin.HydrateFunc(getCommonColumnsUncached).Memoize(plugin.WithCacheKeyFunction(getCommonColumnsCacheKey))
+var getCommonColumns = plugin.HydrateFunc(getCommonColumnsUncached).Memoize(plugin.MemoizeCacheKeyFunction(getCommonColumnsCacheKey))
 
 // Build a cache key for the call to getCommonColumns, including the region since this is a multi-region call.
 // Notably, this may be called WITHOUT a region. In that case we just share a cache for non-region data.

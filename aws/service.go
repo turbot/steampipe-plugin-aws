@@ -1444,16 +1444,12 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 	// is normally per-column, but we can hijack it for this case to pass
 	// through the context we need.
 	h := &plugin.HydrateData{Item: region}
-	i, err := getClientCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	return i.(*aws.Config), nil
+	return getClientCached(ctx, d, h)
 }
 
 // Cached form of getClient, using the per-connection and parallel safe
 // Memoize() method.
-var getClientCached = plugin.HydrateFunc(getClientUncached).Memoize(plugin.WithCacheKeyFunction(getClientCacheKey))
+var getClientCached = plugin.Memoize[*aws.Config](getClientUncached, plugin.MemoizeCacheKeyFunction(getClientCacheKey))
 
 // getClient is per-region, but Memoize() is per-connection, so a setup
 // a custom cache key with region information in it.
@@ -1609,7 +1605,17 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 // If we expire the cache regularly we are causing SSO sessions to end
 // prematurely, and causing the AWS SDK to refresh credentials more often
 // using the IDMS service etc.
-var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(plugin.WithTtl(time.Hour * 24 * 30))
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(plugin.MemoizeTtl(time.Hour * 24 * 30))
+
+func validateConnectionConfig(c any) (any, error) {
+	var awsSpcConfig, _ = c.(awsConfig)
+	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
+		return nil, fmt.Errorf("partial credentials found in connection config, missing: secret_key")
+	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
+		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
+	}
+	return c, nil
+}
 
 // Do the actual work of creating an AWS config object for reuse across many
 // regions. This client has the minimal reusable configuration on it, so it
@@ -1634,11 +1640,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
 	}
 
-	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
-		return nil, fmt.Errorf("partial credentials found in connection config, missing: secret_key")
-	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
-		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
-	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
+	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
 		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
 		sessionToken := ""
 		if awsSpcConfig.SessionToken != nil {

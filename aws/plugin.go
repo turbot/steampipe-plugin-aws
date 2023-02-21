@@ -40,8 +40,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			ShouldIgnoreErrorFunc: shouldIgnoreErrorPluginDefault(),
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
-			NewInstance: ConfigInstance,
-			Schema:      ConfigSchema,
+			NewInstance:    ConfigInstance,
+			Schema:         ConfigSchema,
+			OnConfigParsed: validateConnectionConfig,
 		},
 		TableMap: map[string]*plugin.Table{
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
