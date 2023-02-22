@@ -72,6 +72,10 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Func:    getS3BucketEventNotificationConfigurations,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
+			{
+				Func:    getBucketWebsite,
+				Depends: []plugin.HydrateFunc{getBucketLocation},
+			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
@@ -202,6 +206,13 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketReplication,
 				Transform:   transform.FromField("ReplicationConfiguration"),
+			},
+			{
+				Name:        "website_configuration",
+				Description: "The replication configuration of a bucket.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBucketWebsite,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags_src",
@@ -683,6 +694,32 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	return bucketTags, nil
+}
+
+func getBucketWebsite(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
+	bucket := h.Item.(types.Bucket)
+	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+
+	// Create client
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketWebsite", "client_error", err)
+		return nil, err
+	}
+
+	params := &s3.GetBucketWebsiteInput{Bucket: bucket.Name}
+
+	bucketwebsites, _ := svc.GetBucketWebsite(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketWebsite", "api_error", err)
+		return nil, err
+	}
+
+	return bucketwebsites, nil
 }
 
 func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
