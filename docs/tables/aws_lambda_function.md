@@ -134,3 +134,16 @@ select
 from
   aws_lambda_function;
 ```
+
+### List functions that have tracing enabled
+
+```sql
+select
+  name,
+  arn,
+  jsonb_pretty(tracing_config) as tracing_config
+from
+  aws_lambda_function
+where
+  tracing_config ->> 'Mode' = 'Active';
+```
