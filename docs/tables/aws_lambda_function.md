@@ -135,7 +135,7 @@ from
   aws_lambda_function;
 ```
 
-### List functions that have tracing enabled
+### List functions that have tracing disabled
 
 ```sql
 select
@@ -145,5 +145,5 @@ select
 from
   aws_lambda_function
 where
-  tracing_config ->> 'Mode' = 'Active';
+  tracing_config ->> 'Mode' = 'PassThrough';
 ```
