@@ -13,7 +13,7 @@
       }
     ],
     "target_group_arn": "{{ output.resource_aka.value }}",
-    "target_health_descriptions": null,
+    "target_health_descriptions": [],
     "title": "{{resourceName}}"
   }
 ]
