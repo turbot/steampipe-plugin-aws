@@ -21,6 +21,7 @@ from
   aws_codebuild_build;
 ```
 
+
 ### List VPC configuration that CodeBuild accesses
 
 ```sql
@@ -35,7 +36,7 @@ where
 ```
 
 
-### List encrypted batch build output artifacts
+### List encrypted build output artifacts
 
 ```sql
 select
@@ -48,7 +49,8 @@ where
   encryption_key is not null;
 ```
 
-### List complete batch build
+
+### List complete build
 
 ```sql
 select
@@ -59,4 +61,18 @@ from
   aws_codebuild_build
 where
   complete;
+```
+
+### List VPC configuration details of build 
+
+```
+select
+  id,
+  arn,
+  vpc_config ->> 'SecurityGroupIds' as security_groups,
+  vpc_config ->> 'Subnets' as subnets,
+  vpc_config ->> 'VpcId' as vpc_id
+from
+  aws_codebuild_build;
+
 ```

@@ -25,56 +25,31 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The ARN of the batch build.",
 				Type:        proto.ColumnType_STRING,
-			},
+			},			
 			{
-				Name:        "artifacts",
-				Description: "A BuildArtifacts object the defines the build artifacts for this batch build.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "build_batch_configuration",
-				Description: "Contains configuration information about a batch build project.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "build_batch_number",
-				Description: "The number of the batch build.",
-				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "batch_build_status",
-				Description: "The status of the batch build.",
+				Name:        "id",
+				Description: "The unique identifier of the  build.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "build_groups",
-				Description: "An array of BuildGroup objects that define the build groups for the batch build.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "build_timeout_in_minutes",
-				Description: "Specifies the maximum amount of time, in minutes, that the build in a batch must be completed in.",
-				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "cache",
-				Description: "Information about the cache for the build project.",
+				Name:        "build_batch_arn",
+				Description: "The ARN of the batch build that this build is a member of, if applicable.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "complete",
-				Description: "Indicates if the batch build is complete.",
+				Name:        "build_complete",
+				Description: "Indicates if the build is complete.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "current_phase",
-				Description: "The current phase of the batch build.",
-				Type:        proto.ColumnType_STRING,
+				Name:        "build_number",
+				Description: "The number of the build.",
+				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "debug_session_enabled",
-				Description: "Specifies if session debugging is enabled for this batch build.",
-				Type:        proto.ColumnType_BOOL,
+				Name:        "build_status",
+				Description: "The status of the build.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "encryption_key",
@@ -83,38 +58,8 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "end_time",
-				Description: "The date and time that the batch build ended.",
+				Description: "The date and time that the build process ended, expressed in Unix time forma.",
 				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "environment",
-				Description: "Information about the build environment of the build project.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "file_system_locations",
-				Description: "An array of ProjectFileSystemLocation objects for the batch build project.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "id",
-				Description: "The identifier of the batch build.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "initiator",
-				Description: "The entity that started the batch build.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "log_config",
-				Description: "Information about logs for a build project. These can be logs in CloudWatch Logs, built in a specified S3 bucket, or both.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "phases",
-				Description: "An array of BuildBatchPhase objects the specify the phases of the batch build.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "project_name",
@@ -123,17 +68,92 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "queued_timeout_in_minutes",
-				Description: "Specifies the amount of time, in minutes, that the batch build is allowed to be queued before it times out.",
+				Description: "Specifies the amount of time, in minutes, that a build is allowed to be queued before it times out.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "source_version",
+				Description: "The identifier of the version of the source code to be built.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "start_time",
+				Description: "The date and time that the build started.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "timeout_in_minutes",
+				Description: "How long, in minutes, for CodeBuild to wait before timing out this build if it does not get marked as completed.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "artifacts",
+				Description: "A BuildArtifacts object the defines the build artifacts for this batch build.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "cache",
+				Description: "Information about the cache for the build.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "current_phase",
+				Description: "The current build phase.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "debug_session",
+				Description: "Contains information about the debug session for this build.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "environment",
+				Description: "Information about the build environment for this build project.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "exported_environment_variables",
+				Description: "A list of exported environment variables for this build.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "file_system_locations",
+				Description: "An array of ProjectFileSystemLocation objects for a CodeBuild build project..",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "initiator",
+				Description: "The entity that started the build.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "logs",
+				Description: "Information about the build's logs in CloudWatch Logs.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "network_interfaces",
+				Description: " Describes a network interface.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "phases",
+				Description: "Information about all previous build phases that are complete and information about any current build phase that is not yet complete.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "report_arns",
+				Description: "An array of the ARNs associated with this build's reports.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "resolved_source_version",
-				Description: "The identifier of the resolved version of this batch build's source code.",
+				Description: "The identifier of the resolved version of this build's source code.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "secondary_artifacts",
-				Description: "An array of BuildArtifacts objects the define the build artifacts for this batch build.",
+				Description: "An array of BuildArtifacts objects the define the build artifacts for this build.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -143,28 +163,13 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "secondary_sources",
-				Description: "An array of ProjectSource objects that define the sources for the batch build.",
+				Description: "An array of ProjectSource objects that define the sources for the build.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "service_role",
-				Description: "The name of a service role used for builds in the batch.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "source",
 				Description: "Information about the build input source code for the build project.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "source_version",
-				Description: "The identifier of the version of the source code to be built.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "start_time",
-				Description: "The date and time that the batch build started.",
-				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "vpc_config",
@@ -175,7 +180,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BuildBatch.Arn"),
+				Transform:   transform.FromField("Arn"),
 			},
 			{
 				Name:        "akas",
@@ -191,7 +196,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 
 // listCodeBuildBuilds handles both listing and describing of the codebuild builds.
 //
-// The reason for this is the BatchGetBuildBatches call can accept up to 100 IDs. If we moved it out to another
+// The reason for this is the BatchGetBuilds call can accept up to 100 IDs. If we moved it out to another
 // hydrate functions we may save a request or two if we only wanted to retrieve the IDs but the tradeoff is we need
 // to get any other info an API call per codebuild build would need to be made. So in the case where we need to get
 // all info for less then 100 instances including the BatchGetBuild request here, and batching requests means only making
@@ -204,19 +209,6 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
-
-	// Limiting the results
-	// maxLimit := int32(100)
-	// if d.QueryContext.Limit != nil {
-	// 	limit := int32(*d.QueryContext.Limit)
-	// 	if limit < maxLimit {
-	// 		if limit < 1 {
-	// 			maxLimit = 1
-	// 		} else {
-	// 			maxLimit = limit
-	// 		}
-	// 	}
-	// }
 
 	input := &codebuild.ListBuildsInput{}
 
