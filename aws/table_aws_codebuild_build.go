@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 
 	codebuildv1 "github.com/aws/aws-sdk-go/service/codebuild"
@@ -126,7 +125,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Name:        "queued_timeout_in_minutes",
 				Description: "Specifies the amount of time, in minutes, that the batch build is allowed to be queued before it times out.",
 				Type:        proto.ColumnType_INT,
-			},			
+			},
 			{
 				Name:        "resolved_source_version",
 				Description: "The identifier of the resolved version of this batch build's source code.",
@@ -182,11 +181,12 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(arnToAkas),
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
 }
+
 //// LIST FUNCTION
 
 // listCodeBuildBuilds handles both listing and describing of the codebuild builds.
@@ -206,24 +206,21 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// Limiting the results
-	maxLimit := int32(100)
-	if d.QueryContext.Limit != nil {
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
-		}
-	}
+	// maxLimit := int32(100)
+	// if d.QueryContext.Limit != nil {
+	// 	limit := int32(*d.QueryContext.Limit)
+	// 	if limit < maxLimit {
+	// 		if limit < 1 {
+	// 			maxLimit = 1
+	// 		} else {
+	// 			maxLimit = limit
+	// 		}
+	// 	}
+	// }
 
-	input := &codebuild.ListBuildBatchesInput{
-		MaxResults: aws.Int32(maxLimit),
-	}
+	input := &codebuild.ListBuildsInput{}
 
-	paginator := codebuild.NewListBuildBatchesPaginator(svc, input, func(o *codebuild.ListBuildBatchesPaginatorOptions) {
-		o.Limit = maxLimit
+	paginator := codebuild.NewListBuildsPaginator(svc, input, func(o *codebuild.ListBuildsPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 
@@ -234,19 +231,20 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			plugin.Logger(ctx).Error("aws_codebuild_build.listCodeBuildBuild", "api_error", err)
 			return nil, err
 		}
+		plugin.Logger(ctx).Error("listCodeBuildBuild", "output.Ids", output.Ids)
 		if len(output.Ids) > 0 {
-			params := &codebuild.BatchGetBuildBatchesInput{
+			params := &codebuild.BatchGetBuildsInput{
 				Ids: output.Ids,
 			}
-			op, err := svc.BatchGetBuildBatches(ctx, params)
+			op, err := svc.BatchGetBuilds(ctx, params)
 			if err != nil {
-				plugin.Logger(ctx).Error("aws_codebuild_project.getCodeBuildProject", "api_error", err)
+				plugin.Logger(ctx).Error("aws_codebuild_build.BatchGetBuilds", "api_error", err)
 				return nil, err
 			}
 
-			for _, build := range op.BuildBatches {
+			for _, build := range op.Builds {
 				d.StreamListItem(ctx, build)
-	
+
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.RowsRemaining(ctx) == 0 {
 					return nil, nil
