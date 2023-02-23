@@ -22,9 +22,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Managed Prefix List",
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				// We are dealing with the UnsupportedOperation error code as a result of the resource's unsupported area.
-				// The specified request includes an unsupported operation. For example, you can't stop an instance that's instance store-backed. Or you might be trying to launch an instance type that is not supported by the specified AMI. The returned message provides details of the unsupported operation.
-				// We need to add the 'UnsupportedOperation' error code to the IgnoreErrorCodes function because while the EC2 service is supported in the 'me-south-1' region, listing managed prefix lists is not supported in that region.
+				// Ignore the 'UnsupportedOperation' error because while the EC2 service is supported in the 'me-south-1' region, listing managed prefix lists is not in that region
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction", "InvalidRequest", "UnsupportedOperation"}),
 			},
 			Hydrate: listManagedPrefixList,
