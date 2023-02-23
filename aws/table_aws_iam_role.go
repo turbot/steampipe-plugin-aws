@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -35,7 +35,7 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			// "Key" Columns
 			{
 				Name:        "name",
@@ -194,7 +194,7 @@ func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	maxItems := int32(1000)
 
 	input := iam.ListRolesInput{}
-	equalQual := d.KeyColumnQuals
+	equalQual := d.EqualsQuals
 	if equalQual["path"] != nil {
 		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
 	}
@@ -228,7 +228,7 @@ func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 			d.StreamListItem(ctx, role)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -252,8 +252,8 @@ func getIamRole(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 		data := h.Item.(types.Role)
 		name = *data.RoleName
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		arn := d.KeyColumnQuals["arn"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		arn := d.EqualsQuals["arn"].GetStringValue()
 		if len(arn) > 0 {
 			name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
 		}

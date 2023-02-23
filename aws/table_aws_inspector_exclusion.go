@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	inspectorv1 "github.com/aws/aws-sdk-go/service/inspector"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type ExclusionInfo = struct {
@@ -29,7 +32,7 @@ func tableAwsInspectorExclusion(_ context.Context) *plugin.Table {
 				{Name: "assessment_run_arn", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(inspectorv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -95,7 +98,7 @@ func listInspectorExclusions(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	// Exclusion is a sub resource of an assessment run, we need the assessment run ARN to list these.
 	runArn := *h.Item.(types.AssessmentRun).Arn
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 
 	// Minimize the API call with the given assessment run ARN
 	if equalQuals["assessment_run_arn"] != nil {
@@ -159,7 +162,7 @@ func listInspectorExclusions(ctx context.Context, d *plugin.QueryData, h *plugin
 			d.StreamListItem(ctx, ExclusionInfo{exclusion, runArn})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

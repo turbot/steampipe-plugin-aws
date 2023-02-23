@@ -86,7 +86,7 @@ where
 ```sql
 select
   p.name,
-  r.arn as role_arn
+  r.arn as role_arn,
   r.role_id,
   r.permissions_boundary_arn,
   r.role_last_used_region,

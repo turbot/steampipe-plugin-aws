@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
@@ -100,9 +100,9 @@ type awsIamPolicySimulatorResult struct {
 }
 
 func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
-	action := d.KeyColumnQuals["action"].GetStringValue()
-	resourceArn := d.KeyColumnQuals["resource_arn"].GetStringValue()
+	principalArn := d.EqualsQuals["principal_arn"].GetStringValue()
+	action := d.EqualsQuals["action"].GetStringValue()
+	resourceArn := d.EqualsQuals["resource_arn"].GetStringValue()
 
 	// Create Session
 	svc, err := IAMClient(ctx, d)
