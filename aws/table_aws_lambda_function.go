@@ -186,6 +186,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Name:        "architectures",
 				Description: "The instruction set architecture that the function supports. Architecture is a string array with one of the valid values.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.Architectures", "Architectures"),
 			},
 			{
 				Name:        "code",
@@ -224,6 +225,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Name:        "snap_start",
 				Description: "Set ApplyOn to PublishedVersions to create a snapshot of the initialized execution environment when you publish a function version.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.SnapStart", "SnapStart"),
 			},
 			{
 				Name:        "url_config",
