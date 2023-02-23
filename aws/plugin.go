@@ -215,7 +215,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_elasticache_subnet_group":                                 tableAwsElastiCacheSubnetGroup(ctx),
 			"aws_elasticsearch_domain":                                     tableAwsElasticsearchDomain(ctx),
 			"aws_emr_cluster_metric_is_idle":                               tableAwsEmrClusterMetricIsIdle(ctx),
-			"aws_emr_cluster_block_public_access":                          tableAwsEmrClusterBlockPublicAccess(ctx),
+			"aws_emr_block_public_access_configuration":                    tableAwsEmrBlockPublicAccessConfiguration(ctx),
 			"aws_emr_cluster":                                              tableAwsEmrCluster(ctx),
 			"aws_emr_instance_fleet":                                       tableAwsEmrInstanceFleet(ctx),
 			"aws_emr_instance_group":                                       tableAwsEmrInstanceGroup(ctx),

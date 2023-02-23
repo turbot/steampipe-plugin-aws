@@ -14,10 +14,10 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsEmrClusterBlockPublicAccess(_ context.Context) *plugin.Table {
+func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_emr_cluster_block_public_access",
-		Description: "AWS EMR Cluster Block Public Access",
+		Name:        "aws_emr_block_public_access_configuration",
+		Description: "AWS EMR Block Public Access Configuration",
 		List: &plugin.ListConfig{
 			Hydrate: listBlockPublicAccessConfigurations,
 		},

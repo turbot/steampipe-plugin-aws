@@ -1,6 +1,6 @@
-# Table: aws_emr_cluster_block_public_access
+# Table: aws_emr_block_public_access_configuration
 
-The `aws_emr_cluster_block_public_access` table provides Amazon EMR block public access configuration for your AWS account in the current Region..
+The `aws_emr_block_public_access_configuration` table provides Amazon EMR block public access configuration for your AWS account in the current Region.
 
 ## Examples
 
@@ -15,7 +15,7 @@ select
   configurations,
   permitted_public_security_group_rule_ranges
 from
-  aws_emr_cluster_block_public_access
+  aws_emr_block_public_access_configuration
 order by
   created_by_arn,
   creation_date;
@@ -29,7 +29,7 @@ select
   configurations,
   permitted_public_security_group_rule_ranges
 from
-  aws_emr_cluster_block_public_access
+  aws_emr_block_public_access_configuration
 where 
   block_public_security_group_rules;
 ```
