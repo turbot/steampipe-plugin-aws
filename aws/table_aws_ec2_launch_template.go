@@ -6,10 +6,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -34,7 +35,7 @@ func tableAwsEc2LaunchTemplate(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "launch_template_name",
@@ -124,12 +125,12 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	name := d.KeyColumnQualString("launch_template_name")
+	name := d.EqualsQualString("launch_template_name")
 	if name != "" {
 		input.LaunchTemplateNames = []string{name}
 	}
-	if d.KeyColumnQualString("launch_template_id") != "" {
-		input.LaunchTemplateIds = []string{d.KeyColumnQualString("launch_template_id")}
+	if d.EqualsQualString("launch_template_id") != "" {
+		input.LaunchTemplateIds = []string{d.EqualsQualString("launch_template_id")}
 	}
 
 	paginator := ec2.NewDescribeLaunchTemplatesPaginator(svc, input, func(o *ec2.DescribeLaunchTemplatesPaginatorOptions) {
@@ -158,7 +159,7 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func launchTemplateAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	launchTemplate := h.Item.(types.LaunchTemplate)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
