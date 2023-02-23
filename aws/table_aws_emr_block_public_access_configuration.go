@@ -72,7 +72,7 @@ func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table 
 func listBlockPublicAccessConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	svc, err := EMRClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_emr_cluster_block_public_access.listBlockPublicAccessConfigurations", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_emr_block_public_access_configuration.listBlockPublicAccessConfigurations", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -84,7 +84,7 @@ func listBlockPublicAccessConfigurations(ctx context.Context, d *plugin.QueryDat
 
 	op, err := svc.GetBlockPublicAccessConfiguration(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_emr_cluster_block_public_access.listBlockPublicAccessConfigurations", "api_error", err)
+		plugin.Logger(ctx).Error("aws_emr_block_public_access_configuration.listBlockPublicAccessConfigurations", "api_error", err)
 		return nil, err
 	}
 
