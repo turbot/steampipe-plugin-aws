@@ -24,22 +24,10 @@ func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table 
 		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "created_by_arn",
-				Description: "The Amazon Resource Name that created or last modified the configuration.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BlockPublicAccessConfigurationMetadata.CreatedByArn"),
-			},
-			{
 				Name:        "block_public_security_group_rules",
 				Description: "Indicates whether Amazon EMR block public access is enabled (true) or disabled (false).",
 				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("BlockPublicAccessConfiguration.BlockPublicSecurityGroupRules"),
-			},
-			{
-				Name:        "creation_date",
-				Description: "The date and time that the configuration was created.",
-				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("BlockPublicAccessConfigurationMetadata.CreationDateTime"),
 			},
 			{
 				Name:        "classification",
@@ -52,6 +40,18 @@ func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table 
 				Description: "A list of additional configurations to apply within a configuration object.",
 				Transform:   transform.FromField("BlockPublicAccessConfiguration.Configurations"),
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "created_by_arn",
+				Description: "The Amazon Resource Name that created or last modified the configuration.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("BlockPublicAccessConfigurationMetadata.CreatedByArn"),
+			},
+			{
+				Name:        "creation_date",
+				Description: "The date and time that the configuration was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("BlockPublicAccessConfigurationMetadata.CreationDateTime"),
 			},
 			{
 				Name:        "permitted_public_security_group_rule_ranges",
