@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type findingInfo struct {
@@ -32,7 +34,7 @@ func tableAwsGuardDutyFinding(_ context.Context) *plugin.Table {
 				{Name: "type", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -129,7 +131,7 @@ func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	detectorId := h.Item.(detectorInfo).DetectorID
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	// Minimize the API call with the given detector_id
 	if equalQuals["detector_id"] != nil {
 		if equalQuals["detector_id"].GetStringValue() != detectorId {
@@ -186,7 +188,7 @@ func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.H
 			d.StreamListItem(ctx, findingInfo{finding, detectorId})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

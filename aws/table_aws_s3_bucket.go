@@ -8,22 +8,21 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_s3_bucket",
 		Description: "AWS S3 Bucket",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
-			Hydrate:    getS3Bucket,
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listS3Buckets,
 		},
+		// Note: No Get for S3 buckets, since it must list all the buckets
+		// anyway just to get the creation_date which is only available via the
+		// list call.
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getBucketIsPublic,
@@ -78,7 +77,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
 		},
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The user friendly name of the bucket.",
@@ -253,15 +252,20 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 	}
 }
 
-//// LIST FUNCTION
+func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := getDefaultAwsRegion(d)
-
-	// Get client
+	// Unlike most services, S3 buckets are a global list. They can be retrieved
+	// from any single region.  We must list buckets from the default region to
+	// get the actual creation_time of the bucket, in all other regions the list
+	// returns the time when the bucket was last modified. See
+	// https://www.marksayson.com/blog/s3-bucket-creation-dates-s3-master-regions/
+	defaultRegion, err := getLastResortRegion(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
 	svc, err := S3Client(ctx, d, defaultRegion)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err, "defaultRegion", defaultRegion)
 		return nil, err
 	}
 
@@ -269,52 +273,19 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	input := &s3.ListBucketsInput{}
 	bucketsResult, err := svc.ListBuckets(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err, "defaultRegion", defaultRegion)
 		return nil, err
 	}
 
 	for _, bucket := range bucketsResult.Buckets {
 		d.StreamListItem(ctx, bucket)
-
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
 
 	return nil, nil
-}
-
-//// HYDRATE FUNCTIONS
-
-// do not have a get call for s3 bucket.
-// using list api call to create get function
-func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := getDefaultAwsRegion(d)
-	name := d.KeyColumnQuals["name"].GetStringValue()
-
-	// Create client
-	svc, err := S3Client(ctx, d, defaultRegion)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getS3Bucket", "client_error", err)
-		return nil, err
-	}
-
-	// execute list call
-	input := &s3.ListBucketsInput{}
-	bucketsResult, err := svc.ListBuckets(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getS3Bucket", "api_error", err)
-		return nil, err
-	}
-
-	for _, item := range bucketsResult.Buckets {
-		if *item.Name == name {
-			return item, nil
-		}
-	}
-
-	return nil, err
 }
 
 func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -397,12 +368,17 @@ func getS3BucketObjectOwnershipControl(ctx context.Context, d *plugin.QueryData,
 
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucket := h.Item.(types.Bucket)
-	defaultRegion := getDefaultAwsRegion(d)
 
-	// Create client
-	svc, err := S3Client(ctx, d, defaultRegion)
+	// Unlike most services, S3 buckets are a global list. They can be retrieved
+	// from any single region. It's best to use the client region of the user
+	// (e.g. closest to them).
+	clientRegion, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "client_error", err)
+		return nil, err
+	}
+	svc, err := S3Client(ctx, d, clientRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "get_client_error", err, "clientRegion", clientRegion)
 		return nil, err
 	}
 
@@ -412,7 +388,7 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// S3 supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region).
 	location, err := svc.GetBucketLocation(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "bucket_name", *bucket.Name, "clientRegion", clientRegion, "api_error", err)
 		return nil, err
 	}
 
@@ -506,7 +482,7 @@ func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Create client
 	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketVersioning", "client_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketEncryption", "client_error", err)
 		return nil, err
 	}
 	params := &s3.GetBucketEncryptionInput{
@@ -762,8 +738,8 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucket := h.Item.(types.Bucket)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketARN", "get_common_columns_error", err)
 		return nil, err

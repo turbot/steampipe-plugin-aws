@@ -5,8 +5,8 @@
 #
 # To use, put this file somewhere in your PATH, and then set up 2 profiles:
 #  - A master account profile with your access keys and MFA (in the account where your user resides)
-#  - The destinatoin account to log in to with a role.  This is the propfile that should be configured to use this script,
-#    passing the role arn, mfa arn, and master account profile as arguments.
+#  - The destination account to log into with a role.  This is the profile that should be configured to use this script,
+#    passing the role ARN, MFA ARN, and master account profile as arguments.
 #     
 # For example:
 #   [user_master_account]  

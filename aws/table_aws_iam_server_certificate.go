@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -28,7 +28,7 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 			Hydrate:    getIamServerCertificate,
 			KeyColumns: plugin.AllColumns([]string{"name"}),
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name that identifies the server certificate.",
@@ -133,7 +133,7 @@ func listIamServerCertificates(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	params := &iam.ListServerCertificatesInput{MaxItems: &maxItems}
 
-	equalQual := d.KeyColumnQuals
+	equalQual := d.EqualsQuals
 	if equalQual["path"] != nil {
 		params.PathPrefix = aws.String(equalQual["path"].GetStringValue())
 	}
@@ -156,7 +156,7 @@ func listIamServerCertificates(ctx context.Context, d *plugin.QueryData, _ *plug
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -181,7 +181,7 @@ func getIamServerCertificate(ctx context.Context, d *plugin.QueryData, h *plugin
 	if h.Item != nil {
 		name = *h.Item.(ServerCertificate).ServerCertificateMetadata.ServerCertificateName
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	param := &iam.GetServerCertificateInput{ServerCertificateName: aws.String(name)}

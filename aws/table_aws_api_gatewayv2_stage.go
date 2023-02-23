@@ -8,9 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -30,7 +32,7 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 			ParentHydrate: listAPIGatewayV2API,
 			Hydrate:       listAPIGatewayV2Stages,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stage_name",
@@ -123,6 +125,12 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Stage.Description"),
 			},
 			{
+				Name:        "access_log_settings",
+				Description: "Access log settings of the stage.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Stage.AccessLogSettings"),
+			},
+			{
 				Name:        "stage_variables",
 				Description: "A map that defines the stage variables for a stage resource",
 				Type:        proto.ColumnType_JSON,
@@ -213,7 +221,7 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 		d.StreamLeafListItem(ctx, &v2StageRowData{stage, apiGatewayv2API.ApiId})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -236,8 +244,8 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, nil
 	}
 
-	stageName := d.KeyColumnQuals["stage_name"].GetStringValue()
-	apiID := d.KeyColumnQuals["api_id"].GetStringValue()
+	stageName := d.EqualsQuals["stage_name"].GetStringValue()
+	apiID := d.EqualsQuals["api_id"].GetStringValue()
 
 	input := &apigatewayv2.GetStageInput{
 		ApiId:     aws.String(apiID),
@@ -276,9 +284,9 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func apiGatewayV2StageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*v2StageRowData)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

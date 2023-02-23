@@ -9,8 +9,8 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 const pluginName = "steampipe-plugin-aws"
@@ -58,6 +58,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gatewayv2_api":                                        tableAwsAPIGatewayV2Api(ctx),
 			"aws_api_gatewayv2_domain_name":                                tableAwsAPIGatewayV2DomainName(ctx),
 			"aws_api_gatewayv2_integration":                                tableAwsAPIGatewayV2Integration(ctx),
+			"aws_api_gatewayv2_route":                                      tableAwsAPIGatewayV2Route(ctx),
 			"aws_api_gatewayv2_stage":                                      tableAwsAPIGatewayV2Stage(ctx),
 			"aws_appautoscaling_target":                                    tableAwsAppAutoScalingTarget(ctx),
 			"aws_appconfig_application":                                    tableAwsAppConfigApplication(ctx),
@@ -241,6 +242,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_guardduty_member":                                         tableAwsGuardDutyMember(ctx),
 			"aws_guardduty_publishing_destination":                         tableAwsGuardDutyPublishingDestination(ctx),
 			"aws_guardduty_threat_intel_set":                               tableAwsGuardDutyThreatIntelSet(ctx),
+			"aws_health_affected_entity":                                   tableAwsHealthAffectedEntity(ctx),
 			"aws_health_event":                                             tableAwsHealthEvent(ctx),
 			"aws_iam_access_advisor":                                       tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                                           tableAwsIamAccessKey(ctx),

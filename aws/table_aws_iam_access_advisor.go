@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 const maxRetries = 20
@@ -38,7 +38,7 @@ func tableAwsIamAccessAdvisor(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("principal_arn"),
 			Hydrate:    listAccessAdvisor,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "principal_arn",
 				Description: "The ARN of the IAM resource (user, group, role, or managed policy) used to generate information about when the resource was last used in an attempt to access an AWS service.",
@@ -92,10 +92,9 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// SERVICE_LEVEL, and currently only s# supports action level actions anyway, so the
 	// performance impact is minimal
 	granularity := "ACTION_LEVEL"
-	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
+	principalArn := d.EqualsQuals["principal_arn"].GetStringValue()
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_access_advisor.listAccessAdvisor", "get_common_data_error", err)
 		return nil, err
@@ -177,7 +176,7 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				break
 			}
 		}

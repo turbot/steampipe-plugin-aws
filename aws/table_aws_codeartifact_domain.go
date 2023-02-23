@@ -7,10 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	codeartifactv1 "github.com/aws/aws-sdk-go/service/codeartifact"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -35,7 +37,7 @@ func tableAwsCodeArtifactDomain(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCodeArtifactDomains,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(codeartifactv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -189,7 +191,7 @@ func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, item)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -208,8 +210,8 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		name = *data.Name
 		owner = *data.Owner
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		owner = d.KeyColumnQuals["owner"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		owner = d.EqualsQuals["owner"].GetStringValue()
 	}
 
 	if name == "" {
