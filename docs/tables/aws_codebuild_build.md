@@ -34,7 +34,7 @@ where
   encryption_key is not null;
 ```
 
-### List complete build
+### List complete builds
 
 ```sql
 select
@@ -48,20 +48,20 @@ where
   build_complete;
 ```
 
-### List VPC configuration details of build 
+### List VPC configuration details of builds 
 
 ```sql
 select
   id,
   arn,
-  vpc_config ->> 'SecurityGroupIds' as security_groups,
+  vpc_config ->> 'SecurityGroupIds' as security_group_id,
   vpc_config ->> 'Subnets' as subnets,
   vpc_config ->> 'VpcId' as vpc_id
 from
   aws_codebuild_build;
 ```
 
-### List artifacts details of build 
+### List artifact details of builds 
 
 ```sql
 select

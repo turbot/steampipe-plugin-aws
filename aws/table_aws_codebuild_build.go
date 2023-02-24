@@ -58,7 +58,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "end_time",
-				Description: "The date and time that the build process ended, expressed in Unix time forma.",
+				Description: "The date and time that the build process ended, expressed in Unix time format.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -133,7 +133,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "network_interfaces",
-				Description: " Describes a network interface.",
+				Description: "Describes a network interface.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -176,6 +176,8 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Description: "Information about the VPC configuration that CodeBuild accesses.",
 				Type:        proto.ColumnType_JSON,
 			},
+			
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -202,12 +204,11 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 // all info for less then 100 instances including the BatchGetBuild request here, and batching requests means only making
 // two API calls as opposed to 101.
 func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listCodeBuildBuilds")
 
 	// Create Session
 	svc, err := CodeBuildClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_codebuild_build.listCodeBuildBuild", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_codebuild_build.listCodeBuildBuilds", "connection_error", err)
 		return nil, err
 	}
 
@@ -221,7 +222,7 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_codebuild_build.listCodeBuildBuild", "api_error", err)
+			plugin.Logger(ctx).Error("aws_codebuild_build.listCodeBuildBuilds", "api_error", err)
 			return nil, err
 		}
 		if len(output.Ids) > 0 {
