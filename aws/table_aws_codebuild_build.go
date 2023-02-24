@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 
@@ -18,6 +19,12 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 		Description: "AWS CodeBuild Build",
 		List: &plugin.ListConfig{
 			Hydrate: listCodeBuildBuilds,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "id",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codebuildv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -25,7 +32,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The ARN of the build.",
 				Type:        proto.ColumnType_STRING,
-			},			
+			},
 			{
 				Name:        "id",
 				Description: "The unique identifier of the  build.",
@@ -176,7 +183,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Description: "Information about the VPC configuration that CodeBuild accesses.",
 				Type:        proto.ColumnType_JSON,
 			},
-			
+
 			// Steampipe standard columns
 			{
 				Name:        "title",
@@ -212,6 +219,15 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
+	quals := d.EqualsQuals
+	id := quals["id"].GetStringValue()
+
+	if strings.Trim(id," ") != "" {
+		params := &codebuild.BatchGetBuildsInput{
+			Ids: []string{id},
+		}
+	getCodeBuildBuildFunction(ctx,d,params)
+	} 
 	input := &codebuild.ListBuildsInput{}
 
 	paginator := codebuild.NewListBuildsPaginator(svc, input, func(o *codebuild.ListBuildsPaginatorOptions) {
@@ -229,13 +245,35 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			params := &codebuild.BatchGetBuildsInput{
 				Ids: output.Ids,
 			}
-			op, err := svc.BatchGetBuilds(ctx, params)
-			if err != nil {
-				plugin.Logger(ctx).Error("aws_codebuild_build.BatchGetBuilds", "api_error", err)
-				return nil, err
-			}
+			getCodeBuildBuildFunction(ctx,d,params)
+		}
+	}
 
-			for _, build := range op.Builds {
+	return nil, nil
+}
+
+//// HYDRATE FUNCTIONS
+
+func getCodeBuildBuildFunction(ctx context.Context, d *plugin.QueryData,params *codebuild.BatchGetBuildsInput) (interface{}, error) {
+	
+	// get service
+	svc, err := CodeBuildClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_codebuild_build.getCodeBuildBuild", "connection_error", err)
+		return nil, err
+	}
+	
+	// Get call
+	op, err := svc.BatchGetBuilds(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_codebuild_build.getCodeBuildBuild", "api_error", err)
+		return nil, err
+	}
+
+	if op.Builds != nil && len(op.Builds) == 1 {
+		return op.Builds[0], nil
+	} else {
+		for _, build := range op.Builds {
 				d.StreamListItem(ctx, build)
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
@@ -243,8 +281,6 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 					return nil, nil
 				}
 			}
-		}
 	}
-
 	return nil, nil
 }
