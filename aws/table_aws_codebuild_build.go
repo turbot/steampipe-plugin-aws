@@ -207,6 +207,7 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Create Session
 	svc, err := CodeBuildClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codebuild_build.listCodeBuildBuild", "get_client_error", err)
 		return nil, err
 	}
 
@@ -223,7 +224,6 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			plugin.Logger(ctx).Error("aws_codebuild_build.listCodeBuildBuild", "api_error", err)
 			return nil, err
 		}
-		plugin.Logger(ctx).Error("listCodeBuildBuild", "output.Ids", output.Ids)
 		if len(output.Ids) > 0 {
 			params := &codebuild.BatchGetBuildsInput{
 				Ids: output.Ids,

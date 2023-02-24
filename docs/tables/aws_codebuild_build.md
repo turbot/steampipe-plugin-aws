@@ -63,3 +63,18 @@ select
 from
   aws_codebuild_build;
 ```
+
+
+### List artifacts details of build 
+
+```sql
+select
+  id,
+  arn,
+  artifacts ->> 'ArtifactIdentifier' as artifact_id,
+  artifacts ->> 'BucketOwnerAccess' as bucket_owner_access,
+  artifacts ->> 'EncryptionDisabled' as encryption_disabled,
+  artifacts ->> 'OverrideArtifactName' as override_artifact_name
+from
+  aws_codebuild_build;
+```
