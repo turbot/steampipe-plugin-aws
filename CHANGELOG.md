@@ -1,3 +1,27 @@
+## v0.94.0 [2023-02-25]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_launch_template](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_launch_template) ([#1543](https://github.com/turbot/steampipe-plugin-aws/pull/1543))
+
+_Enhancements_
+
+- Added column `data_protection` and `data_protection_policy` to `aws_cloudwatch_log_group` table. ([#1483](https://github.com/turbot/steampipe-plugin-aws/pull/1483))
+- Added column `website_configuration` to `aws_s3_bucket` table. ([#1618](https://github.com/turbot/steampipe-plugin-aws/pull/1618))
+- Added column `object_ownership_controls` to `aws_s3_bucket` table. ([#1548](https://github.com/turbot/steampipe-plugin-aws/pull/1548))
+- Added column `launch_template_data` to `aws_ec2_instance` table. ([#1553](https://github.com/turbot/steampipe-plugin-aws/pull/1553))
+- Added column `tracing_config` to `aws_lambda_function` table. ([#1601](https://github.com/turbot/steampipe-plugin-aws/pull/1601))
+- Updated Parliament IAM permissions to the latest. ([#1599](https://github.com/turbot/steampipe-plugin-aws/pull/1599))
+
+_Bug fixes_
+
+- Fixed the `title` column in `aws_api_gatewayv2_route` table to correctly return data instead of `null`. ([#1568](https://github.com/turbot/steampipe-plugin-aws/pull/1568))
+- Fixed the `tags_src` column in `aws_cloudformation_stack` table to correctly return raw tag data instead of a formatted one. ([#1568](https://github.com/turbot/steampipe-plugin-aws/pull/1568))
+- Fixed the `architectures`, `file_system_configs` and `snap_start` columns in `aws_lambda_function` table to correctly return data instead of `null`. ([#1619](https://github.com/turbot/steampipe-plugin-aws/pull/1619))
+- Fixed `aws_ec2_managed_prefix_list` table to return an empty row instead of an error in unsupported `me-south-1` region. ([#1577](https://github.com/turbot/steampipe-plugin-aws/pull/1577))
+- Fixed the `aws_eventbridge_rule` table to return rules for all the event bridges instead of only default event bridges. ([#1590](https://github.com/turbot/steampipe-plugin-aws/pull/1590))
+
 ## v0.93.0 [2023-02-17]
 
 _What's new?_
