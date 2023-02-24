@@ -20,7 +20,7 @@ _Bug fixes_
 - Fixed the `tags_src` column in `aws_cloudformation_stack` table to correctly return raw tag data instead of a formatted one. ([#1568](https://github.com/turbot/steampipe-plugin-aws/pull/1568))
 - Fixed the `architectures`, `file_system_configs` and `snap_start` columns in `aws_lambda_function` table to correctly return data instead of `null`. ([#1619](https://github.com/turbot/steampipe-plugin-aws/pull/1619))
 - Fixed `aws_ec2_managed_prefix_list` table to return an empty row instead of an error in unsupported `me-south-1` region. ([#1577](https://github.com/turbot/steampipe-plugin-aws/pull/1577))
-- Fixed the `aws_eventbridge_rule` table to return rules for all the event bridges instead of only default event bridges. ([#1590](https://github.com/turbot/steampipe-plugin-aws/pull/1590))
+- Fixed the `aws_eventbridge_rule` table to return rules for all the event bridges instead of only default event bridges. ([#1590](https://github.com/turbot/steampipe-plugin-aws/pull/1590)) (Thanks [@brentmitchell25](https://github.com/brentmitchell25) for the fix!!)
 
 ## v0.93.0 [2023-02-17]
 
