@@ -58,7 +58,7 @@ from
   jsonb_array_elements_text(s -> 'DataIdentifier') as i
 where
   s ->> 'Sid' = 'audit-policy'
-  and name = 'cis-revalidate-loggrp'
+  and name = 'log-group-name'
 ```
 
 ### List cloudwatch log groups that do no have data protection policy enabled
