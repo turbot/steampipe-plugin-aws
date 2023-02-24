@@ -10,29 +10,15 @@ AWS CodeBuild is a fully managed build service in the cloud. CodeBuild compiles 
 select
   arn,
   id,
-  complete,
-  build_timeout_in_minutes,
-  build_groups,
-  batch_build_status,
+  build_complete,
+  timeout_in_minutes,
+  project_name,
+  build_status,
   encryption_key,
   end_time,
   region
 from
   aws_codebuild_build;
-```
-
-
-### List VPC configuration that CodeBuild accesses
-
-```sql
-select
-  arn,
-  id,
-  vpc_config
-from
-  aws_codebuild_build
-where
-  vpc_config is not null;
 ```
 
 
@@ -56,12 +42,14 @@ where
 select
   id,
   arn,
-  artifacts
+  artifacts,
+  build_complete
 from
   aws_codebuild_build
 where
-  complete;
+  build_complete;
 ```
+
 
 ### List VPC configuration details of build 
 
