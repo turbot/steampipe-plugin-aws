@@ -209,7 +209,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "website_configuration",
-				Description: "The replication configuration of a bucket.",
+				Description: "The website configuration information of the bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketWebsite,
 				Transform:   transform.FromValue(),
@@ -697,6 +697,8 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getBucketWebsite(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
 	if h.HydrateResults["getBucketLocation"] == nil {
 		return nil, nil
 	}
