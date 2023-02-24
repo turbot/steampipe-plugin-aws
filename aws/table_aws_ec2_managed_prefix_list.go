@@ -22,7 +22,8 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Managed Prefix List",
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction", "InvalidRequest"}),
+				// Ignore the 'UnsupportedOperation' error because while the EC2 service is supported in the 'me-south-1' region, listing managed prefix lists is not in that region
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction", "InvalidRequest", "UnsupportedOperation"}),
 			},
 			Hydrate: listManagedPrefixList,
 			KeyColumns: []*plugin.KeyColumn{

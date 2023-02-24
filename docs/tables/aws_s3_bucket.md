@@ -192,3 +192,36 @@ from
 where
   website_configuration -> 'IndexDocument' ->> 'Suffix' is not null;
   ```
+
+### List object ownership control rules of buckets
+
+```sql
+select
+  b.name,
+  r ->> 'ObjectOwnership' as object_ownership
+from
+  aws_s3_bucket as b,
+  jsonb_array_elements(object_ownership_controls -> 'Rules') as r;
+```
+
+### List object ownership control rules of buckets
+
+```sql
+select
+  b.name,
+  r ->> 'ObjectOwnership' as object_ownership
+from
+  aws_s3_bucket as b,
+  jsonb_array_elements(object_ownership_controls -> 'Rules') as r;
+```
+### List buckets with website hosting enabled
+
+```sql
+select
+  name,
+  website_configuration -> 'IndexDocument' ->> 'Suffix' as suffix
+from
+  aws_s3_bucket
+where
+  website_configuration -> 'IndexDocument' ->> 'Suffix' is not null;
+  ```

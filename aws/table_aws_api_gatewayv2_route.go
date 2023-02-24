@@ -123,7 +123,7 @@ func tableAwsAPIGatewayV2Route(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("RouteId"),
+				Transform:   transform.FromField("GetRouteOutput.RouteId"),
 			},
 			{
 				Name:        "akas",
