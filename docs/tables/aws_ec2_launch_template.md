@@ -18,7 +18,7 @@ from
   aws_ec2_launch_template;
 ```
 
-### List launch templates created by an user
+### List launch templates created by a user
 
 ```sql
 select
