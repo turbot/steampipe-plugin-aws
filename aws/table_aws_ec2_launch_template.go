@@ -168,7 +168,7 @@ func launchTemplateAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
+	// Get data for Turbot defined properties
 	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":launch-template/" + *launchTemplate.LaunchTemplateId}
 
 	return akas, nil
