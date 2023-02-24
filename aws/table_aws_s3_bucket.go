@@ -188,7 +188,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "object_ownership_controls",
-				Description: "The OwnershipControls for an Amazon S3 bucket.",
+				Description: "The Ownership Controls for an Amazon S3 bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getS3BucketObjectOwnershipControl,
 				Transform:   transform.FromValue(),
