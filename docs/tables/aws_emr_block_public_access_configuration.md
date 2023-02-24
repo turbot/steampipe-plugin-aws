@@ -22,7 +22,7 @@ order by
 ```
 
 
-### List Block Public Access enabled settings for emr
+### List Block Public Access settings set as enabled for emr
 
 ```sql
 select
@@ -36,7 +36,7 @@ where
 ```
 
 
-### List Block Public Access with Permitted Public Security Group Rule Max and Min Ranges 
+### List Block Public Access with Permitted Public Security Group Rule Max and Min Port Ranges 
 
 ```sql
 select
@@ -64,7 +64,7 @@ where
 ```
 
 
-### Configuration details of EMR Block Public Access
+### List configuration details of EMR Block Public Access
 
 ```sql
 select
