@@ -21,7 +21,6 @@ from
   aws_codebuild_build;
 ```
 
-
 ### List encrypted build output artifacts
 
 ```sql
@@ -34,7 +33,6 @@ from
 where
   encryption_key is not null;
 ```
-
 
 ### List complete build
 
@@ -50,7 +48,6 @@ where
   build_complete;
 ```
 
-
 ### List VPC configuration details of build 
 
 ```sql
@@ -63,7 +60,6 @@ select
 from
   aws_codebuild_build;
 ```
-
 
 ### List artifacts details of build 
 
