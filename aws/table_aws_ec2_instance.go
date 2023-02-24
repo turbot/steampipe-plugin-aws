@@ -358,6 +358,13 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "launch_template_data",
+				Description: "The configuration data of the specified instance.",
+				Hydrate:     getEc2LaunchTemplateData,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "metadata_options",
 				Description: "The metadata options for the instance.",
 				Type:        proto.ColumnType_JSON,
@@ -679,6 +686,31 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	return instanceData, nil
+}
+
+
+func getEc2LaunchTemplateData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Get the details of load balancer
+	instance := h.Item.(types.Instance)
+
+	// create service
+	svc, err := EC2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2LaunchTemplateData", "connection_error", err)
+		return nil, err
+	}
+
+	params := &ec2.GetLaunchTemplateDataInput{
+		InstanceId: instance.InstanceId,
+	}
+
+	op, err := svc.GetLaunchTemplateData(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2LaunchTemplateData", "api_error", err)
+		return nil, err
+	}
+
+	return op.LaunchTemplateData, err
 }
 
 func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
