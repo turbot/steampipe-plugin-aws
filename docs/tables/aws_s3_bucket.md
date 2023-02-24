@@ -191,7 +191,7 @@ from
   aws_s3_bucket
 where
   website_configuration -> 'IndexDocument' ->> 'Suffix' is not null;
-  ```
+```
 
 ### List object ownership control rules of buckets
 
