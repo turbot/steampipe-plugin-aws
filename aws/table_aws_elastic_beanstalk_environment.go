@@ -323,7 +323,6 @@ func getAwsElasticBeanstalkEnvironmentManagedActions(ctx context.Context, d *plu
 	return nil, nil
 }
 
-
 func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	resourceArn := h.Item.(types.EnvironmentDescription).EnvironmentArn
 
