@@ -112,12 +112,8 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	maxLimit := int32(200)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
-		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			if limit < maxLimit {
+			maxLimit = limit
 		}
 	}
 
