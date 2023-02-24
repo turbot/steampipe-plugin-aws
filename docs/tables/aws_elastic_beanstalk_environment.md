@@ -17,7 +17,6 @@ from
   aws_elastic_beanstalk_environment;
 ```
 
-
 ### List environments which have configuration updates and application version deployments in progress
 
 ```sql
@@ -29,7 +28,6 @@ from
 where
   abortable_operation_in_progress = 'true';
 ```
-
 
 ### List unhealthy environments
 
@@ -44,7 +42,6 @@ from
 where
   health = 'Red';
 ```
-
 
 ### List environments with health monitoring disabled
 

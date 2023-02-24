@@ -139,6 +139,12 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("EnvironmentLinks"),
 			},
 			{
+				Name:        "managed_actions",
+				Description: "A list of upcoming and in-progress managed actions.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticBeanstalkEnvironmentManagedActions,
+			},
+			{
 				Name:        "resources",
 				Description: "The description of the AWS resources used by this environment.",
 				Type:        proto.ColumnType_JSON,
@@ -289,6 +295,34 @@ func getElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData, h 
 
 	return nil, nil
 }
+
+func getAwsElasticBeanstalkEnvironmentManagedActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create Session
+	svc, err := ElasticBeanstalkClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("elastic_beanstalk_environment.getAwsElasticBeanstalkEnvironmentManagedActions", "connection_error", err)
+		return nil, err
+	}
+
+	name := *h.Item.(types.EnvironmentDescription).EnvironmentName
+
+	// Build params
+	params := &elasticbeanstalk.DescribeEnvironmentManagedActionsInput{
+		EnvironmentName: aws.String(name),
+	}
+
+	managedActions, err := svc.DescribeEnvironmentManagedActions(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("elastic_beanstalk_environment.getAwsElasticBeanstalkEnvironmentManagedActions", "api_error", err)
+		return nil, err
+	}
+
+	if managedActions != nil && len(managedActions.ManagedActions) > 0 {
+		return managedActions, nil
+	}
+	return nil, nil
+}
+
 
 func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	resourceArn := h.Item.(types.EnvironmentDescription).EnvironmentArn
