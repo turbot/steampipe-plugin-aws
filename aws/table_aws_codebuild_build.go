@@ -23,7 +23,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
-				Description: "The ARN of the batch build.",
+				Description: "The ARN of the build.",
 				Type:        proto.ColumnType_STRING,
 			},			
 			{
@@ -53,7 +53,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "encryption_key",
-				Description: "The Key Management Service customer master key (CMK) to be used for encrypting the batch build output artifacts.",
+				Description: "The Key Management Service customer master key (CMK) to be used for encrypting the build output artifacts.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -63,7 +63,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "project_name",
-				Description: "The name of the batch build project.",
+				Description: "The name of the build project.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -88,7 +88,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "artifacts",
-				Description: "A BuildArtifacts object the defines the build artifacts for this batch build.",
+				Description: "A BuildArtifacts object the defines the build artifacts for this build.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
