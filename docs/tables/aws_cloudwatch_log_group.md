@@ -18,7 +18,7 @@ where
   kms_key_id is null;
 ```
 
-### List of cloudwatch log groups whose retention period is less than 7 days
+### List of log groups whose retention period is less than 7 days
 
 ```sql
 select
@@ -30,7 +30,7 @@ where
   retention_in_days < 7;
 ```
 
-### Metric filters info attached to cloudwatch log groups
+### Metric filters info attached log groups
 
 ```sql
 select
@@ -44,7 +44,7 @@ from
   join aws_cloudwatch_log_metric_filter metric on groups.name = metric.log_group_name;
 ```
 
-### List data protection audit policies and their destinations for cloudwatch log group
+### List data protection audit policies and their destinations for each log group
 
 ```sql
 select
@@ -61,7 +61,7 @@ where
   and name = 'log-group-name'
 ```
 
-### List cloudwatch log groups that do no have data protection policy enabled
+### List log groups with no data protection policy
 
 ```sql
 select
