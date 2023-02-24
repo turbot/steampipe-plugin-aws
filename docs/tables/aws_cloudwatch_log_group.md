@@ -44,12 +44,32 @@ from
   join aws_cloudwatch_log_metric_filter metric on groups.name = metric.log_group_name;
 ```
 
-### List the cloudwatch log groups' data protection policy documents
+### List data protection audit policies and their destinations for cloudwatch log group
 
 ```sql
 select
-  name,
-  jsonb_pretty(data_protection_policy) as policy
+  i as data_identifier,
+  s -> 'Operation' -> 'Audit' -> 'FindingsDestination' -> 'S3' -> 'Bucket' as  destination_bucket,
+  s -> 'Operation' -> 'Audit' -> 'FindingsDestination' -> 'CloudWatchLogs' -> 'LogGroup'as destination_log_group,
+  s -> 'Operation' -> 'Audit' -> 'FindingsDestination' -> 'Firehose' -> 'DeliveryStream'as destination_delivery_stream
 from
-  aws_cloudwatch_log_group;
+  aws_cloudwatch_log_group,
+  jsonb_array_elements(data_protection_policy -> 'Statement') as s,
+  jsonb_array_elements_text(s -> 'DataIdentifier') as i
+where
+  s ->> 'Sid' = 'audit-policy'
+  and name = 'cis-revalidate-loggrp'
+```
+
+### List cloudwatch log groups that do no have data protection policy enabled
+
+```sql
+select
+  arn,
+  name,
+  creation_time
+from
+  aws_cloudwatch_log_group
+where
+  data_protection_policy is null
 ```
