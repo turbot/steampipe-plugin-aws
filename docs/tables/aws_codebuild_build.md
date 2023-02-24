@@ -53,7 +53,7 @@ where
 
 ### List VPC configuration details of build 
 
-```
+```sql
 select
   id,
   arn,
@@ -62,5 +62,4 @@ select
   vpc_config ->> 'VpcId' as vpc_id
 from
   aws_codebuild_build;
-
 ```

@@ -118,7 +118,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "file_system_locations",
-				Description: "An array of ProjectFileSystemLocation objects for a CodeBuild build project..",
+				Description: "An array of ProjectFileSystemLocation objects for a CodeBuild build project.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
