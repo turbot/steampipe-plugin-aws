@@ -204,7 +204,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Name:        "file_system_configs",
 				Description: "Connection settings for an Amazon EFS file system.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Configuration.FileSystemConfigs","FileSystemConfigs"),
+				Transform:   transform.FromField("Configuration.FileSystemConfigs", "FileSystemConfigs"),
 			},
 			{
 				Name:        "policy",
