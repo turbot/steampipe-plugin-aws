@@ -163,6 +163,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_instance":                                             tableAwsEc2Instance(ctx),
 			"aws_ec2_key_pair":                                             tableAwsEc2KeyPair(ctx),
 			"aws_ec2_launch_configuration":                                 tableAwsEc2LaunchConfiguration(ctx),
+			"aws_ec2_launch_template":                                      tableAwsEc2LaunchTemplate(ctx),
 			"aws_ec2_load_balancer_listener":                               tableAwsEc2ApplicationLoadBalancerListener(ctx),
 			"aws_ec2_managed_prefix_list":                                  tableAwsEc2ManagedPrefixList(ctx),
 			"aws_ec2_network_interface":                                    tableAwsEc2NetworkInterface(ctx),
