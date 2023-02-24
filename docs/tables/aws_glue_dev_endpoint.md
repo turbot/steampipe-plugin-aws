@@ -10,7 +10,6 @@ A development endpoint is an environment that you can use to develop and test yo
 select
   endpoint_name,
   status,
-  database_name,
   availability_zone,
   created_timestamp,
   extra_jars_s3_path,

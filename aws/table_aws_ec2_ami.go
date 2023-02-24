@@ -2,13 +2,19 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	go_kit_pack "github.com/turbot/go-kit/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -36,7 +42,6 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				{Name: "kernel_id", Require: plugin.Optional},
 				{Name: "platform", Require: plugin.Optional},
 				{Name: "name", Require: plugin.Optional},
-				{Name: "owner_id", Require: plugin.Optional},
 				{Name: "ramdisk_id", Require: plugin.Optional},
 				{Name: "root_device_name", Require: plugin.Optional},
 				{Name: "root_device_type", Require: plugin.Optional},
@@ -45,7 +50,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				{Name: "virtualization_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -225,7 +230,7 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 	input := &ec2.DescribeImagesInput{}
 
-	filters := buildAmisWithOwnerFilter(d.Quals, "AMI", ctx, d, h)
+	filters := buildAmisWithOwnerFilter(input, d.Quals, ctx, d, h)
 	if len(filters) != 0 {
 		input.Filters = filters
 	}
@@ -239,7 +244,7 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 		d.StreamListItem(ctx, image)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -249,8 +254,8 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	imageID := d.KeyColumnQuals["image_id"].GetStringValue()
+func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	imageID := d.EqualsQuals["image_id"].GetStringValue()
 
 	// create service
 	svc, err := EC2Client(ctx, d)
@@ -259,8 +264,16 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
+	// By default, the accountId is set to the owner
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
 	params := &ec2.DescribeImagesInput{
 		ImageIds: []string{imageID},
+		Owners:   []string{commonColumnData.AccountId},
 	}
 
 	op, err := svc.DescribeImages(ctx, params)
@@ -307,10 +320,10 @@ func getAwsEc2AmiLaunchPermissionData(ctx context.Context, d *plugin.QueryData, 
 }
 
 func getAwsEc2AmiAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	image := h.Item.(types.Image)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -348,4 +361,61 @@ func getEc2AmiTurbotTitle(_ context.Context, d *transform.TransformData) (interf
 	}
 
 	return title, nil
+}
+
+// // UTILITY FUNCTION
+// Build AMI's list call input filter
+func buildAmisWithOwnerFilter(input *ec2.DescribeImagesInput, quals plugin.KeyColumnQualMap, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) []types.Filter {
+	filters := make([]types.Filter, 0)
+
+	filterQuals := map[string]string{
+		"architecture":        "architecture",
+		"description":         "description",
+		"ena_support":         "ena-support",
+		"hypervisor":          "hypervisor",
+		"image_type":          "image-type",
+		"kernel_id":           "kernel-id",
+		"name":                "name",
+		"platform":            "platform",
+		"public":              "is-public",
+		"ramdisk_id":          "ramdisk-id",
+		"root_device_name":    "root-device-name",
+		"root_device_type":    "root-device-type",
+		"state":               "state",
+		"sriov_net_support":   "sriov-net-support",
+		"virtualization_type": "virtualization-type",
+	}
+
+	columnsBool := []string{"ena_support", "public"}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := types.Filter{
+				Name: go_kit_pack.String(filterName),
+			}
+
+			//check Bool columns
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) {
+				value := getQualsValueByColumn(quals, columnName, "boolean")
+				filter.Values = []string{fmt.Sprint(value)}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []string{val}
+				}
+			}
+			filters = append(filters, filter)
+		}
+	}
+
+	// By default, the accountId is set to the owner
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return filters
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+	input.Owners = []string{commonColumnData.AccountId}
+
+	return filters
 }

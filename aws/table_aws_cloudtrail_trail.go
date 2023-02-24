@@ -7,12 +7,15 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
-	"github.com/aws/smithy-go"
 
+	cloudtrailv1 "github.com/aws/aws-sdk-go/service/cloudtrail"
+
+	"github.com/aws/smithy-go"
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -34,7 +37,7 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidTrailNameException", "TrailNotFoundException", "CloudTrailARNInvalidException"}),
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -201,7 +204,7 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				Name:        "insight_selectors",
 				Description: "A JSON string that contains the insight types you want to log on a trail.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCloudtrailTrailEventSelector,
+				Hydrate:     getCloudtrailTrailInsightSelector,
 			},
 			{
 				Name:        "tags_src",
@@ -256,7 +259,7 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		d.StreamListItem(ctx, trail)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -267,14 +270,14 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// HYDRATE FUNCTIONS
 
 func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.KeyColumnQuals["name"].GetStringValue()
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
+	arn := d.EqualsQuals["arn"].GetStringValue()
 	if len(arn) > 0 {
 		data := strings.Split(arn, "/")
 		name = data[len(data)-1]
 	}
 
-	if d.KeyColumnQuals["name"] != nil && d.KeyColumnQuals["name"].GetStringValue() == "" {
+	if d.EqualsQuals["name"] != nil && d.EqualsQuals["name"].GetStringValue() == "" {
 		return nil, nil
 	}
 
@@ -304,8 +307,8 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 }
 
 func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailStatus", "common_data_error", err)
 		return nil, err
@@ -313,7 +316,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	commonColumnData := commonData.(*awsCommonColumnData)
 	trail := h.Item.(types.Trail)
 
-	// Avoid api call if accountId is not equal to the accountId available in arn
+	// Avoid API call if Account ID of the client is not equal to the Account ID available in Trail ARN
 	accountId := arnToAccountId(*trail.TrailARN)
 	if commonColumnData.AccountId != accountId {
 		return nil, nil
@@ -346,8 +349,8 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 }
 
 func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "common_data_error", err)
 		return nil, err
@@ -387,9 +390,51 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	return item, nil
 }
 
+func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "common_data_error", err)
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+	trail := h.Item.(types.Trail)
+
+	// Avoid api call if accountId is not equal to the accountId available in arn
+	accountId := arnToAccountId(*trail.TrailARN)
+	if commonColumnData.AccountId != accountId {
+		return nil, nil
+	}
+
+	// Create session
+	svc, err := CloudTrailRegionsClient(ctx, d, *trail.HomeRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "client_error", err)
+		return nil, err
+	}
+
+	params := &cloudtrail.GetInsightSelectorsInput{
+		TrailName: trail.TrailARN,
+	}
+
+	// List resource tags
+	item, err := svc.GetInsightSelectors(ctx, params)
+	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if helpers.StringSliceContains([]string{"InsightNotEnabledException"}, ae.ErrorCode()) {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailInsightSelector", "api_error", err)
+		return nil, err
+	}
+	return item, nil
+}
+
 func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailTags", "common_data_error", err)
 		return nil, err

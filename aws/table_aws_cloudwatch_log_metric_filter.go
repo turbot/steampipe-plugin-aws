@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
@@ -44,7 +46,7 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -118,7 +120,7 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 	}
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["name"] != nil {
 		input.FilterNamePrefix = aws.String(equalQuals["name"].GetStringValue())
 	}
@@ -163,7 +165,7 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 			d.StreamListItem(ctx, metricFilter)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -175,7 +177,7 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.KeyColumnQuals["name"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
 
 	// Create session
 	svc, err := CloudWatchLogsClient(ctx, d)
@@ -204,11 +206,10 @@ func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *p
 }
 
 func getCloudwatchLogMetricFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	metricFilter := h.Item.(types.MetricFilter)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_metric_filter.getCloudwatchLogMetricFilter", "api_error", err)
 		return nil, err

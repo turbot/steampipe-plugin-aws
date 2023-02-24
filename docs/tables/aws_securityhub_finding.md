@@ -262,7 +262,7 @@ order by
   criticality,
   confidence
 from 
-  aws_redhood.aws_securityhub_finding
+  aws_securityhub_finding
 where 
   standards_control_arn like '%cis-aws-foundations-benchmark%';
 ```

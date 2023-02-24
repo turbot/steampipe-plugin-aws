@@ -1,3 +1,3 @@
-select db_cluster_identifier, arn, allocated_storage, copy_tags_to_snapshot, cross_account_clone, db_subnet_group, deletion_protection, endpoint, engine, engine_version, iam_database_authentication_enabled, multi_az, port, storage_encrypted, tags_src
+select db_cluster_identifier, arn, allocated_storage, copy_tags_to_snapshot, cross_account_clone, db_subnet_group, deletion_protection, endpoint, engine, iam_database_authentication_enabled, multi_az, port, storage_encrypted, tags_src
 from aws_neptune_db_cluster
 where db_cluster_identifier = '{{ resourceName }}';

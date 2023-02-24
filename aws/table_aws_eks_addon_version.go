@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	eksv1 "github.com/aws/aws-sdk-go/service/eks"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +26,7 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 				{Name: "addon_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "addon_name",
@@ -40,6 +42,13 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 				Name:        "type",
 				Description: "The type of the add-on.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "addon_configuration",
+				Description: "The configuration for the add-on.",
+				Hydrate:     getEksAddonConfiguration,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "architecture",
@@ -96,7 +105,7 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		MaxResults: aws.Int32(100),
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["addon_name"] != nil {
 		input.AddonName = aws.String(equalQuals["addon_name"].GetStringValue())
 	}
@@ -129,7 +138,7 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 				d.StreamListItem(ctx, addonVersion{addon.AddonName, version.AddonVersion, version.Architecture, version.Compatibilities, addon.Type})
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				if d.RowsRemaining(ctx) == 0 {
 					return nil, nil
 				}
 			}
@@ -141,12 +150,42 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
+func getEksAddonConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	data := h.Item.(addonVersion)
+	version := data.AddonVersion
+	addonName := data.AddonName
+
+	// create service
+	svc, err := EKSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon_version.getEksAddonConfiguration", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	params := &eks.DescribeAddonConfigurationInput{
+		AddonName:    addonName,
+		AddonVersion: version,
+	}
+
+	op, err := svc.DescribeAddonConfiguration(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon_version.getEksAddonConfiguration", "api_error", err)
+		return nil, err
+	}
+
+	return op.ConfigurationSchema, nil
+}
+
 func getAddonVersionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	version := h.Item.(addonVersion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_addon_version.getAddonVersionAkas", "api_error", err)
 		return nil, err

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -174,8 +174,8 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// get the primary region for aws based on its partition
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, region)
+	svc, err := EC2ClientForRegion(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.listAwsInstanceTypesOfferings", "connection_error", err)
 		return nil, err
@@ -243,7 +243,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -260,12 +260,12 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		data := h.Item.(types.InstanceTypeOffering)
 		instanceType = data.InstanceType
 	} else {
-		instanceType = types.InstanceType(d.KeyColumnQuals["instance_type"].GetStringValue())
+		instanceType = types.InstanceType(d.EqualsQuals["instance_type"].GetStringValue())
 	}
 
 	// get the primary region for aws based on its partition
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +279,7 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := EC2RegionsClient(ctx, d, region)
+	svc, err := EC2ClientForRegion(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.describeInstanceType", "connection_error", err)
 		return nil, err
@@ -318,8 +318,7 @@ func instanceTypeDataToAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 		instanceType = h.Item.(types.InstanceTypeInfo).InstanceType
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.instanceTypeDataToAkas", "common_data_error", err)
 		return nil, err

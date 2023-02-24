@@ -6,10 +6,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 
+	eventbridgev1 "github.com/aws/aws-sdk-go/service/eventbridge"
+
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
@@ -17,7 +20,7 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 		Name:        "aws_eventbridge_rule",
 		Description: "AWS EventBridge Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
+			KeyColumns: plugin.AllColumns([]string{"name", "event_bus_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
@@ -31,7 +34,7 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 				{Name: "name_prefix", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(eventbridgev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -128,7 +131,7 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 		data := h.Item.(*eventbridge.DescribeEventBusOutput)
 		eventBusName = types.SafeString(data.Name)
 	} else {
-		eventBusName = d.KeyColumnQuals["name"].GetStringValue()
+		eventBusName = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// Get client
@@ -164,7 +167,7 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 		params.EventBusName = &eventBusName
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["name_prefix"] != nil {
 		params.NamePrefix = aws.String(equalQuals["name_prefix"].GetStringValue())
 	}
@@ -186,7 +189,7 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -205,11 +208,14 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 
 func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	var name string
+	var name, eventBusName string
+
 	if h.Item != nil {
 		name = *h.Item.(*eventbridge.DescribeRuleOutput).Name
+		eventBusName = *h.Item.(*eventbridge.DescribeRuleOutput).EventBusName
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		eventBusName = d.EqualsQuals["event_bus_name"].GetStringValue()
 	}
 
 	// Create Session
@@ -224,8 +230,10 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Build the params
+	// Always provide an event bus name since the default event bus is used if not specified
 	params := &eventbridge.DescribeRuleInput{
-		Name: &name,
+		EventBusName: &eventBusName,
+		Name:         &name,
 	}
 
 	// Get call
@@ -324,8 +332,8 @@ func eventBridgeTagListToTurbotTags(ctx context.Context, d *transform.TransformD
 //// UTILITY FUNCTIONS
 
 func getNamePrefixValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	if d.KeyColumnQuals["name_prefix"].GetStringValue() != "" {
-		return d.KeyColumnQuals["name_prefix"].GetStringValue(), nil
+	if d.EqualsQuals["name_prefix"].GetStringValue() != "" {
+		return d.EqualsQuals["name_prefix"].GetStringValue(), nil
 	} else {
 		return h.Item.(*eventbridge.DescribeRuleOutput).Name, nil
 	}

@@ -5,9 +5,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	sesv1 "github.com/aws/aws-sdk-go/service/ses"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
@@ -17,7 +20,7 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSESDomainIdentities,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sesv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity",
@@ -121,7 +124,7 @@ func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, identity)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

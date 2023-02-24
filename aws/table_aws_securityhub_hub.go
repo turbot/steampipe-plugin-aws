@@ -6,9 +6,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -27,7 +29,7 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubs,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "hub_arn",
@@ -108,7 +110,7 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	hubArn := d.KeyColumnQuals["hub_arn"].GetStringValue()
+	hubArn := d.EqualsQuals["hub_arn"].GetStringValue()
 
 	// Create session
 	svc, err := SecurityHubClient(ctx, d)

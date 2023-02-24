@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
 // AllCostMetrics is a constant returning all the cost metrics
@@ -146,10 +146,10 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 		}
 
 		// stream the results...
-		for _, row := range buildCEMetricRows(ctx, output, d.KeyColumnQuals) {
+		for _, row := range buildCEMetricRows(ctx, output, d.EqualsQuals) {
 			d.StreamListItem(ctx, row)
 
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -279,13 +279,13 @@ type CEQuals struct {
 
 func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("hydrateKeyQuals")
-	//plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.KeyColumnQuals", d.KeyColumnQuals)
+	//plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
 
 	return &CEQuals{
-		SearchStartTime: d.KeyColumnQuals["search_start_time"].GetTimestampValue(),
-		SearchEndTime:   d.KeyColumnQuals["search_end_time"].GetTimestampValue(),
-		Granularity:     d.KeyColumnQuals["granularity"].GetStringValue(),
-		DimensionType1:  d.KeyColumnQuals["dimension_type_1"].GetStringValue(),
-		DimensionType2:  d.KeyColumnQuals["dimension_type_2"].GetStringValue(),
+		SearchStartTime: d.EqualsQuals["search_start_time"].GetTimestampValue(),
+		SearchEndTime:   d.EqualsQuals["search_end_time"].GetTimestampValue(),
+		Granularity:     d.EqualsQuals["granularity"].GetStringValue(),
+		DimensionType1:  d.EqualsQuals["dimension_type_1"].GetStringValue(),
+		DimensionType2:  d.EqualsQuals["dimension_type_2"].GetStringValue(),
 	}, nil
 }

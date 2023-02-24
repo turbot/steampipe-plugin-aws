@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	eksv1 "github.com/aws/aws-sdk-go/service/eks"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type IdentityProviderConfig struct {
@@ -31,7 +34,7 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 			ParentHydrate: listEKSClusters,
 			Hydrate:       listEKSIdentityProviderConfigs,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -179,7 +182,7 @@ func listEKSIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 			}})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -197,9 +200,9 @@ func getEKSIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *p
 		providerConfigName = *h.Item.(*IdentityProviderConfig).Name
 		providerConfigType = *h.Item.(*IdentityProviderConfig).Type
 	} else {
-		clusterName = d.KeyColumnQuals["cluster_name"].GetStringValue()
-		providerConfigName = d.KeyColumnQuals["name"].GetStringValue()
-		providerConfigType = d.KeyColumnQuals["type"].GetStringValue()
+		clusterName = d.EqualsQuals["cluster_name"].GetStringValue()
+		providerConfigName = d.EqualsQuals["name"].GetStringValue()
+		providerConfigType = d.EqualsQuals["type"].GetStringValue()
 	}
 
 	// create service

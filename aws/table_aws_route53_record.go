@@ -10,9 +10,9 @@ import (
 	route53Types "github.com/aws/aws-sdk-go-v2/service/route53/types"
 	"github.com/turbot/go-kit/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsRoute53Record(_ context.Context) *plugin.Table {
@@ -31,7 +31,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHostedZone"}),
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the record.",
@@ -141,7 +141,7 @@ type recordInfo struct {
 //// LIST FUNCTION
 
 func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	hostedZoneID := d.KeyColumnQuals["zone_id"].GetStringValue()
+	hostedZoneID := d.EqualsQuals["zone_id"].GetStringValue()
 
 	// Create session
 	svc, err := Route53Client(ctx, d)
@@ -167,7 +167,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		MaxItems:     aws.Int32(maxItems),
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["name"] != nil {
 		input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
 
@@ -197,7 +197,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 			d.StreamListItem(ctx, &recordInfo{aws.String(hostedZoneID), record})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -242,8 +242,8 @@ func flattenResourceRecords(_ context.Context, d *transform.TransformData) (inte
 
 func getRoute53RecordSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	recordData := h.Item.(*recordInfo)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Trace("aws_route53_record.getRoute53RecordSetAkas", "common_data_error", err)
 		return nil, err
