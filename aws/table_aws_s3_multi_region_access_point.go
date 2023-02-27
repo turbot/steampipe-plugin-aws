@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/s3control/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -34,7 +34,7 @@ func tableAwsS3MultiRegionAccessPoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchMultiRegionAccessPoint", "InvalidParameter", "InvalidRequest"}),
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Multi-Region Access Point.",
@@ -106,7 +106,7 @@ func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *
 		return nil, nil
 	}
 
-	ownerAccountId := d.KeyColumnQuals["account_id"].GetStringValue()
+	ownerAccountId := d.EqualsQuals["account_id"].GetStringValue()
 	if ownerAccountId != "" && ownerAccountId != commonColumnData.AccountId {
 		return nil, nil
 	}
@@ -143,7 +143,7 @@ func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *
 			d.StreamListItem(ctx, accessPoint)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -181,8 +181,8 @@ func getS3MultiRegionAccessPoint(ctx context.Context, d *plugin.QueryData, h *pl
 		name = *multiRegionAccessPoint.Name
 		ownerAccountId = commonColumnData.AccountId
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		ownerAccountId = d.KeyColumnQuals["account_id"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		ownerAccountId = d.EqualsQuals["account_id"].GetStringValue()
 	}
 
 	// Build params
