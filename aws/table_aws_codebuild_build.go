@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 
@@ -223,7 +222,7 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	buildId := quals["id"].GetStringValue()
 
 	// If the user specifies a build id in optional quals, restrict BatchGetBuilds for other build ids.
-	if strings.Trim(buildId, " ") != "" {
+	if buildId != "" {
 		// Build param for a single build id
 		params := &codebuild.BatchGetBuildsInput{
 			Ids: []string{buildId},
@@ -255,10 +254,12 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		if len(output.Ids) > 0 {
 			// Adding ids to a slice in order to do batch operations
 			buildIds = append(buildIds, output.Ids...)
+		} else {
+			return nil, nil
 		}
 	}
 
-	if len(buildIds) <= 0 {
+	if len(buildIds) == 0 {
 		return nil, nil
 	}
 
