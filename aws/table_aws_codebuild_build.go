@@ -220,19 +220,30 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	quals := d.EqualsQuals
-	id := quals["id"].GetStringValue()
+	buildId := quals["id"].GetStringValue()
 
-	if strings.Trim(id," ") != "" {
+	// If the user specifies a build id in optional quals, restrict BatchGetBuilds for other build ids.
+	if strings.Trim(buildId, " ") != "" {
+		// Build param for a single build id
 		params := &codebuild.BatchGetBuildsInput{
-			Ids: []string{id},
+			Ids: []string{buildId},
 		}
-	getCodeBuildBuildFunction(ctx,d,params)
-	} 
+
+		err = getCodeBuildBuild(ctx, d, params)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	}
+
 	input := &codebuild.ListBuildsInput{}
 
 	paginator := codebuild.NewListBuildsPaginator(svc, input, func(o *codebuild.ListBuildsPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
+
+	var buildIds []string
 
 	// List call
 	for paginator.HasMorePages() {
@@ -242,11 +253,45 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			return nil, err
 		}
 		if len(output.Ids) > 0 {
-			params := &codebuild.BatchGetBuildsInput{
-				Ids: output.Ids,
-			}
-			getCodeBuildBuildFunction(ctx,d,params)
+			// Adding ids to a slice in order to do batch operations
+			buildIds = append(buildIds, output.Ids...)
 		}
+	}
+
+	if len(buildIds) <= 0 {
+		return nil, nil
+	}
+
+	passedIds := 0
+	idLeft := true
+
+	for idLeft {
+		// BatchGetBuilds api can take maximum 100 number of build id at a time.
+		var ids []string
+		if len(buildIds) > passedIds {
+			if (len(buildIds) - passedIds) >= 100 {
+				ids = buildIds[passedIds : passedIds+100]
+				passedIds += 100
+			} else {
+				ids = buildIds[passedIds:]
+				idLeft = false
+			}
+		}
+
+		if len(ids) <= 0 {
+			return nil, nil
+		}
+
+		// Build param
+		params := &codebuild.BatchGetBuildsInput{
+			Ids: ids,
+		}
+
+		err = getCodeBuildBuild(ctx, d, params)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	return nil, nil
@@ -254,33 +299,31 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getCodeBuildBuildFunction(ctx context.Context, d *plugin.QueryData,params *codebuild.BatchGetBuildsInput) (interface{}, error) {
-	
+// Performing batch operation for the builds
+func getCodeBuildBuild(ctx context.Context, d *plugin.QueryData, params *codebuild.BatchGetBuildsInput) error {
+
 	// get service
 	svc, err := CodeBuildClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_codebuild_build.getCodeBuildBuild", "connection_error", err)
-		return nil, err
+		return err
 	}
-	
+
 	// Get call
 	op, err := svc.BatchGetBuilds(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_codebuild_build.getCodeBuildBuild", "api_error", err)
-		return nil, err
+		return err
 	}
 
-	if op.Builds != nil && len(op.Builds) == 1 {
-		return op.Builds[0], nil
-	} else {
-		for _, build := range op.Builds {
-				d.StreamListItem(ctx, build)
+	for _, build := range op.Builds {
+		d.StreamListItem(ctx, build)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.RowsRemaining(ctx) == 0 {
-					return nil, nil
-				}
-			}
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.RowsRemaining(ctx) == 0 {
+			return nil
+		}
 	}
-	return nil, nil
+
+	return nil
 }
