@@ -58,6 +58,11 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "current_phase",
+				Description: "The current build phase.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "encryption_key",
 				Description: "The Key Management Service customer master key (CMK) to be used for encrypting the build output artifacts.",
 				Type:        proto.ColumnType_STRING,
@@ -66,6 +71,11 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Name:        "end_time",
 				Description: "The date and time that the build process ended, expressed in Unix time format.",
 				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "initiator",
+				Description: "The entity that started the build.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "project_name",
@@ -93,6 +103,11 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "resolved_source_version",
+				Description: "The identifier of the resolved version of this build's source code.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "artifacts",
 				Description: "A BuildArtifacts object the defines the build artifacts for this build.",
 				Type:        proto.ColumnType_JSON,
@@ -101,11 +116,6 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Name:        "cache",
 				Description: "Information about the cache for the build.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "current_phase",
-				Description: "The current build phase.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "debug_session",
@@ -128,11 +138,6 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "initiator",
-				Description: "The entity that started the build.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "logs",
 				Description: "Information about the build's logs in CloudWatch Logs.",
 				Type:        proto.ColumnType_JSON,
@@ -151,11 +156,6 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Name:        "report_arns",
 				Description: "An array of the ARNs associated with this build's reports.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "resolved_source_version",
-				Description: "The identifier of the resolved version of this build's source code.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "secondary_artifacts",
