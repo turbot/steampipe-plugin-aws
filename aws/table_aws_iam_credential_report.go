@@ -9,9 +9,9 @@ import (
 	"github.com/aws/smithy-go"
 	"github.com/gocarina/gocsv"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type awsIamCredentialReportResult struct {
@@ -47,7 +47,7 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCredentialReports,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "user_name",
 				Description: "The friendly name of the user.",
@@ -241,7 +241,7 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		d.StreamListItem(ctx, row)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			break
 		}
 	}

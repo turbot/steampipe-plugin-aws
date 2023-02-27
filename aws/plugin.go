@@ -9,8 +9,8 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 const pluginName = "steampipe-plugin-aws"
@@ -58,6 +58,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gatewayv2_api":                                        tableAwsAPIGatewayV2Api(ctx),
 			"aws_api_gatewayv2_domain_name":                                tableAwsAPIGatewayV2DomainName(ctx),
 			"aws_api_gatewayv2_integration":                                tableAwsAPIGatewayV2Integration(ctx),
+			"aws_api_gatewayv2_route":                                      tableAwsAPIGatewayV2Route(ctx),
 			"aws_api_gatewayv2_stage":                                      tableAwsAPIGatewayV2Stage(ctx),
 			"aws_appautoscaling_target":                                    tableAwsAppAutoScalingTarget(ctx),
 			"aws_appconfig_application":                                    tableAwsAppConfigApplication(ctx),
@@ -83,7 +84,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudfront_origin_request_policy":                         tableAwsCloudFrontOriginRequestPolicy(ctx),
 			"aws_cloudfront_response_headers_policy":                       tableAwsCloudFrontResponseHeadersPolicy(ctx),
 			"aws_cloudsearch_domain":                                       tableAwsCloudSearchDomain(ctx),
+			"aws_cloudtrail_channel":                                       tableAwsCloudtrailChannel(ctx),
 			"aws_cloudtrail_event_data_store":                              tableAwsCloudtrailEventDataStore(ctx),
+			"aws_cloudtrail_import":                                        tableAwsCloudtrailImport(ctx),
 			"aws_cloudtrail_query":                                         tableAwsCloudTrailQuery(ctx),
 			"aws_cloudtrail_trail_event":                                   tableAwsCloudtrailTrailEvent(ctx),
 			"aws_cloudtrail_trail":                                         tableAwsCloudtrailTrail(ctx),
@@ -160,6 +163,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_instance":                                             tableAwsEc2Instance(ctx),
 			"aws_ec2_key_pair":                                             tableAwsEc2KeyPair(ctx),
 			"aws_ec2_launch_configuration":                                 tableAwsEc2LaunchConfiguration(ctx),
+			"aws_ec2_launch_template":                                      tableAwsEc2LaunchTemplate(ctx),
 			"aws_ec2_load_balancer_listener":                               tableAwsEc2ApplicationLoadBalancerListener(ctx),
 			"aws_ec2_managed_prefix_list":                                  tableAwsEc2ManagedPrefixList(ctx),
 			"aws_ec2_network_interface":                                    tableAwsEc2NetworkInterface(ctx),
@@ -228,6 +232,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_glue_connection":                                          tableAwsGlueConnection(ctx),
 			"aws_glue_crawler":                                             tableAwsGlueCrawler(ctx),
 			"aws_glue_data_catalog_encryption_settings":                    tableAwsGlueDataCatalogEncryptionSettings(ctx),
+			"aws_glue_data_quality_ruleset":                                tableAwsGlueDataQualityRuleset(ctx),
 			"aws_glue_dev_endpoint":                                        tableAwsGlueDevEndpoint(ctx),
 			"aws_glue_job":                                                 tableAwsGlueJob(ctx),
 			"aws_glue_security_configuration":                              tableAwsGlueSecurityConfiguration(ctx),
@@ -238,6 +243,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_guardduty_member":                                         tableAwsGuardDutyMember(ctx),
 			"aws_guardduty_publishing_destination":                         tableAwsGuardDutyPublishingDestination(ctx),
 			"aws_guardduty_threat_intel_set":                               tableAwsGuardDutyThreatIntelSet(ctx),
+			"aws_health_affected_entity":                                   tableAwsHealthAffectedEntity(ctx),
 			"aws_health_event":                                             tableAwsHealthEvent(ctx),
 			"aws_iam_access_advisor":                                       tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                                           tableAwsIamAccessKey(ctx),
@@ -280,11 +286,14 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lightsail_instance":                                       tableAwsLightsailInstance(ctx),
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
 			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
+			"aws_mgn_application":                                          tableAwsMGNApplication(ctx),
 			"aws_msk_cluster":                                              tableAwsMSKCluster(ctx),
 			"aws_msk_serverless_cluster":                                   tableAwsMSKServerlessCluster(ctx),
 			"aws_neptune_db_cluster":                                       tableAwsNeptuneDBCluster(ctx),
 			"aws_networkfirewall_firewall_policy":                          tableAwsNetworkFirewallPolicy(ctx),
 			"aws_networkfirewall_rule_group":                               tableAwsNetworkFirewallRuleGroup(ctx),
+			"aws_oam_link":                                                 tableAwsOAMLink(ctx),
+			"aws_oam_sink":                                                 tableAwsOAMSink(ctx),
 			"aws_opensearch_domain":                                        tableAwsOpenSearchDomain(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
 			"aws_pinpoint_app":                                             tableAwsPinpointApp(ctx),
@@ -355,6 +364,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_securityhub_product":                                      tableAwsSecurityhubProduct(ctx),
 			"aws_securityhub_standards_control":                            tableAwsSecurityHubStandardsControl(ctx),
 			"aws_securityhub_standards_subscription":                       tableAwsSecurityHubStandardsSubscription(ctx),
+			"aws_securitylake_data_lake":                                   tableAwsSecurityLakeDataLake(ctx),
 			"aws_securitylake_subscriber":                                  tableAwsSecurityLakeSubscriber(ctx),
 			"aws_serverlessapplicationrepository_application":              tableAwsServerlessApplicationRepositoryApplication(ctx),
 			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
@@ -362,6 +372,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
 			"aws_ses_domain_identity":                                      tableAwsSESDomainIdentity(ctx),
 			"aws_ses_email_identity":                                       tableAwsSESEmailIdentity(ctx),
+			"aws_simspaceweaver_simulation":                                tableAwsSimSpaceWeaverSimulation(ctx),
 			"aws_sfn_state_machine_execution_history":                      tableAwsStepFunctionsStateMachineExecutionHistory(ctx),
 			"aws_sfn_state_machine_execution":                              tableAwsStepFunctionsStateMachineExecution(ctx),
 			"aws_sfn_state_machine":                                        tableAwsStepFunctionsStateMachine(ctx),

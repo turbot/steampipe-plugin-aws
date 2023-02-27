@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/glue/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	gluev1 "github.com/aws/aws-sdk-go/service/glue"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -27,7 +30,7 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listGlueDevEndpoints,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "endpoint_name",
@@ -223,7 +226,7 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 			d.StreamListItem(ctx, endpoint)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -235,7 +238,7 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// HYDRATE FUNCTIONS
 
 func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.KeyColumnQuals["endpoint_name"].GetStringValue()
+	name := d.EqualsQuals["endpoint_name"].GetStringValue()
 
 	// check if name is empty
 	if name == "" {
@@ -269,12 +272,12 @@ func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 }
 
 func getGlueDevEndpointArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	data := h.Item.(types.DevEndpoint)
 
 	// Get common columns
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpointArn", "coomon_data_error", err)
 		return nil, err

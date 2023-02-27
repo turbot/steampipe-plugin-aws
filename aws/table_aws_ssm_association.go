@@ -9,9 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -36,7 +38,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				{Name: "last_execution_date", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "association_id",
@@ -266,7 +268,7 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			d.StreamListItem(ctx, association)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -283,7 +285,7 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if h.Item != nil {
 		id = associationID(h.Item)
 	} else {
-		id = d.KeyColumnQuals["association_id"].GetStringValue()
+		id = d.EqualsQuals["association_id"].GetStringValue()
 	}
 
 	// Empty input id check
@@ -317,10 +319,10 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getSSMAssociationARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	associationData := associationID(h.Item)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_association.getSSMAssociationARN", "common_data_error", err)
 		return nil, err

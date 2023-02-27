@@ -5,9 +5,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	sfnv1 "github.com/aws/aws-sdk-go/service/sfn"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
@@ -24,7 +27,7 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listStepFunctionsStateManchines,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -151,7 +154,7 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 			d.StreamListItem(ctx, stateMachine)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -172,7 +175,7 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 	if h.Item != nil {
 		arn = *h.Item.(types.StateMachineListItem).StateMachineArn
 	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
 	if arn == "" {

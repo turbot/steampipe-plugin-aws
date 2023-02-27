@@ -23,6 +23,15 @@ Run a query:
 select arn, creation_date from aws_kms_key
 ```
 
+## Advanced configuration
+
+The AWS plugin has the power to:
+* Query multiple accounts
+* Query multiple regions
+* Use many different methods for credentials (roles, SSO, etc)
+
+- **[Detailed configuration guide →](https://hub.steampipe.io/plugins/turbot/aws#get-started)**
+
 ## Developing
 
 Prerequisites:

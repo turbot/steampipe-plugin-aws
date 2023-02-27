@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/waf/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsWAFRule(_ context.Context) *plugin.Table {
@@ -25,7 +25,7 @@ func tableAwsWAFRule(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWAFRules,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name for the rule.",
@@ -118,7 +118,7 @@ func listAwsWAFRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			d.StreamListItem(ctx, rule)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -147,7 +147,7 @@ func getAwsWAFRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	if h.Item != nil {
 		id = ruleData(h.Item)
 	} else {
-		id = d.KeyColumnQuals["rule_id"].GetStringValue()
+		id = d.EqualsQuals["rule_id"].GetStringValue()
 	}
 
 	// Build the params
@@ -176,7 +176,7 @@ func getAwsWAFRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if h.Item != nil {
 		id = ruleData(h.Item)
 	} else {
-		id = d.KeyColumnQuals["rule_id"].GetStringValue()
+		id = d.EqualsQuals["rule_id"].GetStringValue()
 	}
 
 	commonAwsColumns, err := getCommonColumns(ctx, d, h)
@@ -212,8 +212,7 @@ func getAwsWAFRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getAwsWAFRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := ruleData(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rule.getAwsWAFRuleAkas", "api_error", err)
 		return nil, err
