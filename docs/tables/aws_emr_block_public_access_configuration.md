@@ -21,7 +21,6 @@ order by
   creation_date;
 ```
 
-
 ### List Block Public Access settings set as enabled for emr
 
 ```sql
@@ -31,12 +30,11 @@ select
   configurations
 from
   aws_emr_block_public_access_configuration
-where 
+where
   block_public_security_group_rules;
 ```
 
-
-### List Block Public Access with Permitted Public Security Group Rule Max and Min Port Ranges 
+### List Block Public Access with Permitted Public Security Group Rule Max and Min Port Ranges
 
 ```sql
 select
@@ -48,7 +46,6 @@ from
   aws_emr_block_public_access_configuration
   cross join jsonb_array_elements(permitted_public_security_group_rule_ranges) as rules;
 ```
-
 
 ### List EMR Block Public Access Configuration created in last 90 days
 
@@ -62,7 +59,6 @@ from
 where
   date_part('day', now() - creation_date) < 90;
 ```
-
 
 ### List configuration details of EMR Block Public Access
 
