@@ -49,8 +49,8 @@ select
   arn,
   a.name as linked_region
 from
-  aws_redhood.aws_securityhub_finding_aggregator as f,
-  aws_redhood.aws_region as a,
+  aws_securityhub_finding_aggregator as f,
+  aws_region as a,
   jsonb_array_elements_text(f.regions) as r
 where
   region_linking_mode = 'ALL_REGIONS_EXCEPT_SPECIFIED'

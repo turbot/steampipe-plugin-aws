@@ -8,9 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	ecsv1 "github.com/aws/aws-sdk-go/service/ecs"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsEcsTask(_ context.Context) *plugin.Table {
@@ -43,7 +45,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "task_arn",
@@ -230,6 +232,12 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "protection",
+				Description: "Protection status of task in an Amazon ECS service.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsTaskProtection,
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with task.",
 				Type:        proto.ColumnType_JSON,
@@ -256,7 +264,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	clusterArn := h.Item.(types.Cluster).ClusterArn
 
 	// Create session
@@ -345,13 +353,44 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 			d.StreamListItem(ctx, task)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
 	}
 
 	return nil, nil
+}
+
+func getEcsTaskProtection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	task := h.Item.(types.Task)
+
+	clusterArn := task.ClusterArn
+	taskArn := task.TaskArn
+
+	// Create Session
+	svc, err := ECSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_task_definition.getEcsTaskProtection", "connection_error", err)
+		return nil, err
+	}
+
+	params := &ecs.GetTaskProtectionInput{
+		Cluster: clusterArn,
+		Tasks:   []string{*taskArn},
+	}
+
+	protections, err := svc.GetTaskProtection(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_task_definition.getEcsTaskProtection", "api_error", err)
+		return nil, err
+	}
+
+	if len(protections.ProtectedTasks) == 0 {
+		return nil, nil
+	}
+
+	return protections.ProtectedTasks[0], nil
 }
 
 //// TRANSFORM FUNCTIONS

@@ -4,12 +4,12 @@ import (
 	"context"
 
 	go_kit_types "github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 
 	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/account/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -28,7 +28,7 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "full_name",
 				Description: "The full name of the primary contact address.",
@@ -128,8 +128,7 @@ type accountContactData = struct {
 func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -153,8 +152,8 @@ func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	var linkedAccountID string
-	if d.KeyColumnQuals["linked_account_id"] != nil {
-		linkedAccountID = d.KeyColumnQuals["linked_account_id"].GetStringValue()
+	if d.EqualsQuals["linked_account_id"] != nil {
+		linkedAccountID = d.EqualsQuals["linked_account_id"].GetStringValue()
 	} else {
 		linkedAccountID = commonColumnData.AccountId
 	}

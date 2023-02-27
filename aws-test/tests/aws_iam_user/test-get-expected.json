@@ -5,7 +5,7 @@
       "{{ output.resource_aka.value }}"
     ],
     "arn": "{{ output.resource_aka.value }}",
-    "groups": null,
+    "groups": [],
     "name":  "{{ resourceName }}",
     "partition": "{{ output.aws_partition.value }}",
     "path": "/",
