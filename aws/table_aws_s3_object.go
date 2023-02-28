@@ -21,8 +21,8 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 		Description: "List AWS S3 Objects in S3 buckets by bucket name.",
 		List: &plugin.ListConfig{
 			Hydrate: listS3Objects,
-			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "bucket", Require: plugin.Required},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "bucket_name", Require: plugin.Required},
 				{Name: "key", Require: plugin.Optional},
 				{Name: "prefix", Require: plugin.Optional},
 			},
@@ -90,145 +90,144 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "bucket",
+				Name:        "bucket_name",
 				Description: "The name of the container bucket of this object.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BucketName"),
 			},
-			{
-				Name:        "owner",
-				Description: "The owner of the object.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Owner"),
-				Hydrate:     getS3ObjectACL,
-			},
-			{
-				Name:        "acl",
-				Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromValue(),
-				Hydrate:     getS3ObjectACL,
-			},
-			{
-				Name:        "retention",
-				Description: "A retention period protects an object version for a fixed amount of time.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromValue(),
-				Hydrate:     getS3ObjectRetention,
-			},
-			{
-				Name:        "legal_hold",
-				Description: "Like a retention period, a legal hold prevents an object version from being overwritten or deleted. A legal hold remains in effect until removed.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromValue(),
-				Hydrate:     getS3ObjectLegalHold,
-			},
-			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("TagSet").Transform(handleS3TagsToTurbotTags),
-				Hydrate:     getS3ObjectTagging,
-			},
-			{
-				Name:        "tags_src",
-				Description: "A list of tags assigned to the object.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("TagSet"),
-				Hydrate:     getS3ObjectTagging,
-			},
-			{
-				Name:        "torrent",
-				Description: "Returns the Bencode of the torrent. You can get torrent only for objects that are less than 5 GB in size, and that are not encrypted using server-side encryption with a customer-provided encryption key.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromValue(),
-				Hydrate:     getS3ObjectTorrent,
-			},
+			// {
+			// 	Name:        "owner",
+			// 	Description: "The owner of the object.",
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Transform:   transform.FromField("Owner"),
+			// 	Hydrate:     getS3ObjectACL,
+			// },
+			// {
+			// 	Name:        "acl",
+			// 	Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.",
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Transform:   transform.FromValue(),
+			// 	Hydrate:     getS3ObjectACL,
+			// },
+			// {
+			// 	Name:        "retention",
+			// 	Description: "A retention period protects an object version for a fixed amount of time.",
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Transform:   transform.FromValue(),
+			// 	Hydrate:     getS3ObjectRetention,
+			// },
+			// {
+			// 	Name:        "legal_hold",
+			// 	Description: "Like a retention period, a legal hold prevents an object version from being overwritten or deleted. A legal hold remains in effect until removed.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromValue(),
+			// 	Hydrate:     getS3ObjectLegalHold,
+			// },
+			// {
+			// 	Name:        "tags",
+			// 	Description: resourceInterfaceDescription("tags"),
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Transform:   transform.FromField("TagSet").Transform(handleS3TagsToTurbotTags),
+			// 	Hydrate:     getS3ObjectTagging,
+			// },
+			// {
+			// 	Name:        "tags_src",
+			// 	Description: "A list of tags assigned to the object.",
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Transform:   transform.FromField("TagSet"),
+			// 	Hydrate:     getS3ObjectTagging,
+			// },
+			// {
+			// 	Name:        "torrent",
+			// 	Description: "Returns the Bencode of the torrent. You can get torrent only for objects that are less than 5 GB in size, and that are not encrypted using server-side encryption with a customer-provided encryption key.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromValue(),
+			// 	Hydrate:     getS3ObjectTorrent,
+			// },
 
-			{
-				Name:        "checksum",
-				Description: "The checksum or digest of the object.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Checksum"),
-				Hydrate:     getS3ObjectAttributes,
-			},
-			{
-				Name:        "parts",
-				Description: "A collection of parts associated with a multipart upload.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ObjectParts"),
-				Hydrate:     getS3ObjectAttributes,
-			},
-			{
-				Name:        "delete_marker",
-				Description: "Specifies whether the object retrieved was (true) or was not (false) a delete marker.",
-				Type:        proto.ColumnType_BOOL,
-				Transform:   transform.FromField("DeleteMarker"),
-				Hydrate:     getS3ObjectAttributes,
-			},
-			{
-				Name:        "content_type",
-				Description: "A standard MIME type describing the format of the object data.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ContentType"),
-				Hydrate:     getS3Object,
-			},
-			{
-				Name:        "bucket_key_enabled",
-				Description: "Indicates whether the object uses an S3 Bucket Key for server-side encryption with Amazon Web Services KMS (SSE-KMS)",
-				Type:        proto.ColumnType_BOOL,
-				Transform:   transform.FromField("BucketKeyEnabled"),
-				Hydrate:     getS3Object,
-			},
-			{
-				Name:        "metadata",
-				Description: "A map of metadata to store with the object in S3.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Metadata"),
-				Hydrate:     getS3Object,
-			},
-			{
-				Name:        "content_encoding",
-				Description: "Specifies what content encodings have been applied to the object.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ContentEncoding"),
-				Hydrate:     getS3Object,
-			},
-			{
-				Name:        "content_length",
-				Description: "Size of the body in bytes.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ContentLength"),
-				Hydrate:     getS3Object,
-			},
-			{
-				Name:        "replication_status",
-				Description: "Amazon S3 can return this if your request involves a bucket that is either a source or destination in a replication rule.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ReplicationStatus"),
-				Hydrate:     getS3Object,
-			},
-			{
-				Name:        "restore",
-				Description: "Provides information about object restoration action and expiration time of the restored object copy.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Restore"),
-				Hydrate:     getS3Object,
-			},
-			{
-				Name:        "server_side_encryption",
-				Description: "The server-side encryption algorithm used when storing this object in Amazon S3.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ServerSideEncryption"),
-				Hydrate:     getS3Object,
-			},
-			{
-				Name:        "website_redirection_location",
-				Description: "If the bucket is configured as a website, redirects requests for this object  to another object in the same bucket or to an external URL.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("WebsiteRedirectLocation"),
-				Hydrate:     getS3Object,
-			},
+			// {
+			// 	Name:        "checksum",
+			// 	Description: "The checksum or digest of the object.",
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Transform:   transform.FromField("Checksum"),
+			// 	Hydrate:     getS3ObjectAttributes,
+			// },
+			// {
+			// 	Name:        "parts",
+			// 	Description: "A collection of parts associated with a multipart upload.",
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Transform:   transform.FromField("ObjectParts"),
+			// 	Hydrate:     getS3ObjectAttributes,
+			// },
+			// {
+			// 	Name:        "delete_marker",
+			// 	Description: "Specifies whether the object retrieved was (true) or was not (false) a delete marker.",
+			// 	Type:        proto.ColumnType_BOOL,
+			// 	Transform:   transform.FromField("DeleteMarker"),
+			// 	Hydrate:     getS3ObjectAttributes,
+			// },
+			// {
+			// 	Name:        "content_type",
+			// 	Description: "A standard MIME type describing the format of the object data.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromField("ContentType"),
+			// 	Hydrate:     getS3Object,
+			// },
+			// {
+			// 	Name:        "bucket_key_enabled",
+			// 	Description: "Indicates whether the object uses an S3 Bucket Key for server-side encryption with Amazon Web Services KMS (SSE-KMS)",
+			// 	Type:        proto.ColumnType_BOOL,
+			// 	Transform:   transform.FromField("BucketKeyEnabled"),
+			// 	Hydrate:     getS3Object,
+			// },
+			// {
+			// 	Name:        "metadata",
+			// 	Description: "A map of metadata to store with the object in S3.",
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Transform:   transform.FromField("Metadata"),
+			// 	Hydrate:     getS3Object,
+			// },
+			// {
+			// 	Name:        "content_encoding",
+			// 	Description: "Specifies what content encodings have been applied to the object.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromField("ContentEncoding"),
+			// 	Hydrate:     getS3Object,
+			// },
+			// {
+			// 	Name:        "content_length",
+			// 	Description: "Size of the body in bytes.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromField("ContentLength"),
+			// 	Hydrate:     getS3Object,
+			// },
+			// {
+			// 	Name:        "replication_status",
+			// 	Description: "Amazon S3 can return this if your request involves a bucket that is either a source or destination in a replication rule.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromField("ReplicationStatus"),
+			// 	Hydrate:     getS3Object,
+			// },
+			// {
+			// 	Name:        "restore",
+			// 	Description: "Provides information about object restoration action and expiration time of the restored object copy.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromField("Restore"),
+			// 	Hydrate:     getS3Object,
+			// },
+			// {
+			// 	Name:        "server_side_encryption",
+			// 	Description: "The server-side encryption algorithm used when storing this object in Amazon S3.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromField("ServerSideEncryption"),
+			// 	Hydrate:     getS3Object,
+			// },
+			// {
+			// 	Name:        "website_redirection_location",
+			// 	Description: "If the bucket is configured as a website, redirects requests for this object  to another object in the same bucket or to an external URL.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromField("WebsiteRedirectLocation"),
+			// 	Hydrate:     getS3Object,
+			// },
 
 			// steampipe fields
 			{
@@ -252,7 +251,7 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	if err != nil {
 		return nil, err
 	}
-	svc, err := S3Client(ctx, d, defaultRegion)
+	svc, err := S3Client(ctx, d, "ap-south-1")
 	if err != nil {
 		plugin.Logger(ctx).Error("listS3Objects", "get_client_error", err, "defaultRegion", defaultRegion)
 		return nil, err
@@ -286,9 +285,9 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	input := &s3.ListObjectsV2Input{
-		Bucket:     &bucketName,
+		Bucket:     aws.String(bucketName),
 		MaxKeys:    maxItems,
-		FetchOwner: true,
+		FetchOwner: false,
 	}
 
 	equalQuals := d.EqualsQuals
@@ -311,7 +310,7 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		plugin.Logger(ctx).Error("ListObjectsV2", "api_error", err)
 		return nil, err
 	}
-
+	plugin.Logger(ctx).Error("ListObjectsV2", "objects", len(objects.Contents))
 	for _, object := range objects.Contents {
 		d.StreamListItem(ctx, object)
 
