@@ -203,12 +203,12 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 // listCodeBuildBuilds handles both listing and describing of the codebuild builds.
-//
-// The reason for this is the BatchGetBuilds call can accept up to 100 IDs. If we moved it out to another
-// hydrate functions we may save a request or two if we only wanted to retrieve the IDs but the tradeoff is we need
-// to get any other info an API call per codebuild build would need to be made. So in the case where we need to get
-// all info for less then 100 instances including the BatchGetBuild request here, and batching requests means only making
+// The reason for this is the BatchGetBuilds API call can accept up to 100 IDs. If we moved it out to another
+// hydrate function we may save a request or two if we only wanted to retrieve the IDs but the tradeoff is that we would need
+// to make an API call per codebuild build. So in cases where we need to get all information
+// for less then 100 instances, including the BatchGetBuild request here, and batching requests means only making
 // two API calls as opposed to 101.
+
 func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
