@@ -62,20 +62,43 @@ resource "aws_iam_role" "named_test_resource" {
   })
 }
 
-resource "aws_ecr_repository" "named_test_resource" {
-  name                 = var.resource_name
-  image_tag_mutability = "MUTABLE"
+# arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess policy is AWS defined so we need not to create a separate policy for it. Which have full read access to ECR service
+resource "aws_iam_policy_attachment" "ecr_full_access_policy_attach" {
+  name       = var.resource_name
+  roles      = [aws_iam_role.named_test_resource.name]
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
+}
 
-  image_scanning_configuration {
-    scan_on_push = true
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    name = var.resource_name
   }
+}
+
+resource "aws_security_group" "named_test_resource" {
+  vpc_id      = aws_vpc.main.id
+  name        = var.resource_name
+  description = "Test Security Group."
+}
+
+resource "aws_subnet" "named_test_resource" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "10.0.1.0/24"
 }
 
 resource "aws_sagemaker_model" "m" {
   name               = var.resource_name
   execution_role_arn = aws_iam_role.named_test_resource.arn
+   vpc_config {
+    security_group_ids = [ aws_security_group.named_test_resource.id ]
+    subnets = [ aws_subnet.named_test_resource.id ]
+  }
   primary_container {
-    image = aws_ecr_repository.named_test_resource.repository_url
+    image_config {
+      repository_access_mode = "Vpc"
+    }
+    image = "public.ecr.aws/nginx/nginx:1-alpine-perl"
   }
 }
 

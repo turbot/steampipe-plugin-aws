@@ -3,12 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	elasticachev1 "github.com/aws/aws-sdk-go/service/elasticache"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +22,14 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("replication_group_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
 			},
 			Hydrate: getElastiCacheReplicationGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheReplicationGroups,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_group_id",
@@ -168,41 +170,48 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 
 func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_replication_group.listElastiCacheReplicationGroups", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &elasticache.DescribeReplicationGroupsInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeReplicationGroupsPages(
-		input,
-		func(page *elasticache.DescribeReplicationGroupsOutput, isLast bool) bool {
-			for _, replicationGroup := range page.ReplicationGroups {
-				d.StreamListItem(ctx, replicationGroup)
+	paginator := elasticache.NewDescribeReplicationGroupsPaginator(svc, input, func(o *elasticache.DescribeReplicationGroupsPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_elasticache_replication_group.listElastiCacheParameterGroup", "api_error", err)
+			return nil, err
+		}
+
+		for _, replicationGroup := range output.ReplicationGroups {
+			d.StreamListItem(ctx, replicationGroup)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -210,23 +219,23 @@ func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 //// HYDRATE FUNCTION
 
 func getElastiCacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getElastiCacheReplicationGroup")
-
 	// Create service
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_replication_group.getElastiCacheReplicationGroup", "get_client_error", err)
 		return nil, err
 	}
 
-	quals := d.KeyColumnQuals
+	quals := d.EqualsQuals
 	replicationGroupId := quals["replication_group_id"].GetStringValue()
 
 	params := &elasticache.DescribeReplicationGroupsInput{
 		ReplicationGroupId: aws.String(replicationGroupId),
 	}
 
-	op, err := svc.DescribeReplicationGroups(params)
+	op, err := svc.DescribeReplicationGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_replication_group.getElastiCacheReplicationGroup", "api_error", err)
 		return nil, err
 	}
 

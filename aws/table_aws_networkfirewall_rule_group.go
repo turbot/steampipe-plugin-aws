@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/networkfirewall"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/networkfirewall"
+	"github.com/aws/aws-sdk-go-v2/service/networkfirewall/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	networkfirewallv1 "github.com/aws/aws-sdk-go/service/networkfirewall"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +27,7 @@ func tableAwsNetworkFirewallRuleGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listNetworkFirewallRuleGroups,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "rule_group_name",
@@ -143,66 +146,80 @@ func tableAwsNetworkFirewallRuleGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listNetworkFirewallRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listNetworkFirewallRuleGroups")
-
 	// Create session
-	svc, err := NetworkFirewallService(ctx, d)
+	svc, err := NetworkFirewallClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.listNetworkFirewallRuleGroups", "connection_error", err)
 		return nil, err
 	}
-
-	input := &networkfirewall.ListRuleGroupsInput{
-		MaxResults: aws.Int64(100),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListRuleGroupsPages(
-		input,
-		func(page *networkfirewall.ListRuleGroupsOutput, isLast bool) bool {
-			for _, rule_group := range page.RuleGroups {
-				d.StreamListItem(ctx, rule_group)
+	input := &networkfirewall.ListRuleGroupsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := networkfirewall.NewListRuleGroupsPaginator(svc, input, func(o *networkfirewall.ListRuleGroupsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.listNetworkFirewallRuleGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.RuleGroups {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getNetworkFirewallRuleGroup")
-
 	var name, arn string
 	if h.Item != nil {
-		name = *h.Item.(*networkfirewall.RuleGroupMetadata).Name
-		arn = *h.Item.(*networkfirewall.RuleGroupMetadata).Arn
+		name = *h.Item.(types.RuleGroupMetadata).Name
+		arn = *h.Item.(types.RuleGroupMetadata).Arn
 	} else {
-		name = d.KeyColumnQuals["rule_group_name"].GetStringValue()
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		name = d.EqualsQuals["rule_group_name"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 	// Create session
-	svc, err := NetworkFirewallService(ctx, d)
+	svc, err := NetworkFirewallClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.getNetworkFirewallRuleGroup", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -216,9 +233,9 @@ func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	// Get call
-	data, err := svc.DescribeRuleGroup(params)
+	data, err := svc.DescribeRuleGroup(ctx, params)
 	if err != nil {
-		logger.Debug("getNetworkFirewallRuleGroup", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.getNetworkFirewallRuleGroup", "api_error", err)
 		return nil, err
 	}
 	return data, nil
@@ -227,7 +244,6 @@ func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *pl
 //// TRANSFORM FUNCTIONS
 
 func networkFirewallRuleGroupTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("networkFirewallRuleGroupTurbotTags")
 	ruleGroup := d.HydrateItem.(*networkfirewall.DescribeRuleGroupOutput)
 
 	// Mapping the resource tags inside turbotTags

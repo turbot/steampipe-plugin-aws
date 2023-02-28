@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/codebuild"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild/types"
+
+	codebuildv1 "github.com/aws/aws-sdk-go/service/codebuild"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,14 +23,14 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
 			},
 			Hydrate: getCodeBuildProject,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodeBuildProjects,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(codebuildv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -214,28 +218,41 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 
 func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CodeBuildService(ctx, d)
+	svc, err := CodeBuildClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codebuild_project.listCodeBuildProjects", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	input := &codebuild.ListProjectsInput{}
+
+	paginator := codebuild.NewListProjectsPaginator(svc, input, func(o *codebuild.ListProjectsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.ListProjectsPages(
-		&codebuild.ListProjectsInput{},
-		func(page *codebuild.ListProjectsOutput, isLast bool) bool {
-			for _, result := range page.Projects {
-				d.StreamListItem(ctx, &codebuild.Project{
-					Name: result,
-				})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_codebuild_project.listCodeBuildProjects", "api_error", err)
+			return nil, err
+		}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.Projects {
+			d.StreamListItem(ctx, types.Project{
+				Name: aws.String(items),
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -243,31 +260,35 @@ func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCodeBuildProject")
 
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*codebuild.Project).Name
+		name = *h.Item.(types.Project).Name
 	} else {
-		quals := d.KeyColumnQuals
+		quals := d.EqualsQuals
 		name = quals["name"].GetStringValue()
 	}
 
 	// get service
-	svc, err := CodeBuildService(ctx, d)
+	svc, err := CodeBuildClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codebuild_project.getCodeBuildProject", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
 	params := &codebuild.BatchGetProjectsInput{
-		Names: []*string{aws.String(name)},
+		Names: []string{name},
 	}
 
 	// Get call
-	op, err := svc.BatchGetProjects(params)
+	op, err := svc.BatchGetProjects(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getCodeBuildProject__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_codebuild_project.getCodeBuildProject", "api_error", err)
 		return nil, err
 	}
 
@@ -281,7 +302,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func codeBuildProjectTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	data := d.HydrateItem.(*codebuild.Project)
+	data := d.HydrateItem.(types.Project)
 
 	if data.Tags == nil {
 		return nil, nil

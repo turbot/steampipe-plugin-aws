@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +23,7 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("reserved_db_instance_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ReservedDBInstanceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReservedDBInstanceNotFound"}),
 			},
 			Hydrate: getRDSReservedDBInstance,
 		},
@@ -36,10 +38,10 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 				{Name: "reserved_db_instances_offering_id", Require: plugin.Optional},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "reserved_db_instance_id",
@@ -148,78 +150,80 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSReservedDBInstances")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_reserved_db_instance.listRDSReservedDBInstances", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &rds.DescribeReservedDBInstancesInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(maxLimit),
 	}
 
-	if d.KeyColumnQuals["class"] != nil {
-		input.DBInstanceClass = aws.String(d.KeyColumnQuals["class"].GetStringValue())
+	if d.EqualsQuals["class"] != nil {
+		input.DBInstanceClass = aws.String(d.EqualsQuals["class"].GetStringValue())
 	}
 
-	if d.KeyColumnQuals["duration"] != nil {
-		input.Duration = aws.String(fmt.Sprintf("%v", d.KeyColumnQuals["duration"].GetInt64Value()))
+	if d.EqualsQuals["duration"] != nil {
+		input.Duration = aws.String(fmt.Sprintf("%v", d.EqualsQuals["duration"].GetInt64Value()))
 	}
 
-	if d.KeyColumnQuals["lease_id"] != nil {
-		input.LeaseId = aws.String(d.KeyColumnQuals["lease_id"].GetStringValue())
+	if d.EqualsQuals["lease_id"] != nil {
+		input.LeaseId = aws.String(d.EqualsQuals["lease_id"].GetStringValue())
 	}
 
-	if d.KeyColumnQuals["multi_az"] != nil {
-		input.MultiAZ = aws.Bool(d.KeyColumnQuals["multi_az"].GetBoolValue())
+	if d.EqualsQuals["multi_az"] != nil {
+		input.MultiAZ = aws.Bool(d.EqualsQuals["multi_az"].GetBoolValue())
 	}
 
-	if d.KeyColumnQuals["offering_type"] != nil {
-		offeringType := d.KeyColumnQuals["offering_type"].GetStringValue()
+	if d.EqualsQuals["offering_type"] != nil {
+		offeringType := d.EqualsQuals["offering_type"].GetStringValue()
 		if offeringType != "Partial Upfront" && offeringType != "All Upfront" && offeringType != "No Upfront" {
 			return nil, nil
 		}
 		input.OfferingType = aws.String(offeringType)
 	}
 
-	if d.KeyColumnQuals["reserved_db_instances_offering_id"] != nil {
-		input.ReservedDBInstancesOfferingId = aws.String(d.KeyColumnQuals["reserved_db_instances_offering_id"].GetStringValue())
+	if d.EqualsQuals["reserved_db_instances_offering_id"] != nil {
+		input.ReservedDBInstancesOfferingId = aws.String(d.EqualsQuals["reserved_db_instances_offering_id"].GetStringValue())
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
-			} else {
-				input.MaxRecords = limit
-			}
-		}
-	}
+	paginator := rds.NewDescribeReservedDBInstancesPaginator(svc, input, func(o *rds.DescribeReservedDBInstancesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.DescribeReservedDBInstancesPages(
-		input,
-		func(page *rds.DescribeReservedDBInstancesOutput, isLast bool) bool {
-			for _, reservedDBInstance := range page.ReservedDBInstances {
-				d.StreamListItem(ctx, reservedDBInstance)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_reserved_db_instance.listRDSReservedDBInstances", "api_error", err)
+			return nil, err
+		}
 
-				// Check if context has been cancelled or if the limit has been hit (if specified)
-				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.ReservedDBInstances {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("listRDSReservedDBInstances", "DescribeReservedDBInstancesPages", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -228,11 +232,12 @@ func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 //// HYDRATE FUNCTIONS
 
 func getRDSReservedDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	dbInstanceIdentifier := d.KeyColumnQuals["reserved_db_instance_id"].GetStringValue()
+	dbInstanceIdentifier := d.EqualsQuals["reserved_db_instance_id"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_reserved_db_instance.getRDSReservedDBInstance", "connection_error", err)
 		return nil, err
 	}
 
@@ -240,9 +245,9 @@ func getRDSReservedDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugi
 		ReservedDBInstanceId: aws.String(dbInstanceIdentifier),
 	}
 
-	op, err := svc.DescribeReservedDBInstances(params)
+	op, err := svc.DescribeReservedDBInstances(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getRDSReservedDBInstance", "DescribeReservedDBInstances", err)
+		plugin.Logger(ctx).Error("aws_rds_reserved_db_instance.getRDSReservedDBInstance", "api_error", err)
 		return nil, err
 	}
 

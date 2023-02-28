@@ -2,15 +2,20 @@ package aws
 
 import (
 	"context"
+	"errors"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/backup/types"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	backupv1 "github.com/aws/aws-sdk-go/service/backup"
+
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,16 +25,17 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_vault",
 		Description: "AWS Backup Vault",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"name"}),
+			KeyColumns: plugin.SingleColumn("name"),
+			// DescribeBackupVault API returns AccessDeniedException instead of a not found error when it is called for vaults that do not exist
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "AccessDeniedException"}),
 			},
 			Hydrate: getAwsBackupVault,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupVaults,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -67,6 +73,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Name:        "sns_topic_arn",
 				Description: "An ARN that uniquely identifies an Amazon Simple Notification Service.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsBackupVaultNotification,
 				Transform:   transform.FromField("SNSTopicArn"),
 			},
 			{
@@ -110,41 +117,57 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 
 func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_vault.listAwsBackupVaults", "connection_error", err)
 		return nil, err
 	}
 
-	input := &backup.ListBackupVaultsInput{
-		MaxResults: aws.Int64(1000),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
-	// Limiting the results per page
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.ListBackupVaultsPages(
-		input,
-		func(page *backup.ListBackupVaultsOutput, lastPage bool) bool {
-			for _, vault := range page.BackupVaultList {
-				d.StreamListItem(ctx, vault)
+	input := &backup.ListBackupVaultsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := backup.NewListBackupVaultsPaginator(svc, input, func(o *backup.ListBackupVaultsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_backup_vault.listAwsBackupVaults", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.BackupVaultList {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
@@ -152,26 +175,32 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVault", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var name string
 	if h.Item != nil {
-		vault := h.Item.(*backup.VaultListMember)
+		vault := h.Item.(types.BackupVaultListMember)
 		name = *vault.BackupVaultName
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	params := &backup.DescribeBackupVaultInput{
 		BackupVaultName: aws.String(name),
 	}
 
-	op, err := svc.DescribeBackupVault(params)
+	op, err := svc.DescribeBackupVault(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsBackupVault", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVault", "api_error", err)
 		return nil, err
 	}
 
@@ -180,54 +209,81 @@ func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultNotification", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	name := vaultID(h.Item)
 
 	params := &backup.GetBackupVaultNotificationsInput{
 		BackupVaultName: aws.String(name),
 	}
 
-	op, err := svc.GetBackupVaultNotifications(params)
+	op, err := svc.GetBackupVaultNotifications(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" || a.Code() == "InvalidParameter" {
-				return backup.GetBackupVaultNotificationsOutput{}, nil
-			}
-			return nil, err
+
+		if strings.Contains(err.Error(), "Failed reading notifications from database for Backup vault ") {
+			return &backup.GetBackupVaultNotificationsOutput{}, nil
 		}
+
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "InvalidParameter" {
+				return &backup.GetBackupVaultNotificationsOutput{}, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultNotification", "api_error", err)
+		return nil, err
 	}
 	return op, nil
 }
 
 func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultAccessPolicy", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	name := vaultID(h.Item)
 	params := &backup.GetBackupVaultAccessPolicyInput{
 		BackupVaultName: aws.String(name),
 	}
 
-	op, err := svc.GetBackupVaultAccessPolicy(params)
+	op, err := svc.GetBackupVaultAccessPolicy(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" || a.Code() == "InvalidParameter" {
-				return backup.GetBackupVaultAccessPolicyOutput{}, nil
+		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultAccessPolicy", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "InvalidParameter" {
+				return backup.GetBackupVaultNotificationsOutput{}, nil
 			}
-			return nil, err
 		}
+		return nil, err
 	}
+
 	return op, nil
 }
 
 func vaultID(item interface{}) string {
 	switch item := item.(type) {
-	case *backup.VaultListMember:
+	case types.BackupVaultListMember:
 		return *item.BackupVaultName
 	case *backup.DescribeBackupVaultOutput:
 		return *item.BackupVaultName

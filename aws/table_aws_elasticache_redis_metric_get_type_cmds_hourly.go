@@ -3,13 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsElasticacheRedisMetricGetTypeCmdsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_redis_metric_get_type_cmds_hourly",
@@ -18,7 +19,7 @@ func tableAwsElasticacheRedisMetricGetTypeCmdsHourly(_ context.Context) *plugin.
 			ParentHydrate: listElastiCacheClusters,
 			Hydrate:       listElastiCacheMetricGetTypeCmdsHourly,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{
@@ -32,6 +33,6 @@ func tableAwsElasticacheRedisMetricGetTypeCmdsHourly(_ context.Context) *plugin.
 }
 
 func listElastiCacheMetricGetTypeCmdsHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	cacheClusterConfiguration := h.Item.(*elasticache.CacheCluster)
+	cacheClusterConfiguration := h.Item.(types.CacheCluster)
 	return listCWMetricStatistics(ctx, d, "Hourly", "AWS/ElastiCache", "GetTypeCmds", "CacheClusterId", *cacheClusterConfiguration.CacheClusterId)
 }

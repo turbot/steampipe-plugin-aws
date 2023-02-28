@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
+
+	sfnv1 "github.com/aws/aws-sdk-go/service/sfn"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table {
@@ -19,7 +22,7 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("execution_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ExecutionDoesNotExist", "InvalidArn"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ExecutionDoesNotExist", "InvalidArn"}),
 			},
 			Hydrate: getStepFunctionsStateMachineExecution,
 		},
@@ -31,7 +34,7 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 				{Name: "state_machine_arn", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -115,15 +118,20 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 
 func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.listStepFunctionsStateMachineExecutions", "connection_error", err)
 		return nil, err
 	}
 
-	arn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
-	equalQuals := d.KeyColumnQuals
+	arn := h.Item.(types.StateMachineListItem).StateMachineArn
+
+	equalQuals := d.EqualsQuals
 	// Minimize the API call with the given layer name
 	if equalQuals["state_machine_arn"] != nil {
 		if equalQuals["state_machine_arn"].GetStringValue() != "" {
@@ -137,41 +145,45 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		}
 	}
 
-	input := &sfn.ListExecutionsInput{
-		StateMachineArn: arn,
-		MaxResults:      aws.Int64(1000),
-	}
-
-	if equalQuals["status"] != nil {
-		input.StatusFilter = aws.String(equalQuals["status"].GetStringValue())
-	}
-
+	maxLimit := int32(1000)
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			input.MaxResults = limit
+		if *limit < int64(maxLimit) {
+			maxLimit = int32(*limit)
+		}
+	}
+	input := &sfn.ListExecutionsInput{
+		StateMachineArn: arn,
+		MaxResults:      int32(maxLimit),
+	}
+	if equalQuals["status"] != nil {
+		input.StatusFilter = types.ExecutionStatus(equalQuals["status"].GetStringValue())
+	}
+	paginator := sfn.NewListExecutionsPaginator(svc, input, func(o *sfn.ListExecutionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.listStepFunctionsStateMachineExecutions", "api_error", err)
+			return nil, err
+		}
+		for _, execution := range output.Executions {
+			d.StreamListItem(ctx, execution)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 
-	err = svc.ListExecutionsPages(
-		input,
-		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
-			for _, execution := range page.Executions {
-				d.StreamListItem(ctx, execution)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "ListExecutionsPages_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.listStepFunctionsStateMachineExecutions", "api_error", err)
 		return nil, err
 	}
 
@@ -181,21 +193,23 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 //// HYDRATE FUNCTIONS
 
 func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getStepFunctionsStateMachineExecution")
-
 	var arn string
 	if h.Item != nil {
-		arn = *h.Item.(*sfn.ExecutionListItem).ExecutionArn
+		arn = *h.Item.(types.ExecutionListItem).ExecutionArn
 	} else {
-		arn = d.KeyColumnQuals["execution_arn"].GetStringValue()
+		arn = d.EqualsQuals["execution_arn"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachineExecution", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.getStepFunctionsStateMachineExecution", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -204,9 +218,9 @@ func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryD
 	}
 
 	// Get call
-	data, err := svc.DescribeExecution(params)
+	data, err := svc.DescribeExecution(ctx, params)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachineExecution", "DescribeExecution_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.getStepFunctionsStateMachineExecution", "api_error", err)
 		return nil, err
 	}
 

@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
+	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	databasemigrationservicev1 "github.com/aws/aws-sdk-go/service/databasemigrationservice"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +23,7 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "InvalidParameterCombinationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "InvalidParameterCombinationException"}),
 			},
 			Hydrate: getDmsReplicationInstance,
 		},
@@ -45,7 +48,7 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(databasemigrationservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_instance_identifier",
@@ -200,78 +203,86 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 
 func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DatabaseMigrationService(ctx, d)
+	svc, err := DatabaseMigrationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dms_replication_instance.listDmsReplicationInstances", "connection_error", err)
 		return nil, err
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	// Build the params
 	input := &databasemigrationservice.DescribeReplicationInstancesInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(maxLimit),
 	}
 
-	var filter []*databasemigrationservice.Filter
+	var filter []types.Filter
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["replication_instance_identifier"] != nil {
-		paramFilter := &databasemigrationservice.Filter{
+		paramFilter := types.Filter{
 			Name:   aws.String("replication-instance-id"),
-			Values: []*string{aws.String(equalQuals["replication_instance_identifier"].GetStringValue())},
+			Values: []string{equalQuals["replication_instance_identifier"].GetStringValue()},
 		}
 		filter = append(filter, paramFilter)
 	}
 	if equalQuals["arn"] != nil {
-		paramFilter := &databasemigrationservice.Filter{
+		paramFilter := types.Filter{
 			Name:   aws.String("replication-instance-arn"),
-			Values: []*string{aws.String(equalQuals["arn"].GetStringValue())},
+			Values: []string{equalQuals["arn"].GetStringValue()},
 		}
 		filter = append(filter, paramFilter)
 	}
 	if equalQuals["replication_instance_class"] != nil {
-		paramFilter := &databasemigrationservice.Filter{
+		paramFilter := types.Filter{
 			Name:   aws.String("replication-instance-class"),
-			Values: []*string{aws.String(equalQuals["replication_instance_class"].GetStringValue())},
+			Values: []string{equalQuals["replication_instance_class"].GetStringValue()},
 		}
 		filter = append(filter, paramFilter)
 	}
 	if equalQuals["engine_version"] != nil {
-		paramFilter := &databasemigrationservice.Filter{
+		paramFilter := types.Filter{
 			Name:   aws.String("engine-version"),
-			Values: []*string{aws.String(equalQuals["engine_version"].GetStringValue())},
+			Values: []string{equalQuals["engine_version"].GetStringValue()},
 		}
 		filter = append(filter, paramFilter)
 	}
 	input.Filters = filter
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
-			} else {
-				input.MaxRecords = limit
+	paginator := databasemigrationservice.NewDescribeReplicationInstancesPaginator(svc, input, func(o *databasemigrationservice.DescribeReplicationInstancesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_dms_replication_instance.listDmsReplicationInstances", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.ReplicationInstances {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeReplicationInstancesPages(
-		input,
-		func(page *databasemigrationservice.DescribeReplicationInstancesOutput, isLast bool) bool {
-			for _, replicationInstance := range page.ReplicationInstances {
-				d.StreamListItem(ctx, replicationInstance)
-
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 	return nil, err
 }
 
@@ -279,24 +290,26 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 
 func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := DatabaseMigrationService(ctx, d)
+	svc, err := DatabaseMigrationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dms_replication_instance.getDmsReplicationInstance", "connection_error", err)
 		return nil, err
 	}
 
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	arn := d.EqualsQuals["arn"].GetStringValue()
 
 	params := &databasemigrationservice.DescribeReplicationInstancesInput{
-		Filters: []*databasemigrationservice.Filter{
+		Filters: []types.Filter{
 			{
 				Name:   aws.String("replication-instance-arn"),
-				Values: []*string{aws.String(arn)},
+				Values: []string{arn},
 			},
 		},
 	}
 
-	op, err := svc.DescribeReplicationInstances(params)
+	op, err := svc.DescribeReplicationInstances(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dms_replication_instance.getDmsReplicationInstance", "api_error", err)
 		return nil, err
 	}
 
@@ -307,13 +320,13 @@ func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plug
 }
 
 func getDmsReplicationInstanceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDmsReplicationInstanceTags")
 
-	replicationInstanceArn := h.Item.(*databasemigrationservice.ReplicationInstance).ReplicationInstanceArn
+	replicationInstanceArn := h.Item.(types.ReplicationInstance).ReplicationInstanceArn
 
 	// Create service
-	svc, err := DatabaseMigrationService(ctx, d)
+	svc, err := DatabaseMigrationClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dms_replication_instance.getDmsReplicationInstance", "connection_error", err)
 		return nil, err
 	}
 
@@ -321,8 +334,9 @@ func getDmsReplicationInstanceTags(ctx context.Context, d *plugin.QueryData, h *
 		ResourceArn: replicationInstanceArn,
 	}
 
-	replicationInstanceTags, err := svc.ListTagsForResource(params)
+	replicationInstanceTags, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dms_replication_instance.getDmsReplicationInstance", "api_error", err)
 		return nil, err
 	}
 

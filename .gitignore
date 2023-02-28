@@ -18,8 +18,12 @@
 .idea
 
 # Ignore swap files
+*.swn
 *.swo
 *.swp
+
+# Ignore Desktop Services Store files
+.DS_Store
 
 # Parliament IAM permissions outputs
 scripts/generate_parliament_iam_permissions/__pycache__

@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
 //// TABLE DEFINITION
@@ -19,7 +22,8 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Managed Prefix List",
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction", "InvalidRequest"}),
+				// Ignore the 'UnsupportedOperation' error because while the EC2 service is supported in the 'me-south-1' region, listing managed prefix lists is not in that region
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction", "InvalidRequest", "UnsupportedOperation"}),
 			},
 			Hydrate: listManagedPrefixList,
 			KeyColumns: []*plugin.KeyColumn{
@@ -28,7 +32,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 				{Name: "owner_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -112,45 +116,56 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 
 func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	logger.Trace("listManagedPrefixList", "AWS_REGION", region)
 
-	equalQuals := d.KeyColumnQuals
-	filters := []*ec2.Filter{}
+	equalQuals := d.EqualsQuals
+	filters := []types.Filter{}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
-		logger.Error("listManagedPrefixList", "Ec2Service_error", err)
+		logger.Error("aws_ec2_managed_prefix_list.listManagedPrefixList", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	params := &ec2.DescribeManagedPrefixListsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	if equalQuals["owner_id"] != nil {
-		ownerIdFilter := ec2.Filter{
+		ownerIdFilter := types.Filter{
 			Name:   aws.String("owner-id"),
-			Values: []*string{aws.String(equalQuals["owner_id"].GetStringValue())},
+			Values: []string{equalQuals["owner_id"].GetStringValue()},
 		}
-		filters = append(filters, &ownerIdFilter)
+		filters = append(filters, ownerIdFilter)
 	}
 
 	if equalQuals["id"] != nil {
-		idFilter := ec2.Filter{
+		idFilter := types.Filter{
 			Name:   aws.String("prefix-list-id"),
-			Values: []*string{aws.String(equalQuals["id"].GetStringValue())},
+			Values: []string{equalQuals["id"].GetStringValue()},
 		}
-		filters = append(filters, &idFilter)
+		filters = append(filters, idFilter)
 	}
 
 	if equalQuals["name"] != nil {
-		nameFilter := ec2.Filter{
+		nameFilter := types.Filter{
 			Name:   aws.String("prefix-list-name"),
-			Values: []*string{aws.String(equalQuals["name"].GetStringValue())},
+			Values: []string{equalQuals["name"].GetStringValue()},
 		}
-		filters = append(filters, &nameFilter)
+		filters = append(filters, nameFilter)
 	}
 
 	// Add filters as request parameter when at least one filter is present
@@ -158,38 +173,28 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		params.Filters = filters
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			if *limit < 1 {
-				params.MaxResults = aws.Int64(1)
-			} else {
-				params.MaxResults = limit
-			}
-		}
-	}
+	paginator := ec2.NewDescribeManagedPrefixListsPaginator(svc, params, func(o *ec2.DescribeManagedPrefixListsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.DescribeManagedPrefixListsPages(
-		params,
-		func(page *ec2.DescribeManagedPrefixListsOutput, isLast bool) bool {
-			for _, prefix := range page.PrefixLists {
-				d.StreamListItem(ctx, prefix)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_managed_prefix_list.listManagedPrefixList", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.PrefixLists {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
 
-	if err != nil {
-		logger.Error("listManagedPrefixList", "DescribeManagedPrefixListsPages_error", err)
-		return nil, err
 	}
 
 	return nil, nil
@@ -198,7 +203,7 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// TRANSFORM FUNCTION
 
 func prefixListTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	prefixList := d.HydrateItem.(*ec2.ManagedPrefixList)
+	prefixList := d.HydrateItem.(types.ManagedPrefixList)
 
 	var turbotTagsMap map[string]string
 	if prefixList.Tags != nil {

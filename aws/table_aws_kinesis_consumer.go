@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/kinesis"
+	"github.com/aws/aws-sdk-go-v2/service/kinesis/types"
+
+	kinesisv1 "github.com/aws/aws-sdk-go/service/kinesis"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,7 +23,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("consumer_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsKinesisConsumer,
 		},
@@ -27,7 +31,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 			ParentHydrate: listStreams,
 			Hydrate:       listKinesisConsumers,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(kinesisv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "consumer_name",
@@ -77,78 +81,89 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	streamData := *h.Item.(*kinesis.DescribeStreamOutput)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
 		return nil, err
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":kinesis:" + region + ":" + commonColumnData.AccountId + ":stream" + "/" + *streamData.StreamDescription.StreamName
-
-	plugin.Logger(ctx).Trace("StreamArn", "arn", arn)
-
+	arn := "arn:" + commonColumnData.Partition + ":kinesis:" + region + ":" + commonColumnData.AccountId + ":stream" + "/" + streamName
 	// Create session
-	svc, err := KinesisService(ctx, d)
+	svc, err := KinesisClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "connection_error", err)
 		return nil, err
 	}
 
-	input := &kinesis.ListStreamConsumersInput{
-		StreamARN:  &arn,
-		MaxResults: aws.Int64(100),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
+	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
 
-	err = svc.ListStreamConsumersPages(
-		input,
-		func(page *kinesis.ListStreamConsumersOutput, isLast bool) bool {
-			for _, consumerData := range page.Consumers {
-				d.StreamLeafListItem(ctx, consumerData)
+	input := &kinesis.ListStreamConsumersInput{
+		StreamARN:  &arn,
+		MaxResults: aws.Int32(maxLimit),
+	}
+	paginator := kinesis.NewListStreamConsumersPaginator(svc, input, func(o *kinesis.ListStreamConsumersPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
+			return nil, err
+		}
+		for _, consumerData := range output.Consumers {
+			d.StreamListItem(ctx, consumerData)
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
 
+	}
 	return nil, err
 }
 
 func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKinesisConsumer")
-
 	var arn string
 	if h.Item != nil {
-		i := h.Item.(*kinesis.Consumer)
+		i := h.Item.(types.Consumer)
 		arn = *i.ConsumerARN
 	} else {
-		arn = d.KeyColumnQuals["consumer_arn"].GetStringValue()
+		arn = d.EqualsQuals["consumer_arn"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := KinesisService(ctx, d)
+	svc, err := KinesisClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_consumer.getAwsKinesisConsumer", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -157,9 +172,9 @@ func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	data, err := svc.DescribeStreamConsumer(params)
+	data, err := svc.DescribeStreamConsumer(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsKinesisConsumer", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesis_consumer.getAwsKinesisConsumer", "api_error", err)
 		return nil, err
 	}
 

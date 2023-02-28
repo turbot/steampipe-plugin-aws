@@ -2,15 +2,16 @@ package aws
 
 import (
 	"context"
-	"errors"
-	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/wellarchitected"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
+	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
+
+	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,7 +23,7 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("workload_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getWellArchitectedWorkload,
 		},
@@ -32,7 +33,7 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 				{Name: "workload_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workload_name",
@@ -184,66 +185,62 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listWellArchitectedWorkloads")
-
 	// Create session
-	svc, err := WellArchitectedService(ctx, d)
+	svc, err := WellArchitectedClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wellarchitected_workload.listWellArchitectedWorkloads", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(50)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	input := &wellarchitected.ListWorkloadsInput{
-		MaxResults: aws.Int64(50),
+		MaxResults: maxLimit,
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["workload_name"] != nil {
 		if equalQuals["workload_name"].GetStringValue() != "" {
 			input.WorkloadNamePrefix = aws.String(equalQuals["workload_name"].GetStringValue())
 		}
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+	paginator := wellarchitected.NewListWorkloadsPaginator(svc, input, func(o *wellarchitected.ListWorkloadsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wellarchitected_workload.listWellArchitectedWorkloads", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.WorkloadSummaries {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
-	}
-
-	err = svc.ListWorkloadsPages(
-		input,
-		func(page *wellarchitected.ListWorkloadsOutput, lastPage bool) bool {
-			for _, Workload := range page.WorkloadSummaries {
-				d.StreamListItem(ctx, Workload)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		var awsErr awserr.Error
-		// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-		// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
-		if errors.As(err, &awsErr) {
-			if awsErr.OrigErr() != nil {
-				if strings.Contains(awsErr.OrigErr().Error(), "no such host") {
-					return nil, nil
-				}
-			}
-		}
-		logger.Error("listWellArchitectedWorkloads", "list", err)
-		return nil, err
 	}
 
 	return nil, nil
@@ -252,40 +249,32 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 //// HYDRATE FUNCTIONS
 
 func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getWellArchitectedWorkload")
-
 	var id string
 	if h.Item != nil {
 		id = workloadID(h.Item)
 	} else {
-		quals := d.KeyColumnQuals
+		quals := d.EqualsQuals
 		id = quals["workload_id"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := WellArchitectedService(ctx, d)
+	svc, err := WellArchitectedClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wellarchitected_workload.getWellArchitectedWorkload", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &wellarchitected.GetWorkloadInput{
 		WorkloadId: aws.String(id),
 	}
 
-	op, err := svc.GetWorkload(params)
+	op, err := svc.GetWorkload(ctx, params)
 	if err != nil {
-		var awsErr awserr.Error
-		// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-		// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
-		if errors.As(err, &awsErr) {
-			if awsErr.OrigErr() != nil {
-				if strings.Contains(awsErr.OrigErr().Error(), "no such host") {
-					return nil, nil
-				}
-			}
-		}
-		logger.Error("getWellArchitectedWorkload", "get", err)
+		plugin.Logger(ctx).Error("aws_wellarchitected_workload.getWellArchitectedWorkload", "api_error", err)
 		return nil, err
 	}
 
@@ -296,9 +285,9 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 
 func workloadID(item interface{}) string {
 	switch item := item.(type) {
-	case *wellarchitected.WorkloadSummary:
+	case types.WorkloadSummary:
 		return *item.WorkloadId
-	case *wellarchitected.Workload:
+	case *types.Workload:
 		return *item.WorkloadId
 	}
 	return ""

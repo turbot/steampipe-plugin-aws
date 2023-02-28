@@ -3,28 +3,26 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ebs_snapshot",
 		Description: "AWS EBS Snapshot",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("snapshot_id"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue"}),
-			},
-			Hydrate: getAwsEBSSnapshot,
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEBSSnapshots,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue", "InvalidUserID.Malformed"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "description",
@@ -35,16 +33,19 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 				{
-					Name:    "owner_alias",
-					Require: plugin.Optional,
+					Name:       "owner_alias",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 				{
-					Name:    "owner_id",
-					Require: plugin.Optional,
+					Name:       "owner_id",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 				{
-					Name:    "snapshot_id",
-					Require: plugin.Optional,
+					Name:       "snapshot_id",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 				{
 					Name:    "state",
@@ -64,7 +65,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_id",
@@ -178,93 +179,67 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listAwsEBSSnapshots", "AWS_REGION", region)
-
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ebs_snapshot.listAwsEBSSnapshots", "connection_error", err)
 		return nil, err
 	}
 
-	input := &ec2.DescribeSnapshotsInput{
-		MaxResults: aws.Int64(1000),
-	}
-
-	// Build filter for ebs snapshot
-	filters := buildEbsSnapshotFilter(ctx, d, h, d.KeyColumnQuals)
-	input.Filters = filters
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = types.Int64(5)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
+
+	input := &ec2.DescribeSnapshotsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	// Build filter for ebs snapshot
+	filters := buildEbsSnapshotFilter(ctx, d, h, d.EqualsQuals, input)
+	input.Filters = filters
+
+	paginator := ec2.NewDescribeSnapshotsPaginator(svc, input, func(o *ec2.DescribeSnapshotsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
 	// List call
-	err = svc.DescribeSnapshotsPages(
-		input,
-		func(page *ec2.DescribeSnapshotsOutput, isLast bool) bool {
-			for _, snapshot := range page.Snapshots {
-				d.StreamListItem(ctx, snapshot)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ebs_snapshot.listAwsEBSSnapshots", "api_error", err)
+			return nil, err
+		}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.Snapshots {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
-func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEBSSnapshot")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	snapshotID := d.KeyColumnQuals["snapshot_id"].GetStringValue()
-
-	// get service
-	svc, err := Ec2Service(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the params
-	params := &ec2.DescribeSnapshotsInput{
-		SnapshotIds: []*string{aws.String(snapshotID)},
-	}
-
-	// Get call
-	data, err := svc.DescribeSnapshots(params)
-	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsEBSSnapshot__", "ERROR", err)
-		return nil, err
-	}
-
-	if data.Snapshots != nil {
-		return data.Snapshots[0], nil
-	}
-	return nil, nil
-}
-
 // getAwsEBSSnapshotCreateVolumePermissions :: Describes the users and groups that have the permissions for creating volumes from the snapshot
 func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEBSSnapshotCreateVolumePermissions")
-	snapshotData := h.Item.(*ec2.Snapshot)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	snapshotData := h.Item.(types.Snapshot)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -273,20 +248,22 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 		return nil, nil
 	}
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ebs_snapshot.getAwsEBSSnapshotCreateVolumePermissions", "connection_error", err)
 		return nil, err
 	}
 
 	// Build params
 	params := &ec2.DescribeSnapshotAttributeInput{
 		SnapshotId: snapshotData.SnapshotId,
-		Attribute:  aws.String(ec2.SnapshotAttributeNameCreateVolumePermission),
+		Attribute:  types.SnapshotAttributeNameCreateVolumePermission,
 	}
 
 	// Describe create volume permission
-	resp, err := svc.DescribeSnapshotAttribute(params)
+	resp, err := svc.DescribeSnapshotAttribute(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ebs_snapshot.getAwsEBSSnapshotCreateVolumePermissions", "api_error", err)
 		return nil, err
 	}
 	return resp, nil
@@ -294,10 +271,10 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 
 func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEBSSnapshotARN")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	snapshotData := h.Item.(*ec2.Snapshot)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+	snapshotData := h.Item.(types.Snapshot)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -312,14 +289,24 @@ func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 //// TRANSFORM FUNCTIONS
 
 func ec2SnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	snapshot := d.HydrateItem.(*ec2.Snapshot)
-	return ec2TagsToMap(snapshot.Tags)
+	snapshot := d.HydrateItem.(types.Snapshot)
+	var turbotTagsMap map[string]string
+	if snapshot.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range snapshot.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+	return turbotTagsMap, nil
 }
 
 //// UTILITY FUNCTION
+
 // build ebs snapshot list call input filter
-func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, equalQuals plugin.KeyColumnEqualsQualMap, input *ec2.DescribeSnapshotsInput) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"description": "description",
@@ -334,34 +321,33 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	for columnName, filterName := range filterQuals {
 		if equalQuals[columnName] != nil {
-			filter := ec2.Filter{
-				Name: types.String(filterName),
+			filter := types.Filter{
+				Name: aws.String(filterName),
 			}
 			value := equalQuals[columnName]
 			if value.GetStringValue() != "" {
-				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+				filter.Values = []string{equalQuals[columnName].GetStringValue()}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
-	ownerFilter := ec2.Filter{}
+
 	if equalQuals["owner_id"] != nil {
-		ownerFilter.Name = types.String("owner-id")
-		ownerFilter.Values = []*string{types.String(equalQuals["owner_id"].GetStringValue())}
-	} else {
-		// Use this section later and compare the results
-		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-		c, err := getCommonColumnsCached(ctx, d, h)
+		input.OwnerIds = append(input.OwnerIds, equalQuals["owner_id"].GetStringValue())
+	}
+
+	/*
+	 * By default, DescribeSnapshots API returns all the snapshots, including public & shared ones, which will be too many and can cause performance issues for the table.
+	 * If the user did not provide any of the below filters in the where clause, then by default owner ID will be set to the caller account ID, and API will return snapshots from the same account. This will help in table performance.
+	 */
+	if equalQuals["owner_alias"] == nil && equalQuals["owner_id"] == nil && equalQuals["snapshot_id"] == nil {
+		c, err := getCommonColumns(ctx, d, h)
 		if err != nil {
 			return filters
 		}
 		commonColumnData := c.(*awsCommonColumnData)
-		ownerFilter.Name = types.String("owner-id")
-		ownerFilter.Values = []*string{aws.String(commonColumnData.AccountId)}
+		input.OwnerIds = append(input.OwnerIds, commonColumnData.AccountId)
 	}
 
-	filters = append(filters, &ownerFilter)
 	return filters
 }

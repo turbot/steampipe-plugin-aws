@@ -3,13 +3,16 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
+
+	go_kit_pack "github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
@@ -19,12 +22,12 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("global_table_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Hydrate: getDynamboDbGlobalTable,
+			Hydrate: getDynamoDBGlobalTable,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listDynamboDbGlobalTables,
+			Hydrate: listDynamoDBGlobalTables,
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "global_table_name",
@@ -32,7 +35,7 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "global_table_name",
@@ -43,25 +46,25 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 				Name:        "global_table_arn",
 				Description: "The unique identifier of the global table.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getDynamboDbGlobalTable,
+				Hydrate:     getDynamoDBGlobalTable,
 			},
 			{
 				Name:        "global_table_status",
 				Description: "The current state of the global table.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getDynamboDbGlobalTable,
+				Hydrate:     getDynamoDBGlobalTable,
 			},
 			{
 				Name:        "creation_date_time",
 				Description: "The creation time of the global table.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getDynamboDbGlobalTable,
+				Hydrate:     getDynamoDBGlobalTable,
 			},
 			{
 				Name:        "replication_group",
 				Description: "The Regions where the global table has replicas.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getDynamboDbGlobalTable,
+				Hydrate:     getDynamoDBGlobalTable,
 			},
 			{
 				Name:        "title",
@@ -73,7 +76,7 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getDynamboDbGlobalTable,
+				Hydrate:     getDynamoDBGlobalTable,
 				Transform:   transform.FromField("GlobalTableArn").Transform(arnToAkas),
 			},
 		}),
@@ -82,45 +85,55 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDynamoDBGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_global_table.listDynamoDBGlobalTables", "connection_error", err)
 		return nil, err
 	}
-
-	input := &dynamodb.ListGlobalTablesInput{
-		Limit: aws.Int64(100),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
-	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["global_table_name"] != nil {
-		input.ExclusiveStartGlobalTableName = types.String(equalQuals["global_table_name"].GetStringValue())
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.Limit = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	tables, err := svc.ListGlobalTables(input)
+	input := &dynamodb.ListGlobalTablesInput{
+		Limit: aws.Int32(maxLimit),
+	}
+
+	// Additonal Filter
+	equalQuals := d.EqualsQuals
+	if equalQuals["global_table_name"] != nil {
+		input.ExclusiveStartGlobalTableName = go_kit_pack.String(equalQuals["global_table_name"].GetStringValue())
+	}
+
+	tables, err := svc.ListGlobalTables(ctx, input)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_global_table.listDynamoDBGlobalTables", "api_error", err)
+		return nil, err
+	}
 
 	for _, globalTable := range tables.GlobalTables {
-		d.StreamListItem(ctx, &dynamodb.GlobalTableDescription{
+		d.StreamListItem(ctx, types.GlobalTableDescription{
 			GlobalTableName: globalTable.GlobalTableName,
 		})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			break
 		}
 	}
@@ -130,30 +143,34 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 
 //// HYDRATE FUNCTIONS
 
-func getDynamboDbGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDynamboDbGlobalTable")
+func getDynamoDBGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	var name string
 	if h.Item != nil {
-		data := h.Item.(*dynamodb.GlobalTableDescription)
-		name = types.SafeString(data.GlobalTableName)
+		data := h.Item.(types.GlobalTableDescription)
+		name = go_kit_pack.SafeString(data.GlobalTableName)
 	} else {
-		name = d.KeyColumnQuals["global_table_name"].GetStringValue()
+		name = d.EqualsQuals["global_table_name"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_global_table.getDynamoDBGlobalTable", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dynamodb.DescribeGlobalTableInput{
 		GlobalTableName: aws.String(name),
 	}
 
-	item, err := svc.DescribeGlobalTable(params)
+	item, err := svc.DescribeGlobalTable(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("[DEBUG] getDynamboDbGlobalTable__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_dynamodb_global_table.getDynamoDBGlobalTable", "api_error", err)
 		return nil, err
 	}
 

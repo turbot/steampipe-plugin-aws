@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
@@ -15,7 +15,7 @@ func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostForecastMonthly,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "period_start",
 				Description: "Start timestamp for this cost metric",
@@ -42,20 +42,18 @@ func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
 
 func listCostForecastMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	logger := plugin.Logger(ctx)
-	logger.Trace("listCostForecast")
-
-	// Create session
-	svc, err := CostExplorerService(ctx, d)
+	// Get client
+	svc, err := CostExplorerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cost_forecast_monthly.listCostForecastMonthly", "client_error", err)
 		return nil, err
 	}
 
-	params := buildCostForecastInput(d.KeyColumnQuals, "MONTHLY")
+	params := buildCostForecastInput(d.EqualsQuals, "MONTHLY")
 
-	output, err := svc.GetCostForecast(params)
+	output, err := svc.GetCostForecast(ctx, params)
 	if err != nil {
-		logger.Error("listCostForecast", "err", err)
+		plugin.Logger(ctx).Error("aws_cost_forecast_monthly.listCostForecastMonthly", "api_error", err)
 		return nil, err
 	}
 
@@ -63,7 +61,7 @@ func listCostForecastMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for _, r := range output.ForecastResultsByTime {
 		d.StreamListItem(ctx, r)
 
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}

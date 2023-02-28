@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/neptune"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/neptune"
+	"github.com/aws/aws-sdk-go-v2/service/neptune/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	neptunev1 "github.com/aws/aws-sdk-go/service/neptune"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,13 +24,13 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
 			Hydrate:    getNeptuneDBCluster,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBClusterNotFoundFault"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBClusterNotFoundFault"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listNeptuneDBClusters,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(neptunev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",
@@ -252,60 +255,71 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listNeptuneDBClusters")
-
 	// Create session
-	svc, err := NeptuneService(ctx, d)
+	svc, err := NeptuneClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_neptune_db_cluster.listNeptuneDBClusters", "get_client_error", err)
 		return nil, err
 	}
 
 	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &neptune.DescribeDBClustersInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeDBClustersPages(
-		input,
-		func(page *neptune.DescribeDBClustersOutput, isLast bool) bool {
-			for _, dbCluster := range page.DBClusters {
-				d.StreamListItem(ctx, dbCluster)
+	paginator := neptune.NewDescribeDBClustersPaginator(svc, input, func(o *neptune.DescribeDBClustersPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_neptune_db_cluster.listNeptuneDBClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, cluster := range output.DBClusters {
+			// The DescribeDBClusters API returns non-Neptune DB clusters as well,
+			// but we only want Neptune clusters here. The input has a Filter param
+			// which can help filter out non-Neptune clusters, but as of 2022/08/15,
+			// the SDK says the Filter param is not currently supported.
+			// Related issue: https://github.com/aws/aws-sdk-go/issues/4515
+			if *cluster.Engine == "neptune" {
+				d.StreamListItem(ctx, cluster)
 			}
-			return !isLast
-		},
-	)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getNeptuneDBCluster")
-
-	identifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
+	identifier := d.EqualsQuals["db_cluster_identifier"].GetStringValue()
 
 	// Create session
-	svc, err := NeptuneService(ctx, d)
+	svc, err := NeptuneClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_neptune_db_cluster.getNeptuneDBCluster", "get_client_error", err)
 		return nil, err
 	}
 
@@ -315,9 +329,9 @@ func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// Get call
-	data, err := svc.DescribeDBClusters(params)
+	data, err := svc.DescribeDBClusters(ctx, params)
 	if err != nil {
-		logger.Error("getNeptuneDBCluster", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_neptune_db_cluster.getNeptuneDBCluster", "api_error", err)
 		return nil, err
 	}
 	if len(data.DBClusters) > 0 {
@@ -327,13 +341,12 @@ func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getNeptuneDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getNeptuneDBClusterTags")
-	clusterArn := h.Item.(*neptune.DBCluster).DBClusterArn
+	clusterArn := h.Item.(types.DBCluster).DBClusterArn
 
 	// Create session
-	svc, err := NeptuneService(ctx, d)
+	svc, err := NeptuneClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_neptune_db_cluster.getNeptuneDBClusterTags", "get_client_error", err)
 		return nil, err
 	}
 
@@ -341,9 +354,9 @@ func getNeptuneDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin
 		ResourceName: clusterArn,
 	}
 
-	tags, err := svc.ListTagsForResource(input)
+	tags, err := svc.ListTagsForResource(ctx, input)
 	if err != nil {
-		logger.Error("getNeptuneDBClusterTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_neptune_db_cluster.getNeptuneDBClusterTags", "api_error", err)
 		return nil, err
 	}
 
@@ -357,7 +370,6 @@ func getNeptuneDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin
 //// TRANSFORM FUNCTIONS
 
 func neptuneDBClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("neptuneDBClusterTurbotTags")
 	tagsDetails := d.HydrateItem.(*neptune.ListTagsForResourceOutput)
 
 	// Mapping the resource tags inside turbotTags

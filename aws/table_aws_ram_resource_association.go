@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ram"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ram"
+	"github.com/aws/aws-sdk-go-v2/service/ram/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	ramv1 "github.com/aws/aws-sdk-go/service/ram"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsRAMResourceAssociation(_ context.Context) *plugin.Table {
@@ -19,7 +22,7 @@ func tableAwsRAMResourceAssociation(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listResourceShareAssociations(associationType),
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ramv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "resource_share_name",
@@ -96,44 +99,52 @@ func tableAwsRAMResourceAssociation(_ context.Context) *plugin.Table {
 func listResourceShareAssociations(associationType string) func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 		// Create session
-		svc, err := RAMService(ctx, d)
+		svc, err := RAMClient(ctx, d)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_ram_resource_association.listResourceShareAssociations", "connection_error", err)
 			return nil, err
 		}
 
-		// List call
-		input := &ram.GetResourceShareAssociationsInput{
-			AssociationType: aws.String(associationType),
-			MaxResults:      aws.Int64(100),
-		}
-
-		// Reduce the basic request limit down if the user has only requested a small number of rows
-		limit := d.QueryContext.Limit
+		// Limiting the results
+		maxLimit := int32(100)
 		if d.QueryContext.Limit != nil {
-			if *limit <= 100 {
-				if *limit < 1 {
-					input.MaxResults = aws.Int64(1)
+			limit := int32(*d.QueryContext.Limit)
+			if limit < maxLimit {
+				if limit < 1 {
+					maxLimit = 1
 				} else {
-					input.MaxResults = limit
+					maxLimit = limit
 				}
 			}
 		}
 
-		// List call
-		err = svc.GetResourceShareAssociationsPages(
-			input,
-			func(page *ram.GetResourceShareAssociationsOutput, isLast bool) bool {
-				for _, association := range page.ResourceShareAssociations {
-					d.StreamListItem(ctx, association)
+		input := &ram.GetResourceShareAssociationsInput{
+			AssociationType: types.ResourceShareAssociationType(associationType),
+			MaxResults:      aws.Int32(maxLimit),
+		}
 
-					// Context may get cancelled due to manual cancellation or if the limit has been reached
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
+		paginator := ram.NewGetResourceShareAssociationsPaginator(svc, input, func(o *ram.GetResourceShareAssociationsPaginatorOptions) {
+			o.Limit = maxLimit
+			o.StopOnDuplicateToken = true
+		})
+
+		// List call
+		for paginator.HasMorePages() {
+			output, err := paginator.NextPage(ctx)
+			if err != nil {
+				plugin.Logger(ctx).Error("aws_ram_resource_association.listResourceShareAssociations", "api_error", err)
+				return nil, err
+			}
+
+			for _, items := range output.ResourceShareAssociations {
+				d.StreamListItem(ctx, items)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
 				}
-				return !isLast
-			},
-		)
+			}
+		}
 		return nil, err
 	}
 }
@@ -141,14 +152,13 @@ func listResourceShareAssociations(associationType string) func(ctx context.Cont
 //// HYDRATE FUNCTIONS
 
 func getResourceSharePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getResourceSharePermissions")
 
-	arn := *h.Item.(*ram.ResourceShareAssociation).ResourceShareArn
+	arn := *h.Item.(types.ResourceShareAssociation).ResourceShareArn
 
 	// Create Session
-	svc, err := RAMService(ctx, d)
+	svc, err := RAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ram_resource_association.getResourceSharePermissions", "connection_error", err)
 		return nil, err
 	}
 
@@ -156,19 +166,22 @@ func getResourceSharePermissions(ctx context.Context, d *plugin.QueryData, h *pl
 	input := &ram.ListResourceSharePermissionsInput{
 		ResourceShareArn: &arn,
 	}
-	summaries := []*ram.ResourceSharePermissionSummary{}
+	summaries := []types.ResourceSharePermissionSummary{}
 
-	// Get call
-	err = svc.ListResourceSharePermissionsPages(
-		input,
-		func(page *ram.ListResourceSharePermissionsOutput, isLast bool) bool {
-			summaries = append(summaries, page.Permissions...)
+	paginator := ram.NewListResourceSharePermissionsPaginator(svc, input, func(o *ram.ListResourceSharePermissionsPaginatorOptions) {
+		o.Limit = int32(100)
+		o.StopOnDuplicateToken = true
+	})
 
-			return !isLast
-		},
-	)
-	if err != nil {
-		return nil, err
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ram_resource_association.getResourceSharePermissions", "api_error", err)
+			return nil, err
+		}
+
+		summaries = append(summaries, output.Permissions...)
 	}
 
 	return summaries, nil

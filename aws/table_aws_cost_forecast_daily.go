@@ -4,12 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
@@ -19,7 +20,7 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostForecastDaily,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "period_start",
 				Description: "Start timestamp for this cost metric",
@@ -46,20 +47,18 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 
 func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	logger := plugin.Logger(ctx)
-	logger.Trace("listCostForecast")
-
-	// Create session
-	svc, err := CostExplorerService(ctx, d)
+	// Get client
+	svc, err := CostExplorerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cost_forecast_daily.listCostForecastDaily", "client_error", err)
 		return nil, err
 	}
 
-	params := buildCostForecastInput(d.KeyColumnQuals, "DAILY")
+	params := buildCostForecastInput(d.EqualsQuals, "DAILY")
 
-	output, err := svc.GetCostForecast(params)
+	output, err := svc.GetCostForecast(ctx, params)
 	if err != nil {
-		logger.Error("listCostForecast", "err", err)
+		plugin.Logger(ctx).Error("aws_cost_forecast_daily.listCostForecast", "api_error", err)
 		return nil, err
 	}
 
@@ -67,7 +66,7 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	for _, r := range output.ForecastResultsByTime {
 		d.StreamListItem(ctx, r)
 
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -91,12 +90,12 @@ func buildCostForecastInput(_ map[string]*proto.QualValue, granularity string) *
 	endTime := getForecastEndDateForGranularity(granularity).Format(timeFormat)
 
 	params := &costexplorer.GetCostForecastInput{
-		TimePeriod: &costexplorer.DateInterval{
+		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
-		Granularity: aws.String(granularity),
-		Metric:      aws.String(metric),
+		Granularity: types.Granularity(granularity),
+		Metric:      types.Metric(metric),
 	}
 
 	return params

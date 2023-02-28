@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
@@ -24,7 +24,7 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "access_key_id",
 				Description: "The ID for this access key.",
@@ -46,6 +46,27 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "access_key_last_used_date",
+				Description: "The date when the access key was last used.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getIamAccessKeyLastUsed,
+				Transform:   transform.FromField("LastUsedDate"),
+			},
+			{
+				Name:        "access_key_last_used_service",
+				Description: "The service last used by the access key.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getIamAccessKeyLastUsed,
+				Transform:   transform.FromField("ServiceName"),
+			},
+			{
+				Name:        "access_key_last_used_region",
+				Description: "The region in which the access key was last used.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getIamAccessKeyLastUsed,
+				Transform:   transform.FromField("Region"),
+			},
+			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
@@ -65,11 +86,10 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listUserAccessKeys")
-	user := h.Item.(*iam.User)
+	user := h.Item.(types.User)
 
 	// Minimize the API call with the given user_name
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["user_name"] != nil {
 		if equalQuals["user_name"].GetStringValue() != "" {
 			if equalQuals["user_name"].GetStringValue() != "" && equalQuals["user_name"].GetStringValue() != *user.UserName {
@@ -83,61 +103,73 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Create Session
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_access_key.listUserAccessKeys", "client_error", err)
 		return nil, err
 	}
 
-	params := &iam.ListAccessKeysInput{
-		UserName: user.UserName,
-		MaxItems: aws.Int64(1000),
-	}
+	params := &iam.ListAccessKeysInput{UserName: user.UserName}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxItems {
-			if *limit < 1 {
-				params.MaxItems = aws.Int64(1)
-			} else {
-				params.MaxItems = limit
+	paginator := iam.NewListAccessKeysPaginator(svc, params, func(o *iam.ListAccessKeysPaginatorOptions) {
+		o.Limit = 10
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_access_key.listUserAccessKeys", "api_error", err)
+			return nil, err
+		}
+
+		for _, key := range output.AccessKeyMetadata {
+			d.StreamListItem(ctx, key)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List IAM user access keys
-	err = svc.ListAccessKeysPages(
-		params,
-		func(page *iam.ListAccessKeysOutput, isLast bool) bool {
-			for _, key := range page.AccessKeyMetadata {
-				d.StreamListItem(ctx, key)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listUserAccessKeys", "ListAccessKeysPages", err)
-	}
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getIamAccessKeyAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	accessKey := h.Item.(*iam.AccessKeyMetadata)
+	accessKey := h.Item.(types.AccessKeyMetadata)
 
 	commonColumnData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-
 	awsCommonData := commonColumnData.(*awsCommonColumnData)
+
 	aka := []string{"arn:" + awsCommonData.Partition + ":iam::" + awsCommonData.AccountId + ":user/" + *accessKey.UserName + "/accesskey/" + *accessKey.AccessKeyId}
 	return aka, nil
+}
+
+func getIamAccessKeyLastUsed(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create Session
+	svc, err := IAMClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_access_key.getIamAccessKeyLastUsed", "client_error", err)
+		return nil, err
+	}
+
+	accessKey := h.Item.(types.AccessKeyMetadata)
+
+	params := iam.GetAccessKeyLastUsedInput{
+		AccessKeyId: accessKey.AccessKeyId,
+	}
+
+	op, err := svc.GetAccessKeyLastUsed(ctx, &params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_access_key.getIamAccessKeyLastUsed", "api_error", err)
+		return nil, err
+	}
+
+	return op.AccessKeyLastUsed, nil
 }

@@ -11,9 +11,8 @@ select
   name,
   id,
   comment,
-  e_tag,
-  last_modified_time,
-  type
+  etag,
+  last_modified_time
 from
   aws_cloudfront_origin_request_policy;
 ```

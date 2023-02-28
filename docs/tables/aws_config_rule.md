@@ -25,8 +25,8 @@ select
   name,
   rule_id,
   arn,
-  rule_state 
-from 
+  rule_state
+from
   aws_config_rule
 where
   rule_state <> 'ACTIVE';
@@ -48,11 +48,11 @@ where
 ### List complaince details by config rule
 
 ```sql
-select 
-  jsonb_pretty(compliance_by_config_rule) as compliance_info 
-from 
-  aws_config_rule 
-where 
+select
+  jsonb_pretty(compliance_by_config_rule) as compliance_info
+from
+  aws_config_rule
+where
   name = 'approved-amis-by-id';
 ```
 
@@ -65,4 +65,17 @@ select
 from
   aws_config_rule,
   jsonb_array_elements(compliance_by_config_rule) as compliance_status;
+```
+
+### List config rules that run in proactive mode
+
+```sql
+select
+  name as config_rule_name,
+  c ->> 'Mode' as evaluation_mode
+from
+  aws_config_rule,
+  jsonb_array_elements(evaluation_modes) as c
+where
+  c ->> 'Mode' = 'PROACTIVE';
 ```

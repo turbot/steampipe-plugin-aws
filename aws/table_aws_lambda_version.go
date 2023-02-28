@@ -2,16 +2,20 @@ package aws
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/lambda"
+	lambdav1 "github.com/aws/aws-sdk-go/service/lambda"
+
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
@@ -21,7 +25,7 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"version", "function_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ResourceNotFoundException"}),
 			},
 			Hydrate: getFunctionVersion,
 		},
@@ -32,7 +36,7 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				{Name: "function_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "version",
@@ -178,63 +182,71 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listLambdaVersions")
+	function := h.Item.(types.FunctionConfiguration)
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_lambda_version.listLambdaVersions", "connection_err", err)
 		return nil, err
 	}
 
-	function := h.Item.(*lambda.FunctionConfiguration)
-	equalQuals := d.KeyColumnQuals
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	equalQuals := d.EqualsQuals
+
 	// Minimize the API call with the given function name
 	if equalQuals["function_name"] != nil {
-		if equalQuals["function_name"].GetStringValue() != "" {
-			if equalQuals["function_name"].GetStringValue() != "" && equalQuals["function_name"].GetStringValue() != *function.FunctionName {
-				return nil, nil
-			}
-		} else if len(getListValues(equalQuals["function_name"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["function_name"].GetListValue())), *function.FunctionName) {
-				return nil, nil
-			}
+		if equalQuals["function_name"].GetStringValue() != *function.FunctionName {
+			return nil, nil
 		}
 	}
+
+	maxItems := int32(50)
 
 	input := &lambda.ListVersionsByFunctionInput{
 		FunctionName: function.FunctionName,
-		MaxItems:     aws.Int64(50),
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListVersionsByFunctionPages(
-		input,
-		func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
-			for _, version := range page.Versions {
-				d.StreamLeafListItem(ctx, version)
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := lambda.NewListVersionsByFunctionPaginator(svc, input, func(o *lambda.ListVersionsByFunctionPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)
+			return nil, err
+		}
+
+		for _, version := range output.Versions {
+			d.StreamListItem(ctx, version)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -242,52 +254,65 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 // do not have a get call
 // using list api call to create get function
 func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getFunctionVersion")
+	var functionVersion types.FunctionConfiguration
+
+	version := d.EqualsQuals["version"].GetStringValue()
+	functionName := d.EqualsQuals["function_name"].GetStringValue()
+	if strings.TrimSpace(version) == "" || strings.TrimSpace(functionName) == "" {
+		return nil, nil
+	}
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_lambda_version.getFunctionVersion", "connection_err", err)
 		return nil, err
 	}
 
-	version := d.KeyColumnQuals["version"].GetStringValue()
-	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
-	var functionVersion *lambda.FunctionConfiguration
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
-	err = svc.ListVersionsByFunctionPages(
-		&lambda.ListVersionsByFunctionInput{FunctionName: aws.String(functionName)},
-		func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
-			for _, i := range page.Versions {
-				if *i.Version == version {
-					functionVersion = i
-					return false
-				}
+	input := &lambda.ListVersionsByFunctionInput{
+		FunctionName: aws.String(functionName),
+	}
+
+	paginator := lambda.NewListVersionsByFunctionPaginator(svc, input, func(o *lambda.ListVersionsByFunctionPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_lambda_function.getFunctionVersion", "api_error", err)
+			return nil, err
+		}
+
+		for _, i := range output.Versions {
+			if *i.Version == version {
+				functionVersion = i
+				return functionVersion, nil
 			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if functionVersion != nil {
-		return functionVersion, nil
+		}
 	}
 
 	return nil, nil
 }
 
 func getFunctionVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getFunctionVersionPolicy")
-
-	alias := h.Item.(*lambda.FunctionConfiguration)
+	alias := h.Item.(types.FunctionConfiguration)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getFunctionVersionPolicy", "error_LambdaService", err)
+		plugin.Logger(ctx).Error("aws_lambda_function.getFunctionVersionPolicy", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &lambda.GetPolicyInput{
@@ -295,14 +320,15 @@ func getFunctionVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 		Qualifier:    aws.String(*alias.Version),
 	}
 
-	op, err := svc.GetPolicy(input)
+	op, err := svc.GetPolicy(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("getFunctionVersionPolicy", "error_GetPolicy", err)
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "ResourceNotFoundException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
 				return lambda.GetPolicyOutput{}, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_lambda_function.getFunctionVersionPolicy", "connection_error", err)
 		return nil, err
 	}
 

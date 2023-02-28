@@ -3,13 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
+
+	inspectorv1 "github.com/aws/aws-sdk-go/service/inspector"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -26,7 +28,7 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(inspectorv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -124,67 +126,66 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	// AWS Inspector is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://inspector.ap-northeast-3.amazonaws.com/": dial tcp: lookup inspector.ap-northeast-3.amazonaws.com: no such host
-	serviceId := endpoints.InspectorServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
+	// Create Session
+	svc, err := InspectorClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_run.listInspectorAssessmentRuns", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
-	// Create session
-	svc, err := InspectorService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	var assessmentRunArns []*string
-
-	input := &inspector.ListAssessmentRunsInput{
-		MaxResults: aws.Int64(500),
-	}
-
-	filter := &inspector.AssessmentRunFilter{}
-
-	if d.KeyColumnQuals["assessment_template_arn"].GetStringValue() != "" {
-		input.AssessmentTemplateArns = aws.StringSlice([]string{d.KeyColumnQuals["assessment_template_arn"].GetStringValue()})
-	}
-	if d.KeyColumnQuals["name"].GetStringValue() != "" {
-		filter.NamePattern = aws.String(d.KeyColumnQuals["name"].GetStringValue())
-	}
-	if d.KeyColumnQuals["state"].GetStringValue() != "" {
-		filter.States = aws.StringSlice([]string{d.KeyColumnQuals["state"].GetStringValue()})
-	}
-
-	input.Filter = filter
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	var assessmentRunArns []string
+	// Limiting the results
+	maxLimit := int32(500)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
+	input := &inspector.ListAssessmentRunsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	filter := &types.AssessmentRunFilter{}
+
+	if d.EqualsQuals["assessment_template_arn"].GetStringValue() != "" {
+		input.AssessmentTemplateArns = []string{d.EqualsQuals["assessment_template_arn"].GetStringValue()}
+	}
+	if d.EqualsQuals["name"].GetStringValue() != "" {
+		filter.NamePattern = aws.String(d.EqualsQuals["name"].GetStringValue())
+	}
+	if d.EqualsQuals["state"].GetStringValue() != "" {
+		filter.States = []types.AssessmentRunState{
+			types.AssessmentRunState(d.EqualsQuals["state"].GetStringValue()),
+		}
+	}
+
+	input.Filter = filter
+
+	paginator := inspector.NewListAssessmentRunsPaginator(svc, input, func(o *inspector.ListAssessmentRunsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
 	// List call
-	err = svc.ListAssessmentRunsPages(
-		input,
-		func(page *inspector.ListAssessmentRunsOutput, isLast bool) bool {
-			if len(page.AssessmentRunArns) != 0 {
-				assessmentRunArns = append(assessmentRunArns, page.AssessmentRunArns...)
-			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listInspectorAssessmentRuns", "ListAssessmentRunsPages", err)
-		return nil, err
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_assessment_run.listInspectorAssessmentRuns", "api_error", err)
+			return nil, err
+		}
+		assessmentRunArns = append(assessmentRunArns, output.AssessmentRunArns...)
+
 	}
 
 	// check if there is any assessmentRunArn
@@ -196,7 +197,7 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 	arnLeft := true
 	for arnLeft {
 		// DescribeAssessmentRuns API can take maximum 10 arns at a time.
-		var arns []*string
+		var arns []string
 		if len(assessmentRunArns) > passedArns {
 			if (len(assessmentRunArns) - passedArns) >= 10 {
 				arns = assessmentRunArns[passedArns : passedArns+10]
@@ -213,8 +214,9 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 		}
 
 		// Get details for all available assessment runs
-		result, err := svc.DescribeAssessmentRuns(input)
+		result, err := svc.DescribeAssessmentRuns(ctx, input)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_assessment_run.listInspectorAssessmentRuns.DescribeAssessmentRuns", "api_error", err)
 			return nil, err
 		}
 
@@ -222,7 +224,7 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, assessmentRun)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

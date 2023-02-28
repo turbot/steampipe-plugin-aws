@@ -2,14 +2,17 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/backup/types"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	backupv1 "github.com/aws/aws-sdk-go/service/backup"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +24,7 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"backup_plan_id", "selection_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue", "InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "InvalidParameterValueException"}),
 			},
 			Hydrate: getBackupSelection,
 		},
@@ -29,7 +32,7 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 			Hydrate:       listBackupSelections,
 			ParentHydrate: listAwsBackupPlans,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "selection_name",
@@ -106,69 +109,87 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listBackupSelections")
-
 	// Create session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_selection.listBackupSelections", "connection_error", err)
 		return nil, err
 	}
 
-	// Get backup plan details
-	plan := h.Item.(*backup.PlansListMember)
-
-	input := &backup.ListBackupSelectionsInput{
-		MaxResults: aws.Int64(1000),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
-	input.BackupPlanId = aws.String(*plan.BackupPlanId)
 
-	// Limiting the results per page
-	limit := d.QueryContext.Limit
+	// Get backup plan details
+	plan := h.Item.(types.BackupPlansListMember)
+
+	// Limiting the results
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.ListBackupSelectionsPages(
-		input,
-		func(page *backup.ListBackupSelectionsOutput, lastPage bool) bool {
-			for _, selection := range page.BackupSelectionsList {
-				d.StreamListItem(ctx, selection)
+	input := &backup.ListBackupSelectionsInput{
+		MaxResults:   aws.Int32(maxLimit),
+		BackupPlanId: aws.String(*plan.BackupPlanId),
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := backup.NewListBackupSelectionsPaginator(svc, input, func(o *backup.ListBackupSelectionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_backup_selection.listBackupSelections", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.BackupSelectionsList {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getBackupSelection")
-
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_selection.getBackupSelection", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var backupPlanID, selectionID string
 	if h.Item != nil {
-		backupPlanID = *h.Item.(*backup.SelectionsListMember).BackupPlanId
-		selectionID = *h.Item.(*backup.SelectionsListMember).SelectionId
+		backupPlanID = *h.Item.(types.BackupSelectionsListMember).BackupPlanId
+		selectionID = *h.Item.(types.BackupSelectionsListMember).SelectionId
 	} else {
-		backupPlanID = d.KeyColumnQuals["backup_plan_id"].GetStringValue()
-		selectionID = d.KeyColumnQuals["selection_id"].GetStringValue()
+		backupPlanID = d.EqualsQuals["backup_plan_id"].GetStringValue()
+		selectionID = d.EqualsQuals["selection_id"].GetStringValue()
 	}
 
 	// Return nil, if no input provided
@@ -181,21 +202,24 @@ func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		SelectionId:  aws.String(selectionID),
 	}
 
-	op, err := svc.GetBackupSelection(params)
+	op, err := svc.GetBackupSelection(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_selection.getBackupSelection", "api_error", err)
+
+		// API returns error if Backup Plan is not available in a region
+		if strings.Contains(err.Error(), "Cannot find Backup plan with ID") {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return op, nil
 }
 
 func getBackupSelectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getBackupSelectionARN")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	data := selectionID(h.Item)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +236,7 @@ func getBackupSelectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func selectionID(item interface{}) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *backup.SelectionsListMember:
+	case types.BackupSelectionsListMember:
 		data["PlanID"] = *item.BackupPlanId
 		data["SelectionID"] = *item.SelectionId
 	case *backup.GetBackupSelectionOutput:

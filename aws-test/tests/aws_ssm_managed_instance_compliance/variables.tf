@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "ap-northeast-3"
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -46,11 +46,57 @@ data "null_data_source" "resource" {
   }
 }
 
-resource "aws_default_vpc" "default" {}
+resource "aws_vpc" "main" {
+  cidr_block       = "10.0.0.0/16"
+  instance_tenancy = "default"
+  tags = {
+    Name = "demo-for-int-test"
+  }
+}
 
-resource "aws_default_subnet" "default_subnet" {
-  depends_on = [ aws_default_vpc.default]
-  availability_zone = "${var.aws_region}c"
+# Creating subnet
+resource "aws_subnet" "demosubnet" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "Public Subnet"
+  }
+}
+
+# Creating Internet Gateway 
+resource "aws_internet_gateway" "demogateway" {
+  vpc_id = aws_vpc.main.id
+}
+
+# Creating Route Table for Public Subnet
+resource "aws_route_table" "rt" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.demogateway.id
+  }
+  tags = {
+    Name = "Public Subnet Route Table"
+  }
+}
+resource "aws_route_table_association" "rt_associate_public" {
+  subnet_id      = aws_subnet.demosubnet.id
+  route_table_id = aws_route_table.rt.id
+}
+
+# Creating Security Group 
+resource "aws_security_group" "demosg" {
+  vpc_id      = "${aws_vpc.main.id}"
+  # Outbound Rules
+  # Internet access to anywhere
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 data "aws_ami" "linux" {
@@ -66,34 +112,45 @@ data "aws_ami" "linux" {
   owners = ["137112412989"]
 }
 
+# Instance Profile
+resource "aws_iam_instance_profile" "test_profile" {
+  name = "test_profile"
+  role = aws_iam_role.test_role.name
+}
+
+# IAM Role for Instance Profile
+resource "aws_iam_role" "test_role" {
+  name = "test_role"
+  path = "/"
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+# Attach AmazonSSMManagedInstanceCore Policy to the role for SSM
 resource "aws_iam_role_policy_attachment" "test-attach" {
-  role       = aws_iam_role.named_test_resource.name
+  role       = aws_iam_role.test_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-resource "aws_iam_role" "named_test_resource" {
-  name               = var.resource_name
-  assume_role_policy = "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"ec2.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"test\"\n    }\n  ]\n}\n"
-  description        = "Test Role"
-  tags = {
-    name = var.resource_name
-  }
-}
-
-resource "aws_iam_instance_profile" "named_test_resource" {
-  depends_on = [
-    aws_iam_role_policy_attachment.test-attach
-  ]
-  name = var.resource_name
-  role = aws_iam_role.named_test_resource.name
-}
-
+# Creating EC2 instance in Public Subnet
 resource "aws_instance" "named_test_resource" {
-  ami                         = data.aws_ami.linux.id
-  instance_type               = "t3.micro"
-  subnet_id                   = aws_default_subnet.default_subnet.id
+  ami           = data.aws_ami.linux.id
+  instance_type = "t2.micro"
+  vpc_security_group_ids = [ aws_security_group.demosg.id ]
+  subnet_id = aws_subnet.demosubnet.id
   associate_public_ip_address = true
-  iam_instance_profile        = aws_iam_instance_profile.named_test_resource.name
+  iam_instance_profile = aws_iam_instance_profile.test_profile.name
   tags = {
     Name = var.resource_name
   }

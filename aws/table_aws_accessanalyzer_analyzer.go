@@ -2,14 +2,16 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/accessanalyzer"
+	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
+	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	accessanalyzerv1 "github.com/aws/aws-sdk-go/service/accessanalyzer"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +23,7 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAccessAnalyzer,
 		},
@@ -34,7 +36,7 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(accessanalyzerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -110,69 +112,75 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-
 	// Create session
-	svc, err := AccessAnalyzerService(ctx, d)
+	svc, err := AccessAnalyzerClient(ctx, d)
 	if err != nil {
-		logger.Trace("listAccessAnalyzers", "connection error", err)
+		plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.listAccessAnalyzers", "client_error", err)
 		return nil, err
 	}
 
 	// The maximum number for MaxResults parameter is not defined by the API
 	// We have set the MaxResults to 1000 based on our test
-	input := &accessanalyzer.ListAnalyzersInput{
-		MaxResults: aws.Int64(1000),
-	}
+	maxItems := int32(1000)
+	input := &accessanalyzer.ListAnalyzersInput{}
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["type"] != nil {
-		input.Type = types.String(equalQuals["type"].GetStringValue())
+		input.Type = types.Type(equalQuals["type"].GetStringValue())
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListAnalyzersPages(
-		input,
-		func(page *accessanalyzer.ListAnalyzersOutput, isLast bool) bool {
-			for _, analyzer := range page.Analyzers {
-				d.StreamListItem(ctx, analyzer)
+	input.MaxResults = &maxItems
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := accessanalyzer.NewListAnalyzersPaginator(svc, input, func(o *accessanalyzer.ListAnalyzersPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.listAccessAnalyzers", "api_error", err)
+			return nil, err
+		}
+
+		for _, analyzer := range output.Analyzers {
+			d.StreamListItem(ctx, analyzer)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAccessAnalyzer")
-
-	name := d.KeyColumnQuals["name"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
+	if strings.TrimSpace(name) == "" {
+		return nil, nil
+	}
 
 	// Create Session
-	svc, err := AccessAnalyzerService(ctx, d)
+	svc, err := AccessAnalyzerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.getAccessAnalyzer", "client_error", err)
 		return nil, err
 	}
 
@@ -182,38 +190,40 @@ func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	// Get call
-	data, err := svc.GetAnalyzer(params)
+	data, err := svc.GetAnalyzer(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAccessAnalyzer", "ERROR", err)
+		plugin.Logger(ctx).Debug("aws_accessanalyzer_analyzer.getAccessAnalyzer", "api_error", err)
 		return nil, err
 	}
 
-	return data.Analyzer, nil
+	return *data.Analyzer, nil
 }
 
 func listAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAccessAnalyzerFindings")
-
-	data := h.Item.(*accessanalyzer.AnalyzerSummary)
+	data := h.Item.(types.AnalyzerSummary)
 
 	// Create Session
-	svc, err := AccessAnalyzerService(ctx, d)
+	svc, err := AccessAnalyzerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.listAccessAnalyzerFindings", "client_error", err)
 		return nil, err
 	}
 
-	var findings []*accessanalyzer.FindingSummary
-	err = svc.ListFindingsPages(
-		&accessanalyzer.ListFindingsInput{
-			AnalyzerArn: data.Arn,
-		},
-		func(page *accessanalyzer.ListFindingsOutput, isLast bool) bool {
-			findings = append(findings, page.Findings...)
-			return !isLast
-		},
-	)
-	if err != nil {
-		return nil, err
+	var findings []types.FindingSummary
+	input := &accessanalyzer.ListFindingsInput{AnalyzerArn: data.Arn}
+
+	paginator := accessanalyzer.NewListFindingsPaginator(svc, input, func(o *accessanalyzer.ListFindingsPaginatorOptions) {
+		o.Limit = 1000
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.listAccessAnalyzerFindings", "api_error", err)
+			return nil, err
+		}
+		findings = append(findings, output.Findings...)
 	}
 
 	return findings, nil

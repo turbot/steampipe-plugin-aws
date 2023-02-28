@@ -2,12 +2,17 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
+
+	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,7 +24,7 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"api_id", "stage_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIGatewayV2Stage,
 		},
@@ -27,7 +32,7 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 			ParentHydrate: listAPIGatewayV2API,
 			Hydrate:       listAPIGatewayV2Stages,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stage_name",
@@ -120,6 +125,12 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Stage.Description"),
 			},
 			{
+				Name:        "access_log_settings",
+				Description: "Access log settings of the stage.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Stage.AccessLogSettings"),
+			},
+			{
 				Name:        "stage_variables",
 				Description: "A map that defines the stage variables for a stage resource",
 				Type:        proto.ColumnType_JSON,
@@ -149,31 +160,51 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 }
 
 type v2StageRowData = struct {
-	Stage *apigatewayv2.Stage
+	Stage types.Stage
 	APIId *string
 }
 
 //// LIST FUNCTION
 
 func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var stages []*apigatewayv2.Stage
+	var stages []types.Stage
 
 	// Get API details
-	apiGatewayv2API := h.Item.(*apigatewayv2.Api)
+	apiGatewayv2API := h.Item.(types.Api)
 
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.listAPIGatewayV2Stages", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	pagesLeft := true
 	params := &apigatewayv2.GetStagesInput{
-		ApiId: apiGatewayv2API.ApiId,
+		ApiId:      apiGatewayv2API.ApiId,
+		MaxResults: aws.String(fmt.Sprint(maxLimit)),
 	}
 
 	for pagesLeft {
-		result, err := svc.GetStages(params)
+		result, err := svc.GetStages(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.listAPIGatewayV2Stages", "api_error", err)
 			return nil, err
 		}
 
@@ -190,7 +221,7 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 		d.StreamLeafListItem(ctx, &v2StageRowData{stage, apiGatewayv2API.ApiId})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -201,29 +232,33 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGatewayV2Stage")
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "service_client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
-	stageName := d.KeyColumnQuals["stage_name"].GetStringValue()
-	apiID := d.KeyColumnQuals["api_id"].GetStringValue()
+	stageName := d.EqualsQuals["stage_name"].GetStringValue()
+	apiID := d.EqualsQuals["api_id"].GetStringValue()
 
 	input := &apigatewayv2.GetStageInput{
 		ApiId:     aws.String(apiID),
 		StageName: aws.String(stageName),
 	}
 
-	stageData, err := svc.GetStage(input)
+	stageData, err := svc.GetStage(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAPIGatewayStage__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "api_error", err)
 		return nil, err
 	}
 	if stageData != nil {
-		stage := &apigatewayv2.Stage{
+		stage := &types.Stage{
 			StageName:                   stageData.StageName,
 			AccessLogSettings:           stageData.AccessLogSettings,
 			ApiGatewayManaged:           stageData.ApiGatewayManaged,
@@ -239,7 +274,7 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 			StageVariables:              stageData.StageVariables,
 			Tags:                        stageData.Tags,
 		}
-		rowData := &v2StageRowData{stage, aws.String(apiID)}
+		rowData := &v2StageRowData{*stage, aws.String(apiID)}
 
 		return rowData, nil
 	}
@@ -249,9 +284,9 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func apiGatewayV2StageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*v2StageRowData)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

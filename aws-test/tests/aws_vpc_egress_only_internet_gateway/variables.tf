@@ -47,14 +47,11 @@ data "null_data_source" "resource" {
   }
 }
 
-data "template_file" "resource_aka" {
-  template = "arn:$${partition}:ec2:$${region}:$${account_id}:egress-only-internet-gateway/${aws_egress_only_internet_gateway.named_test_resource.id}"
-  vars = {
-    partition  = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region     = data.aws_region.primary.name
-  }
+locals {
+  resource_aka = "arn:${data.aws_partition.current.partition}:ec2:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:egress-only-internet-gateway/${aws_egress_only_internet_gateway.named_test_resource.id}"
 }
+
+
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
@@ -85,5 +82,5 @@ output "resource_name" {
 
 output "resource_aka" {
   depends_on = [aws_egress_only_internet_gateway.named_test_resource]
-  value      = data.template_file.resource_aka.rendered
+  value      = local.resource_aka
 }

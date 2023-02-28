@@ -4,11 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
+
+	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,6 +24,9 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getSecurityHubFinding,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubFindings,
@@ -35,9 +42,13 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				{Name: "title", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "verification_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "workflow_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "workflow_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -133,8 +144,14 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "workflow_state",
-				Description: "The workflow state of a finding.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The workflow state of a finding.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "workflow_status",
+				Description: "The workflow status of a finding. Possible values are NEW, NOTIFIED, SUPPRESSED, RESOLVED.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Workflow.Status"),
 			},
 			{
 				Name:        "standards_control_arn",
@@ -241,15 +258,33 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSecurityHubFindings")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_finding.listSecurityHubFindings", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &securityhub.GetFindingsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: maxLimit,
 	}
 
 	findingsFilter := buildListFindingsParam(d.Quals)
@@ -257,40 +292,31 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 		input.Filters = findingsFilter
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
-
 	// List call
-	err = svc.GetFindingsPages(
-		input,
-		func(page *securityhub.GetFindingsOutput, isLast bool) bool {
-			for _, finding := range page.Findings {
-				d.StreamListItem(ctx, finding)
+	paginator := securityhub.NewGetFindingsPaginator(svc, input, func(o *securityhub.GetFindingsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			// Handle error for accounts that are not subscribed to AWS Security Hub
+			if strings.Contains(err.Error(), "not subscribed") {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listSecurityHubFindings", "Error", err)
-		// Handle error for unsupported or inactive regions
-		if strings.Contains(err.Error(), "not subscribed") {
-			return nil, nil
+			plugin.Logger(ctx).Error("aws_securityhub_finding.listSecurityHubFindings", "api_error", err)
+			return nil, err
 		}
-		return nil, err
+
+		for _, finding := range output.Findings {
+			d.StreamListItem(ctx, finding)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
 	return nil, nil
@@ -299,27 +325,31 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSecurityHubFinding")
 
-	id := d.KeyColumnQuals["id"].GetStringValue()
+	id := d.EqualsQuals["id"].GetStringValue()
 
 	// Empty check
 	if id == "" {
 		return nil, nil
 	}
 
-	// get service
-	svc, err := SecurityHubService(ctx, d)
+	// Create session
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_finding.getSecurityHubFinding", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
 	params := &securityhub.GetFindingsInput{
-		Filters: &securityhub.AwsSecurityFindingFilters{
-			Id: []*securityhub.StringFilter{
+		Filters: &types.AwsSecurityFindingFilters{
+			Id: []types.StringFilter{
 				{
-					Comparison: aws.String("EQUALS"),
+					Comparison: "EQUALS",
 					Value:      aws.String(id),
 				},
 			},
@@ -327,14 +357,13 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	// Get call
-	op, err := svc.GetFindings(params)
+	op, err := svc.GetFindings(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSecurityHubFinding", "ERROR", err)
 		// Handle error for unsupported or inactive regions
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-
+		plugin.Logger(ctx).Debug("aws_securityhub_finding.getSecurityHubFinding", "api_error", err)
 		return nil, err
 	}
 	if len(op.Findings) > 0 {
@@ -344,11 +373,11 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 }
 
 // Build param for findings list call
-func buildListFindingsParam(quals plugin.KeyColumnQualMap) *securityhub.AwsSecurityFindingFilters {
-	securityFindingsFilter := &securityhub.AwsSecurityFindingFilters{}
-	strFilter := &securityhub.StringFilter{}
+func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFindingFilters {
+	securityFindingsFilter := &types.AwsSecurityFindingFilters{}
+	strFilter := types.StringFilter{}
 
-	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state"}
+	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state", "workflow_status"}
 
 	for _, s := range strColumns {
 		if quals[s] == nil {
@@ -362,9 +391,9 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *securityhub.AwsSecur
 
 			switch q.Operator {
 			case "<>":
-				strFilter.Comparison = aws.String("NOT_EQUALS")
+				strFilter.Comparison = "NOT_EQUALS"
 			case "=":
-				strFilter.Comparison = aws.String("EQUALS")
+				strFilter.Comparison = "EQUALS"
 			}
 
 			switch s {
@@ -395,6 +424,9 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *securityhub.AwsSecur
 			case "workflow_state":
 				strFilter.Value = aws.String(value)
 				securityFindingsFilter.WorkflowState = append(securityFindingsFilter.WorkflowState, strFilter)
+			case "workflow_status":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.WorkflowStatus = append(securityFindingsFilter.WorkflowStatus, strFilter)
 			}
 
 		}
@@ -406,7 +438,7 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *securityhub.AwsSecur
 //// TRANSFORM FUNCTIONS
 
 func extractStandardControlArn(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	findingArn := d.HydrateItem.(*securityhub.AwsSecurityFinding).Id
+	findingArn := d.HydrateItem.(types.AwsSecurityFinding).Id
 
 	if strings.Contains(*findingArn, "arn:aws:securityhub") {
 		standardControlArn := strings.Replace(strings.Split(*findingArn, "/finding")[0], "subscription", "control", 1)

@@ -3,13 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsLambdaFunctionMetricInvocationsDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_lambda_function_metric_invocations_daily",
@@ -18,7 +19,7 @@ func tableAwsLambdaFunctionMetricInvocationsDaily(_ context.Context) *plugin.Tab
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaFunctionMetricInvocationsDaily,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{
@@ -32,6 +33,6 @@ func tableAwsLambdaFunctionMetricInvocationsDaily(_ context.Context) *plugin.Tab
 }
 
 func listLambdaFunctionMetricInvocationsDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	lambdaFunctionConfiguration := h.Item.(*lambda.FunctionConfiguration)
+	lambdaFunctionConfiguration := h.Item.(types.FunctionConfiguration)
 	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/Lambda", "Invocations", "FunctionName", *lambdaFunctionConfiguration.FunctionName)
 }

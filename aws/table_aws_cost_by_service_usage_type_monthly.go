@@ -5,12 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
@@ -24,7 +25,7 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 				{Name: "usage_type", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns(
+		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
 				{
 					Name:        "service",
@@ -59,25 +60,25 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
 	params := &costexplorer.GetCostAndUsageInput{
-		TimePeriod: &costexplorer.DateInterval{
+		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
-		Granularity: aws.String(granularity),
-		Metrics:     aws.StringSlice(AllCostMetrics()),
-		GroupBy: []*costexplorer.GroupDefinition{
+		Granularity: types.Granularity(granularity),
+		Metrics:     AllCostMetrics(),
+		GroupBy: []types.GroupDefinition{
 			{
-				Type: aws.String("DIMENSION"),
+				Type: types.GroupDefinitionType("DIMENSION"),
 				Key:  aws.String("SERVICE"),
 			},
 			{
-				Type: aws.String("DIMENSION"),
+				Type: types.GroupDefinitionType("DIMENSION"),
 				Key:  aws.String("USAGE_TYPE"),
 			},
 		},
 	}
 
-	var filters []*costexplorer.Expression
+	var filters []types.Expression
 
 	for _, keyQual := range d.Table.List.KeyColumns {
 		filterQual := d.Quals[keyQual.Name]
@@ -88,23 +89,23 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 			if qual.Value != nil {
 				value := qual.Value
 
-				filter := &costexplorer.Expression{}
-				filter.Dimensions = &costexplorer.DimensionValues{}
-				filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
+				filter := &types.Expression{}
+				filter.Dimensions = &types.DimensionValues{}
+				filter.Dimensions.Key = types.Dimension(strings.ToUpper(keyQual.Name))
 
 				switch qual.Operator {
 				case "=":
-					filter := &costexplorer.Expression{}
-					filter.Dimensions = &costexplorer.DimensionValues{}
-					filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
-					filter.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
+					filter := types.Expression{}
+					filter.Dimensions = &types.DimensionValues{}
+					filter.Dimensions.Key = types.Dimension(strings.ToUpper(keyQual.Name))
+					filter.Dimensions.Values = []string{value.GetStringValue()}
 					filters = append(filters, filter)
 				case "<>":
-					filter := &costexplorer.Expression{}
-					filter.Not = &costexplorer.Expression{}
-					filter.Not.Dimensions = &costexplorer.DimensionValues{}
-					filter.Not.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
-					filter.Not.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
+					filter := types.Expression{}
+					filter.Not = &types.Expression{}
+					filter.Not.Dimensions = &types.DimensionValues{}
+					filter.Not.Dimensions.Key = types.Dimension(strings.ToUpper(keyQual.Name))
+					filter.Not.Dimensions.Values = []string{value.GetStringValue()}
 					filters = append(filters, filter)
 				}
 			}
@@ -112,11 +113,11 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 	}
 
 	if len(filters) > 1 {
-		params.Filter = &costexplorer.Expression{
+		params.Filter = &types.Expression{
 			And: filters,
 		}
 	} else if len(filters) == 1 {
-		params.Filter = filters[0]
+		params.Filter = &(filters[0])
 	}
 
 	return params

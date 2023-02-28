@@ -1,0 +1,6 @@
+[
+  {
+    "api_id": "{{ output.api_id.value }}",
+    "route_id": "{{ output.resource_id.value }}"
+  }
+]

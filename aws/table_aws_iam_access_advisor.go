@@ -5,11 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 const maxRetries = 20
@@ -36,7 +38,7 @@ func tableAwsIamAccessAdvisor(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("principal_arn"),
 			Hydrate:    listAccessAdvisor,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "principal_arn",
 				Description: "The ARN of the IAM resource (user, group, role, or managed policy) used to generate information about when the resource was last used in an attempt to access an AWS service.",
@@ -86,18 +88,15 @@ func tableAwsIamAccessAdvisor(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listAccessAdvisor")
-
 	// To simplify the table we always get ACTION_LEVEL.  ACTION_LEVEL is a superset of
 	// SERVICE_LEVEL, and currently only s# supports action level actions anyway, so the
 	// performance impact is minimal
 	granularity := "ACTION_LEVEL"
-	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
+	principalArn := d.EqualsQuals["principal_arn"].GetStringValue()
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_access_advisor.listAccessAdvisor", "get_common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -110,47 +109,54 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_access_advisor.listAccessAdvisor", "client_error", err)
 		return nil, err
 	}
 
 	// Generate the details.  We'll need the job id of this to get the details...
-	generateResp, err := svc.GenerateServiceLastAccessedDetails(&iam.GenerateServiceLastAccessedDetailsInput{Arn: &principalArn, Granularity: &granularity})
-	if err != nil {
-		return nil, err
-	}
-	logger.Debug("listAccessAdvisor generateResp", "jobId", *generateResp.JobId, "resp", *generateResp)
+	generateResp, err := svc.GenerateServiceLastAccessedDetails(
+		ctx,
+		&iam.GenerateServiceLastAccessedDetailsInput{
+			Arn:         &principalArn,
+			Granularity: types.AccessAdvisorUsageGranularityType(granularity),
+		})
 
-	params := &iam.GetServiceLastAccessedDetailsInput{
-		JobId:    generateResp.JobId,
-		MaxItems: aws.Int64(1000),
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_access_advisor.listAccessAdvisor", "get_job_id_error", err)
+		return nil, err
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	maxItems := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxItems {
-			if *limit < 1 {
-				params.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				params.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
+	}
+	params := &iam.GetServiceLastAccessedDetailsInput{
+		JobId:    generateResp.JobId,
+		MaxItems: aws.Int32(maxItems),
 	}
 
 	retryNumber := 0
 	for {
-		resp, err := svc.GetServiceLastAccessedDetails(params)
+		resp, err := svc.GetServiceLastAccessedDetails(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_access_advisor.listAccessAdvisor", "list_advisoer_details_error", err)
 			return nil, err
 		}
-		logger.Debug("listAccessAdvisor Details", "jobId", *generateResp.JobId, "status", *resp.JobStatus, "resp", *resp)
 
 		// if job is still in progress, wait and retry
-		if *resp.JobStatus == "IN_PROGRESS" && retryNumber < maxRetries {
+		if resp.JobStatus == "IN_PROGRESS" && retryNumber < maxRetries {
 			retryNumber++
-			logger.Debug("GetServiceLastAccessedDetails in progress", "retryNumber", retryNumber)
+			plugin.Logger(ctx).Debug("GetServiceLastAccessedDetails in progress", "retryNumber", retryNumber)
 			time.Sleep(retryIntervalMs * time.Millisecond)
 			continue
 		}
@@ -165,16 +171,16 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 				LastAuthenticatedRegion:    serviceLastAccessed.LastAuthenticatedRegion,
 				ServiceName:                serviceLastAccessed.ServiceName,
 				ServiceNamespace:           serviceLastAccessed.ServiceNamespace,
-				TotalAuthenticatedEntities: serviceLastAccessed.TotalAuthenticatedEntities,
+				TotalAuthenticatedEntities: aws.Int64(int64(*serviceLastAccessed.TotalAuthenticatedEntities)),
 				TrackedActionsLastAccessed: serviceLastAccessed.TrackedActionsLastAccessed,
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				break
 			}
 		}
-		if !*resp.IsTruncated {
+		if !resp.IsTruncated {
 			break
 		}
 		params.Marker = resp.Marker

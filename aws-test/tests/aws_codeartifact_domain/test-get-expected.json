@@ -1,0 +1,12 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "asset_size_bytes": "{{ output.asset_size_bytes.value }}",
+    "name": "{{ resourceName }}",
+    "owner": "{{ output.owner.value }}",
+    "repository_count": "{{ output.repository_count.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]

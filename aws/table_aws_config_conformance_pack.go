@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/configservice"
+
+	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
@@ -17,7 +19,7 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConformancePackException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchConformancePackException"}),
 			},
 			Hydrate: getConfigConformancePack,
 		},
@@ -30,7 +32,7 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -97,46 +99,50 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 
 func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_conformance_pack.listConfigConformancePacks", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &configservice.DescribeConformancePacksInput{
-		Limit: aws.Int64(20),
+		Limit: int32(20),
 	}
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			input.Limit = limit
+		if *limit < int64(input.Limit) {
+			input.Limit = int32(*limit)
 		}
 	}
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["name"] != nil {
-		input.ConformancePackNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+		input.ConformancePackNames = []string{equalQuals["name"].GetStringValue()}
 	}
 
-	err = svc.DescribeConformancePacksPages(
-		input,
-		func(page *configservice.DescribeConformancePacksOutput, lastPage bool) bool {
-			if page.ConformancePackDetails != nil {
-				for _, ConformancePackDetails := range page.ConformancePackDetails {
-					d.StreamListItem(ctx, ConformancePackDetails)
+	paginator := configservice.NewDescribeConformancePacksPaginator(svc, input, func(o *configservice.DescribeConformancePacksPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-					// Context can be cancelled due to manual cancellation or the limit has been hit
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_config_conformance_pack.listConfigConformancePacks", "api_error", err)
+			return nil, err
+		}
+		for _, conformancePack := range output.ConformancePackDetails {
+			d.StreamListItem(ctx, conformancePack)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -144,29 +150,28 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 //// HYDRATE FUNCTIONS
 
 func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getConfigConformancePack")
-	quals := d.KeyColumnQuals
+
+	quals := d.EqualsQuals
 	name := quals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_conformance_pack.getConfigConformancePack", "get_client_error", err)
 		return nil, err
 	}
 
 	params := &configservice.DescribeConformancePacksInput{
-		ConformancePackNames: []*string{aws.String(name)},
+		ConformancePackNames: []string{name},
 	}
 
-	op, err := svc.DescribeConformancePacks(params)
+	op, err := svc.DescribeConformancePacks(ctx, params)
 	if err != nil {
-		logger.Debug("getConfigConformancePack", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_config_conformance_pack.getConfigConformancePack", "api_error", err)
 		return nil, err
 	}
 
-	if op != nil {
-		logger.Debug("getConfigConformancePack", "SUCCESS", op)
+	if len(op.ConformancePackDetails) > 0 {
 		return op.ConformancePackDetails[0], nil
 	}
 

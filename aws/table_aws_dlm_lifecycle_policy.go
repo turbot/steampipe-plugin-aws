@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dlm"
+	"github.com/aws/aws-sdk-go-v2/service/dlm/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dlm"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	dlmv1 "github.com/aws/aws-sdk-go/service/dlm"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,11 +23,14 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("policy_id"),
 			Hydrate:    getDLMLifecyclePolicy,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFound"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDLMLifecyclePolicies,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(dlmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "policy_id",
@@ -113,15 +119,19 @@ func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := DLMService(ctx, d)
+	svc, err := DLMClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "service_connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &dlm.GetLifecyclePoliciesInput{}
 
-	policies, err := svc.GetLifecyclePolicies(input)
+	policies, err := svc.GetLifecyclePolicies(ctx, input)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "list_api_error", err)
 		return nil, err
@@ -135,7 +145,7 @@ func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 		// Check if context has been cancelled or if the limit has been reached (if specified)
 		// if there is a limit, it will return the number of rows required to reach this limit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -151,7 +161,7 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if h.Item != nil {
 		id = *policyId(h.Item)
 	} else {
-		id = d.KeyColumnQuals["policy_id"].GetStringValue()
+		id = d.EqualsQuals["policy_id"].GetStringValue()
 	}
 
 	// Empty check
@@ -160,17 +170,21 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create service
-	svc, err := DLMService(ctx, d)
+	svc, err := DLMClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "service_connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dlm.GetLifecyclePolicyInput{
 		PolicyId: aws.String(id),
 	}
 
-	op, err := svc.GetLifecyclePolicy(params)
+	op, err := svc.GetLifecyclePolicy(ctx, params)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "get_api_error", err)
 		return nil, err
@@ -180,9 +194,9 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func policyId(item interface{}) *string {
 	switch item := item.(type) {
-	case *dlm.LifecyclePolicy:
+	case *types.LifecyclePolicy:
 		return item.PolicyId
-	case *dlm.LifecyclePolicySummary:
+	case types.LifecyclePolicySummary:
 		return item.PolicyId
 	}
 	return nil

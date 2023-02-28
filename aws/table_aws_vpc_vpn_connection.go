@@ -3,11 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,14 +22,14 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("vpn_connection_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidVpnConnectionID.NotFound", "InvalidVpnConnectionID.Malformed"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidVpnConnectionID.NotFound", "InvalidVpnConnectionID.Malformed"}),
 			},
 			Hydrate: getVpcVpnConnection,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVpnConnections,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "customer_gateway_configuration", Require: plugin.Optional},
@@ -37,7 +40,7 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 				{Name: "transit_gateway_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpn_connection_id",
@@ -135,12 +138,11 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcVpnConnections", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_vpn_connection.listVpcVpnConnections", "connection_error", err)
 		return nil, err
 	}
 
@@ -161,12 +163,17 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	// List call
-	resp, err := svc.DescribeVpnConnections(input)
+	resp, err := svc.DescribeVpnConnections(ctx, input)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_vpn_connection.listVpcVpnConnections", "api_error", err)
+	}
+
 	for _, vpnConnection := range resp.VpnConnections {
 		d.StreamListItem(ctx, vpnConnection)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -177,26 +184,25 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcVpnConnection")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	vpnConnectionID := d.KeyColumnQuals["vpn_connection_id"].GetStringValue()
+	vpnConnectionID := d.EqualsQuals["vpn_connection_id"].GetStringValue()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_vpn_connection.listVpcVpnConnections", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeVpnConnectionsInput{
-		VpnConnectionIds: []*string{aws.String(vpnConnectionID)},
+		VpnConnectionIds: []string{vpnConnectionID},
 	}
 
 	// Get call
-	op, err := svc.DescribeVpnConnections(params)
+	op, err := svc.DescribeVpnConnections(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcVpnConnection", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_vpn_connection.listVpcVpnConnections", "api_error", err)
 		return nil, err
 	}
 
@@ -207,13 +213,12 @@ func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 }
 
 func getVpcVpnConnectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcVpnConnectionARN")
-	vpnConnection := h.Item.(*ec2.VpnConnection)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	vpnConnection := h.Item.(types.VpnConnection)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_vpn_connection.getVpcVpnConnectionARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -227,7 +232,7 @@ func getVpcVpnConnectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// TRANSFORM FUNCTIONS
 
 func vpnConnectionTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	vpnConnection := d.HydrateItem.(*ec2.VpnConnection)
+	vpnConnection := d.HydrateItem.(types.VpnConnection)
 	param := d.Param.(string)
 
 	// Get resource title

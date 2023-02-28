@@ -5,11 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
 func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
@@ -21,7 +22,7 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"granularity", "dimension_type_1", "dimension_type_2"}),
 			Hydrate:    listCostAndUsage,
 		},
-		Columns: awsColumns(
+		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
 				{
 					Name:        "dimension_1",
@@ -107,7 +108,7 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostAndUsage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildInputFromQuals(d.KeyColumnQuals)
+	params := buildInputFromQuals(d.EqualsQuals)
 	return streamCostAndUsage(ctx, d, params)
 }
 
@@ -124,27 +125,27 @@ func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.Get
 	dim2 := strings.ToUpper(keyQuals["dimension_type_2"].GetStringValue())
 
 	params := &costexplorer.GetCostAndUsageInput{
-		TimePeriod: &costexplorer.DateInterval{
+		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
-		Granularity: aws.String(granularity),
-		Metrics:     aws.StringSlice(AllCostMetrics()),
+		Granularity: types.Granularity(granularity),
+		Metrics:     AllCostMetrics(),
 	}
-	var groupings []*costexplorer.GroupDefinition
+	var groupings []types.GroupDefinition
 	if dim1 != "" {
-		groupings = append(groupings, &costexplorer.GroupDefinition{
-			Type: aws.String("DIMENSION"),
+		groupings = append(groupings, types.GroupDefinition{
+			Type: types.GroupDefinitionType("DIMENSION"),
 			Key:  aws.String(dim1),
 		})
 	}
 	if dim2 != "" {
-		groupings = append(groupings, &costexplorer.GroupDefinition{
-			Type: aws.String("DIMENSION"),
+		groupings = append(groupings, types.GroupDefinition{
+			Type: types.GroupDefinitionType("DIMENSION"),
 			Key:  aws.String(dim2),
 		})
 	}
-	params.SetGroupBy(groupings)
+	params.GroupBy = groupings
 
 	return params
 }
@@ -153,10 +154,10 @@ func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.Get
 
 // func hydrateKeyQuals(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 // 	plugin.Logger(ctx).Trace("hydrateKeyQuals")
-// 	plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.KeyColumnQuals", d.KeyColumnQuals)
+// 	plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
 // 	quals := make(map[string]interface{})
 
-// 	for k, v := range d.KeyColumnQuals {
+// 	for k, v := range d.EqualsQuals {
 // 		quals[k] = v.Value
 // 	}
 // 	plugin.Logger(ctx).Warn("hydrateKeyQuals", "quals", quals)

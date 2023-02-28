@@ -5,14 +5,13 @@ import (
 	"errors"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/smithy-go"
 	"github.com/gocarina/gocsv"
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type awsIamCredentialReportResult struct {
@@ -48,7 +47,7 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCredentialReports,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "user_name",
 				Description: "The friendly name of the user.",
@@ -200,22 +199,22 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listCredentialReports")
-
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_credential_report.listCredentialReports", "client_error", err)
 		return nil, err
 	}
 
-	resp, err := svc.GetCredentialReport(&iam.GetCredentialReportInput{})
+	resp, err := svc.GetCredentialReport(ctx, &iam.GetCredentialReportInput{})
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if helpers.StringSliceContains([]string{"ReportNotPresent"}, a.Code()) {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ReportNotPresent" {
 				return nil, errors.New("Credential report not available. Please run 'aws iam generate-credential-report' to generate it and try again.")
 			}
 		}
+		plugin.Logger(ctx).Error("aws_iam_credential_report.listCredentialReports", "api_error", err)
 		return nil, err
 	}
 	//if err != nil {
@@ -242,7 +241,7 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		d.StreamListItem(ctx, row)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			break
 		}
 	}

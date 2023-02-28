@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -29,7 +32,7 @@ func tableAwsSSMManagedInstance(_ context.Context) *plugin.Table {
 				{Name: "association_status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -151,64 +154,73 @@ func tableAwsSSMManagedInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSsmManagedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSsmManagedInstances")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_managed_instance.listSsmManagedInstances", "connection_error", err)
 		return nil, err
 	}
-
-	input := &ssm.DescribeInstanceInformationInput{
-		MaxResults: aws.Int64(50),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
-	filters := buildSsmManagedInstanceFilter(d.Quals)
+	maxItems := int32(50)
+	input := &ssm.DescribeInstanceInformationInput{}
+
+	filters := buildSSMManagedInstanceFilter(d.Quals)
 	if len(filters) > 0 {
 		input.Filters = filters
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 5 {
+				maxItems = int32(5)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeInstanceInformationPages(
-		input,
-		func(page *ssm.DescribeInstanceInformationOutput, isLast bool) bool {
-			for _, managedInstance := range page.InstanceInformationList {
-				d.StreamListItem(ctx, managedInstance)
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := ssm.NewDescribeInstanceInformationPaginator(svc, input, func(o *ssm.DescribeInstanceInformationPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssm_managed_instance.listSsmManagedInstances", "api_error", err)
+			return nil, err
+		}
+
+		for _, managedInstance := range output.InstanceInformationList {
+			d.StreamListItem(ctx, managedInstance)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getSsmManagedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSsmManagedInstanceARN")
-	data := h.Item.(*ssm.InstanceInformation)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	data := h.Item.(types.InstanceInformation)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_managed_instance.getSsmManagedInstanceARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -221,8 +233,8 @@ func getSsmManagedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plugi
 //// UTILITY FUNCTION
 
 // Build ssm managed instance list call input filter
-func buildSsmManagedInstanceFilter(quals plugin.KeyColumnQualMap) []*ssm.InstanceInformationStringFilter {
-	filters := make([]*ssm.InstanceInformationStringFilter, 0)
+func buildSSMManagedInstanceFilter(quals plugin.KeyColumnQualMap) []types.InstanceInformationStringFilter {
+	filters := make([]types.InstanceInformationStringFilter, 0)
 
 	filterQuals := map[string]string{
 		"instance_id":        "InstanceIds",
@@ -236,18 +248,18 @@ func buildSsmManagedInstanceFilter(quals plugin.KeyColumnQualMap) []*ssm.Instanc
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ssm.InstanceInformationStringFilter{
+			filter := types.InstanceInformationStringFilter{
 				Key: aws.String(filterName),
 			}
 
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{&val}
+				filter.Values = []string{val}
 			} else {
-				filter.Values = value.([]*string)
+				filter.Values = value.([]string)
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

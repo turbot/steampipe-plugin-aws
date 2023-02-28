@@ -4,24 +4,27 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
 
 func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_vpc_flowlog",
+		Name:        "aws_vpc_flow_log",
 		Description: "AWS VPC Flowlog",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("flow_log_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"Client.InvalidInstanceID.NotFound", "InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"Client.InvalidInstanceID.NotFound", "InvalidParameterValue"}),
 			},
 			Hydrate: getVpcFlowlog,
 		},
@@ -35,7 +38,7 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 				{Name: "traffic_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "flow_log_id",
@@ -143,31 +146,31 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcFlowlogs", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_flow_log.listVpcFlowlogs", "connection_error", err)
 		return nil, err
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = int32(1)
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	// The max page limit is not mentioned in the doc, so here the max limt set to 1000 and min to 1
 	// https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html
 	input := &ec2.DescribeFlowLogsInput{
-		MaxResults: aws.Int64(1000),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -183,20 +186,27 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		input.Filter = filters
 	}
 
-	err = svc.DescribeFlowLogsPages(
-		input,
-		func(page *ec2.DescribeFlowLogsOutput, lastPage bool) bool {
-			for _, item := range page.FlowLogs {
-				d.StreamListItem(ctx, item)
+	paginator := ec2.NewDescribeFlowLogsPaginator(svc, input, func(o *ec2.DescribeFlowLogsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_flow_log.listVpcFlowlogs", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.FlowLogs {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -204,28 +214,25 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcFlowlog")
 
-	quals := d.KeyColumnQuals
+	quals := d.EqualsQuals
 	flowlogID := quals["flow_log_id"].GetStringValue()
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_flow_log.getVpcFlowlog", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeFlowLogsInput{
-		FlowLogIds: []*string{&flowlogID},
+		FlowLogIds: []string{flowlogID},
 	}
 
 	//get call
-	item, err := svc.DescribeFlowLogs(params)
+	item, err := svc.DescribeFlowLogs(ctx, params)
 	if err != nil {
-		logger.Debug("getVpcFlowlogs__", "Error", err)
+		plugin.Logger(ctx).Error("aws_vpc_flow_log.getVpcFlowlog", "api_error", err)
 		return nil, err
 	}
 
@@ -237,12 +244,12 @@ func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 }
 
 func getVpcFlowlogAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcFlowlogAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	vpcFlowlog := h.Item.(*ec2.FlowLog)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+	vpcFlowlog := h.Item.(types.FlowLog)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_flow_log.getVpcFlowlogAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -255,7 +262,7 @@ func getVpcFlowlogAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 //// TRANSFORM FUNCTIONS
 
 func vpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	vpcFlowlog := d.HydrateItem.(*ec2.FlowLog)
+	vpcFlowlog := d.HydrateItem.(types.FlowLog)
 	param := d.Param.(string)
 
 	// Get resource title
@@ -281,8 +288,11 @@ func vpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interf
 }
 
 func logDestinationBucketName(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.FlowLog)
-	logDestination := types.SafeString(data.LogDestination)
+	data := d.HydrateItem.(types.FlowLog)
+	if data.LogDestination == nil {
+		return nil, nil
+	}
+	logDestination := *data.LogDestination
 	if logDestination == "" {
 		return nil, nil
 	}

@@ -11,26 +11,11 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
+	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
-
-func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
-	var turbotTagsMap map[string]string
-	if tags == nil {
-		return nil, nil
-	}
-
-	turbotTagsMap = map[string]string{}
-	for _, i := range tags {
-		turbotTagsMap[*i.Key] = *i.Value
-	}
-
-	return &turbotTagsMap, nil
-}
 
 func arnToAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	arn := types.SafeString(d.Value)
@@ -73,7 +58,7 @@ func extractNameFromSqsQueueURL(queue string) (string, error) {
 }
 
 func handleNilString(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	value := types.SafeString(d.Value)
+	value := types.SafeString(fmt.Sprintf("%v", d.Value))
 	if value == "" {
 		return "false", nil
 	}
@@ -119,7 +104,7 @@ func base64DecodedData(_ context.Context, d *transform.TransformData) (interface
 // Transform function for sagemaker resources tags
 func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	tags := d.HydrateItem.([]*sagemaker.Tag)
+	tags := d.HydrateItem.([]sagemakerTypes.Tag)
 
 	if tags != nil {
 		turbotTagsMap := map[string]string{}

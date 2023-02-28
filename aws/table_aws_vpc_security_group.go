@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
@@ -17,7 +21,7 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("group_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound", "InvalidGroup.NotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound", "InvalidGroup.NotFound"}),
 			},
 			Hydrate: getVpcSecurityGroup,
 		},
@@ -30,7 +34,7 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "group_name",
@@ -108,17 +112,29 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcSecurityGroups", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_security_group.listVpcSecurityGroups", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = int32(5)
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeSecurityGroupsInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -133,33 +149,27 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input.Filters = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeSecurityGroupsPaginator(svc, input, func(o *ec2.DescribeSecurityGroupsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_security_group.listVpcSecurityGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.SecurityGroups {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeSecurityGroupsPages(
-		input,
-		func(page *ec2.DescribeSecurityGroupsOutput, isLast bool) bool {
-			for _, securityGroup := range page.SecurityGroups {
-				d.StreamListItem(ctx, securityGroup)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 
 	return nil, err
 }
@@ -167,26 +177,25 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcSecurityGroup")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	groupID := d.KeyColumnQuals["group_id"].GetStringValue()
+	groupID := d.EqualsQuals["group_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_security_group.getVpcSecurityGroup", "api_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeSecurityGroupsInput{
-		GroupIds: []*string{aws.String(groupID)},
+		GroupIds: []string{groupID},
 	}
 
 	// Get call
-	op, err := svc.DescribeSecurityGroups(params)
+	op, err := svc.DescribeSecurityGroups(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcSecurityGroup__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_security_group.getVpcSecurityGroup", "api_error", err)
 		return nil, err
 	}
 
@@ -197,13 +206,12 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 }
 
 func getVpcSecurityGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcSecurityGroupARN")
-	securityGroup := h.Item.(*ec2.SecurityGroup)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	securityGroup := h.Item.(types.SecurityGroup)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_security_group.getVpcSecurityGroupARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -216,7 +224,7 @@ func getVpcSecurityGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// TRANSFORM FUNCTIONS
 
 func getVpcSecurityGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	securityGroup := d.HydrateItem.(*ec2.SecurityGroup)
+	securityGroup := d.HydrateItem.(types.SecurityGroup)
 
 	// Get the resource tags
 	if securityGroup.Tags != nil {

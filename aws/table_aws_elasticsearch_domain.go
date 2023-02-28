@@ -3,11 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
+	"github.com/aws/aws-sdk-go-v2/service/elasticsearchservice"
+	"github.com/aws/aws-sdk-go-v2/service/elasticsearchservice/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	elasticsearchservicev1 "github.com/aws/aws-sdk-go/service/elasticsearchservice"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
@@ -17,7 +20,7 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("domain_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsElasticsearchDomain,
 		},
@@ -30,7 +33,7 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Depends: []plugin.HydrateFunc{getAwsElasticsearchDomain},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticsearchservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
@@ -217,26 +220,29 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 
 func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ElasticsearchService(ctx, d)
+	svc, err := ElasticsearchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticsearch_domain.listAwsElasticsearchDomain", "connection_error", err)
 		return nil, err
 	}
 
 	// List call
 	params := &elasticsearchservice.ListDomainNamesInput{}
 
-	op, err := svc.ListDomainNames(params)
+	// API doesn't support pagination as of date
+	op, err := svc.ListDomainNames(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticsearch_domain.listAwsElasticsearchDomain", "api_error", err)
 		return nil, err
 	}
 
 	for _, domainname := range op.DomainNames {
-		d.StreamListItem(ctx, &elasticsearchservice.ElasticsearchDomainStatus{
+		d.StreamListItem(ctx, types.ElasticsearchDomainStatus{
 			DomainName: domainname.DomainName,
 		})
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -247,19 +253,17 @@ func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsElasticsearchDomain")
-
 	var domainname string
 	if h.Item != nil {
-		domainname = *h.Item.(*elasticsearchservice.ElasticsearchDomainStatus).DomainName
+		domainname = *h.Item.(types.ElasticsearchDomainStatus).DomainName
 	} else {
-		domainname = d.KeyColumnQuals["domain_name"].GetStringValue()
+		domainname = d.EqualsQuals["domain_name"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := ElasticsearchService(ctx, d)
+	svc, err := ElasticsearchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticsearch_domain.getAwsElasticsearchDomain", "connection_error", err)
 		return nil, err
 	}
 
@@ -269,9 +273,9 @@ func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Get call
-	data, err := svc.DescribeElasticsearchDomain(params)
+	data, err := svc.DescribeElasticsearchDomain(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsElasticsearchDomain", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_elasticsearch_domain.getAwsElasticsearchDomain", "api_error", err)
 		return nil, err
 	}
 
@@ -279,20 +283,18 @@ func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsElasticsearchDomainTags")
-
 	// Domain will be nil if getAwsElasticsearchDomain returned an error but
 	// was ignored through ignore_error_codes config arg
 	if h.HydrateResults["getAwsElasticsearchDomain"] == nil {
 		return nil, nil
 	}
 
-	arn := h.HydrateResults["getAwsElasticsearchDomain"].(*elasticsearchservice.ElasticsearchDomainStatus).ARN
+	arn := h.HydrateResults["getAwsElasticsearchDomain"].(*types.ElasticsearchDomainStatus).ARN
 
 	// Create Session
-	svc, err := ElasticsearchService(ctx, d)
+	svc, err := ElasticsearchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticsearch_domain.listAwsElasticsearchDomainTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -302,8 +304,9 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// Get call
-	op, err := svc.ListTags(params)
+	op, err := svc.ListTags(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticsearch_domain.listAwsElasticsearchDomainTags", "api_error", err)
 		return nil, err
 	}
 
@@ -313,7 +316,6 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 //// TRANSFORM FUNCTION
 
 func getAwsElasticsearchDomaintagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsElasticsearchDomaintagListToTurbotTags")
 	tagList := d.HydrateItem.(*elasticsearchservice.ListTagsOutput)
 
 	if tagList.TagList == nil {

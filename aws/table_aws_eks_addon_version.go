@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	eksv1 "github.com/aws/aws-sdk-go/service/eks"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -23,7 +26,7 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 				{Name: "addon_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "addon_name",
@@ -39,6 +42,13 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 				Name:        "type",
 				Description: "The type of the add-on.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "addon_configuration",
+				Description: "The configuration for the add-on.",
+				Hydrate:     getEksAddonConfiguration,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "architecture",
@@ -72,8 +82,8 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 type addonVersion struct {
 	AddonName       *string
 	AddonVersion    *string
-	Architecture    []*string
-	Compatibilities []*eks.Compatibility
+	Architecture    []string
+	Compatibilities []types.Compatibility
 	Type            *string
 }
 
@@ -81,61 +91,103 @@ type addonVersion struct {
 
 func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon_version.listEksAddonVersions", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &eks.DescribeAddonVersionsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(100),
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["addon_name"] != nil {
 		input.AddonName = aws.String(equalQuals["addon_name"].GetStringValue())
 	}
 
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxResults {
+			if limit < 1 {
+				input.MaxResults = aws.Int32(1)
 			} else {
-				input.MaxResults = limit
+				input.MaxResults = aws.Int32(limit)
 			}
 		}
 	}
 
-	err = svc.DescribeAddonVersionsPages(
-		input,
-		func(page *eks.DescribeAddonVersionsOutput, _ bool) bool {
-			for _, addon := range page.Addons {
-				for _, version := range addon.AddonVersions {
-					d.StreamListItem(ctx, addonVersion{addon.AddonName, version.AddonVersion, version.Architecture, version.Compatibilities, addon.Type})
+	paginator := eks.NewDescribeAddonVersionsPaginator(svc, input, func(o *eks.DescribeAddonVersionsPaginatorOptions) {
+		o.Limit = *input.MaxResults
+		o.StopOnDuplicateToken = true
+	})
 
-					// Context may get cancelled due to manual cancellation or if the limit has been reached
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_eks_addon_version.listEksAddonVersions", "api_error", err)
+			return nil, err
+		}
+
+		for _, addon := range output.Addons {
+			for _, version := range addon.AddonVersions {
+				d.StreamListItem(ctx, addonVersion{addon.AddonName, version.AddonVersion, version.Architecture, version.Compatibilities, addon.Type})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
 				}
 			}
-			return true
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
+func getEksAddonConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	data := h.Item.(addonVersion)
+	version := data.AddonVersion
+	addonName := data.AddonName
+
+	// create service
+	svc, err := EKSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon_version.getEksAddonConfiguration", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	params := &eks.DescribeAddonConfigurationInput{
+		AddonName:    addonName,
+		AddonVersion: version,
+	}
+
+	op, err := svc.DescribeAddonConfiguration(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon_version.getEksAddonConfiguration", "api_error", err)
+		return nil, err
+	}
+
+	return op.ConfigurationSchema, nil
+}
+
 func getAddonVersionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAddonVersionAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	version := h.Item.(addonVersion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon_version.getAddonVersionAkas", "api_error", err)
 		return nil, err
 	}
 

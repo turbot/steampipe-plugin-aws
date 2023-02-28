@@ -3,13 +3,16 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sns"
+
+	snsv1 "github.com/aws/aws-sdk-go/service/sns"
+
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,14 +24,17 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("subscription_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 			},
 			Hydrate: getSubscriptionAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopicSubscriptions,
 		},
-		GetMatrixItem: BuildRegionList,
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(snsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subscription_arn",
@@ -128,36 +134,41 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsSnsTopicSubscriptions")
-
-	// Create Session
-	svc, err := SNSService(ctx, d)
+	// Get  Client
+	svc, err := SNSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sns_topic_subscription.listAwsSnsTopicSubscriptions", "get_client_error", err)
 		return nil, err
 	}
 
-	err = svc.ListSubscriptionsPages(
-		&sns.ListSubscriptionsInput{},
-		func(page *sns.ListSubscriptionsOutput, lastPage bool) bool {
-			for _, subscription := range page.Subscriptions {
-				d.StreamListItem(ctx, &sns.GetSubscriptionAttributesOutput{
-					Attributes: map[string]*string{
-						"Endpoint":        subscription.Endpoint,
-						"Owner":           subscription.Owner,
-						"Protocol":        subscription.Protocol,
-						"SubscriptionArn": subscription.SubscriptionArn,
-						"TopicArn":        subscription.TopicArn,
-					},
-				})
+	params := &sns.ListSubscriptionsInput{}
+	// Does not support limit
+	paginator := sns.NewListSubscriptionsPaginator(svc, params, func(o *sns.ListSubscriptionsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sns_topic_subscription.listAwsSnsTopicSubscriptions", "api_error", err)
+			return nil, err
+		}
+		for _, subscription := range output.Subscriptions {
+			d.StreamListItem(ctx, &sns.GetSubscriptionAttributesOutput{
+				Attributes: map[string]string{
+					"Endpoint":        *subscription.Endpoint,
+					"Owner":           *subscription.Owner,
+					"Protocol":        *subscription.Protocol,
+					"SubscriptionArn": *subscription.SubscriptionArn,
+					"TopicArn":        *subscription.TopicArn,
+				},
+			})
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -165,36 +176,33 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 //// HYDRATE FUNCTIONS
 
 func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSubscriptionAttributes")
-
 	var arn string
 	if h.Item != nil {
 		data := h.Item.(*sns.GetSubscriptionAttributesOutput)
 		arn = types.SafeString(data.Attributes["SubscriptionArn"])
 	} else {
-		arn = d.KeyColumnQuals["subscription_arn"].GetStringValue()
+		arn = d.EqualsQuals["subscription_arn"].GetStringValue()
+	}
+
+	if arn == "" {
+		return nil, nil
 	}
 
 	// Create session
-	svc, err := SNSService(ctx, d)
+	svc, err := SNSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sns_topic_subscription.getSubscriptionAttributes", "get_client_error", err)
 		return nil, err
 	}
 
-	input := &sns.GetSubscriptionAttributesInput{
+	params := &sns.GetSubscriptionAttributesInput{
 		SubscriptionArn: aws.String(arn),
 	}
 
-	// As of 7th september 2020, Next token is not supported in go
-	op, err := svc.GetSubscriptionAttributes(input)
+	op, err := svc.GetSubscriptionAttributes(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			plugin.Logger(ctx).Trace("SubErrorCode", a.Code())
-			if a.Code() == "NotFound" || a.Code() == "InvalidParameter" {
-				return nil, nil
-			}
-			return nil, err
-		}
+		plugin.Logger(ctx).Error("aws_sns_topic_subscription.getSubscriptionAttributes", "api_error", err)
+		return nil, err
 	}
 	return op, nil
 }

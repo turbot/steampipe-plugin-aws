@@ -16,7 +16,6 @@ where
   not encrypted;
 ```
 
-
 ### List of unattached EBS volumes
 
 ```sql
@@ -26,9 +25,8 @@ select
 from
   aws_ebs_volume
 where
-  attachments is null;
+  jsonb_array_length(attachments) = 0;
 ```
-
 
 ### List of Provisioned IOPS SSD (io1) volumes
 
@@ -42,7 +40,6 @@ where
   volume_type = 'io1';
 ```
 
-
 ### List of EBS volumes with size more than 100GiB
 
 ```sql
@@ -55,7 +52,6 @@ where
   size > '100';
 ```
 
-
 ### Count the number of EBS volumes by volume type
 
 ```sql
@@ -67,7 +63,6 @@ from
 group by
   volume_type;
 ```
-
 
 ### Find EBS Volumes Attached To Stopped EC2 Instances
 

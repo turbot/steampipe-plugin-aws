@@ -5,14 +5,17 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/go-kit/helpers"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +27,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("instance_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
 			},
 			Hydrate: getEc2Instance,
 		},
@@ -51,7 +54,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_id",
@@ -91,6 +94,36 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DisableApiTermination.Value"),
 			},
 			{
+				Name:        "ami_launch_index",
+				Description: "The AMI launch index, which can be used to find this instance in the launch group.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "architecture",
+				Description: "The architecture of the image.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "boot_mode",
+				Description: "The boot mode of the instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "capacity_reservation_id",
+				Description: "The ID of the Capacity Reservation.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "capacity_reservation_specification",
+				Description: "Information about the Capacity Reservation targeting option.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "client_token",
+				Description: "The idempotency token you provided when you launched the instance, if applicable.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "cpu_options_core_count",
 				Description: "The number of CPU cores for the instance.",
 				Type:        proto.ColumnType_INT,
@@ -105,6 +138,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			{
 				Name:        "ebs_optimized",
 				Description: "Indicates whether the instance is optimized for Amazon EBS I/O. This optimization provides dedicated throughput to Amazon EBS and an optimized configuration stack to provide optimal I/O performance. This optimization isn't available with all instance types.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "ena_support",
+				Description: "Specifies whether enhanced networking with ENA is enabled.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
@@ -159,11 +197,6 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "metadata_options",
-				Description: "The metadata options for the instance.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "outpost_arn",
 				Description: "The Amazon Resource Name (ARN) of the Outpost, if applicable.",
 				Type:        proto.ColumnType_STRING,
@@ -185,6 +218,16 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Description: "The tenancy of the instance (if the instance is running in a VPC). An instance with a tenancy of dedicated runs on single-tenant hardware.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Placement.Tenancy"),
+			},
+			{
+				Name:        "platform",
+				Description: "The value is 'Windows' for Windows instances; otherwise blank.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "platform_details",
+				Description: "The platform details value for the instance.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "private_ip_address",
@@ -242,6 +285,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("State.Code"),
 			},
 			{
+				Name:        "state_transition_reason",
+				Description: "The reason for the most recent state transition.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "state_transition_time",
 				Description: "The date and time, the instance state was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -250,6 +298,21 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			{
 				Name:        "subnet_id",
 				Description: "The ID of the subnet in which the instance is running.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "tpm_support",
+				Description: "If the instance is configured for NitroTPM support, the value is v2.0.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "usage_operation",
+				Description: "The usage operation value for the instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "usage_operation_update_time",
+				Description: "The time that the usage operation was last updated.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -270,6 +333,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "block_device_mappings",
+				Description: "Block device mapping entries for the instance.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "elastic_gpu_associations",
 				Description: "The Elastic GPU associated with the instance.",
 				Type:        proto.ColumnType_JSON,
@@ -280,13 +348,35 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "block_device_mappings",
-				Description: "Block device mapping entries for the instance.",
+				Name:        "enclave_options",
+				Description: "Indicates whether the instance is enabled for Amazon Web Services Nitro Enclaves.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "hibernation_options",
+				Description: "Indicates whether the instance is enabled for hibernation.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "launch_template_data",
+				Description: "The configuration data of the specified instance.",
+				Hydrate:     getEc2LaunchTemplateData,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "metadata_options",
+				Description: "The metadata options for the instance.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "network_interfaces",
 				Description: "The network interfaces for the instance.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "private_dns_name_options",
+				Description: "The options for the instance hostname.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -340,61 +430,68 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEc2Instance", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.listEc2Instance", "connection_error", err)
 		return nil, err
 	}
 
-	input := ec2.DescribeInstancesInput{
-		MaxResults: types.Int64(1000),
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			// select * from aws_ec2_instance limit 1
+			// Error: InvalidParameterValue: Value ( 1 ) for parameter maxResults is invalid. Expecting a value greater than 5.
+			// 		status code: 400, request id: a84912d9-f5fd-403f-8e37-7f7b3f6faba6
+			if limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
-	filters := buildEc2InstanceFilter(d.KeyColumnQuals)
+
+	input := &ec2.DescribeInstancesInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+	filters := buildEc2InstanceFilter(d.EqualsQuals)
 
 	if len(filters) != 0 {
 		input.Filters = filters
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			// select * from aws_ec2_instance limit 1
-			// Error: InvalidParameterValue: Value ( 1 ) for parameter maxResults is invalid. Expecting a value greater than 5.
-			// 		status code: 400, request id: a84912d9-f5fd-403f-8e37-7f7b3f6faba6
-			if *limit < 5 {
-				input.MaxResults = types.Int64(5)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	paginator := ec2.NewDescribeInstancesPaginator(svc, input, func(o *ec2.DescribeInstancesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.DescribeInstancesPages(&input, func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
-		if page.Reservations != nil && len(page.Reservations) > 0 {
-			for _, reservation := range page.Reservations {
-				for _, instance := range reservation.Instances {
-					d.StreamListItem(ctx, instance)
-					// Check if context has been cancelled or if the limit has been hit (if specified)
-					// if there is a limit, it will return the number of rows required to reach this limit
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
-				}
-			}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_instance.listEc2Instance", "api_error", err)
+			return nil, err
 		}
 
-		return !isLast
-	},
-	)
+		for _, items := range output.Reservations {
+			for _, instance := range items.Instances {
 
-	if err != nil {
-		plugin.Logger(ctx).Error("listEc2Instance", "DescribeInstancesPages_error", err)
+				d.StreamListItem(ctx, instance)
+				// Check if context has been cancelled or if the limit has been hit (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
+			}
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
 	return nil, err
@@ -403,24 +500,23 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2Instance")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instanceID := d.KeyColumnQuals["instance_id"].GetStringValue()
+	instanceID := d.EqualsQuals["instance_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2Instance", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstancesInput{
-		InstanceIds: []*string{aws.String(instanceID)},
+		InstanceIds: []string{instanceID},
 	}
 
-	op, err := svc.DescribeInstances(params)
+	op, err := svc.DescribeInstances(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEc2Instance", "DescribeInstances_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2Instance", "api_error", err)
 		return nil, err
 	}
 
@@ -433,14 +529,12 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 }
 
 func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2InstanceARN")
-	instance := h.Item.(*ec2.Instance)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	instance := h.Item.(types.Instance)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -451,24 +545,23 @@ func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceDisableAPITerminationData")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceDisableAPITerminationData", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameDisableApiTermination),
+		Attribute:  types.InstanceAttributeNameDisableApiTermination,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceDisableAPITerminationData", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceDisableAPITerminationData", "api_error", err)
 		return nil, err
 	}
 
@@ -476,24 +569,23 @@ func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryDa
 }
 
 func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceInitiatedShutdownBehavior")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceInitiatedShutdownBehavior", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameInstanceInitiatedShutdownBehavior),
+		Attribute:  types.InstanceAttributeNameInstanceInitiatedShutdownBehavior,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceInitiatedShutdownBehavior", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceInitiatedShutdownBehavior", "api_error", err)
 		return nil, err
 	}
 
@@ -501,24 +593,23 @@ func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryDa
 }
 
 func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceKernelID")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceKernelID", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameKernel),
+		Attribute:  types.InstanceAttributeNameKernel,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceKernelID", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceKernelID", "api_error", err)
 		return nil, err
 	}
 
@@ -526,24 +617,23 @@ func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceRAMDiskID")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceRAMDiskID", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameRamdisk),
+		Attribute:  types.InstanceAttributeNameRamdisk,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceRAMDiskID", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceRAMDiskID", "api_error", err)
 		return nil, err
 	}
 
@@ -551,24 +641,23 @@ func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceSriovNetSupport")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceSriovNetSupport", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameSriovNetSupport),
+		Attribute:  types.InstanceAttributeNameSriovNetSupport,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceSriovNetSupport", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceSriovNetSupport", "api_error", err)
 		return nil, err
 	}
 
@@ -576,49 +665,72 @@ func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plu
 }
 
 func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceUserData")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceUserData", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameUserData),
+		Attribute:  types.InstanceAttributeNameUserData,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceUserData", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceUserData", "api_error", err)
 		return nil, err
 	}
 
 	return instanceData, nil
 }
 
-func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceStatus")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+
+func getEc2LaunchTemplateData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Get the details of load balancer
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2LaunchTemplateData", "connection_error", err)
+		return nil, err
+	}
+
+	params := &ec2.GetLaunchTemplateDataInput{
+		InstanceId: instance.InstanceId,
+	}
+
+	op, err := svc.GetLaunchTemplateData(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2LaunchTemplateData", "api_error", err)
+		return nil, err
+	}
+
+	return op.LaunchTemplateData, err
+}
+
+func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	instance := h.Item.(types.Instance)
+
+	// create service
+	svc, err := EC2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceStatus", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceStatusInput{
-		InstanceIds:         []*string{instance.InstanceId},
-		IncludeAllInstances: types.Bool(true),
+		InstanceIds:         []string{*instance.InstanceId},
+		IncludeAllInstances: aws.Bool(true),
 	}
 
-	instanceData, err := svc.DescribeInstanceStatus(params)
+	instanceData, err := svc.DescribeInstanceStatus(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceStatus", "DescribeInstanceStatus_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceStatus", "api_error", err)
 		return nil, err
 	}
 
@@ -628,12 +740,22 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 //// TRANSFORM FUNCTIONS
 
 func getEc2InstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	instance := d.HydrateItem.(*ec2.Instance)
-	return ec2TagsToMap(instance.Tags)
+	instance := d.HydrateItem.(types.Instance)
+	var turbotTagsMap map[string]string
+	if instance.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range instance.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
 
 func getEc2InstanceTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.Instance)
+	data := d.HydrateItem.(types.Instance)
 	title := data.InstanceId
 	if data.Tags != nil {
 		for _, i := range data.Tags {
@@ -646,10 +768,10 @@ func getEc2InstanceTurbotTitle(_ context.Context, d *transform.TransformData) (i
 }
 
 func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.Instance)
+	data := d.HydrateItem.(types.Instance)
 
 	if *data.StateTransitionReason != "" {
-		if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, *data.State.Name) {
+		if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, string(data.State.Name)) {
 			// User initiated (2019-09-12 16:38:34 GMT)
 			regexExp := regexp.MustCompile(`\((.*?) *\)`)
 			stateTransitionTime := regexExp.FindStringSubmatch(*data.StateTransitionReason)
@@ -665,8 +787,8 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 //// UTILITY FUNCTIONS
 
 // Build ec2 instance list call input filter
-func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"hypervisor":                  "hypervisor",
@@ -691,16 +813,14 @@ func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Fil
 
 	for columnName, filterName := range filterQuals {
 		if equalQuals[columnName] != nil {
-			filter := ec2.Filter{
-				Name: types.String(filterName),
+			filter := types.Filter{
+				Name: aws.String(filterName),
 			}
 			value := equalQuals[columnName]
 			if value.GetStringValue() != "" {
-				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+				filter.Values = []string{equalQuals[columnName].GetStringValue()}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters
@@ -711,7 +831,7 @@ func getListValues(listValue *proto.QualValueList) []*string {
 	if listValue != nil {
 		for _, value := range listValue.Values {
 			if value.GetStringValue() != "" {
-				values = append(values, types.String(value.GetStringValue()))
+				values = append(values, aws.String(value.GetStringValue()))
 			}
 		}
 	}

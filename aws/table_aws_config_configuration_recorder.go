@@ -3,11 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/configservice"
+	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
+
+	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
@@ -17,20 +20,14 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConfigurationRecorderException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchConfigurationRecorderException"}),
 			},
 			Hydrate: getConfigConfigurationRecorder,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConfigurationRecorders,
-			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "name",
-					Require: plugin.Optional,
-				},
-			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -93,60 +90,54 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 
 func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.listConfigConfigurationRecorders", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &configservice.DescribeConfigurationRecordersInput{}
 
-	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["name"] != nil {
-		input.ConfigurationRecorderNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
-	}
-
 	// Pagination not supported as of date
-	op, err := svc.DescribeConfigurationRecorders(input)
+	op, err := svc.DescribeConfigurationRecorders(ctx, input)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.listConfigConfigurationRecorders", "api_error", err)
 		return nil, err
 	}
 	if op.ConfigurationRecorders != nil {
-		for _, ConfigurationRecorders := range op.ConfigurationRecorders {
-			d.StreamListItem(ctx, ConfigurationRecorders)
+		for _, configurationRecorder := range op.ConfigurationRecorders {
+			d.StreamListItem(ctx, configurationRecorder)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getConfigConfigurationRecorder")
-	quals := d.KeyColumnQuals
+	quals := d.EqualsQuals
 	name := quals["name"].GetStringValue()
 
-	// Create Session
-	svc, err := ConfigService(ctx, d)
+	// Create session
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getConfigConfigurationRecorder", "get_client_error", err)
 		return nil, err
 	}
 
 	params := &configservice.DescribeConfigurationRecordersInput{
-		ConfigurationRecorderNames: []*string{aws.String(name)},
+		ConfigurationRecorderNames: []string{name},
 	}
-	plugin.Logger(ctx).Trace("paramsparamsparams", "params", params)
 
-	op, err := svc.DescribeConfigurationRecorders(params)
+	op, err := svc.DescribeConfigurationRecorders(ctx, params)
 	if err != nil {
-		logger.Debug("getConfigConfigurationRecorder", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getConfigConfigurationRecorder", "api_error", err)
 		return nil, err
 	}
 
@@ -158,38 +149,40 @@ func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, _ 
 }
 
 func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getConfigConfigurationRecorderStatus")
+	configurationRecorder := h.Item.(types.ConfigurationRecorder)
 
-	configurationRecorder := h.Item.(*configservice.ConfigurationRecorder)
-
-	// Create Session
-	svc, err := ConfigService(ctx, d)
+	// Create session
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getConfigConfigurationRecorderStatus", "get_client_error", err)
 		return nil, err
 	}
 
 	params := &configservice.DescribeConfigurationRecorderStatusInput{
-		ConfigurationRecorderNames: []*string{configurationRecorder.Name},
+		ConfigurationRecorderNames: []string{*configurationRecorder.Name},
 	}
 
-	status, err := svc.DescribeConfigurationRecorderStatus(params)
+	status, err := svc.DescribeConfigurationRecorderStatus(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getConfigConfigurationRecorderStatus", "api_error", err)
 		return nil, err
+	}
+
+	if len(status.ConfigurationRecordersStatus) < 1 {
+		return nil, nil
 	}
 
 	return status.ConfigurationRecordersStatus[0], nil
 }
 
-//// TRANSFORM FUNCTIONS
-
 func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsConfigurationRecorderAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	configurationRecorder := h.Item.(*configservice.ConfigurationRecorder)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	configurationRecorder := h.Item.(types.ConfigurationRecorder)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getAwsConfigurationRecorderARN", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

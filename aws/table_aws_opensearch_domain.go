@@ -3,11 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/opensearchservice"
+	"github.com/aws/aws-sdk-go-v2/service/opensearch"
+	"github.com/aws/aws-sdk-go-v2/service/opensearch/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	opensearchservicev1 "github.com/aws/aws-sdk-go/service/opensearchservice"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
@@ -17,7 +20,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("domain_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getOpenSearchDomain,
 		},
@@ -30,7 +33,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				Depends: []plugin.HydrateFunc{getOpenSearchDomain},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(opensearchservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
@@ -216,26 +219,33 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 
 func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := OpenSearchService(ctx, d)
+	svc, err := OpenSearchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_opensearch_domain.listOpenSearchDomains", "connection_error", err)
 		return nil, err
 	}
 
-	// List call
-	params := &opensearchservice.ListDomainNamesInput{}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
-	op, err := svc.ListDomainNames(params)
+	// List call
+	params := &opensearch.ListDomainNamesInput{}
+
+	op, err := svc.ListDomainNames(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_opensearch_domain.listOpenSearchDomains", "api_error", err)
 		return nil, err
 	}
 
 	for _, domainname := range op.DomainNames {
-		d.StreamListItem(ctx, &opensearchservice.DomainStatus{
+		d.StreamListItem(ctx, types.DomainStatus{
 			DomainName: domainname.DomainName,
 		})
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -246,14 +256,11 @@ func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getOpenSearchDomain")
-
 	var domainName string
 	if h.Item != nil {
-		domainName = *h.Item.(*opensearchservice.DomainStatus).DomainName
+		domainName = *h.Item.(types.DomainStatus).DomainName
 	} else {
-		domainName = d.KeyColumnQuals["domain_name"].GetStringValue()
+		domainName = d.EqualsQuals["domain_name"].GetStringValue()
 
 		// Validate user input
 		if len(domainName) < 1 {
@@ -262,20 +269,26 @@ func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// Create Session
-	svc, err := OpenSearchService(ctx, d)
+	svc, err := OpenSearchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_opensearch_domain.getOpenSearchDomain", "connection_error", err)
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
 	// Build the params
-	params := &opensearchservice.DescribeDomainInput{
+	params := &opensearch.DescribeDomainInput{
 		DomainName: &domainName,
 	}
 
 	// Get call
-	data, err := svc.DescribeDomain(params)
+	data, err := svc.DescribeDomain(ctx, params)
 	if err != nil {
-		logger.Error("getOpenSearchDomain", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_opensearch_domain.getOpenSearchDomain", "api_error", err)
 		return nil, err
 	}
 
@@ -283,31 +296,34 @@ func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func listOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listOpenSearchDomainTags")
-
 	// Domain will be nil if getOpenSearchDomain returned an error but
 	// was ignored through ignore_error_codes config arg
 	if h.HydrateResults["getOpenSearchDomain"] == nil {
 		return nil, nil
 	}
-
-	arn := h.HydrateResults["getOpenSearchDomain"].(*opensearchservice.DomainStatus).ARN
+	arn := h.HydrateResults["getOpenSearchDomain"].(*types.DomainStatus).ARN
 
 	// Create Session
-	svc, err := OpenSearchService(ctx, d)
+	svc, err := OpenSearchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_opensearch_domain.listOpenSearchDomainTags", "connection_error", err)
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
 	// Build the params
-	params := &opensearchservice.ListTagsInput{
+	params := &opensearch.ListTagsInput{
 		ARN: arn,
 	}
 
 	// Get call
-	op, err := svc.ListTags(params)
+	op, err := svc.ListTags(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_opensearch_domain.listOpenSearchDomainTags", "api_error", err)
 		return nil, err
 	}
 
@@ -317,8 +333,7 @@ func listOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugi
 //// TRANSFORM FUNCTION
 
 func openSearchDomaintagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("openSearchDomaintagListToTurbotTags")
-	tagList := d.HydrateItem.(*opensearchservice.ListTagsOutput)
+	tagList := d.HydrateItem.(*opensearch.ListTagsOutput)
 
 	if tagList.TagList == nil {
 		return nil, nil

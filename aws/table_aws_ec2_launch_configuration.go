@@ -3,11 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
@@ -17,14 +20,14 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationError"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationError"}),
 			},
 			Hydrate: getAwsEc2LaunchConfiguration,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEc2LaunchConfigurations,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -170,42 +173,53 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
 	// Create Session
-	svc, err := AutoScalingService(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_launch_configuration.listAwsEc2LaunchConfigurations", "connection_error")
 		return nil, err
 	}
 
-	input := &autoscaling.DescribeLaunchConfigurationsInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 1 {
-				input.MaxRecords = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeLaunchConfigurationsPages(
-		input,
-		func(page *autoscaling.DescribeLaunchConfigurationsOutput, isLast bool) bool {
-			for _, launchConfiguration := range page.LaunchConfigurations {
-				d.StreamListItem(ctx, launchConfiguration)
+	input := &autoscaling.DescribeLaunchConfigurationsInput{
+		MaxRecords: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := autoscaling.NewDescribeLaunchConfigurationsPaginator(svc, input, func(o *autoscaling.DescribeLaunchConfigurationsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_launch_configuration.listAwsEc2LaunchConfigurations", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.LaunchConfigurations {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -213,30 +227,30 @@ func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getAwsEc2LaunchConfiguration(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2LaunchConfiguration")
 
-	name := d.KeyColumnQuals["name"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_launch_configuration.getAwsEc2LaunchConfiguration", "connection_error")
 		return nil, err
 	}
 
 	// Build params
 	params := &autoscaling.DescribeLaunchConfigurationsInput{
-		LaunchConfigurationNames: []*string{aws.String(name)},
+		LaunchConfigurationNames: []string{name},
 	}
 
 	// panic(params)
 
-	rowData, err := svc.DescribeLaunchConfigurations(params)
+	rowData, err := svc.DescribeLaunchConfigurations(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsEc2LaunchConfiguration", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ec2_launch_configuration.getAwsEc2LaunchConfiguration", "api_error", err)
 		return nil, err
 	}
 
-	if len(rowData.LaunchConfigurations) > 0 && rowData.LaunchConfigurations[0] != nil {
+	if len(rowData.LaunchConfigurations) > 0 {
 		return rowData.LaunchConfigurations[0], nil
 	}
 

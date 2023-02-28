@@ -3,11 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssoadmin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+
+	ssoadminv1 "github.com/aws/aws-sdk-go/service/ssoadmin"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSsoAdminInstance(_ context.Context) *plugin.Table {
@@ -17,7 +20,7 @@ func tableAwsSsoAdminInstance(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSsoAdminInstances,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -51,47 +54,55 @@ func tableAwsSsoAdminInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSsoAdminInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSsoAdminInstances")
-
 	// Create session
-	svc, err := SSOAdminService(ctx, d)
+	svc, err := SSOAdminClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssoadmin_instance.listSsoAdminInstances", "connection_error", err)
 		return nil, err
 	}
-
-	input := &ssoadmin.ListInstancesInput{
-		MaxResults: aws.Int64(100),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.ListInstancesPages(
-		input,
-		func(page *ssoadmin.ListInstancesOutput, isLast bool) bool {
-			for _, instance := range page.Instances {
-				d.StreamListItem(ctx, instance)
+	input := &ssoadmin.ListInstancesInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := ssoadmin.NewListInstancesPaginator(svc, input, func(o *ssoadmin.ListInstancesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssoadmin_instance.listSsoAdminInstances", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Instances {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("listSsoAdminInstances", "ListInstancesPages_error", err)
-		return nil, err
+		}
 	}
 
 	return nil, err

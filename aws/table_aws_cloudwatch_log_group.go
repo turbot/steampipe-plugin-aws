@@ -2,14 +2,17 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
@@ -22,14 +25,8 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogGroups,
-			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "name",
-					Require: plugin.Optional,
-				},
-			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -37,6 +34,10 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("LogGroupName"),
 			},
+
+			// Most CloudWatch APIs' inputs only accept a CloudWatch log group ARN without ":" at the end, but the
+			// DescribeLogGroups API returns an ARN with ":*", which we've chosen to keep to better match what AWS shows
+			// in their console and documentation.
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the log group.",
@@ -69,6 +70,20 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "data_protection",
+				Description: "Log group data protection policy information.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudwatchLogGroupDataProtectionPolicy,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "data_protection_policy",
+				Description: "The data protection policy document for a log group.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudwatchLogGroupDataProtectionPolicy,
+				Transform:   transform.FromField("PolicyDocument"),
+			},
+			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
@@ -93,102 +108,138 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	// Get client
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.listCloudwatchLogGroups", "client_error", err)
 		return nil, err
 	}
 
-	input := &cloudwatchlogs.DescribeLogGroupsInput{
-		Limit: aws.Int64(50),
-	}
+	maxItems := int32(50)
 
-	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["name"] != nil {
-		input.LogGroupNamePrefix = types.String(equalQuals["name"].GetStringValue())
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.Limit = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.DescribeLogGroupsPages(
-		input,
-		func(page *cloudwatchlogs.DescribeLogGroupsOutput, isLast bool) bool {
-			for _, logGroup := range page.LogGroups {
-				d.StreamListItem(ctx, logGroup)
+	input := &cloudwatchlogs.DescribeLogGroupsInput{
+		Limit: &maxItems,
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := cloudwatchlogs.NewDescribeLogGroupsPaginator(svc, input, func(o *cloudwatchlogs.DescribeLogGroupsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudwatch_log_group.listCloudwatchLogGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, logGroup := range output.LogGroups {
+			d.StreamListItem(ctx, logGroup)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	return nil, err
-}
-
-//// HYDRATE FUNCTIONS
-
-func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
-
-	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	name := d.KeyColumnQuals["name"].GetStringValue()
-	params := &cloudwatchlogs.DescribeLogGroupsInput{
-		LogGroupNamePrefix: aws.String(name),
-	}
-
-	// execute list call
-	item, err := svc.DescribeLogGroups(params)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, logGroup := range item.LogGroups {
-		if types.SafeString(logGroup.LogGroupName) == name {
-			return logGroup, nil
 		}
 	}
 
 	return nil, nil
 }
 
-func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
-	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
+//// HYDRATE FUNCTIONS
 
-	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// Get client
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getCloudwatchLogGroup", "client_error", err)
 		return nil, err
 	}
 
-	params := &cloudwatchlogs.ListTagsLogGroupInput{
-		LogGroupName: logGroup.LogGroupName,
+	// check if name is empty
+	name := d.EqualsQuals["name"].GetStringValue()
+	if strings.TrimSpace(name) == "" {
+		return nil, nil
+	}
+
+	params := &cloudwatchlogs.DescribeLogGroupsInput{
+		LogGroupNamePrefix: aws.String(name),
+	}
+
+	item, err := svc.DescribeLogGroups(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getCloudwatchLogGroup", "api_error", err)
+		return nil, err
+	}
+
+	if len(item.LogGroups) > 0 {
+		return item.LogGroups[0], nil
+	}
+
+	return nil, nil
+}
+
+func getCloudwatchLogGroupDataProtectionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logGroup := h.Item.(types.LogGroup)
+
+	// Get client
+	svc, err := CloudWatchLogsClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroupDataProtectionPolicy", "client_error", err)
+		return nil, err
+	}
+
+	params := &cloudwatchlogs.GetDataProtectionPolicyInput{
+		LogGroupIdentifier: logGroup.LogGroupName,
+	}
+
+	// Get data protection policy
+	dataProtectionPolicyData, err := svc.GetDataProtectionPolicy(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroupDataProtectionPolicy", "api_error", err)
+		return nil, err
+	}
+
+	return dataProtectionPolicyData, nil
+}
+
+func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logGroup := h.Item.(types.LogGroup)
+
+	// https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/iam-access-control-overview-cwl.html
+	// DescribeLogGroups API returns the logGroup arn format arn:aws:logs:region:account-id:log-group:log_group_name:*
+	// ListTagsForResource API support the logGroup arn format arn:aws:logs:region:account-id:log-group:log_group_name
+	logGroupArn := strings.TrimSuffix(*logGroup.Arn, ":*")
+
+	// Create session
+	svc, err := CloudWatchLogsClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getLogGroupTagging", "client_error", err)
+		return nil, err
+	}
+
+	params := &cloudwatchlogs.ListTagsForResourceInput{
+		ResourceArn: aws.String(logGroupArn),
 	}
 
 	// List resource tags
-	logGroupData, err := svc.ListTagsLogGroup(params)
+	logGroupData, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getLogGroupTagging", "api_error", err)
 		return nil, err
 	}
+
 	return logGroupData, nil
 }

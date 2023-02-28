@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/kinesisvideo"
-	pb "github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo/types"
+
+	kinesisv1 "github.com/aws/aws-sdk-go/service/kinesis"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,65 +23,65 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("stream_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getKinesisVideoStream,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisVideoStreams,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(kinesisv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stream_name",
 				Description: "The name of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "stream_arn",
 				Description: "The Amazon Resource Name (ARN) of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("StreamARN"),
 			},
 			{
 				Name:        "status",
 				Description: "The status of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "version",
 				Description: "The version of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "kms_key_id",
 				Description: "The ID of the AWS Key Management Service (AWS KMS) key that Kinesis Video Streams uses to encrypt data on the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "creation_time",
 				Description: "A time stamp that indicates when the stream was created.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "data_retention_in_hours",
 				Description: "How long the stream retains data, in hours.",
-				Type:        pb.ColumnType_INT,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "device_name",
 				Description: "The name of the device that is associated with the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "media_type",
 				Description: "The MediaType of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     listKinesisVideoStreamTags,
 			},
 
@@ -85,13 +89,13 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("StreamName"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("StreamARN").Transform(arnToAkas),
 			},
 		}),
@@ -104,64 +108,76 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 	plugin.Logger(ctx).Trace("listKinesisVideoStreams")
 
 	// Create session
-	svc, err := KinesisVideoService(ctx, d)
+	svc, err := KinesisVideoClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.listKinesisVideoStreams", "connection_error", err)
 		return nil, err
 	}
 
-	input := &kinesisvideo.ListStreamsInput{
-		MaxResults: aws.Int64(10000),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
+	maxLimit := int32(1000)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
 
+	input := &kinesisvideo.ListStreamsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+	paginator := kinesisvideo.NewListStreamsPaginator(svc, input, func(o *kinesisvideo.ListStreamsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 	// List call
-	err = svc.ListStreamsPages(
-		input,
-		func(page *kinesisvideo.ListStreamsOutput, isLast bool) bool {
-			for _, stream := range page.StreamInfoList {
-				d.StreamListItem(ctx, stream)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_kinesis_video_stream.listKinesisVideoStreams", "api_error", err)
+			return nil, err
+		}
+		for _, stream := range output.StreamInfoList {
+			d.StreamListItem(ctx, stream)
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
+		}
+	}
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getKinesisVideoStream")
-
 	var streamName string
 	if h.Item != nil {
-		streamName = *h.Item.(*kinesisvideo.StreamInfo).StreamName
+		streamName = *h.Item.(types.StreamInfo).StreamName
 	} else {
-		quals := d.KeyColumnQuals
+		quals := d.EqualsQuals
 		streamName = quals["stream_name"].GetStringValue()
 	}
 
 	// get service
-	svc, err := KinesisVideoService(ctx, d)
+	svc, err := KinesisVideoClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.getKinesisVideoStream", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -170,25 +186,28 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	data, err := svc.DescribeStream(params)
+	data, err := svc.DescribeStream(ctx, params)
 	if err != nil {
-		logger.Debug("describeStream__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.getKinesisVideoStream", "api_error", err)
 		return nil, err
 	}
-	return data.StreamInfo, nil
+	return *data.StreamInfo, nil
 }
 
 // API call for fetching tags
 func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listKinesisVideoStreamTags")
-
-	data := h.Item.(*kinesisvideo.StreamInfo)
+	data := h.Item.(types.StreamInfo)
 
 	// Create Session
-	svc, err := KinesisVideoService(ctx, d)
+	svc, err := KinesisVideoClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.listKinesisVideoStreamTags", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -197,9 +216,9 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Get call
-	op, err := svc.ListTagsForStream(params)
+	op, err := svc.ListTagsForStream(ctx, params)
 	if err != nil {
-		logger.Debug("listKinesisVideoStreamTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.listKinesisVideoStreamTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil

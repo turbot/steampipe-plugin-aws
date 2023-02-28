@@ -1,0 +1,12 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "description": "{{ resourceName }}",
+    "firewall_policy_status": "ACTIVE",
+    "name": "{{ resourceName }}",
+    "region": "{{ output.aws_region.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]

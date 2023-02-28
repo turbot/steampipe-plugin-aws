@@ -4,11 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
 // AllCostMetrics is a constant returning all the cost metrics
@@ -128,27 +130,26 @@ func costExplorerColumns(columns []*plugin.Column) []*plugin.Column {
 //// LIST FUNCTION
 
 func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costexplorer.GetCostAndUsageInput) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("streamCostAndUsage")
 
 	// Create session
-	svc, err := CostExplorerService(ctx, d)
+	svc, err := CostExplorerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("streamCostAndUsage", "client_error", err)
 		return nil, err
 	}
 	// List call
 	for {
-		output, err := svc.GetCostAndUsage(params)
+		output, err := svc.GetCostAndUsage(ctx, params)
 		if err != nil {
-			logger.Error("streamCostAndUsage", "err", err)
+			plugin.Logger(ctx).Error("streamCostAndUsage", "api_error", err)
 			return nil, err
 		}
 
 		// stream the results...
-		for _, row := range buildCEMetricRows(ctx, output, d.KeyColumnQuals) {
+		for _, row := range buildCEMetricRows(ctx, output, d.EqualsQuals) {
 			d.StreamListItem(ctx, row)
 
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -157,7 +158,7 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 		if output.NextPageToken == nil {
 			break
 		}
-		params.SetNextPageToken(*output.NextPageToken)
+		params.NextPageToken = output.NextPageToken
 	}
 
 	return nil, nil
@@ -177,7 +178,6 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 			row.Estimated = result.Estimated
 			row.PeriodStart = result.TimePeriod.Start
 			row.PeriodEnd = result.TimePeriod.End
-
 			row.setRowMetrics(result.Total)
 			rows = append(rows, row)
 		}
@@ -190,9 +190,9 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 			row.PeriodEnd = result.TimePeriod.End
 
 			if len(group.Keys) > 0 {
-				row.Dimension1 = group.Keys[0]
+				row.Dimension1 = aws.String(group.Keys[0])
 				if len(group.Keys) > 1 {
-					row.Dimension2 = group.Keys[1]
+					row.Dimension2 = aws.String(group.Keys[1])
 				}
 			}
 			row.setRowMetrics(group.Metrics)
@@ -204,7 +204,7 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 
 // CEMetricRow is the flattened, aggregated value for a metric.
 type CEMetricRow struct {
-	Estimated *bool
+	Estimated bool
 
 	// The time period that the result covers.
 	PeriodStart *string
@@ -231,36 +231,29 @@ type CEMetricRow struct {
 	NormalizedUsageUnit  *string
 }
 
-func (row *CEMetricRow) setRowMetrics(metrics map[string]*costexplorer.MetricValue) {
+func (row *CEMetricRow) setRowMetrics(metrics map[string]types.MetricValue) {
 
-	if metrics["BlendedCost"] != nil {
-		row.BlendedCostAmount = metrics["BlendedCost"].Amount
-		row.BlendedCostUnit = metrics["BlendedCost"].Unit
-	}
-	if metrics["UnblendedCost"] != nil {
-		row.UnblendedCostAmount = metrics["UnblendedCost"].Amount
-		row.UnblendedCostUnit = metrics["UnblendedCost"].Unit
-	}
-	if metrics["NetUnblendedCost"] != nil {
-		row.NetUnblendedCostAmount = metrics["NetUnblendedCost"].Amount
-		row.NetUnblendedCostUnit = metrics["NetUnblendedCost"].Unit
-	}
-	if metrics["AmortizedCost"] != nil {
-		row.AmortizedCostAmount = metrics["AmortizedCost"].Amount
-		row.AmortizedCostUnit = metrics["AmortizedCost"].Unit
-	}
-	if metrics["NetAmortizedCost"] != nil {
-		row.NetAmortizedCostAmount = metrics["NetAmortizedCost"].Amount
-		row.NetAmortizedCostUnit = metrics["NetAmortizedCost"].Unit
-	}
-	if metrics["UsageQuantity"] != nil {
-		row.UsageQuantityAmount = metrics["UsageQuantity"].Amount
-		row.UsageQuantityUnit = metrics["UsageQuantity"].Unit
-	}
-	if metrics["NormalizedUsageAmount"] != nil {
-		row.NormalizedUsageAmount = metrics["NormalizedUsageAmount"].Amount
-		row.NormalizedUsageUnit = metrics["NormalizedUsageAmount"].Unit
-	}
+	row.BlendedCostAmount = metrics["BlendedCost"].Amount
+	row.BlendedCostUnit = metrics["BlendedCost"].Unit
+
+	row.UnblendedCostAmount = metrics["UnblendedCost"].Amount
+	row.UnblendedCostUnit = metrics["UnblendedCost"].Unit
+
+	row.NetUnblendedCostAmount = metrics["NetUnblendedCost"].Amount
+	row.NetUnblendedCostUnit = metrics["NetUnblendedCost"].Unit
+
+	row.AmortizedCostAmount = metrics["AmortizedCost"].Amount
+	row.AmortizedCostUnit = metrics["AmortizedCost"].Unit
+
+	row.NetAmortizedCostAmount = metrics["NetAmortizedCost"].Amount
+	row.NetAmortizedCostUnit = metrics["NetAmortizedCost"].Unit
+
+	row.UsageQuantityAmount = metrics["UsageQuantity"].Amount
+	row.UsageQuantityUnit = metrics["UsageQuantity"].Unit
+
+	row.NormalizedUsageAmount = metrics["NormalizedUsageAmount"].Amount
+	row.NormalizedUsageUnit = metrics["NormalizedUsageAmount"].Unit
+
 }
 
 func getCEStartDateForGranularity(granularity string) time.Time {
@@ -286,13 +279,13 @@ type CEQuals struct {
 
 func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("hydrateKeyQuals")
-	//plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.KeyColumnQuals", d.KeyColumnQuals)
+	//plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
 
 	return &CEQuals{
-		SearchStartTime: d.KeyColumnQuals["search_start_time"].GetTimestampValue(),
-		SearchEndTime:   d.KeyColumnQuals["search_end_time"].GetTimestampValue(),
-		Granularity:     d.KeyColumnQuals["granularity"].GetStringValue(),
-		DimensionType1:  d.KeyColumnQuals["dimension_type_1"].GetStringValue(),
-		DimensionType2:  d.KeyColumnQuals["dimension_type_2"].GetStringValue(),
+		SearchStartTime: d.EqualsQuals["search_start_time"].GetTimestampValue(),
+		SearchEndTime:   d.EqualsQuals["search_end_time"].GetTimestampValue(),
+		Granularity:     d.EqualsQuals["granularity"].GetStringValue(),
+		DimensionType1:  d.EqualsQuals["dimension_type_1"].GetStringValue(),
+		DimensionType2:  d.EqualsQuals["dimension_type_2"].GetStringValue(),
 	}, nil
 }

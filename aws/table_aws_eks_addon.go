@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	eksv1 "github.com/aws/aws-sdk-go/service/eks"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,15 +23,15 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"addon_name", "cluster_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
 			},
 			Hydrate: getEksAddon,
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listEksClusters,
-			Hydrate:       listEksAddons,
+			ParentHydrate: listEKSClusters,
+			Hydrate:       listEKSAddons,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "addon_name",
@@ -111,70 +114,86 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listEKSAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get cluster details
-	clusterName := *h.Item.(*eks.Cluster).Name
+	clusterName := *h.Item.(types.Cluster).Name
 
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon.listEKSAddons", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &eks.ListAddonsInput{
 		ClusterName: &clusterName,
-		MaxResults:  aws.Int64(100),
+		MaxResults:  aws.Int32(100),
 	}
 
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxResults {
+			if limit < 1 {
+				input.MaxResults = aws.Int32(1)
 			} else {
-				input.MaxResults = limit
+				input.MaxResults = aws.Int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListAddonsPages(
-		input,
-		func(page *eks.ListAddonsOutput, _ bool) bool {
-			for _, addon := range page.Addons {
-				d.StreamListItem(ctx, &eks.Addon{
-					AddonName:   addon,
-					ClusterName: &clusterName,
-				})
+	paginator := eks.NewListAddonsPaginator(svc, input, func(o *eks.ListAddonsPaginatorOptions) {
+		o.Limit = *input.MaxResults
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_eks_addon.listEKSAddons", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.Addons {
+			d.StreamListItem(ctx, types.Addon{
+				AddonName:   aws.String(item),
+				ClusterName: &clusterName,
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return true
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getEksAddon(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEksAddon")
-
 	var clusterName, addonName string
 	if h.Item != nil {
-		clusterName = *h.Item.(*eks.Addon).ClusterName
-		addonName = *h.Item.(*eks.Addon).AddonName
+		clusterName = *h.Item.(types.Addon).ClusterName
+		addonName = *h.Item.(types.Addon).AddonName
 	} else {
-		clusterName = d.KeyColumnQuals["cluster_name"].GetStringValue()
-		addonName = d.KeyColumnQuals["addon_name"].GetStringValue()
+		clusterName = d.EqualsQuals["cluster_name"].GetStringValue()
+		addonName = d.EqualsQuals["addon_name"].GetStringValue()
 	}
 
 	// create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon.getEksAddon", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &eks.DescribeAddonInput{
@@ -182,8 +201,9 @@ func getEksAddon(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 		ClusterName: &clusterName,
 	}
 
-	op, err := svc.DescribeAddon(params)
+	op, err := svc.DescribeAddon(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_addon.getEksAddon", "api_error", err)
 		return nil, err
 	}
 
