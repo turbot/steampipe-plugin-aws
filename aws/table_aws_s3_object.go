@@ -459,6 +459,10 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 	object, err := svc.GetObject(ctx, params)
 	if err != nil {
+		// if the key is unavailable in the provided bucket
+		if strings.Contains(err.Error(), "NoSuchKey") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("GetObject", "api_error", err)
 		return nil, err
 	}
