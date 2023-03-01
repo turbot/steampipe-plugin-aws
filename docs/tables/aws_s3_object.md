@@ -171,3 +171,46 @@ where
   bucket_name = 'steampipe-test'
   and tags ->> 'application' is not null;
 ```
+
+### List all objects where bucket key is disabled
+
+```sql
+select
+  key,
+  o.arn as object_arn,
+  bucket_name,
+  last_modified,
+  bucket_key_enabled
+from
+  aws_s3_object as o,
+  aws_s3_bucket as b
+where
+  o.bucket_name = b.name
+  and not bucket_key_enabled;
+```
+
+### List all objects where buckets do not block public access
+
+```sql
+select
+  key,
+  arn,
+  bucket_name,
+  last_modified,
+  storage_class
+from
+  aws_s3_object
+where
+  bucket_name in
+  (
+    select
+      name
+    from
+      aws_s3_bucket
+    where
+      not block_public_acls
+      or not block_public_policy
+      or not ignore_public_acls
+      or not restrict_public_buckets
+  );
+```
