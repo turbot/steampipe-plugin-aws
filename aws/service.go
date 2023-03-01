@@ -1152,7 +1152,7 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 	return s3control.NewFromConfig(*cfg), nil
 }
 
-// All requests to create or maintain Multi-Region Access Points are routed to the US West (Oregon) Region.
+// All requests to create or maintain Multi-Region Access Points are routed to the US West (Oregon) Region. so we have no choice but to hard code it here.
 // This is true regardless of which Region you are in when making the request, or what Regions the Multi-Region Access Point supports.
 // https://docs.aws.amazon.com/AmazonS3/latest/userguide/ManagingMultiRegionAccessPoints.html
 // S3 multi-region access point supports in China but not in US Gov or US ISO
