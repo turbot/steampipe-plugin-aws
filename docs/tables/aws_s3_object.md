@@ -6,7 +6,7 @@ You **_must_** specify a `bucket_name` in a where or join clause in order to use
 
 We recommend specifying the `prefix` and `key` columns when querying buckets with a large number of objects to reduce the query time.
 
-> Note: Using this table adds to cost to your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. Please refer to AWS S3 Pricing to understand the cost implications.
+Note: Using this table adds to cost to your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. Please refer to AWS S3 Pricing to understand the cost implications.
 
 ## Examples
 
