@@ -2,14 +2,15 @@ package aws
 
 import (
 	"context"
-	"errors"
+	"encoding/base64"
+	"fmt"
 	"io"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/smithy-go"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -27,41 +28,159 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				{Name: "prefix", Require: plugin.Optional},
 			},
 		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func:    getS3Object,
-				Depends: []plugin.HydrateFunc{getBucketLocationForObjects},
-			},
-			{
-				Func:    getS3ObjectACL,
-				Depends: []plugin.HydrateFunc{getBucketLocationForObjects},
-			},
-			{
-				Func:    getS3ObjectAttributes,
-				Depends: []plugin.HydrateFunc{getBucketLocationForObjects},
-			},
-			{
-				Func:    getS3ObjectTorrent,
-				Depends: []plugin.HydrateFunc{getBucketLocationForObjects},
-			},
-			{
-				Func:    getS3ObjectTagging,
-				Depends: []plugin.HydrateFunc{getBucketLocationForObjects},
-			},
-			{
-				Func:    getS3ObjectLegalHold,
-				Depends: []plugin.HydrateFunc{getBucketLocationForObjects},
-			},
-			{
-				Func:    getS3ObjectRetention,
-				Depends: []plugin.HydrateFunc{getBucketLocationForObjects},
-			},
-		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "key",
 				Description: "The name that you assign to an object. You use the object key to retrieve the object.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "arn",
+				Description: "The ARN of the AWS S3 Object.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getObjectARN,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "bucket_name",
+				Description: "The name of the container bucket of this object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("bucket_name"),
+			},
+			{
+				Name:        "last_modified",
+				Description: "Creation date of the object.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "storage_class",
+				Description: "The class of storage used to store the object.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "version_id",
+				Description: "The version ID of the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("VersionId"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "accept_ranges",
+				Description: "Indicates that a range of bytes was specified.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AcceptRanges"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "body",
+				Description: "The raw bytes of the object data as a string. if the bytes entirely consists of valid UTF8 runes, an UTF8 is sent otherwise the bas64 encoding of the bytes is sent.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromValue().Transform(readObjectBody),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "bucket_key_enabled",
+				Description: "Indicates whether the object uses an S3 Bucket Key for server-side encryption with Amazon Web Services KMS (SSE-KMS)",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("BucketKeyEnabled"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "cache_control",
+				Description: "Specifies caching behavior along the request/reply chain.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("CacheControl"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "checksum_crc32",
+				Description: "The base64-encoded, 32-bit CRC32 checksum of the object. This will only be present if it was uploaded with the object. With multipart uploads, this may not be a checksum value of the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ChecksumCRC32"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "checksum_crc32c",
+				Description: "The base64-encoded, 32-bit CRC32C checksum of the object. This will only be present if it was uploaded with the object. With multipart uploads, this may not be a checksum value of the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ChecksumCRC32C"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "checksum_sha1",
+				Description: "The base64-encoded, 160-bit SHA-1 digest of the object. This will only be present if it was uploaded with the object. With multipart uploads, this may not be a checksum value of the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ChecksumSHA1"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "checksum_sha256",
+				Description: "The base64-encoded, 256-bit SHA-256 digest of the object. This will only be present if it was uploaded with the object. With multipart uploads, this may not be a checksum value of the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ChecksumSHA256"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "content_disposition",
+				Description: "Specifies presentational information for the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContentDisposition"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "content_encoding",
+				Description: "Specifies what content encodings have been applied to the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContentEncoding"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "content_language",
+				Description: "The language the content is in.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContentLanguage"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "content_length",
+				Description: "Size of the body in bytes.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContentLength"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "content_range",
+				Description: "The portion of the object returned in the response.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContentRange"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "content_type",
+				Description: "A standard MIME type describing the format of the object data.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContentType"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "delete_marker",
+				Description: "Specifies whether the object retrieved was (true) or was not (false) a delete marker.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("DeleteMarker"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "expiration",
+				Description: "If the object expiration is configured (see PUT Bucket lifecycle), the response includes this header. It includes the expiry-date and rule-id key-value pairs providing object expiration information. The value of the rule-id is URL-encoded.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Expiration"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "expires",
+				Description: "The date and time at which the object is no longer cacheable.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("Expires"),
 			},
 			{
 				Name:        "etag",
@@ -70,9 +189,66 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ETag"),
 			},
 			{
-				Name:        "storage_class",
-				Description: "The class of storage used to store the object.",
+				Name:        "object_lock_legal_hold_status",
+				Description: "Like a retention period, a legal hold prevents an object version from being overwritten or deleted. A legal hold remains in effect until removed.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ObjectLockLegalHoldStatus"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "object_lock_mode",
+				Description: "The Object Lock mode currently in place for this object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ObjectLockMode"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "object_lock_retain_until_date",
+				Description: "The date and time when this object's Object Lock will expire.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("ObjectLockRetainUntilDate"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "parts_count",
+				Description: "The count of parts this object has. This value is only returned if you specify partNumber in your request and the object was uploaded as a multipart upload.",
+				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromQual("PartsCount"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "prefix",
+				Description: "The prefix of the key of the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("prefix"),
+			},
+			{
+				Name:        "replication_status",
+				Description: "Amazon S3 can return this if your request involves a bucket that is either a source or destination in a replication rule.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ReplicationStatus"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "request_charged",
+				Description: "If present, indicates that the requester was successfully charged for the request.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("RequestCharged"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "restore",
+				Description: "Provides information about object restoration action and expiration time of the restored object copy.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Restore"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "server_side_encryption",
+				Description: "The server-side encryption algorithm used when storing this object in Amazon S3.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ServerSideEncryption"),
+				Hydrate:     getS3Object,
 			},
 			{
 				Name:        "size",
@@ -80,197 +256,130 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "last_modified",
-				Description: "Creation date of the object.",
-				Type:        proto.ColumnType_TIMESTAMP,
+				Name:        "sse_customer_algorithm",
+				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header confirming the encryption algorithm used.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SSECustomerAlgorithm"),
+				Hydrate:     getS3Object,
 			},
 			{
-				Name:        "prefix",
-				Description: "The prefix of the key of the object.",
+				Name:        "sse_customer_key_md5",
+				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header to provide round-trip message integrity verification of the customer-provided encryption key.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SSECustomerKeyMD5"),
+				Hydrate:     getS3Object,
 			},
 			{
-				Name:        "bucket_name",
-				Description: "The name of the container bucket of this object.",
+				Name:        "sse_kms_key_id",
+				Description: "If present, specifies the ID of the Amazon Web Services Key Management Service(Amazon Web Services KMS) symmetric customer managed key that was used for the object.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SSEKMSKeyId"),
+				Hydrate:     getS3Object,
 			},
-			// {
-			// 	Name:        "owner",
-			// 	Description: "The owner of the object.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("Owner"),
-			// 	Hydrate:     getS3ObjectACL,
-			// },
-			// {
-			// 	Name:        "acl",
-			// 	Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromValue(),
-			// 	Hydrate:     getS3ObjectACL,
-			// },
-			// {
-			// 	Name:        "retention",
-			// 	Description: "A retention period protects an object version for a fixed amount of time.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromValue(),
-			// 	Hydrate:     getS3ObjectRetention,
-			// },
-			// {
-			// 	Name:        "legal_hold",
-			// 	Description: "Like a retention period, a legal hold prevents an object version from being overwritten or deleted. A legal hold remains in effect until removed.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromValue(),
-			// 	Hydrate:     getS3ObjectLegalHold,
-			// },
-			// {
-			// 	Name:        "tags",
-			// 	Description: resourceInterfaceDescription("tags"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("TagSet").Transform(handleS3TagsToTurbotTags),
-			// 	Hydrate:     getS3ObjectTagging,
-			// },
-			// {
-			// 	Name:        "tags_src",
-			// 	Description: "A list of tags assigned to the object.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("TagSet"),
-			// 	Hydrate:     getS3ObjectTagging,
-			// },
-			// {
-			// 	Name:        "torrent",
-			// 	Description: "Returns the Bencode of the torrent. You can get torrent only for objects that are less than 5 GB in size, and that are not encrypted using server-side encryption with a customer-provided encryption key.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromValue(),
-			// 	Hydrate:     getS3ObjectTorrent,
-			// },
+			{
+				Name:        "tag_count",
+				Description: "The number of tags, if any, on the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("TagCount"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "website_redirection_location",
+				Description: "If the bucket is configured as a website, redirects requests for this object  to another object in the same bucket or to an external URL.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("WebsiteRedirectLocation"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "acl",
+				Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+				Hydrate:     getS3ObjectACL,
+			},
+			{
+				Name:        "checksum",
+				Description: "The checksum or digest of the object.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Checksum"),
+				Hydrate:     getS3ObjectAttributes,
+			},
+			{
+				Name:        "metadata",
+				Description: "A map of metadata to store with the object in S3.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Metadata"),
+				Hydrate:     getS3Object,
+			},
+			{
+				Name:        "object_parts",
+				Description: "A collection of parts associated with a multipart upload.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ObjectParts"),
+				Hydrate:     getS3ObjectAttributes,
+			},
+			{
+				Name:        "owner",
+				Description: "The owner of the object.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the object.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("TagSet"),
+				Hydrate:     getS3ObjectTagging,
+			},
 
-			// {
-			// 	Name:        "checksum",
-			// 	Description: "The checksum or digest of the object.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("Checksum"),
-			// 	Hydrate:     getS3ObjectAttributes,
-			// },
-			// {
-			// 	Name:        "parts",
-			// 	Description: "A collection of parts associated with a multipart upload.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("ObjectParts"),
-			// 	Hydrate:     getS3ObjectAttributes,
-			// },
-			// {
-			// 	Name:        "delete_marker",
-			// 	Description: "Specifies whether the object retrieved was (true) or was not (false) a delete marker.",
-			// 	Type:        proto.ColumnType_BOOL,
-			// 	Transform:   transform.FromField("DeleteMarker"),
-			// 	Hydrate:     getS3ObjectAttributes,
-			// },
-			// {
-			// 	Name:        "content_type",
-			// 	Description: "A standard MIME type describing the format of the object data.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("ContentType"),
-			// 	Hydrate:     getS3Object,
-			// },
-			// {
-			// 	Name:        "bucket_key_enabled",
-			// 	Description: "Indicates whether the object uses an S3 Bucket Key for server-side encryption with Amazon Web Services KMS (SSE-KMS)",
-			// 	Type:        proto.ColumnType_BOOL,
-			// 	Transform:   transform.FromField("BucketKeyEnabled"),
-			// 	Hydrate:     getS3Object,
-			// },
-			// {
-			// 	Name:        "metadata",
-			// 	Description: "A map of metadata to store with the object in S3.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("Metadata"),
-			// 	Hydrate:     getS3Object,
-			// },
-			// {
-			// 	Name:        "content_encoding",
-			// 	Description: "Specifies what content encodings have been applied to the object.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("ContentEncoding"),
-			// 	Hydrate:     getS3Object,
-			// },
-			// {
-			// 	Name:        "content_length",
-			// 	Description: "Size of the body in bytes.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("ContentLength"),
-			// 	Hydrate:     getS3Object,
-			// },
-			// {
-			// 	Name:        "replication_status",
-			// 	Description: "Amazon S3 can return this if your request involves a bucket that is either a source or destination in a replication rule.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("ReplicationStatus"),
-			// 	Hydrate:     getS3Object,
-			// },
-			// {
-			// 	Name:        "restore",
-			// 	Description: "Provides information about object restoration action and expiration time of the restored object copy.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("Restore"),
-			// 	Hydrate:     getS3Object,
-			// },
-			// {
-			// 	Name:        "server_side_encryption",
-			// 	Description: "The server-side encryption algorithm used when storing this object in Amazon S3.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("ServerSideEncryption"),
-			// 	Hydrate:     getS3Object,
-			// },
-			// {
-			// 	Name:        "website_redirection_location",
-			// 	Description: "If the bucket is configured as a website, redirects requests for this object  to another object in the same bucket or to an external URL.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("WebsiteRedirectLocation"),
-			// 	Hydrate:     getS3Object,
-			// },
-
-			// steampipe fields
+			// Steampipe standard columns
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("TagSet").Transform(handleS3TagsToTurbotTags),
+				Hydrate:     getS3ObjectTagging,
+			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Key"),
 			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getObjectARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
+			},
+			{
+				Name:        "region",
+				Description: "The AWS Region in which the object is located.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBucketLocationForObjects,
+				Transform:   transform.FromValue(),
+			},
 		}),
 	}
 }
 
 func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// Unlike most services, S3 buckets are a global list. They can be retrieved
-	// from any single region.  We must list buckets from the default region to
-	// get the actual creation_time of the bucket, in all other regions the list
-	// returns the time when the bucket was last modified. See
-	// https://www.marksayson.com/blog/s3-bucket-creation-dates-s3-master-regions/
-	defaultRegion, err := getLastResortRegion(ctx, d, h)
+	// Bucket location will be nil if getBucketLocationForObjects returned an error but
+	// was ignored through ignore_error_codes config arg
+	location, err := getBucketLocationForObjects(ctx, d, h)
 	if err != nil {
 		return nil, err
+	} else if location == "" {
+		return nil, nil
 	}
-	svc, err := S3Client(ctx, d, "ap-south-1")
+
+	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
-		plugin.Logger(ctx).Error("listS3Objects", "get_client_error", err, "defaultRegion", defaultRegion)
+		plugin.Logger(ctx).Error("listS3Objects", "get_client_error", err)
 		return nil, err
 	}
 
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-
-	// we need to retain this, since a few fields in the objects will always be `nil` if this is `nil`
-	// _, err = svc.GetObjectLockConfiguration(ctx, &s3.GetObjectLockConfigurationInput{
-	// 	Bucket: &bucketName,
-	// })
-	// bucketHasLockConfig := true
-	// if err != nil {
-	// 	if strings.Contains(err.Error(), "ObjectLockConfigurationNotFoundError") {
-	// 		bucketHasLockConfig = false
-	// 	} else {
-	// 		return nil, err
-	// 	}
-	// }
 
 	// default supported max value is 1000 by ListObjectsV2
 	maxItems := int32(1000)
@@ -287,7 +396,7 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	input := &s3.ListObjectsV2Input{
 		Bucket:     aws.String(bucketName),
 		MaxKeys:    maxItems,
-		FetchOwner: false,
+		FetchOwner: true,
 	}
 
 	equalQuals := d.EqualsQuals
@@ -310,7 +419,7 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		plugin.Logger(ctx).Error("ListObjectsV2", "api_error", err)
 		return nil, err
 	}
-	plugin.Logger(ctx).Error("ListObjectsV2", "objects", len(objects.Contents))
+
 	for _, object := range objects.Contents {
 		d.StreamListItem(ctx, object)
 
@@ -326,14 +435,15 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Bucket location will be nil if getBucketLocationForObjects returned an error but
 	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocationForObjects"] == nil {
+	location, err := getBucketLocationForObjects(ctx, d, h)
+	if err != nil {
+		return nil, err
+	} else if location == "" {
 		return nil, nil
 	}
 
-	location := h.HydrateResults["getBucketLocationForObjects"].(*s3.GetBucketLocationOutput)
-
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
 		plugin.Logger(ctx).Error("getS3Object", "client_error", err)
 		return nil, err
@@ -356,25 +466,18 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	return object, nil
 }
 
-func derivePrefix(ctx context.Context, key string, knownPrefix string) string {
-	derivedPrefix := knownPrefix
-	if strings.Contains(key, "/") && len(knownPrefix) == 0 {
-		derivedPrefix = (key)[:strings.LastIndex(key, "/")]
-	}
-	return derivedPrefix
-}
-
 func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Bucket location will be nil if getBucketLocationForObjects returned an error but
 	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocationForObjects"] == nil {
+	location, err := getBucketLocationForObjects(ctx, d, h)
+	if err != nil {
+		return nil, err
+	} else if location == "" {
 		return nil, nil
 	}
 
-	location := h.HydrateResults["getBucketLocationForObjects"].(*s3.GetBucketLocationOutput)
-
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
 		plugin.Logger(ctx).Error("getS3ObjectAttributes", "client_error", err)
 		return nil, err
@@ -386,7 +489,7 @@ func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	params := &s3.GetObjectAttributesInput{
 		Bucket:           aws.String(bucketName),
 		Key:              key,
-		ObjectAttributes: []types.ObjectAttributes{types.ObjectAttributesChecksum},
+		ObjectAttributes: []types.ObjectAttributes{types.ObjectAttributesChecksum, types.ObjectAttributesObjectParts},
 	}
 
 	objectAttributes, err := svc.GetObjectAttributes(ctx, params)
@@ -401,20 +504,24 @@ func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Bucket location will be nil if getBucketLocationForObjects returned an error but
 	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocationForObjects"] == nil {
+	location, err := getBucketLocationForObjects(ctx, d, h)
+	if err != nil {
+		return nil, err
+	} else if location == "" {
 		return nil, nil
 	}
+
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
 	object := h.Item.(types.Object)
 
+	// GetObjectAcl is not supported by Amazon S3 on Outposts.
+	// https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectAcl.html
 	if isOutpostObject(string(object.StorageClass)) {
 		return nil, nil
 	}
 
-	location := h.HydrateResults["getBucketLocationForObjects"].(*s3.GetBucketLocationOutput)
-
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
 		plugin.Logger(ctx).Error("getS3ObjectACL", "client_error", err)
 		return nil, err
@@ -434,77 +541,21 @@ func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	return objectAcl, nil
 }
 
-func getS3ObjectTorrent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocationForObjects returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocationForObjects"] == nil {
-		return nil, nil
-	}
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-	object := h.Item.(types.Object)
-
-	if isOutpostObject(string(object.StorageClass)) {
-		return nil, nil
-	}
-
-	location := h.HydrateResults["getBucketLocationForObjects"].(*s3.GetBucketLocationOutput)
-
-	bucketHasLockConfig, err := getS3ObjectLockConfiguration(ctx, d, h, string(location.LocationConstraint))
-	if err != nil {
-		return nil, err
-	}
-
-	if !*bucketHasLockConfig {
-		return nil, nil
-	}
-
-	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
-	if err != nil {
-		plugin.Logger(ctx).Error("getS3ObjectTorrent", "client_error", err)
-		return nil, err
-	}
-
-	input := &s3.GetObjectTorrentInput{
-		Bucket: aws.String(bucketName),
-		Key:    object.Key,
-	}
-
-	torrentOutput, err := svc.GetObjectTorrent(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("GetObjectAcl", "api_error", err)
-		return nil, err
-	}
-
-	bodyBytes, err := io.ReadAll(torrentOutput.Body)
-	if err != nil {
-		plugin.Logger(ctx).Error("torrent bytes error", err)
-		return nil, err
-	}
-	return string(bodyBytes), nil
-}
-
 func getS3ObjectTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Bucket location will be nil if getBucketLocationForObjects returned an error but
 	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocationForObjects"] == nil {
-		return nil, nil
-	}
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-	object := h.Item.(types.Object)
-	location := h.HydrateResults["getBucketLocationForObjects"].(*s3.GetBucketLocationOutput)
-
-	bucketHasLockConfig, err := getS3ObjectLockConfiguration(ctx, d, h, string(location.LocationConstraint))
+	location, err := getBucketLocationForObjects(ctx, d, h)
 	if err != nil {
 		return nil, err
-	}
-
-	if !*bucketHasLockConfig {
+	} else if location == "" {
 		return nil, nil
 	}
 
+	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	object := h.Item.(types.Object)
+
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
 		plugin.Logger(ctx).Error("getS3ObjectTagging", "client_error", err)
 		return nil, err
@@ -524,177 +575,98 @@ func getS3ObjectTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	return tags, nil
 }
 
-func getS3ObjectLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocationForObjects returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocationForObjects"] == nil {
-		return nil, nil
-	}
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-	object := h.Item.(types.Object)
-
-	if isOutpostObject(string(object.StorageClass)) {
-		return nil, nil
-	}
-
-	location := h.HydrateResults["getBucketLocationForObjects"].(*s3.GetBucketLocationOutput)
-
-	bucketHasLockConfig, err := getS3ObjectLockConfiguration(ctx, d, h, string(location.LocationConstraint))
-	if err != nil {
-		return nil, err
-	}
-
-	if !*bucketHasLockConfig {
-		return nil, nil
-	}
-
-	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
-	if err != nil {
-		plugin.Logger(ctx).Error("getS3ObjectLegalHold", "client_error", err)
-		return nil, err
-	}
-
-	input := &s3.GetObjectLegalHoldInput{
-		Bucket: aws.String(bucketName),
-		Key:    object.Key,
-	}
-
-	legalHoldOutput, err := svc.GetObjectLegalHold(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("GetObjectLegalHold", "api_error", err)
-		return nil, err
-	}
-
-	return legalHoldOutput.LegalHold.Status, nil
-}
-
-func getS3ObjectRetention(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocationForObjects returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocationForObjects"] == nil {
-		return nil, nil
-	}
-	location := h.HydrateResults["getBucketLocationForObjects"].(*s3.GetBucketLocationOutput)
-
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-	object := h.Item.(types.Object)
-
-	if isOutpostObject(string(object.StorageClass)) {
-		return nil, nil
-	}
-	bucketHasLockConfig, err := getS3ObjectLockConfiguration(ctx, d, h, string(location.LocationConstraint))
-	if err != nil {
-		return nil, err
-	}
-
-	if !*bucketHasLockConfig {
-		return nil, nil
-	}
-
-	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
-	if err != nil {
-		plugin.Logger(ctx).Error("getS3ObjectRetention", "client_error", err)
-		return nil, err
-	}
-
-	input := &s3.GetObjectRetentionInput{
-		Bucket: aws.String(bucketName),
-		Key:    object.Key,
-	}
-
-	retentionOutput, err := svc.GetObjectRetention(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("GetObjectRetention", "api_error", err)
-		return nil, err
-	}
-
-	return retentionOutput.Retention, nil
-}
-
 func getBucketLocationForObjects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("getBucketLocationForObjects", "get_common_columns_error", err)
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+
+	// have we already created and cached the session?
+	cacheKey := "getBucketLocationForObjects" + bucketName + commonColumnData.AccountId
+
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.(string), nil
+	}
 
 	// Unlike most services, S3 buckets are a global list. They can be retrieved
 	// from any single region. It's best to use the client region of the user
 	// (e.g. closest to them).
 	clientRegion, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	svc, err := S3Client(ctx, d, clientRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("getBucketLocationForObjects", "get_client_error", err, "clientRegion", clientRegion)
-		return nil, err
+		return "", err
 	}
 
-	params := &s3.GetBucketLocationInput{Bucket: aws.String(bucketName)}
+	params := &s3.GetBucketLocationInput{Bucket: aws.String(bucketName), ExpectedBucketOwner: aws.String(commonColumnData.AccountId)}
 
 	// Specifies the Region where the bucket resides. For a list of all the Amazon
 	// S3 supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region).
 	location, err := svc.GetBucketLocation(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("getBucketLocationForObjects", "bucket_name", bucketName, "clientRegion", clientRegion, "api_error", err)
-		return nil, err
+		return "", err
 	}
-
+	var locationConstraint string
 	if location != nil && location.LocationConstraint != "" {
 		// Buckets in eu-west-1 created through the AWS CLI or other API driven methods can return a location of "EU",
 		// so we need to convert back
 		if location.LocationConstraint == "EU" {
-			return &s3.GetBucketLocationOutput{
-				LocationConstraint: "eu-west-1",
-			}, nil
+			locationConstraint = "eu-west-1"
+			d.ConnectionManager.Cache.Set(cacheKey, locationConstraint)
+			return locationConstraint, nil
 		}
-		return location, nil
+		d.ConnectionManager.Cache.Set(cacheKey, string(location.LocationConstraint))
+		return string(location.LocationConstraint), nil
 	}
 
 	// Buckets in us-east-1 have a LocationConstraint of null
-	return &s3.GetBucketLocationOutput{
-		LocationConstraint: "us-east-1",
-	}, nil
+	locationConstraint = "us-east-1"
+	d.ConnectionManager.Cache.Set(cacheKey, locationConstraint)
+	return locationConstraint, nil
 }
 
-func getS3ObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, location string) (*bool, error) {
+func getObjectARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	object := h.Item.(types.Object)
 
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("getObjectARN", "get_common_columns_error", err)
+		return nil, err
+	}
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	commonColumnData := c.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":s3:::" + bucketName + "/" + *object.Key
 
-	// have we already created and cached the session?
-	cacheKey := bucketName
-
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.(*bool), nil
-	}
-	// Create client
-	svc, err := S3Client(ctx, d, location)
-	if err != nil {
-		plugin.Logger(ctx).Error("getS3ObjectLockConfiguration", "client_error", err)
-		return nil, err
-	}
-
-	params := &s3.GetObjectLockConfigurationInput{Bucket: aws.String(bucketName)}
-
-	_, err = svc.GetObjectLockConfiguration(ctx, params)
-	if err != nil {
-		var a smithy.APIError
-		if errors.As(err, &a) {
-			if a.ErrorCode() == "ObjectLockConfigurationNotFoundError" {
-				d.ConnectionManager.Cache.Set(cacheKey, aws.Bool(false))
-				return aws.Bool(false), nil
-			}
-		}
-		plugin.Logger(ctx).Error("getS3ObjectLockConfiguration", "api_error", err)
-		return nil, err
-	}
-
-	d.ConnectionManager.Cache.Set(cacheKey, aws.Bool(true))
-
-	return aws.Bool(true), nil
+	return arn, nil
 }
 
 func isOutpostObject(storageClass string) bool {
 	// S3 on Outposts provides a new storage class, OUTPOSTS
 	// as in https://docs.aws.amazon.com/AmazonS3/latest/userguide/S3onOutposts.html
 	return strings.EqualFold(storageClass, "OUTPOSTS")
+}
+
+//// TRANSFORM FUNCTIONS
+
+func readObjectBody(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	obj := d.Value.(*s3.GetObjectOutput)
+
+	body, err := io.ReadAll(obj.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if utf8.Valid(body) {
+		return string(body), nil
+	}
+
+	return base64.StdEncoding.EncodeToString(body), nil
 }
