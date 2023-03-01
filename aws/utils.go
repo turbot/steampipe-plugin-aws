@@ -192,4 +192,3 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 	}
 	return value
 }
-
