@@ -29,7 +29,7 @@ where
   bucket_name = 'steampipe-test';
 ```
 
-### List all objects with a fixed `prefix` in a bucket
+### List all objects with a `prefix` in a bucket
 
 ```sql
 select
@@ -46,7 +46,7 @@ where
   and prefix = 'test/logs/2021/03/01/12';
 ```
 
-### Get object with a full `key` in a bucket
+### Get object with a `key` in a bucket
 
 ```sql
 select
