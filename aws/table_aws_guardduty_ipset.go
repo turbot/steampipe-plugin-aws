@@ -148,7 +148,7 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 		}
 
 		for _, item := range output.IpSetIds {
-			d.StreamListItem(ctx, ctx, ipsetInfo{
+			d.StreamListItem(ctx, ipsetInfo{
 				IPSetID:    item,
 				DetectorID: id,
 			})
