@@ -36,12 +36,6 @@ func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table 
 				Transform:   transform.FromField("BlockPublicAccessConfiguration.Classification"),
 			},
 			{
-				Name:        "configurations",
-				Description: "A list of additional configurations to apply within a configuration object.",
-				Transform:   transform.FromField("BlockPublicAccessConfiguration.Configurations"),
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "created_by_arn",
 				Description: "The Amazon Resource Name that created or last modified the configuration.",
 				Type:        proto.ColumnType_STRING,
@@ -59,12 +53,23 @@ func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table 
 				Transform:   transform.FromField("BlockPublicAccessConfiguration.PermittedPublicSecurityGroupRuleRanges"),
 				Type:        proto.ColumnType_JSON,
 			},
-			{
-				Name:        "properties",
-				Description: "A set of properties specified within a configuration classification.",
-				Transform:   transform.FromField("BlockPublicAccessConfiguration.Properties"),
-				Type:        proto.ColumnType_JSON,
-			},
+
+			// The API always returns null value for the columns configurations and properties.
+			// The GO SDK provides these property but the AWS CLI doesn't, so following columns are commented out.
+			// Raised a discussion with AWS SDK repo. Ref: https://github.com/aws/aws-sdk-go-v2/discussions/2045
+
+			// {
+			// 	Name:        "configurations",
+			// 	Description: "A list of additional configurations to apply within a configuration object.",
+			// 	Transform:   transform.FromField("BlockPublicAccessConfiguration.Configurations"),
+			// 	Type:        proto.ColumnType_JSON,
+			// },
+			// {
+			// 	Name:        "properties",
+			// 	Description: "A set of properties specified within a configuration classification.",
+			// 	Transform:   transform.FromField("BlockPublicAccessConfiguration.Properties"),
+			// 	Type:        proto.ColumnType_JSON,
+			// },
 		}),
 	}
 }

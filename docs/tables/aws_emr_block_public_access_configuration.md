@@ -59,17 +59,3 @@ from
 where
   date_part('day', now() - creation_date) < 90;
 ```
-
-### List configuration details of EMR Block Public Access
-
-```sql
-select
-  created_by_arn,
-  creation_date,
-  config ->> 'Classification' as classification,
-  config ->> 'Configurations' as configurations,
-  config ->> 'Properties' as properties
-from
-  aws_emr_block_public_access_configuration
-  cross join jsonb_array_elements(configurations) as config;
-```
