@@ -6,8 +6,8 @@ You **_must_** specify a `bucket_name` in a where or join clause in order to use
 
 We recommend specifying the `prefix` column when querying buckets with a large number of objects to reduce the query time.
 
-The `body` column returns the raw bytes of the object data as a string. if the bytes entirely consists of valid UTF8 runes, an UTF8 data will be set as column value and we will be able to query the object body by using the `body` column
-([refer example below](#get-data-details-of-a-particular-object-in-a-bucket)) otherwise the bas64 encoding of the bytes will be set as column value.
+The `body` column returns the raw bytes of the object data as a string. if the bytes entirely consists of valid UTF8 runes, e.g., `.txt files`, an UTF8 data will be set as column value and we will be able to query the object body by using the `body` column
+([refer example below](#get-data-details-of-a-particular-object-in-a-bucket)) otherwise for the invalid UTF8 runes, e.g., `.png files`, the bas64 encoding of the bytes will be set as column value and we will not be able to query the object body for those objects.
 
 Note: Using this table adds to cost to your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. Please refer to AWS S3 Pricing to understand the cost implications.
 
