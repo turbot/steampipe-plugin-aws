@@ -24,7 +24,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			Hydrate: listS3Objects,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Required},
-				{Name: "key", Require: plugin.Optional},
 				{Name: "prefix", Require: plugin.Optional},
 			},
 		},
@@ -403,13 +402,6 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	if equalQuals["prefix"] != nil {
 		if equalQuals["prefix"].GetStringValue() != "" {
 			input.Prefix = aws.String(equalQuals["prefix"].GetStringValue())
-		}
-	}
-
-	if equalQuals["key"] != nil {
-		if equalQuals["key"].GetStringValue() != "" {
-			// overwrite the prefix with the full key
-			input.Prefix = aws.String(equalQuals["key"].GetStringValue())
 		}
 	}
 

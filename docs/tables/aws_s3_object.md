@@ -4,7 +4,10 @@ Amazon S3 objects are stored in one or more Amazon S3 buckets, and each object c
 
 You **_must_** specify a `bucket_name` in a where or join clause in order to use this table.
 
-We recommend specifying the `prefix` and `key` columns when querying buckets with a large number of objects to reduce the query time.
+We recommend specifying the `prefix` column when querying buckets with a large number of objects to reduce the query time.
+
+The `body` column returns the raw bytes of the object data as a string. if the bytes entirely consists of valid UTF8 runes, an UTF8 will be set as column value and we will be able to query the object body by using the `body` column
+([refer example below](#get-data-details-of-a-particular-object-in-a-bucket)) otherwise the bas64 encoding of the bytes will be set as column value.
 
 Note: Using this table adds to cost to your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. Please refer to AWS S3 Pricing to understand the cost implications.
 
@@ -43,7 +46,7 @@ where
   and prefix = 'test/logs/2021/03/01/12';
 ```
 
-### Get object with a fixed `key` in a bucket
+### Get object with a full `key` in a bucket
 
 ```sql
 select
@@ -57,7 +60,7 @@ from
   aws_s3_object
 where
   bucket_name = 'steampipe-test'
-  and key = 'test/logs/2021/03/01/12/abc.txt';
+  and prefix = 'test/logs/2021/03/01/12/abc.txt';
 ```
 
 ### List all objects which are encrypted with CMK in a bucket
@@ -213,4 +216,22 @@ where
       or not ignore_public_acls
       or not restrict_public_buckets
   );
+```
+
+### Get data details of a particular object in a bucket
+
+```sql
+select
+  key,
+  b ->> 'awsAccountId' as account_id,
+  b ->> 'digestEndTime' as digest_end_time,
+  b ->> 'digestPublicKeyFingerprint' as digest_public_key_fingerprint,
+  b ->> 'digestS3Bucket' as digest_s3_bucket,
+  b ->> 'digestStartTime' as digest_start_time
+from
+  aws_s3_object,
+  jsonb_array_elements(body::jsonb) as b
+where
+  bucket_name = 'steampipe-test'
+  and prefix = 'test1/log_text.txt';
 ```
