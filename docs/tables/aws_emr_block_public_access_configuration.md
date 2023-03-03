@@ -1,6 +1,6 @@
 # Table: aws_emr_block_public_access_configuration
 
-The `aws_emr_block_public_access_configuration` table provides Amazon EMR block public access configuration for your AWS account in the current Region.
+The `aws_emr_block_public_access_configuration` table provides information on the Amazon EMR block public access configuration for your AWS account in the current region.
 
 ## Examples
 
@@ -21,7 +21,7 @@ order by
   creation_date;
 ```
 
-### List Block Public Access settings set as enabled for emr
+### List block public access configurations that block public security group rules
 
 ```sql
 select
@@ -34,7 +34,7 @@ where
   block_public_security_group_rules;
 ```
 
-### List Block Public Access with Permitted Public Security Group Rule Max and Min Port Ranges
+### List permitted public security group rule maximum and minimum port ranges
 
 ```sql
 select
@@ -47,7 +47,7 @@ from
   cross join jsonb_array_elements(permitted_public_security_group_rule_ranges) as rules;
 ```
 
-### List EMR Block Public Access Configuration created in last 90 days
+### List block public access configurations created in last 90 days
 
 ```sql
 select
