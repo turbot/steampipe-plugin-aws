@@ -120,7 +120,7 @@ func listServiceCatalogPortfolios(ctx context.Context, d *plugin.QueryData, _ *p
 	// Create Client
 	svc, err := ServiceCatalogClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_servicecatalog_portfolio.listServiceCatalogPortfolios", "client_error", err)
+		plugin.Logger(ctx).Error("aws_servicecatalog_portfolio.listServiceCatalogPortfolios", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
