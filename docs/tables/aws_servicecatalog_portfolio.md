@@ -45,7 +45,7 @@ where
   created_time >= now() - interval '30' day;
 ```
 
-### Get budget details for portfolios
+### Get budget details of portfolios
 
 ```sql
 select
