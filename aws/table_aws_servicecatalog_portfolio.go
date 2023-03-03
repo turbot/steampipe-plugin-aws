@@ -89,7 +89,7 @@ func tableAwsServicecatalogPortfolio(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
