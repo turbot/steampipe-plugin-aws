@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "display_name": "{{ resourceName }}",
+    "id": "{{ output.resource_id.value }}",
+    "provider_name": "{{ resourceName }}"
+  }
+]
