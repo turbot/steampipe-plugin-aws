@@ -1,3 +1,18 @@
+## v0.95.0 [2023-03-03]
+
+_What's new?_
+
+- New tables added
+  - [aws_codebuild_build](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codebuild_build) ([#1608](https://github.com/turbot/steampipe-plugin-aws/pull/1608))
+  - [aws_emr_block_public_access_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_block_public_access_configuration) ([#1602](https://github.com/turbot/steampipe-plugin-aws/pull/1602))
+  - [aws_servicecatalog_portfolio](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicecatalog_portfolio) ([#1636](https://github.com/turbot/steampipe-plugin-aws/pull/1636))
+
+_Bug fixes_
+
+- Fixed the `aws_cloudfront_function` table to correctly return data instead of an error when a `name` is passed in the `where` clause. ([#1628](https://github.com/turbot/steampipe-plugin-aws/pull/1628))
+- Fixed the `aws_guardduty_ipset` table to correctly return all the IPsets instead of a panic interface conversion error. ([#1627](https://github.com/turbot/steampipe-plugin-aws/pull/1627))
+- Fixed the API limits of the `aws_glue_security_configuration` table to correctly return data instead of an error. ([#1626](https://github.com/turbot/steampipe-plugin-aws/pull/1626))
+
 ## v0.94.0 [2023-02-25]
 
 _What's new?_
