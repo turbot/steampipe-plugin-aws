@@ -291,6 +291,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_msk_cluster":                                              tableAwsMSKCluster(ctx),
 			"aws_msk_serverless_cluster":                                   tableAwsMSKServerlessCluster(ctx),
 			"aws_neptune_db_cluster":                                       tableAwsNeptuneDBCluster(ctx),
+			"aws_networkfirewall_firewall":                                 tableAwsNetworkFirewallFirewall(ctx),
 			"aws_networkfirewall_firewall_policy":                          tableAwsNetworkFirewallPolicy(ctx),
 			"aws_networkfirewall_rule_group":                               tableAwsNetworkFirewallRuleGroup(ctx),
 			"aws_oam_link":                                                 tableAwsOAMLink(ctx),
