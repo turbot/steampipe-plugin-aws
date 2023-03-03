@@ -17,7 +17,7 @@ from
   aws_servicecatalog_portfolio;
 ```
 
-### List portfolios by provider
+### List portfolios of a provider
 
 ```sql
 select
