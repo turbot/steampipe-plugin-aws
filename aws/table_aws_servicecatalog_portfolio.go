@@ -188,7 +188,7 @@ func getServiceCatalogPortfolio(ctx context.Context, d *plugin.QueryData, h *plu
 	// Create client
 	svc, err := ServiceCatalogClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_servicecatalog_portfolio.getServiceCatalogPortfolio", "client_error", err)
+		plugin.Logger(ctx).Error("aws_servicecatalog_portfolio.getServiceCatalogPortfolio", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
