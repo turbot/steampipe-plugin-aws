@@ -55,7 +55,7 @@ func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table 
 			},
 
 			// The API always returns null value for the columns configurations and properties.
-			// The GO SDK provides these property but the AWS CLI doesn't, so following columns are commented out.
+			// The GO SDK provides these properties but the AWS CLI doesn't, so following columns have been commented out.
 			// Raised a discussion with AWS SDK repo. Ref: https://github.com/aws/aws-sdk-go-v2/discussions/2045
 
 			// {
