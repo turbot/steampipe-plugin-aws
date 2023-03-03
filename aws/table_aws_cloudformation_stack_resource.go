@@ -18,7 +18,7 @@ import (
 
 func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_cloudformation_stack_resource",
+		Name:        "aws_cloudformation_stack_resource_resource",
 		Description: "AWS CloudFormation Stack Resource",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"stack_name", "logical_resource_id"}),
@@ -126,7 +126,7 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 	// Create session
 	svc, err := CloudFormationClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStackResources", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.listCloudFormationStackResources", "connection_error", err)
 		return nil, err
 	}
 
@@ -142,8 +142,8 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 
 	// Additonal Filter
 	equalQuals := d.EqualsQuals
-	if equalQuals["name"] != nil {
-		input.StackName = aws.String(equalQuals["name"].GetStringValue())
+	if equalQuals["stack_name"] != nil {
+		input.StackName = aws.String(equalQuals["stack_name"].GetStringValue())
 	}
 	paginator := cloudformation.NewListStackResourcesPaginator(svc, input, func(o *cloudformation.ListStackResourcesPaginatorOptions) {
 		o.StopOnDuplicateToken = true
@@ -151,7 +151,7 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStackResources", "api_error", err)
+			plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.listCloudFormationStackResources", "api_error", err)
 			return nil, err
 		}
 
@@ -199,7 +199,7 @@ func getCloudFormationStackResource(ctx context.Context, d *plugin.QueryData, h 
 	// Create Session
 	svc, err := CloudFormationClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_cloudformation_stack.getCloudFormationStackResource", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.getCloudFormationStackResource", "connection_error", err)
 		return nil, err
 	}
 
@@ -215,7 +215,7 @@ func getCloudFormationStackResource(ctx context.Context, d *plugin.QueryData, h 
 
 	op, err := svc.DescribeStackResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_cloudformation_stack.getCloudFormationStackResource", err)
+		plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.getCloudFormationStackResource", err)
 		return nil, err
 	}
 
