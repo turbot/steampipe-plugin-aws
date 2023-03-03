@@ -1,0 +1,265 @@
+package aws
+
+import (
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/servicecatalog"
+
+	servicecatalogv1 "github.com/aws/aws-sdk-go/service/servicecatalog"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+)
+
+//// TABLE DEFINITION
+
+func tableAwsServicecatalogProduct(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_servicecatalog_product",
+		Description: "AWS Service Catalog Product",
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.SingleColumn("product_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getServiceCatalogProduct,
+		},
+		List: &plugin.ListConfig{
+			Hydrate: listServiceCatalogProducts,
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogv1.EndpointsID),
+		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "Name",
+				Description: "The name of the product.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.Name"),
+			},
+			{
+				Name:        "id",
+				Description: "The product view identifier.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.Id"),
+			},
+			{
+				Name:        "product_id",
+				Description: "The product identifier.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.ProductId"),
+			},
+			{
+				Name:        "distributor",
+				Description: "The distributor of the product. Contact the product administrator for the significance of this value.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.Distributor"),
+			},
+			{
+				Name:        "has_default_path",
+				Description: "Indicates whether the product has a default path. If the product does not have a default path, call ListLaunchPaths to disambiguate between paths.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("ProductViewSummary.HasDefaultPath"),
+			},
+			{
+				Name:        "owner",
+				Description: "The owner of the product. Contact the product administrator for the significance of this value.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.Owner"),
+			},
+			{
+				Name:        "short_description",
+				Description: "Short description of the product.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.ShortDescription"),
+			},
+			{
+				Name:        "support_description",
+				Description: "The description of the support for this Product.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.SupportDescription"),
+			},
+			{
+				Name:        "support_email",
+				Description: "The email contact information to obtain support for this Product.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.SupportEmail"),
+			},
+			{
+				Name:        "support_url",
+				Description: "The URL information to obtain support for this Product.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.SupportUrl"),
+			},
+			{
+				Name:        "type",
+				Description: "The product type. Contact the product administrator for the significance of this value. If this value is MARKETPLACE, the product was created by Amazon Web Services Marketplace.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.Type"),
+			},
+			{
+				Name:        "budgets",
+				Description: "Information about the associated budgets.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getServiceCatalogProduct,
+				Transform:   transform.FromField("Budgets"),
+			},
+			{
+				Name:        "launch_paths",
+				Description: "Information about the associated launch paths.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getServiceCatalogProduct,
+				Transform:   transform.FromField("LaunchPaths"),
+			},
+			{
+				Name:        "provisioning_artifacts",
+				Description: "Information about the provisioning artifacts for the specified product.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getServiceCatalogProduct,
+				Transform:   transform.FromField("ProvisioningArtifacts"),
+			},
+
+			// Standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProductViewSummary.Name"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getProductArn,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
+			},
+		}),
+	}
+}
+
+//// LIST FUNCTION
+
+func listServiceCatalogProducts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	// Create Client
+	svc, err := ServiceCatalogClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicecatalog_product.listServiceCatalogProducts", "client_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
+	}
+
+	input := &servicecatalog.SearchProductsInput{
+		PageSize: maxLimit,
+	}
+
+	paginator := servicecatalog.NewSearchProductsPaginator(svc, input, func(o *servicecatalog.SearchProductsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+	plugin.Logger(ctx).Error("Here ====>>> 1111111111")
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		plugin.Logger(ctx).Error("Here ====>>> 2222222222")
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_servicecatalog_product.listServiceCatalogProducts", "api_error", err)
+			return nil, err
+		}
+
+		plugin.Logger(ctx).Error("Here ====>>> 33333333333", len(output.ProductViewSummaries))
+
+		for _, item := range output.ProductViewSummaries {
+			plugin.Logger(ctx).Error("Here ====>>> 44444444444")
+			d.StreamListItem(ctx, &servicecatalog.DescribeProductOutput{
+				ProductViewSummary: &item,
+			})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	return nil, nil
+}
+
+//// HYDRATE FUNCTIONS
+
+func getServiceCatalogProduct(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var id string
+	if h.Item != nil {
+		data := h.Item.(*servicecatalog.DescribeProductOutput)
+		id = *data.ProductViewSummary.Id
+	} else {
+		id = d.EqualsQuals["product_id"].GetStringValue()
+	}
+
+	if id == "" {
+		return nil, nil
+	}
+
+	// Create client
+	svc, err := ServiceCatalogClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicecatalog_product.getServiceCatalogProduct", "client_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	// Build the params
+	params := &servicecatalog.DescribeProductInput{
+		Id: aws.String(id),
+	}
+
+	// Get call
+	op, err := svc.DescribeProduct(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicecatalog_product.getServiceCatalogProduct", "api_error", err)
+		return nil, err
+	}
+
+	return op, nil
+}
+
+func getProductArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	product := h.Item.(*servicecatalog.DescribeProductOutput)
+	region := d.EqualsQualString(matrixKeyRegion)
+
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":catalog:" + region + ":" + commonColumnData.AccountId + ":product/" + *product.ProductViewSummary.ProductId
+	return arn, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+// func portfolioTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+// 	tags := d.HydrateItem.(*servicecatalog.DescribePortfolioOutput)
+// 	var turbotTagsMap map[string]string
+// 	if tags.Tags != nil {
+// 		turbotTagsMap = map[string]string{}
+// 		for _, i := range tags.Tags {
+// 			turbotTagsMap[*i.Key] = *i.Value
+// 		}
+// 	}
+// 	return turbotTagsMap, nil
+// }
