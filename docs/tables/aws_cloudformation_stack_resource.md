@@ -1,4 +1,4 @@
-# Table: aws_cloudformation_stack
+# Table: aws_cloudformation_stack_resource
 
 A stack is a collection of AWS resources that you can manage as a single unit.
 
