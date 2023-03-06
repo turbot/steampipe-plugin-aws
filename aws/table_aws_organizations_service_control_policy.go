@@ -92,7 +92,7 @@ func tableAwsOrganizationsServiceControlPolicy(_ context.Context) *plugin.Table 
 				Transform:   transform.FromField("Content"),
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
