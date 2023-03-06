@@ -103,6 +103,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
+	"github.com/aws/aws-sdk-go-v2/service/servicecatalog"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
@@ -1226,6 +1227,14 @@ func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryD
 		return nil, nil
 	}
 	return serverlessapplicationrepository.NewFromConfig(*cfg), nil
+}
+
+func ServiceCatalogClient(ctx context.Context, d *plugin.QueryData) (*servicecatalog.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return servicecatalog.NewFromConfig(*cfg), nil
 }
 
 func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
