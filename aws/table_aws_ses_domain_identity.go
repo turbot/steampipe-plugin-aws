@@ -50,6 +50,20 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("VerificationToken"),
 			},
 			{
+				Name:        "dkim_attributes",
+				Description: "The DKIM attributes for an email address or a domain.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSESDomainIdentityDkimAttributes,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "identity_mail_from_domain_attributes",
+				Description: "A map of identities to custom MAIL FROM attributes.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSESDomainIdentityMailFromDomainAttributes,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "notification_attributes",
 				Description: "Represents the notification attributes of an identity.",
 				Type:        proto.ColumnType_JSON,
@@ -128,6 +142,70 @@ func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin
 				return nil, nil
 			}
 		}
+	}
+
+	return nil, nil
+}
+
+//// HYDRATED CALLS
+
+func getSESDomainIdentityDkimAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	identity := h.Item.(string)
+
+	// Create Client
+	svc, err := SESClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityDkimAttributes", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	input := &ses.GetIdentityDkimAttributesInput{
+		Identities: []string{identity},
+	}
+
+	op, err := svc.GetIdentityDkimAttributes(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityDkimAttributes", "api_error", err)
+		return nil, err
+	}
+
+	if op != nil && op.DkimAttributes != nil {
+		return op.DkimAttributes, nil
+	}
+
+	return nil, nil
+}
+
+func getSESDomainIdentityMailFromDomainAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	identity := h.Item.(string)
+
+	// Create Client
+	svc, err := SESClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityMailFromDomainAttributes", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	input := &ses.GetIdentityMailFromDomainAttributesInput{
+		Identities: []string{identity},
+	}
+
+	op, err := svc.GetIdentityMailFromDomainAttributes(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityMailFromDomainAttributes", "api_error", err)
+		return nil, err
+	}
+
+	if op != nil && op.MailFromDomainAttributes != nil {
+		return op.MailFromDomainAttributes, nil
 	}
 
 	return nil, nil
