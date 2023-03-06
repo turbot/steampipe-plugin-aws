@@ -21,7 +21,7 @@ where
   type = 'SERVICE_CONTROL_POLICY';
 ```
 
-### List policies that are not managed by AWS
+### List tag policies that are not managed by AWS
 
 ```sql
 select
@@ -53,7 +53,7 @@ where
   type = 'BACKUP_POLICY';
 ```
 
-### Get content of the policies
+### Get content of the service control policies
 
 ```sql
 select
