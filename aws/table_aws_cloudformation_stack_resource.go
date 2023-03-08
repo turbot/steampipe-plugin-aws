@@ -18,7 +18,7 @@ import (
 
 func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_cloudformation_stack_resource_resource",
+		Name:        "aws_cloudformation_stack_resource",
 		Description: "AWS CloudFormation Stack Resource",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"stack_name", "logical_resource_id"}),
