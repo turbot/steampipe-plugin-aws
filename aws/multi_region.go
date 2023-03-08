@@ -76,6 +76,7 @@ import (
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/logging"
+	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
@@ -261,7 +262,7 @@ func listRegionsForService(ctx context.Context, d *plugin.QueryData, serviceID s
 
 // List all regions for a given service, defined to work with Memoize().
 // Call listRegionsForService() instead of using this directly.
-var listRegionsForServiceCached = plugin.HydrateFunc(listRegionsForServiceUncached).Memoize(plugin.WithCacheKeyFunction(listRegionsForServiceCacheKey))
+var listRegionsForServiceCached = plugin.HydrateFunc(listRegionsForServiceUncached).Memoize(memoize.WithCacheKeyFunction(listRegionsForServiceCacheKey))
 
 // List all regions for a given service in the partition for this connection, but
 // manually exclude any regions in excludeRegions.
