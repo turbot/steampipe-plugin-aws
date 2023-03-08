@@ -58,7 +58,7 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "identity_mail_from_domain_attributes",
-				Description: "A map of identities to custom MAIL FROM attributes.",
+				Description: "The custom MAIL FROM attributes for a list of identities.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getSESDomainIdentityMailFromDomainAttributes,
 				Transform:   transform.FromValue(),
