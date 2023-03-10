@@ -1,3 +1,22 @@
+## v0.96.0 [2023-03-10]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudformation_stack_resource](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudformation_stack_resource) ([#1634](https://github.com/turbot/steampipe-plugin-aws/pull/1634))
+
+_Enhancements_
+
+- Added columns `dkim_attributes` and `identity_mail_from_domain_attributes` to `aws_ses_domain_identity` table. ([#1640](https://github.com/turbot/steampipe-plugin-aws/pull/1640))
+
+_Bug fixes_
+
+- Fixed `aws_cloudfront_response_headers_policy` table to remove duplicate results. ([#1642](https://github.com/turbot/steampipe-plugin-aws/pull/1642)
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.2.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v520-2023-03-02) which includes fixes for query cache pending item mechanism and aggregator connections not working for dynamic tables. ([#1609](https://github.com/turbot/steampipe-plugin-aws/pull/1609))
+
 ## v0.95.0 [2023-03-03]
 
 _What's new?_
