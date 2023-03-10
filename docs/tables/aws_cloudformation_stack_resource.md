@@ -17,7 +17,7 @@ from
   aws_cloudformation_stack_resource;
 ```
 
-### List of cloudformation stack resource where rollback is disabled
+### List cloudformation stack resources having rollback disabled
 
 ```sql
 select
@@ -29,10 +29,11 @@ from
   aws_cloudformation_stack_resource as r,
   aws_cloudformation_stack as s
 where
-  r.stack_id = s.id and s.disable_rollback;
+  r.stack_id = s.id
+  and s.disable_rollback;
 ```
 
-### List of stack resources where termination protection is not enabled
+### List resources having termination protection disabled
 
 ```sql
 select
@@ -45,10 +46,11 @@ from
   aws_cloudformation_stack_resource as r,
   aws_cloudformation_stack as s
 where
-  r.stack_id = s.id and not enable_termination_protection;
+  r.stack_id = s.id
+  and not enable_termination_protection;
 ```
 
-### List VPC resource type resources of the stacks
+### List stack resources of type VPC
 
 ```sql
 select
@@ -63,7 +65,7 @@ where
   resource_type = 'AWS::EC2::VPC';
 ```
 
-### List resources that are not deleted
+### List resources that failed to update
 
 ```sql
 select
@@ -74,5 +76,5 @@ select
 from
   aws_cloudformation_stack_resource
 where
-  resource_status != 'DELETE_COMPLETE';
+  resource_status = 'UPDATE_FAILED';
 ```

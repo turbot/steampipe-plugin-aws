@@ -119,7 +119,7 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 	stackName := d.EqualsQualString("stack_name")
 
 	// If a stack name is specified in optional quals, the user is not allowed to perform API calls for other stacks.
-	if stackName != "" && stackName != *stack.StackName {
+	if stackName == "" || stackName != *stack.StackName {
 		return nil, nil
 	}
 
@@ -130,8 +130,8 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
+	// Unsupported region check
 	if svc == nil {
-		// Unsupported region check
 		return nil, nil
 	}
 
@@ -215,7 +215,7 @@ func getCloudFormationStackResource(ctx context.Context, d *plugin.QueryData, h 
 
 	op, err := svc.DescribeStackResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.getCloudFormationStackResource", err)
+		plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.getCloudFormationStackResource", "api_error", err)
 		return nil, err
 	}
 
