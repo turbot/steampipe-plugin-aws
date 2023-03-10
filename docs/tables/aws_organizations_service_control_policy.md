@@ -34,8 +34,7 @@ from
   aws_organizations_service_control_policy
 where
   not aws_managed
-and
-  type = 'TAG_POLICY';
+  and type = 'TAG_POLICY';
 ```
 
 ### List backup policies
