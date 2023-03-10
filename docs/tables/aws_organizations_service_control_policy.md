@@ -53,7 +53,7 @@ where
   type = 'BACKUP_POLICY';
 ```
 
-### Get content of the service control policies
+### Get policy details of the service control policies
 
 ```sql
 select
