@@ -3,42 +3,35 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	cloudwatchv1 "github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
-func listDynamicS3Buckets(ctx context.Context, d *plugin.QueryData) ([]types.Bucket, error) {
+func listDynamicCloudWatchMetricNames(ctx context.Context, d *plugin.QueryData) ([]string, error) {
+	// set matrix regions
+	_ = &plugin.Table{GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchv1.EndpointsID)}
 
-	// have we already created and cached the session?
-	//cacheKey := "listDynamicS3Bucket"
-
-	// if cachedData, ok := cn.Get(ctx, cacheKey); ok {
-	// 	return cachedData.(.......), nil
-	// }
-
-	// Unlike most services, S3 buckets are a global list. They can be retrieved
-	// from any single region.  We must list buckets from the default region to
-	// get the actual creation_time of the bucket, in all other regions the list
-	// returns the time when the bucket was last modified. See
-	// https://www.marksayson.com/blog/s3-bucket-creation-dates-s3-master-regions/
-	defaultRegion, err := getLastResortRegion(ctx, d, nil)
+	// Get client
+	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
-		return nil, err
-	}
-	svc, err := S3Client(ctx, d, defaultRegion)
-	if err != nil {
-		plugin.Logger(ctx).Error("listDynamicS3Buckets", "get_client_error", err, "defaultRegion", defaultRegion)
+		plugin.Logger(ctx).Error("listDynamicCloudWatchMetricNames", "client_error", err)
 		return nil, err
 	}
 
 	// execute list call
-	input := &s3.ListBucketsInput{}
-	bucketsResult, err := svc.ListBuckets(ctx, input)
+	input := &cloudwatch.ListMetricsInput{}
+	output, err := svc.ListMetrics(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("listDynamicS3Buckets", "api_error", err, "defaultRegion", defaultRegion)
+		plugin.Logger(ctx).Error("listDynamicCloudWatchMetricNames", "api_error", err)
 		return nil, err
 	}
-
-	return bucketsResult.Buckets, nil
+	metricNames := []string{}
+	for _, metricDetail := range output.Metrics {
+		if !helpers.StringSliceContains(metricNames, *metricDetail.MetricName) {
+			metricNames = append(metricNames, *metricDetail.MetricName)
+		}
+	}
+	return metricNames, nil
 }

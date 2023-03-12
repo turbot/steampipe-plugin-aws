@@ -17,10 +17,8 @@ const pluginName = "steampipe-plugin-aws"
 
 type contextKey string
 
-var queryData *plugin.QueryData
-
 // Plugin creates this (aws) plugin
-func Plugin(ctx context.Context) *plugin.Plugin {
+func Plugin(_ context.Context) *plugin.Plugin {
 	p := &plugin.Plugin{
 		Name:             pluginName,
 		DefaultTransform: transform.FromCamel(),
@@ -56,29 +54,33 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 
 func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[string]*plugin.Table, error) {
 	// Initialize tables
-	tables := staticTableDefinitions(ctx, d)
-	queryData.Connection = d.Connection
-	queryData.ConnectionCache = d.ConectionCache
+	tables := staticTableDefinitions(ctx)
 
-	// Fetch available buckets
-	buckets, err := listDynamicS3Buckets(ctx, queryData)
+	// set Connection and ConectionCache
+	queryData := &plugin.QueryData{
+		Connection:      d.Connection,
+		ConnectionCache: d.ConectionCache,
+	}
+
+	// Fetch available cloudwatch metrics
+	metrics, err := listDynamicCloudWatchMetricNames(ctx, queryData)
 	if err != nil {
 		plugin.Logger(ctx).Error("listDynamicS3Buckets", "buckets", err)
 		return nil, err
 	}
 
-	for _, bucket := range buckets {
-		ctx = context.WithValue(ctx, contextKey("BucketName"), *bucket.Name)
+	for _, metric := range metrics {
+		ctx = context.WithValue(ctx, contextKey("MetricName"), metric)
 
-		if tables[*bucket.Name] == nil {
-			tables[*bucket.Name] = tableS3Object(ctx)
+		if tables["aws_cloudwatch_metric_"+metric] == nil {
+			tables["aws_cloudwatch_metric_"+metric] = tableAwsDynamicCloudWatchMetric(ctx)
 		}
 	}
 
 	return tables, nil
 }
 
-func staticTableDefinitions(ctx context.Context, d *plugin.TableMapData) map[string]*plugin.Table {
+func staticTableDefinitions(ctx context.Context) map[string]*plugin.Table {
 	// Initialize tables
 	tables := map[string]*plugin.Table{
 		"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
