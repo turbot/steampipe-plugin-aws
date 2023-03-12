@@ -103,6 +103,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
+	"github.com/aws/aws-sdk-go-v2/service/servicecatalog"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
@@ -117,8 +118,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
-
 	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
@@ -1228,6 +1229,14 @@ func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryD
 	return serverlessapplicationrepository.NewFromConfig(*cfg), nil
 }
 
+func ServiceCatalogClient(ctx context.Context, d *plugin.QueryData) (*servicecatalog.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return servicecatalog.NewFromConfig(*cfg), nil
+}
+
 func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, servicequotasEndpoint.EndpointsID)
 	if err != nil {
@@ -1453,7 +1462,7 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 
 // Cached form of getClient, using the per-connection and parallel safe
 // Memoize() method.
-var getClientCached = plugin.HydrateFunc(getClientUncached).Memoize(plugin.WithCacheKeyFunction(getClientCacheKey))
+var getClientCached = plugin.HydrateFunc(getClientUncached).Memoize(memoize.WithCacheKeyFunction(getClientCacheKey))
 
 // getClient is per-region, but Memoize() is per-connection, so a setup
 // a custom cache key with region information in it.
@@ -1609,7 +1618,7 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 // If we expire the cache regularly we are causing SSO sessions to end
 // prematurely, and causing the AWS SDK to refresh credentials more often
 // using the IDMS service etc.
-var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(plugin.WithTtl(time.Hour * 24 * 30))
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(memoize.WithTtl(time.Hour * 24 * 30))
 
 // Do the actual work of creating an AWS config object for reuse across many
 // regions. This client has the minimal reusable configuration on it, so it

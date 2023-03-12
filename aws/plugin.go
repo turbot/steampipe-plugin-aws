@@ -59,7 +59,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	// set Connection and ConectionCache
 	queryData := &plugin.QueryData{
 		Connection:      d.Connection,
-		ConnectionCache: d.ConectionCache,
+		ConnectionCache: d.ConnectionCache,
 	}
 
 	// Fetch available cloudwatch metrics

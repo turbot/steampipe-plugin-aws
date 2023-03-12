@@ -1,4 +1,3 @@
-
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125-create-update"
@@ -13,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -34,6 +33,7 @@ provider "aws" {
   region  = var.aws_region_alternate
 }
 
+data "aws_canonical_user_id" "current_user" {}
 data "aws_partition" "current" {}
 data "aws_caller_identity" "current" {}
 data "aws_region" "primary" {}
@@ -47,32 +47,27 @@ data "null_data_source" "resource" {
   }
 }
 
-# Create AWS > EventBridge > Rule
-resource "aws_cloudwatch_event_rule" "named_test_resource" {
-  name = var.resource_name
-  event_pattern = "{\"detail-type\":[\"AWS Console Sign In via CloudTrail\"]}"
-
-  # event_bus_name - (Optional) The event bus to associate with this rule. If you omit this, the default event bus is used.
-
-  tags = {
-    name = var.resource_name
-  }
+resource "aws_servicecatalog_portfolio" "portfolio" {
+  name          = var.resource_name
+  description   = "List of my organizations apps"
+  provider_name = var.resource_name
 }
 
-output "account_id" {
-  value = data.aws_caller_identity.current.account_id
-}
-
-output "aws_region" {
-  value = data.aws_region.primary.name
-}
-
-output "aws_partition" {
-  value = data.aws_partition.current.partition
+output "resource_id" {
+  value = aws_servicecatalog_portfolio.portfolio.id
 }
 
 output "resource_aka" {
-  value = aws_cloudwatch_event_rule.named_test_resource.arn
+  value = aws_servicecatalog_portfolio.portfolio.arn
+}
+
+output "aws_region" {
+  depends_on = [aws_servicecatalog_portfolio.portfolio]
+  value = data.aws_region.primary.name
+}
+
+output "aws_account" {
+  value = data.aws_caller_identity.current.account_id
 }
 
 output "resource_name" {
