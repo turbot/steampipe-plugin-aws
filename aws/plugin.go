@@ -8,7 +8,9 @@ package aws
 
 import (
 	"context"
+	"strings"
 
+	"github.com/iancoleman/strcase"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
@@ -65,15 +67,15 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	// Fetch available cloudwatch metrics
 	metrics, err := listDynamicCloudWatchMetricNames(ctx, queryData)
 	if err != nil {
-		plugin.Logger(ctx).Error("listDynamicS3Buckets", "buckets", err)
+		plugin.Logger(ctx).Error("listDynamicCloudWatchMetricNames", "metrics", err)
 		return nil, err
 	}
 
 	for _, metric := range metrics {
 		ctx = context.WithValue(ctx, contextKey("MetricName"), metric)
 
-		if tables["aws_cloudwatch_metric_"+metric] == nil {
-			tables["aws_cloudwatch_metric_"+metric] = tableAwsDynamicCloudWatchMetric(ctx)
+		if tables["aws_cloudwatch_metric_"+strcase.ToSnake(strings.ReplaceAll(metric, ".", "_"))] == nil {
+			tables["aws_cloudwatch_metric_"+strcase.ToSnake(strings.ReplaceAll(metric, ".", "_"))] = tableAwsDynamicCloudWatchMetric(ctx)
 		}
 	}
 

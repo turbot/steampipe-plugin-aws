@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	cloudwatchv1 "github.com/aws/aws-sdk-go/service/cloudwatch"
@@ -11,12 +12,58 @@ import (
 
 func listDynamicCloudWatchMetricNames(ctx context.Context, d *plugin.QueryData) ([]string, error) {
 	// set matrix regions
-	_ = &plugin.Table{GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchv1.EndpointsID)}
+	regionMatrix := SupportedRegionMatrix(cloudwatchv1.EndpointsID)
+	matrixRegions := regionMatrix(ctx, d)
+	metricNames := []string{}
 
-	// Get client
-	svc, err := CloudWatchClient(ctx, d)
+	var wg sync.WaitGroup
+	metricCh := make(chan *cloudwatch.ListMetricsOutput, len(matrixRegions))
+	errorCh := make(chan error, len(matrixRegions))
+	for _, matrixRegion := range matrixRegions {
+		wg.Add(1)
+		go getDynamicCloudWatchMetricAsync(ctx, d, matrixRegion["region"].(string), &wg, metricCh, errorCh)
+	}
+
+	// wait for all metrics to be processed
+	wg.Wait()
+
+	// NOTE: close channel before ranging over results
+	close(metricCh)
+	close(errorCh)
+
+	for err := range errorCh {
+		// return the first error
+		plugin.Logger(ctx).Error("listDynamicCloudWatchMetricNames", "channel_error", err)
+		return nil, err
+	}
+
+	for metricDetail := range metricCh {
+		for _, metric := range metricDetail.Metrics {
+			if !helpers.StringSliceContains(metricNames, *metric.MetricName) {
+				metricNames = append(metricNames, *metric.MetricName)
+			}
+		}
+	}
+
+	return metricNames, nil
+}
+
+func getDynamicCloudWatchMetricAsync(ctx context.Context, d *plugin.QueryData, region string, wg *sync.WaitGroup, metricCh chan *cloudwatch.ListMetricsOutput, errorCh chan error) {
+	defer wg.Done()
+
+	rowData, err := getDynamicCloudWatchMetricNames(ctx, d, region)
 	if err != nil {
-		plugin.Logger(ctx).Error("listDynamicCloudWatchMetricNames", "client_error", err)
+		errorCh <- err
+	} else if rowData != nil {
+		metricCh <- rowData
+	}
+}
+
+func getDynamicCloudWatchMetricNames(ctx context.Context, d *plugin.QueryData, region string) (*cloudwatch.ListMetricsOutput, error) {
+	// Get client
+	svc, err := CloudWatchDynamicClient(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Error("getDynamicCloudWatchMetricNames", "client_error", err)
 		return nil, err
 	}
 
@@ -24,14 +71,17 @@ func listDynamicCloudWatchMetricNames(ctx context.Context, d *plugin.QueryData) 
 	input := &cloudwatch.ListMetricsInput{}
 	output, err := svc.ListMetrics(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("listDynamicCloudWatchMetricNames", "api_error", err)
+		plugin.Logger(ctx).Error("getDynamicCloudWatchMetricNames", "api_error", err)
 		return nil, err
 	}
-	metricNames := []string{}
-	for _, metricDetail := range output.Metrics {
-		if !helpers.StringSliceContains(metricNames, *metricDetail.MetricName) {
-			metricNames = append(metricNames, *metricDetail.MetricName)
-		}
+
+	return output, nil
+}
+
+func CloudWatchDynamicClient(ctx context.Context, d *plugin.QueryData, region string) (*cloudwatch.Client, error) {
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
 	}
-	return metricNames, nil
+	return cloudwatch.NewFromConfig(*cfg), nil
 }
