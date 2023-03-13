@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
+	"github.com/iancoleman/strcase"
 
 	cloudwatchv1 "github.com/aws/aws-sdk-go/service/cloudwatch"
 
@@ -21,7 +23,7 @@ import (
 func tableAwsDynamicCloudWatchMetric(ctx context.Context) *plugin.Table {
 	metricName := ctx.Value(contextKey("MetricName")).(string)
 	return &plugin.Table{
-		Name:        "aws_cloudwatch_metric_" + metricName,
+		Name:        "aws_cloudwatch_metric_" + strcase.ToSnake(strings.ReplaceAll(metricName, ".", "_")),
 		Description: "AWS CloudWatch Metric:" + metricName,
 		List: &plugin.ListConfig{
 			Hydrate: listDynamicCloudWatchMetrics(ctx, metricName),
