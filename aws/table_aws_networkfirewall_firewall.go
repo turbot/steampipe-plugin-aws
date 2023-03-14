@@ -21,34 +21,34 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 		Name:        "aws_networkfirewall_firewall",
 		Description: "AWS Network Firewall Firewall",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"firewall_arn", "firewall_name"}),
-			Hydrate:    getNetworkFirewallFirewall,
+			KeyColumns: plugin.AnyColumn([]string{"arn", "name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidRequestException", "ValidationException"}),
+			},
+			Hydrate: getNetworkFirewallFirewall,
 		},
 		List: &plugin.ListConfig{
+			KeyColumns: plugin.OptionalColumns([]string{"vpc_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequestException", "ValidationException"}),
+			},
 			Hydrate: listNetworkFirewallFirewalls,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "firewall_id",
-				Description: "The unique identifier for the firewall.",
+				Name:        "arn",
+				Description: "The last time that the firewall policy was changed.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getNetworkFirewallFirewall,
-				Transform:   transform.FromField("Name", "Firewall.FirewallId"),
+				Transform:   transform.FromField("Firewall.FirewallArn"),
 			},
 			{
-				Name:        "firewall_policy_arn",
-				Description: "The public subnets that Network Firewall is using for the firewall. Each subnet must belong to a different Availability Zone.",
+				Name:        "name",
+				Description: "The descriptive name of the firewall. You can't change the name of a firewall after you create it.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getNetworkFirewallFirewall,
-				Transform:   transform.FromField("Arn", "Firewall.FirewallPolicyArn"),
-			},
-			{
-				Name:        "subnet_mappings",
-				Description: "The public subnets that Network Firewall is using for the firewall.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getNetworkFirewallFirewall,
-				Transform:   transform.FromField("Firewall.SubnetMappings"),
+				Transform:   transform.FromField("Firewall.FirewallName"),
 			},
 			{
 				Name:        "vpc_id",
@@ -57,6 +57,7 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				Hydrate:     getNetworkFirewallFirewall,
 				Transform:   transform.FromField("Firewall.VpcId"),
 			},
+
 			{
 				Name:        "delete_protection",
 				Description: "A flag indicating whether it is possible to delete the firewall.",
@@ -72,29 +73,21 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Firewall.Description"),
 			},
 			{
-				Name:        "encryption_configuration",
-				Description: "A complex type that contains the Amazon Web Services KMS encryption configuration settings for your firewall.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getNetworkFirewallFirewall,
-				Transform:   transform.FromField("Firewall.EncryptionConfiguration"),
-			},
-			{
-				Name:        "firewall_arn",
-				Description: "The last time that the firewall policy was changed.",
+				Name:        "id",
+				Description: "The unique identifier for the firewall.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getNetworkFirewallFirewall,
-				Transform:   transform.FromField("Firewall.FirewallArn"),
+				Transform:   transform.FromField("Firewall.FirewallId"),
 			},
 			{
-				Name:        "firewall_name",
-				Description: "The descriptive name of the firewall. You can't change the name of a firewall after you create it.",
+				Name:        "policy_arn",
+				Description: "The public subnets that Network Firewall is using for the firewall. Each subnet must belong to a different Availability Zone.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getNetworkFirewallFirewall,
-				Transform:   transform.FromField("Firewall.FirewallName"),
+				Transform:   transform.FromField("Firewall.FirewallPolicyArn"),
 			},
-
 			{
-				Name:        "firewall_policy_change_protection",
+				Name:        "policy_change_protection",
 				Description: "A setting indicating whether the firewall is protected against a change to the firewall policy association.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getNetworkFirewallFirewall,
@@ -107,11 +100,33 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				Hydrate:     getNetworkFirewallFirewall,
 				Transform:   transform.FromField("Firewall.SubnetChangeProtection"),
 			},
+
+			{
+				Name:        "encryption_configuration",
+				Description: "A complex type that contains the Amazon Web Services KMS encryption configuration settings for your firewall.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getNetworkFirewallFirewall,
+				Transform:   transform.FromField("Firewall.EncryptionConfiguration"),
+			},
 			{
 				Name:        "firewall_status",
 				Description: "Detailed information about the current status of a Firewall.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getNetworkFirewallFirewall,
+			},
+			{
+				Name:        "subnet_mappings",
+				Description: "The public subnets that Network Firewall is using for the firewall.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getNetworkFirewallFirewall,
+				Transform:   transform.FromField("Firewall.SubnetMappings"),
+			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags associated with the firewall",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getNetworkFirewallFirewall,
+				Transform:   transform.FromField("Firewall.Tags"),
 			},
 
 			// Steampipe standard columns
@@ -119,20 +134,22 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name", "Firewall.FirewallName"),
+				Hydrate:     getNetworkFirewallFirewall,
+				Transform:   transform.FromField("Firewall.FirewallName"),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getNetworkFirewallFirewall,
-				Transform:   transform.FromField("Tags").Transform(networkFirewallTurbotTags),
+				Transform:   transform.FromField("Firewall.Tags").Transform(networkFirewallTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn", "Firewall.FirewallPolicyArn").Transform(transform.EnsureStringArray),
+				Hydrate:     getNetworkFirewallFirewall,
+				Transform:   transform.FromField("Firewall.FirewallArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -141,16 +158,8 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listNetworkFirewallFirewalls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := NetworkFirewallClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_networkfirewall_firewall.listNetworkFirewallFirewalls", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region check
-		return nil, nil
-	}
+
+	// vpcId := d.EqualsQuals["vpc_id"].GetStringValue()
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(100)
@@ -169,7 +178,28 @@ func listNetworkFirewallFirewalls(ctx context.Context, d *plugin.QueryData, _ *p
 		MaxResults: &maxLimit,
 	}
 
-	paginator := networkfirewall.NewListFirewallsPaginator(svc, input, func(o *networkfirewall.ListFirewallsPaginatorOptions ) {
+	if d.Quals["vpc_id"] != nil {
+		for _, q := range d.Quals["vpc_id"].Quals {
+			value := q.Value.GetStringValue()
+			if q.Operator == "=" {
+				input.VpcIds = append(input.VpcIds, value)
+			}
+		}
+	}
+
+	// Create session
+	svc, err := NetworkFirewallClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_networkfirewall_firewall.listNetworkFirewallFirewalls", "connection_error", err)
+		return nil, err
+	}
+
+	// Unsupported region check
+	if svc == nil {
+		return nil, nil
+	}
+
+	paginator := networkfirewall.NewListFirewallsPaginator(svc, input, func(o *networkfirewall.ListFirewallsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
@@ -182,7 +212,7 @@ func listNetworkFirewallFirewalls(ctx context.Context, d *plugin.QueryData, _ *p
 			return nil, err
 		}
 
-		for _, firewall := range output.Firewalls{
+		for _, firewall := range output.Firewalls {
 			d.StreamListItem(ctx, firewall)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -205,18 +235,19 @@ func getNetworkFirewallFirewall(ctx context.Context, d *plugin.QueryData, h *plu
 		name = *h.Item.(types.FirewallMetadata).FirewallName
 		arn = *h.Item.(types.FirewallMetadata).FirewallArn
 	} else {
-		name = d.EqualsQuals["firewall_name"].GetStringValue()
-		arn = d.EqualsQuals["firewall_arn"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		arn = d.EqualsQuals["farn"].GetStringValue()
 	}
 
 	// Build the params
 	// Can pass in ARN, name, or both
 	params := &networkfirewall.DescribeFirewallInput{}
-	if name != "" {
-		params.FirewallName = aws.String(name)
-	}
 	if arn != "" {
 		params.FirewallArn = aws.String(arn)
+	} else if name != "" {
+		params.FirewallName = aws.String(name)
+	} else {
+		return nil, nil
 	}
 
 	// Create session
@@ -225,8 +256,9 @@ func getNetworkFirewallFirewall(ctx context.Context, d *plugin.QueryData, h *plu
 		logger.Error("aws_networkfirewall_firewall.getNetworkFirewallFirewall", "connection_error", err)
 		return nil, err
 	}
+
+	// Unsupported region check
 	if svc == nil {
-		// Unsupported region check
 		return nil, nil
 	}
 
@@ -243,13 +275,13 @@ func getNetworkFirewallFirewall(ctx context.Context, d *plugin.QueryData, h *plu
 //// TRANSFORM FUNCTIONS
 
 func networkFirewallTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	firewall := d.HydrateItem.(*networkfirewall.DescribeFirewallOutput)
+	firewallTags := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if firewall.Firewall.Tags != nil {
+	if firewallTags != nil {
 		turbotTagsMap = map[string]string{}
-		for _, i := range firewall.Firewall.Tags {
+		for _, i := range firewallTags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}
