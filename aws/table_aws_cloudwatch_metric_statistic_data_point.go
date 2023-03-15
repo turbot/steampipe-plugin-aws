@@ -117,7 +117,7 @@ func listCloudWatchMetricStatisticDataPoints(ctx context.Context, d *plugin.Quer
 	duration := params.EndTime.Sub(*params.StartTime)
 	// if the duration is less than 3 hrs
 	if duration.Hours() < 3 {
-		params.Period = aws.Int32(5)
+		params.Period = aws.Int32(10)
 	} else if duration.Hours() <= 360 { // if the duration is between 3 hours and 15 days
 		params.Period = aws.Int32((int32((duration.Seconds()/1440))/60 + 1) * 60)
 	} else if duration.Hours() <= 1512 { // if the duration is between 15 and 63 days
@@ -125,7 +125,7 @@ func listCloudWatchMetricStatisticDataPoints(ctx context.Context, d *plugin.Quer
 	} else { // if the duration is greater than 63 days
 		params.Period = aws.Int32((int32((duration.Seconds()/1440))/3600 + 1) * 3600)
 	}
-
+	plugin.Logger(ctx).Error("Period", "Period", *params.Period, duration.Hours())
 	// override the period if user has provided it in query
 	if d.EqualsQuals["period"] != nil {
 		params.Period = aws.Int32(int32(d.EqualsQuals["period"].GetInt64Value()))
