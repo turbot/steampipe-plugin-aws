@@ -236,7 +236,7 @@ func getNetworkFirewallFirewall(ctx context.Context, d *plugin.QueryData, h *plu
 		arn = *h.Item.(types.FirewallMetadata).FirewallArn
 	} else {
 		name = d.EqualsQuals["name"].GetStringValue()
-		arn = d.EqualsQuals["farn"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
 	// Build the params
