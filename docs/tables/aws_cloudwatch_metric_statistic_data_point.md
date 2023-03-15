@@ -161,7 +161,7 @@ order by
   timestamp;
 ```
 
-### Maximum bucket size of an s3 bucket for a given time frame
+### Bucket size statistics of an s3 bucket for a given time frame
 
 ```sql
 select
