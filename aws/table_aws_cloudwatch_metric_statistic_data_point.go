@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
@@ -114,13 +113,17 @@ func listCloudWatchMetricStatisticDataPoints(ctx context.Context, d *plugin.Quer
 	}
 
 	// set the period based on the duration between the start and end time
-	duration := params.EndTime.Sub(*params.StartTime).Round(time.Hour)
-	if duration.Hours() <= 1 {
+	// https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/cloudwatch@v1.25.1#GetMetricStatisticsInput.Period
+	duration := params.EndTime.Sub(*params.StartTime)
+	// if the duration is less than 3 hrs
+	if duration.Hours() < 3 {
 		params.Period = aws.Int32(5)
-	} else if duration.Hours() <= 24 {
-		params.Period = aws.Int32(3600)
-	} else {
-		params.Period = aws.Int32(86400)
+	} else if duration.Hours() <= 360 { // if the duration is between 3 hours and 15 days
+		params.Period = aws.Int32((int32((duration.Seconds()/1440))/60 + 1) * 60)
+	} else if duration.Hours() <= 1512 { // if the duration is between 15 and 63 days
+		params.Period = aws.Int32((int32((duration.Seconds()/1440))/300 + 1) * 300)
+	} else { // if the duration is greater than 63 days
+		params.Period = aws.Int32((int32((duration.Seconds()/1440))/3600 + 1) * 3600)
 	}
 
 	// override the period if user has provided it in query
