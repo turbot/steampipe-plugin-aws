@@ -46,7 +46,7 @@ func tableAwsCloudWatchMetricStatisticDataPoint(_ context.Context) *plugin.Table
 				},
 				{
 					Name:    "dimensions",
-					Require: plugin.Required,
+					Require: plugin.Optional,
 				},
 			},
 		},

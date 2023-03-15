@@ -6,13 +6,32 @@ The maximum number of data points returned from a single call is 1,440. If you r
 
 If you need to fetch more than 1440 data points then please use the `aws_cloudwatch_metric_data_point` table.
 
-- You **_must_** specify `metric_name`, `namespace`, `timestamp` and `dimensions` in a `where` clause in order to use this table.
+- You **_must_** specify `metric_name`, `namespace`, `timestamp` and `dimensions` in a `where` clause in order to use this table. To fetch aggregate statistics data `dimensions` is not required.
 
-- The GetMetricStatistics API used for this table cannot process multiple dimension values at a time, so you must pass one set of dimensions to the query, like in the examples below.
+- The GetMetricStatistics API used for this table cannot process multiple dimension values at a time, so you need to pass one set of dimensions to the query, like in the examples below.
 
 We recommend specifying the `period` column in the query to optimize the table output.
 
 ## Examples
+
+### Aggregate CPU utilization of all ec2 instances for a given time frame
+
+```sql
+select
+  metric_name,
+  timestamp,
+  round(minimum::numeric,2) as min_cpu,
+  round(maximum::numeric,2) as max_cpu,
+  round(average::numeric,2) as avg_cpu,
+  sample_count
+from
+  aws_cloudwatch_metric_statistic_data_point
+where
+  namespace = 'AWS/EC2'
+  and metric_name = 'CPUUtilization'
+  and timestamp between '2023-03-15T00:00:00Z' and '2023-03-15T13:33:00Z'
+  and period = 86400;
+```
 
 ### CPU average utilization of an ec2 instance over 80% for a given time frame
 
