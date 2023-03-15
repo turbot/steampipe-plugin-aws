@@ -95,6 +95,14 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromQual("metric_stat"),
 			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Label"),
+			},
 		}),
 	}
 }
