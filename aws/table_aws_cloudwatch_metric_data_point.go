@@ -212,13 +212,12 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	for _, result := range data.MetricDataResults {
-		for item, _ := range result.Timestamps {
+		for item := 0; item < len(result.Timestamps); item++ {
 			d.StreamListItem(ctx, &MetricDataPoint{result.Id, result.Label, result.StatusCode, aws.Int32(period), result.Timestamps[item], result.Values[item]})
-
-			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
-			}
+		}
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.RowsRemaining(ctx) == 0 {
+			return nil, nil
 		}
 	}
 
