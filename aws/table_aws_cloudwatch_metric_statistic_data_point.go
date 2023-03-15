@@ -135,7 +135,7 @@ func listCloudWatchMetricStatisticDataPoints(ctx context.Context, d *plugin.Quer
 	if dimensionsString != "" {
 		err := json.Unmarshal([]byte(dimensionsString), &dimensions)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_cloudwatch_metric.listCloudWatchMetrics", "unmarshal_error", err)
+			plugin.Logger(ctx).Error("listCloudWatchMetricStatisticDataPoints", "unmarshal_error", err)
 			return nil, fmt.Errorf("failed to unmarshal dimensions %v: %v", dimensionsString, err)
 		}
 	}
@@ -156,7 +156,7 @@ func listCloudWatchMetricStatisticDataPoints(ctx context.Context, d *plugin.Quer
 		plugin.Logger(ctx).Error("listCloudWatchMetricStatisticDataPoints", "api_error", err)
 		return nil, err
 	}
-	plugin.Logger(ctx).Error("testDatapoints", len(statistics.Datapoints))
+
 	for _, datapoints := range statistics.Datapoints {
 		d.StreamListItem(ctx, &MetricStatistics{params.MetricName, params.Namespace, params.Period, statistics.Label, dimensions, datapoints})
 
