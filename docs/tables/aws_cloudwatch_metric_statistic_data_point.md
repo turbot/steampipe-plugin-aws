@@ -6,9 +6,9 @@ The maximum number of data points returned from a single call is 1,440. If you r
 
 If you need to fetch more than 1440 data points then please use the `aws_cloudwatch_metric_data_point` table.
 
-- You **_must_** specify `metric_name`, `namespace`, `timestamp` and dimensions in a `where` clause in order to use this table.
+- You **_must_** specify `metric_name`, `namespace`, `timestamp` and `dimensions` in a `where` clause in order to use this table.
 
-- You need to pass one set of dimensions to the query like in the examples below, the GetMetricStatistics API, which is used for this table, cannot process multiple dimension values at a time.
+- The GetMetricStatistics API used for this table cannot process multiple dimension values at a time, so you must pass one set of dimensions to the query, like in the examples below.
 
 We recommend specifying the `period` column in the query to optimize the table output.
 
@@ -65,7 +65,7 @@ order by
   timestamp;
 ```
 
-### CacheHit sum below 10 of a elasticache cluster for a given time frame
+### CacheHit sum below 10 of an elasticache cluster for a given time frame
 
 ```sql
 select
@@ -161,7 +161,7 @@ where
   and timestamp between '2023-03-6T00:00:00Z' and '2023-03-15T13:33:00Z'
   and period = 86400
   and dimensions = '[
-    {"Name": "BucketName", "Value": "raj-steampipe-test"},
+    {"Name": "BucketName", "Value": "steampipe-test"},
     {"Name": "StorageType", "Value": "StandardStorage"}
     ]'::jsonb
 order by

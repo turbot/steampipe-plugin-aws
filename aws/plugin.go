@@ -99,6 +99,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudwatch_log_stream":                                    tableAwsCloudwatchLogStream(ctx),
 			"aws_cloudwatch_log_subscription_filter":                       tableAwsCloudwatchLogSubscriptionFilter(ctx),
 			"aws_cloudwatch_metric":                                        tableAwsCloudWatchMetric(ctx),
+			"aws_cloudwatch_metric_statistic_data_point":                   tableAwsCloudWatchMetricStatisticDataPoint(ctx),
 			"aws_codeartifact_domain":                                      tableAwsCodeArtifactDomain(ctx),
 			"aws_codeartifact_repository":                                  tableAwsCodeArtifactRepository(ctx),
 			"aws_codebuild_build":                                          tableAwsCodeBuildBuild(ctx),
@@ -430,7 +431,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wafv2_web_acl":                                            tableAwsWafv2WebAcl(ctx),
 			"aws_wellarchitected_workload":                                 tableAwsWellArchitectedWorkload(ctx),
 			"aws_workspaces_workspace":                                     tableAwsWorkspace(ctx),
-			"aws_cloudwatch_metric_statistics":                             tableAwsCloudWatchMetricStatistics(ctx),
 		},
 	}
 

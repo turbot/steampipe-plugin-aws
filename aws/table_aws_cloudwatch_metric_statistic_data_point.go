@@ -136,7 +136,7 @@ func listCloudWatchMetricStatisticDataPoints(ctx context.Context, d *plugin.Quer
 		err := json.Unmarshal([]byte(dimensionsString), &dimensions)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudwatch_metric.listCloudWatchMetrics", "unmarshal_error", err)
-			return nil, fmt.Errorf("failed to unmarshal dimensions filter %v: %v", dimensionsString, err)
+			return nil, fmt.Errorf("failed to unmarshal dimensions %v: %v", dimensionsString, err)
 		}
 	}
 
