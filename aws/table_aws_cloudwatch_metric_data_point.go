@@ -35,7 +35,7 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 				{
 					Name:      "timestamp",
 					Operators: []string{">", ">=", "=", "<", "<="},
-					Require:   plugin.Required,
+					Require:   plugin.Optional,
 				},
 				{
 					Name:    "period",
@@ -65,7 +65,7 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "period",
-				Description: "The name of the metric.",
+				Description: "The granularity, in seconds, of the returned data points.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -142,34 +142,47 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	params := &cloudwatch.GetMetricDataInput{
-		StartTime:     aws.Time(d.EqualsQuals["start_time"].GetTimestampValue().AsTime()),
-		EndTime:       aws.Time(d.EqualsQuals["end_time"].GetTimestampValue().AsTime()),
 		MaxDatapoints: aws.Int32(maxLimit),
 	}
 
 	//set the start and end time based on the provided timestamp
-	for _, q := range d.Quals["timestamp"].Quals {
-		time := q.Value.GetTimestampValue().AsTime()
-		switch q.Operator {
-		case "=":
-			params.StartTime = aws.Time(time)
-			params.EndTime = aws.Time(time)
-		case ">=", ">":
-			params.StartTime = aws.Time(time)
-		case "<", "<=":
-			params.EndTime = aws.Time(time)
+	if d.Quals["timestamp"] != nil {
+		for _, q := range d.Quals["timestamp"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case "=":
+				params.StartTime = aws.Time(timestamp)
+				params.EndTime = aws.Time(timestamp)
+			case ">=", ">":
+				params.StartTime = aws.Time(timestamp)
+				params.EndTime = aws.Time(time.Now())
+			case "<", "<=":
+				params.StartTime = aws.Time(time.Now().AddDate(0, 0, -1))
+				params.EndTime = aws.Time(timestamp)
+			}
 		}
+	} else {
+		params.StartTime = aws.Time(time.Now().AddDate(0, 0, -1))
+		params.EndTime = aws.Time(time.Now())
 	}
 
 	// set the period based on the duration between the start and end time
+	// https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/cloudwatch/types#MetricStat.Period
+	// * Start time between 3 hours and 15 days ago - Use a multiple of 60 seconds (1 minute).
+	// * Start time between 15 and 63 days ago - Use a multiple of 300 seconds (5 minutes).
+	// * Start time greater than 63 days ago - Use a multiple of 3600 seconds (1 hour).
+
 	var period int32
 	duration := params.EndTime.Sub(*params.StartTime).Round(time.Hour)
-	if duration.Hours() <= 1 {
+	// if the duration is less than 3 hours
+	if duration.Hours() <= 3 {
 		period = int32(5)
-	} else if duration.Hours() <= 24 {
+	} else if duration.Hours() <= 360 { // if the duration is between 3 hours and 15 days
+		period = int32(60)
+	} else if duration.Hours() <= 1512 { // if the duration is between 15 and 63 days
+		period = int32(300)
+	} else { // if the duration is greater than 63 days
 		period = int32(3600)
-	} else {
-		period = int32(86400)
 	}
 
 	// override the period if user has provided it in query
