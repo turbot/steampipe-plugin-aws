@@ -38,22 +38,6 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 					CacheMatch: "exact",
 				},
 				{
-					Name:       "return_data",
-					Require:    plugin.Optional,
-					CacheMatch: "exact",
-				},
-				{
-					Name:       "timestamp",
-					Operators:  []string{">", ">=", "=", "<", "<="},
-					Require:    plugin.Optional,
-					CacheMatch: "exact",
-				},
-				{
-					Name:       "period",
-					Require:    plugin.Optional,
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "expression",
 					Require:    plugin.Optional,
 					CacheMatch: "exact",
@@ -64,7 +48,23 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 					CacheMatch: "exact",
 				},
 				{
+					Name:       "period",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "return_data",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
+				},
+				{
 					Name:       "scan_by",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "timestamp",
+					Operators:  []string{">", ">=", "=", "<", "<="},
 					Require:    plugin.Optional,
 					CacheMatch: "exact",
 				},
@@ -93,12 +93,6 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "return_data",
-				Description: "When used in GetMetricData, this option indicates whether to return the timestamps and raw data values of this metric. If you are performing this call just to do math expressions and do not also need the raw data returned, you can specify false. If you omit this, the default of true is used. When used in PutMetricAlarm, specify true for the one expression result to use as the alarm. For all other metrics and expressions in the same PutMetricAlarm operation, specify ReturnData as False.",
-				Type:        proto.ColumnType_BOOL,
-				Transform:   transform.FromQual("return_data"),
-			},
-			{
 				Name:        "status_code",
 				Description: "The status of the returned data. Complete indicates that all data points in the requested time range were returned. PartialData means that an incomplete set of data points were returned.",
 				Type:        proto.ColumnType_STRING,
@@ -118,6 +112,12 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 				Description: "This field can contain either a Metrics Insights query, or a metric math expression to be performed on the returned data.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("expression"),
+			},
+			{
+				Name:        "return_data",
+				Description: "When used in GetMetricData, this option indicates whether to return the timestamps and raw data values of this metric. If you are performing this call just to do math expressions and do not also need the raw data returned, you can specify false. If you omit this, the default of true is used. When used in PutMetricAlarm, specify true for the one expression result to use as the alarm. For all other metrics and expressions in the same PutMetricAlarm operation, specify ReturnData as False.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromQual("return_data"),
 			},
 			{
 				Name:        "scan_by",
