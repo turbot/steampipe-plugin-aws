@@ -112,14 +112,19 @@ func listCloudWatchMetricStatisticDataPoints(ctx context.Context, d *plugin.Quer
 				params.EndTime = aws.Time(timestamp)
 			case ">=", ">":
 				params.StartTime = aws.Time(timestamp)
-				params.EndTime = aws.Time(time.Now())
 			case "<", "<=":
-				params.StartTime = aws.Time(time.Now().AddDate(0, 0, -1))
 				params.EndTime = aws.Time(timestamp)
 			}
 		}
 	} else {
 		params.StartTime = aws.Time(time.Now().AddDate(0, 0, -1))
+		params.EndTime = aws.Time(time.Now())
+	}
+
+	if params.StartTime == nil {
+		params.StartTime = aws.Time(time.Now().AddDate(0, 0, -1))
+	}
+	if params.EndTime == nil {
 		params.EndTime = aws.Time(time.Now())
 	}
 
