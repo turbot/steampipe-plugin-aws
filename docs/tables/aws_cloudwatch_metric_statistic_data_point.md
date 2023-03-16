@@ -6,11 +6,11 @@ The maximum number of data points returned from a single call is 1,440. If you r
 
 If you need to fetch more than 1440 data points then please use the `aws_cloudwatch_metric_data_point` table.
 
-- You **_must_** specify `metric_name`, `namespace`, and `timestamp` in a `where` clause in order to use this table.
+- You **_must_** specify `metric_name`, and `namespace` in a `where` clause in order to use this table.
 
 - To fetch aggregate statistics data, `dimensions` is not required. However, except for aggregate statistics, you must always pass `dimensions` in the query; the examples below can guide you.
 
-- By default, this table will provide data for the last 24hrs. You can give the timestamp value in the below ways to fetch data in a range. The examples below can guide you.
+- By default, this table will provide data for the last 24hrs. You can give the `timestamp` value in the below ways to fetch data in a range. The examples below can guide you.
 
   - where timestamp >= ‘2023-03-11T00:00:00Z’ and timestamp <= ‘2023-03-15T00:00:00Z’
   - where timestamp between ‘2023-03-11T00:00:00Z’ and ‘2023-03-15T00:00:00Z’
