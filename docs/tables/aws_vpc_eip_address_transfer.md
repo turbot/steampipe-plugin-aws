@@ -32,7 +32,7 @@ where
   transfer_offer_accepted_timestamp >= now() - interval '30' day;
 ```
 
-### List address transfers expires in 10 days
+### List address transfers expiring in 10 days
 
 ```sql
 select

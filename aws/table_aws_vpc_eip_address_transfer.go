@@ -74,11 +74,9 @@ func listVpcEipAddressTransfers(ctx context.Context, d *plugin.QueryData, h *plu
 	address := h.Item.(types.Address)
 	allocationId := d.EqualsQualString("allocation_id")
 
-	// If User is specifying the alocation id we should not make API call for for other allocation ids.
-	if allocationId != "" {
-		if allocationId != *address.AllocationId {
-			return nil, nil
-		}
+	// Avoid api call if user specified allocation_id doesn't match the hydrate id.
+	if allocationId != "" && allocationId != *address.AllocationId {
+		return nil, nil
 	}
 
 	// Create session
@@ -89,7 +87,7 @@ func listVpcEipAddressTransfers(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Limiting the results
-	// Doc says the MaxResult value can be between 5-1000 but the API throw error if we are passing more than 10
+	// According to the docs MaxResult can be set between 5-1000, but the API throws error if we pass value >10
 	// api error InvalidMaxResults: Value ( 1000 ) for parameter maxResults is invalid. Expecting a value less than or equal to 10.
 	maxLimit := int32(10)
 	if d.QueryContext.Limit != nil {
