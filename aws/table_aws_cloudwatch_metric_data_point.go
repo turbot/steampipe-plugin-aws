@@ -200,7 +200,6 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 	if d.Quals["timestamp"] != nil {
 		for _, q := range d.Quals["timestamp"].Quals {
 			timestamp := q.Value.GetTimestampValue().AsTime()
-			plugin.Logger(ctx).Error("timestamp", timestamp)
 			switch q.Operator {
 			case "=":
 				params.StartTime = aws.Time(timestamp)
