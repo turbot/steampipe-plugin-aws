@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
@@ -35,17 +36,20 @@ func tableAwsCloudWatchMetricStatisticDataPoint(_ context.Context) *plugin.Table
 					Require: plugin.Required,
 				},
 				{
-					Name:      "timestamp",
-					Operators: []string{">", ">=", "=", "<", "<="},
-					Require:   plugin.Required,
+					Name:       "timestamp",
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 				{
-					Name:    "period",
-					Require: plugin.Optional,
+					Name:       "period",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 				{
-					Name:    "dimensions",
-					Require: plugin.Optional,
+					Name:       "dimensions",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 			},
 		},
@@ -99,31 +103,63 @@ func listCloudWatchMetricStatisticDataPoints(ctx context.Context, d *plugin.Quer
 	}
 
 	//set the start and end time based on the provided timestamp
-	for _, q := range d.Quals["timestamp"].Quals {
-		time := q.Value.GetTimestampValue().AsTime()
-		switch q.Operator {
-		case "=":
-			params.StartTime = aws.Time(time)
-			params.EndTime = aws.Time(time)
-		case ">=", ">":
-			params.StartTime = aws.Time(time)
-		case "<", "<=":
-			params.EndTime = aws.Time(time)
+	if d.Quals["timestamp"] != nil {
+		for _, q := range d.Quals["timestamp"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case "=":
+				params.StartTime = aws.Time(timestamp)
+				params.EndTime = aws.Time(timestamp)
+			case ">=", ">":
+				params.StartTime = aws.Time(timestamp)
+				params.EndTime = aws.Time(time.Now())
+			case "<", "<=":
+				params.StartTime = aws.Time(time.Now().AddDate(0, 0, -1))
+				params.EndTime = aws.Time(timestamp)
+			}
 		}
+	} else {
+		params.StartTime = aws.Time(time.Now().AddDate(0, 0, -2))
+		params.EndTime = aws.Time(time.Now())
 	}
 
 	// set the period based on the duration between the start and end time
 	// https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/cloudwatch@v1.25.1#GetMetricStatisticsInput.Period
-	duration := params.EndTime.Sub(*params.StartTime)
+	// here we have tried setting the period in such a way that it could provide a good spread under 1440 datapoints
+
+	// for an example for a 5 days duration the maximum datapoints could be (5 * 24 * 3600) = 432000
+	// now due to API limitation of 1440, as per the below calculation, period will be 432000/1440 = 300 and with this period we will get upto 1440 datapoints
+
+	// another example, for a 5 days 15 hours duration the maximum datapoints could be (5 * 24 + 15) * 3600) = 486000
+	// now due to API limitation of 1440, as per the below calculation, period will be ((486000/1440)/60 + 1)*60 = 360
+	// in this case 486000/1440 = 337, which is not multiple of 60, so the closest multiple of 60 after 337 is 360
+	// with this period we will get upto 1350 datapoints
+
+	duration := params.EndTime.Sub(*params.StartTime).Hours()
+	durationSec := int32(duration) * 3600
+	defaultPeriod := (int32(duration) * 3600) / 1440
+
 	// if the duration is less than 3 hrs
-	if duration.Hours() < 3 {
+	if duration < 3 {
 		params.Period = aws.Int32(10)
-	} else if duration.Hours() <= 360 { // if the duration is between 3 hours and 15 days
-		params.Period = aws.Int32((int32((duration.Seconds()/1440))/60 + 1) * 60)
-	} else if duration.Hours() <= 1512 { // if the duration is between 15 and 63 days
-		params.Period = aws.Int32((int32((duration.Seconds()/1440))/300 + 1) * 300)
+	} else if duration <= 360 { // if the duration is between 3 hours and 15 days
+		if int32(durationSec)%1440 == 0 {
+			params.Period = aws.Int32(defaultPeriod)
+		} else {
+			params.Period = aws.Int32((defaultPeriod/60 + 1) * 60)
+		}
+	} else if duration <= 1512 { // if the duration is between 15 and 63 days
+		if int32(durationSec)%1440 == 0 {
+			params.Period = aws.Int32(defaultPeriod)
+		} else {
+			params.Period = aws.Int32((defaultPeriod/300 + 1) * 300)
+		}
 	} else { // if the duration is greater than 63 days
-		params.Period = aws.Int32((int32((duration.Seconds()/1440))/3600 + 1) * 3600)
+		if int32(durationSec)%1440 == 0 {
+			params.Period = aws.Int32(defaultPeriod)
+		} else {
+			params.Period = aws.Int32((defaultPeriod/3600 + 1) * 3600)
+		}
 	}
 
 	// override the period if user has provided it in query
