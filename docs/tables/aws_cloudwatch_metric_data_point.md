@@ -13,7 +13,7 @@ This table provides metric data points for the specified id. The maximum number 
 
 - We recommend specifying the `period` column in the query to optimize the table output. If you do not specify the `timestamp` then the default value for `period` is 60 seconds. If you specify the `timestamp` then the period will be calculated based on the duration mentioned ([here](https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/cloudwatch/types#MetricStat.Period)).
 
-Note: Using this table adds to cost to your monthly bill from AWS. Please refer to AWS CloudWatch Pricing to understand the cost implications.
+Note: Using this table adds to cost to your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. Please refer to AWS CloudWatch Pricing to understand the cost implications.
 
 ## Examples
 
@@ -86,6 +86,7 @@ where
   id = 'm1'
   and value > 1000
   and period = 86400
+  and scan_by = 'TimestampDescending'
   and timestamp between '2023-03-10T00:00:00Z' and '2023-03-16T00:00:00Z'
   and metric_stat = '{
     "Metric": {
@@ -97,9 +98,7 @@ where
         "Value": "vol-00607053b218c6d74"
       }
     ]},
-    "Stat": "Average"}'
-order by
-  timestamp;
+    "Stat": "Average"}';
 ```
 
 ### CacheHit sum below 10 of an elasticache cluster for the last 7 days
@@ -128,6 +127,40 @@ where
       }
     ]},
     "Stat": "Sum"}'
+order by
+  timestamp;
+```
+
+### Maximum Bucket size daily statistics of an S3 bucket for an account
+
+```sql
+select
+  id,
+  label,
+  timestamp,
+  value,
+  metric_stat
+from
+  aws_cloudwatch_metric_data_point
+where
+  id = 'e1'
+  and account_id = '533743456432100'
+  and timestamp between '2023-03-10T00:00:00Z' and '2023-03-16T00:00:00Z'
+  and metric_stat = '{
+    "Metric": {
+    "Namespace": "AWS/S3",
+    "MetricName": "BucketSizeBytes",
+    "Dimensions": [
+      {
+        "Name": "BucketName",
+        "Value": "steampipe-test"
+      },
+      {
+        "Name": "StorageType",
+        "Value": "StandardStorage"
+      }
+    ]},
+    "Stat": "Maximum"}'
 order by
   timestamp;
 ```
