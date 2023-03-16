@@ -12,8 +12,8 @@ If you need to fetch more than 1440 data points then please use the `aws_cloudwa
 
 - By default, this table will provide data for the last 24hrs. You can give the `timestamp` value in the below ways to fetch data in a range. The examples below can guide you.
 
-  - where timestamp >= ‘2023-03-11T00:00:00Z’ and timestamp <= ‘2023-03-15T00:00:00Z’
-  - where timestamp between ‘2023-03-11T00:00:00Z’ and ‘2023-03-15T00:00:00Z’
+  - timestamp >= ‘2023-03-11T00:00:00Z’ and timestamp <= ‘2023-03-15T00:00:00Z’
+  - timestamp between ‘2023-03-11T00:00:00Z’ and ‘2023-03-15T00:00:00Z’
   - timestamp > ‘2023-03-15T00:00:00Z’ (The data will be fetched from the provided time to the current time)
   - timestamp < ‘2023-03-15T00:00:00Z’ (The data will be fetched from one day before the provided time to the provided time)
 
