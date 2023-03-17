@@ -1,6 +1,6 @@
 # Table: aws_waf_rule_group
 
-An AWS WAF Regional rule group is a collection of rules for inspecting and controlling web requests.
+An AWS WAF regional rule group is a collection of rules for inspecting and controlling web requests.
 
 ## Examples
 
