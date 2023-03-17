@@ -23,7 +23,7 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"deployment_group_name", "application_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ApplicationDoesNotExistException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ApplicationDoesNotExistException", "DeploymentGroupDoesNotExistException"}),
 			},
 			Hydrate: getDeploymentGroup,
 		},
