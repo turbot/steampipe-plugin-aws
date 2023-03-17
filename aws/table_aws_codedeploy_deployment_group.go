@@ -21,14 +21,14 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_codedeploy_deployment_group",
 		Description: "AWS CodeDeploy Deployment Group",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("deployment_group_id"),
+			KeyColumns: plugin.AllColumns([]string{"deployment_group_name", "application_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ApplicationDoesNotExistException"}),
 			},
 			Hydrate: getDeploymentGroup,
 		},
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.SingleColumn("application_name"),
+			ParentHydrate: listCodeDeployApplications,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ApplicationDoesNotExistException"}),
 			},
@@ -183,6 +183,13 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DeploymentGroupName"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCodeDeployDeploymentGroupTags,
+				Transform:   transform.From(codeDeployDeploymentGroupTurbotTags),
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -195,8 +202,9 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDeploymentGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDeploymentGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
+	application := h.Item.(*types.ApplicationInfo)
 
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
@@ -206,7 +214,11 @@ func listDeploymentGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 	applicationName := d.EqualsQuals["application_name"].GetStringValue()
 	input := codedeploy.ListDeploymentGroupsInput{
-		ApplicationName: aws.String(applicationName),
+		ApplicationName: aws.String(*application.ApplicationName),
+	}
+
+	if applicationName != "" && applicationName !=  *application.ApplicationName {
+		return nil,nil
 	}
 
 	paginator := codedeploy.NewListDeploymentGroupsPaginator(svc, &input, func(o *codedeploy.ListDeploymentGroupsPaginatorOptions) {
@@ -281,6 +293,41 @@ func getDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 	return data.DeploymentGroupInfo, nil
 }
+func getCodeDeployDeploymentGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
+	var name string
+	if h.Item != nil {
+		name = *h.Item.(*types.DeploymentGroupInfo).DeploymentGroupName
+	} else {
+		name = d.EqualsQuals["deployment_group_name"].GetStringValue()
+	}
+
+	if name == "" {
+		return nil, nil
+	}
+
+	// Build the params
+	params := &codedeploy.ListTagsForResourceInput{
+		ResourceArn: aws.String(CodeDeployDeploymentGroupArn(ctx, d, h)),
+	}
+
+	// Create session
+	svc, err := CodeDeployClient(ctx, d)
+	if err != nil {
+		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroupTags", "service_creation_error", err)
+		return nil, err
+	}
+
+	// Get call
+	data, err := svc.ListTagsForResource(ctx, params)
+	if err != nil {
+		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroupTags", "api_error", err)
+		return nil, err
+	}
+	return data, nil
+
+}
 
 func getCodeDeployDeploymentGroupArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	return CodeDeployDeploymentGroupArn(ctx, d, h), nil
@@ -288,6 +335,7 @@ func getCodeDeployDeploymentGroupArn(ctx context.Context, d *plugin.QueryData, h
 
 func CodeDeployDeploymentGroupArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
 	name := *h.Item.(*types.DeploymentGroupInfo).DeploymentGroupName
+	appname := *h.Item.(*types.DeploymentGroupInfo).ApplicationName
 	region := d.EqualsQualString(matrixKeyRegion)
 	logger := plugin.Logger(ctx)
 
@@ -298,7 +346,22 @@ func CodeDeployDeploymentGroupArn(ctx context.Context, d *plugin.QueryData, h *p
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	//arn:aws:codedeploy:region:account-id:deploymentgroup:deployment-group-name
-	tableArn := "arn:" + commonColumnData.Partition + ":codedeploy:" + region + ":" + commonColumnData.AccountId + ":deploymentgroup:" + name
+	//arn:aws:codedeploy:region:account-id:deploymentgroup:application-name/deployment-group-name
+	tableArn := "arn:" + commonColumnData.Partition + ":codedeploy:" + region + ":" + commonColumnData.AccountId + ":deploymentgroup:" + appname + "/" + name
 	return tableArn
+}
+
+func codeDeployDeploymentGroupTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	tags := d.HydrateItem.(*codedeploy.ListTagsForResourceOutput)
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tags.Tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
 }
