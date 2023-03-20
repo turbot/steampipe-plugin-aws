@@ -67,9 +67,16 @@ func tableAwsWafRegionalWebAcl(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "logging_configuration",
-				Description: "The logging configuration for the specified web ACL.",
+				Description: "The logging configuration for the web ACL.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getWafRegionalLoggingConfiguration,
+			},
+			{
+				Name:        "resources",
+				Description: "An array of ARNs (Amazon Resource Names) of the resources associated with the web ACL.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getWafRegionalResources,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "rules",
@@ -169,7 +176,11 @@ func getWafRegionalWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	var id string
 	if h.Item != nil {
-		data := wafRegionalWebAclData(h.Item, ctx, d, h)
+		dataMap, err := getWafRegionalWebAclData(ctx, d, h)
+		if err != nil {
+			return nil, nil
+		}
+		data := dataMap.(map[string]string)
 		id = data["ID"]
 	} else {
 		id = d.EqualsQuals["web_acl_id"].GetStringValue()
@@ -207,7 +218,11 @@ func getWafRegionalWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForWafRegionalWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := wafRegionalWebAclData(h.Item, ctx, d, h)
+	dataMap, err := getWafRegionalWebAclData(ctx, d, h)
+	if err != nil {
+		return nil, nil
+	}
+	data := dataMap.(map[string]string)
 
 	// Create session
 	svc, err := WAFRegionalClient(ctx, d)
@@ -231,7 +246,11 @@ func listTagsForWafRegionalWebAcl(ctx context.Context, d *plugin.QueryData, h *p
 }
 
 func getWafRegionalLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := wafRegionalWebAclData(h.Item, ctx, d, h)
+	dataMap, err := getWafRegionalWebAclData(ctx, d, h)
+	if err != nil {
+		return nil, nil
+	}
+	data := dataMap.(map[string]string)
 
 	// Create session
 	svc, err := WAFRegionalClient(ctx, d)
@@ -264,6 +283,60 @@ func getWafRegionalLoggingConfiguration(ctx context.Context, d *plugin.QueryData
 	return op, nil
 }
 
+func getWafRegionalResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	dataMap, err := getWafRegionalWebAclData(ctx, d, h)
+	if err != nil {
+		return nil, nil
+	}
+	data := dataMap.(map[string]string)
+
+	// Create session
+	svc, err := WAFRegionalClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafregional_web_acl.getWafRegionalResources", "client_error", err)
+		return nil, err
+	}
+
+	// Unsupported region check
+	if svc == nil {
+		return nil, nil
+	}
+
+	// Build param
+	param := &wafregional.ListResourcesForWebACLInput{
+		WebACLId: aws.String(data["ID"]),
+	}
+
+	op, err := svc.ListResourcesForWebACL(ctx, param)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafregional_web_acl.getWafRegionalResources", "api_error", err)
+		return nil, err
+	}
+	return op.ResourceArns, nil
+}
+
+func getWafRegionalWebAclData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	data := map[string]string{}
+	switch item := h.Item.(type) {
+	case *types.WebACL:
+		data["ID"] = *item.WebACLId
+		data["Arn"] = *item.WebACLArn
+		data["Name"] = *item.Name
+	case types.WebACLSummary:
+		data["ID"] = *item.WebACLId
+		commonData, err := getCommonColumns(ctx, d, h)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafregional_web_acl.getWafRegionalWebAclData", "cache_error", err)
+			return nil, err
+		}
+		region := d.EqualsQualString(matrixKeyRegion)
+		commonColumnData := commonData.(*awsCommonColumnData)
+		data["Arn"] = fmt.Sprintf("arn:%s:waf-regional:%s:%s:webacl/%s", commonColumnData.Partition, region, commonColumnData.AccountId, *item.WebACLId)
+		data["Name"] = *item.Name
+	}
+	return data, nil
+}
+
 //// TRANSFORM FUNCTIONS
 
 func wafRegionalWebAclTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
@@ -283,26 +356,4 @@ func wafRegionalWebAclTagListToTurbotTags(ctx context.Context, d *transform.Tran
 	}
 
 	return turbotTagsMap, nil
-}
-
-func wafRegionalWebAclData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
-	data := map[string]string{}
-	switch item := item.(type) {
-	case *types.WebACL:
-		data["ID"] = *item.WebACLId
-		data["Arn"] = *item.WebACLArn
-		data["Name"] = *item.Name
-	case types.WebACLSummary:
-		data["ID"] = *item.WebACLId
-		commonData, err := getCommonColumns(ctx, d, h)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_wafregional_web_acl.wafRegionalWebAclData", "cache_error", err)
-			return nil
-		}
-		region := d.EqualsQualString(matrixKeyRegion)
-		commonColumnData := commonData.(*awsCommonColumnData)
-		data["Arn"] = fmt.Sprintf("arn:%s:waf-regional:%s:%s:webacl/%s", commonColumnData.Partition, region, commonColumnData.AccountId, *item.WebACLId)
-		data["Name"] = *item.Name
-	}
-	return data
 }
