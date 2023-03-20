@@ -21,7 +21,7 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 		Name:        "aws_codedeploy_deployment_config",
 		Description: "AWS CodeDeploy Deployment Config",
 		Get: &plugin.GetConfig{
-			KeyColumns:   plugin.SingleColumn("deployment_config_name"),
+			KeyColumns: plugin.SingleColumn("deployment_config_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DeploymentConfigDoesNotExistException"}),
 			},
@@ -112,7 +112,7 @@ func listCodeDeployDeploymentConfigs(ctx context.Context, d *plugin.QueryData, h
 		// Unsupported region, return no data
 		return nil, nil
 	}
-	
+
 	input := codedeploy.ListDeploymentConfigsInput{}
 
 	paginator := codedeploy.NewListDeploymentConfigsPaginator(svc, &input, func(o *codedeploy.ListDeploymentConfigsPaginatorOptions) {
@@ -137,7 +137,6 @@ func listCodeDeployDeploymentConfigs(ctx context.Context, d *plugin.QueryData, h
 			}
 		}
 	}
-
 	return nil, nil
 }
 
@@ -176,7 +175,6 @@ func getCodeDeployDeploymentConfig(ctx context.Context, d *plugin.QueryData, h *
 		plugin.Logger(ctx).Error("aws_codedeploy_deployment_config.getCodeDeployDeploymentConfig", "api_error", err)
 		return nil, err
 	}
-
 	return op.DeploymentConfigInfo, nil
 }
 

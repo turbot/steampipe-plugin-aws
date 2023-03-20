@@ -3,5 +3,5 @@
     "compute_platform": "{{ output.compute_platform.value }}",
     "deployment_config_id": "{{ output.resource_id.value }}",
     "deployment_config_name": "{{ resourceName }}"
-    }
+  }
 ]
