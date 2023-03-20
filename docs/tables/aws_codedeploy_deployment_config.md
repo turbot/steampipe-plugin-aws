@@ -45,3 +45,20 @@ from
 where
   create_time is not null;
 ```
+
+### Find the minimum healthy hosts of a particular deployment configuration
+
+```sql
+select
+  arn,
+  deployment_config_id,
+  deployment_config_name
+  compute_platform,
+  minimum_healthy_hosts ->> 'Type' as host_type,
+  minimum_healthy_hosts ->> 'Value' as host_value,
+  region
+from
+  aws_codedeploy_deployment_config
+where
+  create_time is not null;
+```
