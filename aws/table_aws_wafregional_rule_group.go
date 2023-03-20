@@ -103,6 +103,11 @@ func listWafRegionalRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
+	// Unsupported region, return no data
+	if svc == nil {
+		return nil, nil
+	}
+
 	// List all rule groups
 	pagesLeft := true
 	params := &wafregional.ListRuleGroupsInput{
@@ -163,6 +168,11 @@ func getWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wafregional_rule_group.getWafRegionalRuleGroup", "client_error", err)
 		return nil, err
+	}
+
+	// Unsupported region, return no data
+	if svc == nil {
+		return nil, nil
 	}
 
 	params := &wafregional.GetRuleGroupInput{
