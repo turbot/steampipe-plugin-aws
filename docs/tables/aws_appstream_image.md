@@ -115,7 +115,7 @@ select
   name,
   arn,
   image_permissions ->> 'AllowFleet' as allow_fleet,
-  image_permissions ->> 'AllowImageBuilder' as allow_image_builder,
+  image_permissions ->> 'AllowImageBuilder' as allow_image_builder
 from
   aws_appstream_image;
 ```

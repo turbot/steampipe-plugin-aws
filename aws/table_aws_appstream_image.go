@@ -17,7 +17,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsAppstreamImage(_ context.Context) *plugin.Table {
+func tableAwsAppStreamImage(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_appstream_image",
 		Description: "AWS AppStream Image",
