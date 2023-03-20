@@ -1,10 +1,10 @@
 [
   {
-   "arn": "{{ output.resource_aka.value }}",
-   "deployment_group_id": "{{ output.resource_id.value }}",
-   "deployment_group_name": "{{ resourceName }}",
-   "tags": {
-    "name": "{{ resourceName }}"
+    "arn": "{{ output.resource_aka.value }}",
+    "deployment_group_id": "{{ output.resource_id.value }}",
+    "deployment_group_name": "{{ resourceName }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
   }
-  }
- ]
+]

@@ -34,7 +34,8 @@ group by
   compute_platform;
 ```
 
-### List the last successful deployment of a deployment group
+### List the last successful deployment for each deployment group
+
 ```sql
 select
   arn,
@@ -44,4 +45,32 @@ from
   aws_codedeploy_deployment_group
 where
   application_name = 'abc';
+```
+
+### Get total deployment groups based on deployment style
+
+```sql
+select
+  count(arn) as group_count,
+  deployment_style
+from
+  aws_codedeploy_deployment_group
+where
+  application_name = 'abc'
+group by
+  deployment_style;
+```
+
+### List the deployment groups having automatic rollback enabled
+
+```sql
+select
+  arn,
+  deployment_group_id,
+  deployment_group_name,
+  jsonb_pretty(auto_rollback_configuration)
+from
+  aws_codedeploy_deployment_group
+where
+  application_name = 'abc' and auto_rollback_configuration ->> 'Enabled' = 'true' ;
 ```

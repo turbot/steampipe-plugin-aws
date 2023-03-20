@@ -45,15 +45,39 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "application_name",
+				Description: "The application name.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "deployment_config_name",
+				Description: "The deployment configuration name.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodedeployDeploymentGroup,
+			},
+			{
+				Name:        "deployment_group_id",
+				Description: "The deployment group ID.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodedeployDeploymentGroup,
+			},
+			{
+				Name:        "deployment_group_name",
+				Description: "The deployment group name.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodedeployDeploymentGroup,
+			},
+			{
+				Name:        "service_role_arn",
+				Description: "A service role Amazon Resource Name (ARN) that grants CodeDeploy permission to make calls to Amazon Web Services services on your behalf.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodedeployDeploymentGroup,
+			},
+			{
 				Name:        "alarm_configuration",
 				Description: "A list of alarms associated with the deployment group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCodedeployDeploymentGroup,
-			},
-			{
-				Name:        "application_name",
-				Description: "The application name.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "auto_rollback_configuration",
@@ -77,24 +101,6 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 				Name:        "compute_platform",
 				Description: "The destination platform type for the deployment (Lambda, Server, or ECS).",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCodedeployDeploymentGroup,
-			},
-			{
-				Name:        "deployment_config_name",
-				Description: "The deployment configuration name.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCodedeployDeploymentGroup,
-			},
-			{
-				Name:        "deployment_group_id",
-				Description: "The deployment group ID.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCodedeployDeploymentGroup,
-			},
-			{
-				Name:        "deployment_group_name",
-				Description: "The deployment group name.",
-				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCodedeployDeploymentGroup,
 			},
 			{
@@ -155,12 +161,6 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 				Name:        "outdated_instances_strategy",
 				Description: "Indicates what happens when new Amazon EC2 instances are launched mid-deployment and do not receive the deployed application revision.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCodedeployDeploymentGroup,
-			},
-			{
-				Name:        "service_role_arn",
-				Description: "A service role Amazon Resource Name (ARN) that grants CodeDeploy permission to make calls to Amazon Web Services services on your behalf.",
-				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCodedeployDeploymentGroup,
 			},
 			{
@@ -271,11 +271,7 @@ func getCodedeployDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *p
 		appname = d.EqualsQuals["application_name"].GetStringValue()
 	}
 
-	if name == "" {
-		return nil, nil
-	}
-
-	if appname == "" {
+	if name == "" || appname == "" {
 		return nil, nil
 	}
 
@@ -300,15 +296,12 @@ func getCodedeployDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *p
 	}
 	return data.DeploymentGroupInfo, nil
 }
+
 func getCodeDeployDeploymentGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	var name string
-	if h.Item != nil {
-		name = *h.Item.(*types.DeploymentGroupInfo).DeploymentGroupName
-	} else {
-		name = d.EqualsQuals["deployment_group_name"].GetStringValue()
-	}
+	name = *h.Item.(*types.DeploymentGroupInfo).DeploymentGroupName
 
 	if name == "" {
 		return nil, nil
