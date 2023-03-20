@@ -114,14 +114,17 @@ func tableAwsWafRegionalWebAcl(_ context.Context) *plugin.Table {
 
 func listWafRegionalWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	maxItems := int32(100)
-	params := &wafregional.ListWebACLsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			params.Limit = limit
+			maxItems = limit
 		}
+	}
+
+	params := &wafregional.ListWebACLsInput{
+		Limit: maxItems,
 	}
 
 	// Create session
