@@ -182,6 +182,11 @@ func getWafRegionalWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
+	// Unsupported region check
+	if svc == nil {
+		return nil, nil
+	}
+
 	params := &wafregional.GetWebACLInput{
 		WebACLId: aws.String(id),
 	}
@@ -230,6 +235,11 @@ func getWafRegionalLoggingConfiguration(ctx context.Context, d *plugin.QueryData
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wafregional_web_acl.getWafRegionalLoggingConfiguration", "client_error", err)
 		return nil, err
+	}
+
+	// Unsupported region check
+	if svc == nil {
+		return nil, nil
 	}
 
 	// Build param
