@@ -164,6 +164,13 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 				Hydrate:     getCodeDeployDeploymentGroup,
 			},
 			{
+				Name:        "tags_src",
+				Description: "A list of tags associated with certificate",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCodeDeployDeploymentGroupTags,
+				Transform:   transform.FromField("Tags"),
+			},
+			{
 				Name:        "target_revision",
 				Description: "Information about the deployment group's target revision, including type and location.",
 				Type:        proto.ColumnType_JSON,
@@ -174,13 +181,6 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 				Description: "Information about triggers associated with the deployment group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCodeDeployDeploymentGroup,
-			},
-			{
-				Name:        "tags_src",
-				Description: "A list of tags associated with certificate",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCodeDeployDeploymentGroupTags,
-				Transform:   transform.FromField("Tags"),
 			},
 
 			// Steampipe standard columns
@@ -217,7 +217,7 @@ func listCodeDeployDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_deployment_group.listCodeDeployDeploymentGroup", "service_creation_error", err)
+		logger.Error("aws_codedeploy_deployment_group.listCodeDeployDeploymentGroup", "creation_error", err)
 		return nil, err
 	}
 
@@ -291,16 +291,17 @@ func getCodeDeployDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *p
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroup", "service_creation_error", err)
+		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroup", "creation_error", err)
 		return nil, err
 	}
 
-	// Get call
-	data, err := svc.GetDeploymentGroup(ctx, params)
 	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil
 	}
+
+	// Get call
+	data, err := svc.GetDeploymentGroup(ctx, params)
 	if err != nil {
 		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroup", "api_error", err)
 		return nil, err
@@ -319,7 +320,7 @@ func getCodeDeployDeploymentGroupTags(ctx context.Context, d *plugin.QueryData, 
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroupTags", "service_creation_error", err)
+		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroupTags", "creation_error", err)
 		return nil, err
 	}
 
