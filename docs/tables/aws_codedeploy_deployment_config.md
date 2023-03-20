@@ -10,7 +10,7 @@ A deployment configuration is a set of rules and success and failure conditions 
 select
   arn,
   deployment_config_id,
-  deployment_config_name
+  deployment_config_name,
   compute_platform,
   create_time,
   region
