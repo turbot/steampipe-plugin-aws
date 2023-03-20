@@ -68,9 +68,38 @@ select
   arn,
   deployment_group_id,
   deployment_group_name,
-  jsonb_pretty(auto_rollback_configuration)
+  auto_rollback_configuration ->> 'Enabled' as auto_rollback_configuration_enabled
 from
   aws_codedeploy_deployment_group
 where
   application_name = 'abc' and auto_rollback_configuration ->> 'Enabled' = 'true' ;
+```
+
+### List all autoscaling groups of a particular deployment group
+
+```sql
+select
+  arn as group_arn,
+  deployment_group_id,
+  deployment_group_name,
+  auto_scaling_groups ->> 'Hook' as auto_scaling_group_hook,
+  auto_scaling_groups ->> 'Name' as auto_scaling_group_name
+from
+  aws_codedeploy_deployment_group
+where
+  application_name = 'abc' and deployment_group_name = 'def' ;
+```
+
+### List the deployment groups having automatic rollback enabled
+
+```sql
+select
+  arn,
+  deployment_group_id,
+  deployment_group_name,
+  alarm_configuration ->> 'Enabled' as alarm_configuration_enabled
+from
+  aws_codedeploy_deployment_group
+where
+  application_name = 'abc' and alarm_configuration ->> 'Enabled' = 'true' ;
 ```
