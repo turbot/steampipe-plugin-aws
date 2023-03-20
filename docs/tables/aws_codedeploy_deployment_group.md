@@ -15,7 +15,9 @@ select
   deployment_style,
   region
 from
-  aws_codedeploy_deployment_group;
+  aws_codedeploy_deployment_group
+where
+  application_name = 'abc';
 ```
 
 ### Get total deployment groups on each platform
@@ -26,6 +28,8 @@ select
   compute_platform
 from
   aws_codedeploy_deployment_group
+where
+  application_name = 'abc'
 group by
   compute_platform;
 ```
@@ -37,5 +41,7 @@ select
   deployment_group_id,
   last_successful_deployment
 from
-  aws_codedeploy_deployment_group;
+  aws_codedeploy_deployment_group
+where
+  application_name = 'abc';
 ```
