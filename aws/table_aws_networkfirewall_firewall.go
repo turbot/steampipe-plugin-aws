@@ -38,14 +38,14 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
-				Description: "The last time that the firewall policy was changed.",
+				Description: "The Amazon Resource Name (ARN) of the firewall.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getNetworkFirewallFirewall,
 				Transform:   transform.FromField("Firewall.FirewallArn"),
 			},
 			{
 				Name:        "name",
-				Description: "The descriptive name of the firewall. You can't change the name of a firewall after you create it.",
+				Description: "The descriptive name of the firewall.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getNetworkFirewallFirewall,
 				Transform:   transform.FromField("Firewall.FirewallName"),
@@ -81,7 +81,7 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "policy_arn",
-				Description: "The public subnets that Network Firewall is using for the firewall. Each subnet must belong to a different Availability Zone.",
+				Description: "The Amazon Resource Name (ARN) of the firewall policy.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getNetworkFirewallFirewall,
 				Transform:   transform.FromField("Firewall.FirewallPolicyArn"),
@@ -100,10 +100,9 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				Hydrate:     getNetworkFirewallFirewall,
 				Transform:   transform.FromField("Firewall.SubnetChangeProtection"),
 			},
-
 			{
 				Name:        "encryption_configuration",
-				Description: "A complex type that contains the Amazon Web Services KMS encryption configuration settings for your firewall.",
+				Description: "A complex type that contains the Amazon Web Services KMS encryption configuration settings for the firewall.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getNetworkFirewallFirewall,
 				Transform:   transform.FromField("Firewall.EncryptionConfiguration"),
@@ -159,19 +158,10 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 
 func listNetworkFirewallFirewalls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	// vpcId := d.EqualsQuals["vpc_id"].GetStringValue()
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
-		}
+		maxLimit = int32(*d.QueryContext.Limit)
 	}
 
 	input := &networkfirewall.ListFirewallsInput{
