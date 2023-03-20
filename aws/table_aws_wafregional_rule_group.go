@@ -154,7 +154,7 @@ func listWafRegionalRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plug
 func getWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var id string
 	if h.Item != nil {
-		data := wafRegionalRuleGroupData(h.Item, ctx, d, h)
+		data := wafRegionalRuleGroupData(ctx, d, h)
 		id = data["rule_group_id"]
 	} else {
 		id = d.EqualsQuals["rule_group_id"].GetStringValue()
@@ -176,7 +176,7 @@ func getWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	params := &wafregional.GetRuleGroupInput{
-		RuleGroupId: &(id),
+		RuleGroupId: &id,
 	}
 
 	op, err := svc.GetRuleGroup(ctx, params)
@@ -189,7 +189,7 @@ func getWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin
 }
 
 func getWafRegionalRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := wafRegionalRuleGroupData(h.Item, ctx, d, h)
+	data := wafRegionalRuleGroupData(ctx, d, h)
 	id := data["rule_group_id"]
 
 	// Create session
@@ -200,7 +200,7 @@ func getWafRegionalRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryD
 	}
 
 	params := &wafregional.ListActivatedRulesInRuleGroupInput{
-		RuleGroupId: &(id),
+		RuleGroupId: &id,
 	}
 
 	op, err := svc.ListActivatedRulesInRuleGroup(ctx, params)
@@ -216,7 +216,7 @@ func getWafRegionalRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryD
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := wafRegionalRuleGroupData(h.Item, ctx, d, h)
+	data := wafRegionalRuleGroupData(ctx, d, h)
 
 	// Create session
 	svc, err := WAFRegionalClient(ctx, d)
@@ -227,7 +227,7 @@ func listTagsForWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h
 
 	// Build param with maximum limit set
 	param := &wafregional.ListTagsForResourceInput{
-		ResourceARN: aws.String(data["Arn"]),
+		ResourceARN: aws.String(data["rule_group_arn"]),
 		Limit:       int32(100),
 	}
 
@@ -240,8 +240,8 @@ func listTagsForWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h
 }
 
 func getWafRegionalRuleGroupArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := wafRegionalRuleGroupData(h.Item, ctx, d, h)
-	return data["Arn"], nil
+	data := wafRegionalRuleGroupData(ctx, d, h)
+	return data["rule_group_arn"], nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -265,7 +265,7 @@ func wafRegionalRuleGroupTagListToTurbotTags(ctx context.Context, d *transform.T
 	return turbotTagsMap, nil
 }
 
-func wafRegionalRuleGroupData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
+func wafRegionalRuleGroupData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
 	data := map[string]string{}
 
 	commonData, err := getCommonColumns(ctx, d, h)
@@ -275,16 +275,14 @@ func wafRegionalRuleGroupData(item interface{}, ctx context.Context, d *plugin.Q
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 	region := d.EqualsQualString(matrixKeyRegion)
-	switch item := item.(type) {
+	switch item := h.Item.(type) {
 	case *types.RuleGroup:
 		data["rule_group_id"] = *item.RuleGroupId
-		data["Arn"] = "arn:" + commonColumnData.Partition + ":waf-regional:" + region + ":" + commonColumnData.AccountId + ":rulegroup/" + *item.RuleGroupId
-		data["Name"] = *item.Name
+		data["rule_group_arn"] = "arn:" + commonColumnData.Partition + ":waf-regional:" + region + ":" + commonColumnData.AccountId + ":rulegroup/" + *item.RuleGroupId
 
 	case types.RuleGroupSummary:
 		data["rule_group_id"] = *item.RuleGroupId
-		data["Arn"] = "arn:" + commonColumnData.Partition + ":waf-regional:" + region + ":" + commonColumnData.AccountId + ":rulegroup/" + *item.RuleGroupId
-		data["Name"] = *item.Name
+		data["rule_group_arn"] = "arn:" + commonColumnData.Partition + ":waf-regional:" + region + ":" + commonColumnData.AccountId + ":rulegroup/" + *item.RuleGroupId
 	}
 
 	return data
