@@ -107,6 +107,12 @@ func listCodeDeployDeploymentConfigs(ctx context.Context, d *plugin.QueryData, h
 		logger.Error("aws_codedeploy_deployment_config.listDeploymentConfigs", "service_creation_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+	
 	input := codedeploy.ListDeploymentConfigsInput{}
 
 	paginator := codedeploy.NewListDeploymentConfigsPaginator(svc, &input, func(o *codedeploy.ListDeploymentConfigsPaginatorOptions) {
