@@ -154,7 +154,11 @@ func listWafRegionalRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plug
 func getWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var id string
 	if h.Item != nil {
-		data := wafRegionalRuleGroupData(ctx, d, h)
+		dataMap, err := wafRegionalRuleGroupData(ctx, d, h)
+		data := dataMap.(map[string]string)
+		if err != nil {
+			return err, nil
+		}
 		id = data["rule_group_id"]
 	} else {
 		id = d.EqualsQuals["rule_group_id"].GetStringValue()
@@ -189,7 +193,11 @@ func getWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin
 }
 
 func getWafRegionalRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := wafRegionalRuleGroupData(ctx, d, h)
+	dataMap, err := wafRegionalRuleGroupData(ctx, d, h)
+	data := dataMap.(map[string]string)
+	if err != nil {
+		return err, nil
+	}
 	id := data["rule_group_id"]
 
 	// Create session
@@ -216,7 +224,11 @@ func getWafRegionalRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryD
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := wafRegionalRuleGroupData(ctx, d, h)
+	dataMap, err := wafRegionalRuleGroupData(ctx, d, h)
+	data := dataMap.(map[string]string)
+	if err != nil {
+		return err, nil
+	}
 
 	// Create session
 	svc, err := WAFRegionalClient(ctx, d)
@@ -240,7 +252,11 @@ func listTagsForWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h
 }
 
 func getWafRegionalRuleGroupArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := wafRegionalRuleGroupData(ctx, d, h)
+	dataMap, err := wafRegionalRuleGroupData(ctx, d, h)
+	data := dataMap.(map[string]string)
+	if err != nil {
+		return err, nil
+	}
 	return data["rule_group_arn"], nil
 }
 
@@ -265,13 +281,13 @@ func wafRegionalRuleGroupTagListToTurbotTags(ctx context.Context, d *transform.T
 	return turbotTagsMap, nil
 }
 
-func wafRegionalRuleGroupData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
+func wafRegionalRuleGroupData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := map[string]string{}
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wafregional_rule_group.wafRegionalRuleGroupData", "cache_error", err)
-		return nil
+		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 	region := d.EqualsQualString(matrixKeyRegion)
@@ -285,5 +301,5 @@ func wafRegionalRuleGroupData(ctx context.Context, d *plugin.QueryData, h *plugi
 		data["rule_group_arn"] = "arn:" + commonColumnData.Partition + ":waf-regional:" + region + ":" + commonColumnData.AccountId + ":rulegroup/" + *item.RuleGroupId
 	}
 
-	return data
+	return data, nil
 }
