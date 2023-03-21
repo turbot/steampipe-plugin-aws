@@ -63,30 +63,30 @@ where
   create_time is not null;
 ```
 
-### Display canary for the deployment configurations where traffic routing type is 'TimeBasedCanary'
+### Get traffic routing details for `TimeBasedCanary` deployment configurations
 
 ```sql
 select
   arn,
   deployment_config_id,
   deployment_config_name,
-  traffic_routing_config ->> 'TimeBasedCanary' as cranary,
-  region
+  traffic_routing_config -> 'TimeBasedCanary' ->> 'CanaryInterval' as canary_interval,
+  traffic_routing_config -> 'TimeBasedCanary' ->> 'CanaryPercentage' as canary_percentage
 from
   aws_codedeploy_deployment_config
 where
   traffic_routing_config ->> 'Type' = 'TimeBasedCanary';
 ```
 
-### Display canary for the deployment configurations where traffic routing type is 'TimeBasedLinear'
+### Get traffic routing details for `TimeBasedLinear` deployment configurations
 
 ```sql
 select
   arn,
   deployment_config_id,
   deployment_config_name,
-  traffic_routing_config ->> 'TimeBasedLinear' as cranary,
-  region
+  traffic_routing_config -> 'TimeBasedLinear' ->> 'LinearInterval' as linear_interval,
+  traffic_routing_config -> 'TimeBasedLinear' ->> 'LinearPercentage' as linear_percentage
 from
   aws_codedeploy_deployment_config
 where
