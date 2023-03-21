@@ -68,6 +68,7 @@ where
 ```
 
 ### List all autoscaling groups in a particular deployment group for an application
+
 ```sql
 select
   arn as group_arn,
