@@ -1,0 +1,12 @@
+[
+  {
+    "akas": [
+      "{{output.resource_aka.value}}"
+    ],
+    "domain_name": "{{resourceName}}",
+    "tags": {
+      "name": "{{output.tags.value}}"
+    },
+    "title": "{{resourceName}}"
+  }
+]
