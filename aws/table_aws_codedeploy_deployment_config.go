@@ -43,12 +43,6 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
-				Name:        "compute_platform",
-				Description: "The destination platform type for the deployment (Lambda, Server, or ECS).",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCodeDeployDeploymentConfig,
-			},
-			{
 				Name:        "create_time",
 				Description: "The time at which the deployment configuration was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -56,7 +50,7 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "deployment_config_id",
-				Description: "The deployment configuration ID.",
+				Description: "The deployment configuration id.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCodeDeployDeploymentConfig,
 			},
@@ -66,8 +60,14 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "compute_platform",
+				Description: "The destination platform type for the deployment (Lambda, Server, or ECS).",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCodeDeployDeploymentConfig,
+			},
+			{
 				Name:        "minimum_healthy_hosts",
-				Description: "Information about the number or percentage of minimum healthy instance.",
+				Description: "Information about the number or percentage of minimum healthy instances.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCodeDeployDeploymentConfig,
 			},
@@ -104,7 +104,7 @@ func listCodeDeployDeploymentConfigs(ctx context.Context, d *plugin.QueryData, h
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_deployment_config.listDeploymentConfigs", "service_creation_error", err)
+		logger.Error("aws_codedeploy_deployment_config.listDeploymentConfigs", "client_error", err)
 		return nil, err
 	}
 
@@ -150,7 +150,7 @@ func getCodeDeployDeploymentConfig(ctx context.Context, d *plugin.QueryData, h *
 		name = d.EqualsQuals["deployment_config_name"].GetStringValue()
 	}
 
-	// check if clusterName or nodegroupName is empty
+	// check if the config name is empty
 	if name == "" {
 		return nil, nil
 	}
@@ -161,6 +161,7 @@ func getCodeDeployDeploymentConfig(ctx context.Context, d *plugin.QueryData, h *
 		plugin.Logger(ctx).Error("aws_codedeploy_deployment_config.getCodeDeployDeploymentConfig", "connection_error", err)
 		return nil, err
 	}
+
 	if svc == nil {
 		// Unsupported region check
 		return nil, nil

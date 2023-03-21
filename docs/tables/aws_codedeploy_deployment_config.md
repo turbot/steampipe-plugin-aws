@@ -18,7 +18,7 @@ from
   aws_codedeploy_deployment_config;
 ```
 
-### Get total configurations deployed on each platform
+### Get the total configurations for each compute platform
 
 ```sql
 select
@@ -30,7 +30,7 @@ group by
   compute_platform;
 ```
 
-### List the user defined configurations
+### List the user managed deployment configurations
 
 ```sql
 select
@@ -46,7 +46,7 @@ where
   create_time is not null;
 ```
 
-### Find the minimum healthy hosts of a particular deployment configuration
+### Find the minimum healthy hosts associated to the deployment configuration
 
 ```sql
 select
