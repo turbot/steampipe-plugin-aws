@@ -34,13 +34,14 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 				Name:        "id",
 				Description: "The id of the function.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Configuration.QueryExecutionId", "QueryExecutionId"),
+				Transform:   transform.FromField("QueryExecutionId"),
 			},
 			{
 				Name:        "query",
 				Description: "The SQL query",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Configuration.Query", "Query"),
+                                Hydrate:     getAwsAthenaQueryExecution,
+				Transform:   transform.FromField("QueryExecution.Query"),
 			},
 		}),
 	}
@@ -49,7 +50,6 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsAthenaQueryExeuctions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
 	// Create service
 	svc, err := AthenaClient(ctx, d)
 	if err != nil {
@@ -89,7 +89,10 @@ func listAwsAthenaQueryExeuctions(ctx context.Context, d *plugin.QueryData, _ *p
 			return nil, err
 		}
 
-		for _, queryExecution := range output.QueryExecutionIds {
+		for _, queryExecutionId := range output.QueryExecutionIds {
+                        id := strings.Clone(queryExecutionId)
+                        var queryExecution = types.QueryExecution{QueryExecutionId: &id}
+
 			d.StreamListItem(ctx, queryExecution)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
