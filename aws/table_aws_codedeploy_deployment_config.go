@@ -104,7 +104,7 @@ func listCodeDeployDeploymentConfigs(ctx context.Context, d *plugin.QueryData, h
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_deployment_config.listDeploymentConfigs", "client_error", err)
+		logger.Error("aws_codedeploy_deployment_config.listCodeDeployDeploymentConfigs", "client_error", err)
 		return nil, err
 	}
 
@@ -122,7 +122,7 @@ func listCodeDeployDeploymentConfigs(ctx context.Context, d *plugin.QueryData, h
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_codedeploy_deployment_config.listDeploymentConfigs", "api_error", err)
+			plugin.Logger(ctx).Error("aws_codedeploy_deployment_config.listCodeDeployDeploymentConfigs", "api_error", err)
 			return nil, err
 		}
 
@@ -158,7 +158,7 @@ func getCodeDeployDeploymentConfig(ctx context.Context, d *plugin.QueryData, h *
 	// create service
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_codedeploy_deployment_config.getCodeDeployDeploymentConfig", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_codedeploy_deployment_config.getCodeDeployDeploymentConfig", "client_error", err)
 		return nil, err
 	}
 
