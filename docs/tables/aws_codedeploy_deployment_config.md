@@ -46,7 +46,7 @@ where
   create_time is not null;
 ```
 
-### Find the minimum healthy hosts associated to the deployment configuration
+### List the minimum healthy hosts required by each deployment configuration
 
 ```sql
 select
@@ -63,18 +63,32 @@ where
   create_time is not null;
 ```
 
-### Describe the type of traffic routing associated to a particular deployment configuration
+### Display canary for the deployment configurations where traffic routing type is 'TimeBasedCanary'
 
 ```sql
 select
   arn,
   deployment_config_id,
   deployment_config_name,
-  traffic_routing_config ->> 'Type' as traffic_routing_type,
+  traffic_routing_config ->> 'TimeBasedCanary' as cranary,
   region
 from
   aws_codedeploy_deployment_config
 where
-  deployment_config_name = 'abc'
-  and create_time is not null;
+  traffic_routing_config ->> 'Type' = 'TimeBasedCanary';
+```
+
+### Display canary for the deployment configurations where traffic routing type is 'TimeBasedLinear'
+
+```sql
+select
+  arn,
+  deployment_config_id,
+  deployment_config_name,
+  traffic_routing_config ->> 'TimeBasedLinear' as cranary,
+  region
+from
+  aws_codedeploy_deployment_config
+where
+  traffic_routing_config ->> 'Type' = 'TimeBasedLinear';
 ```
