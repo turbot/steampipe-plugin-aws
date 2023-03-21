@@ -62,3 +62,18 @@ from
 where
   create_time is not null;
 ```
+
+### Describe the type of traffic routing associated to a particular deployment configuration
+
+```sql
+select
+  arn,
+  deployment_config_id,
+  deployment_config_name,
+  traffic_routing_config ->> 'Type' as traffic_routing_type,
+  region
+from
+  aws_codedeploy_deployment_config
+where
+  deployment_config_name = 'abc' and create_time is not null;
+```
