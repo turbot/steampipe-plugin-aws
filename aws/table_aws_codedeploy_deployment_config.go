@@ -180,12 +180,7 @@ func getCodeDeployDeploymentConfig(ctx context.Context, d *plugin.QueryData, h *
 }
 
 func getCodeDeployDeploymentConfigArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var name string
-	if h.Item != nil {
-		name = *h.Item.(*types.DeploymentConfigInfo).DeploymentConfigName
-	} else {
-		name = d.EqualsQuals["deployment_config_name"].GetStringValue()
-	}
+	name := *h.Item.(*types.DeploymentConfigInfo).DeploymentConfigName
 	region := d.EqualsQualString(matrixKeyRegion)
 	logger := plugin.Logger(ctx)
 

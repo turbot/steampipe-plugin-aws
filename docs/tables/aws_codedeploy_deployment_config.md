@@ -75,5 +75,6 @@ select
 from
   aws_codedeploy_deployment_config
 where
-  deployment_config_name = 'abc' and create_time is not null;
+  deployment_config_name = 'abc'
+  and create_time is not null;
 ```
