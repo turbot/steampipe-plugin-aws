@@ -64,7 +64,7 @@ select
 from
   aws_codedeploy_deployment_group
 where
-  auto_rollback_configuration ->> 'Enabled' = 'true' ;
+  auto_rollback_configuration ->> 'Enabled' = 'true';
 ```
 
 ### List all autoscaling groups in a particular deployment group for an application
@@ -79,7 +79,8 @@ select
 from
   aws_codedeploy_deployment_group
 where
-  application_name = 'abc' and deployment_group_name = 'def' ;
+  application_name = 'abc'
+  and deployment_group_name = 'def';
 ```
 
 ### List the deployment groups having automatic rollback enabled
@@ -93,5 +94,5 @@ select
 from
   aws_codedeploy_deployment_group
 where
-  alarm_configuration ->> 'Enabled' = 'true' ;
+  alarm_configuration ->> 'Enabled' = 'true';
 ```
