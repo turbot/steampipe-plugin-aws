@@ -10,14 +10,12 @@ A deployment group is the AWS CodeDeploy entity for grouping EC2 instances or AW
 select
   arn,
   deployment_group_id,
-  deployment_group_name
+  deployment_group_name,
   application_name,
   deployment_style,
   region
 from
-  aws_codedeploy_deployment_group
-where
-  application_name = 'abc';
+  aws_codedeploy_deployment_group;
 ```
 
 ### Get total deployment groups on each platform
@@ -28,8 +26,6 @@ select
   compute_platform
 from
   aws_codedeploy_deployment_group
-where
-  application_name = 'abc'
 group by
   compute_platform;
 ```
@@ -42,9 +38,7 @@ select
   deployment_group_id,
   last_successful_deployment
 from
-  aws_codedeploy_deployment_group
-where
-  application_name = 'abc';
+  aws_codedeploy_deployment_group;
 ```
 
 ### Get total deployment groups based on deployment style
@@ -55,8 +49,6 @@ select
   deployment_style
 from
   aws_codedeploy_deployment_group
-where
-  application_name = 'abc'
 group by
   deployment_style;
 ```
@@ -72,11 +64,11 @@ select
 from
   aws_codedeploy_deployment_group
 where
-  application_name = 'abc' and auto_rollback_configuration ->> 'Enabled' = 'true' ;
+  auto_rollback_configuration ->> 'Enabled' = 'true' ;
 ```
 
-### List all autoscaling groups of a particular deployment group
-
+### List all autoscaling groups in a particular deployment group for an application
+sel
 ```sql
 select
   arn as group_arn,
@@ -101,5 +93,5 @@ select
 from
   aws_codedeploy_deployment_group
 where
-  application_name = 'abc' and alarm_configuration ->> 'Enabled' = 'true' ;
+  alarm_configuration ->> 'Enabled' = 'true' ;
 ```

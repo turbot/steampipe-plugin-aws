@@ -28,12 +28,12 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 			Hydrate: getCodeDeployDeploymentGroup,
 		},
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.SingleColumn("application_name"),
+			KeyColumns: plugin.OptionalColumns([]string{"application_name"}),
 			ParentHydrate: listCodeDeployApplications,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ApplicationDoesNotExistException"}),
 			},
-			Hydrate: listCodeDeployDeploymentGroup,
+			Hydrate: listCodeDeployDeploymentGroups,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codedeployv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -210,14 +210,14 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCodeDeployDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCodeDeployDeploymentGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	application := h.Item.(*types.ApplicationInfo)
 
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_deployment_group.listCodeDeployDeploymentGroup", "creation_error", err)
+		logger.Error("aws_codedeploy_deployment_group.listCodeDeployDeploymentGroups", "client_error", err)
 		return nil, err
 	}
 
@@ -242,7 +242,7 @@ func listCodeDeployDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_codedeploy_deployment_group.listCodeDeployDeploymentGroup", "api_error", err)
+			plugin.Logger(ctx).Error("aws_codedeploy_deployment_group.listCodeDeployDeploymentGroups", "api_error", err)
 			return nil, err
 		}
 
@@ -291,7 +291,7 @@ func getCodeDeployDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *p
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroup", "creation_error", err)
+		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroup", "client_error", err)
 		return nil, err
 	}
 
@@ -320,7 +320,7 @@ func getCodeDeployDeploymentGroupTags(ctx context.Context, d *plugin.QueryData, 
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroupTags", "creation_error", err)
+		logger.Error("aws_codedeploy_deployment_group.getCodeDeployDeploymentGroupTags", "client_error", err)
 		return nil, err
 	}
 
