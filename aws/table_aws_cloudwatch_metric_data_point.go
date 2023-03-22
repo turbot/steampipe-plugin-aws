@@ -53,14 +53,8 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 					CacheMatch: "exact",
 				},
 				{
-					Name:       "return_data",
-					Require:    plugin.Optional,
-					CacheMatch: "exact",
-				},
-				{
-					Name:       "scan_by",
-					Require:    plugin.Optional,
-					CacheMatch: "exact",
+					Name:    "scan_by",
+					Require: plugin.Optional,
 				},
 				{
 					Name:       "timestamp",
@@ -112,12 +106,6 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 				Description: "This field can contain either a Metrics Insights query, or a metric math expression to be performed on the returned data.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("expression"),
-			},
-			{
-				Name:        "return_data",
-				Description: "When used in GetMetricData, this option indicates whether to return the timestamps and raw data values of this metric. If you are performing this call just to do math expressions and do not also need the raw data returned, you can specify false. If you omit this, the default of true is used. When used in PutMetricAlarm, specify true for the one expression result to use as the alarm. For all other metrics and expressions in the same PutMetricAlarm operation, specify ReturnData as False.",
-				Type:        proto.ColumnType_BOOL,
-				Transform:   transform.FromQual("return_data"),
 			},
 			{
 				Name:        "scan_by",
@@ -210,9 +198,6 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 				params.EndTime = aws.Time(timestamp)
 			}
 		}
-	} else {
-		params.StartTime = aws.Time(time.Now().AddDate(0, 0, -1))
-		params.EndTime = aws.Time(time.Now())
 	}
 
 	if params.StartTime == nil {
@@ -224,20 +209,17 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 
 	// set the period based on the duration between the start and end time
 	// https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/cloudwatch/types#MetricStat.Period
-	// * Start time between 3 hours and 15 days ago - Use a multiple of 60 seconds (1 minute).
-	// * Start time between 15 and 63 days ago - Use a multiple of 300 seconds (5 minutes).
-	// * Start time greater than 63 days ago - Use a multiple of 3600 seconds (1 hour).
+	// duration under 15 days - default period will be 60 seconds (1 minute).
+	// duration between 15 and 63 days - default period will be 300 seconds (5 minutes).
+	// duration greater than 63 days ago - default period will be 3600 seconds (1 hour).
 
 	var period int32
 	duration := params.EndTime.Sub(*params.StartTime).Round(time.Hour)
-	// if the duration is less than 3 hours
-	if duration.Hours() <= 3 {
-		period = int32(5)
-	} else if duration.Hours() <= 360 { // if the duration is between 3 hours and 15 days
+	if duration.Hours() <= 360 {
 		period = int32(60)
-	} else if duration.Hours() <= 1512 { // if the duration is between 15 and 63 days
+	} else if duration.Hours() <= 1512 {
 		period = int32(300)
-	} else { // if the duration is greater than 63 days
+	} else {
 		period = int32(3600)
 	}
 
@@ -267,10 +249,6 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 
 	if d.EqualsQuals["account_id"] != nil {
 		metricDataQueries.AccountId = aws.String(d.EqualsQuals["account_id"].GetStringValue())
-	}
-
-	if d.EqualsQuals["return_data"] != nil {
-		metricDataQueries.ReturnData = aws.Bool(d.EqualsQuals["return_data"].GetBoolValue())
 	}
 
 	params.MetricDataQueries = []types.MetricDataQuery{metricDataQueries}
