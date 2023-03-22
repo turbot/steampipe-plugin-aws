@@ -145,16 +145,16 @@ func listCloudWatchMetricStatisticDataPoints(ctx context.Context, d *plugin.Quer
 	// in this case 486000/1440 = 337, which is not multiple of 60, so the closest multiple of 60 after 337 is 360
 	// with this period we will get upto 1350 datapoints
 
-	// 1 hour - period is 60 sec
-	// 6 hours - period is 60 sec
-	// 1 day  - period is 60 sec
-	// 5 days  - period is 300 sec
-	// 7 days - period is 420 sec
-	// 15 days - period is 900 sec
-	// 30 days - period is 1800 sec
-	// 60 days - period is 3600 sec
-	// 63 days - period is 3780 sec
-	// 90 days - period is 5400 sec
+	// 1 hour - default period will be 60 sec (1 min).
+	// 6 hours - default period will be 60 sec (1 min).
+	// 1 day  - default period will be 60 sec (1 min).
+	// 5 days  - default period will be 300 sec (5 min).
+	// 7 days - default period will be 420 sec (7 min).
+	// 15 days - default period will be 900 sec (15 min).
+	// 30 days - default period will be 1800 sec (30 min).
+	// 60 days - default period will be 3600 sec (1 hr).
+	// 63 days - default period will be 3780 sec (1 hr 3 mins).
+	// 90 days - default period will be 5400 sec (1 hr 30 mins).
 
 	duration := params.EndTime.Sub(*params.StartTime).Hours()
 	durationSec := int32(duration) * 3600
