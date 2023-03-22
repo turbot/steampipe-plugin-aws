@@ -36,7 +36,7 @@ order by
   timestamp;
 ```
 
-### Calculate error rate on the provided metric ID for the last 24 hrs
+### Calculate error rate on the provided custom metric ID for the last 24 hrs
 
 ```sql
 select
