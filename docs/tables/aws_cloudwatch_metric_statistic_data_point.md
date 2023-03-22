@@ -17,8 +17,6 @@ If you need to fetch more than 1440 data points then please use the `aws_cloudwa
   - timestamp > ‘2023-03-15T00:00:00Z’ (The data will be fetched from the provided time to the current time)
   - timestamp < ‘2023-03-15T00:00:00Z’ (The data will be fetched from one day before the provided time to the provided time)
 
-- The GetMetricStatistics API used for this table cannot process multiple dimension values at a time, so you need to pass one set of dimensions to the query, like in the examples below.
-
 - We recommend specifying the `period` column in the query to optimize the table output. If you do not specify the `timestamp` then the default value for `period` is 60 seconds. If you specify the `timestamp` then the period will be calculated based on the duration to provide a good spread under the 1440 datapoints.
 
 ## Examples
