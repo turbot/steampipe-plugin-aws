@@ -2,14 +2,12 @@ package aws
 
 import (
 	"context"
-	// "errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/athena"
 	"github.com/aws/aws-sdk-go-v2/service/athena/types"
 
-	// "github.com/aws/smithy-go"
         athenav1 "github.com/aws/aws-sdk-go/service/athena"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -32,17 +30,185 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
-				Description: "The id of the function.",
+				Description: "The unique identifier for each query execution.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("QueryExecutionId"),
+				Transform:   transform.FromField("QueryExecution.QueryExecutionId"),
 			},
+                        {
+                                Name:        "workgroup",
+                                Description: "The name of the workgroup in which the query ran..",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Workgroup"),
+                        },
+                        {
+                                Name:        "catalog",
+                                Description: "The name of the data catalog used in the query execution.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.QueryExecutionContext.Catalog"),
+                        },
+                        {
+                                Name:        "database",
+                                Description: "The name of the data database used in the query execution.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.QueryExecutionContext.Database"),
+                        },
 			{
 				Name:        "query",
-				Description: "The SQL query",
+				Description: "The SQL query statements which the query execution ran.",
 				Type:        proto.ColumnType_STRING,
                                 Hydrate:     getAwsAthenaQueryExecution,
 				Transform:   transform.FromField("QueryExecution.Query"),
 			},
+                        {
+                                Name:        "effective_engine_version",
+                                Description: "The engine version on which the query runs.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.EngineVersion.EffectiveEngineVersion"),
+                        },
+                        {
+                                Name:        "selected_engine_version",
+                                Description: "The engine version requested by the users.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.EngineVersion.SelectedEngineVersion"),
+                        },
+                        {
+                                Name:        "state",
+                                Description: "The state of query execution.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Status.State"),
+                        },
+                        {
+                                Name:        "state_change_reason",
+                                Description: "Further detail about the status of the query.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Status.StateChangeReason"),
+                        },
+                        {
+                                Name:        "submission_date_time",
+                                Description: "The date and time that the query was submitted.",
+                                Type:        proto.ColumnType_TIMESTAMP,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Status.SubmissionDateTime"),
+                        },
+                        {
+                                Name:        "completion_date_time",
+                                Description: "The date and time that the query completed.",
+                                Type:        proto.ColumnType_TIMESTAMP,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Status.CompletionDateTime"),
+                        },
+                        {
+                                Name:        "error_message",
+                                Description: "Contains a short description of the error that occurred.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Status.AthenaError.ErrorMessage"),
+                        },
+                        {
+                                Name:        "error_type",
+                                Description: "An integer value that provides specific information about an Athena query error.",
+                                Type:        proto.ColumnType_INT,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Status.AthenaError.ErrorType"),
+                        },
+                        {
+                                Name:        "error_category",
+                                Description: "An integer value that specifies the category of a query failure error.",
+                                Type:        proto.ColumnType_INT,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Status.AthenaError.ErrorCategory"),
+                        },
+                        {
+                                Name:        "retryable",
+                                Description: "True if the query might succeed if resubmitted.",
+                                Type:        proto.ColumnType_BOOL,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Status.AthenaError.Retryable"),
+                        },
+                        {
+                                Name:        "data_manifest_location",
+                                Description: "The location and file name of a data manifest file.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Statistics.DataManifestLocation"),
+                        },
+                        {
+                                Name:        "data_scanned_in_bytes",
+                                Description: "The number of bytes in the data that was queried.",
+                                Type:        proto.ColumnType_INT,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Statistics.DataScannedInBytes"),
+                        },
+                        {
+                                Name:        "engine_execution_time_in_millis",
+                                Description: "The number of milliseconds that the query took to execute.",
+                                Type:        proto.ColumnType_INT,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Statistics.EngineExecutionTimeInMillis"),
+                        },
+                        {
+                                Name:        "query_planning_time_in_millis",
+                                Description: "The number of milliseconds that Athena took to plan the query processing flow.",
+                                Type:        proto.ColumnType_INT,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Statistics.QueryPlanningTimeInMillis"),
+                        },
+                        {
+                                Name:        "query_queue_time_in_millis",
+                                Description: "The number of milliseconds that the query was in your query queue waiting for resources.",
+                                Type:        proto.ColumnType_INT,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Statistics.QueryQueueTimeInMillis"),
+                        },
+                        {
+                                Name:        "service_processing_time_in_millis",
+                                Description: "The number of milliseconds that Athena took to finalize and publish the query results after the query engine finished running the query.",
+                                Type:        proto.ColumnType_INT,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Statistics.ServiceProcessingTimeInMillis"),
+                        },
+                        {
+                                Name:        "total_execution_time_in_millis",
+                                Description: "The number of milliseconds that Athena took to run the query.",
+                                Type:        proto.ColumnType_INT,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Statistics.TotalExecutionTimeInMillis"),
+                        },
+                        {
+                                Name:        "reused_previous_result",
+                                Description: "True if a previous query result was reused; false if the result was generated.",
+                                Type:        proto.ColumnType_BOOL,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.Statistics.ResultReuseInformation.ReusedPreviousResult"),
+                        },
+                        {
+                                Name:        "execution_parameters",
+                                Description: "A list of values for the parameters in a query.",
+                                Type:        proto.ColumnType_JSON,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.ExecutionParameters"),
+                        },
+                        {
+                                Name:        "statement_type",
+                                Description: "The type of query statement that was run.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.StatementType"),
+                        },
+                        {
+                                Name:        "substatement_type",
+                                Description: "The kind of query statement that was run.",
+                                Type:        proto.ColumnType_STRING,
+                                Hydrate:     getAwsAthenaQueryExecution,
+                                Transform:   transform.FromField("QueryExecution.SubstatementType"),
+                        },
 		}),
 	}
 }
@@ -93,7 +259,7 @@ func listAwsAthenaQueryExeuctions(ctx context.Context, d *plugin.QueryData, _ *p
                         id := strings.Clone(queryExecutionId)
                         var queryExecution = types.QueryExecution{QueryExecutionId: &id}
 
-			d.StreamListItem(ctx, queryExecution)
+			d.StreamListItem(ctx, athena.GetQueryExecutionOutput{QueryExecution: &queryExecution})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -111,7 +277,7 @@ func getAwsAthenaQueryExecution(ctx context.Context, d *plugin.QueryData, h *plu
 
 	var id string
 	if h.Item != nil {
-		id = *h.Item.(types.QueryExecution).QueryExecutionId
+		id = *h.Item.(athena.GetQueryExecutionOutput).QueryExecution.QueryExecutionId
 	} else {
 		id = d.EqualsQuals["id"].GetStringValue()
 	}
@@ -138,6 +304,7 @@ func getAwsAthenaQueryExecution(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	rowData, err := svc.GetQueryExecution(ctx, params)
+        plugin.Logger(ctx).Error("Database", rowData.QueryExecution.QueryExecutionContext.Database)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_athena_query_execution.getAwsAthenaQueryExecution", "api_error", err)
 		return nil, err
