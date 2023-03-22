@@ -15,10 +15,10 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
-func tableAwsCostAndUsageByTag(_ context.Context) *plugin.Table {
+func tableAwsCostByTag(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cost_by_tag",
-		Description: "AWS Cost Explorer - Cost and Usage By Tags",
+		Description: "AWS Cost Explorer - Cost By Tags",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "granularity", Require: plugin.Required},
