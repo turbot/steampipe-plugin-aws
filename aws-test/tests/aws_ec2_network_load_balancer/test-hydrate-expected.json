@@ -3,10 +3,6 @@
     "arn": "{{ output.resource_aka.value }}",
     "load_balancer_attributes": [
       {
-        "Key": "access_logs.s3.enabled",
-        "Value": "false"
-      },
-      {
         "Key": "access_logs.s3.prefix",
         "Value": ""
       },
@@ -15,12 +11,16 @@
         "Value": "false"
       },
       {
-        "Key": "access_logs.s3.bucket",
-        "Value": ""
-      },
-      {
         "Key": "load_balancing.cross_zone.enabled",
         "Value": "false"
+      },
+      {
+        "Key": "access_logs.s3.enabled",
+        "Value": "false"
+      },
+      {
+        "Key": "access_logs.s3.bucket",
+        "Value": ""
       }
     ],
     "tags_src": [

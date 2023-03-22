@@ -48,13 +48,15 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_neptune_cluster" "named_test_resource" {
-  cluster_identifier                  = var.resource_name
-  engine                              = "neptune"
-  backup_retention_period             = 5
-  preferred_backup_window             = "07:00-09:00"
-  skip_final_snapshot                 = true
-  iam_database_authentication_enabled = false
-  apply_immediately                   = true
+  cluster_identifier                   = var.resource_name
+  engine                               = "neptune"
+  backup_retention_period              = 5
+  preferred_backup_window              = "07:00-09:00"
+  skip_final_snapshot                  = true
+  iam_database_authentication_enabled  = false
+  apply_immediately                    = true
+  neptune_cluster_parameter_group_name = "default.neptune1.2"
+
   tags = {
     name = var.resource_name
   }

@@ -1,3 +1,61 @@
+## v0.96.0 [2023-03-10]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudformation_stack_resource](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudformation_stack_resource) ([#1634](https://github.com/turbot/steampipe-plugin-aws/pull/1634))
+
+_Enhancements_
+
+- Added columns `dkim_attributes` and `identity_mail_from_domain_attributes` to `aws_ses_domain_identity` table. ([#1640](https://github.com/turbot/steampipe-plugin-aws/pull/1640))
+
+_Bug fixes_
+
+- Fixed `aws_cloudfront_response_headers_policy` table to remove duplicate results. ([#1642](https://github.com/turbot/steampipe-plugin-aws/pull/1642)
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.2.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v520-2023-03-02) which includes fixes for query cache pending item mechanism and aggregator connections not working for dynamic tables. ([#1609](https://github.com/turbot/steampipe-plugin-aws/pull/1609))
+
+## v0.95.0 [2023-03-03]
+
+_What's new?_
+
+- New tables added
+  - [aws_codebuild_build](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codebuild_build) ([#1608](https://github.com/turbot/steampipe-plugin-aws/pull/1608))
+  - [aws_emr_block_public_access_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_block_public_access_configuration) ([#1602](https://github.com/turbot/steampipe-plugin-aws/pull/1602))
+  - [aws_servicecatalog_portfolio](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicecatalog_portfolio) ([#1636](https://github.com/turbot/steampipe-plugin-aws/pull/1636))
+
+_Bug fixes_
+
+- Fixed the `aws_cloudfront_function` table to correctly return data instead of an error when a `name` is passed in the `where` clause. ([#1628](https://github.com/turbot/steampipe-plugin-aws/pull/1628))
+- Fixed the `aws_guardduty_ipset` table to correctly return all the IPsets instead of a panic interface conversion error. ([#1627](https://github.com/turbot/steampipe-plugin-aws/pull/1627))
+- Fixed the API limits of the `aws_glue_security_configuration` table to correctly return data instead of an error. ([#1626](https://github.com/turbot/steampipe-plugin-aws/pull/1626))
+
+## v0.94.0 [2023-02-25]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_launch_template](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_launch_template) ([#1543](https://github.com/turbot/steampipe-plugin-aws/pull/1543))
+
+_Enhancements_
+
+- Added column `data_protection` and `data_protection_policy` to `aws_cloudwatch_log_group` table. ([#1483](https://github.com/turbot/steampipe-plugin-aws/pull/1483))
+- Added column `website_configuration` to `aws_s3_bucket` table. ([#1618](https://github.com/turbot/steampipe-plugin-aws/pull/1618))
+- Added column `object_ownership_controls` to `aws_s3_bucket` table. ([#1548](https://github.com/turbot/steampipe-plugin-aws/pull/1548))
+- Added column `launch_template_data` to `aws_ec2_instance` table. ([#1553](https://github.com/turbot/steampipe-plugin-aws/pull/1553))
+- Added column `tracing_config` to `aws_lambda_function` table. ([#1601](https://github.com/turbot/steampipe-plugin-aws/pull/1601))
+- Updated Parliament IAM permissions to the latest. ([#1599](https://github.com/turbot/steampipe-plugin-aws/pull/1599))
+
+_Bug fixes_
+
+- Fixed the `title` column in `aws_api_gatewayv2_route` table to correctly return data instead of `null`. ([#1568](https://github.com/turbot/steampipe-plugin-aws/pull/1568))
+- Fixed the `tags_src` column in `aws_cloudformation_stack` table to correctly return raw tag data instead of a formatted one. ([#1568](https://github.com/turbot/steampipe-plugin-aws/pull/1568))
+- Fixed the `architectures`, `file_system_configs` and `snap_start` columns in `aws_lambda_function` table to correctly return data instead of `null`. ([#1619](https://github.com/turbot/steampipe-plugin-aws/pull/1619))
+- Fixed `aws_ec2_managed_prefix_list` table to return an empty row instead of an error in unsupported `me-south-1` region. ([#1577](https://github.com/turbot/steampipe-plugin-aws/pull/1577))
+- Fixed the `aws_eventbridge_rule` table to return rules for all the event bridges instead of only default event bridges. ([#1590](https://github.com/turbot/steampipe-plugin-aws/pull/1590)) (Thanks [@brentmitchell25](https://github.com/brentmitchell25) for the fix!!)
+
 ## v0.93.0 [2023-02-17]
 
 _What's new?_
