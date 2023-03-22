@@ -36,6 +36,25 @@ order by
   timestamp;
 ```
 
+### Calculate error rate on the provided metric ID for the last 24 hrs
+
+```sql
+select
+  id,
+  label,
+  timestamp,
+  period,
+  value,
+  expression
+from
+  aws_cloudwatch_metric_data_point
+where
+  id = 'e1'
+  and expression = 'SUM(METRICS(''error''))'
+order by
+  timestamp;
+```
+
 ### CPU average utilization of multiple EC2 instances over 80% for the last 5 days
 
 ```sql
