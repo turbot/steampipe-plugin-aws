@@ -24,6 +24,7 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 			Hydrate:    getAwsAthenaQueryExecution,
 		},
 		List: &plugin.ListConfig{
+                        KeyColumns: plugin.SingleColumn("workgroup"),
 			Hydrate: listAwsAthenaQueryExecutions,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(athenav1.EndpointsID),
@@ -290,47 +291,33 @@ func listAwsAthenaQueryExecutions(ctx context.Context, d *plugin.QueryData, _ *p
 		}
 	}
 
-        listWorkGroupsInput := athena.ListWorkGroupsInput{}
-        workGroupsPaginator := athena.NewListWorkGroupsPaginator(svc, &listWorkGroupsInput, func(o *athena.ListWorkGroupsPaginatorOptions) {
+        workgroup := strings.Clone(d.EqualsQuals["workgroup"].GetStringValue())
+        input := athena.ListQueryExecutionsInput{
+                MaxResults: aws.Int32(maxResults),
+                WorkGroup: &workgroup,
+        }
+
+        paginator := athena.NewListQueryExecutionsPaginator(svc, &input, func(o *athena.ListQueryExecutionsPaginatorOptions) {
+                o.Limit = maxResults
                 o.StopOnDuplicateToken = true
         })
 
-        for workGroupsPaginator.HasMorePages() {
-                output, err := workGroupsPaginator.NextPage(ctx)
+        for paginator.HasMorePages() {
+                output, err := paginator.NextPage(ctx)
                 if err != nil {
-                        plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaWorkGroups", "api_error", err)
+                        plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaQueryExecutions", "api_error", err)
                         return nil, err
                 }
 
-                for _, workGroup := range output.WorkGroups {
-                        input := athena.ListQueryExecutionsInput{
-                                MaxResults: aws.Int32(maxResults),
-                                WorkGroup: workGroup.Name,
-                        }
+                for _, queryExecutionId := range output.QueryExecutionIds {
+                        id := strings.Clone(queryExecutionId)
+                        var queryExecution = types.QueryExecution{QueryExecutionId: &id}
 
-                        paginator := athena.NewListQueryExecutionsPaginator(svc, &input, func(o *athena.ListQueryExecutionsPaginatorOptions) {
-                                o.Limit = maxResults
-                                o.StopOnDuplicateToken = true
-                        })
+                        d.StreamListItem(ctx, athena.GetQueryExecutionOutput{QueryExecution: &queryExecution})
 
-                        for paginator.HasMorePages() {
-                                output, err := paginator.NextPage(ctx)
-                                if err != nil {
-                                        plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaQueryExecutions", "api_error", err)
-                                        return nil, err
-                                }
-
-                                for _, queryExecutionId := range output.QueryExecutionIds {
-                                        id := strings.Clone(queryExecutionId)
-                                        var queryExecution = types.QueryExecution{QueryExecutionId: &id}
-
-                                        d.StreamListItem(ctx, athena.GetQueryExecutionOutput{QueryExecution: &queryExecution})
-
-                                        // Context may get cancelled due to manual cancellation or if the limit has been reached
-                                        if d.RowsRemaining(ctx) == 0 {
-                                                return nil, nil
-                                        }
-                                }
+                        // Context may get cancelled due to manual cancellation or if the limit has been reached
+                        if d.RowsRemaining(ctx) == 0 {
+                                return nil, nil
                         }
                 }
         }
