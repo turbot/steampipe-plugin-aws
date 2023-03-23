@@ -17,8 +17,8 @@ import (
 
 func tableAwsAthenaWorkGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_athena_work_group",
-		Description: "AWS Athena Work Group",
+		Name:        "aws_athena_workgroup",
+		Description: "AWS Athena Workgroup",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getAwsAthenaWorkGroup,
@@ -70,7 +70,7 @@ func tableAwsAthenaWorkGroup(_ context.Context) *plugin.Table {
                                 Transform:   transform.FromField("Configuration.CustomerContentEncryptionConfiguration.KmsKey"),
                         },
                         {
-                                Name:        "enforce_work_group_configuration",
+                                Name:        "enforce_workgroup_configuration",
                                 Description: "If set to \"true\", the settings for the workgroup override client-side settings.",
                                 Type:        proto.ColumnType_BOOL,
                                 Hydrate:     getAwsAthenaWorkGroup,

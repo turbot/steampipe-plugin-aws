@@ -24,7 +24,7 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 			Hydrate:    getAwsAthenaQueryExecution,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsAthenaQueryExeuctions,
+			Hydrate: listAwsAthenaQueryExecutions,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(athenav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -35,7 +35,7 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("QueryExecution.QueryExecutionId"),
 			},
                         {
-                                Name:        "work_group",
+                                Name:        "workgroup",
                                 Description: "The name of the workgroup in which the query ran.",
                                 Type:        proto.ColumnType_STRING,
                                 Hydrate:     getAwsAthenaQueryExecution,
@@ -264,7 +264,7 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsAthenaQueryExeuctions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsAthenaQueryExecutions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
 	svc, err := AthenaClient(ctx, d)
 	if err != nil {
