@@ -385,6 +385,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_sqs_queue":                                                tableAwsSqsQueue(ctx),
 			"aws_ssm_association":                                          tableAwsSSMAssociation(ctx),
 			"aws_ssm_document":                                             tableAwsSSMDocument(ctx),
+			"aws_ssm_document_permission":                                  tableAwsSSMDocumentPermission(ctx),
 			"aws_ssm_inventory":                                            tableAwsSSMInventory(ctx),
 			"aws_ssm_maintenance_window":                                   tableAwsSSMMaintenanceWindow(ctx),
 			"aws_ssm_managed_instance_compliance":                          tableAwsSSMManagedInstanceCompliance(ctx),
