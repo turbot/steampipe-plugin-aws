@@ -35,8 +35,8 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("QueryExecution.QueryExecutionId"),
 			},
                         {
-                                Name:        "workgroup",
-                                Description: "The name of the workgroup in which the query ran..",
+                                Name:        "work_group",
+                                Description: "The name of the workgroup in which the query ran.",
                                 Type:        proto.ColumnType_STRING,
                                 Hydrate:     getAwsAthenaQueryExecution,
                                 Transform:   transform.FromField("QueryExecution.WorkGroup"),
@@ -277,7 +277,6 @@ func listAwsAthenaQueryExeuctions(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	maxResults := int32(50)
-	input := athena.ListQueryExecutionsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
@@ -291,31 +290,50 @@ func listAwsAthenaQueryExeuctions(ctx context.Context, d *plugin.QueryData, _ *p
 		}
 	}
 
-	input.MaxResults = aws.Int32(maxResults)
-	paginator := athena.NewListQueryExecutionsPaginator(svc, &input, func(o *athena.ListQueryExecutionsPaginatorOptions) {
-		o.Limit = maxResults
-		o.StopOnDuplicateToken = true
-	})
+        listWorkGroupsInput := athena.ListWorkGroupsInput{}
+        workGroupsPaginator := athena.NewListWorkGroupsPaginator(svc, &listWorkGroupsInput, func(o *athena.ListWorkGroupsPaginatorOptions) {
+                o.StopOnDuplicateToken = true
+        })
 
-	for paginator.HasMorePages() {
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaQueryExecutions", "api_error", err)
-			return nil, err
-		}
+        for workGroupsPaginator.HasMorePages() {
+                output, err := workGroupsPaginator.NextPage(ctx)
+                if err != nil {
+                        plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaWorkGroups", "api_error", err)
+                        return nil, err
+                }
 
-		for _, queryExecutionId := range output.QueryExecutionIds {
-                        id := strings.Clone(queryExecutionId)
-                        var queryExecution = types.QueryExecution{QueryExecutionId: &id}
+                for _, workGroup := range output.WorkGroups {
+                        input := athena.ListQueryExecutionsInput{
+                                MaxResults: aws.Int32(maxResults),
+                                WorkGroup: workGroup.Name,
+                        }
 
-			d.StreamListItem(ctx, athena.GetQueryExecutionOutput{QueryExecution: &queryExecution})
+                        paginator := athena.NewListQueryExecutionsPaginator(svc, &input, func(o *athena.ListQueryExecutionsPaginatorOptions) {
+                                o.Limit = maxResults
+                                o.StopOnDuplicateToken = true
+                        })
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
-			}
-		}
-	}
+                        for paginator.HasMorePages() {
+                                output, err := paginator.NextPage(ctx)
+                                if err != nil {
+                                        plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaQueryExecutions", "api_error", err)
+                                        return nil, err
+                                }
+
+                                for _, queryExecutionId := range output.QueryExecutionIds {
+                                        id := strings.Clone(queryExecutionId)
+                                        var queryExecution = types.QueryExecution{QueryExecutionId: &id}
+
+                                        d.StreamListItem(ctx, athena.GetQueryExecutionOutput{QueryExecution: &queryExecution})
+
+                                        // Context may get cancelled due to manual cancellation or if the limit has been reached
+                                        if d.RowsRemaining(ctx) == 0 {
+                                                return nil, nil
+                                        }
+                                }
+                        }
+                }
+        }
 
 	return nil, nil
 }
