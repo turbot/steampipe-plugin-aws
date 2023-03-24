@@ -107,6 +107,7 @@ from
   aws_networkfirewall_firewall f,
   aws_kms_key k
 where
-  k.id = encryption_configuration ->> 'KeyId';
+  k.id = encryption_configuration ->> 'KeyId'
+  and not f.encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
 ```
 
