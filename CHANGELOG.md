@@ -1,3 +1,18 @@
+## v0.97.0 [2023-03-24]
+
+_What's new?_
+
+- New tables added
+  - [aws_appstream_image](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_appstream_image) ([#1663](https://github.com/turbot/steampipe-plugin-aws/pull/1663))
+  - [aws_codedeploy_deployment_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codedeploy_deployment_group) ([#1658](https://github.com/turbot/steampipe-plugin-aws/pull/1658))
+  - [aws_cost_by_tag](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_tag) ([#1536](https://github.com/turbot/steampipe-plugin-aws/pull/1536))
+  - [aws_networkfirewall_firewall](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_networkfirewall_firewall) ([#1630](https://github.com/turbot/steampipe-plugin-aws/pull/1630))
+  - [aws_wafregional_web_acl](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafregional_web_acl) ([#1660](https://github.com/turbot/steampipe-plugin-aws/pull/1660))
+
+_Bug fixes_
+
+- Fixed the `aws_health_affected_entity` table to correctly return results instead of an error. ([#1659](https://github.com/turbot/steampipe-plugin-aws/pull/1659))
+
 ## v0.96.0 [2023-03-10]
 
 _What's new?_
