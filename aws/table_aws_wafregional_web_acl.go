@@ -120,6 +120,14 @@ func tableAwsWafRegionalWebAcl(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listWafRegionalWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	// Create session
+	svc, err := WAFRegionalClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafregional_web_acl.listWafRegionalWebAcls", "client_error", err)
+		return nil, err
+	}
+	
 	maxItems := int32(100)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -132,13 +140,6 @@ func listWafRegionalWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	params := &wafregional.ListWebACLsInput{
 		Limit: maxItems,
-	}
-
-	// Create session
-	svc, err := WAFRegionalClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_wafregional_web_acl.listWafRegionalWebAcls", "client_error", err)
-		return nil, err
 	}
 
 	// API doesn't support aws-sdk-go-v2 paginator as of date
@@ -286,7 +287,7 @@ func getWafRegionalLoggingConfiguration(ctx context.Context, d *plugin.QueryData
 func getWafRegionalResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	dataMap, err := getWafRegionalWebAclData(ctx, d, h)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	data := dataMap.(map[string]string)
 
