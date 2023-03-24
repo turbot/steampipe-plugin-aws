@@ -83,7 +83,7 @@ where
   visibility = 'PRIVATE';
 ```
 
-### Get application details for images
+### Get application details of images
 
 ```sql
 select
@@ -108,7 +108,7 @@ from
   jsonb_array_elements(applications) as a;
 ```
 
-### Get the permission model for the images
+### Get the permission model of the images
 
 ```sql
 select
@@ -120,7 +120,7 @@ from
   aws_appstream_image;
 ```
 
-### Get error details for the images
+### Get error details of failed images
 
 ```sql
 select
