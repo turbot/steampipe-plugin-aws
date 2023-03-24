@@ -94,7 +94,7 @@ where
   vs.subnet_id = s ->> 'SubnetId';
 ```
 
-### Get kms key details for firewalls encrypted with customer managed keys
+### Get KMS key details of firewalls encrypted with customer managed keys
 
 ```sql
 select
