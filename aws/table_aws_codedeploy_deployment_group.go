@@ -231,6 +231,7 @@ func listCodeDeployDeploymentGroups(ctx context.Context, d *plugin.QueryData, h 
 		ApplicationName: aws.String(*application.ApplicationName),
 	}
 
+	// Check if the application name is nil or if it doesn't match the parent hydrate
 	if applicationName != "" && applicationName !=  *application.ApplicationName {
 		return nil,nil
 	}
@@ -278,6 +279,7 @@ func getCodeDeployDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *p
 		appname = d.EqualsQuals["application_name"].GetStringValue()
 	}
 
+	// Check if the required quals are empty
 	if name == "" || appname == "" {
 		return nil, nil
 	}
