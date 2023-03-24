@@ -165,7 +165,7 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags associated with certificate",
+				Description: "A list of tags associated with deployment group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCodeDeployDeploymentGroupTags,
 				Transform:   transform.FromField("Tags"),
