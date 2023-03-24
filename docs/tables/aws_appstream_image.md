@@ -1,6 +1,6 @@
 # Table: aws_appstream_image
 
-Amazon AppStream 2.0 images that contain applications you can stream to your users and default system and application settings to enable your users to get started with those applications quickly. However, after you create an image, you can't change it. To add other applications, update existing applications, or change image settings, you must start and reconnect to the image builder that you used to create the image. If you deleted that image builder, launch a new image builder that is based on your image.
+Amazon AppStream 2.0 contains applications you can stream to your users and default system and application settings to enable your users to get started with those applications quickly. However, after you create an image, you can't change it. To add other applications, update existing applications, or change image settings, you must start and reconnect to the image builder that you used to create the image. If you deleted the image builder, launch a new image builder that is based on your image.
 
 ## Examples
 
@@ -35,7 +35,7 @@ where
   state = 'AVAILABLE';
 ```
 
-### List window based images
+### List Windows based images
 
 ```sql
 select
@@ -51,7 +51,7 @@ where
   platform = 'WINDOWS';
 ```
 
-### List images that are supported image builder
+### List images that support image builder
 
 ```sql
 select
@@ -108,7 +108,7 @@ from
   jsonb_array_elements(applications) as a;
 ```
 
-### Get permissions for the images
+### Get the permission model for the images
 
 ```sql
 select
