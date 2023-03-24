@@ -34,7 +34,7 @@ from
   jsonb_array_elements(rules) as r;
 ```
 
-### Get web ACLs with no rule defined
+### Get web ACLs with no rules defined
 
 ```sql
 select
@@ -50,7 +50,7 @@ where
   rules is null;
 ```
 
-### Get web ACLs with default action as allow
+### Get web ACLs with default action as 'ALLOW'
 
 ```sql
 select
