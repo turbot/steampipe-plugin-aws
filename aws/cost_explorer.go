@@ -275,6 +275,8 @@ type CEQuals struct {
 	Granularity     string
 	DimensionType1  string
 	DimensionType2  string
+	TagKey1         string
+	TagKey2         string
 }
 
 func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -287,5 +289,7 @@ func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugi
 		Granularity:     d.EqualsQuals["granularity"].GetStringValue(),
 		DimensionType1:  d.EqualsQuals["dimension_type_1"].GetStringValue(),
 		DimensionType2:  d.EqualsQuals["dimension_type_2"].GetStringValue(),
+		TagKey1:         d.EqualsQuals["tag_key_1"].GetStringValue(),
+		TagKey2:         d.EqualsQuals["tag_key_2"].GetStringValue(),
 	}, nil
 }

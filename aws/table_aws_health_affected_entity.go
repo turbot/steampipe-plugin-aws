@@ -19,7 +19,8 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 		Name:        "aws_health_affected_entity",
 		Description: "AWS Health Affected Entity",
 		List: &plugin.ListConfig{
-			Hydrate: listHealthAffectedEntities,
+			ParentHydrate: listHealthEvents,
+			Hydrate:       listHealthAffectedEntities,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionRequiredException"}),
 			},
@@ -85,11 +86,7 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 
 func listHealthAffectedEntities(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := HealthClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_health_affected_entity.listHealthAffectedEntities", "client error", err)
-		return nil, err
-	}
+	event := h.Item.(*types.Event)
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -104,14 +101,22 @@ func listHealthAffectedEntities(ctx context.Context, d *plugin.QueryData, h *plu
 		}
 	}
 
-	filter := buildHealthAffectedEntityFilter(d)
-
-	input := &health.DescribeAffectedEntitiesInput{
-		MaxResults: aws.Int32(maxLimit),
+	// Validate if user provided input matches hydrate value
+	if d.EqualsQuals["event_arn"] != nil && d.EqualsQualString("event_arn") != *event.Arn {
+		return nil, nil
 	}
 
-	if filter != nil {
-		input.Filter = filter
+	filter := buildHealthAffectedEntityFilter(d)
+	filter.EventArns = []string{*event.Arn}
+	input := &health.DescribeAffectedEntitiesInput{
+		MaxResults: aws.Int32(maxLimit),
+		Filter:     filter,
+	}
+
+	svc, err := HealthClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_health_affected_entity.listHealthAffectedEntities", "client_error", err)
+		return nil, err
 	}
 
 	paginator := health.NewDescribeAffectedEntitiesPaginator(svc, input, func(o *health.DescribeAffectedEntitiesPaginatorOptions) {
@@ -148,7 +153,6 @@ func buildHealthAffectedEntityFilter(d *plugin.QueryData) *types.EntityFilter {
 
 	filterQuals := map[string]string{
 		"arn":               "string",
-		"event_arn":         "string",
 		"entity_value":      "string",
 		"last_updated_time": "time",
 		"status_code":       "string",
@@ -160,8 +164,6 @@ func buildHealthAffectedEntityFilter(d *plugin.QueryData) *types.EntityFilter {
 			switch columnName {
 			case "arn":
 				filter.EntityArns = ([]string{value})
-			case "event_arn":
-				filter.EventArns = []string{value}
 			case "status_code":
 				filter.StatusCodes = []types.EntityStatusCode{
 					types.EntityStatusCode(value),
