@@ -194,10 +194,11 @@ func getWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin
 
 func getWafRegionalRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	dataMap, err := getWafRegionalRuleGroupData(ctx, d, h)
-	data := dataMap.(map[string]string)
 	if err != nil {
 		return err, nil
 	}
+
+	data := dataMap.(map[string]string)
 	id := data["rule_group_id"]
 
 	// Create session
@@ -220,9 +221,6 @@ func getWafRegionalRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryD
 	return op, nil
 }
 
-// ListTagsForResource.NextMarker return empty string in API call
-// due to which pagination will not work properly
-// https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForWafRegionalRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	dataMap, err := getWafRegionalRuleGroupData(ctx, d, h)
 	data := dataMap.(map[string]string)
