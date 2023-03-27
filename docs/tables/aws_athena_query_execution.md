@@ -40,3 +40,41 @@ on
 group by 
   workgroup;
 ```
+
+### Find queries with biggest execution time
+```sql
+select 
+  id, 
+  query, 
+  workgroup, 
+  engine_execution_time_in_millis 
+from 
+  aws_athena_query_execution q
+join
+  aws_athena_workgroup w
+on 
+  q.workgroup = w.name
+order by 
+  engine_execution_time_in_millis 
+limit 
+  5
+```
+
+### Find most used databases
+```sql
+select
+  database,
+  count(id) as nb_query
+from 
+  aws_athena_query_execution q
+join
+  aws_athena_workgroup w
+on 
+  q.workgroup = w.name
+group by 
+  database
+order by 
+  nb_query
+limit 
+  5
+```
