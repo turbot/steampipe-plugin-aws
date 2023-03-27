@@ -44,7 +44,7 @@ func tableAwsSSMDocumentPermission(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "account_ids",
-				Description: "The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
+				Description: "The account IDs that have permission to use this document. The ID can be either an AWS account or All.",
 				Type:        proto.ColumnType_JSON,
 			},
 
