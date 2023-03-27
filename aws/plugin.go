@@ -1,6 +1,5 @@
 /*
 Package aws implements a steampipe plugin for aws.
-
 This plugin provides data that Steampipe uses to present foreign
 tables that represent Amazon AWS resources.
 */
@@ -107,6 +106,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_codebuild_source_credential":                              tableAwsCodeBuildSourceCredential(ctx),
 			"aws_codecommit_repository":                                    tableAwsCodeCommitRepository(ctx),
 			"aws_codedeploy_app":                                           tableAwsCodeDeployApplication(ctx),
+			"aws_codedeploy_deployment_config":                             tableAwsCodeDeployDeploymentConfig(ctx),
 			"aws_codedeploy_deployment_group":                              tableAwsCodeDeployDeploymentGroup(ctx),
 			"aws_codepipeline_pipeline":                                    tableAwsCodepipelinePipeline(ctx),
 			"aws_config_aggregate_authorization":                           tableAwsConfigAggregateAuthorization(ctx),
