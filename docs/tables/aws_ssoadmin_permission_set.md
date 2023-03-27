@@ -16,5 +16,5 @@ select
   session_duration,
   tags
 from
-  aws.aws_ssoadmin_permission_set;
+  aws_ssoadmin_permission_set;
 ```

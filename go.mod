@@ -15,6 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.13.1
 	github.com/aws/aws-sdk-go-v2/service/appconfig v1.15.1
 	github.com/aws/aws-sdk-go-v2/service/applicationautoscaling v1.17.1
+	github.com/aws/aws-sdk-go-v2/service/appstream v1.20.5
 	github.com/aws/aws-sdk-go-v2/service/auditmanager v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.26.1
 	github.com/aws/aws-sdk-go-v2/service/backup v1.19.1
