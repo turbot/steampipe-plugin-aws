@@ -51,7 +51,7 @@ select
   user_id,
   mfa_enabled
 from
-  aws.aws_iam_user
+  aws_iam_user
 where
   not mfa_enabled;
 ```
