@@ -1,4 +1,4 @@
-# Table: aws_codedeploy_app
+# Table: aws_codedeploy_deployment_config
 
 A deployment configuration is a set of rules and success and failure conditions used by CodeDeploy during a deployment. These rules and conditions are different, depending on whether you deploy to an EC2/On-Premises compute platform, AWS Lambda compute platform, or Amazon ECS compute platform.
 
@@ -18,7 +18,7 @@ from
   aws_codedeploy_deployment_config;
 ```
 
-### Get the total configurations for each compute platform
+### Get the configuration count for each compute platform
 
 ```sql
 select

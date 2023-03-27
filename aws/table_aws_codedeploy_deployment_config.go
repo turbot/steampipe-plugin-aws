@@ -28,9 +28,6 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 			Hydrate: getCodeDeployDeploymentConfig,
 		},
 		List: &plugin.ListConfig{
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DeploymentConfigDoesNotExistException"}),
-			},
 			Hydrate: listCodeDeployDeploymentConfigs,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codedeployv1.EndpointsID),
@@ -50,7 +47,7 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "deployment_config_id",
-				Description: "The deployment configuration id.",
+				Description: "The deployment configuration ID.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCodeDeployDeploymentConfig,
 			},
