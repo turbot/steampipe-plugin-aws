@@ -60,7 +60,7 @@ steampipe plugin install aws
 | Credentials | Specify a named profile from an AWS credential file with the `profile` argument. |
 | Permissions | Grant the `ReadOnlyAccess` policy to your user or role. |
 | Radius | Each connection represents a single AWS account. |
-| Resolution |  1. Credentials explicitly set in a Steampipe config file (`~/.steampipe/config/aws.spc`).<br />2. Credentials specified in environment variables e.g. `AWS_ACCESS_KEY_ID`.<br />3. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />4. Credentials for the Default profile from the credential file.<br />5. EC2 Instance Role Credentials (if running on an ec2 instance) |
+| Resolution |  1. Credentials explicitly set in a Steampipe config file (`~/.steampipe/config/aws.spc`).<br />2. Credentials specified in environment variables, e.g., `AWS_ACCESS_KEY_ID`.<br />3. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />4. Credentials for the default profile from the credential file.<br />5. EC2 instance role credentials (if running on an EC2 instance). |
 
 ### Configuration
 
