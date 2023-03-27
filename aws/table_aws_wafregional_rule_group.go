@@ -253,6 +253,7 @@ func getWafRegionalRuleGroupArn(ctx context.Context, d *plugin.QueryData, h *plu
 	dataMap, err := getWafRegionalRuleGroupData(ctx, d, h)
 	data := dataMap.(map[string]string)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafregional_rule_group.getWafRegionalRuleGroupArn", "error", err)
 		return err, nil
 	}
 	return data["rule_group_arn"], nil
@@ -263,7 +264,6 @@ func getWafRegionalRuleGroupData(ctx context.Context, d *plugin.QueryData, h *pl
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_wafregional_rule_group.getWafRegionalRuleGroupData", "cache_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
