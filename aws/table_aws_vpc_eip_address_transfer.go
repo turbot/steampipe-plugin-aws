@@ -74,7 +74,7 @@ func listVpcEipAddressTransfers(ctx context.Context, d *plugin.QueryData, h *plu
 	address := h.Item.(types.Address)
 	allocationId := d.EqualsQualString("allocation_id")
 
-	// Avoid api call if user specified allocation_id doesn't match the hydrate id.
+	// Avoid api call if user-specified allocation_id doesn't match the hydrate id.
 	if allocationId != "" && allocationId != *address.AllocationId {
 		return nil, nil
 	}
