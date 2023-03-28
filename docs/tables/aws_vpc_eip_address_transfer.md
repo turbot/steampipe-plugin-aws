@@ -46,3 +46,25 @@ from
 where
   transfer_offer_expiration_timestamp >= now() - interval '10' day;
 ```
+
+### Get VPC details for the elastic IP address transfer
+
+```sql
+select
+  t.allocation_id,
+  t.address_transfer_status,
+  t.transfer_account_id,
+  i.vpc_id,
+  v.cidr_block,
+  v.state,
+  v.is_default
+from
+  aws_vpc_eip eip,
+  aws_ec2_instance i,
+  aws_vpc_eip_address_transfer t,
+  aws_vpc v
+where
+  eip.instance_id = i.instance_id
+  and t.allocation_id = eip.allocation_id
+  and v.vpc_id = i.vpc_id;
+```
