@@ -15,7 +15,7 @@ import (
 func tableAwsOrganizationsPolicy(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_organizations_policy",
-		Description: "AWS Organizations Service Control Policy",
+		Description: "AWS Organizations Policy",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
