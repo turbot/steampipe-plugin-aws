@@ -12,19 +12,19 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
-func tableAwsOrganizationsServiceControlPolicy(_ context.Context) *plugin.Table {
+func tableAwsOrganizationsPolicy(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_organizations_service_control_policy",
+		Name:        "aws_organizations_policy",
 		Description: "AWS Organizations Service Control Policy",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"PolicyNotFoundException", "InvalidInputException"}),
 			},
-			Hydrate: getOrganizationsServiceControlPolicy,
+			Hydrate: getOrganizationsPolicy,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:    listOrganizationsServiceControlPolicies,
+			Hydrate:    listOrganizationsPolicies,
 			KeyColumns: plugin.SingleColumn("type"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
@@ -71,7 +71,7 @@ func tableAwsOrganizationsServiceControlPolicy(_ context.Context) *plugin.Table 
 				Name:        "content",
 				Description: "The text content of the policy.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getOrganizationsServiceControlPolicy,
+				Hydrate:     getOrganizationsPolicy,
 				Transform:   transform.FromField("Content"),
 			},
 
@@ -94,11 +94,11 @@ func tableAwsOrganizationsServiceControlPolicy(_ context.Context) *plugin.Table 
 
 //// LIST FUNCTION
 
-func listOrganizationsServiceControlPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listOrganizationsPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_organizations_account.listOrganizationsServiceControlPolicies", "client_error", err)
+		plugin.Logger(ctx).Error("aws_organizations_policy.listOrganizationsPolicies", "client_error", err)
 		return nil, err
 	}
 
@@ -133,7 +133,7 @@ func listOrganizationsServiceControlPolicies(ctx context.Context, d *plugin.Quer
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_organizations_account.listOrganizationsServiceControlPolicies", "api_error", err)
+			plugin.Logger(ctx).Error("aws_organizations_policy.listOrganizationsPolicies", "api_error", err)
 			return nil, err
 		}
 
@@ -154,7 +154,7 @@ func listOrganizationsServiceControlPolicies(ctx context.Context, d *plugin.Quer
 
 //// HYDRATE FUNCTIONS
 
-func getOrganizationsServiceControlPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getOrganizationsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var policyId string
 
 	if h.Item != nil {
@@ -166,7 +166,7 @@ func getOrganizationsServiceControlPolicy(ctx context.Context, d *plugin.QueryDa
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_organizations_account.getOrganizationsServiceControlPolicy", "client_error", err)
+		plugin.Logger(ctx).Error("aws_organizations_policy.getOrganizationsPolicy", "client_error", err)
 		return nil, err
 	}
 
@@ -176,7 +176,7 @@ func getOrganizationsServiceControlPolicy(ctx context.Context, d *plugin.QueryDa
 
 	op, err := svc.DescribePolicy(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_organizations_account.getOrganizationsServiceControlPolicy", "api_error", err)
+		plugin.Logger(ctx).Error("aws_organizations_policy.getOrganizationsPolicy", "api_error", err)
 		return nil, err
 	}
 

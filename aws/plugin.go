@@ -298,7 +298,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_oam_sink":                                                 tableAwsOAMSink(ctx),
 			"aws_opensearch_domain":                                        tableAwsOpenSearchDomain(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
-			"aws_organizations_service_control_policy":                     tableAwsOrganizationsServiceControlPolicy(ctx),
+			"aws_organizations_policy":                                     tableAwsOrganizationsPolicy(ctx),
 			"aws_pinpoint_app":                                             tableAwsPinpointApp(ctx),
 			"aws_pipes_pipe":                                               tableAwsPipes(ctx),
 			"aws_pricing_product":                                          tableAwsPricingProduct(ctx),

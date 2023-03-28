@@ -1,4 +1,4 @@
-# Table: aws_organizations_service_control_policy
+# Table: aws_organizations_policy
 
 Policies in AWS Organizations enable you to apply additional types of management to the AWS accounts in your organization.
 
@@ -16,7 +16,7 @@ select
   type,
   aws_managed
 from
-  aws_organizations_service_control_policy
+  aws_organizations_policy
 where
   type = 'SERVICE_CONTROL_POLICY';
 ```
@@ -31,7 +31,7 @@ select
   type,
   aws_managed
 from
-  aws_organizations_service_control_policy
+  aws_organizations_policy
 where
   not aws_managed
   and type = 'TAG_POLICY';
@@ -47,7 +47,7 @@ select
   type,
   aws_managed
 from
-  aws_organizations_service_control_policy
+  aws_organizations_policy
 where
   type = 'BACKUP_POLICY';
 ```
@@ -61,7 +61,7 @@ select
   content ->> 'Version' as policy_version,
   content ->> 'Statement' as policy_statement
 from
-  aws_organizations_service_control_policy
+  aws_organizations_policy
 where
   type = 'SERVICE_CONTROL_POLICY';
 ```
