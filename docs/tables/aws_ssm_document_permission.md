@@ -18,7 +18,7 @@ select
 from
   aws_ssm_document_permission
 where
-  document_name = 'test';
+  document_name = 'ConfigureS3BucketLogging';
 ```
 
 ### Get document details for the permissions
@@ -36,5 +36,5 @@ from
   aws_ssm_document_permission as p,
   aws_ssm_document as d
 where
-  p.document_name = 'test';
+  p.document_name = 'ConfigureS3BucketLogging';
 ```
