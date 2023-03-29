@@ -52,7 +52,7 @@ func tableAwsIamSshPublicKey(_ context.Context) *plugin.Table {
 				Hydrate:     getIamSshPublicKey,
 			},
 			{
-				Name:        "Fingerprint",
+				Name:        "fingerprint",
 				Description: "The MD5 message digest of the SSH public key.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIamSshPublicKey,

@@ -1,0 +1,6 @@
+[
+  {
+    "region": "global",
+    "title": "{{ output.ssh_public_key_id.value }}"
+  }
+]

@@ -17,7 +17,6 @@ from
   aws_iam_ssh_public_key;
 ```
 
-
 ### List of SSH public keys which are inactive
 
 ```sql
@@ -30,7 +29,6 @@ from
 where
   status = 'Inactive';
 ```
-
 
 ### Access key count by user name
 

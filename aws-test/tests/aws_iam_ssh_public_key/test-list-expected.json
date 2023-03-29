@@ -1,0 +1,6 @@
+[
+  {
+    "ssh_public_key_id": "{{ output.ssh_public_key_id.value }}",
+    "user_name": "{{ resourceName }}"
+  }
+]
