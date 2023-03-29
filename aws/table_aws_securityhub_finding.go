@@ -7,9 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,7 +25,7 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getSecurityHubFinding,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAccessException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -39,12 +42,13 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				{Name: "title", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "verification_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "workflow_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "workflow_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAccessException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -140,8 +144,14 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "workflow_state",
-				Description: "The workflow state of a finding.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The workflow state of a finding.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "workflow_status",
+				Description: "The workflow status of a finding. Possible values are NEW, NOTIFIED, SUPPRESSED, RESOLVED.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Workflow.Status"),
 			},
 			{
 				Name:        "standards_control_arn",
@@ -303,7 +313,7 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, finding)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -316,7 +326,7 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	id := d.KeyColumnQuals["id"].GetStringValue()
+	id := d.EqualsQuals["id"].GetStringValue()
 
 	// Empty check
 	if id == "" {
@@ -367,7 +377,7 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFin
 	securityFindingsFilter := &types.AwsSecurityFindingFilters{}
 	strFilter := types.StringFilter{}
 
-	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state"}
+	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state", "workflow_status"}
 
 	for _, s := range strColumns {
 		if quals[s] == nil {
@@ -414,6 +424,9 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFin
 			case "workflow_state":
 				strFilter.Value = aws.String(value)
 				securityFindingsFilter.WorkflowState = append(securityFindingsFilter.WorkflowState, strFilter)
+			case "workflow_status":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.WorkflowStatus = append(securityFindingsFilter.WorkflowStatus, strFilter)
 			}
 
 		}

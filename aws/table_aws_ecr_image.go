@@ -6,8 +6,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	ecrv1 "github.com/aws/aws-sdk-go/service/ecr"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +27,7 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 				{Name: "registry_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",
@@ -91,7 +94,7 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	repositoryName := h.Item.(types.Repository).RepositoryName
 
-	repoName := d.KeyColumnQuals["repository_name"].GetStringValue()
+	repoName := d.EqualsQuals["repository_name"].GetStringValue()
 
 	if repoName != "" {
 		if repoName != *repositoryName {
@@ -125,8 +128,8 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		MaxResults:     aws.Int32(maxLimit),
 	}
 
-	if d.KeyColumnQuals["registry_id"].GetStringValue() != "" {
-		params.RegistryId = aws.String(d.KeyColumnQuals["registry_id"].GetStringValue())
+	if d.EqualsQuals["registry_id"].GetStringValue() != "" {
+		params.RegistryId = aws.String(d.EqualsQuals["registry_id"].GetStringValue())
 	}
 
 	paginator := ecr.NewDescribeImagesPaginator(svc, params, func(o *ecr.DescribeImagesPaginatorOptions) {
@@ -146,7 +149,7 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

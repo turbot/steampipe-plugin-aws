@@ -6,9 +6,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -24,10 +27,10 @@ func tableAwsSecurityHubFindingAggregator(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubFindingAggregators,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAccessException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -117,7 +120,7 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 			d.StreamListItem(ctx, aggregator)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -134,7 +137,7 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 	if h.Item != nil {
 		aggregatorArn = *h.Item.(types.FindingAggregator).FindingAggregatorArn
 	} else {
-		aggregatorArn = d.KeyColumnQuals["arn"].GetStringValue()
+		aggregatorArn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
 	// Empty check

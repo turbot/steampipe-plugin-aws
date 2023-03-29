@@ -3,13 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
 	"github.com/aws/aws-sdk-go-v2/service/dlm/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	dlmv1 "github.com/aws/aws-sdk-go/service/dlm"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,13 +24,13 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("policy_id"),
 			Hydrate:    getDLMLifecyclePolicy,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFound"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDLMLifecyclePolicies,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(dlmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "policy_id",
@@ -143,7 +145,7 @@ func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 		// Check if context has been cancelled or if the limit has been reached (if specified)
 		// if there is a limit, it will return the number of rows required to reach this limit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -159,7 +161,7 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if h.Item != nil {
 		id = *policyId(h.Item)
 	} else {
-		id = d.KeyColumnQuals["policy_id"].GetStringValue()
+		id = d.EqualsQuals["policy_id"].GetStringValue()
 	}
 
 	// Empty check

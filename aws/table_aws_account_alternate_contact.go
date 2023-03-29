@@ -5,11 +5,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/account/types"
 	go_kit_packs "github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 
 	"github.com/aws/aws-sdk-go-v2/service/account"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +21,7 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAccountAlternateContacts,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -35,7 +35,7 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name associated with this alternate contact.",
@@ -93,8 +93,7 @@ type accountAlternateContactData = struct {
 func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -113,19 +112,20 @@ func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
 	var linkedAccountID string
-	if d.KeyColumnQuals["linked_account_id"] != nil {
-		linkedAccountID = d.KeyColumnQuals["linked_account_id"].GetStringValue()
+	if d.EqualsQuals["linked_account_id"] != nil {
+		linkedAccountID = d.EqualsQuals["linked_account_id"].GetStringValue()
 	} else {
 		linkedAccountID = commonColumnData.AccountId
 	}
 
 	contactTypes := []string{"BILLING", "OPERATIONS", "SECURITY"}
-	if d.KeyColumnQuals["contact_type"] != nil {
-		contactTypes = []string{d.KeyColumnQuals["contact_type"].GetStringValue()}
+	if d.EqualsQuals["contact_type"] != nil {
+		contactTypes = []string{d.EqualsQuals["contact_type"].GetStringValue()}
 	}
 
 	/*

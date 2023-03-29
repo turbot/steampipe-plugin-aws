@@ -6,9 +6,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	elasticachev1 "github.com/aws/aws-sdk-go/service/elasticache"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +23,7 @@ func tableAwsElastiCacheReservedCacheNode(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("reserved_cache_node_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ReservedCacheNodeNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReservedCacheNodeNotFound"}),
 			},
 			Hydrate: getElastiCacheReservedCacheNode,
 		},
@@ -33,7 +36,7 @@ func tableAwsElastiCacheReservedCacheNode(_ context.Context) *plugin.Table {
 				{Name: "reserved_cache_nodes_offering_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "reserved_cache_node_id",
@@ -133,20 +136,20 @@ func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData,
 		MaxRecords: aws.Int32(100),
 	}
 
-	if d.KeyColumnQuals["cache_node_type"] != nil {
-		input.CacheNodeType = aws.String(d.KeyColumnQuals["cache_node_type"].GetStringValue())
+	if d.EqualsQuals["cache_node_type"] != nil {
+		input.CacheNodeType = aws.String(d.EqualsQuals["cache_node_type"].GetStringValue())
 	}
 
-	if d.KeyColumnQuals["duration"] != nil {
-		input.Duration = aws.String(fmt.Sprintf("%v", d.KeyColumnQuals["duration"].GetInt64Value()))
+	if d.EqualsQuals["duration"] != nil {
+		input.Duration = aws.String(fmt.Sprintf("%v", d.EqualsQuals["duration"].GetInt64Value()))
 	}
 
-	if d.KeyColumnQuals["offering_type"] != nil {
-		input.OfferingType = aws.String(d.KeyColumnQuals["offering_type"].GetStringValue())
+	if d.EqualsQuals["offering_type"] != nil {
+		input.OfferingType = aws.String(d.EqualsQuals["offering_type"].GetStringValue())
 	}
 
-	if d.KeyColumnQuals["reserved_cache_nodes_offering_id"] != nil {
-		input.ReservedCacheNodesOfferingId = aws.String(d.KeyColumnQuals["reserved_cache_nodes_offering_id"].GetStringValue())
+	if d.EqualsQuals["reserved_cache_nodes_offering_id"] != nil {
+		input.ReservedCacheNodesOfferingId = aws.String(d.EqualsQuals["reserved_cache_nodes_offering_id"].GetStringValue())
 	}
 
 	if d.QueryContext.Limit != nil {
@@ -177,7 +180,7 @@ func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData,
 			d.StreamListItem(ctx, reservedCacheNode)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -189,7 +192,7 @@ func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData,
 //// HYDRATE FUNCTIONS
 
 func getElastiCacheReservedCacheNode(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
+	quals := d.EqualsQuals
 	reservedCacheNodeId := quals["reserved_cache_node_id"].GetStringValue()
 
 	// check if reservedCacheNodeId is empty

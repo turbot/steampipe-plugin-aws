@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+
+	sagemakerv1 "github.com/aws/aws-sdk-go/service/sagemaker"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,7 +23,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
 			},
 			Hydrate: getAwsSageMakerNotebookInstance,
 		},
@@ -31,7 +35,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				{Name: "notebook_instance_status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -181,19 +185,35 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsSageMakerNotebookInstances")
-
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.listAwsSageMakerNotebookInstances", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	input := &sagemaker.ListNotebookInstancesInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["default_code_repository"] != nil {
 		if equalQuals["default_code_repository"].GetStringValue() != "" {
 			input.DefaultCodeRepositoryContains = aws.String(equalQuals["default_code_repository"].GetStringValue())
@@ -206,38 +226,33 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 	}
 	if equalQuals["notebook_instance_status"] != nil {
 		if equalQuals["notebook_instance_status"].GetStringValue() != "" {
-			input.StatusEquals = aws.String(equalQuals["notebook_instance_status"].GetStringValue())
+			input.StatusEquals = types.NotebookInstanceStatus(equalQuals["notebook_instance_status"].GetStringValue())
 		}
 
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	paginator := sagemaker.NewListNotebookInstancesPaginator(svc, input, func(o *sagemaker.ListNotebookInstancesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.ListNotebookInstancesPages(
-		input,
-		func(page *sagemaker.ListNotebookInstancesOutput, isLast bool) bool {
-			for _, notebookInstance := range page.NotebookInstances {
-				d.StreamListItem(ctx, notebookInstance)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.listAwsSageMakerNotebookInstances", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.NotebookInstances {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 	return nil, err
 }
 
@@ -246,15 +261,20 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*sagemaker.NotebookInstanceSummary).NotebookInstanceName
+		name = *h.Item.(types.NotebookInstanceSummary).NotebookInstanceName
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.getAwsSageMakerNotebookInstance", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -263,37 +283,38 @@ func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	// Get call
-	data, err := svc.DescribeNotebookInstance(params)
+	data, err := svc.DescribeNotebookInstance(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsSageMakerNotebookInstance", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.getAwsSageMakerNotebookInstance", "api_error", err)
 		return nil, err
 	}
 	return data, nil
 }
 
 func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsSageMakerNotebookInstanceTags")
-
 	resourceArn := notebookInstanceARN(h.Item)
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.listAwsSageMakerNotebookInstanceTags", "connection_error", err)
 		return nil, err
 	}
-
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 	// Build the params
 	params := &sagemaker.ListTagsInput{
 		ResourceArn: aws.String(resourceArn),
 	}
 
 	pagesLeft := true
-	tags := []*sagemaker.Tag{}
+	tags := []types.Tag{}
 	for pagesLeft {
-		keyTags, err := svc.ListTags(params)
+		keyTags, err := svc.ListTags(ctx, params)
 		if err != nil {
-			plugin.Logger(ctx).Error("listAwsSageMakerNotebookInstanceTags", "ListTags_error", err)
+			plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.listAwsSageMakerNotebookInstanceTags", "api_error", err)
 			return nil, err
 		}
 		tags = append(tags, keyTags.Tags...)
@@ -312,7 +333,7 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 
 func notebookInstanceARN(item interface{}) string {
 	switch item := item.(type) {
-	case *sagemaker.NotebookInstanceSummary:
+	case types.NotebookInstanceSummary:
 		return *item.NotebookInstanceArn
 	case *sagemaker.DescribeNotebookInstanceOutput:
 		return *item.NotebookInstanceArn

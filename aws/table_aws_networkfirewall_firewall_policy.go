@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/networkfirewall"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/networkfirewall"
+	"github.com/aws/aws-sdk-go-v2/service/networkfirewall/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	networkfirewallv1 "github.com/aws/aws-sdk-go/service/networkfirewall"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +27,7 @@ func tableAwsNetworkFirewallPolicy(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listNetworkFirewallPolicies,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -137,44 +140,57 @@ func tableAwsNetworkFirewallPolicy(_ context.Context) *plugin.Table {
 
 func listNetworkFirewallPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := NetworkFirewallService(ctx, d)
+	svc, err := NetworkFirewallClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_networkfirewall_firewall_policy.listNetworkFirewallPolicies", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_networkfirewall_firewall_policy.listNetworkFirewallPolicies", "connection_error", err)
 		return nil, err
 	}
-
-	input := &networkfirewall.ListFirewallPoliciesInput{
-		MaxResults: aws.Int64(100),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListFirewallPoliciesPages(
-		input,
-		func(page *networkfirewall.ListFirewallPoliciesOutput, isLast bool) bool {
-			for _, policy := range page.FirewallPolicies {
-				d.StreamListItem(ctx, policy)
+	input := &networkfirewall.ListFirewallPoliciesInput{
+		MaxResults: &maxLimit,
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := networkfirewall.NewListFirewallPoliciesPaginator(svc, input, func(o *networkfirewall.ListFirewallPoliciesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_networkfirewall_firewall_policy.listNetworkFirewallPolicies", "api_error", err)
+			return nil, err
+		}
+
+		for _, policy := range output.FirewallPolicies {
+			d.StreamListItem(ctx, policy)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -184,11 +200,11 @@ func getNetworkFirewallPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	var name, arn string
 	if h.Item != nil {
-		name = *h.Item.(*networkfirewall.FirewallPolicyMetadata).Name
-		arn = *h.Item.(*networkfirewall.FirewallPolicyMetadata).Arn
+		name = *h.Item.(types.FirewallPolicyMetadata).Name
+		arn = *h.Item.(types.FirewallPolicyMetadata).Arn
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
 	// Build the params
@@ -202,18 +218,23 @@ func getNetworkFirewallPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Create session
-	svc, err := NetworkFirewallService(ctx, d)
+	svc, err := NetworkFirewallClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_networkfirewall_firewall_policy.getNetworkFirewallPolicy", "service_creation_error", err)
+		logger.Error("aws_networkfirewall_firewall_policy.getNetworkFirewallPolicy", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Get call
-	data, err := svc.DescribeFirewallPolicy(params)
+	data, err := svc.DescribeFirewallPolicy(ctx, params)
 	if err != nil {
 		logger.Error("aws_networkfirewall_firewall_policy.getNetworkFirewallPolicy", "api_error", err)
 		return nil, err
 	}
+
 	return data, nil
 }
 

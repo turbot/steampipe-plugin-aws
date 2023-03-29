@@ -8,11 +8,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
+
 	auditmanagerv1 "github.com/aws/aws-sdk-go/service/auditmanager"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 type evidenceInfo struct {
@@ -30,7 +31,7 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "evidence_folder_id", "assessment_id", "control_set_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: getAuditManagerEvidence,
 		},
@@ -38,7 +39,7 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 			ParentHydrate: listAwsAuditManagerAssessments,
 			Hydrate:       listAuditManagerEvidences,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -173,7 +174,7 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Get assessment details
-	assessmentID := *h.Item.(*auditmanagerv1.AssessmentMetadataItem).Id
+	assessmentID := *h.Item.(types.AssessmentMetadataItem).Id
 
 	// Create session
 	svc, err := AuditManagerClient(ctx, d)
@@ -252,7 +253,7 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 			d.StreamLeafListItem(ctx, evidenceInfo{data.Evidence, data.AssessmentID, data.ControlSetID})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -315,10 +316,10 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, nil
 	}
 
-	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
-	controlSetID := d.KeyColumnQuals["control_set_id"].GetStringValue()
-	evidenceFolderID := d.KeyColumnQuals["evidence_folder_id"].GetStringValue()
-	evidenceID := d.KeyColumnQuals["id"].GetStringValue()
+	assessmentID := d.EqualsQuals["assessment_id"].GetStringValue()
+	controlSetID := d.EqualsQuals["control_set_id"].GetStringValue()
+	evidenceFolderID := d.EqualsQuals["evidence_folder_id"].GetStringValue()
+	evidenceID := d.EqualsQuals["id"].GetStringValue()
 
 	// Build params
 	params := &auditmanager.GetEvidenceInput{
@@ -346,11 +347,10 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 func getAuditManagerEvidenceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidenceARN")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	evidenceID := *h.Item.(evidenceInfo).Evidence.Id
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_auditmanager_evidence.getAuditManagerEvidenceARN", "common_data_error", err)
 		return nil, err

@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/glue/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	gluev1 "github.com/aws/aws-sdk-go/service/glue"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +23,7 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "database_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueCatalogTable,
 		},
@@ -33,7 +35,7 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 			ParentHydrate: listGlueCatalogDatabases,
 			Hydrate:       listGlueCatalogTables,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -167,10 +169,10 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, nil
 	}
 
-	if d.KeyColumnQualString("catalog_id") != "" && *database.CatalogId != d.KeyColumnQualString("catalog_id") {
+	if d.EqualsQualString("catalog_id") != "" && *database.CatalogId != d.EqualsQualString("catalog_id") {
 		return nil, nil
 	}
-	if d.KeyColumnQualString("database_name") != "" && *database.Name != d.KeyColumnQualString("database_name") {
+	if d.EqualsQualString("database_name") != "" && *database.Name != d.EqualsQualString("database_name") {
 		return nil, nil
 	}
 
@@ -192,7 +194,7 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		CatalogId:    database.CatalogId,
 	}
 	// List call
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["catalog_id"] != nil {
 		input.CatalogId = aws.String(equalQuals["catalog_id"].GetStringValue())
 	}
@@ -210,7 +212,7 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 			d.StreamListItem(ctx, table)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -222,8 +224,8 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.KeyColumnQuals["name"].GetStringValue()
-	databaseName := d.KeyColumnQuals["database_name"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
+	databaseName := d.EqualsQuals["database_name"].GetStringValue()
 
 	// Empty check
 	if name == "" || databaseName == "" {
@@ -258,12 +260,12 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 }
 
 func getGlueCatalogTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	data := h.Item.(types.Table)
 
 	// Get common columns
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_catalog_table.getGlueCatalogTableAkas", "common_data_error", err)
 		return nil, err

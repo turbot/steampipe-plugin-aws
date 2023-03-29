@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/globalaccelerator"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
+	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +20,7 @@ func tableAwsGlobalAcceleratorEndpointGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlobalAcceleratorEndpointGroup,
 		},
@@ -34,7 +34,7 @@ func tableAwsGlobalAcceleratorEndpointGroup(_ context.Context) *plugin.Table {
 			ParentHydrate: listGlobalAcceleratorAccelerators,
 			Hydrate:       listGlobalAcceleratorEndpointGroups,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the endpoint group.",
@@ -120,108 +120,93 @@ func tableAwsGlobalAcceleratorEndpointGroup(_ context.Context) *plugin.Table {
 }
 
 type turbotEndpointGroup struct {
-	ListenerArn   *string
-	EndpointGroup *globalaccelerator.EndpointGroup
+	ListenerArn   string
+	EndpointGroup types.EndpointGroup
 }
 
 //// LIST FUNCTION
 
 func listGlobalAcceleratorEndpointGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listGlobalAcceleratorEndpointGroups")
 
-	accelerator := h.Item.(*globalaccelerator.Accelerator)
+	accelerator := h.Item.(types.Accelerator)
 	acceleratorArn := aws.String(*accelerator.AcceleratorArn)
 
 	// Create session
-	svc, err := GlobalAcceleratorService(ctx, d)
+	svc, err := GlobalAcceleratorClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.listGlobalAcceleratorEndpointGroups", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.listGlobalAcceleratorEndpointGroups", "connection_error", err)
 		return nil, err
 	}
 
 	// First get accelerator listener ARNs
 	listenerArns := []*string{}
 
-	listenersInput := &globalaccelerator.ListListenersInput{
-		MaxResults:     aws.Int64(100),
+	input := &globalaccelerator.ListListenersInput{
+		MaxResults:     aws.Int32(100),
 		AcceleratorArn: acceleratorArn,
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *listenersInput.MaxResults {
-			if *limit < 1 {
-				listenersInput.MaxResults = aws.Int64(1)
-			} else {
-				listenersInput.MaxResults = limit
-			}
-		}
-	}
+	paginator := globalaccelerator.NewListListenersPaginator(svc, input, func(o *globalaccelerator.ListListenersPaginatorOptions) {
+		o.Limit = 100
+		o.StopOnDuplicateToken = true
+	})
 
-	// List listeners call
-	err = svc.ListListenersPages(
-		listenersInput,
-		func(page *globalaccelerator.ListListenersOutput, isLast bool) bool {
-			for _, listener := range page.Listeners {
-
-				listenerArns = append(listenerArns, listener.ListenerArn)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.listGlobalAcceleratorEndpointGroups", "api_error", err)
-		return nil, err
-	}
-
-	// Now get endpoint groups for each listener
-	for _, listenerArn := range listenerArns {
-
-		endpointGroupsInput := &globalaccelerator.ListEndpointGroupsInput{
-			MaxResults:  aws.Int64(100),
-			ListenerArn: listenerArn,
-		}
-
-		// Reduce the basic request limit down if the user has only requested a small number of rows
-		limit := d.QueryContext.Limit
-		if d.QueryContext.Limit != nil {
-			if *limit < *endpointGroupsInput.MaxResults {
-				if *limit < 1 {
-					endpointGroupsInput.MaxResults = aws.Int64(1)
-				} else {
-					endpointGroupsInput.MaxResults = limit
-				}
-			}
-		}
-
-		// List endpoint groups call
-		err = svc.ListEndpointGroupsPages(
-			endpointGroupsInput,
-			func(page *globalaccelerator.ListEndpointGroupsOutput, isLast bool) bool {
-				for _, endpointGroup := range page.EndpointGroups {
-					d.StreamListItem(ctx, &turbotEndpointGroup{listenerArn, endpointGroup})
-
-					// Context may get cancelled due to manual cancellation or if the limit has been reached
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
-				}
-				return !isLast
-			},
-		)
-
+	// List listeners
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.listGlobalAcceleratorEndpointGroups", "api_error", err)
 			return nil, err
 		}
 
+		for _, listener := range output.Listeners {
+			listenerArns = append(listenerArns, listener.ListenerArn)
+		}
+	}
+
+	// Now get endpoint groups for each listener
+	for _, listenerArn := range listenerArns {
+		endpointGroupsInput := &globalaccelerator.ListEndpointGroupsInput{
+			MaxResults:  aws.Int32(100),
+			ListenerArn: listenerArn,
+		}
+
+		maxItems := int32(100)
+
+		// Reduce the basic request limit down if the user has only requested a small number of rows
+		if d.QueryContext.Limit != nil {
+			limit := int32(*d.QueryContext.Limit)
+			if limit < maxItems {
+				if limit < 1 {
+					maxItems = int32(1)
+				} else {
+					maxItems = int32(limit)
+				}
+			}
+		}
+
+		paginatorGroups := globalaccelerator.NewListEndpointGroupsPaginator(svc, endpointGroupsInput, func(o *globalaccelerator.ListEndpointGroupsPaginatorOptions) {
+			o.Limit = maxItems
+			o.StopOnDuplicateToken = true
+		})
+
+		// List endpoint groups call
+		for paginatorGroups.HasMorePages() {
+			outputGroups, err := paginatorGroups.NextPage(ctx)
+			if err != nil {
+				plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.listGlobalAcceleratorAccelerators", "api_error", err)
+				return nil, err
+			}
+
+			for _, endpointGroup := range outputGroups.EndpointGroups {
+				d.StreamListItem(ctx, &turbotEndpointGroup{*listenerArn, endpointGroup})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
+			}
+		}
 	}
 
 	return nil, nil
@@ -230,9 +215,7 @@ func listGlobalAcceleratorEndpointGroups(ctx context.Context, d *plugin.QueryDat
 //// HYDRATE FUNCTIONS
 
 func getGlobalAcceleratorEndpointGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlobalAcceleratorEndpointGroup")
-
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	arn := d.EqualsQuals["arn"].GetStringValue()
 
 	// check if arn is empty
 	if arn == "" {
@@ -240,9 +223,9 @@ func getGlobalAcceleratorEndpointGroup(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// Create session
-	svc, err := GlobalAcceleratorService(ctx, d)
+	svc, err := GlobalAcceleratorClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.getGlobalAcceleratorEndpointGroup", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.getGlobalAcceleratorEndpointGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -252,10 +235,10 @@ func getGlobalAcceleratorEndpointGroup(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// Get call
-	data, err := svc.DescribeEndpointGroup(params)
+	data, err := svc.DescribeEndpointGroup(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.getGlobalAcceleratorEndpointGroup", "api_error", err)
 		return nil, err
 	}
-	return data.EndpointGroup, nil
+	return *data.EndpointGroup, nil
 }

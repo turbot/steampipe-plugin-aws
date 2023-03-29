@@ -6,9 +6,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -26,7 +28,7 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"detector_id", "threat_intel_set_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyThreatIntelSet,
 		},
@@ -37,7 +39,7 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 				{Name: "detector_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -114,7 +116,7 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 
 	// Minimize the API call with the given detector id
 	if equalQuals["detector_id"] != nil {
@@ -155,7 +157,7 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -180,8 +182,8 @@ func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plu
 		detectorID = h.Item.(threatIntelSetInfo).DetectorID
 		id = h.Item.(threatIntelSetInfo).ThreatIntelSetID
 	} else {
-		detectorID = d.KeyColumnQuals["detector_id"].GetStringValue()
-		id = d.KeyColumnQuals["threat_intel_set_id"].GetStringValue()
+		detectorID = d.EqualsQuals["detector_id"].GetStringValue()
+		id = d.EqualsQuals["threat_intel_set_id"].GetStringValue()
 	}
 
 	params := &guardduty.GetThreatIntelSetInput{
@@ -202,10 +204,9 @@ func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getAwsGuardDutyThreatIntelSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(threatIntelSetInfo)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_guardduty_threat_intel_set.getAwsGuardDutyThreatIntelSetAkas", "api_error", err)
 		return nil, err

@@ -12,9 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/smithy-go"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -26,7 +26,7 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			},
 			Hydrate: getIamUser,
 		},
@@ -36,7 +36,7 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The friendly name identifying the user.",
@@ -100,14 +100,13 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				Description: "A list of MFA devices attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserMfaDevices,
-				Transform:   transform.FromField("MFADevices").Transform(handleEmptyUserMfaDevices),
+				Transform:   transform.FromField("MFADevices"),
 			},
 			{
 				Name:        "groups",
 				Description: "A list of groups attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserGroups,
-				Transform:   transform.FromField("Groups").Transform(handleEmptyUserGroups),
 			},
 			{
 				Name:        "inline_policies",
@@ -173,7 +172,7 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	maxItems := int32(1000)
 	input := iam.ListUsersInput{}
 
-	equalQual := d.KeyColumnQuals
+	equalQual := d.EqualsQuals
 	if equalQual["path"] != nil {
 		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
 	}
@@ -207,7 +206,7 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 			d.StreamListItem(ctx, user)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -220,8 +219,8 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 func getIamUser(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
-	name := d.KeyColumnQuals["name"].GetStringValue()
+	arn := d.EqualsQuals["arn"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
 	if len(arn) > 0 {
 		name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
 	}
@@ -505,22 +504,4 @@ func handleEmptyUserMfaStatus(_ context.Context, d *transform.TransformData) (in
 	}
 
 	return false, nil
-}
-
-func handleEmptyUserMfaDevices(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	mfaDevices, ok := d.Value.([]types.MFADevice)
-	if !ok || len(mfaDevices) == 0 {
-		return nil, nil
-	}
-
-	return mfaDevices, nil
-}
-
-func handleEmptyUserGroups(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	groups, ok := d.Value.([]types.Group)
-	if !ok || len(groups) == 0 {
-		return nil, nil
-	}
-
-	return groups, nil
 }

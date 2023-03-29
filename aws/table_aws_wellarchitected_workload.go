@@ -2,14 +2,16 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +23,7 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("workload_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getWellArchitectedWorkload,
 		},
@@ -31,7 +33,7 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 				{Name: "workload_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workload_name",
@@ -189,6 +191,10 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		plugin.Logger(ctx).Error("aws_wellarchitected_workload.listWellArchitectedWorkloads", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(50)
@@ -207,7 +213,7 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		MaxResults: maxLimit,
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["workload_name"] != nil {
 		if equalQuals["workload_name"].GetStringValue() != "" {
 			input.WorkloadNamePrefix = aws.String(equalQuals["workload_name"].GetStringValue())
@@ -224,13 +230,6 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wellarchitected_workload.listWellArchitectedWorkloads", "api_error", err)
-
-			// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-			// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
-
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			return nil, err
 		}
 
@@ -238,7 +237,7 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -254,7 +253,7 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 	if h.Item != nil {
 		id = workloadID(h.Item)
 	} else {
-		quals := d.KeyColumnQuals
+		quals := d.EqualsQuals
 		id = quals["workload_id"].GetStringValue()
 	}
 
@@ -264,6 +263,10 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("aws_wellarchitected_workload.getWellArchitectedWorkload", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &wellarchitected.GetWorkloadInput{
 		WorkloadId: aws.String(id),
@@ -272,11 +275,6 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 	op, err := svc.GetWorkload(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wellarchitected_workload.getWellArchitectedWorkload", "api_error", err)
-		// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-		// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		return nil, err
 	}
 

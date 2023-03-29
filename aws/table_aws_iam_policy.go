@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -31,7 +31,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The friendly name that identifies the iam policy.",
@@ -115,7 +115,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Description: "A list of tags attached with the IAM policy.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamPolicy,
-				Transform:   transform.FromField("Tags").Transform(handleIAMPolicyEmptyTags),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Standard columns for all tables
@@ -152,7 +152,7 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	params := buildIamPolicyFilter(d.KeyColumnQuals, d.Quals)
+	params := buildIamPolicyFilter(d.EqualsQuals, d.Quals)
 	maxItems := int32(100)
 
 	// If the requested number of items is less than the paging max limit
@@ -181,7 +181,7 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			d.StreamListItem(ctx, policy)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -198,7 +198,7 @@ func getIamPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		policy := h.Item.(types.Policy)
 		arn = *policy.Arn
 	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
 	// Create Session
@@ -248,8 +248,8 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 // isPolicyAwsManaged returns true if policy is aws managed
 func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	policy := h.Item.(types.Policy)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -257,8 +257,8 @@ func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	commonColumnData := c.(*awsCommonColumnData)
 
 	// policy arn for aws managed policy
-	// arn:aws-us-gov:iam::aws:policy/aws-service-role/AccessAnalyzerServiceRolePolicy in us gov cloud
-	// arn:aws:iam::aws:policy/aws-service-role/AccessAnalyzerServiceRolePolicy in commercial cloud
+	// arn:aws-us-gov:iam::aws:policy/aws-service-role/AccessAnalyzerServiceRolePolicy in US GovCloud
+	// arn:aws:iam::aws:policy/aws-service-role/AccessAnalyzerServiceRolePolicy in standard regions
 	if strings.HasPrefix(*policy.Arn, "arn:"+commonColumnData.Partition+":iam::aws:policy") {
 		return true, nil
 	}
@@ -281,14 +281,6 @@ func handleIAMPolicyTurbotTags(_ context.Context, d *transform.TransformData) (i
 	}
 
 	return &turbotTagsMap, nil
-}
-
-func handleIAMPolicyEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags, ok := d.Value.([]types.Tag)
-	if ok || len(tags) == 0 {
-		return nil, nil
-	}
-	return d.Value, nil
 }
 
 func attachementCountToBool(_ context.Context, d *transform.TransformData) (interface{}, error) {

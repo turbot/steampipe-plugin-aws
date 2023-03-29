@@ -7,13 +7,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"github.com/turbot/go-kit/helpers"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
+
+	"github.com/turbot/go-kit/helpers"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
@@ -23,7 +26,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("window_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DoesNotExistException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DoesNotExistException"}),
 			},
 			Hydrate: getAwsSSMMaintenanceWindow,
 		},
@@ -34,7 +37,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 				{Name: "enabled", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -172,6 +175,10 @@ func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *pl
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.listAwsSSMMaintenanceWindow", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	maxItems := int32(100)
 	input := &ssm.DescribeMaintenanceWindowsInput{}
@@ -211,7 +218,7 @@ func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, parameter)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -227,7 +234,7 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 	if h.Item != nil {
 		id = *maintenanceWindowID(h.Item)
 	} else {
-		id = d.KeyColumnQuals["window_id"].GetStringValue()
+		id = d.EqualsQuals["window_id"].GetStringValue()
 	}
 
 	// Empty id check
@@ -240,6 +247,10 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.getAwsSSMMaintenanceWindow", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -266,6 +277,10 @@ func getMaintenanceWindowTargets(ctx context.Context, d *plugin.QueryData, h *pl
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.getMaintenanceWindowTargets", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Build the params
 	params := &ssm.DescribeMaintenanceWindowTargetsInput{
@@ -290,6 +305,10 @@ func getMaintenanceWindowTasks(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.getMaintenanceWindowTasks", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -316,6 +335,10 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 		plugin.Logger(ctx).Error("aws_ssm_maintenance_window.getAwsSSMMaintenanceWindowTags", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
 
 	// Build the params
 	params := &ssm.ListTagsForResourceInput{
@@ -335,10 +358,10 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 
 func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMMaintenanceWindowAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	id := maintenanceWindowID(h.Item)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

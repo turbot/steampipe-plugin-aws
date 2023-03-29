@@ -6,32 +6,16 @@ import (
 	"fmt"
 	"math"
 	"net/url"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
 
 	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
-
-func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
-	var turbotTagsMap map[string]string
-	if tags == nil {
-		return nil, nil
-	}
-
-	turbotTagsMap = map[string]string{}
-	for _, i := range tags {
-		turbotTagsMap[*i.Key] = *i.Value
-	}
-
-	return &turbotTagsMap, nil
-}
 
 func arnToAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	arn := types.SafeString(d.Value)
@@ -207,31 +191,4 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		}
 	}
 	return value
-}
-
-// handleNullIfZero :: handles empty slices and map convert them to null instead of the zero type
-func handleEmptySliceAndMap(ctx context.Context, d *transform.TransformData) (any, error) {
-	if d.Value == nil {
-		return nil, nil
-	}
-
-	reflectVal := reflect.ValueOf(d.Value)
-	switch reflectVal.Kind() {
-	// To handle empty array to null change in aws sdk V1 to V2 migration
-	case reflect.Slice, reflect.Map:
-		if reflectVal.Len() == 0 {
-			return nil, nil
-		}
-	case reflect.Struct:
-		if reflectVal == reflect.Zero(reflectVal.Type()) {
-			return nil, nil
-		}
-	case reflect.String:
-		// To handle empty string to null change in aws sdk V1 to V2 migration
-		if reflectVal.String() == "" {
-			return nil, nil
-		}
-	}
-
-	return d.Value, nil
 }

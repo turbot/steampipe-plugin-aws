@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/waf/types"
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -24,14 +24,14 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"web_acl_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			},
 			Hydrate: getWafWebAcl,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWafWebAcls,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Web ACL. You cannot change the name of a Web ACL after you create it.",
@@ -142,7 +142,7 @@ func listWafWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 			d.StreamListItem(ctx, webAcl)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -168,7 +168,7 @@ func getWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		id = data["ID"]
 
 	} else {
-		id = d.KeyColumnQuals["web_acl_id"].GetStringValue()
+		id = d.EqualsQuals["web_acl_id"].GetStringValue()
 	}
 
 	// Create Session
@@ -278,8 +278,8 @@ func classicWebAclData(item interface{}, ctx context.Context, d *plugin.QueryDat
 		data["Name"] = *item.Name
 	case types.WebACLSummary:
 		data["ID"] = *item.WebACLId
-		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-		commonData, err := getCommonColumnsCached(ctx, d, h)
+
+		commonData, err := getCommonColumns(ctx, d, h)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_waf_web_acl.classicWebAclData", "api_error", err)
 			return nil

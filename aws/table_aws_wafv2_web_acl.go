@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2/types"
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -25,15 +25,15 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			},
 			Hydrate: getAwsWafv2WebAcl,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2WebAcls,
 		},
-		GetMatrixItemFunc: BuildWafRegionList,
-		Columns: []*plugin.Column{
+		GetMatrixItemFunc: WAFRegionMatrix,
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Web ACL. You cannot change the name of a Web ACL after you create it.",
@@ -152,31 +152,19 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 
 			// AWS standard columns
 			{
-				Name:        "partition",
-				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-			{
 				Name:        "region",
 				Description: "The AWS Region in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(webAclRegion),
 			},
-			{
-				Name:        "account_id",
-				Description: "The AWS Account ID in which the resource is located.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-		},
+		}),
 	}
 }
 
 //// LIST FUNCTION
 
 func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	scope := types.ScopeRegional
 
 	if region == "global" {
@@ -224,7 +212,7 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			d.StreamListItem(ctx, webAcl)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -244,7 +232,7 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	var id, name, scope string
 	if h.Item != nil {
@@ -259,9 +247,9 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			scope = "CLOUDFRONT"
 		}
 	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		scope = d.KeyColumnQuals["scope"].GetStringValue()
+		id = d.EqualsQuals["id"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		scope = d.EqualsQuals["scope"].GetStringValue()
 	}
 
 	/*
@@ -312,7 +300,7 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	if region == "global" {
 		region = "us-east-1"
@@ -350,7 +338,7 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	if region == "global" {
 		region = "us-east-1"
@@ -394,7 +382,7 @@ func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin
 
 func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	if region == "global" {
 		region = "us-east-1"

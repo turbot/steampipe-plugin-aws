@@ -8,9 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,7 +24,7 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("transit_gateway_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidTransitGatewayID.NotFound", "InvalidTransitGatewayID.Unavailable", "InvalidTransitGatewayID.Malformed", "InvalidAction"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidTransitGatewayID.NotFound", "InvalidTransitGatewayID.Unavailable", "InvalidTransitGatewayID.Malformed", "InvalidAction"}),
 			},
 			Hydrate: getEc2TransitGateway,
 		},
@@ -41,10 +43,10 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_id",
@@ -196,7 +198,7 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	filters := buildEc2TransitGatewayFilter(d.Quals)
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["amazon_side_asn"] != nil {
 		filters = append(filters, types.Filter{Name: aws.String("options.amazon-side-asn"), Values: []string{fmt.Sprint(equalQuals["amazon_side_asn"].GetInt64Value())}})
 	}
@@ -222,7 +224,7 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -234,7 +236,7 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	transitGatewayID := d.KeyColumnQuals["transit_gateway_id"].GetStringValue()
+	transitGatewayID := d.EqualsQuals["transit_gateway_id"].GetStringValue()
 
 	// create service
 	svc, err := EC2Client(ctx, d)

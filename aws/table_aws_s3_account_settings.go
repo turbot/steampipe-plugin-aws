@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,7 +22,7 @@ func tableAwsS3AccountSettings(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listS3Account,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "block_public_acls",
 				Description: "Specifies whether Amazon S3 should block public access control lists (ACLs) for this bucket and objects in this bucket",
@@ -71,8 +71,7 @@ func tableAwsS3AccountSettings(_ context.Context) *plugin.Table {
 
 func listS3Account(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_account_settings.listS3Account", "common_data_error", err)
 		return nil, err
@@ -88,10 +87,16 @@ func listS3Account(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	s3Account := h.Item.(*awsCommonColumnData)
 
-	// Create Session
-	svc, err := S3ControlClient(ctx, d, GetDefaultAwsRegion(d))
+	// Unlike most services, S3 buckets are a global list. They can be retrieved
+	// from any single region. It's best to use the client region of the user
+	// (e.g. closest to them).
+	clientRegion, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "client_error", err)
+		return nil, err
+	}
+	svc, err := S3ControlClient(ctx, d, clientRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "get_client_error", err, "clientRegion", clientRegion)
 		return nil, err
 	}
 
@@ -117,7 +122,7 @@ func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData,
 				return defaultAccessBlock, nil
 			}
 		}
-		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "api_error", err, "clientRegion", clientRegion)
 		return nil, err
 	}
 

@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/waf/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,14 +21,14 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"rule_group_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NonexistentItemException", "WAFNonexistentItemException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NonexistentItemException", "WAFNonexistentItemException"}),
 			},
 			Hydrate: getWafRuleGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWafRuleGroups,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the rule group.",
@@ -126,7 +126,7 @@ func listWafRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 			d.StreamListItem(ctx, ruleGroups)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -150,7 +150,7 @@ func getWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		data := classicRuleGroupData(h.Item, ctx, d, h)
 		id = data["rule_group_id"]
 	} else {
-		id = d.KeyColumnQuals["rule_group_id"].GetStringValue()
+		id = d.EqualsQuals["rule_group_id"].GetStringValue()
 	}
 
 	// Create session
@@ -253,8 +253,7 @@ func classicRuleGroupTagListToTurbotTags(ctx context.Context, d *transform.Trans
 func classicRuleGroupData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
 	data := map[string]string{}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_waf_rule_group.classicRuleGroupData", "cache_error", err)
 		return nil

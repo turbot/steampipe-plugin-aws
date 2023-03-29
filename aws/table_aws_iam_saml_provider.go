@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,13 +22,13 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"arn"}),
 			Hydrate:    getIamSamlProvider,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchEntity"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchEntity"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamSamlProviders,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the IAM policy.",
@@ -56,7 +56,7 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 				Description: "A list of tags that are attached to the specified IAM SAML provider.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamSamlProvider,
-				Transform:   transform.From(handleSAMLProviderEmptyTags),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Steampipe standard columns
@@ -114,7 +114,7 @@ func listIamSamlProviders(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 		// Check if context has been cancelled or if the limit has been hit (if specified)
 		// if there is a limit, it will return the number of rows required to reach this limit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			break
 		}
 	}
@@ -129,7 +129,7 @@ func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		entry := h.Item.(SAMLProvider)
 		arn = *entry.Arn
 	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
 	if arn == "" {
@@ -155,7 +155,7 @@ func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	provider := SAMLProvider{
-		Arn:                  &arn,
+		Arn:                  aws.String(arn),
 		CreateDate:           result.CreateDate,
 		ValidUntil:           result.ValidUntil,
 		SAMLMetadataDocument: result.SAMLMetadataDocument,
@@ -178,13 +178,4 @@ func samlProviderTurbotTags(_ context.Context, d *transform.TransformData) (inte
 		turbotTagsMap[*i.Key] = *i.Value
 	}
 	return turbotTagsMap, nil
-}
-
-func handleSAMLProviderEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	provider := d.HydrateItem.(SAMLProvider)
-	if len(provider.Tags) == 0 {
-		return nil, nil
-	}
-
-	return provider.Tags, nil
 }

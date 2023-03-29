@@ -5,11 +5,14 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
-	snsTypes "github.com/aws/aws-sdk-go-v2/service/sns/types"
+
+	snsv1 "github.com/aws/aws-sdk-go/service/sns"
+
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,14 +24,14 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("topic_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 			},
 			Hydrate: getTopicAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopics,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(snsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "topic_arn",
@@ -188,7 +191,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Description: "The list of tags associated with the topic.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,
-				Transform:   transform.FromField("Tags").Transform(handleSNSTopicEmptyTags),
+				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "policy",
@@ -271,7 +274,7 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 				},
 			})
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -288,7 +291,7 @@ func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		data := h.Item.(*sns.GetTopicAttributesOutput)
 		arn = types.SafeString(data.Attributes["TopicArn"])
 	} else {
-		arn = d.KeyColumnQuals["topic_arn"].GetStringValue()
+		arn = d.EqualsQuals["topic_arn"].GetStringValue()
 	}
 
 	if arn == "" {
@@ -354,13 +357,4 @@ func handleSNSTopicTurbotTags(_ context.Context, d *transform.TransformData) (in
 	}
 
 	return turbotTagsMap, nil
-}
-
-func handleSNSTopicEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags, ok := d.Value.([]snsTypes.Tag)
-	if !ok || len(tags) == 0 {
-		return nil, nil
-	}
-
-	return tags, nil
 }

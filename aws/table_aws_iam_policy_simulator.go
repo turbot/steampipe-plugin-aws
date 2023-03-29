@@ -3,13 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
-	"github.com/aws/aws-sdk-go/aws"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
@@ -90,7 +89,7 @@ type awsIamPolicySimulatorResult struct {
 	Action                            string
 	Decision                          *string
 	DecisionDetails                   map[string]types.PolicyEvaluationDecisionType
-	MatchedStatements                 *[]types.Statement
+	MatchedStatements                 []types.Statement
 	MissingContextValues              []string
 	OrganizationsDecisionDetail       *types.OrganizationsDecisionDetail
 	PermissionsBoundaryDecisionDetail *types.PermissionsBoundaryDecisionDetail
@@ -101,9 +100,9 @@ type awsIamPolicySimulatorResult struct {
 }
 
 func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
-	action := d.KeyColumnQuals["action"].GetStringValue()
-	resourceArn := d.KeyColumnQuals["resource_arn"].GetStringValue()
+	principalArn := d.EqualsQuals["principal_arn"].GetStringValue()
+	action := d.EqualsQuals["action"].GetStringValue()
+	resourceArn := d.EqualsQuals["resource_arn"].GetStringValue()
 
 	// Create Session
 	svc, err := IAMClient(ctx, d)
@@ -131,7 +130,7 @@ func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, _ *plugin
 		Action:                            action,
 		Decision:                          aws.String(string(resultForAction.EvalDecision)),
 		DecisionDetails:                   resultForAction.EvalDecisionDetails,
-		MatchedStatements:                 &resultForAction.MatchedStatements,
+		MatchedStatements:                 resultForAction.MatchedStatements,
 		MissingContextValues:              resultForAction.MissingContextValues,
 		OrganizationsDecisionDetail:       resultForAction.OrganizationsDecisionDetail,
 		PermissionsBoundaryDecisionDetail: resultForAction.PermissionsBoundaryDecisionDetail,

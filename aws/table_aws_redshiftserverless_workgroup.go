@@ -2,15 +2,16 @@ package aws
 
 import (
 	"context"
-	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	redshiftserverlessv1 "github.com/aws/aws-sdk-go/service/redshiftserverless"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,14 +23,14 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("workgroup_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getRedshiftServerlessWorkgroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftServerlessWorkgroups,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftserverlessv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workgroup_name",
@@ -140,6 +141,7 @@ func listRedshiftServerlessWorkgroups(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -168,9 +170,6 @@ func listRedshiftServerlessWorkgroups(ctx context.Context, d *plugin.QueryData, 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			if strings.Contains(err.Error(), "no such host") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_redshiftserverless_workgroup.listRedshiftServerlessWorkgroups", "api_error", err)
 			return nil, err
 		}
@@ -180,7 +179,7 @@ func listRedshiftServerlessWorkgroups(ctx context.Context, d *plugin.QueryData, 
 		}
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -192,7 +191,7 @@ func listRedshiftServerlessWorkgroups(ctx context.Context, d *plugin.QueryData, 
 
 func getRedshiftServerlessWorkgroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	name := d.KeyColumnQuals["workgroup_name"].GetStringValue()
+	name := d.EqualsQuals["workgroup_name"].GetStringValue()
 	// Return nil, if no input provided
 	if name == "" {
 		return nil, nil
@@ -205,6 +204,7 @@ func getRedshiftServerlessWorkgroup(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
@@ -215,9 +215,6 @@ func getRedshiftServerlessWorkgroup(ctx context.Context, d *plugin.QueryData, _ 
 
 	op, err := svc.GetWorkgroup(ctx, params)
 	if err != nil {
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		logger.Error("aws_redshiftserverless_workgroup.getRedshiftServerlessWorkgroup", "api_error", err)
 		return nil, err
 	}
@@ -235,6 +232,7 @@ func getWorkgroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

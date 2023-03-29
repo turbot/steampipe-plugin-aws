@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
@@ -18,7 +21,7 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("subnet_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
 			},
 			Hydrate: getVpcSubnet,
 		},
@@ -37,7 +40,7 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subnet_id",
@@ -118,7 +121,6 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 				Name:        "ipv6_cidr_block_association_set",
 				Description: "A list of IPv6 CIDR blocks associated with the subnet.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleEmptyIpv6CidrBlockAssociationSet),
 			},
 			{
 				Name:        "tags_src",
@@ -204,7 +206,7 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "api_error", err)
+			plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "api_error", err, "connection_name", d.Connection.Name, "region", d.EqualsQualString(matrixKeyRegion))
 			return nil, err
 		}
 
@@ -212,7 +214,7 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -225,7 +227,7 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	subnetID := d.KeyColumnQuals["subnet_id"].GetStringValue()
+	subnetID := d.EqualsQuals["subnet_id"].GetStringValue()
 
 	// get service
 	svc, err := EC2Client(ctx, d)
@@ -242,7 +244,7 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	// Get call
 	op, err := svc.DescribeSubnets(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "api_error", err)
+		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "api_error", err, "connection_name", d.Connection.Name, "region", d.EqualsQualString(matrixKeyRegion))
 		return nil, err
 	}
 
@@ -268,16 +270,6 @@ func getVpcSubnetTurbotTags(_ context.Context, d *transform.TransformData) (inte
 	}
 
 	return &turbotTagsMap, nil
-}
-
-func handleEmptyIpv6CidrBlockAssociationSet(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	ipv6CidrBlockAssociationSet := d.HydrateItem.(types.Subnet).Ipv6CidrBlockAssociationSet
-
-	if len(ipv6CidrBlockAssociationSet) > 0 {
-		return ipv6CidrBlockAssociationSet, nil
-	}
-
-	return nil, nil
 }
 
 func getSubnetTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {

@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	inspectorv1 "github.com/aws/aws-sdk-go/service/inspector"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +27,7 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorFindings,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntity", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "NoSuchEntity", "InvalidParameter"}),
 			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "agent_id", Require: plugin.Optional, Operators: []string{"="}},
@@ -32,7 +35,7 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 				{Name: "severity", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(inspectorv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -274,7 +277,7 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 				})
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				if d.RowsRemaining(ctx) == 0 {
 					break
 				}
 			}
@@ -292,7 +295,7 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if h.Item != nil {
 		findingArn = *h.Item.(*InspectorFindingInfo).Finding.Arn
 	} else {
-		quals := d.KeyColumnQuals
+		quals := d.EqualsQuals
 		findingArn = quals["arn"].GetStringValue()
 	}
 

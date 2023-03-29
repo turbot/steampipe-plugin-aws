@@ -1,0 +1,10 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "fargate_profile_name": "{{ resourceName }}",
+    "title": "{{ resourceName }}"
+  }
+]

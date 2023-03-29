@@ -3,13 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	directoryservicev1 "github.com/aws/aws-sdk-go/service/directoryservice"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +23,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("directory_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
 			},
 			Hydrate: getDirectoryServiceDirectory,
 		},
@@ -34,7 +36,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(directoryservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -241,7 +243,7 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["directory_id"] != nil {
 		input.DirectoryIds = []string{equalQuals["directory_id"].GetStringValue()}
 	}
@@ -260,7 +262,7 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 			d.StreamListItem(ctx, directory)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				pagesLeft = false
 			}
 		}
@@ -289,7 +291,7 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, nil
 	}
 
-	directoryID := d.KeyColumnQuals["directory_id"].GetStringValue()
+	directoryID := d.EqualsQuals["directory_id"].GetStringValue()
 	if directoryID == "" {
 		return nil, nil
 	}
@@ -356,14 +358,13 @@ func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData
 func getDirectoryARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	directory := h.Item.(types.DirectoryDescription)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	arn := "arn:" + commonColumnData.Partition + ":ds:" + region + ":" + commonColumnData.AccountId + ":directory/" + *directory.DirectoryId
 

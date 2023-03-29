@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
@@ -19,7 +21,7 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("group_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound", "InvalidGroup.NotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound", "InvalidGroup.NotFound"}),
 			},
 			Hydrate: getVpcSecurityGroup,
 		},
@@ -32,7 +34,7 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "group_name",
@@ -70,13 +72,11 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 				Name:        "ip_permissions",
 				Description: "A list of inbound rules associated with the security group",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleIpPermissionsEmptyResult),
 			},
 			{
 				Name:        "ip_permissions_egress",
 				Description: "A list of outbound rules associated with the security group",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleIpPermissionsEgressEmptyResult),
 			},
 			{
 				Name:        "tags_src",
@@ -165,7 +165,7 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -178,7 +178,7 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	groupID := d.KeyColumnQuals["group_id"].GetStringValue()
+	groupID := d.EqualsQuals["group_id"].GetStringValue()
 
 	// get service
 	svc, err := EC2Client(ctx, d)
@@ -207,10 +207,9 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getVpcSecurityGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	securityGroup := h.Item.(types.SecurityGroup)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_security_group.getVpcSecurityGroupARN", "common_data_error", err)
 		return nil, err
@@ -236,42 +235,4 @@ func getVpcSecurityGroupTurbotTags(_ context.Context, d *transform.TransformData
 		return turbotTagsMap, nil
 	}
 	return nil, nil
-}
-
-func handleIpPermissionsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	securityGroutIpPermissions := d.HydrateItem.(types.SecurityGroup).IpPermissions
-	var permissions []types.IpPermission
-	for _, permission := range securityGroutIpPermissions {
-		if len(permission.IpRanges) < 1 {
-			permission.IpRanges = nil
-		}
-		if len(permission.Ipv6Ranges) < 1 {
-			permission.Ipv6Ranges = nil
-		}
-		if len(permission.PrefixListIds) < 1 {
-			permission.PrefixListIds = nil
-		}
-		permissions = append(permissions, permission)
-	}
-
-	return permissions, nil
-}
-
-func handleIpPermissionsEgressEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	securityGroutIpPermissionsEgress := d.HydrateItem.(types.SecurityGroup).IpPermissionsEgress
-	var permissions []types.IpPermission
-	for _, permission := range securityGroutIpPermissionsEgress {
-		if len(permission.UserIdGroupPairs) < 1 {
-			permission.UserIdGroupPairs = nil
-		}
-		if len(permission.Ipv6Ranges) < 1 {
-			permission.Ipv6Ranges = nil
-		}
-		if len(permission.PrefixListIds) < 1 {
-			permission.PrefixListIds = nil
-		}
-		permissions = append(permissions, permission)
-	}
-
-	return permissions, nil
 }

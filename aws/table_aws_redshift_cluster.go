@@ -3,13 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,14 +23,14 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cluster_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ClusterNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFound"}),
 			},
 			Hydrate: getRedshiftCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftClusters,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_identifier",
@@ -365,7 +367,7 @@ func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -384,7 +386,7 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	name := d.KeyColumnQuals["cluster_identifier"].GetStringValue()
+	name := d.EqualsQuals["cluster_identifier"].GetStringValue()
 
 	// Return nil, if no input provided
 	if name == "" {
@@ -470,12 +472,11 @@ func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	cluster := h.Item.(types.Cluster)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_redshift_cluster.getRedshiftClusterARN", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("aws_redshift_cluster.getRedshiftClusterARN", "getCommonColumns_error", err)
 		return nil, err
 	}
 

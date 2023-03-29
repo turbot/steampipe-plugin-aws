@@ -8,9 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	apigatewayv1 "github.com/aws/aws-sdk-go/service/apigateway"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,7 +24,7 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"rest_api_id", "id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getRestAPIAuthorizer,
 		},
@@ -30,7 +32,7 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 			ParentHydrate: listRestAPI,
 			Hydrate:       listRestAPIAuthorizers,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -146,10 +148,10 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	for _, authorizer := range op.Items {
-		d.StreamLeafListItem(ctx, &authorizerRowData{&authorizer, restAPI.Id})
+		d.StreamLeafListItem(ctx, &authorizerRowData{authorizer, restAPI.Id})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -167,8 +169,8 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	authorizerID := d.KeyColumnQuals["id"].GetStringValue()
-	RestAPIID := d.KeyColumnQuals["rest_api_id"].GetStringValue()
+	authorizerID := d.EqualsQuals["id"].GetStringValue()
+	RestAPIID := d.EqualsQuals["rest_api_id"].GetStringValue()
 
 	params := &apigateway.GetAuthorizerInput{
 		AuthorizerId: aws.String(authorizerID),
@@ -188,7 +190,7 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 }
 
 func getAPIGatewayAuthorizerAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	authorizer := h.Item.(*authorizerRowData).Authorizer
 
 	id := ""
@@ -200,8 +202,7 @@ func getAPIGatewayAuthorizerAkas(ctx context.Context, d *plugin.QueryData, h *pl
 		id = *item.Id
 	}
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

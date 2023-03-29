@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	identitystorev1 "github.com/aws/aws-sdk-go/service/identitystore"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
@@ -18,7 +21,7 @@ func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"identity_store_id", "id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getIdentityStoreGroup,
 		},
@@ -26,10 +29,10 @@ func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"identity_store_id"}),
 			Hydrate:    listIdentityStoreGroups,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(identitystorev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity_store_id",
@@ -72,7 +75,7 @@ func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
 
 func listIdentityStoreGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
+	identityStoreId := d.EqualsQuals["identity_store_id"].GetStringValue()
 
 	// Create Session
 	svc, err := IdentityStoreClient(ctx, d)
@@ -115,7 +118,7 @@ func listIdentityStoreGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 			}
 			d.StreamListItem(ctx, item)
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -133,8 +136,8 @@ type IdentityStoreGroup struct {
 
 func getIdentityStoreGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	groupId := d.KeyColumnQuals["id"].GetStringValue()
-	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
+	groupId := d.EqualsQuals["id"].GetStringValue()
+	identityStoreId := d.EqualsQuals["identity_store_id"].GetStringValue()
 
 	// Create Session
 	svc, err := IdentityStoreClient(ctx, d)

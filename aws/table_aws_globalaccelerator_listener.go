@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/globalaccelerator"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
+	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +20,7 @@ func tableAwsGlobalAcceleratorListener(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlobalAcceleratorListener,
 		},
@@ -31,7 +31,7 @@ func tableAwsGlobalAcceleratorListener(_ context.Context) *plugin.Table {
 			ParentHydrate: listGlobalAcceleratorAccelerators,
 			Hydrate:       listGlobalAcceleratorListeners,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the listener.",
@@ -81,61 +81,62 @@ func tableAwsGlobalAcceleratorListener(_ context.Context) *plugin.Table {
 }
 
 type turbotListener struct {
-	AcceleratorArn *string
-	Listener       *globalaccelerator.Listener
+	AcceleratorArn string
+	Listener       types.Listener
 }
 
 //// LIST FUNCTION
 
 func listGlobalAcceleratorListeners(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listGlobalAcceleratorListeners")
-
-	accelerator := h.Item.(*globalaccelerator.Accelerator)
+	accelerator := h.Item.(types.Accelerator)
 	acceleratorArn := aws.String(*accelerator.AcceleratorArn)
 
 	// Create session
-	svc, err := GlobalAcceleratorService(ctx, d)
+	svc, err := GlobalAcceleratorClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalAcceleratorListeners", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalAcceleratorListeners", "connection_error", err)
 		return nil, err
 	}
 
-	input := &globalaccelerator.ListListenersInput{
-		MaxResults:     aws.Int64(100),
-		AcceleratorArn: acceleratorArn,
-	}
+	maxItems := int32(100)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListListenersPages(
-		input,
-		func(page *globalaccelerator.ListListenersOutput, isLast bool) bool {
-			for _, listener := range page.Listeners {
-				d.StreamListItem(ctx, &turbotListener{acceleratorArn, listener})
+	input := &globalaccelerator.ListListenersInput{
+		MaxResults:     &maxItems,
+		AcceleratorArn: acceleratorArn,
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := globalaccelerator.NewListListenersPaginator(svc, input, func(o *globalaccelerator.ListListenersPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalAcceleratorListeners", "api_error", err)
+			return nil, err
+		}
+
+		for _, listener := range output.Listeners {
+			d.StreamListItem(ctx, &turbotListener{*acceleratorArn, listener})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalAcceleratorListeners", "api_error", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -144,9 +145,7 @@ func listGlobalAcceleratorListeners(ctx context.Context, d *plugin.QueryData, h 
 //// HYDRATE FUNCTIONS
 
 func getGlobalAcceleratorListener(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlobalAcceleratorListener")
-
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	arn := d.EqualsQuals["arn"].GetStringValue()
 
 	// check if arn is empty
 	if arn == "" {
@@ -154,9 +153,9 @@ func getGlobalAcceleratorListener(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// Create session
-	svc, err := GlobalAcceleratorService(ctx, d)
+	svc, err := GlobalAcceleratorClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.getGlobalAcceleratorListener", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.getGlobalAcceleratorListener", "connection_error", err)
 		return nil, err
 	}
 
@@ -166,10 +165,10 @@ func getGlobalAcceleratorListener(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// Get call
-	data, err := svc.DescribeListener(params)
+	data, err := svc.DescribeListener(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.getGlobalAcceleratorListener", "api_error", err)
 		return nil, err
 	}
-	return data.Listener, nil
+	return *data.Listener, nil
 }

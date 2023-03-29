@@ -1,7 +1,7 @@
 [
 	{
 		"arn": "{{ output.resource_aka.value }}",
-		"attachments": null,
+		"attachments": [],
 		"encrypted": false,
 		"multi_attach_enabled": false,
 		"tags_src": [

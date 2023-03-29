@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -23,7 +23,7 @@ func tableAwsPricingServiceAttribute(_ context.Context) *plugin.Table {
 				{Name: "service_code", Require: plugin.Optional},
 			},
 		},
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "service_code",
 				Description: "The service code of the AWS service.",
@@ -46,7 +46,7 @@ func tableAwsPricingServiceAttribute(_ context.Context) *plugin.Table {
 }
 
 type ServiceDetail struct {
-	AttributeName *string
+	AttributeName string
 	ServiceCode   *string
 }
 
@@ -54,7 +54,7 @@ type ServiceDetail struct {
 
 func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := PricingServiceClient(ctx, d)
+	svc, err := PricingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_pricing_service_attribute.listPricingServiceAttributes", "connection_error", err)
 		return nil, err
@@ -75,10 +75,10 @@ func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *p
 
 	input := &pricing.DescribeServicesInput{
 		FormatVersion: aws.String("aws_v1"),
-		MaxResults:    *aws.Int32(maxLimit),
+		MaxResults:    aws.Int32(maxLimit),
 	}
 
-	equalQual := d.KeyColumnQuals
+	equalQual := d.EqualsQuals
 	if equalQual["service_code"] != nil {
 		input.ServiceCode = aws.String(equalQual["service_code"].GetStringValue())
 	}
@@ -98,11 +98,11 @@ func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *p
 
 		for _, items := range output.Services {
 			for _, attributeName := range items.AttributeNames {
-				d.StreamListItem(ctx, ServiceDetail{&attributeName, items.ServiceCode})
+				d.StreamListItem(ctx, ServiceDetail{attributeName, items.ServiceCode})
 			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -119,7 +119,7 @@ func listAttributeValues(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	attributeName := h.Item.(ServiceDetail).AttributeName
 
 	// Create Session
-	svc, err := PricingServiceClient(ctx, d)
+	svc, err := PricingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_pricing_service_attribute.listAttributeValues", "connection_error", err)
 		return nil, err
@@ -139,9 +139,9 @@ func listAttributeValues(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	input := &pricing.GetAttributeValuesInput{
-		AttributeName: attributeName,
+		AttributeName: &attributeName,
 		ServiceCode:   serviceCode,
-		MaxResults:    maxLimit,
+		MaxResults:    aws.Int32(maxLimit),
 	}
 
 	attributeValues := []string{}
@@ -161,7 +161,7 @@ func listAttributeValues(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 		for _, items := range output.AttributeValues {
 			attributeValues = append(attributeValues, *items.Value)
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

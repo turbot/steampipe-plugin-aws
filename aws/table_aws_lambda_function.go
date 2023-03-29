@@ -8,11 +8,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+
+	lambdav1 "github.com/aws/aws-sdk-go/service/lambda"
+
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
@@ -26,7 +29,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaFunctions,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -183,6 +186,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Name:        "architectures",
 				Description: "The instruction set architecture that the function supports. Architecture is a string array with one of the valid values.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.Architectures", "Architectures"),
 			},
 			{
 				Name:        "code",
@@ -200,8 +204,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Name:        "file_system_configs",
 				Description: "Connection settings for an Amazon EFS file system.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsLambdaFunction,
-				Transform:   transform.FromField("Configuration.FileSystemConfigs"),
+				Transform:   transform.FromField("Configuration.FileSystemConfigs", "FileSystemConfigs"),
 			},
 			{
 				Name:        "policy",
@@ -216,6 +219,18 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getFunctionPolicy,
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
+				Name:        "tracing_config",
+				Description: "The function's X-Ray tracing configuration.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.TracingConfig", "TracingConfig"),
+			},
+			{
+				Name:        "snap_start",
+				Description: "Set ApplyOn to PublishedVersions to create a snapshot of the initialized execution environment when you publish a function version.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.SnapStart", "SnapStart"),
 			},
 			{
 				Name:        "url_config",
@@ -308,7 +323,7 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			d.StreamListItem(ctx, function)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -325,7 +340,7 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if h.Item != nil {
 		name = *h.Item.(types.FunctionConfiguration).FunctionName
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// Empty input check

@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	appconfigv1 "github.com/aws/aws-sdk-go/service/appconfig"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +27,7 @@ func tableAwsAppConfigApplication(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAppConfigApplication,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(appconfigv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -100,7 +103,7 @@ func listAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	params := &appconfig.ListApplicationsInput{
-		MaxResults: *aws.Int32(maxLimit),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	paginator := appconfig.NewListApplicationsPaginator(svc, params, func(o *appconfig.ListApplicationsPaginatorOptions) {
@@ -116,7 +119,7 @@ func listAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugi
 		for _, application := range output.Items {
 			d.StreamListItem(ctx, application)
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -137,7 +140,7 @@ func getAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	id := d.KeyColumnQuals["id"].GetStringValue()
+	id := d.EqualsQuals["id"].GetStringValue()
 	params := &appconfig.GetApplicationInput{
 		ApplicationId: aws.String(id),
 	}
@@ -190,11 +193,10 @@ func getAppConfigApplicationArn(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getArnFormat(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	id := h.Item.(types.Application).Id
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_appconfig_application.getArnFormat", "cache_error", err)
 		return ""

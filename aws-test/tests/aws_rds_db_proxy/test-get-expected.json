@@ -1,0 +1,18 @@
+[
+	{
+		"db_proxy_arn": "{{ output.resource_aka.value }}",
+		"db_proxy_name": "{{resourceName}}",
+		"debug_logging": false,
+		"engine_family": "MYSQL",
+		"idle_client_timeout": 1800,
+		"require_tls": true,
+		"status": "available",
+		"tags": [
+			{
+				"Key": "Name",
+				"Value": "{{resourceName}}"
+			}
+		],
+		"title": "{{resourceName}}"
+	}
+]

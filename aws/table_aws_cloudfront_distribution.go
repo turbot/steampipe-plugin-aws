@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +20,7 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchDistribution"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchDistribution"}),
 			},
 			Hydrate: getCloudFrontDistribution,
 		},
@@ -195,11 +195,11 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 				Description: "A list of tags assigned to the Maintenance Window",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudFrontDistributionTags,
-				Transform:   transform.FromField("Tags.Items").Transform(handleEmptySliceAndMap),
+				Transform:   transform.FromField("Tags.Items"),
 			},
 			{
 				Name:        "viewer_certificate",
-				Description: "A complex type that determines the distribution’s SSL/TLS configuration for communicating with viewers.",
+				Description: "A complex type that determines the distribution's SSL/TLS configuration for communicating with viewers.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ViewerCertificate", "Distribution.DistributionConfig.ViewerCertificate"),
 			},
@@ -273,7 +273,7 @@ func listAwsCloudFrontDistributions(ctx context.Context, d *plugin.QueryData, _ 
 			d.StreamListItem(ctx, distribution)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -296,7 +296,7 @@ func getCloudFrontDistribution(ctx context.Context, d *plugin.QueryData, h *plug
 	if h.Item != nil {
 		distributionID = *h.Item.(types.DistributionSummary).Id
 	} else {
-		distributionID = d.KeyColumnQuals["id"].GetStringValue()
+		distributionID = d.EqualsQuals["id"].GetStringValue()
 	}
 
 	if strings.TrimSpace(distributionID) == "" {

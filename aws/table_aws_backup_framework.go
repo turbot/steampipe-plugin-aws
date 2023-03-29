@@ -7,11 +7,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/aws/aws-sdk-go-v2/service/backup/types"
+
+	backupv1 "github.com/aws/aws-sdk-go/service/backup"
+
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 // // TABLE DEFINITION
@@ -22,14 +25,14 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("framework_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupFramework,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupFrameworks,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "framework_name",
@@ -162,7 +165,7 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -177,7 +180,7 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// AWS Backup service is available in all regions. However, the AWS Backup audit manager, which is newly introduced under the Backup service, is not supported in all regions.
 	// Due to this reason, we could not put a check based on the service endpoint and had to check the region code directly.
 	// https://aws.amazon.com/about-aws/whats-new/2022/05/aws-backup-audit-manager-adds-amazon-s3-storage-gateway/#:~:text=AWS%20Backup%20Audit%20Manager%20is,Middle%20East%20(Bahrain)%20Regions.
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	if region == "ap-northeast-3" {
 		return nil, nil
 	}
@@ -198,7 +201,7 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		framework := h.Item.(types.Framework)
 		name = *framework.FrameworkName
 	} else {
-		name = d.KeyColumnQuals["framework_name"].GetStringValue()
+		name = d.EqualsQuals["framework_name"].GetStringValue()
 	}
 
 	// check if id is empty

@@ -7,9 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+
+	ecrv1 "github.com/aws/aws-sdk-go/service/ecr"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +24,7 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrImageScanFindings,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
 			},
 			// Ideally image_tag and image_digest could both be used as optional
 			// key columns, but the query planner only works with required key
@@ -32,7 +35,7 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 				{Name: "image_tag", Require: plugin.Required},
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",
@@ -120,8 +123,8 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-	imageTag := d.KeyColumnQuals["image_tag"]
-	repositoryName := d.KeyColumnQuals["repository_name"]
+	imageTag := d.EqualsQuals["image_tag"]
+	repositoryName := d.EqualsQuals["repository_name"]
 	plugin.Logger(ctx).Trace("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "repositoryName", repositoryName, "imageTag", imageTag)
 
 	// Limiting the results
@@ -179,7 +182,7 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, result)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

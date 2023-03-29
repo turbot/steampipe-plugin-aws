@@ -3,13 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kafka/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	kafkav1 "github.com/aws/aws-sdk-go/service/kafka"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,13 +24,13 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getKafkaCluster(string(types.ClusterTypeProvisioned)),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKafkaClusters(string(types.ClusterTypeProvisioned)),
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(kafkav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -164,7 +166,7 @@ func listKafkaClusters(clusterType string) func(ctx context.Context, d *plugin.Q
 				d.StreamListItem(ctx, cluster)
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				if d.RowsRemaining(ctx) == 0 {
 					return nil, nil
 				}
 			}
@@ -179,7 +181,7 @@ func listKafkaClusters(clusterType string) func(ctx context.Context, d *plugin.Q
 func getKafkaCluster(clusterType string) func(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 		logger := plugin.Logger(ctx)
-		clusterArn := d.KeyColumnQuals["arn"].GetStringValue()
+		clusterArn := d.EqualsQuals["arn"].GetStringValue()
 		if clusterArn == "" {
 			return nil, nil
 		}
@@ -271,6 +273,7 @@ func getKafkaClusterConfiguration(ctx context.Context, d *plugin.QueryData, h *p
 	}
 	// Unsupported region, return no data
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 

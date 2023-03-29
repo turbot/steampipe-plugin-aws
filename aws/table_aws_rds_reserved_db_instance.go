@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +23,7 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("reserved_db_instance_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ReservedDBInstanceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReservedDBInstanceNotFound"}),
 			},
 			Hydrate: getRDSReservedDBInstance,
 		},
@@ -36,10 +38,10 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 				{Name: "reserved_db_instances_offering_id", Require: plugin.Optional},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "reserved_db_instance_id",
@@ -173,32 +175,32 @@ func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 		MaxRecords: aws.Int32(maxLimit),
 	}
 
-	if d.KeyColumnQuals["class"] != nil {
-		input.DBInstanceClass = aws.String(d.KeyColumnQuals["class"].GetStringValue())
+	if d.EqualsQuals["class"] != nil {
+		input.DBInstanceClass = aws.String(d.EqualsQuals["class"].GetStringValue())
 	}
 
-	if d.KeyColumnQuals["duration"] != nil {
-		input.Duration = aws.String(fmt.Sprintf("%v", d.KeyColumnQuals["duration"].GetInt64Value()))
+	if d.EqualsQuals["duration"] != nil {
+		input.Duration = aws.String(fmt.Sprintf("%v", d.EqualsQuals["duration"].GetInt64Value()))
 	}
 
-	if d.KeyColumnQuals["lease_id"] != nil {
-		input.LeaseId = aws.String(d.KeyColumnQuals["lease_id"].GetStringValue())
+	if d.EqualsQuals["lease_id"] != nil {
+		input.LeaseId = aws.String(d.EqualsQuals["lease_id"].GetStringValue())
 	}
 
-	if d.KeyColumnQuals["multi_az"] != nil {
-		input.MultiAZ = aws.Bool(d.KeyColumnQuals["multi_az"].GetBoolValue())
+	if d.EqualsQuals["multi_az"] != nil {
+		input.MultiAZ = aws.Bool(d.EqualsQuals["multi_az"].GetBoolValue())
 	}
 
-	if d.KeyColumnQuals["offering_type"] != nil {
-		offeringType := d.KeyColumnQuals["offering_type"].GetStringValue()
+	if d.EqualsQuals["offering_type"] != nil {
+		offeringType := d.EqualsQuals["offering_type"].GetStringValue()
 		if offeringType != "Partial Upfront" && offeringType != "All Upfront" && offeringType != "No Upfront" {
 			return nil, nil
 		}
 		input.OfferingType = aws.String(offeringType)
 	}
 
-	if d.KeyColumnQuals["reserved_db_instances_offering_id"] != nil {
-		input.ReservedDBInstancesOfferingId = aws.String(d.KeyColumnQuals["reserved_db_instances_offering_id"].GetStringValue())
+	if d.EqualsQuals["reserved_db_instances_offering_id"] != nil {
+		input.ReservedDBInstancesOfferingId = aws.String(d.EqualsQuals["reserved_db_instances_offering_id"].GetStringValue())
 	}
 
 	paginator := rds.NewDescribeReservedDBInstancesPaginator(svc, input, func(o *rds.DescribeReservedDBInstancesPaginatorOptions) {
@@ -218,7 +220,7 @@ func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -230,7 +232,7 @@ func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 //// HYDRATE FUNCTIONS
 
 func getRDSReservedDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	dbInstanceIdentifier := d.KeyColumnQuals["reserved_db_instance_id"].GetStringValue()
+	dbInstanceIdentifier := d.EqualsQuals["reserved_db_instance_id"].GetStringValue()
 
 	// Create service
 	svc, err := RDSClient(ctx, d)

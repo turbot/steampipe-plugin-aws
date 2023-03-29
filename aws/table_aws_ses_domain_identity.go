@@ -3,12 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+
+	sesv1 "github.com/aws/aws-sdk-go/service/ses"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
@@ -18,7 +20,7 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSESDomainIdentities,
 		},
-		GetMatrixItemFunc: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sesv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity",
@@ -46,6 +48,20 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getSESIdentityVerificationAttributes,
 				Transform:   transform.FromField("VerificationToken"),
+			},
+			{
+				Name:        "dkim_attributes",
+				Description: "The DKIM attributes for an email address or a domain.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSESDomainIdentityDkimAttributes,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "identity_mail_from_domain_attributes",
+				Description: "The custom MAIL FROM attributes for a list of identities.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSESDomainIdentityMailFromDomainAttributes,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "notification_attributes",
@@ -76,46 +92,121 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listSESDomainIdentities")
-
 	// Create Session
-	svc, err := SESService(ctx, d)
+	svc, err := SESClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_domain_identity.listSESDomainIdentities", "connection_error", err)
 		return nil, err
 	}
-
-	input := &ses.ListIdentitiesInput{
-		MaxItems:     aws.Int64(1000),
-		IdentityType: aws.String(ses.IdentityTypeDomain),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
+	maxItems := int32(1000)
 	// Limiting the results
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = 1
 			} else {
-				input.MaxItems = limit
+				maxItems = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListIdentitiesPages(
-		input,
-		func(page *ses.ListIdentitiesOutput, lastPage bool) bool {
-			for _, identity := range page.Identities {
-				d.StreamListItem(ctx, *identity)
+	input := &ses.ListIdentitiesInput{
+		MaxItems:     &maxItems,
+		IdentityType: types.IdentityTypeDomain,
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// List call
+	paginator := ses.NewListIdentitiesPaginator(svc, input, func(o *ses.ListIdentitiesPaginatorOptions) {
+		o.Limit = *input.MaxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ses_domain_identity.listSESDomainIdentities", "api_error", err)
+			return nil, err
+		}
+
+		for _, identity := range output.Identities {
+			d.StreamListItem(ctx, identity)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
+}
+
+//// HYDRATED CALLS
+
+func getSESDomainIdentityDkimAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	identity := h.Item.(string)
+
+	// Create Client
+	svc, err := SESClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityDkimAttributes", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	input := &ses.GetIdentityDkimAttributesInput{
+		Identities: []string{identity},
+	}
+
+	op, err := svc.GetIdentityDkimAttributes(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityDkimAttributes", "api_error", err)
+		return nil, err
+	}
+
+	if op != nil && op.DkimAttributes != nil {
+		return op.DkimAttributes, nil
+	}
+
+	return nil, nil
+}
+
+func getSESDomainIdentityMailFromDomainAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	identity := h.Item.(string)
+
+	// Create Client
+	svc, err := SESClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityMailFromDomainAttributes", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	input := &ses.GetIdentityMailFromDomainAttributesInput{
+		Identities: []string{identity},
+	}
+
+	op, err := svc.GetIdentityMailFromDomainAttributes(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityMailFromDomainAttributes", "api_error", err)
+		return nil, err
+	}
+
+	if op != nil && op.MailFromDomainAttributes != nil {
+		return op.MailFromDomainAttributes, nil
+	}
+
+	return nil, nil
 }
