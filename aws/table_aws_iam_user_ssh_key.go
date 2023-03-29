@@ -12,9 +12,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
-func tableAwsIamSshPublicKey(_ context.Context) *plugin.Table {
+func tableAwsIamUserSshKey(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_iam_ssh_public_key",
+		Name:        "aws_iam_user_ssh_key",
 		Description: "AWS IAM SSH public key.",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"ssh_public_key_id", "user_name"}),
@@ -114,7 +114,7 @@ func listIamSshPublicKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Create Session
 	svc, err := IAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_ssh_public_key.listIamSshPublicKeys", "client_error", err)
+		plugin.Logger(ctx).Error("aws_iam_user_ssh_key.listIamSshPublicKeys", "client_error", err)
 		return nil, err
 	}
 
@@ -128,7 +128,7 @@ func listIamSshPublicKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_iam_ssh_public_key.listIamSshPublicKeys", "api_error", err)
+			plugin.Logger(ctx).Error("aws_iam_user_ssh_key.listIamSshPublicKeys", "api_error", err)
 			return nil, err
 		}
 
@@ -161,7 +161,7 @@ func getIamSshPublicKey(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Get client
 	svc, err := IAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_ssh_public_key.getIamSshPublicKey", "client_error", err)
+		plugin.Logger(ctx).Error("aws_iam_user_ssh_key.getIamSshPublicKey", "client_error", err)
 		return nil, err
 	}
 
@@ -173,7 +173,7 @@ func getIamSshPublicKey(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	op, err := svc.GetSSHPublicKey(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_ssh_public_key.getIamSshPublicKey", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iam_user_ssh_key.getIamSshPublicKey", "api_error", err)
 		return nil, err
 	}
 
@@ -194,7 +194,7 @@ func getIamSshPublicKeyAsPem(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Get client
 	svc, err := IAMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_ssh_public_key.getIamSshPublicKey", "client_error", err)
+		plugin.Logger(ctx).Error("aws_iam_user_ssh_key.getIamSshPublicKey", "client_error", err)
 		return nil, err
 	}
 
@@ -206,7 +206,7 @@ func getIamSshPublicKeyAsPem(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	op, err := svc.GetSSHPublicKey(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_ssh_public_key.getIamSshPublicKey", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iam_user_ssh_key.getIamSshPublicKey", "api_error", err)
 		return nil, err
 	}
 

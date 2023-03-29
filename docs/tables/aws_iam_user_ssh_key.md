@@ -1,4 +1,4 @@
-# Table: aws_iam_ssh_public_key
+# Table: aws_iam_user_ssh_key
 
 The SSH public keys returned by this table are used for authenticating the IAM user to an CodeCommit repository.
 
@@ -14,7 +14,7 @@ select
   user_name,
   upload_date
 from
-  aws_iam_ssh_public_key;
+  aws_iam_user_ssh_key;
 ```
 
 ### List of SSH public keys which are inactive
@@ -25,7 +25,7 @@ select
   user_name,
   status
 from
-  aws_iam_ssh_public_key
+  aws_iam_user_ssh_key
 where
   status = 'Inactive';
 ```
@@ -37,7 +37,7 @@ select
   user_name,
   count (ssh_public_key_id) as ssh_public_key_count
 from
-  aws_iam_ssh_public_key
+  aws_iam_user_ssh_key
 group by
   user_name;
 ```

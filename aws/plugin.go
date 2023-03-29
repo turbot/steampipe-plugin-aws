@@ -265,7 +265,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_saml_provider":                                        tableAwsIamSamlProvider(ctx),
 			"aws_iam_server_certificate":                                   tableAwsIamServerCertificate(ctx),
 			"aws_iam_service_specific_credential":                          tableAwsIamUserServiceSpecificCredential(ctx),
-			"aws_iam_ssh_public_key":                                       tableAwsIamSshPublicKey(ctx),
+			"aws_iam_user_ssh_key":                                         tableAwsIamUserSshKey(ctx),
 			"aws_iam_user":                                                 tableAwsIamUser(ctx),
 			"aws_iam_virtual_mfa_device":                                   tableAwsIamVirtualMfaDevice(ctx),
 			"aws_identitystore_group":                                      tableAwsIdentityStoreGroup(ctx),
