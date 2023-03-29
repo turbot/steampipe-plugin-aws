@@ -2,7 +2,7 @@
 
 Amazon S3 Multi-Region Access Point provides a global endpoint that applications can use to fulfill requests from S3 buckets located in multiple AWS Regions. You can use Multi-Region Access Points to build multi-region applications with the same architecture that's used in a single region, and then run those applications anywhere in the world. Instead of sending requests over the congested public internet, Multi-Region Access Points provide built-in network resilience with the acceleration of internet-based requests to Amazon S3.
 
-you must grant the s3:ListAllMyBuckets permission to the user, role, or other IAM entity that makes a request to manage a Multi-Region Access Point
+You must grant the s3:ListAllMyBuckets permission to the user, role, or an IAM entity that makes a request to manage a Multi-Region Access Point.
 
 ## Examples
 
@@ -25,17 +25,14 @@ select
   public_access_block ->> 'BlockPublicAcls' as block_public_acls,
   public_access_block ->> 'BlockPublicPolicy' as block_public_policy,
   public_access_block ->> 'IgnorePublicAcls' as ignore_public_acls,
-  public_access_block ->> 'RestrictPublicBuckets' as restrict_public_buckets
+  public_access_block ->> 'RestrictPublicBuckets' as restrict_public_buckets 
 from
-  aws_s3_multi_region_access_point
+  aws_s3_multi_region_access_point 
 where
-  public_access_block ->> 'BlockPublicAcls'::text = 'true'
-and
-  public_access_block ->> 'BlockPublicPolicy':: text = 'true'
-and
-  public_access_block ->> 'IgnorePublicAcls':: text = 'true'
-and
-  public_access_block ->> 'RestrictPublicBuckets':: text = 'true';
+  public_access_block ->> 'BlockPublicAcls'::text = 'true' 
+  and public_access_block ->> 'BlockPublicPolicy'::text = 'true' 
+  and public_access_block ->> 'IgnorePublicAcls'::text = 'true' 
+  and public_access_block ->> 'RestrictPublicBuckets'::text = 'true';
 ```
 
 ### Get policy details of each multi-region access point
