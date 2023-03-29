@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsIamSshPublicKey(_ context.Context) *plugin.Table {
@@ -19,7 +19,7 @@ func tableAwsIamSshPublicKey(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"ssh_public_key_id", "user_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			},
 			Hydrate: getIamSshPublicKey,
 		},
@@ -30,7 +30,7 @@ func tableAwsIamSshPublicKey(_ context.Context) *plugin.Table {
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "ssh_public_key_id",
 				Description: "The unique identifier for the SSH public key.",
@@ -88,7 +88,7 @@ func listIamSshPublicKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	user := h.Item.(types.User)
 
 	// Minimize the API call with the given user_name
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["user_name"] != nil {
 		if equalQuals["user_name"].GetStringValue() != "" {
 			if equalQuals["user_name"].GetStringValue() != "" && equalQuals["user_name"].GetStringValue() != *user.UserName {
@@ -98,6 +98,16 @@ func listIamSshPublicKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["user_name"].GetListValue())), *user.UserName) {
 				return nil, nil
 			}
+		}
+	}
+
+	maxItems := int32(1000)
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			maxItems = int32(limit)
 		}
 	}
 
@@ -111,7 +121,7 @@ func listIamSshPublicKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	params := &iam.ListSSHPublicKeysInput{UserName: user.UserName}
 
 	paginator := iam.NewListSSHPublicKeysPaginator(svc, params, func(o *iam.ListSSHPublicKeysPaginatorOptions) {
-		o.Limit = 10
+		o.Limit = maxItems
 		o.StopOnDuplicateToken = true
 	})
 
@@ -126,7 +136,7 @@ func listIamSshPublicKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 			d.StreamListItem(ctx, ssh)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -138,12 +148,12 @@ func listIamSshPublicKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 //// HYDRATE FUNCTIONS
 
 func getIamSshPublicKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	userName := d.KeyColumnQuals["user_name"].GetStringValue()
+	userName := d.EqualsQuals["user_name"].GetStringValue()
 	if userName == "" {
 		userName = *h.Item.(types.SSHPublicKeyMetadata).UserName
 	}
 
-	sshPublicKeyId := d.KeyColumnQuals["ssh_public_key_id"].GetStringValue()
+	sshPublicKeyId := d.EqualsQuals["ssh_public_key_id"].GetStringValue()
 	if sshPublicKeyId == "" {
 		sshPublicKeyId = *h.Item.(types.SSHPublicKeyMetadata).SSHPublicKeyId
 	}
@@ -171,12 +181,12 @@ func getIamSshPublicKey(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 }
 
 func getIamSshPublicKeyAsPem(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	userName := d.KeyColumnQuals["user_name"].GetStringValue()
+	userName := d.EqualsQuals["user_name"].GetStringValue()
 	if userName == "" {
 		userName = *h.Item.(types.SSHPublicKeyMetadata).UserName
 	}
 
-	sshPublicKeyId := d.KeyColumnQuals["ssh_public_key_id"].GetStringValue()
+	sshPublicKeyId := d.EqualsQuals["ssh_public_key_id"].GetStringValue()
 	if sshPublicKeyId == "" {
 		sshPublicKeyId = *h.Item.(types.SSHPublicKeyMetadata).SSHPublicKeyId
 	}
