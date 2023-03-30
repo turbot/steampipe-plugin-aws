@@ -136,7 +136,7 @@ func getOrganizationsOrganizationalUnit(ctx context.Context, d *plugin.QueryData
 	var orgUnitId string
 
 	if h.Item != nil {
-		orgUnitId = *h.Item.(*types.Policy).PolicySummary.Id
+		orgUnitId = *h.Item.(types.OrganizationalUnit).Id
 	} else {
 		orgUnitId = d.EqualsQuals["id"].GetStringValue()
 	}
@@ -173,7 +173,7 @@ func getParentId(_ context.Context, d *transform.TransformData) (interface{}, er
 	}
 
 	if d.HydrateItem != nil {
-		data := d.HydrateItem.(*types.OrganizationalUnit)
+		data := d.HydrateItem.(types.OrganizationalUnit)
 		return strings.Split(*data.Arn, "/")[2], nil
 	}
 
