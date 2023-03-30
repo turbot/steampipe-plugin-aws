@@ -334,7 +334,7 @@ func getAwsAthenaQueryExecution(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Empty input check
-	if strings.TrimSpace(id) == "" {
+	if id == "" {
 		return nil, nil
 	}
 

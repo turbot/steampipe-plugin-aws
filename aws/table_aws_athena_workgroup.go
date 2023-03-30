@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/athena"
@@ -219,7 +218,7 @@ func getAwsAthenaWorkGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Empty input check
-	if strings.TrimSpace(name) == "" {
+	if name == "" {
 		return nil, nil
 	}
 
