@@ -24,8 +24,8 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 			Hydrate:    getAwsAthenaQueryExecution,
 		},
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.SingleColumn("workgroup"),
-			Hydrate:    listAwsAthenaQueryExecutions,
+			ParentHydrate: listAwsAthenaWorkGroups,
+			Hydrate:       listAwsAthenaQueryExecutions,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(athenav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -265,7 +265,7 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsAthenaQueryExecutions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsAthenaQueryExecutions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create service
 	svc, err := AthenaClient(ctx, d)
 	if err != nil {
@@ -283,18 +283,15 @@ func listAwsAthenaQueryExecutions(ctx context.Context, d *plugin.QueryData, _ *p
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxResults {
-			if limit < 1 {
-				maxResults = int32(1)
-			} else {
-				maxResults = int32(limit)
-			}
+			maxResults = int32(limit)
 		}
 	}
 
-	workgroup := strings.Clone(d.EqualsQuals["workgroup"].GetStringValue())
+	workgroup := h.Item.(types.WorkGroup)
+
 	input := athena.ListQueryExecutionsInput{
 		MaxResults: aws.Int32(maxResults),
-		WorkGroup:  &workgroup,
+		WorkGroup:  workgroup.Name,
 	}
 
 	paginator := athena.NewListQueryExecutionsPaginator(svc, &input, func(o *athena.ListQueryExecutionsPaginatorOptions) {
@@ -358,7 +355,6 @@ func getAwsAthenaQueryExecution(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	rowData, err := svc.GetQueryExecution(ctx, params)
-	plugin.Logger(ctx).Error("Database", rowData.QueryExecution.QueryExecutionContext.Database)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_athena_query_execution.getAwsAthenaQueryExecution", "api_error", err)
 		return nil, err

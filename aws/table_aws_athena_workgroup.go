@@ -168,11 +168,7 @@ func listAwsAthenaWorkGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxResults {
-			if limit < 1 {
-				maxResults = int32(1)
-			} else {
-				maxResults = int32(limit)
-			}
+			maxResults = int32(limit)
 		}
 	}
 

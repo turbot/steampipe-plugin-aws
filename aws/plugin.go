@@ -62,7 +62,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gatewayv2_stage":                                      tableAwsAPIGatewayV2Stage(ctx),
 			"aws_appautoscaling_target":                                    tableAwsAppAutoScalingTarget(ctx),
 			"aws_appconfig_application":                                    tableAwsAppConfigApplication(ctx),
-                        "aws_appstream_image":                                          tableAwsAppStreamImage(ctx),
+			"aws_appstream_image":                                          tableAwsAppStreamImage(ctx),
 			"aws_athena_query_execution":                                   tableAwsAthenaQueryExecution(ctx),
 			"aws_athena_workgroup":                                         tableAwsAthenaWorkGroup(ctx),
 			"aws_auditmanager_assessment":                                  tableAwsAuditManagerAssessment(ctx),
