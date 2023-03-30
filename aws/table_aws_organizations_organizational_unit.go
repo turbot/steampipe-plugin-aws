@@ -174,7 +174,7 @@ func getParentId(_ context.Context, d *transform.TransformData) (interface{}, er
 
 	if d.HydrateItem != nil {
 		data := d.HydrateItem.(*types.OrganizationalUnit)
-		return strings.Split(*data.Arn, "/")[1], nil
+		return strings.Split(*data.Arn, "/")[2], nil
 	}
 
 	return nil, nil
