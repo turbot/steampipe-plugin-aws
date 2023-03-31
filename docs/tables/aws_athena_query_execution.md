@@ -31,31 +31,30 @@ group by
 ```
 
 ### Find queries with biggest execution time
+
 ```sql
-select 
-  id, 
-  query, 
-  workgroup, 
+select
+  id,
+  query,
+  workgroup,
   engine_execution_time_in_millis 
-from 
-  aws_athena_query_execution
-order by 
-  engine_execution_time_in_millis 
-limit 
-  5
+from
+  aws_athena_query_execution 
+order by
+  engine_execution_time_in_millis limit 5;
 ```
 
 ### Find most used databases
+
 ```sql
+
 select
   database,
-  count(id) as nb_query
-from 
-  aws_athena_query_execution
-group by 
-  database
-order by 
-  nb_query
-limit 
-  5
+  count(id) as nb_query 
+from
+  aws_athena_query_execution 
+group by
+  database 
+order by
+  nb_query limit 5;
 ```

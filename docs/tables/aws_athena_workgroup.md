@@ -5,6 +5,7 @@ A workgroup is an Athena configuration containing information like engine versio
 ## Examples
 
 ### List all workgroups with basic information
+
 ```sql
 select 
   name, 
@@ -15,7 +16,7 @@ select
 from 
   aws_athena_workgroup 
 order by 
-  creation_time
+  creation_time;
 ```
 
 ### List all workgroups using engine 3
@@ -27,10 +28,11 @@ select
 from 
   aws_athena_workgroup 
 where 
-  effective_engine_version = 'Athena engine version 3'
+  effective_engine_version = 'Athena engine version 3';
 ```
 
 ### Count workgroups in each region
+
 ```sql
 select 
   region, 
@@ -38,10 +40,11 @@ select
 from 
   aws_athena_workgroup 
 group by 
-  region
+  region;
 ```
 
 ### List disabled workgroups
+
 ```sql
 select 
   name, 
@@ -50,5 +53,5 @@ select
 from 
   aws_athena_workgroup 
 where
-  state = 'DISABLED'
+  state = 'DISABLED';
 ```
