@@ -370,6 +370,15 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+
+			// Ignoring all AccessDeniedException errors for this hydrate functions may not be the right solution, since only the aws/acm key so far is having this error and it would affect customer keys too, so just checking if key is aws/acm and we get that error is nice, but may require some more hydration data (since the initial key data we get only has the key ID and the key ARN, neither of which help us see if it's the aws/acm key).
+
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "AccessDeniedException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyTagging", "api_error", err)
 			return nil, err
 		}
