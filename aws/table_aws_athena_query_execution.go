@@ -26,6 +26,12 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAthenaWorkGroups,
 			Hydrate:       listAwsAthenaQueryExecutions,
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:    "workgroup",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(athenav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -277,6 +283,13 @@ func listAwsAthenaQueryExecutions(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, nil
 	}
 
+	workgroup := h.Item.(types.WorkGroup)
+	if d.EqualsQualString("workgroup") != "" {
+		if d.EqualsQualString("workgroup") != *workgroup.Name {
+			return nil, nil
+		}
+	}
+
 	maxResults := int32(50)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -286,8 +299,6 @@ func listAwsAthenaQueryExecutions(ctx context.Context, d *plugin.QueryData, h *p
 			maxResults = int32(limit)
 		}
 	}
-
-	workgroup := h.Item.(types.WorkGroup)
 
 	input := athena.ListQueryExecutionsInput{
 		MaxResults: aws.Int32(maxResults),
