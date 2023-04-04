@@ -47,7 +47,6 @@ order by
 ### Find most used databases
 
 ```sql
-
 select
   database,
   count(id) as nb_query 
