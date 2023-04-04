@@ -8,16 +8,16 @@ Contains information about AWS SSO account assignments (an assignment of a SSO p
 
 ```sql
 select
-    permission_set_arn,
-    target_account_id,
-    identity_store_id,
-    principal_type,
-    principal_id,
+  permission_set_arn,
+  target_account_id,
+  identity_store_id,
+  principal_type,
+  principal_id,
 from
-    aws_ssoadmin_account_assignment
+  aws_ssoadmin_account_assignment 
 where
-    permission_set_arn = 'arn:aws:sso:::permissionSet/ssoins-0123456789abcdef/ps-0123456789abcdef'
-    and target_account_id = '012347678910'
+  permission_set_arn = 'arn:aws:sso:::permissionSet/ssoins-0123456789abcdef/ps-0123456789abcdef' 
+  and target_account_id = '012347678910';
 ```
 
 ### Assignments for a specific permission set and account, with user/group information from Identity Store
