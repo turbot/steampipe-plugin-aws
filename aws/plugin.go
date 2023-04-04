@@ -62,6 +62,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_appautoscaling_target":                                    tableAwsAppAutoScalingTarget(ctx),
 			"aws_appconfig_application":                                    tableAwsAppConfigApplication(ctx),
 			"aws_appstream_image":                                          tableAwsAppStreamImage(ctx),
+			"aws_athena_query_execution":                                   tableAwsAthenaQueryExecution(ctx),
+			"aws_athena_workgroup":                                         tableAwsAthenaWorkGroup(ctx),
 			"aws_auditmanager_assessment":                                  tableAwsAuditManagerAssessment(ctx),
 			"aws_auditmanager_control":                                     tableAwsAuditManagerControl(ctx),
 			"aws_auditmanager_evidence_folder":                             tableAwsAuditManagerEvidenceFolder(ctx),

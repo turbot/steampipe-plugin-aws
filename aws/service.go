@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/appstream"
+	"github.com/aws/aws-sdk-go-v2/service/athena"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
@@ -277,6 +278,14 @@ func AppStreamClient(ctx context.Context, d *plugin.QueryData) (*appstream.Clien
 		return nil, err
 	}
 	return appstream.NewFromConfig(*cfg), nil
+}
+
+func AthenaClient(ctx context.Context, d *plugin.QueryData) (*athena.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return athena.NewFromConfig(*cfg), nil
 }
 
 func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager.Client, error) {
