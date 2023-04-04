@@ -46,6 +46,10 @@ data "null_data_source" "resource" {
     scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
   }
 }
+resource "aws_cloudformation_stack" "named_test_resource" {
+  name          = var.resource_name
+  template_body = "{\n  \"Resources\": {\n    \"CloudFormationStackTest\": {\n      \"Type\": \"AWS::SQS::Queue\"\n    }\n  }\n}\n"
+}
 
 resource "aws_servicecatalog_product" "named_test_resource" {
   name  = var.resource_name
@@ -53,14 +57,14 @@ resource "aws_servicecatalog_product" "named_test_resource" {
   type  = "CLOUD_FORMATION_TEMPLATE"
 
   provisioning_artifact_parameters {
-    template_url = "https://s3.amazonaws.com/cf-templates-ozkq9d3hgiq2-us-east-1/temp1.json"
+    template_physical_id = aws_cloudformation_stack.named_test_resource.id
+    type = "CLOUD_FORMATION_TEMPLATE"
   }
 
   tags = {
     foo = "bar"
   }
 }
-
 
 output "resource_id" {
   value = aws_servicecatalog_product.named_test_resource.id
@@ -72,7 +76,7 @@ output "resource_aka" {
 
 output "aws_region" {
   depends_on = [aws_servicecatalog_product.named_test_resource]
-  value = data.aws_region.primary.name
+  value      = data.aws_region.primary.name
 }
 
 output "aws_account" {

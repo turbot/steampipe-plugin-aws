@@ -1,3 +1,3 @@
 select name, id
-from aws_servicecatalog_product
+from aws.aws_servicecatalog_product
 where name = 'TestNotFound';

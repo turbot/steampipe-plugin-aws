@@ -1,6 +1,6 @@
 [
   {
     "name": "{{ resourceName }}",
-    "id": "{{ output.resource_id.value }}"
+    "product_id": "{{ output.resource_id.value }}"
   }
 ]
