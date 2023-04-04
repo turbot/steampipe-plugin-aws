@@ -120,7 +120,7 @@ func tableAwsServicecatalogProduct(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ProvisioningArtifacts"),
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
