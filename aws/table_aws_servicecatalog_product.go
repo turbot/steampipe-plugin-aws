@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/servicecatalog"
+	"github.com/aws/aws-sdk-go-v2/service/servicecatalog/types"
 
 	servicecatalogv1 "github.com/aws/aws-sdk-go/service/servicecatalog"
 
@@ -32,7 +33,7 @@ func tableAwsServicecatalogProduct(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "Name",
+				Name:        "name",
 				Description: "The name of the product.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ProductViewSummary.Name"),
@@ -169,21 +170,29 @@ func listServiceCatalogProducts(ctx context.Context, d *plugin.QueryData, _ *plu
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
-	plugin.Logger(ctx).Error("Here ====>>> 1111111111")
+
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
-		plugin.Logger(ctx).Error("Here ====>>> 2222222222")
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_servicecatalog_product.listServiceCatalogProducts", "api_error", err)
 			return nil, err
 		}
 
-		plugin.Logger(ctx).Error("Here ====>>> 33333333333", len(output.ProductViewSummaries))
-
 		for _, item := range output.ProductViewSummaries {
-			plugin.Logger(ctx).Error("Here ====>>> 44444444444")
 			d.StreamListItem(ctx, &servicecatalog.DescribeProductOutput{
-				ProductViewSummary: &item,
+				ProductViewSummary: &types.ProductViewSummary{
+					Distributor:        item.Distributor,
+					HasDefaultPath:     item.HasDefaultPath,
+					Id:                 item.Id,
+					Name:               item.Name,
+					Owner:              item.Owner,
+					ProductId:          item.ProductId,
+					ShortDescription:   item.ShortDescription,
+					SupportDescription: item.SupportDescription,
+					SupportEmail:       item.SupportEmail,
+					SupportUrl:         item.SupportUrl,
+					Type:               item.Type,
+				},
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
