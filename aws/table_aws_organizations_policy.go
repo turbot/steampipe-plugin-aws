@@ -138,8 +138,15 @@ func listOrganizationsPolicies(ctx context.Context, d *plugin.QueryData, _ *plug
 		}
 
 		for _, policy := range output.Policies {
-			d.StreamListItem(ctx, &types.Policy{
-				PolicySummary: &policy,
+			d.StreamListItem(ctx, types.Policy{
+				PolicySummary: &types.PolicySummary{
+					Arn:         policy.Arn,
+					AwsManaged:  policy.AwsManaged,
+					Description: policy.Description,
+					Id:          policy.Id,
+					Name:        policy.Name,
+					Type:        policy.Type,
+				},
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
@@ -158,7 +165,7 @@ func getOrganizationsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 	var policyId string
 
 	if h.Item != nil {
-		policyId = *h.Item.(*types.Policy).PolicySummary.Id
+		policyId = *h.Item.(types.Policy).PolicySummary.Id
 	} else {
 		policyId = d.EqualsQuals["id"].GetStringValue()
 	}
