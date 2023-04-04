@@ -211,7 +211,7 @@ func getServiceCatalogProduct(ctx context.Context, d *plugin.QueryData, h *plugi
 	var id string
 	if h.Item != nil {
 		data := h.Item.(*servicecatalog.DescribeProductOutput)
-		id = *data.ProductViewSummary.Id
+		id = *data.ProductViewSummary.ProductId
 	} else {
 		id = d.EqualsQuals["product_id"].GetStringValue()
 	}
@@ -258,17 +258,3 @@ func getProductArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	arn := "arn:" + commonColumnData.Partition + ":catalog:" + region + ":" + commonColumnData.AccountId + ":product/" + *product.ProductViewSummary.ProductId
 	return arn, nil
 }
-
-//// TRANSFORM FUNCTIONS
-
-// func portfolioTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-// 	tags := d.HydrateItem.(*servicecatalog.DescribePortfolioOutput)
-// 	var turbotTagsMap map[string]string
-// 	if tags.Tags != nil {
-// 		turbotTagsMap = map[string]string{}
-// 		for _, i := range tags.Tags {
-// 			turbotTagsMap[*i.Key] = *i.Value
-// 		}
-// 	}
-// 	return turbotTagsMap, nil
-// }
