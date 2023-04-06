@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
@@ -93,6 +94,8 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 	}
 }
 
+var mutex = sync.Mutex{}
+
 //// LIST FUNCTION
 
 func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -180,6 +183,10 @@ func getOrganizationsAccountTags(ctx context.Context, d *plugin.QueryData, h *pl
 }
 
 func getOrganizationsResourceTags(ctx context.Context, d *plugin.QueryData, resourceId string) (interface{}, error) {
+
+	// Only allow one API call at a time to prevent concurrent API call
+	mutex.Lock()
+	defer mutex.Unlock()
 
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)
