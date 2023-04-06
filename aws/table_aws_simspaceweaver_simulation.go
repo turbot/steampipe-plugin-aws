@@ -110,7 +110,7 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSimSpaceWeaverSimulationTags,
 			},
 			{
