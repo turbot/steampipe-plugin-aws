@@ -4,8 +4,8 @@ _What's new?_
 
 - New tables added
   - [aws_ssoadmin_account_assignment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_account_assignment) ([#1673](https://github.com/turbot/steampipe-plugin-aws/pull/1673)) (Thanks [@janslow](https://github.com/janslow) for the contribution!)
-- [aws_athena_query_execution](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_athena_query_execution) ([#1666](https://github.com/turbot/steampipe-plugin-aws/pull/1666)) (Thanks [@rinzool](https://github.com/rinzool) for the contribution!)
-- [aws_athena_workgroup](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_athena_workgroup) ([#1666](https://github.com/turbot/steampipe-plugin-aws/pull/1666)) (Thanks [@rinzool](https://github.com/rinzool) for the contribution!)
+  - [aws_athena_query_execution](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_athena_query_execution) ([#1666](https://github.com/turbot/steampipe-plugin-aws/pull/1666)) (Thanks [@rinzool](https://github.com/rinzool) for the contribution!)
+  - [aws_athena_workgroup](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_athena_workgroup) ([#1666](https://github.com/turbot/steampipe-plugin-aws/pull/1666)) (Thanks [@rinzool](https://github.com/rinzool) for the contribution!)
 
 _Bug fixes_
 
