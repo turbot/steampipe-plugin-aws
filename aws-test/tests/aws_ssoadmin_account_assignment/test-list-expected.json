@@ -1,0 +1,12 @@
+[
+	{
+		"account_id": "{{ output.account_id.value }}",
+		"instance_arn": "{{ output.instance_arn.value }}",
+		"partition": "{{ output.aws_partition.value }}",
+		"permission_set_arn": "{{ output.permission_set_arn.value }}",
+		"principal_id": "{{ output.principal_id.value }}",
+		"principal_type": "GROUP",
+		"region": "{{ output.aws_region.value }}",
+		"target_account_id": "{{ output.target_account_id.value }}"
+	}
+]
