@@ -368,8 +368,18 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 
 	var items []historyInfo
 
+	plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_call GetExecutionHistory", arn)
 	listHistory, err := svc.GetExecutionHistory(ctx, params)
 	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.(type) {
+			case *types.ExecutionDoesNotExist:
+				// Ignore expired executions for which history is no longer available
+				plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error ignore_expired", err)
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error", err)
 		return nil, err
 	}
