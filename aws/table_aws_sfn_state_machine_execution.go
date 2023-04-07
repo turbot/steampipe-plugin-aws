@@ -2,8 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
@@ -131,18 +129,15 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 
 	stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
 
-	equalQuals := d.EqualsQuals
 	// Minimize the API call with the given state machine ARN
-	if equalQuals["state_machine_arn"] != nil {
-		if equalQuals["state_machine_arn"].GetStringValue() != "" {
-			if equalQuals["state_machine_arn"].GetStringValue() != "" && equalQuals["state_machine_arn"].GetStringValue() != *stateMachineArn {
-				return nil, nil
-			}
-		} else if len(getListValues(equalQuals["state_machine_arn"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["state_machine_arn"].GetListValue())), *stateMachineArn) {
-				return nil, nil
-			}
+	stateMachineArnQuals := getQualsValueByColumn(d.Quals, "state_machine_arn", "string")
+	if stateMachineArnQuals != nil {
+		if stateMachineArnQualsStr, ok := stateMachineArnQuals.(string); ok && stateMachineArnQualsStr != "" && stateMachineArnQualsStr != *stateMachineArn {
+			return nil, nil
 		}
+	} else if stateMachineArnQualsStr, ok := stateMachineArnQuals.([]string); ok && len(stateMachineArnQualsStr) > 0 && !stringListContains(stateMachineArnQualsStr, *stateMachineArn) {
+		return nil, nil
+
 	}
 
 	maxLimit := int32(1000)
@@ -158,8 +153,9 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		StateMachineArn: stateMachineArn,
 		MaxResults:      int32(maxLimit),
 	}
-	if equalQuals["status"] != nil {
-		input.StatusFilter = types.ExecutionStatus(equalQuals["status"].GetStringValue())
+	statusQuals := d.EqualsQuals["status"]
+	if statusQuals != nil {
+		input.StatusFilter = types.ExecutionStatus(statusQuals.GetStringValue())
 	}
 	paginator := sfn.NewListExecutionsPaginator(svc, input, func(o *sfn.ListExecutionsPaginatorOptions) {
 		o.Limit = maxLimit
