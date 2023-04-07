@@ -11,8 +11,10 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
@@ -117,9 +119,21 @@ func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interfa
 	return nil, nil
 }
 
-func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string, dataType string) interface{} {
+func getListValues(listValue *proto.QualValueList) []*string {
+	values := make([]*string, 0)
+	if listValue != nil {
+		for _, value := range listValue.Values {
+			if value.GetStringValue() != "" {
+				values = append(values, aws.String(value.GetStringValue()))
+			}
+		}
+	}
+	return values
+}
+
+func getQualsValueByColumn(quals plugin.KeyColumnQualMap, columnName string, dataType string) interface{} {
 	var value interface{}
-	for _, q := range equalQuals[columnName].Quals {
+	for _, q := range quals[columnName].Quals {
 		if dataType == "string" {
 			if q.Value.GetStringValue() != "" {
 				value = q.Value.GetStringValue()

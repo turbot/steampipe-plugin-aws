@@ -869,15 +869,3 @@ func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []types.Fi
 	}
 	return filters
 }
-
-func getListValues(listValue *proto.QualValueList) []*string {
-	values := make([]*string, 0)
-	if listValue != nil {
-		for _, value := range listValue.Values {
-			if value.GetStringValue() != "" {
-				values = append(values, aws.String(value.GetStringValue()))
-			}
-		}
-	}
-	return values
-}
