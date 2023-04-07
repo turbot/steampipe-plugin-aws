@@ -1,3 +1,18 @@
+## v0.99.0 [2023-04-07]
+
+_What's new?_
+
+- New tables added
+  - [aws_ssoadmin_account_assignment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_account_assignment) ([#1673](https://github.com/turbot/steampipe-plugin-aws/pull/1673)) (Thanks [@janslow](https://github.com/janslow) for the contribution!)
+- [aws_athena_query_execution](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_athena_query_execution) ([#1666](https://github.com/turbot/steampipe-plugin-aws/pull/1666)) (Thanks [@rinzool](https://github.com/rinzool) for the contribution!)
+- [aws_athena_workgroup](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_athena_workgroup) ([#1666](https://github.com/turbot/steampipe-plugin-aws/pull/1666)) (Thanks [@rinzool](https://github.com/rinzool) for the contribution!)
+
+_Bug fixes_
+
+- Fixed typos in the `ListConfig` of `aws_sfn_state_machine_*` tables. ([#1686](https://github.com/turbot/steampipe-plugin-aws/pull/1686)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Fixed the data type of `tags` column of `aws_securitylake_data_lake` and `aws_simspaceweaver_simulation` tables to be of `JSON` type instead of `STRING`. ([#1683](https://github.com/turbot/steampipe-plugin-aws/pull/1683))
+- Fixed the `aws_organizations_policy` table to correctly return all the organization policies instead of duplicate data. ([#1681](https://github.com/turbot/steampipe-plugin-aws/pull/1681))
+
 ## v0.98.0 [2023-03-31]
 
 _What's new?_
