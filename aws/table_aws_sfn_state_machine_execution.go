@@ -46,7 +46,7 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 			},
 			{
 				Name:        "status",
-				Description: "The current status of the execution.",
+				Description: "The current status of the execution (valid values are `RUNNING`, `SUCCEEDED`, `FAILED`, `TIMED_OUT`, `ABORTED`).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
