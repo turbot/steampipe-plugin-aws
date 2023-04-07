@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -9,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
+	"github.com/aws/smithy-go"
 
 	sfnv1 "github.com/aws/aws-sdk-go/service/sfn"
 
@@ -24,6 +27,9 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutionHistories,
 			ParentHydrate: listStepFunctionsStateMachines,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "execution_arn", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -287,8 +293,22 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	executionCh := make(chan []historyInfo, len(executions))
 	errorCh := make(chan error, len(executions))
 
-	// Iterating all the available executions
+	// Iterating all the available executions matching the query quals, if any
+	plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", fmt.Sprintf("d.Quals=%#v", d.Quals))
+	executionArnQuals := getQualsValueByColumn(d.Quals, "execution_arn", "string")
+
+	plugin.Logger(ctx).Debug("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "execution_arn quals", executionArnQuals)
 	for _, item := range executions {
+		// Minimize the API call with the given execution ARN
+		if executionArnQuals != nil {
+			if executionArnQualsStr, ok := executionArnQuals.(string); ok && executionArnQualsStr != "" && executionArnQualsStr != *item.ExecutionArn {
+				continue
+
+			} else if executionArnQualsList, ok := executionArnQuals.([]string); ok && len(executionArnQualsList) > 0 && !stringListContains(executionArnQualsList, *item.ExecutionArn) {
+				continue
+			}
+		}
+
 		wg.Add(1)
 		go getRowDataForExecutionHistoryAsync(ctx, d, *item.ExecutionArn, &wg, executionCh, errorCh)
 	}
