@@ -131,14 +131,13 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 	stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
 
 	// Minimize the API call with the given state machine ARN
-	stateMachineArnQuals := getQualsValueByColumn(d.Quals, "state_machine_arn", "string")
+	stateMachineArnQuals := getQualsValueByColumn(d.Quals, "state_machine_arn", "string") // FIXME: this does not filter on operators at all, so issues with other operators than `=` or `in` would occur, e.g. with `like`
 	if stateMachineArnQuals != nil {
 		if stateMachineArnQualsStr, ok := stateMachineArnQuals.(string); ok && stateMachineArnQualsStr != "" && stateMachineArnQualsStr != *stateMachineArn {
 			return nil, nil
 		}
 	} else if stateMachineArnQualsStr, ok := stateMachineArnQuals.([]string); ok && len(stateMachineArnQualsStr) > 0 && !helpers.StringSliceContains(stateMachineArnQualsStr, *stateMachineArn) {
 		return nil, nil
-
 	}
 
 	maxLimit := int32(1000)

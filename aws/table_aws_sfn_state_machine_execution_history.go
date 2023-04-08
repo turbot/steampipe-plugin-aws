@@ -15,7 +15,6 @@ import (
 
 	sfnv1 "github.com/aws/aws-sdk-go/service/sfn"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -257,37 +256,54 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 		return nil, nil
 	}
 
-	stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
-	var executions []types.ExecutionListItem
-	maxLimit := int32(1000)
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < int64(maxLimit) {
-			maxLimit = int32(*limit)
+	var executions []string
+
+	plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", fmt.Sprintf("d.Quals=%#v", d.Quals))
+	executionArnQuals := getQualsValueByColumn(d.Quals, "execution_arn", "string") // FIXME: this does not filter on operators at all, so issues with other operators than `=` or `in` would occur, e.g. with `like`
+	plugin.Logger(ctx).Debug("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "execution_arn quals", executionArnQuals)
+
+	// Minimize the API call with the given execution ARN
+	if executionArnQuals != nil {
+		if executionArnQualsStr, ok := executionArnQuals.(string); ok && executionArnQualsStr != "" {
+			executions = []string{executionArnQualsStr}
+
+		} else if executionArnQualsList, ok := executionArnQuals.([]string); ok && len(executionArnQualsList) > 0 {
+			executions = executionArnQualsList
 		}
-	}
-	input := &sfn.ListExecutionsInput{
-		MaxResults:      int32(maxLimit),
-		StateMachineArn: stateMachineArn,
-	}
-	paginator := sfn.NewListExecutionsPaginator(svc, input, func(o *sfn.ListExecutionsPaginatorOptions) {
-		o.Limit = maxLimit
-		o.StopOnDuplicateToken = true
-	})
-	// List call
-	for paginator.HasMorePages() {
-		output, err := paginator.NextPage(ctx)
+	} else {
+		stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
+		maxLimit := int32(1000)
+		// If the requested number of items is less than the paging max limit
+		// set the limit to that instead
+		limit := d.QueryContext.Limit
+		if d.QueryContext.Limit != nil {
+			if *limit < int64(maxLimit) {
+				maxLimit = int32(*limit)
+			}
+		}
+		input := &sfn.ListExecutionsInput{
+			MaxResults:      int32(maxLimit), //FIXME: the limit should apply to execution history items, not executions
+			StateMachineArn: stateMachineArn,
+		}
+		paginator := sfn.NewListExecutionsPaginator(svc, input, func(o *sfn.ListExecutionsPaginatorOptions) {
+			o.Limit = maxLimit
+			o.StopOnDuplicateToken = true
+		})
+		// List call
+		for paginator.HasMorePages() {
+			output, err := paginator.NextPage(ctx)
+			if err != nil {
+				plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
+				return nil, err
+			}
+			for _, execution := range output.Executions {
+				executions = append(executions, *execution.ExecutionArn)
+			}
+		}
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
 			return nil, err
 		}
-		executions = append(executions, output.Executions...)
-	}
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
-		return nil, err
 	}
 
 	var wg sync.WaitGroup
@@ -295,23 +311,9 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	errorCh := make(chan error, len(executions))
 
 	// Iterating all the available executions matching the query quals, if any
-	plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", fmt.Sprintf("d.Quals=%#v", d.Quals))
-	executionArnQuals := getQualsValueByColumn(d.Quals, "execution_arn", "string")
-
-	plugin.Logger(ctx).Debug("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "execution_arn quals", executionArnQuals)
-	for _, item := range executions {
-		// Minimize the API call with the given execution ARN
-		if executionArnQuals != nil {
-			if executionArnQualsStr, ok := executionArnQuals.(string); ok && executionArnQualsStr != "" && executionArnQualsStr != *item.ExecutionArn {
-				continue
-
-			} else if executionArnQualsList, ok := executionArnQuals.([]string); ok && len(executionArnQualsList) > 0 && !helpers.StringSliceContains(executionArnQualsList, *item.ExecutionArn) {
-				continue
-			}
-		}
-
+	for _, executionArn := range executions {
 		wg.Add(1)
-		go getRowDataForExecutionHistoryAsync(ctx, d, *item.ExecutionArn, &wg, executionCh, errorCh)
+		go getRowDataForExecutionHistoryAsync(ctx, d, executionArn, &wg, executionCh, errorCh)
 	}
 
 	// wait for all executions to be processed
