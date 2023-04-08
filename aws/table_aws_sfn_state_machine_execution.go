@@ -144,7 +144,7 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
 	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
+	if limit != nil {
 		if *limit < int64(maxLimit) {
 			maxLimit = int32(*limit)
 		}

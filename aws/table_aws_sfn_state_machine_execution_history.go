@@ -273,16 +273,8 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	} else {
 		stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
 		maxLimit := int32(1000)
-		// If the requested number of items is less than the paging max limit
-		// set the limit to that instead
-		limit := d.QueryContext.Limit
-		if d.QueryContext.Limit != nil {
-			if *limit < int64(maxLimit) {
-				maxLimit = int32(*limit)
-			}
-		}
 		input := &sfn.ListExecutionsInput{
-			MaxResults:      int32(maxLimit), //FIXME: the limit should apply to execution history items, not executions
+			MaxResults:      maxLimit,
 			StateMachineArn: stateMachineArn,
 		}
 		paginator := sfn.NewListExecutionsPaginator(svc, input, func(o *sfn.ListExecutionsPaginatorOptions) {
@@ -365,30 +357,47 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 		return nil, nil
 	}
 
-	params := &sfn.GetExecutionHistoryInput{
-		ExecutionArn: aws.String(arn),
+	maxLimit := int32(1000)
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if limit != nil {
+		if *limit < int64(maxLimit) {
+			maxLimit = int32(*limit)
+		}
 	}
 
 	var items []historyInfo
 
-	plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_call GetExecutionHistory", arn)
-	listHistory, err := svc.GetExecutionHistory(ctx, params)
-	if err != nil {
-		var apiErr smithy.APIError
-		if errors.As(err, &apiErr) {
-			switch apiErr.(type) {
-			case *types.ExecutionDoesNotExist:
-				// Ignore expired executions for which history is no longer available
-				plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error ignore_expired", err)
-				return nil, nil
-			}
-		}
-		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error", err)
-		return nil, err
+	input := &sfn.GetExecutionHistoryInput{
+		MaxResults:   maxLimit,
+		ExecutionArn: aws.String(arn),
 	}
+	paginator := sfn.NewGetExecutionHistoryPaginator(svc, input, func(o *sfn.GetExecutionHistoryPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+	// List call
+	for paginator.HasMorePages() {
+		plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_call GetExecutionHistory", arn)
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			var apiErr smithy.APIError
+			if errors.As(err, &apiErr) {
+				switch apiErr.(type) {
+				case *types.ExecutionDoesNotExist:
+					// Ignore expired executions for which history is no longer available
+					plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error ignore_expired", err)
+					return nil, nil
+				}
+			}
+			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error", err)
+			return nil, err
+		}
 
-	for _, event := range listHistory.Events {
-		items = append(items, historyInfo{event, arn})
+		for _, event := range output.Events {
+			items = append(items, historyInfo{event, arn})
+		}
 	}
 
 	return items, nil
