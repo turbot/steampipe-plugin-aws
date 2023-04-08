@@ -119,16 +119,6 @@ func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interfa
 	return nil, nil
 }
 
-func stringListContains(list []string, value string) bool {
-	for _, item := range list {
-		if item == value {
-			return true
-		}
-	}
-
-	return false
-}
-
 func getListValues(listValue *proto.QualValueList) []*string {
 	values := make([]*string, 0)
 	if listValue != nil {

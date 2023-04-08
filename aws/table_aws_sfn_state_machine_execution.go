@@ -8,6 +8,7 @@ import (
 
 	sfnv1 "github.com/aws/aws-sdk-go/service/sfn"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -135,7 +136,7 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		if stateMachineArnQualsStr, ok := stateMachineArnQuals.(string); ok && stateMachineArnQualsStr != "" && stateMachineArnQualsStr != *stateMachineArn {
 			return nil, nil
 		}
-	} else if stateMachineArnQualsStr, ok := stateMachineArnQuals.([]string); ok && len(stateMachineArnQualsStr) > 0 && !stringListContains(stateMachineArnQualsStr, *stateMachineArn) {
+	} else if stateMachineArnQualsStr, ok := stateMachineArnQuals.([]string); ok && len(stateMachineArnQualsStr) > 0 && !helpers.StringSliceContains(stateMachineArnQualsStr, *stateMachineArn) {
 		return nil, nil
 
 	}
