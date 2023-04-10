@@ -2,13 +2,16 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
+	"github.com/aws/smithy-go"
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -203,20 +206,8 @@ func listWellArchitectedLenses(ctx context.Context, d *plugin.QueryData, _ *plug
 */
 
 func getWellArchitectedLens(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var lensArn string
-	if h.Item != nil {
-		if _, ok := h.Item.(types.LensSummary); ok {
-			lensArn = *h.Item.(types.LensSummary).LensArn
-		}
-	} else {
-		quals := d.EqualsQuals
-		lensArn = quals["arn"].GetStringValue()
-	}
 
-	// Empty check
-	if lensArn == "" {
-		return nil, nil
-	}
+	lensArn := *h.Item.(types.LensSummary).LensArn
 
 	// Create Session
 	svc, err := WellArchitectedClient(ctx, d)
@@ -224,6 +215,7 @@ func getWellArchitectedLens(ctx context.Context, d *plugin.QueryData, h *plugin.
 		plugin.Logger(ctx).Error("aws_wellarchitected_lens.getWellArchitectedLens", "connection_error", err)
 		return nil, err
 	}
+
 	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil
@@ -235,6 +227,12 @@ func getWellArchitectedLens(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	op, err := svc.GetLens(ctx, params)
 	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("aws_wellarchitected_lens.getWellArchitectedLens", "api_error", err)
 		return nil, err
 	}
