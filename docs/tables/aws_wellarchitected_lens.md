@@ -62,5 +62,5 @@ select
 from
   aws_wellarchitected_lens
 where
-  created_at = now() - interval '30' day;
+  created_at <= now() - interval '30' day;
 ```
