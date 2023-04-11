@@ -143,21 +143,14 @@ func listWellArchitectedLenses(ctx context.Context, d *plugin.QueryData, _ *plug
 		MaxResults: maxLimit,
 	}
 
-	equalQuals := d.EqualsQuals
-	if equalQuals["lens_status"] != nil {
-		if equalQuals["lens_status"].GetStringValue() != "" {
-			input.LensStatus = types.LensStatusType(equalQuals["lens_status"].GetStringValue())
-		}
+	if d.EqualsQualString("lens_status") != "" {
+		input.LensStatus = types.LensStatusType(d.EqualsQualString("lens_status"))
 	}
-	if equalQuals["lens_name"] != nil {
-		if equalQuals["lens_name"].GetStringValue() != "" {
-			input.LensName = aws.String(equalQuals["lens_name"].GetStringValue())
-		}
+	if d.EqualsQualString("lens_name") != "" {
+		input.LensName = aws.String(d.EqualsQualString("lens_name"))
 	}
-	if equalQuals["lens_type"] != nil {
-		if equalQuals["lens_type"].GetStringValue() != "" {
-			input.LensType = types.LensType(equalQuals["lens_type"].GetStringValue())
-		}
+	if d.EqualsQualString("lens_type") != "" {
+		input.LensType = types.LensType(d.EqualsQualString("lens_type"))
 	}
 
 	paginator := wellarchitected.NewListLensesPaginator(svc, input, func(o *wellarchitected.ListLensesPaginatorOptions) {
