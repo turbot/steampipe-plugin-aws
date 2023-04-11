@@ -1,6 +1,6 @@
 # Table: aws_wellarchitected_lens_review
 
-Review the state of your applications and workloads against architectural best practices, identify opportunities for improvement, and track progress over time
+Review the state of your applications and workloads against architectural best practices, identify opportunities for improvement, and track progress over time.
 
 ## Examples
 
