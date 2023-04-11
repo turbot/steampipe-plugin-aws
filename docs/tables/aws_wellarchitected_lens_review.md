@@ -43,7 +43,7 @@ from
   aws_wellarchitected_lens_review;
 ```
 
-## Get workload details for each lwns review
+### Get workload details of each lens review
 
 ```sql
 select
