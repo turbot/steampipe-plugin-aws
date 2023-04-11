@@ -80,7 +80,7 @@ func tableAwsWellArchitectedLensReview(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "updated_at",
-				Description: "The date and time recorded.",
+				Description: "The date and time of the last update.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("LensReview.UpdatedAt"),
 			},
