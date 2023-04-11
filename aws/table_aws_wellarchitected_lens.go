@@ -51,7 +51,7 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "created_at",
-				Description: "The date and time recorded.",
+				Description: "The date and time when the lens was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
