@@ -4,7 +4,7 @@ Review the state of your applications and workloads against architectural best p
 
 ## Examples
 
-## Basic info
+### Basic info
 
 ```sql
 select
