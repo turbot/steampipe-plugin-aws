@@ -39,7 +39,7 @@ select
   question_title,
   risk
 from
-  aws_wellarchitected_workload
+  aws_wellarchitected_lens_review_improvement
 where
   lens_alias = 'wellarchitected'
   and workload_id = '4fca39b680a31bb118be6bc0d177849d'
