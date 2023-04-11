@@ -32,7 +32,7 @@ where
   lens_status = 'DEPRECATED';
 ```
 
-## Get high risk issue counts for each review
+### Get high-risk issue counts for each review
 
 ```sql
 select
