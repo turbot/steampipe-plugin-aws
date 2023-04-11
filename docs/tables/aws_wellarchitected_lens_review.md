@@ -18,7 +18,7 @@ from
   aws_wellarchitected_lens_review;
 ```
 
-## List reviews for deprecated lenses
+### List reviews of deprecated lenses
 
 ```sql
 select
