@@ -18,7 +18,7 @@ from
   aws_wellarchitected_lens;
 ```
 
-## List lenses that are of type custom shared
+## List lenses that are of custom shared type
 
 ```sql
 select
