@@ -49,7 +49,7 @@ where
   lens_status = 'DEPRECATED';
 ```
 
-## List lenses that are created in the last 30 days
+## List lenses created in the last 30 days
 
 ```sql
 select
