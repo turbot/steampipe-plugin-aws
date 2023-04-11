@@ -86,7 +86,7 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "share_invitation_id",
-				Description: "The ID assigned to the share invitation.",
+				Description: "The ID assigned to the shared invitation.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getWellArchitectedLens,
 				Transform:   transform.FromField("ShareInvitationId"),
