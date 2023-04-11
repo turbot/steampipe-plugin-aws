@@ -120,9 +120,8 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 	workloadId := h.Item.(types.WorkloadSummary).WorkloadId
 
 	// Reduce number of API call if the workload id has been provided in query parameter.
-	equalQuals := d.EqualsQuals
-	if equalQuals["workload_id"] != nil {
-		if equalQuals["workload_id"].GetStringValue() != *workloadId {
+	if d.EqualsQualString("workload_id") != ""{
+		if d.EqualsQualString("workload_id") != *workloadId {
 			return nil, nil
 		}
 	}
