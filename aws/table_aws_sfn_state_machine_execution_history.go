@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
@@ -298,29 +297,15 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 		}
 	}
 
-	var wg sync.WaitGroup
-	executionCh := make(chan []historyInfo, len(executions))
-	errorCh := make(chan error, len(executions))
-
 	// Iterating all the available executions matching the query quals, if any
 	for _, executionArn := range executions {
-		wg.Add(1)
-		go getRowDataForExecutionHistoryAsync(ctx, d, executionArn, &wg, executionCh, errorCh)
-	}
-
-	// wait for all executions to be processed
-	wg.Wait()
-	close(executionCh)
-	close(errorCh)
-
-	for err := range errorCh {
-		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
-		return nil, err
-	}
-
-	for item := range executionCh {
-		for _, data := range item {
-			d.StreamLeafListItem(ctx, historyInfo{data.HistoryEvent, data.ExecutionArn})
+		historyEvents, err := getRowDataForExecutionHistory(ctx, d, executionArn)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
+			return nil, err
+		}
+		for _, event := range historyEvents {
+			d.StreamLeafListItem(ctx, historyInfo{event.HistoryEvent, event.ExecutionArn})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -330,18 +315,6 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	}
 
 	return nil, nil
-}
-
-func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData, arn string, wg *sync.WaitGroup, executionCh chan []historyInfo, errorCh chan error) {
-	defer wg.Done()
-
-	rowData, err := getRowDataForExecutionHistory(ctx, d, arn)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistoryAsync", "api_error", err)
-		errorCh <- err
-	} else if rowData != nil {
-		executionCh <- rowData
-	}
 }
 
 func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn string) ([]historyInfo, error) {
