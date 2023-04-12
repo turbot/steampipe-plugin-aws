@@ -132,6 +132,9 @@ func getListValues(listValue *proto.QualValueList) []*string {
 }
 
 func getQualsValueByColumn(quals plugin.KeyColumnQualMap, columnName string, dataType string) interface{} {
+	if quals[columnName] == nil {
+		return nil
+	}
 	var value interface{}
 	for _, q := range quals[columnName].Quals {
 		if dataType == "string" {
