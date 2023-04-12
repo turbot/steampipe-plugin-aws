@@ -84,6 +84,16 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Answer.IsApplicable"),
 			},
 			{
+				Name:        "lens_arn",
+				Description: "The ARN of the lens.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "milestone_number",
+				Description: "The milestone number.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "notes",
 				Description: "The notes associated with the workload.",
 				Type:        proto.ColumnType_STRING,
@@ -155,8 +165,10 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 
 type AnswerInfo struct {
 	types.Answer
-	LensAlias  *string
-	WorkloadId *string
+	LensAlias       *string
+	LensArn         *string
+	MilestoneNumber *int32
+	WorkloadId      *string
 }
 
 //// LIST FUNCTION
@@ -236,7 +248,10 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 					Risk:          item.Risk,
 				}
 
-				d.StreamListItem(ctx, &AnswerInfo{answer, output.LensAlias, output.WorkloadId})
+				if output.LensAlias == nil {
+					output.LensAlias = output.LensArn
+				}
+				d.StreamListItem(ctx, &AnswerInfo{answer, output.LensAlias, output.LensArn, &output.MilestoneNumber, output.WorkloadId})
 
 				// Context can be cancelled due to manual cancellation or the limit has been hit
 				if d.RowsRemaining(ctx) == 0 {
@@ -293,5 +308,8 @@ func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	return &AnswerInfo{*op.Answer, &lensAlias, &workloadId}, nil
+	if op.LensAlias == nil {
+		op.LensAlias = op.LensArn
+	}
+	return &AnswerInfo{*op.Answer, op.LensAlias, op.LensArn, &op.MilestoneNumber, op.WorkloadId}, nil
 }
