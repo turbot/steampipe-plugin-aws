@@ -23,7 +23,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listS3Objects,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "bucket_name", Require: plugin.Required},
+				{Name: "bucket_name", Require: plugin.Required, CacheMatch: "exact"},
 				{Name: "prefix", Require: plugin.Optional},
 			},
 		},
@@ -374,7 +374,7 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
-		plugin.Logger(ctx).Error("listS3Objects", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.listS3Objects", "get_client_error", err)
 		return nil, err
 	}
 
@@ -406,18 +406,24 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// execute list call
-	objects, err := svc.ListObjectsV2(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("ListObjectsV2", "api_error", err)
-		return nil, err
-	}
+	for {
+		objects, err := svc.ListObjectsV2(ctx, input)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_s3_object.ListObjectsV2", "api_error", err)
+			return nil, err
+		}
 
-	for _, object := range objects.Contents {
-		d.StreamListItem(ctx, object)
+		for _, object := range objects.Contents {
+			d.StreamListItem(ctx, object)
 
-		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.RowsRemaining(ctx) == 0 {
-			return nil, nil
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+		input.ContinuationToken = objects.NextContinuationToken
+		if objects.NextContinuationToken == nil {
+			break
 		}
 	}
 
@@ -437,7 +443,7 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	// Create client
 	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
-		plugin.Logger(ctx).Error("getS3Object", "client_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.getS3Object", "client_error", err)
 		return nil, err
 	}
 
@@ -455,7 +461,7 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 		if strings.Contains(err.Error(), "NoSuchKey") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("GetObject", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.getS3Object", "api_error", err)
 		return nil, err
 	}
 
@@ -475,7 +481,7 @@ func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Create client
 	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
-		plugin.Logger(ctx).Error("getS3ObjectAttributes", "client_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.getS3ObjectAttributes", "client_error", err)
 		return nil, err
 	}
 
@@ -490,7 +496,7 @@ func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	objectAttributes, err := svc.GetObjectAttributes(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("GetObjectAttributes", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.GetObjectAttributes", "api_error", err)
 		return nil, err
 	}
 
@@ -519,7 +525,7 @@ func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	// Create client
 	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
-		plugin.Logger(ctx).Error("getS3ObjectACL", "client_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.getS3ObjectACL", "client_error", err)
 		return nil, err
 	}
 
@@ -530,7 +536,7 @@ func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	objectAcl, err := svc.GetObjectAcl(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("GetObjectAcl", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.GetObjectAcl", "api_error", err)
 		return nil, err
 	}
 
@@ -553,7 +559,7 @@ func getS3ObjectTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Create client
 	svc, err := S3Client(ctx, d, fmt.Sprint(location))
 	if err != nil {
-		plugin.Logger(ctx).Error("getS3ObjectTagging", "client_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.getS3ObjectTagging", "client_error", err)
 		return nil, err
 	}
 
@@ -564,7 +570,7 @@ func getS3ObjectTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	tags, err := svc.GetObjectTagging(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("GetObjectTagging", "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.GetObjectTagging", "api_error", err)
 		return nil, err
 	}
 
@@ -574,7 +580,7 @@ func getS3ObjectTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func getBucketLocationForObjects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("getBucketLocationForObjects", "get_common_columns_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.getBucketLocationForObjects", "get_common_columns_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
@@ -597,7 +603,7 @@ func getBucketLocationForObjects(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 	svc, err := S3Client(ctx, d, clientRegion)
 	if err != nil {
-		plugin.Logger(ctx).Error("getBucketLocationForObjects", "get_client_error", err, "clientRegion", clientRegion)
+		plugin.Logger(ctx).Error("aws_s3_object.getBucketLocationForObjects", "get_client_error", err, "clientRegion", clientRegion)
 		return "", err
 	}
 
@@ -607,7 +613,7 @@ func getBucketLocationForObjects(ctx context.Context, d *plugin.QueryData, h *pl
 	// S3 supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region).
 	location, err := svc.GetBucketLocation(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getBucketLocationForObjects", "bucket_name", bucketName, "clientRegion", clientRegion, "api_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.getBucketLocationForObjects", "bucket_name", bucketName, "clientRegion", clientRegion, "api_error", err)
 		return "", err
 	}
 	var locationConstraint string
@@ -634,7 +640,7 @@ func getObjectARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("getObjectARN", "get_common_columns_error", err)
+		plugin.Logger(ctx).Error("aws_s3_object.getObjectARN", "get_common_columns_error", err)
 		return nil, err
 	}
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()

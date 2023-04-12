@@ -115,7 +115,7 @@ where
   and acl_grant -> 'Grantee' ->> 'ID' != aws_s3_object.owner ->> 'ID';
 ```
 
-### List all objects in a bucket where legal hold is on
+### List all objects in a bucket where the legal hold is enabled
 
 ```sql
 select
@@ -129,7 +129,7 @@ where
   and object_lock_legal_hold_status = 'ON';
 ```
 
-### List all objects in a bucket with governance lock mode
+### List all objects in a bucket with governance lock mode enabled
 
 ```sql
 select
