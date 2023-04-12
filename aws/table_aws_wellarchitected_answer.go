@@ -30,12 +30,12 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 			Hydrate: getWellArchitectedAnswer,
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listWellArchitectedLenses,
+			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedAnswers,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "lens_alias", Require: plugin.Optional},
 				{Name: "pillar_id", Require: plugin.Optional},
-				{Name: "workload_id", Require: plugin.Required},
+				{Name: "workload_id", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -162,7 +162,12 @@ type AnswerInfo struct {
 //// LIST FUNCTION
 
 func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	lens := h.Item.(types.LensSummary)
+	workload := h.Item.(types.WorkloadSummary)
+
+	// Validate - User inputs must not be blank
+	if d.EqualsQualString("workload_id") != "" && d.EqualsQualString("workload_id") != *workload.WorkloadId {
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(50)
@@ -181,16 +186,6 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 		MaxResults: maxLimit,
 	}
 
-	// Validate - User inputs must not be blank
-	if d.EqualsQualString("workload_id") == "" || (d.EqualsQualString("lens_alias") != "" && d.EqualsQualString("lens_alias") != *lens.LensAlias) {
-		return nil, nil
-	}
-	if d.EqualsQualString("pillar_id") != "" {
-		input.PillarId = aws.String(d.EqualsQualString("pillar_id"))
-	}
-	input.LensAlias = aws.String(*lens.LensAlias)
-	input.WorkloadId = aws.String(d.EqualsQualString("workload_id"))
-
 	// Create session
 	svc, err := WellArchitectedClient(ctx, d)
 	if err != nil {
@@ -203,39 +198,50 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, nil
 	}
 
-	paginator := wellarchitected.NewListAnswersPaginator(svc, input, func(o *wellarchitected.ListAnswersPaginatorOptions) {
-		o.Limit = maxLimit
-		o.StopOnDuplicateToken = true
-	})
-
-	// List call
-	for paginator.HasMorePages() {
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "ValidationException") {
-				return nil, nil
-			}
-			plugin.Logger(ctx).Error("aws_wellarchitected_answer.listWellArchitectedAnswers", "api_error", err)
-			return nil, err
+	for _, lensAlias := range workload.Lenses {
+		if d.EqualsQualString("lens_alias") != "" && d.EqualsQualString("lens_alias") != lensAlias {
+			return nil, nil
 		}
+		if d.EqualsQualString("pillar_id") != "" {
+			input.PillarId = aws.String(d.EqualsQualString("pillar_id"))
+		}
+		input.LensAlias = aws.String(lensAlias)
+		input.WorkloadId = aws.String(*workload.WorkloadId)
 
-		for _, item := range output.AnswerSummaries {
+		paginator := wellarchitected.NewListAnswersPaginator(svc, input, func(o *wellarchitected.ListAnswersPaginatorOptions) {
+			o.Limit = maxLimit
+			o.StopOnDuplicateToken = true
+		})
 
-			answer := types.Answer{
-				Choices:       item.Choices,
-				IsApplicable:  item.IsApplicable,
-				PillarId:      item.PillarId,
-				QuestionId:    item.QuestionId,
-				QuestionTitle: item.QuestionTitle,
-				Reason:        item.Reason,
-				Risk:          item.Risk,
+		// List call
+		for paginator.HasMorePages() {
+			output, err := paginator.NextPage(ctx)
+			if err != nil {
+				if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "ValidationException") {
+					return nil, nil
+				}
+				plugin.Logger(ctx).Error("aws_wellarchitected_answer.listWellArchitectedAnswers", "api_error", err)
+				return nil, err
 			}
 
-			d.StreamListItem(ctx, &AnswerInfo{answer, output.LensAlias, output.WorkloadId})
+			for _, item := range output.AnswerSummaries {
 
-			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
+				answer := types.Answer{
+					Choices:       item.Choices,
+					IsApplicable:  item.IsApplicable,
+					PillarId:      item.PillarId,
+					QuestionId:    item.QuestionId,
+					QuestionTitle: item.QuestionTitle,
+					Reason:        item.Reason,
+					Risk:          item.Risk,
+				}
+
+				d.StreamListItem(ctx, &AnswerInfo{answer, output.LensAlias, output.WorkloadId})
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
 			}
 		}
 	}
