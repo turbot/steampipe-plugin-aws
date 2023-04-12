@@ -90,7 +90,7 @@ order by
   timestamp;
 ```
 
-### Intervals where a volume exceed 1000 average read ops daily
+### Intervals where an EBS volume exceed 1000 average read ops daily
 
 ```sql
 select

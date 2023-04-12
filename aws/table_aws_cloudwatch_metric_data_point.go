@@ -163,11 +163,7 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -256,13 +252,13 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 	// Get client
 	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listCloudWatchMetricDataPoints", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_metric_data_point.listCloudWatchMetricDataPoints", "client_error", err)
 		return nil, err
 	}
 
 	data, err := svc.GetMetricData(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("listCloudWatchMetricDataPoints", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_metric_data_point.listCloudWatchMetricDataPoints", "api_error", err)
 		return nil, err
 	}
 
