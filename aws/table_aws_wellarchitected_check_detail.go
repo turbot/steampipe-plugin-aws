@@ -34,12 +34,12 @@ func tableAwsWellArchitectedCheckDetail(_ context.Context) *plugin.Table {
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
-			{
-				Name:        "data",
-				Description: "The ID of the question.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromValue(),
-			},
+			// {
+			// 	Name:        "data",
+			// 	Description: "The ID of the question.",
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Transform:   transform.FromValue(),
+			// },
 			{
 				Name:        "id",
 				Description: "Trusted Advisor check ID.",
@@ -288,7 +288,10 @@ func listAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *p
 				Risk:          item.Risk,
 			}
 
-			answerList = append(answerList, AnswerInfo{answer, output.LensAlias, output.WorkloadId, output.LensArn})
+			if output.LensAlias == nil {
+				output.LensAlias = output.LensArn
+			}
+			answerList = append(answerList, AnswerInfo{answer, output.LensAlias, output.LensArn, &output.MilestoneNumber, output.WorkloadId})
 		}
 	}
 	return answerList, nil
