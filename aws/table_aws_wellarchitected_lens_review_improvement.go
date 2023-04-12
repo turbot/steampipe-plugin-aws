@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
+	"github.com/aws/smithy-go"
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
@@ -21,13 +23,15 @@ func tableAwsWellArchitectedLensReviewImprovement(_ context.Context) *plugin.Tab
 		Name:        "aws_wellarchitected_lens_review_improvement",
 		Description: "AWS Well-Architected Lens Review Improvement",
 		List: &plugin.ListConfig{
-			Hydrate: listWellArchitectedLensReviewImprovements,
+			ParentHydrate: listWellArchitectedLenses,
+			Hydrate:       listWellArchitectedLensReviewImprovements,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Required},
-				{Name: "lens_alias", Require: plugin.Required},
+				{Name: "lens_alias", Require: plugin.Optional},
+				{Name: "lens_arn", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -110,7 +114,9 @@ type ReviewImprovementInfo struct {
 
 //// LIST FUNCTION
 
-func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	lens := h.Item.(types.LensSummary)
+
 	// Create session
 	svc, err := WellArchitectedClient(ctx, d)
 	if err != nil {
@@ -123,7 +129,19 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 	}
 
 	workloadId := d.EqualsQualString("workload_id")
-	lensAlias := d.EqualsQualString("lens_alias")
+
+	// Check for reduce the numbers of API call if lens_alias or lens_arn is provided in query parameter
+	if d.EqualsQualString("lens_alias") != "" {
+		// For custom lens we will not have the lens alias value.
+		// In that case we are getting the nil ponter dereference error to handle this error we have a null value check(lens.LensAlias != nil) in the if condition.
+		if lens.LensAlias != nil && d.EqualsQualString("lens_alias") != *lens.LensAlias {
+			return nil, nil
+		}
+	} else if d.EqualsQualString("lens_arn") != "" {
+		if d.EqualsQualString("lens_arn") != *lens.LensArn {
+			return nil, nil
+		}
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -136,7 +154,7 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 
 	input := &wellarchitected.ListLensReviewImprovementsInput{
 		WorkloadId: aws.String(workloadId),
-		LensAlias:  aws.String(lensAlias),
+		LensAlias:  lens.LensArn,
 		MaxResults: maxLimit,
 	}
 
@@ -149,11 +167,24 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Adding the igone confog in the list config does not seems to work, so we have handles it here.
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_wellarchitected_lens_review_improvement.listWellArchitectedLensReviewImprovements", "api_error", err)
 			return nil, err
 		}
 
 		for _, item := range output.ImprovementSummaries {
+			// For Custom Lenses the lens alias is same as lens arn.
+			// https://docs.aws.amazon.com/wellarchitected/latest/APIReference/API_LensSummary.html#wellarchitected-Type-LensSummary-LensAlias
+			if output.LensAlias == nil || *output.LensAlias == "" {
+				output.LensAlias = output.LensArn
+			}
+
 			d.StreamListItem(ctx, ReviewImprovementInfo{
 				LensAlias:          output.LensAlias,
 				LensArn:            output.LensArn,

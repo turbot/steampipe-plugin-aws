@@ -1,9 +1,9 @@
 # Table: aws_wellarchitected_lens_review_improvement
 
-The improvement plan items for your workloads.
+The improvement plan items for your lens review.
 
 **Note:**
-- `workload_id` and `lens_alias` are required in the query parameter to get the improvement plans of the lens review.
+- `workload_id` is required, `lens_alias` and `lens_arn` are optional in the query parameter to get the improvement plans of the lens review.
 - For AWS official lenses, this is either the lens alias, such as serverless, or the lens ARN, such as arn:aws:wellarchitected:us-east-1::lens/serverless. Note that some operations (such as ExportLens and CreateLensShare) are not permitted on AWS official lenses.
 - For custom lenses, this is the lens ARN, such as arn:aws:wellarchitected:us-west-2:123456789012:lens/0123456789abcdef01234567890abcdef.
 
