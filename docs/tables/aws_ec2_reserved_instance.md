@@ -7,17 +7,17 @@ Amazon EC2 Reserved Instances (RI) provide a significant discount (up to 72%) co
 ### Basic Info
 
 ```sql
-select 
-  reserved_instance_id, 
-  arn, 
-  instance_type, 
-  instance_state, 
-  currency_code, 
-  CAST(fixed_price AS varchar), 
-  offering_class, scope, 
+select
+  reserved_instance_id,
+  arn,
+  instance_type,
+  instance_state,
+  currency_code,
+  CAST(fixed_price AS varchar),
+  offering_class, scope,
   CAST(usage_price AS varchar)
-from 
-  aws.aws_ec2_reserved_instance;
+from
+  aws_ec2_reserved_instance;
 ```
 
 ### Count reserved instances by instance type
@@ -62,11 +62,11 @@ where
 ### List active reserved instances
 
 ```sql
-select 
+select
   reserved_instance_id,
   instance_type,
   instance_state
-from 
+from
   aws_ec2_reserved_instance
 where
   instance_state = 'active';

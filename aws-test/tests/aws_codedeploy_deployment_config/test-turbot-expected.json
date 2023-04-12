@@ -1,0 +1,6 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "title": "{{ resourceName }}"
+  }
+]

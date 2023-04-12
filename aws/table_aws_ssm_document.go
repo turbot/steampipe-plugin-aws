@@ -42,13 +42,13 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "account_ids",
-				Description: "The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
+				Description: "[DEPRECATED] The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocumentPermissionDetail,
 			},
 			{
 				Name:        "account_sharing_info_list",
-				Description: "A list of AWS accounts where the current document is shared and the version shared with each account.",
+				Description: "[DEPRECATED] A list of AWS accounts where the current document is shared and the version shared with each account.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocumentPermissionDetail,
 			},
