@@ -235,7 +235,7 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 		if metric_stat_string != "" {
 			err := json.Unmarshal([]byte(metric_stat_string), &metric_stat)
 			if err != nil {
-				plugin.Logger(ctx).Error("listCloudWatchMetricDataPoints", "unmarshal_error", err)
+				plugin.Logger(ctx).Error("aws_cloudwatch_metric_data_point.listCloudWatchMetricDataPoints", "unmarshal_error", err)
 				return nil, fmt.Errorf("failed to unmarshal metric_stat %v: %v", metric_stat_string, err)
 			}
 		}
@@ -256,19 +256,25 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 		return nil, err
 	}
 
-	data, err := svc.GetMetricData(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_cloudwatch_metric_data_point.listCloudWatchMetricDataPoints", "api_error", err)
-		return nil, err
-	}
-
-	for _, result := range data.MetricDataResults {
-		for item := 0; item < len(result.Timestamps); item++ {
-			d.StreamListItem(ctx, &MetricDataPoint{result.Id, result.Label, result.StatusCode, aws.Int32(period), result.Timestamps[item], result.Values[item]})
+	for {
+		data, err := svc.GetMetricData(ctx, params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudwatch_metric_data_point.listCloudWatchMetricDataPoints", "api_error", err)
+			return nil, err
 		}
-		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.RowsRemaining(ctx) == 0 {
-			return nil, nil
+
+		for _, result := range data.MetricDataResults {
+			for item := 0; item < len(result.Timestamps); item++ {
+				d.StreamListItem(ctx, &MetricDataPoint{result.Id, result.Label, result.StatusCode, aws.Int32(period), result.Timestamps[item], result.Values[item]})
+			}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+		params.NextToken = data.NextToken
+		if data.NextToken == nil {
+			break
 		}
 	}
 
