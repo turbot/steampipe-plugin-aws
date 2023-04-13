@@ -21,6 +21,9 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 		Description: "AWS Well-Architected Consolidated Report",
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedConsolidatedReports,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "format", Require: plugin.Optional}, // The possibel values are: JSON | PDF, The default value is JSON
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -38,6 +41,13 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 				Name:        "workload_id",
 				Description: "The ID assigned to the workload.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "format",
+				Description: "The format of the consolidate report.",
+				Type:        proto.ColumnType_STRING,
+				Default:     "JSON",
+				Transform:   transform.FromQual("format"),
 			},
 			{
 				Name:        "base64_string",
@@ -98,9 +108,18 @@ func listWellArchitectedConsolidatedReports(ctx context.Context, d *plugin.Query
 	}
 
 	input := &wellarchitected.GetConsolidatedReportInput{
-		Format:                 types.ReportFormatPdf,
 		IncludeSharedResources: true,
 		MaxResults:             maxLimit,
+	}
+
+	if d.EqualsQualString("format") != "" {
+		if d.EqualsQualString("format") == "PDF" {
+			input.Format = types.ReportFormatPdf
+		} else {
+			input.Format = types.ReportFormatJson
+		}
+	} else {
+		input.Format = types.ReportFormatPdf
 	}
 
 	paginator := wellarchitected.NewGetConsolidatedReportPaginator(svc, input, func(o *wellarchitected.GetConsolidatedReportPaginatorOptions) {
