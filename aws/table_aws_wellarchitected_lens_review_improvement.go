@@ -23,15 +23,14 @@ func tableAwsWellArchitectedLensReviewImprovement(_ context.Context) *plugin.Tab
 		Name:        "aws_wellarchitected_lens_review_improvement",
 		Description: "AWS Well-Architected Lens Review Improvement",
 		List: &plugin.ListConfig{
-			ParentHydrate: listWellArchitectedLenses,
+			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedLensReviewImprovements,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "workload_id", Require: plugin.Required},
+				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "lens_alias", Require: plugin.Optional},
-				{Name: "lens_arn", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -115,7 +114,7 @@ type ReviewImprovementInfo struct {
 //// LIST FUNCTION
 
 func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	lens := h.Item.(types.LensSummary)
+	workload := h.Item.(types.WorkloadSummary)
 
 	// Create session
 	svc, err := WellArchitectedClient(ctx, d)
@@ -128,36 +127,45 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 		return nil, nil
 	}
 
-	workloadId := d.EqualsQualString("workload_id")
-
-	// Check for reduce the numbers of API call if lens_alias or lens_arn is provided in query parameter
-	if d.EqualsQualString("lens_alias") != "" {
-		// For custom lens we will not have the lens alias value.
-		// In that case we are getting the nil ponter dereference error to handle this error we have a null value check(lens.LensAlias != nil) in the if condition.
-		if lens.LensAlias != nil && d.EqualsQualString("lens_alias") != *lens.LensAlias {
-			return nil, nil
-		}
-	} else if d.EqualsQualString("lens_arn") != "" {
-		if d.EqualsQualString("lens_arn") != *lens.LensArn {
+	if d.EqualsQualString("workload_id") != "" {
+		if d.EqualsQualString("workload_id") != *workload.WorkloadId {
 			return nil, nil
 		}
 	}
 
-	// Limiting the results
-	maxLimit := int32(100)
-	if d.QueryContext.Limit != nil {
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxLimit {
-			maxLimit = limit
+	for _, lensAlias := range workload.Lenses {
+		// Check for reduce the numbers of API call if lens_alias or lens_arn is provided in query parameter
+		if d.EqualsQualString("lens_alias") != "" {
+			if d.EqualsQualString("lens_alias") != lensAlias {
+				continue;
+			}
+		}
+
+		// Limiting the results
+		maxLimit := int32(100)
+		if d.QueryContext.Limit != nil {
+			limit := int32(*d.QueryContext.Limit)
+			if limit < maxLimit {
+				maxLimit = limit
+			}
+		}
+
+		input := &wellarchitected.ListLensReviewImprovementsInput{
+			WorkloadId: workload.WorkloadId,
+			LensAlias:  aws.String(lensAlias),
+			MaxResults: maxLimit,
+		}
+
+		_, err := stereamlistLensReviewImprovements(ctx, d, h, svc, input, maxLimit)
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	input := &wellarchitected.ListLensReviewImprovementsInput{
-		WorkloadId: aws.String(workloadId),
-		LensAlias:  lens.LensArn,
-		MaxResults: maxLimit,
-	}
+	return nil, nil
+}
 
+func stereamlistLensReviewImprovements(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, svc *wellarchitected.Client, input *wellarchitected.ListLensReviewImprovementsInput, maxLimit int32) (interface{}, error) {
 	paginator := wellarchitected.NewListLensReviewImprovementsPaginator(svc, input, func(o *wellarchitected.ListLensReviewImprovementsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
@@ -174,7 +182,7 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 					return nil, nil
 				}
 			}
-			plugin.Logger(ctx).Error("aws_wellarchitected_lens_review_improvement.listWellArchitectedLensReviewImprovements", "api_error", err)
+			plugin.Logger(ctx).Error("aws_wellarchitected_lens_review_improvement.stereamlistLensReviewImprovements", "api_error", err)
 			return nil, err
 		}
 
@@ -199,6 +207,5 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 			}
 		}
 	}
-
 	return nil, nil
 }
