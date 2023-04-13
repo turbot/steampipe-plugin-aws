@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.189
-	github.com/aws/aws-sdk-go-v2 v1.17.6
+	github.com/aws/aws-sdk-go-v2 v1.17.8
 	github.com/aws/aws-sdk-go-v2/config v1.18.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.10
 	github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.19.1
@@ -16,6 +16,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/appconfig v1.15.1
 	github.com/aws/aws-sdk-go-v2/service/applicationautoscaling v1.17.1
 	github.com/aws/aws-sdk-go-v2/service/appstream v1.20.5
+	github.com/aws/aws-sdk-go-v2/service/athena v1.23.1
 	github.com/aws/aws-sdk-go-v2/service/auditmanager v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.26.1
 	github.com/aws/aws-sdk-go-v2/service/backup v1.19.1
@@ -110,7 +111,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/waf v1.12.0
 	github.com/aws/aws-sdk-go-v2/service/wafregional v1.13.1
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.24.2
-	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.18.0
+	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.19.2
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0
 	github.com/aws/smithy-go v1.13.5
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
@@ -130,11 +131,10 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.21 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.30 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.24 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.32 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.26 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.18 // indirect
-	github.com/aws/aws-sdk-go-v2/service/athena v1.23.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.22 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.21 // indirect
