@@ -5,12 +5,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
+	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,13 +20,15 @@ func tableAwsWellArchitectedLensReviewReport(_ context.Context) *plugin.Table {
 		Name:        "aws_wellarchitected_lens_review_report",
 		Description: "AWS Well-Architected Lens Review Report",
 		List: &plugin.ListConfig{
-			Hydrate: getWellArchitectedLensReviewReports,
+			ParentHydrate: listWellArchitectedWorkloads,
+			Hydrate:       getWellArchitectedLensReviewReports,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "workload_id", Require: plugin.Required},
-				{Name: "lens_alias", Require: plugin.Required},
+				{Name: "workload_id", Require: plugin.Optional},
+				{Name: "lens_alias", Require: plugin.Optional},
+				{Name: "milestone_number", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -56,14 +58,6 @@ func tableAwsWellArchitectedLensReviewReport(_ context.Context) *plugin.Table {
 				Description: "The Base64-encoded string representation of a lens review report. This data can be used to create a PDF file.",
 				Type:        proto.ColumnType_STRING,
 			},
-
-			// Steampipe standard columns
-			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ImprovementSummary.QuestionTitle"),
-			},
 		}),
 	}
 }
@@ -78,7 +72,9 @@ type ReviewReportInfo struct {
 
 //// LIST FUNCTION
 
-func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	workload := h.Item.(types.WorkloadSummary)
+
 	// Create session
 	svc, err := WellArchitectedClient(ctx, d)
 	if err != nil {
@@ -90,28 +86,47 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 		return nil, nil
 	}
 
-	workloadId := d.EqualsQualString("workload_id")
-	lensAlias := d.EqualsQualString("lens_alias")
-
-	input := &wellarchitected.GetLensReviewReportInput{
-		WorkloadId: aws.String(workloadId),
-		LensAlias:  aws.String(lensAlias),
+	if d.EqualsQualString("workload_id") != "" {
+		if d.EqualsQualString("workload_id") != *workload.WorkloadId {
+			return nil, nil
+		}
 	}
+	for _, lensAlias := range workload.Lenses {
+		// Check for reduce the numbers of API call if lens_alias or lens_arn is provided in query parameter
+		if d.EqualsQualString("lens_alias") != "" {
+			if d.EqualsQualString("lens_alias") != lensAlias {
+				continue
+			}
+		}
+		input := &wellarchitected.GetLensReviewReportInput{
+			WorkloadId: workload.WorkloadId,
+			LensAlias:  aws.String(lensAlias),
+		}
+		equalQuals := d.EqualsQuals
+		if equalQuals != nil {
+			if equalQuals["milestone_number"] != nil {
+				input.MilestoneNumber = int32(equalQuals["milestone_number"].GetInt64Value())
+			}
+		}
 
-	op, err := svc.GetLensReviewReport(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_wellarchitected_lens_review_report.getWellArchitectedLensReviewReports", "api_error", err)
-		return nil, err
-	}
+		op, err := svc.GetLensReviewReport(ctx, input)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wellarchitected_lens_review_report.getWellArchitectedLensReviewReports", "api_error", err)
+			return nil, err
+		}
 
-	if op != nil {
-		return ReviewReportInfo{
+		d.StreamListItem(ctx, ReviewReportInfo{
 			Base64String:    op.LensReviewReport.Base64String,
 			LensAlias:       op.LensReviewReport.LensAlias,
 			LensArn:         op.LensReviewReport.LensArn,
 			MilestoneNumber: op.MilestoneNumber,
 			WorkloadId:      op.WorkloadId,
-		}, nil
+		})
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil
