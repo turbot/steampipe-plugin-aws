@@ -17,13 +17,13 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsWellArchitectedCheckDetail(_ context.Context) *plugin.Table {
+func tableAwsWellArchitectedCheckSummary(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_wellarchitected_check_detail",
-		Description: "AWS Well-Architected Check Detail",
+		Name:        "aws_wellarchitected_check_summary",
+		Description: "AWS Well-Architected Summary",
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
-			Hydrate:       listWellArchitectedCheckDetails,
+			Hydrate:       listWellArchitectedCheckSummaries,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "choice_id", Require: plugin.Optional},
@@ -38,73 +38,73 @@ func tableAwsWellArchitectedCheckDetail(_ context.Context) *plugin.Table {
 				Name:        "id",
 				Description: "Trusted Advisor check ID.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.Id"),
+				Transform:   transform.FromField("CheckSummary.Id"),
 			},
 			{
 				Name:        "choice_id",
 				Description: "The ID of a choice.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.ChoiceId"),
+				Transform:   transform.FromField("CheckSummary.ChoiceId"),
 			},
 			{
 				Name:        "description",
 				Description: "Trusted Advisor check description.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.Description"),
+				Transform:   transform.FromField("CheckSummary.Description"),
 			},
 			{
 				Name:        "flagged_resources",
 				Description: "Count of flagged resources associated to the check.",
 				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromField("CheckDetail.FlaggedResources"),
+				Transform:   transform.FromField("CheckSummary.FlaggedResources"),
 			},
 			{
 				Name:        "lens_arn",
 				Description: "Well-Architected Lens ARN associated to the check.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.LensArn"),
+				Transform:   transform.FromField("CheckSummary.LensArn"),
 			},
 			{
 				Name:        "name",
 				Description: "Trusted Advisor check name.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.Name"),
+				Transform:   transform.FromField("CheckSummary.Name"),
 			},
 			{
 				Name:        "pillar_id",
 				Description: "The ID used to identify a pillar, for example, security. A pillar is identified by its PillarReviewSummary$PillarId.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.PillarId"),
+				Transform:   transform.FromField("CheckSummary.PillarId"),
 			},
 			{
 				Name:        "provider",
 				Description: "Provider of the check related to the best practice.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.Provider"),
+				Transform:   transform.FromField("CheckSummary.Provider"),
 			},
 			{
 				Name:        "question_id",
 				Description: "The ID of the question.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.QuestionId"),
+				Transform:   transform.FromField("CheckSummary.QuestionId"),
 			},
 			{
 				Name:        "reason",
 				Description: "Reason associated to the check.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.Reason"),
+				Transform:   transform.FromField("CheckSummary.Reason"),
 			},
 			{
 				Name:        "status",
 				Description: "Status associated to the check.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckDetail.Status"),
+				Transform:   transform.FromField("CheckSummary.Status"),
 			},
 			{
 				Name:        "updated_at",
 				Description: "The date and time recorded.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("CheckDetail.UpdatedAt"),
+				Transform:   transform.FromField("CheckSummary.UpdatedAt"),
 			},
 			{
 				Name:        "workload_id",
@@ -123,18 +123,18 @@ func tableAwsWellArchitectedCheckDetail(_ context.Context) *plugin.Table {
 	}
 }
 
-type CheckDetailInfo struct {
-	types.CheckDetail
+type CheckSummaryInfo struct {
+	types.CheckSummary
 	WorkloadId *string
 }
 
 //// LIST FUNCTION
 
-func listWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listWellArchitectedCheckSummaries(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	answerList, err := getAnswerDetailsForWorkload(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_wellarchitected_check_detail.listWellArchitectedCheckDetails", "error", err)
+		plugin.Logger(ctx).Error("aws_wellarchitected_check_summary.listWellArchitectedCheckSummaries", "error", err)
 		return nil, err
 	}
 
@@ -145,7 +145,7 @@ func listWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, h
 	// Create session
 	svc, err := WellArchitectedClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_wellarchitected_check_detail.listWellArchitectedCheckDetails", "client_error", err)
+		plugin.Logger(ctx).Error("aws_wellarchitected_check_summary.listWellArchitectedCheckSummaries", "client_error", err)
 		return nil, err
 	}
 
@@ -163,9 +163,9 @@ func listWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, h
 		if d.EqualsQualString("question_id") != "" && d.EqualsQualString("question_id") != *answer.QuestionId {
 			continue
 		}
-		_, err := fetchWellArchitectedCheckDetails(ctx, d, svc, answer)
+		_, err := fetchWellArchitectedCheckSummaries(ctx, d, svc, answer)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_wellarchitected_check_detail.listWellArchitectedCheckDetails", "api_error", err)
+			plugin.Logger(ctx).Error("aws_wellarchitected_check_summary.listWellArchitectedCheckSummaries", "api_error", err)
 			return nil, err
 		}
 	}
@@ -173,7 +173,7 @@ func listWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, h
 	return nil, nil
 }
 
-func fetchWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, svc *wellarchitected.Client, answer AnswerInfo) (interface{}, error) {
+func fetchWellArchitectedCheckSummaries(ctx context.Context, d *plugin.QueryData, svc *wellarchitected.Client, answer AnswerInfo) (interface{}, error) {
 
 	// Limiting the results
 	maxLimit := int32(50)
@@ -193,7 +193,7 @@ func fetchWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, 
 			continue
 		}
 
-		input := &wellarchitected.ListCheckDetailsInput{
+		input := &wellarchitected.ListCheckSummariesInput{
 			MaxResults: maxLimit,
 			LensArn:    aws.String(*answer.LensArn),
 			PillarId:   aws.String(*answer.PillarId),
@@ -202,7 +202,7 @@ func fetchWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, 
 			ChoiceId:   aws.String(*choice.ChoiceId),
 		}
 
-		paginator := wellarchitected.NewListCheckDetailsPaginator(svc, input, func(o *wellarchitected.ListCheckDetailsPaginatorOptions) {
+		paginator := wellarchitected.NewListCheckSummariesPaginator(svc, input, func(o *wellarchitected.ListCheckSummariesPaginatorOptions) {
 			o.Limit = maxLimit
 			o.StopOnDuplicateToken = true
 		})
@@ -216,8 +216,8 @@ func fetchWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, 
 				return nil, err
 			}
 
-			for _, item := range output.CheckDetails {
-				d.StreamListItem(ctx, CheckDetailInfo{item, answer.WorkloadId})
+			for _, item := range output.CheckSummaries {
+				d.StreamListItem(ctx, CheckSummaryInfo{item, answer.WorkloadId})
 
 				if d.RowsRemaining(ctx) == 0 {
 					return nil, nil
@@ -226,87 +226,4 @@ func fetchWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, 
 		}
 	}
 	return nil, nil
-}
-
-func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) ([]AnswerInfo, error) {
-	workload := h.Item.(types.WorkloadSummary)
-	workloadId := workload.WorkloadId
-
-	if d.EqualsQualString("workload_id") != "" && d.EqualsQualString("workload_id") != *workloadId {
-		return nil, nil
-	}
-
-	commonData, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	var answerList []AnswerInfo
-
-	// Create session
-	svc, err := WellArchitectedClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_wellarchitected_answer.listWellArchitectedAnswers", "client_error", err)
-		return nil, err
-	}
-
-	// Unsupported region, return no data
-	if svc == nil {
-		return nil, nil
-	}
-
-	for _, lensAlias := range workload.Lenses {
-		lensArn := lensAlias
-		if !isAWSARN(lensArn) {
-			// Format for AWS_OFFICIAL- arn:aws:wellarchitected::aws:lens/<lensAlias>
-			lensArn = "arn:" + commonColumnData.Partition + ":wellarchitected::aws:lens/" + lensAlias
-		}
-		if d.EqualsQualString("lens_arn") != "" && d.EqualsQualString("lens_arn") != lensArn {
-			continue
-		}
-
-		input := &wellarchitected.ListAnswersInput{
-			MaxResults: int32(50),
-			LensAlias:  aws.String(lensArn),
-			WorkloadId: aws.String(*workloadId),
-		}
-
-		paginator := wellarchitected.NewListAnswersPaginator(svc, input, func(o *wellarchitected.ListAnswersPaginatorOptions) {
-			o.Limit = int32(50)
-			o.StopOnDuplicateToken = true
-		})
-
-		// List call
-		for paginator.HasMorePages() {
-			output, err := paginator.NextPage(ctx)
-			if err != nil {
-				if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "ValidationException") {
-					continue
-				}
-				plugin.Logger(ctx).Error("aws_wellarchitected_answer.listWellArchitectedAnswers", "api_error", err)
-				return nil, err
-			}
-
-			for _, item := range output.AnswerSummaries {
-
-				answer := types.Answer{
-					Choices:       item.Choices,
-					IsApplicable:  item.IsApplicable,
-					PillarId:      item.PillarId,
-					QuestionId:    item.QuestionId,
-					QuestionTitle: item.QuestionTitle,
-					Reason:        item.Reason,
-					Risk:          item.Risk,
-				}
-
-				if output.LensAlias == nil {
-					output.LensAlias = output.LensArn
-				}
-				answerList = append(answerList, AnswerInfo{answer, output.LensAlias, output.LensArn, &output.MilestoneNumber, output.WorkloadId})
-			}
-		}
-	}
-	return answerList, nil
 }
