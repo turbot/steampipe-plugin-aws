@@ -3,7 +3,7 @@
 The improvement plan items for your lens review.
 
 **Note:**
-- `workload_id` is required, `lens_alias` and `lens_arn` are optional in the query parameter to get the improvement plans of the lens review.
+- `workload_id` and `lens_alias` optional in the query parameter for filtering out the review improvements with given workload id or lens alias.
 - For AWS official lenses, this is either the lens alias, such as serverless, or the lens ARN, such as arn:aws:wellarchitected:us-east-1::lens/serverless. Note that some operations (such as ExportLens and CreateLensShare) are not permitted on AWS official lenses.
 - For custom lenses, this is the lens ARN, such as arn:aws:wellarchitected:us-west-2:123456789012:lens/0123456789abcdef01234567890abcdef.
 
@@ -21,13 +21,10 @@ select
   question_id,
   question_title
 from
-  aws_wellarchitected_lens_review_improvement
-where
-  lens_alias = 'wellarchitected'
-  and workload_id = '4fca39b680a31bb118be6bc0d177849d';
+  aws_wellarchitected_lens_review_improvement;
 ```
 
-## List review improvements with risk high
+## List review improvements with risk high for a workload
 
 ```sql
 select
@@ -41,12 +38,11 @@ select
 from
   aws_wellarchitected_lens_review_improvement
 where
-  lens_alias = 'wellarchitected'
-  and workload_id = '4fca39b680a31bb118be6bc0d177849d'
+  workload_id = '4fca39b680a31bb118be6bc0d177849d'
   and risk = 'HIGH';
 ```
 
-## Get review improvement risk counts
+## Get review improvement risk counts for a particular workload and lens
 
 ```sql
 select
@@ -65,7 +61,7 @@ group by
   workload_id;
 ```
 
-## Get improvement plan details of the review improvements
+## Get improvement plan details of the review improvements for each workload
 
 ```sql
 select
@@ -76,8 +72,5 @@ select
   p ->> 'ImprovementPlanUrl' as improvement_plan_url
 from
   aws_wellarchitected_lens_review_improvement,
-  jsonb_array_elements(improvement_plans) as p
-where
-  lens_alias = 'wellarchitected'
-  and workload_id = '4fca39b680a31bb118be6bc0d177849d';
+  jsonb_array_elements(improvement_plans) as p;
 ```
