@@ -34,9 +34,6 @@ func tableAwsWellArchitectedMilestone(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 			},
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "ThrottlingException"}),
-			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -110,8 +107,8 @@ func listWellArchitectedMilestones(ctx context.Context, d *plugin.QueryData, h *
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			if strings.Contains(err.Error(), "NotFoundException") || strings.Contains(err.Error(), "ValidationException") || strings.Contains(err.Error(), "ThrottlingException") {
-				plugin.Logger(ctx).Error("aws_wellarchitected_milestone.listWellArchitectedMilestones", "checked_error", err)
+			if strings.Contains(err.Error(), "NotFoundException") || strings.Contains(err.Error(), "ValidationException") {
+				plugin.Logger(ctx).Error("aws_wellarchitected_milestone.listWellArchitectedMilestones", "api_error", err)
 				return nil, nil
 			}
 
@@ -135,11 +132,11 @@ func listWellArchitectedMilestones(ctx context.Context, d *plugin.QueryData, h *
 
 func getWellArchitectedMilestone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	number := int32(d.EqualsQuals["milestone_number"].GetInt64Value())
-	id := d.EqualsQualString("workload_id")
+	milestoneNumber := int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+	workloadId := d.EqualsQualString("workload_id")
 
 	// Validate - User input must not be empty
-	if id == "" || number == 0 {
+	if workloadId == "" || milestoneNumber == 0 {
 		return nil, nil
 	}
 
@@ -156,8 +153,8 @@ func getWellArchitectedMilestone(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	params := &wellarchitected.GetMilestoneInput{
-		WorkloadId:      aws.String(id),
-		MilestoneNumber: *aws.Int32(number),
+		WorkloadId:      aws.String(workloadId),
+		MilestoneNumber: *aws.Int32(milestoneNumber),
 	}
 
 	op, err := svc.GetMilestone(ctx, params)
