@@ -128,6 +128,11 @@ func getWellArchitectedMilestone(ctx context.Context, d *plugin.QueryData, h *pl
 	id := d.EqualsQualString("workload_id")
 	number := int32(d.EqualsQuals["milestone_number"].GetInt64Value())
 
+	// Validate - User input must not be empty
+	if id == "" || number == 0 {
+		return nil, nil
+	}
+
 	// Create Session
 	svc, err := WellArchitectedClient(ctx, d)
 	if err != nil {

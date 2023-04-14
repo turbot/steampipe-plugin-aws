@@ -20,7 +20,8 @@ from
 ### Get the latest milestone for each workload
 
 ```sql
-with latest_milestones as (
+with latest_milestones as 
+(
   select
     max(milestone_number) as milestone_number,
     workload_id
@@ -28,7 +29,8 @@ with latest_milestones as (
     aws_wellarchitected_milestone
   group by
     workload_id
-) select
+) 
+select
   m.workload_id,
   m.milestone_name,
   m.milestone_number as latest_milestone_number,
@@ -42,7 +44,7 @@ where
   and m.workload_id = l.workload_id;
 ```
 
-### Get workload details associated to each milestone
+### Get workload details associated with each milestone
 
 ```sql
 select
