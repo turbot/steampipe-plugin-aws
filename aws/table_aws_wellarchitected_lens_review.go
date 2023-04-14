@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -21,9 +22,13 @@ func tableAwsWellArchitectedLensReview(_ context.Context) *plugin.Table {
 		Name:        "aws_wellarchitected_lens_review",
 		Description: "AWS Well-Architected Lens Review",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"workload_id", "lens_arn"}),
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "workload_id", Require: plugin.Required},
+				{Name: "lens_alias", Require: plugin.Required},
+				{Name: "milestone_number", Require: plugin.Optional, CacheMatch: "exact"},
+			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getWellArchitectedLensReview,
 		},
@@ -32,7 +37,13 @@ func tableAwsWellArchitectedLensReview(_ context.Context) *plugin.Table {
 			Hydrate:       listWellArchitectedLensReviews,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
+				{Name: "milestone_number", Require: plugin.Optional, CacheMatch: "exact"},
 			},
+			// TODO: Uncomment and remove extra check in
+			// listWellArchitectedLensReviews function once this works again
+			//IgnoreConfig: &plugin.IgnoreConfig{
+			//	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			//},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -70,6 +81,12 @@ func tableAwsWellArchitectedLensReview(_ context.Context) *plugin.Table {
 				Description: "The version of the lens.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("LensReview.LensVersion"),
+			},
+			{
+				Name:        "milestone_number",
+				Description: "The milestone number. A workload can have a maximum of 100 milestones.",
+				Hydrate:     getWellArchitectedLensReview,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "notes",
@@ -110,7 +127,8 @@ func tableAwsWellArchitectedLensReview(_ context.Context) *plugin.Table {
 }
 
 type LensReviewInfo struct {
-	WorkloadId *string
+	MilestoneNumber int32
+	WorkloadId      *string
 	*types.LensReview
 }
 
@@ -119,8 +137,10 @@ type LensReviewInfo struct {
 func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	workloadId := h.Item.(types.WorkloadSummary).WorkloadId
 
+	plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.listWellArchitectedLensReviews", "workload_id", *workloadId)
+
 	// Reduce number of API call if the workload id has been provided in query parameter.
-	if d.EqualsQualString("workload_id") != ""{
+	if d.EqualsQualString("workload_id") != "" {
 		if d.EqualsQualString("workload_id") != *workloadId {
 			return nil, nil
 		}
@@ -151,6 +171,11 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 		MaxResults: maxLimit,
 	}
 
+	if d.EqualsQuals["milestone_number"] != nil {
+		input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.listWellArchitectedLensReviews", "milestone_number", input.MilestoneNumber)
+	}
+
 	paginator := wellarchitected.NewListLensReviewsPaginator(svc, input, func(o *wellarchitected.ListLensReviewsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
@@ -160,6 +185,12 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// TODO: Shouldn't be needed, but the List IgnoreConfig doesn't seem to
+			// be working (maybe due to ParentHydrate use?)
+			if strings.Contains(err.Error(), "ResourceNotFoundException") {
+				plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.listWellArchitectedLensReviews", "resource_not_found_error", err)
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_wellarchitected_lens_review.listWellArchitectedLensReviews", "api_error", err)
 			return nil, err
 		}
@@ -191,18 +222,20 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 //// HYDRATE FUNCTIONS
 
 func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var workloadId, lensArn string
+	var workloadId, lensAlias string
 	if h.Item != nil {
 		workloadId = *h.Item.(LensReviewInfo).WorkloadId
-		lensArn = *h.Item.(LensReviewInfo).LensArn
+		lensAlias = *h.Item.(LensReviewInfo).LensAlias
+		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.getWellArchitectedLensReview from item", "workload_id", workloadId, "lens_alias", lensAlias)
 	} else {
 		quals := d.EqualsQuals
 		workloadId = quals["workload_id"].GetStringValue()
-		lensArn = quals["lens_arn"].GetStringValue()
+		lensAlias = quals["lens_alias"].GetStringValue()
+		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review..getWellArchitectedLensReview from quals", "workload_id", workloadId, "lens_alias", lensAlias)
 	}
 
 	// Empty Check
-	if workloadId == "" || lensArn == "" {
+	if workloadId == "" || lensAlias == "" {
 		return nil, nil
 	}
 
@@ -219,7 +252,12 @@ func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *p
 
 	params := &wellarchitected.GetLensReviewInput{
 		WorkloadId: aws.String(workloadId),
-		LensAlias:  aws.String(lensArn),
+		LensAlias:  aws.String(lensAlias),
+	}
+
+	if d.EqualsQuals["milestone_number"] != nil {
+		params.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.getWellArchitectedLensReview", "milestone_number", params.MilestoneNumber)
 	}
 
 	op, err := svc.GetLensReview(ctx, params)
@@ -228,5 +266,9 @@ func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	return LensReviewInfo{WorkloadId: &workloadId, LensReview: op.LensReview}, nil
+	return LensReviewInfo{
+		MilestoneNumber: op.MilestoneNumber,
+		WorkloadId:      &workloadId,
+		LensReview:      op.LensReview,
+	}, nil
 }
