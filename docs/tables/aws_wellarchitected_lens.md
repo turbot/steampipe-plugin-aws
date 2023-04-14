@@ -4,7 +4,7 @@ Lenses provide a way for you to consistently measure your architectures against 
 
 ## Examples
 
-## Basic info
+### Basic info
 
 ```sql
 select
@@ -18,7 +18,7 @@ from
   aws_wellarchitected_lens;
 ```
 
-## List lenses that are of custom shared type
+### List lenses that are of custom shared type
 
 ```sql
 select
@@ -34,7 +34,7 @@ where
   lens_type = 'CUSTOM_SHARED';
 ```
 
-## List deprecated lenses
+### List deprecated lenses
 
 ```sql
 select
@@ -49,7 +49,7 @@ where
   lens_status = 'DEPRECATED';
 ```
 
-## List lenses created in the last 30 days
+### List lenses created in the last 30 days
 
 ```sql
 select
@@ -62,4 +62,20 @@ from
   aws_wellarchitected_lens
 where
   created_at <= now() - interval '30' day;
+```
+
+### List lenses owned by this account
+
+```sql
+select
+  lens_name,
+  lens_status,
+  lens_type,
+  lens_version,
+  owner,
+  account_id
+from
+  aws_wellarchitected_lens
+where
+  owner = account_id;
 ```

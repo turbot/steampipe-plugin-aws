@@ -25,6 +25,9 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 		Description: "AWS Well-Architected Lens",
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedLenses,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "lens_name", Require: plugin.Optional},
 				{Name: "lens_status", Require: plugin.Optional},
@@ -143,21 +146,14 @@ func listWellArchitectedLenses(ctx context.Context, d *plugin.QueryData, _ *plug
 		MaxResults: maxLimit,
 	}
 
-	equalQuals := d.EqualsQuals
-	if equalQuals["lens_status"] != nil {
-		if equalQuals["lens_status"].GetStringValue() != "" {
-			input.LensStatus = types.LensStatusType(equalQuals["lens_status"].GetStringValue())
-		}
+	if d.EqualsQualString("lens_status") != "" {
+		input.LensStatus = types.LensStatusType(d.EqualsQualString("lens_status"))
 	}
-	if equalQuals["lens_name"] != nil {
-		if equalQuals["lens_name"].GetStringValue() != "" {
-			input.LensName = aws.String(equalQuals["lens_name"].GetStringValue())
-		}
+	if d.EqualsQualString("lens_name") != "" {
+		input.LensName = aws.String(d.EqualsQualString("lens_name"))
 	}
-	if equalQuals["lens_type"] != nil {
-		if equalQuals["lens_type"].GetStringValue() != "" {
-			input.LensType = types.LensType(equalQuals["lens_type"].GetStringValue())
-		}
+	if d.EqualsQualString("lens_type") != "" {
+		input.LensType = types.LensType(d.EqualsQualString("lens_type"))
 	}
 
 	paginator := wellarchitected.NewListLensesPaginator(svc, input, func(o *wellarchitected.ListLensesPaginatorOptions) {
@@ -173,8 +169,15 @@ func listWellArchitectedLenses(ctx context.Context, d *plugin.QueryData, _ *plug
 			return nil, err
 		}
 
-		for _, items := range output.LensSummaries {
-			d.StreamListItem(ctx, items)
+		for _, item := range output.LensSummaries {
+			// As per the doc(https://docs.aws.amazon.com/wellarchitected/latest/APIReference/API_LensSummary.html)
+			// The lens alias is same as lens arn if it is a custom lens.
+			// The lens alias value coming as nil in the case of custom lenses, so we are replacing the null value with lens arn.
+			if item.LensAlias == nil || *item.LensAlias == "" {
+				item.LensAlias = item.LensArn
+			}
+
+			d.StreamListItem(ctx, item)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
