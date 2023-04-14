@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
 	"github.com/aws/smithy-go"
@@ -24,11 +25,15 @@ func tableAwsWellArchitectedLensShare(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedLenses,
 			Hydrate:       listWellArchitectedLensShares,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
-			},
+			// TODO: Uncomment and remove extra check in
+			// listWellArchitectedLensShares function once this works again
+			// IgnoreConfig: &plugin.IgnoreConfig{
+			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
+			// },
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "lens_alias", Require: plugin.Optional},
+				{Name: "shared_with", Require: plugin.Optional},
+				{Name: "status", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -131,6 +136,14 @@ func listWellArchitectedLensShares(ctx context.Context, d *plugin.QueryData, h *
 		LensAlias:  lens.LensArn,
 	}
 
+	if d.EqualsQualString("shared_with") != "" {
+		input.SharedWithPrefix = aws.String(d.EqualsQualString("shared_with"))
+	}
+
+	if d.EqualsQualString("status") != "" {
+		input.Status = types.ShareStatus(d.EqualsQualString("status"))
+	}
+
 	paginator := wellarchitected.NewListLensSharesPaginator(svc, input, func(o *wellarchitected.ListLensSharesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
@@ -142,7 +155,7 @@ func listWellArchitectedLensShares(ctx context.Context, d *plugin.QueryData, h *
 		if err != nil {
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
-				if ae.ErrorCode() == "ResourceNotFoundException" {
+				if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
 					return nil, nil
 				}
 			}
@@ -151,6 +164,10 @@ func listWellArchitectedLensShares(ctx context.Context, d *plugin.QueryData, h *
 		}
 
 		for _, item := range output.LensShareSummaries {
+
+			if lens.LensAlias == nil || *lens.LensAlias == "" {
+				lens.LensAlias = lens.LensArn
+			}
 			d.StreamListItem(ctx, LensShareInfo{
 				LensAlias:     lens.LensAlias,
 				LensName:      lens.LensName,
