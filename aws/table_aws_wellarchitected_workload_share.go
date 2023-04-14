@@ -25,6 +25,8 @@ func tableAwsWellArchitectedWorkloadShare(_ context.Context) *plugin.Table {
 			Hydrate:       listWellArchitectedWorkloadShares,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
+				{Name: "shared_with", Require: plugin.Optional},
+				{Name: "status", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -116,6 +118,12 @@ func listWellArchitectedWorkloadShares(ctx context.Context, d *plugin.QueryData,
 		return nil, nil
 	}
 	input.WorkloadId = aws.String(*workload.WorkloadId)
+	if d.EqualsQualString("status") != "" {
+		input.Status = types.ShareStatus(d.EqualsQuals["status"].GetStringValue())
+	}
+	if d.EqualsQualString("shared_with") != "" {
+		input.SharedWithPrefix = aws.String(d.EqualsQualString("shared_with"))
+	}
 
 	// Create session
 	svc, err := WellArchitectedClient(ctx, d)
