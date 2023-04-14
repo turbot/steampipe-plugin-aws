@@ -36,6 +36,10 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 				{Name: "lens_alias", Require: plugin.Optional},
 				{Name: "pillar_id", Require: plugin.Optional},
 				{Name: "workload_id", Require: plugin.Optional},
+				{Name: "milestone_number", Require: plugin.Optional},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -186,11 +190,7 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -212,10 +212,13 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 
 	for _, lensAlias := range workload.Lenses {
 		if d.EqualsQualString("lens_alias") != "" && d.EqualsQualString("lens_alias") != lensAlias {
-			return nil, nil
+			continue
 		}
 		if d.EqualsQualString("pillar_id") != "" {
 			input.PillarId = aws.String(d.EqualsQualString("pillar_id"))
+		}
+		if d.EqualsQuals["milestone_number"] != nil {
+			input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
 		}
 		input.LensAlias = aws.String(lensAlias)
 		input.WorkloadId = aws.String(*workload.WorkloadId)
@@ -268,15 +271,20 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var questionId, lensAlias, workloadId string
+	var milestoneNumber int32
 	if h.Item != nil {
 		answer := h.Item.(*AnswerInfo)
 		questionId = *answer.QuestionId
 		lensAlias = *answer.LensAlias
 		workloadId = *answer.WorkloadId
+		milestoneNumber = *answer.MilestoneNumber
 	} else {
 		questionId = d.EqualsQualString("question_id")
 		lensAlias = d.EqualsQualString("lens_alias")
 		workloadId = d.EqualsQualString("workload_id")
+		if d.EqualsQuals["workload_id"] != nil {
+			milestoneNumber = int32(d.EqualsQuals["workload_id"].GetInt64Value())
+		}
 	}
 
 	// Validate - User inputs must not be blank
@@ -288,6 +296,9 @@ func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugi
 		QuestionId: aws.String(questionId),
 		LensAlias:  aws.String(lensAlias),
 		WorkloadId: aws.String(workloadId),
+	}
+	if milestoneNumber != 0 {
+		params.MilestoneNumber = milestoneNumber
 	}
 
 	// Create Session
