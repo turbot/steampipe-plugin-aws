@@ -17,7 +17,7 @@ from
   aws_wellarchitected_share_invitation;
 ```
 
-### List invitations for Well-Architected Lens Resources
+### List invitations for Well-Architected lens resources
 
 ```sql
 select
@@ -34,7 +34,7 @@ where
   or lens_arn is not null;
 ```
 
-### List invitations for Well-Architected Workload Resources
+### List invitations for Well-Architected workload resources
 
 ```sql
 select
