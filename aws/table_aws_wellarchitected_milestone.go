@@ -57,12 +57,6 @@ func tableAwsWellArchitectedMilestone(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("WorkloadSummary.WorkloadId", "Workload.WorkloadId"),
 			},
-			{
-				Name:        "workload",
-				Description: "A workload object.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedMilestone,
-			},
 		}),
 	}
 }
@@ -132,19 +126,12 @@ func listWellArchitectedMilestones(ctx context.Context, d *plugin.QueryData, h *
 
 func getWellArchitectedMilestone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	var id string
-	var number int32
-	if h.Item != nil {
-		number = h.Item.(types.MilestoneSummary).MilestoneNumber
-		id = *h.Item.(types.MilestoneSummary).WorkloadSummary.WorkloadId
-	} else {
-		number = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
-		id = d.EqualsQualString("workload_id")
+	number := int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+	id := d.EqualsQualString("workload_id")
 
-		// Validate - User input must not be empty
-		if id == "" || number == 0 {
-			return nil, nil
-		}
+	// Validate - User input must not be empty
+	if id == "" || number == 0 {
+		return nil, nil
 	}
 
 	// Create Session

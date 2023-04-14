@@ -61,3 +61,23 @@ from
 where
   w.workload_id = m.workload_id;
 ```
+
+### Get workload details for a particular milestone
+
+```sql
+> select
+  m.milestone_name,
+  m.milestone_number,
+  w.workload_name,
+  w.workload_id,
+  w.environment,
+  w.industry,
+  w.owner
+from
+  aws_wellarchitected_workload w,
+  aws_wellarchitected_milestone m
+where
+  w.workload_id = m.workload_id
+  and milestone_number = 1
+  and w.workload_id = 'abcdec851ac1d8d9d5b9938615da016ce'
+```
