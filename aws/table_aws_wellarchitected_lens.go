@@ -170,7 +170,9 @@ func listWellArchitectedLenses(ctx context.Context, d *plugin.QueryData, _ *plug
 		}
 
 		for _, item := range output.LensSummaries {
-
+			// As per the doc(https://docs.aws.amazon.com/wellarchitected/latest/APIReference/API_LensSummary.html)
+			// The lens alias is same as lens arn if it is a custom lens.
+			// The lens alias value coming as nil in the case of custom lenses, so we are replacing the null value with lens arn.
 			if item.LensAlias == nil || *item.LensAlias == "" {
 				item.LensAlias = item.LensArn
 			}
