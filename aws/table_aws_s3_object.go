@@ -48,7 +48,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "last_modified",
-				Description: "Creation date of the object.",
+				Description: "Last modified time of the object.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -72,7 +72,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "body",
-				Description: "The raw bytes of the object data as a string. if the bytes entirely consists of valid UTF8 runes, an UTF8 is sent otherwise the bas64 encoding of the bytes is sent.",
+				Description: "The raw bytes of the object data as a string. If the bytes entirely consists of valid UTF8 runes, an UTF8 is sent otherwise the bas64 encoding of the bytes is sent.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromValue().Transform(readObjectBody),
 				Hydrate:     getS3Object,
