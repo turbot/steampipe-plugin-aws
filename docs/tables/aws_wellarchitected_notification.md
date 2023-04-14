@@ -33,3 +33,18 @@ from
 where
   notification_type = 'LENS_VERSION_DEPRECATED';
 ```
+
+### Check if there is a notification for a particular workload
+
+```sql
+select
+  workload_name,
+  lens_alias,
+  lens_arn,
+  current_lens_version,
+  latest_lens_version
+from
+  aws_wellarchitected_notification
+where
+  workload_id = '123451c59cebcd4612f1f858bf75566';
+```
