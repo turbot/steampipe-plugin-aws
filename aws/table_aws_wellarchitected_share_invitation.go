@@ -25,6 +25,7 @@ func tableAwsWellArchitectedShareInvitation(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_name", Require: plugin.Optional},
 				{Name: "lens_name", Require: plugin.Optional},
+				{Name: "share_resource_type", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -113,11 +114,7 @@ func listWellArchitectedShareInvitations(ctx context.Context, d *plugin.QueryDat
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -129,7 +126,10 @@ func listWellArchitectedShareInvitations(ctx context.Context, d *plugin.QueryDat
 		input.WorkloadNamePrefix = aws.String(d.EqualsQualString("workload_name"))
 	}
 	if d.EqualsQualString("lens_name") != "" {
-		input.WorkloadNamePrefix = aws.String(d.EqualsQualString("lens_name"))
+		input.LensNamePrefix = aws.String(d.EqualsQualString("lens_name"))
+	}
+	if d.EqualsQualString("share_resource_type") != "" {
+		input.ShareResourceType = types.ShareResourceType(d.EqualsQualString("share_resource_type"))
 	}
 
 	paginator := wellarchitected.NewListShareInvitationsPaginator(svc, input, func(o *wellarchitected.ListShareInvitationsPaginatorOptions) {
