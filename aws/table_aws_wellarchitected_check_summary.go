@@ -53,12 +53,6 @@ func tableAwsWellArchitectedCheckSummary(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("CheckSummary.Description"),
 			},
 			{
-				Name:        "flagged_resources",
-				Description: "Count of flagged resources associated to the check.",
-				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromField("CheckSummary.FlaggedResources"),
-			},
-			{
 				Name:        "lens_arn",
 				Description: "Well-Architected Lens ARN associated to the check.",
 				Type:        proto.ColumnType_STRING,
@@ -89,12 +83,6 @@ func tableAwsWellArchitectedCheckSummary(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("CheckSummary.QuestionId"),
 			},
 			{
-				Name:        "reason",
-				Description: "Reason associated to the check.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CheckSummary.Reason"),
-			},
-			{
 				Name:        "status",
 				Description: "Status associated to the check.",
 				Type:        proto.ColumnType_STRING,
@@ -110,6 +98,12 @@ func tableAwsWellArchitectedCheckSummary(_ context.Context) *plugin.Table {
 				Name:        "workload_id",
 				Description: "The ID of the question.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "account_summary",
+				Description: "Account summary associated to the check.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("CheckSummary.AccountSummary"),
 			},
 
 			// Standard columns
