@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -27,6 +28,9 @@ func tableAwsWellArchitectedWorkloadShare(_ context.Context) *plugin.Table {
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "shared_with", Require: plugin.Optional},
 				{Name: "status", Require: plugin.Optional},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -146,6 +150,10 @@ func listWellArchitectedWorkloadShares(ctx context.Context, d *plugin.QueryData,
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "ValidationException") {
+				plugin.Logger(ctx).Debug("aws_wellarchitected_workload_share.listWellArchitectedWorkloadShares", "checked_error", err)
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_wellarchitected_workload_share.listWellArchitectedWorkloadShares", "api_error", err)
 			return nil, err
 		}
