@@ -25,12 +25,15 @@ func tableAwsWellArchitectedLensReviewImprovement(_ context.Context) *plugin.Tab
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedLensReviewImprovements,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
-			},
+			// TODO: Uncomment and remove extra check in
+			// listWellArchitectedLensReviewImprovements function once this works again
+			// IgnoreConfig: &plugin.IgnoreConfig{
+			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
+			// },
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "lens_alias", Require: plugin.Optional},
+				{Name: "milestone_number", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -137,7 +140,7 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 		// Check for reduce the numbers of API call if lens_alias or lens_arn is provided in query parameter
 		if d.EqualsQualString("lens_alias") != "" {
 			if d.EqualsQualString("lens_alias") != lensAlias {
-				continue;
+				continue
 			}
 		}
 
@@ -154,6 +157,11 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 			WorkloadId: workload.WorkloadId,
 			LensAlias:  aws.String(lensAlias),
 			MaxResults: maxLimit,
+		}
+
+		if d.EqualsQuals["milestone_number"] != nil {
+			input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+			plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review_improvement.listWellArchitectedLensReviewImprovements", "milestone_number", input.MilestoneNumber)
 		}
 
 		_, err := stereamlistLensReviewImprovements(ctx, d, h, svc, input, maxLimit)
