@@ -25,6 +25,9 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 		Description: "AWS Well-Architected Lens",
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedLenses,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "lens_name", Require: plugin.Optional},
 				{Name: "lens_status", Require: plugin.Optional},
