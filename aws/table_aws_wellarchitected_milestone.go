@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -32,6 +33,9 @@ func tableAwsWellArchitectedMilestone(_ context.Context) *plugin.Table {
 			Hydrate:       listWellArchitectedMilestones,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "ThrottlingException"}),
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -106,6 +110,11 @@ func listWellArchitectedMilestones(ctx context.Context, d *plugin.QueryData, h *
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			if strings.Contains(err.Error(), "NotFoundException") || strings.Contains(err.Error(), "ValidationException") || strings.Contains(err.Error(), "ThrottlingException") {
+				plugin.Logger(ctx).Error("aws_wellarchitected_milestone.listWellArchitectedMilestones", "checked_error", err)
+				return nil, nil
+			}
+
 			plugin.Logger(ctx).Error("aws_wellarchitected_milestone.listWellArchitectedMilestones", "api_error", err)
 			return nil, err
 		}
