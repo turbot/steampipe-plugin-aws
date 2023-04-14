@@ -76,7 +76,7 @@ from
   jsonb_array_elements(choice_answers) c;
 ```
 
-### List all the questions that are not applicable for a workload
+### List questions that are not applicable for a workload
 
 ```sql
 select
@@ -84,9 +84,48 @@ select
   a.lens_alias,
   a.workload_id,
   a.question_title,
-  a.question_description
+  a.question_description,
+  reason
 from
   aws_wellarchitected_answer a
 where
   not is_applicable;
+```
+
+### List questions that are marked as high or medium risk
+
+```sql
+select
+  a.question_id,
+  a.lens_alias,
+  a.workload_id,
+  a.question_title,
+  a.risk,
+  c ->> 'ChoiceId' as choice_id,
+  c ->> 'Status' as choice_status,
+  c ->> 'Reason' as choice_reason,
+  c ->> 'Notes' as choice_notes
+from
+  aws_wellarchitected_answer a,
+  jsonb_array_elements(choice_answers) c
+where
+  risk = 'HIGH'
+  or risk = 'MEDIUM';
+```
+
+### Get count of questions in each risk factor for each workload
+
+```sql
+select
+  workload_id,
+  risk,
+  count(question_id) as total_questions
+from
+  aws_wellarchitected_answer
+where
+  risk = 'HIGH'
+  or risk = 'MEDIUM'
+group by
+  workload_id,
+  risk;
 ```
