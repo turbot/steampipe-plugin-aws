@@ -52,11 +52,19 @@ func tableAwsWellArchitectedMilestone(_ context.Context) *plugin.Table {
 				Description: "The date and time recorded.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+			// The workload ID is in the workload column, but it's also returned as
+			// a top level response property
 			{
 				Name:        "workload_id",
 				Description: "The ID assigned to the workload.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("WorkloadSummary.WorkloadId", "Workload.WorkloadId"),
+			},
+			{
+				Name:        "workload",
+				Description: "A workload return object.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getWellArchitectedMilestone,
 			},
 		}),
 	}
@@ -131,11 +139,20 @@ func listWellArchitectedMilestones(ctx context.Context, d *plugin.QueryData, h *
 //// HYDRATE FUNCTIONS
 
 func getWellArchitectedMilestone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var workloadId string
+	var milestoneNumber int32
+	if h.Item != nil {
+		workloadId = *h.Item.(types.MilestoneSummary).WorkloadSummary.WorkloadId
+		milestoneNumber = h.Item.(types.MilestoneSummary).MilestoneNumber
+	} else {
+		quals := d.EqualsQuals
+		workloadId = quals["workload_id"].GetStringValue()
+		milestoneNumber = int32(quals["milestone_number"].GetInt64Value())
+	}
 
-	milestoneNumber := int32(d.EqualsQuals["milestone_number"].GetInt64Value())
-	workloadId := d.EqualsQualString("workload_id")
-
-	// Validate - User input must not be empty
+	// Empty value validation
+	// The minimum value for MilestoneNumber param is 1, so it's safe to check
+	// for zero value
 	if workloadId == "" || milestoneNumber == 0 {
 		return nil, nil
 	}
