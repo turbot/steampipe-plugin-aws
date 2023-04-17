@@ -1,3 +1,12 @@
+## v0.100.0 [2023-04-15]
+
+_What's new?_
+
+- New tables added
+  - [aws_s3_object](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3_object) ([#1623](https://github.com/turbot/steampipe-plugin-aws/pull/1623))
+  - [aws_wellarchitected_lens_review](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_lens_review) ([#1694](https://github.com/turbot/steampipe-plugin-aws/pull/1694))
+  - [aws_wellarchitected_milestone](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_milestone) ([#1696](https://github.com/turbot/steampipe-plugin-aws/pull/1696))
+
 ## v0.99.0 [2023-04-07]
 
 _What's new?_
