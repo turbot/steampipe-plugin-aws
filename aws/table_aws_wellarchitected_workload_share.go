@@ -150,8 +150,8 @@ func listWellArchitectedWorkloadShares(ctx context.Context, d *plugin.QueryData,
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "ValidationException") {
-				plugin.Logger(ctx).Debug("aws_wellarchitected_workload_share.listWellArchitectedWorkloadShares", "checked_error", err)
+			if strings.Contains(err.Error(), "ResourceNotFoundException") {
+				plugin.Logger(ctx).Error("aws_wellarchitected_workload_share.listWellArchitectedWorkloadShares", "api_error", err)
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_wellarchitected_workload_share.listWellArchitectedWorkloadShares", "api_error", err)
