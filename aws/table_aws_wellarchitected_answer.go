@@ -251,9 +251,6 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 					Risk:          item.Risk,
 				}
 
-				if output.LensAlias == nil {
-					output.LensAlias = output.LensArn
-				}
 				d.StreamListItem(ctx, &AnswerInfo{answer, output.LensAlias, output.LensArn, &output.MilestoneNumber, output.WorkloadId})
 
 				// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -319,8 +316,5 @@ func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	if op.LensAlias == nil {
-		op.LensAlias = op.LensArn
-	}
 	return &AnswerInfo{*op.Answer, op.LensAlias, op.LensArn, &op.MilestoneNumber, op.WorkloadId}, nil
 }
