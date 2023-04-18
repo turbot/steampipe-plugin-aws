@@ -54,24 +54,58 @@ where
   pillar_id = 'security';
 ```
 
-### Get workload details for trusted advisor checks having errors
+### Get trusted advisor checks with errors
 
 ```sql
 select
-  d.question_id,
-  d.choice_id,
-  d.pillar_id,
-  d.name,
-  d.status,
+  id,
+  choice_id,
+  name,
+  pillar_id,
+  question_id,
+  flagged_resources,
+  updated_at
+from
+  aws_wellarchitected_check_detail
+where 
+  status = 'ERROR';
+```
+
+### Get workload details for trusted advisor checks with errors
+
+```sql
+select
   w.workload_name,
   w.workload_id,
   w.environment,
   w.industry,
-  w.owner
+  w.owner,
+  d.name as check_name,
+  d.flagged_resources,
+  d.pillar_id
 from
   aws_wellarchitected_check_detail d,
   aws_wellarchitected_workload w
 where
   d.workload_id = w.workload_id
   and d.status = 'ERROR';
+```
+
+### Get trusted advisor check details for wellarchitected lens in a particular workload
+
+```sql
+select
+  id,
+  choice_id,
+  name,
+  pillar_id,
+  question_id,
+  flagged_resources,
+  status,
+  updated_at
+from
+  aws_wellarchitected_check_detail
+where
+  lens_arn = 'arn:aws:wellarchitected::aws:lens/wellarchitected'
+  and workload_id = 'abcdc851ac1d8d9d5b9938615da016ce';
 ```

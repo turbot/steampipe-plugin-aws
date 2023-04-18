@@ -71,6 +71,12 @@ func tableAwsWellArchitectedCheckDetail(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("CheckDetail.Name"),
 			},
 			{
+				Name:        "owner_account_id",
+				Description: "An Amazon Web Services account ID.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("CheckDetail.AccountId"),
+			},
+			{
 				Name:        "pillar_id",
 				Description: "The ID used to identify a pillar, for example, security. A pillar is identified by its PillarReviewSummary$PillarId.",
 				Type:        proto.ColumnType_STRING,
@@ -301,9 +307,6 @@ func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *pl
 					Risk:          item.Risk,
 				}
 
-				if output.LensAlias == nil {
-					output.LensAlias = output.LensArn
-				}
 				answerList = append(answerList, AnswerInfo{answer, output.LensAlias, output.LensArn, &output.MilestoneNumber, output.WorkloadId})
 			}
 		}
