@@ -29,9 +29,6 @@ func tableAwsWellArchitectedWorkloadShare(_ context.Context) *plugin.Table {
 				{Name: "shared_with", Require: plugin.Optional},
 				{Name: "status", Require: plugin.Optional},
 			},
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "ResourceNotFoundException"}),
-			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -105,11 +102,7 @@ func listWellArchitectedWorkloadShares(ctx context.Context, d *plugin.QueryData,
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
