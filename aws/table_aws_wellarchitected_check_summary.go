@@ -174,11 +174,7 @@ func fetchWellArchitectedCheckSummaries(ctx context.Context, d *plugin.QueryData
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
