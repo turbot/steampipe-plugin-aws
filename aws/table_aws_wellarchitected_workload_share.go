@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -101,11 +102,7 @@ func listWellArchitectedWorkloadShares(ctx context.Context, d *plugin.QueryData,
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -146,6 +143,10 @@ func listWellArchitectedWorkloadShares(ctx context.Context, d *plugin.QueryData,
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			if strings.Contains(err.Error(), "ResourceNotFoundException") {
+				plugin.Logger(ctx).Error("aws_wellarchitected_workload_share.listWellArchitectedWorkloadShares", "api_error", err)
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_wellarchitected_workload_share.listWellArchitectedWorkloadShares", "api_error", err)
 			return nil, err
 		}

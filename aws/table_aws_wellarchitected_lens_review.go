@@ -85,7 +85,6 @@ func tableAwsWellArchitectedLensReview(_ context.Context) *plugin.Table {
 			{
 				Name:        "milestone_number",
 				Description: "The milestone number. A workload can have a maximum of 100 milestones.",
-				Hydrate:     getWellArchitectedLensReview,
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -197,7 +196,8 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 
 		for _, item := range output.LensReviewSummaries {
 			d.StreamListItem(ctx, LensReviewInfo{
-				WorkloadId: workloadId,
+				MilestoneNumber: output.MilestoneNumber,
+				WorkloadId:      workloadId,
 				LensReview: &types.LensReview{
 					LensAlias:   item.LensAlias,
 					LensArn:     item.LensArn,
