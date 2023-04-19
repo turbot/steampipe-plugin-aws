@@ -2,16 +2,14 @@ package aws
 
 import (
 	"context"
-	"errors"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
-	"github.com/aws/smithy-go"
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -23,10 +21,24 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_wellarchitected_lens",
 		Description: "AWS Well-Architected Lens",
+		Get: &plugin.GetConfig{
+			Hydrate: getWellArchitectedLens,
+			// API throws ValidationException when calling the GetLens operation: [Validation] Invalid lens alias(allowed value as alias is LensARN) if we are passing the arn value of a custom lens and it is not available in a particular region then the API throws the ValidationException.
+			IgnoreConfig: &plugin.IgnoreConfig{
+				// Do not ignore the ValidationException since AWS doesn't let you pass in LensVersion for AWS lenses.
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "AccessDeniedException"}),
+			},
+			// region has been added to key key quals column to avoid the error: get call returned 18 results - the key column is not globally unique in case of AWS official lenses.
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "lens_alias", Require: plugin.Required},
+				{Name: "region", Require: plugin.Required},
+				{Name: "lens_version", Require: plugin.Optional, CacheMatch: "exact"},
+			},
+		},
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedLenses,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "lens_name", Require: plugin.Optional},
@@ -92,7 +104,6 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 				Description: "The ID assigned to the shared invitation.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getWellArchitectedLens,
-				Transform:   transform.FromField("ShareInvitationId"),
 			},
 
 			// Steampipe standard columns
@@ -100,7 +111,7 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("LensName"),
+				Transform:   transform.FromField("LensName", "Name"),
 			},
 			{
 				Name:        "tags",
@@ -117,6 +128,21 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+type LensInfo struct {
+	CreatedAt         *time.Time
+	Description       *string
+	LensAlias         *string
+	LensArn           *string
+	LensName          *string
+	LensStatus        types.LensStatus
+	LensType          types.LensType
+	LensVersion       *string
+	Owner             *string
+	UpdatedAt         *time.Time
+	ShareInvitationId *string
+	Tags              map[string]string
 }
 
 //// LIST FUNCTION
@@ -173,11 +199,21 @@ func listWellArchitectedLenses(ctx context.Context, d *plugin.QueryData, _ *plug
 			// As per the doc(https://docs.aws.amazon.com/wellarchitected/latest/APIReference/API_LensSummary.html)
 			// The lens alias is same as lens arn if it is a custom lens.
 			// The lens alias value coming as nil in the case of custom lenses, so we are replacing the null value with lens arn.
-			if item.LensAlias == nil || *item.LensAlias == "" {
+			if item.LensAlias == nil {
 				item.LensAlias = item.LensArn
 			}
-
-			d.StreamListItem(ctx, item)
+			d.StreamListItem(ctx, LensInfo{
+				CreatedAt:   item.CreatedAt,
+				Description: item.Description,
+				LensAlias:   item.LensAlias,
+				LensArn:     item.LensArn,
+				LensName:    item.LensName,
+				LensStatus:  item.LensStatus,
+				LensType:    item.LensType,
+				LensVersion: item.LensVersion,
+				Owner:       item.Owner,
+				UpdatedAt:   item.UpdatedAt,
+			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -202,15 +238,18 @@ func listWellArchitectedLenses(ctx context.Context, d *plugin.QueryData, _ *plug
 		For custom lenses, this is the lens ARN, such as arn:aws:wellarchitected:us-west-2:123456789012:lens/0123456789abcdef01234567890abcdef
 	2. LensVersion:
 		The lens version to be retrieved.
-
-	For manipulation the 'LensAlias' values for for both type(AWS official/custom) of lenses is bit wired, also the steampipe query throws error(get call returned 18 results - the key column is not globally unique) in the case of AWS official lenses because the lens aliases are same throughout the regions, so this function can not be use in get config.
-
-	This function has been added as a hydrate function to overcome the error "get call returned 18 results - the key column is not globally unique"
 */
 
 func getWellArchitectedLens(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	lensArn := *h.Item.(types.LensSummary).LensArn
+	var lensAlias *string
+	if h.Item != nil {
+		lensAlias = h.Item.(LensInfo).LensAlias
+		if lensAlias == nil {
+			lensAlias = h.Item.(LensInfo).LensArn
+		}
+	} else {
+		lensAlias = aws.String(d.EqualsQualString("lens_alias"))
+	}
 
 	// Create Session
 	svc, err := WellArchitectedClient(ctx, d)
@@ -225,19 +264,32 @@ func getWellArchitectedLens(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	params := &wellarchitected.GetLensInput{
-		LensAlias: aws.String(lensArn),
+		LensAlias: lensAlias,
 	}
 
+	if d.EqualsQualString("lens_version") != "" {
+		params.LensVersion = aws.String(d.EqualsQualString("lens_version"))
+	}
+	lensInfo := &LensInfo{}
 	op, err := svc.GetLens(ctx, params)
-	if err != nil {
-		var ae smithy.APIError
-		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
-				return nil, nil
-			}
+	if op != nil && op.Lens != nil {
+		// The API does not provide the value of lens alias so we are updaiting it's value as per the quals value.
+		if d.EqualsQualString("lens_alias") != "" {
+			lensInfo.LensAlias = aws.String(d.EqualsQualString("lens_alias"))
+		} else {
+			lensInfo.LensAlias = op.Lens.LensArn
 		}
+		lensInfo.Description = op.Lens.Description
+		lensInfo.LensArn = op.Lens.LensArn
+		lensInfo.LensVersion = op.Lens.LensVersion
+		lensInfo.LensName = op.Lens.Name
+		lensInfo.Owner = op.Lens.Owner
+		lensInfo.ShareInvitationId = op.Lens.ShareInvitationId
+		lensInfo.Tags = op.Lens.Tags
+	}
+	if err != nil {
 		plugin.Logger(ctx).Error("aws_wellarchitected_lens.getWellArchitectedLens", "api_error", err)
 		return nil, err
 	}
-	return op.Lens, nil
+	return lensInfo, nil
 }
