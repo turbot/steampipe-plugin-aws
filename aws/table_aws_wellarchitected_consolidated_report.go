@@ -21,9 +21,6 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 		Description: "AWS Well-Architected Consolidated Report",
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedConsolidatedReports,
-			KeyColumns: []*plugin.KeyColumn{
-				{Name: "format", Require: plugin.Optional}, // The possibel values are: JSON | PDF, The default value is JSON
-			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -52,8 +49,9 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 			{
 				Name:        "base64_string",
 				Description: "The Base64-encoded string representation of a lens review report. This data can be used to create a PDF file. Only returned by GetConsolidatedReport when PDF format is requested.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Base64String"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listWellArchitectedConsolidatedReportBase64,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "lenses_applied_count",
@@ -108,18 +106,9 @@ func listWellArchitectedConsolidatedReports(ctx context.Context, d *plugin.Query
 	}
 
 	input := &wellarchitected.GetConsolidatedReportInput{
+		Format:                 types.ReportFormatJson,
 		IncludeSharedResources: true,
 		MaxResults:             maxLimit,
-	}
-
-	if d.EqualsQualString("format") != "" {
-		if d.EqualsQualString("format") == "PDF" {
-			input.Format = types.ReportFormatPdf
-		} else {
-			input.Format = types.ReportFormatJson
-		}
-	} else {
-		input.Format = types.ReportFormatPdf
 	}
 
 	paginator := wellarchitected.NewGetConsolidatedReportPaginator(svc, input, func(o *wellarchitected.GetConsolidatedReportPaginatorOptions) {
@@ -153,4 +142,44 @@ func listWellArchitectedConsolidatedReports(ctx context.Context, d *plugin.Query
 	}
 
 	return nil, nil
+}
+
+func listWellArchitectedConsolidatedReportBase64(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// Create session
+	svc, err := WellArchitectedClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_wellarchitected_consolidated_report.listWellArchitectedConsolidatedReportBase64", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	input := &wellarchitected.GetConsolidatedReportInput{
+		Format:                 types.ReportFormatPdf,
+		IncludeSharedResources: true,
+		MaxResults:             int32(15),
+	}
+
+	paginator := wellarchitected.NewGetConsolidatedReportPaginator(svc, input, func(o *wellarchitected.GetConsolidatedReportPaginatorOptions) {
+		o.Limit = int32(15)
+		o.StopOnDuplicateToken = true
+	})
+
+	var pdfFormatbase64Encoded []*string
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wellarchitected_consolidated_report.listWellArchitectedConsolidatedReportBase64", "api_error", err)
+			return nil, err
+		}
+
+		if output.Base64String != nil {
+			pdfFormatbase64Encoded = append(pdfFormatbase64Encoded, output.Base64String)
+		}
+	}
+
+	return pdfFormatbase64Encoded, nil
 }
