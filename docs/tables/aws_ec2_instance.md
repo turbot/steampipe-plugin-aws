@@ -81,6 +81,34 @@ from
   aws_ec2_instance;
 ```
 
+### Get license details for each instance
+
+```sql
+select
+  instance_id,
+  instance_type,
+  instance_state,
+  l ->> 'LicenseConfigurationArn' as license_configuration_arn
+from
+  aws_ec2_instance,
+  jsonb_array_elements(licenses) as l;
+```
+
+### List instances by placement group
+
+```sql
+select
+  instance_id,
+  instance_state,
+  launch_time,
+  placement_group_id,
+  placement_group_name
+from
+  aws_ec2_instance
+where
+  placement_group_id = 'pg-015f18b75049eaa0d';
+```
+
 ### List of EC2 instances provisioned with undesired(for example t2.large and m3.medium is desired) instance type(s).
 
 ```sql
