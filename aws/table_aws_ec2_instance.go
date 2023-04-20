@@ -365,6 +365,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "maintenance_options",
+				Description: "The metadata options for the instance.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "metadata_options",
 				Description: "The metadata options for the instance.",
 				Type:        proto.ColumnType_JSON,
@@ -687,7 +692,6 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	return instanceData, nil
 }
-
 
 func getEc2LaunchTemplateData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get the details of load balancer
