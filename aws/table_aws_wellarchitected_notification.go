@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -114,10 +113,6 @@ func listWellArchitectedNotifications(ctx context.Context, d *plugin.QueryData, 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wellarchitected_notification.listWellArchitectedNotifications", "api_error", err)
-			if strings.Contains(err.Error(), "ValidationException") {
-				plugin.Logger(ctx).Error("aws_wellarchitected_notification.listWellArchitectedNotifications", "api_error", err)
-				return nil, nil
-			}
 			return nil, err
 		}
 
