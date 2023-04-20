@@ -202,16 +202,46 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "placement_affinity",
+				Description: "The affinity setting for the instance on the Dedicated Host.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Placement.Affinity"),
+			},
+			{
 				Name:        "placement_availability_zone",
 				Description: "The Availability Zone of the instance.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Placement.AvailabilityZone"),
 			},
 			{
+				Name:        "placement_group_id",
+				Description: "The ID of the placement group that the instance is in.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Placement.GroupId"),
+			},
+			{
 				Name:        "placement_group_name",
 				Description: "The name of the placement group the instance is in.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Placement.GroupName"),
+			},
+			{
+				Name:        "placement_host_id",
+				Description: "The ID of the Dedicated Host on which the instance resides.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Placement.HostId"),
+			},
+			{
+				Name:        "placement_host_resource_group_arn",
+				Description: "The ARN of the host resource group in which to launch the instances.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Placement.HostResourceGroupArn"),
+			},
+			{
+				Name:        "placement_partition_number",
+				Description: "The ARN of the host resource group in which to launch the instances.",
+				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("Placement.PartitionNumber"),
 			},
 			{
 				Name:        "placement_tenancy",
@@ -270,6 +300,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Name:        "source_dest_check",
 				Description: "Specifies whether to enable an instance launched in a VPC to perform NAT. This controls whether source/destination checking is enabled on the instance.",
 				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "spot_instance_request_id",
+				Description: "If the request is a Spot Instance request, the ID of the request.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "sriov_net_support",
@@ -363,6 +398,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Hydrate:     getEc2LaunchTemplateData,
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "licenses",
+				Description: "The license configurations for the instance.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "maintenance_options",
