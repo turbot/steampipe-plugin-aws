@@ -21,24 +21,10 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_wellarchitected_lens",
 		Description: "AWS Well-Architected Lens",
-		Get: &plugin.GetConfig{
-			Hydrate: getWellArchitectedLens,
-			// API throws ValidationException when calling the GetLens operation: [Validation] Invalid lens alias(allowed value as alias is LensARN) if we are passing the arn value of a custom lens and it is not available in a particular region then the API throws the ValidationException.
-			IgnoreConfig: &plugin.IgnoreConfig{
-				// Do not ignore the ValidationException since AWS doesn't let you pass in LensVersion for AWS lenses.
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "AccessDeniedException"}),
-			},
-			// region has been added to key key quals column to avoid the error: get call returned 18 results - the key column is not globally unique in case of AWS official lenses.
-			KeyColumns: []*plugin.KeyColumn{
-				{Name: "lens_alias", Require: plugin.Required},
-				{Name: "region", Require: plugin.Required},
-				{Name: "lens_version", Require: plugin.Optional, CacheMatch: "exact"},
-			},
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedLenses,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "lens_name", Require: plugin.Optional},

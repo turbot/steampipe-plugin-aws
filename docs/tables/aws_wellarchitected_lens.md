@@ -18,7 +18,21 @@ from
   aws_wellarchitected_lens;
 ```
 
-### List lenses that are of custom shared type
+### List unique lenses
+
+When querying multiple regions in an AWS account, each region will return the AWS provided lenses. To only see unique lenses, please see the example below.
+
+```sql
+select distinct
+  on(arn) arn,
+  lens_name,
+  lens_status,
+  lens_type
+from
+  aws_wellarchitected_lens;
+```
+
+### List custom lenses that are shared from other AWS accounts
 
 ```sql
 select
