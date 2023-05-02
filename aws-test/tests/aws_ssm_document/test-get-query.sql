@@ -1,3 +1,3 @@
 select name, tags, title, akas
 from aws.aws_ssm_document
-where name = '{{ resourceName }}';
+where arn = '{{ output.resource_aka.value }}';
