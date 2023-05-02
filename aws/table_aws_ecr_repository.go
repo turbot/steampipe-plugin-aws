@@ -96,6 +96,13 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "repository_scanning_configuration",
+				Description: "Gets the scanning configuration for one or more repositories.",
+				Hydrate:     getAwsEcrRepositorieScanningConfiguration,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "image_scanning_configuration",
 				Description: "The image scanning configuration for a repository.",
 				Type:        proto.ColumnType_JSON,
@@ -427,6 +434,29 @@ func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData
 			}
 		}
 		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryLifecyclePolicy", "api_error", err)
+		return nil, err
+	}
+	return op, nil
+}
+
+func getAwsEcrRepositorieScanningConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	repositoryName := h.Item.(types.Repository).RepositoryName
+
+	// Create Session
+	svc, err := ECRClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositorieScanningConfiguration", "connection_error", err)
+		return nil, err
+	}
+	// Build the params
+	params := &ecr.BatchGetRepositoryScanningConfigurationInput{
+		RepositoryNames: []string{*repositoryName},
+	}
+	// Get call
+	op, err := svc.BatchGetRepositoryScanningConfiguration(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositorieScanningConfiguration", "api_error", err)
 		return nil, err
 	}
 	return op, nil
