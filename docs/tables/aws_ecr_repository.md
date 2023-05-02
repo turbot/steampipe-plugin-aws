@@ -127,3 +127,49 @@ where
   s ->> 'Effect' = 'Allow'
   and a in ('*', 'ecr:*');
 ```
+
+### List repository scanning configuration settings
+
+```sql
+select
+  repository_name,
+  r ->> 'AppliedScanFilters' as applied_scan_filters,
+  r ->> 'RepositoryArn' as repo_arn,
+  r ->> 'RepositoryName' as repo_name,
+  r ->> 'ScanFrequency' as scan_frequency,
+  r ->> 'ScanOnPush' as scan_push
+from
+  aws_ecr_repository,
+  jsonb_array_elements(repository_scanning_configuration -> 'ScanningConfigurations') as r
+
+```
+
+### List repository scan frequency is set to manual
+
+```sql
+select
+  repository_name,
+  r ->> 'RepositoryArn' as repo_arn,
+  r ->> 'RepositoryName' as repo_name,
+  r ->> 'ScanFrequency' as scan_frequency
+from
+  aws_ecr_repository,
+  jsonb_array_elements(repository_scanning_configuration -> 'ScanningConfigurations') as r
+where
+  r ->> 'ScanFrequency' = 'MANUAL'
+```
+
+### List repositories with scan-on-push is disabled
+
+```sql
+select
+  repository_name,
+  r ->> 'RepositoryArn' as repo_arn,
+  r ->> 'RepositoryName' as repo_name,
+  r ->> 'ScanOnPush' as scan_push
+from
+  aws_ecr_repository,
+  jsonb_array_elements(repository_scanning_configuration -> 'ScanningConfigurations') as r
+where
+ r ->> 'ScanOnPush' = 'false'
+```
