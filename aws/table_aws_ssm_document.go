@@ -20,7 +20,7 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_document",
 		Description: "AWS SSM Document",
 		Get: &plugin.GetConfig{
-			// Instead of using the "name" coulmn in get config we should use the column "arn" to suppress the error Error: get call returned 23 results - the key column is not globally unique
+			// To avoid the error: get call returned 23 results - the key column is not globally unique, it is recommended to use the "arn" column instead of the "name" column in the "get config" function.
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidDocument"}),
@@ -55,7 +55,7 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The ARN of the document.",
+				Description: "The Amazon Resource Name (ARN) of the document.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getgetAwsSSMDocumentArn,
 				Transform:   transform.FromValue(),
@@ -303,26 +303,31 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	var arn string
 	if h.Item != nil {
-		data, _ := getgetAwsSSMDocumentArn(ctx, d, h)
+		data, err := getgetAwsSSMDocumentArn(ctx, d, h)
+		if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocument", "arn_formatting_error", err)
+			return nil, err
+		}
 		arn = data.(string)
 	} else {
 		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 	metrixRegion := d.EqualsQualString(matrixKeyRegion)
-	arnSplit := strings.Split(arn, ":")
+	arnSplit := strings.Split(arn, ":") // Split ARN to get the region
 
 	// Invalid arn check
 	if len(arnSplit) < 3 {
 		return nil, nil
 	}
-	
+
 	// The same document name can be used in different regions.
 	// If a name is specified in the WHERE clause, the "get config" function will be executed. However, if the specified document name is available in different regions, the query will throw an error stating that the "get" call returned 23 results and the key column is not globally unique.
+	// Check for region specified in .spc file and the region specified in ARN
 	if metrixRegion != arnSplit[3] {
 		return nil, nil
 	}
 
-	name := strings.Split(arn, "/")[1]
+	name := strings.Split(arn, "/")[1] // Split ARN to get the document name
 
 	// Create Session
 	svc, err := SSMClient(ctx, d)
@@ -414,7 +419,7 @@ func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func getgetAwsSSMDocumentArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	akas, err := getAwsSSMDocumentAkas(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ssm_document.getgetAwsSSMDocumentArn", "error", err)
+		plugin.Logger(ctx).Error("aws_ssm_document.getgetAwsSSMDocumentArn", "arn_formatting_error", err)
 		return nil, err
 	}
 
