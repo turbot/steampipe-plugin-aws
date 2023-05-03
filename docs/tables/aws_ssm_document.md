@@ -68,7 +68,7 @@ where
   and account_ids :: jsonb ? 'all';
 ```
 
-### Get a document by region
+### Get a specific document
 
 ```sql
 select
@@ -80,7 +80,5 @@ select
 from
   aws_ssm_document
 where
-  arn = 'arn:aws:ssm:ap-south-1:112233445566:document/AWS-ASGEnterStandby'
-and
-  region = 'ap-south-1';
+  arn = 'arn:aws:ssm:ap-south-1:112233445566:document/AWS-ASGEnterStandby';
 ```
