@@ -57,7 +57,7 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the document.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getgetAwsSSMDocumentArn,
+				Hydrate:     getAwsSSMDocumentArn,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -303,27 +303,26 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	var arn string
 	if h.Item != nil {
-		data, err := getgetAwsSSMDocumentArn(ctx, d, h)
+		data, err := getAwsSSMDocumentArn(ctx, d, h)
 		if err != nil {
-		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocument", "arn_formatting_error", err)
+			plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocument", "arn_formatting_error", err)
 			return nil, err
 		}
 		arn = data.(string)
 	} else {
 		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
-	metrixRegion := d.EqualsQualString(matrixKeyRegion)
+
+	matrixRegion := d.EqualsQualString(matrixKeyRegion)
 	arnSplit := strings.Split(arn, ":") // Split ARN to get the region
 
-	// Invalid arn check
+	// Invalid ARN check
 	if len(arnSplit) < 3 {
 		return nil, nil
 	}
 
-	// The same document name can be used in different regions.
-	// If a name is specified in the WHERE clause, the "get config" function will be executed. However, if the specified document name is available in different regions, the query will throw an error stating that the "get" call returned 23 results and the key column is not globally unique.
-	// Check for region specified in .spc file and the region specified in ARN
-	if metrixRegion != arnSplit[3] {
+	// Skip ARNs in other regions
+	if matrixRegion != arnSplit[3] {
 		return nil, nil
 	}
 
@@ -416,14 +415,23 @@ func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	return []string{aka}, nil
 }
 
-func getgetAwsSSMDocumentArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	akas, err := getAwsSSMDocumentAkas(ctx, d, h)
+func getAwsSSMDocumentArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
+	name := documentName(h.Item)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ssm_document.getgetAwsSSMDocumentArn", "arn_formatting_error", err)
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentArn", "common_data_error", err)
 		return nil, err
 	}
+	commonColumnData := c.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":document"
 
-	arn := akas.([]string)[0]
+	if strings.HasPrefix(name, "/") {
+		arn = arn + name
+	} else {
+		arn = arn + "/" + name
+	}
 
 	return arn, nil
 }
