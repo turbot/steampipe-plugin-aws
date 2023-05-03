@@ -139,7 +139,7 @@ select
   r ->> 'ScanOnPush' as scan_push
 from
   aws_ecr_repository,
-  jsonb_array_elements(repository_scanning_configuration -> 'ScanningConfigurations') as r
+  jsonb_array_elements(repository_scanning_configuration -> 'ScanningConfigurations') as r;
 
 ```
 
@@ -154,7 +154,7 @@ from
   aws_ecr_repository,
   jsonb_array_elements(repository_scanning_configuration -> 'ScanningConfigurations') as r
 where
-  r ->> 'ScanFrequency' = 'MANUAL'
+  r ->> 'ScanFrequency' = 'MANUAL';
 ```
 
 ### List repositories with scan-on-push is disabled
@@ -168,5 +168,5 @@ from
   aws_ecr_repository,
   jsonb_array_elements(repository_scanning_configuration -> 'ScanningConfigurations') as r
 where
- r ->> 'ScanOnPush' = 'false'
+ r ->> 'ScanOnPush' = 'false';
 ```
