@@ -69,6 +69,49 @@ where
   not tags :: JSONB ? 'application';
 ```
 
+### Get maintenance options for each instance
+
+```sql
+select
+  instance_id,
+  instance_state,
+  launch_time,
+  maintenance_options ->> 'AutoRecovery' as auto_recovery
+from
+  aws_ec2_instance;
+```
+
+### Get license details for each instance
+
+```sql
+select
+  instance_id,
+  instance_type,
+  instance_state,
+  l ->> 'LicenseConfigurationArn' as license_configuration_arn
+from
+  aws_ec2_instance,
+  jsonb_array_elements(licenses) as l;
+```
+
+### Get placement group details for each instance
+
+```sql
+select
+  instance_id,
+  instance_state,
+  placement_affinity,
+  placement_group_id,
+  placement_group_name,
+  placement_availability_zone,
+  placement_host_id,
+  placement_host_resource_group_arn,
+  placement_partition_number,
+  placement_tenancy
+from
+  aws_ec2_instance;
+```
+
 ### List of EC2 instances provisioned with undesired(for example t2.large and m3.medium is desired) instance type(s).
 
 ```sql
