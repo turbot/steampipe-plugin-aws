@@ -158,7 +158,7 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getEc2InstanceTurbotTags),
+				Transform:   transform.From(getEC2ClientVPNEndpointTurbotTags),
 			},
 		}),
 	}
@@ -279,6 +279,8 @@ func buildEC2ClientVPNEndpointFilter(equalQuals plugin.KeyColumnEqualsQualMap) [
 	return filters
 }
 
+//// TRANSFORM FUNCTIONS
+
 func getEC2ClientVPNEndpointTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(types.ClientVpnEndpoint)
 	title := data.ClientVpnEndpointId
@@ -290,4 +292,19 @@ func getEC2ClientVPNEndpointTurbotTitle(_ context.Context, d *transform.Transfor
 		}
 	}
 	return title, nil
+}
+
+func getEC2ClientVPNEndpointTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(types.ClientVpnEndpoint)
+	var turbotTagsMap map[string]string
+	if data.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range data.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
