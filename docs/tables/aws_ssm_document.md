@@ -67,3 +67,18 @@ where
   owner_type = 'Self'
   and account_ids :: jsonb ? 'all';
 ```
+
+### Get a specific document
+
+```sql
+select
+  name,
+  arn,
+  approved_version,
+  created_date,
+  document_type
+from
+  aws_ssm_document
+where
+  arn = 'arn:aws:ssm:ap-south-1:112233445566:document/AWS-ASGEnterStandby';
+```
