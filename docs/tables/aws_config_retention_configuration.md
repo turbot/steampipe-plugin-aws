@@ -20,7 +20,7 @@ from
 
 ```sql
 select
-   name,
+  name,
   retention_period_in_days,
   title
 from
@@ -42,4 +42,3 @@ from
 where
   region = 'us-east-1';
 ```
-

@@ -16,13 +16,6 @@ func tableAwsConfigRetentionConfiguration(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_config_retention_configuration",
 		Description: "AWS Config Retention Configuration",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchRetentionConfigurationException"}),
-			},
-			Hydrate: getConfigRetentionConfiguration,
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigRetentionConfigurations,
 		},
@@ -87,28 +80,4 @@ func listConfigRetentionConfigurations(ctx context.Context, d *plugin.QueryData,
 	}
 
 	return nil, nil
-}
-
-//// HYDRATE FUNCTIONS
-
-func getConfigRetentionConfiguration(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.EqualsQualString("name")
-
-	// Create session
-	svc, err := ConfigClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getConfigRetentionConfiguration", "client_error", err)
-		return nil, err
-	}
-
-	params := &configservice.DescribeRetentionConfigurationsInput{
-		RetentionConfigurationNames: []string{name},
-	}
-
-	rentention, err := svc.DescribeRetentionConfigurations(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getConfigRetentionConfiguration", "api_error", err)
-		return nil, err
-	}
-	return rentention.RetentionConfigurations[0], nil
 }
