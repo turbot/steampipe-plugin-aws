@@ -343,24 +343,24 @@ select
     title,
     f.severity ->> 'Original' as severity,
     r ->> 'Type' as resource_type,
-    affected_account_id
+    source_account_id
   FROM
     aws_securityhub_finding,
     jsonb_array_elements(resources) r
   WHERE
-    affected_account_id = '0123456789012';
+    source_account_id = '0123456789012';
 ```
 
 ### Count the number of findings by affected account
 
 ```sql
 select
-  affected_account_id,
+  source_account_id,
   count(*) as finding_count
 from
   aws_securityhub_finding
 group by
-  affected_account_id
+  source_account_id
 order by
-  affected_account_id;
+  source_account_id;
 ```
