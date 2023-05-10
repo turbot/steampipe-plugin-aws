@@ -166,7 +166,8 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 			return nil, err
 		}
 
-		if output.ImageScanFindings == nil || output.ImageScanFindings.Findings == nil {
+		// If the scan is in progress and no findings are available yet, ImageScanFindings is nil
+		if output.ImageScanFindings == nil {
 			return nil, nil
 		}
 
