@@ -166,6 +166,11 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 			return nil, err
 		}
 
+		// If the scan is in progress and no findings are available yet, ImageScanFindings is nil
+		if output.ImageScanFindings == nil {
+			return nil, nil
+		}
+
 		for _, finding := range output.ImageScanFindings.Findings {
 			result := &ImageScanFindingsOutput{
 				ImageDigest:      output.ImageId.ImageDigest,
