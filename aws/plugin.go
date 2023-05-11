@@ -114,6 +114,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_config_aggregate_authorization":                           tableAwsConfigAggregateAuthorization(ctx),
 			"aws_config_configuration_recorder":                            tableAwsConfigConfigurationRecorder(ctx),
 			"aws_config_conformance_pack":                                  tableAwsConfigConformancePack(ctx),
+			"aws_config_retention_configuration":                           tableAwsConfigRetentionConfiguration(ctx),
 			"aws_config_rule":                                              tableAwsConfigRule(ctx),
 			"aws_cost_by_account_daily":                                    tableAwsCostByLinkedAccountDaily(ctx),
 			"aws_cost_by_account_monthly":                                  tableAwsCostByLinkedAccountMonthly(ctx),
