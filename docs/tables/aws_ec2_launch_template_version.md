@@ -129,7 +129,8 @@ from
 where
   ebs_optimized;
 ```
-### List launch template versions where instance termination is restricted via console, CLI, or API.
+
+### List launch template versions where instance termination is restricted via console, CLI, or API
 
 ```sql
 select
@@ -144,7 +145,7 @@ where
   disable_api_termination;
 ```
 
-### List template version where instance stop protection enabled
+### List template versions where instance stop protection is enabled
 
 ```sql
 select
