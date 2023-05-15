@@ -117,21 +117,14 @@ func listWellArchitectedConsolidatedReports(ctx context.Context, d *plugin.Query
 			return nil, err
 		}
 
-		if input.Format == types.ReportFormatPdf {
-			d.StreamListItem(ctx, output)
-		}
+		for _, items := range output.Metrics {
+			d.StreamListItem(ctx, items)
 
-		if input.Format == types.ReportFormatJson {
-			for _, items := range output.Metrics {
-				d.StreamListItem(ctx, items)
-
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.RowsRemaining(ctx) == 0 {
-					return nil, nil
-				}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
-
 	}
 
 	return nil, nil
