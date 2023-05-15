@@ -23,14 +23,14 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("client_vpn_endpoint_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "InvalidQueryParameter", "InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "InvalidQueryParameter", "InvalidParameterValue", "InvalidClientVpnEndpointId.NotFound"}),
 			},
 			Hydrate: getEC2ClientVPNEndpoint,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEC2ClientVPNEndpoints,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "transfer_protocol", Require: plugin.Optional},
+				{Name: "transport_protocol", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
@@ -41,8 +41,8 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "transfer_protocol",
-				Description: "The transfer protocol.",
+				Name:        "transport_protocol",
+				Description: "The transport protocol.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -250,12 +250,12 @@ func getEC2ClientVPNEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	return op.ClientVpnEndpoints, nil
+	return op.ClientVpnEndpoints[0], nil
 }
 
 //// UTILITY FUNCTIONS
 
-// Build ec2 client VPN endpoint list call input filter
+// Build EC2 client VPN endpoint list call input filter
 
 func buildEC2ClientVPNEndpointFilter(equalQuals plugin.KeyColumnEqualsQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)
