@@ -51,3 +51,31 @@ select
 from
   aws_ssm_managed_instance_patch_state;
 ```
+
+### List patch operations in the last 10 days
+
+```sql
+select
+  instance_id,
+  baseline_id,
+  operation,
+  operation_end_time,
+  operation_start_time
+from
+  aws_ssm_managed_instance_patch_state
+where
+  operation_end_time >= now() - interval '10' day;
+```
+
+### List scan patches
+
+```sql
+select
+  instance_id,
+  baseline_id,
+  operation
+from
+  aws_ssm_managed_instance_patch_state
+where
+  operation = 'Scan';
+```
