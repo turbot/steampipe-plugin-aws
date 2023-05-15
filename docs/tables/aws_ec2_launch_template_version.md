@@ -20,6 +20,7 @@ from
 ```
 
 ### List launch template versions created by a user
+
 ```sql
 select
   launch_template_name,
@@ -112,4 +113,47 @@ select
   launch_template_data -> 'UserData' as user_data
 from
   aws_ec2_launch_template_version;
+```
+
+### List launch template versions where instance is optimized for Amazon EBS I/O
+
+```sql
+select
+  launch_template_name,
+  launch_template_id,
+  version_number,
+  version_description,
+  ebs_optimized
+from
+  aws_ec2_launch_template_version
+where
+  ebs_optimized;
+```
+### List launch template versions where instance termination is restricted via console, CLI, or API.
+
+```sql
+select
+  launch_template_name,
+  launch_template_id,
+  version_number,
+  version_description,
+  disable_api_termination
+from
+  aws_ec2_launch_template_version
+where
+  disable_api_termination;
+```
+
+### List template version where instance stop protection enabled
+
+```sql
+select
+  launch_template_name,
+  launch_template_id,
+  version_number,
+  disable_api_stop
+from
+  aws_ec2_launch_template_version
+where
+  disable_api_stop;
 ```

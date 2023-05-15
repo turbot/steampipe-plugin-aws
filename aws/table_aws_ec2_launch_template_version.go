@@ -34,9 +34,12 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 			ParentHydrate: listEc2LaunchTemplates,
 			Hydrate:       listEc2LaunchTemplateVersions,
 			KeyColumns: []*plugin.KeyColumn{
-				// The launch template ID and launch template name cannot be specified at the same time in the input parameters, that's why the launch_template_name has not been added as an optional qual.
 				{
 					Name:    "launch_template_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "launch_template_name",
 					Require: plugin.Optional,
 				},
 				{
@@ -106,7 +109,7 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "ebs_optimized",
-				Description: "If set to true, indicates that the instance cannot be terminated using the Amazon EC2 console, command line tool, or API.",
+				Description: "Indicates whether the instance is optimized for Amazon EBS I/O.",
 				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("LaunchTemplateData.EbsOptimized"),
 			},
@@ -183,6 +186,9 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 
 func listEc2LaunchTemplateVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	launchTemplate := h.Item.(types.LaunchTemplate)
+	launchTemplateName := d.EqualsQualString("launch_template_name")
+	launchTemplateId := d.EqualsQualString("launch_template_id")
+
 	// Create Session
 	svc, err := EC2Client(ctx, d)
 	if err != nil {
@@ -199,15 +205,34 @@ func listEc2LaunchTemplateVersions(ctx context.Context, d *plugin.QueryData, h *
 		}
 	}
 
-	if d.EqualsQualString("launch_template_id") != "" {
-		if d.EqualsQualString("launch_template_id") != *launchTemplate.LaunchTemplateId {
+	if launchTemplateId != "" {
+		if launchTemplateId != *launchTemplate.LaunchTemplateId {
 			return nil, nil
 		}
 	}
+	if launchTemplateName != "" {
+		if launchTemplateName != *launchTemplate.LaunchTemplateName {
+			return nil, nil
+		}
+	}
+
+	if launchTemplateName != "" && launchTemplateId != "" {
+		return nil, fmt.Errorf("LaunchtemplateName and LaunchTemplateId can not be specify at a time.")
+	}
+
 	// The aws_ec2_launch_template table is used as the parent hydrate because the LaunchTemplateId is not specified in the input parameter, and it will return only the latest and default version launch templates.
 	input := &ec2.DescribeLaunchTemplateVersionsInput{
-		MaxResults:       aws.Int32(maxLimit),
-		LaunchTemplateId: launchTemplate.LaunchTemplateId,
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	if launchTemplateId != "" {
+		input.LaunchTemplateId = &launchTemplateId
+	}
+	if launchTemplateName != "" {
+		input.LaunchTemplateName = &launchTemplateName
+	}
+	if launchTemplateId == "" && launchTemplateName == "" {
+		input.LaunchTemplateId = launchTemplate.LaunchTemplateId
 	}
 
 	filters := buildEc2LaunchTemplateVersionFilter(d.Quals)
@@ -275,6 +300,7 @@ func getEc2LaunchTemplateVersion(ctx context.Context, d *plugin.QueryData, h *pl
 	op, err := svc.DescribeLaunchTemplateVersions(ctx, input)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_launch_template_version.getEc2LaunchTemplateVersion", "api_error", err)
+		return nil, err
 	}
 
 	if op != nil && len(op.LaunchTemplateVersions) > 0 {
