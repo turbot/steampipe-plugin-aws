@@ -40,13 +40,6 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "format",
-				Description: "The format of the consolidate report.",
-				Type:        proto.ColumnType_STRING,
-				Default:     "JSON",
-				Transform:   transform.FromQual("format"),
-			},
-			{
 				Name:        "base64_string",
 				Description: "The Base64-encoded string representation of a lens review report. This data can be used to create a PDF file. Only returned by GetConsolidatedReport when PDF format is requested.",
 				Type:        proto.ColumnType_JSON,
