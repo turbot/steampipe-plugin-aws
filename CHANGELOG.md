@@ -1,3 +1,48 @@
+## v0.102.0 [2023-05-11]
+
+_What's new?_
+
+- New tables added
+  - [aws_config_retention_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_config_retention_configuration) ([#1718](https://github.com/turbot/steampipe-plugin-aws/pull/1718))
+
+_Enhancements_
+
+- Added column `repository_scanning_configuration` to `aws_ecr_repository` table. ([#1719](https://github.com/turbot/steampipe-plugin-aws/pull/1719))
+- Added column `source_account_id` to `aws_securityhub_finding` table. ([#1703](https://github.com/turbot/steampipe-plugin-aws/pull/1703)) (Thanks [@gabrielsoltz](https://github.com/gabrielsoltz) for the contribution!)
+
+_Bug fixes_
+
+- Fixed `aws_ecr_image_scan_finding` table to return an empty row instead of an error when image scanning is in progress. ([#1728](https://github.com/turbot/steampipe-plugin-aws/pull/1728)) (Thanks [@aminvielledebatAtBedrock](https://github.com/aminvielledebatAtBedrock) for the contribution!)
+- Fixed the `GetConfig` of the `aws_ssm_document` table to use `arn` instead of `name` as a key column to avoid failures in querying multiple regions with the same document name. ([#1720](https://github.com/turbot/steampipe-plugin-aws/pull/1720))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.4.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v541-2023-05-05) which fixes increased plugin initialization time due to multiple connections causing the schema to be loaded repeatedly. ([#1685](https://github.com/turbot/steampipe-plugin-aws/pull/1685))
+
+## v0.101.0 [2023-04-25]
+
+_What's new?_
+
+- New tables added
+  - [aws_wellarchitected_lens](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_lens) ([#1689](https://github.com/turbot/steampipe-plugin-aws/pull/1689))
+  - [aws_wellarchitected_notification](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_notification) ([#1693](https://github.com/turbot/steampipe-plugin-aws/pull/1693))
+  - [aws_wellarchitected_workload_share](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_workload_share) ([#1690](https://github.com/turbot/steampipe-plugin-aws/pull/1690))
+
+_Enhancements_
+
+- Added `maintenance_options`, `licenses`, `placement_affinity`, `placement_group_id`, `placement_host_id`, `placement_host_resource_group_arn`, `placement_partition_number`, and `spot_instance_request_id` columns to `aws_ec2_instance` table. ([#1709](https://github.com/turbot/steampipe-plugin-aws/pull/1709))
+- Added `workspace` column to `aws_wellarchitected_milestone` table.
+- Removed hydrate requirement for `milestone_number` column in `aws_wellarchitected_lens_review` table.
+
+## v0.100.0 [2023-04-15]
+
+_What's new?_
+
+- New tables added
+  - [aws_s3_object](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3_object) ([#1623](https://github.com/turbot/steampipe-plugin-aws/pull/1623))
+  - [aws_wellarchitected_lens_review](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_lens_review) ([#1694](https://github.com/turbot/steampipe-plugin-aws/pull/1694))
+  - [aws_wellarchitected_milestone](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_milestone) ([#1696](https://github.com/turbot/steampipe-plugin-aws/pull/1696))
+
 ## v0.99.0 [2023-04-07]
 
 _What's new?_
