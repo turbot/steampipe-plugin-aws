@@ -132,7 +132,6 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Answer.Risk"),
 			},
-
 			{
 				Name:        "choice_answers",
 				Description: "A list of selected choices to a question in your workload.",
