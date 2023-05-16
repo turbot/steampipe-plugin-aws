@@ -289,6 +289,7 @@ func buildServiceDiscoveryNamespaceFilter(quals plugin.KeyColumnQualMap) []types
 		if quals[columnName] != nil {
 			filter := types.NamespaceFilter{
 				Name: types.NamespaceFilterName(filterName),
+				Condition: types.FilterConditionEq,
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
