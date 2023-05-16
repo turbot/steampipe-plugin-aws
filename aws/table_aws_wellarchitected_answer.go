@@ -86,7 +86,7 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "lens_arn",
-				Description: "The ARN of the lens.",
+				Description: "The Amazon Resource Name (ARN) of the lens.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
