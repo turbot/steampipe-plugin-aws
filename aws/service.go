@@ -1334,7 +1334,7 @@ func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
 }
 
 func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
-	cfg, err := getClientForRegion(ctx, d, "us-east-2")
+	cfg, err := getClient(ctx, d, "us-east-2")
 	if err != nil {
 		return nil, err
 	}
