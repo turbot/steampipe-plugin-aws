@@ -7,6 +7,5 @@ select
 from
   aws.aws_ssm_document
 where
-  owner = 'Self'
-  and akas::text = '["{{ output.resource_aka.value }}"]';
+  akas::text = '["{{ output.resource_aka.value }}"]';
 
