@@ -153,7 +153,7 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Answer.SelectedChoices"),
 			},
 
-			// Standard columns
+			// Seampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
