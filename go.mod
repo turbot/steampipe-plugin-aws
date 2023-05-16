@@ -64,6 +64,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iam v1.19.0
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/inspector v1.13.0
+	github.com/aws/aws-sdk-go-v2/service/inspector2 v1.11.5
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.19.0
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.17.1
 	github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.16.0
