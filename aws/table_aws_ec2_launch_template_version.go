@@ -217,7 +217,7 @@ func listEc2LaunchTemplateVersions(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	if launchTemplateName != "" && launchTemplateId != "" {
-		return nil, fmt.Errorf("LaunchtemplateName and LaunchTemplateId can not be specify at a time.")
+		return nil, fmt.Errorf("Both LaunchtemplateName and LaunchTemplateId cannot be passed in the where clause.")
 	}
 
 	// The aws_ec2_launch_template table is used as the parent hydrate because the LaunchTemplateId is not specified in the input parameter, and it will return only the latest and default version launch templates.
@@ -312,7 +312,7 @@ func getEc2LaunchTemplateVersion(ctx context.Context, d *plugin.QueryData, h *pl
 
 //// UTILITY FUNCTIONS
 
-// Build ec2 key-pair list call input filter
+// Build ec2 launch template version list call input filter
 func buildEc2LaunchTemplateVersionFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)
 
