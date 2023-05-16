@@ -10,8 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 
-	ssoadminv1 "github.com/aws/aws-sdk-go/service/ssoadmin"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -28,7 +26,6 @@ func tableAwsSsoAdminAccountAssignment(_ context.Context) *plugin.Table {
 			),
 			Hydrate: listSsoAdminAccountAssignments,
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "target_account_id",
@@ -83,8 +80,8 @@ func listSsoAdminAccountAssignments(ctx context.Context, d *plugin.QueryData, h 
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-				maxLimit = limit
-			}
+			maxLimit = limit
+		}
 	}
 
 	permissionSetArn := d.EqualsQualString("permission_set_arn")

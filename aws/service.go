@@ -171,7 +171,6 @@ import (
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
-	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
@@ -1335,7 +1334,7 @@ func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
 }
 
 func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssoEndpoint.EndpointsID)
+	cfg, err := getClientForRegion(ctx, d, "us-east-2")
 	if err != nil {
 		return nil, err
 	}
