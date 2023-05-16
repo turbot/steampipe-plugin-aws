@@ -434,7 +434,7 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFin
 				securityFindingsFilter.WorkflowStatus = append(securityFindingsFilter.WorkflowStatus, strFilter)
 			case "source_account_id":
 				strFilter.Value = aws.String(value)
-				securityFindingsFilter.WorkflowStatus = append(securityFindingsFilter.AwsAccountId, strFilter)
+				securityFindingsFilter.AwsAccountId = append(securityFindingsFilter.AwsAccountId, strFilter)
 			}
 
 		}
