@@ -209,7 +209,7 @@ func listServiceCatalogProducts(ctx context.Context, d *plugin.QueryData, _ *plu
 	if d.EqualsQualString("accept_language") != "" {
 		input.AcceptLanguage = aws.String(d.EqualsQualString("accept_language"))
 	}
-	
+
 	filters := buildServiceCatalogProductFilter(ctx, d.Quals)
 	input.Filters = filters
 
