@@ -12,13 +12,14 @@ select
   id,
   product_id,
   type,
+  akas,
   support_url,
   support_email
 from
   aws_servicecatalog_product;
 ```
 
-### List products that has a default path
+### List products that have a default path
 
 ```sql
 select
@@ -51,24 +52,29 @@ where
   type = 'MARKETPLACE';
 ```
 
-### Get budget details for each product
+### Get budget details of each product
 
 ```sql
 select
   name,
+  id,
+  owner,
   product_id,
+  short_description,
   b ->> 'BudgetName' as budget_name
 from
   aws_servicecatalog_product,
   jsonb_array_elements(budgets) as b;
 ```
 
-### Get launch path details for each product
+### Get launch path details of each product
 
 ```sql
 select
   name,
   id,
+  owner,
+  short_description,
   l ->> 'Id' as launch_path_id,
   l ->> 'Name' as launch_path_name
 from

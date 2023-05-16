@@ -76,19 +76,19 @@ func tableAwsServicecatalogProduct(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "support_description",
-				Description: "The description of the support for this Product.",
+				Description: "The description of the support for this product.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ProductViewSummary.SupportDescription"),
 			},
 			{
 				Name:        "support_email",
-				Description: "The email contact information to obtain support for this Product.",
+				Description: "The email contact information to obtain support for this product.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ProductViewSummary.SupportEmail"),
 			},
 			{
 				Name:        "support_url",
-				Description: "The URL information to obtain support for this Product.",
+				Description: "The URL information to obtain support for this product.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ProductViewSummary.SupportUrl"),
 			},
