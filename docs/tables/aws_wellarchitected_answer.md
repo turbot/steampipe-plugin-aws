@@ -1,6 +1,6 @@
 # Table: aws_wellarchitected_answer
 
-The answers of a lens review in a Well-Architected workload
+The answers of a lens review in a Well-Architected workload.
 
 **Important notes:**
 
