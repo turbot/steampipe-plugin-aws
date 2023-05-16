@@ -46,29 +46,9 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "authentication_options",
-				Description: "Information about the authentication method used by the Client VPN endpoint.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "client_cidr_block",
 				Description: "The IPv4 address range, in CIDR notation, from which client IP addresses are assigned.",
 				Type:        proto.ColumnType_CIDR,
-			},
-			{
-				Name:        "client_connect_options",
-				Description: "The options for managing connection authorization for new client connections.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "client_login_banner_options",
-				Description: "Options for enabling a customizable text banner that will be displayed on Amazon Web Services provided clients when a VPN session is established.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "client_log_options",
-				Description: "Information about the client connection logging options for the Client VPN endpoint.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "creation_time",
@@ -91,16 +71,6 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "dns_servers",
-				Description: "Information about the DNS servers to be used for DNS resolution.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "security_group_ids",
-				Description: "The IDs of the security groups for the target network.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "self_service_portal_url",
 				Description: "The URL of the self-service portal.",
 				Type:        proto.ColumnType_STRING,
@@ -121,6 +91,46 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "vpc_id",
+				Description: "The ID of the VPC.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "vpn_port",
+				Description: "The port number for the Client VPN endpoint.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "authentication_options",
+				Description: "Information about the authentication method used by the Client VPN endpoint.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "client_connect_options",
+				Description: "The options for managing connection authorization for new client connections.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "client_log_options",
+				Description: "Information about the client connection logging options for the Client VPN endpoint.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "client_login_banner_options",
+				Description: "Options for enabling a customizable text banner that will be displayed on Amazon Web Services provided clients when a VPN session is established.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "dns_servers",
+				Description: "Information about the DNS servers to be used for DNS resolution.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "security_group_ids",
+				Description: "The IDs of the security groups for the target network.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "status",
 				Description: "The current state of the Client VPN endpoint.",
 				Type:        proto.ColumnType_JSON,
@@ -132,21 +142,11 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 			{
-				Name:        "vpc_id",
-				Description: "The ID of the VPC.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "vpn_port",
-				Description: "The port number for the Client VPN endpoint.",
-				Type:        proto.ColumnType_INT,
-			},
-			{
 				Name:        "vpn_protocol",
 				Description: "The protocol used by the VPN session.",
 				Type:        proto.ColumnType_JSON,
 			},
-
+			
 			// Steampipe standard columns
 			{
 				Name:        "title",
