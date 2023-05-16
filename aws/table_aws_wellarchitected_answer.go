@@ -26,6 +26,7 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 				{Name: "lens_alias", Require: plugin.Required},
 				{Name: "question_id", Require: plugin.Required},
 				{Name: "workload_id", Require: plugin.Required},
+				{Name: "milestone_number", Require: plugin.Optional},
 			},
 			Hydrate: getWellArchitectedAnswer,
 		},
@@ -176,7 +177,7 @@ type AnswerInfo struct {
 func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	workload := h.Item.(types.WorkloadSummary)
 
-	// Validate - User inputs must not be blank
+	// Validate - User inputs must not be blank and return nil if doesn't match the hydrated workload id
 	if d.EqualsQualString("workload_id") != "" && d.EqualsQualString("workload_id") != *workload.WorkloadId {
 		return nil, nil
 	}
@@ -275,8 +276,8 @@ func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugi
 		questionId = d.EqualsQualString("question_id")
 		lensAlias = d.EqualsQualString("lens_alias")
 		workloadId = d.EqualsQualString("workload_id")
-		if d.EqualsQuals["workload_id"] != nil {
-			milestoneNumber = int32(d.EqualsQuals["workload_id"].GetInt64Value())
+		if d.EqualsQuals["milestone_number"] != nil {
+			milestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
 		}
 	}
 

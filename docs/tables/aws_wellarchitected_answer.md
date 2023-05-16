@@ -39,7 +39,7 @@ group by
   a.pillar_id;
 ```
 
-### List all the questions along with the choices for a workload
+### List all the questions along with the choices
 
 ```sql
 select
@@ -58,7 +58,7 @@ from
   jsonb_array_elements(choices) c;
 ```
 
-### List all the questions along with the answered choices for a workload
+### List all the questions along with the answered choices
 
 ```sql
 select
