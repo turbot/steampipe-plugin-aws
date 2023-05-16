@@ -150,7 +150,7 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("LaunchTemplateData.SecurityGroups"),
 			},
 			{
-				Name:        "SecurityGroupIds",
+				Name:        "security_group_ids",
 				Description: "The security group IDs.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("LaunchTemplateData.SecurityGroupIds"),
