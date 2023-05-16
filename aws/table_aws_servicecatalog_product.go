@@ -29,6 +29,28 @@ func tableAwsServicecatalogProduct(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceCatalogProducts,
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:    "accept_language",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "full_text_search",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "owner",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "type",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "source_product_id",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -51,10 +73,28 @@ func tableAwsServicecatalogProduct(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ProductViewSummary.ProductId"),
 			},
 			{
+				Name:        "source_product_id",
+				Description: "The source product identifier.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("source_product_id"),
+			},
+			{
 				Name:        "distributor",
 				Description: "The distributor of the product. Contact the product administrator for the significance of this value.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ProductViewSummary.Distributor"),
+			},
+			{
+				Name:        "accept_language",
+				Description: "The language code.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("accept_language"),
+			},
+			{
+				Name:        "full_text_search",
+				Description: "The full text for the product.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("full_text_search"),
 			},
 			{
 				Name:        "has_default_path",
@@ -166,6 +206,13 @@ func listServiceCatalogProducts(ctx context.Context, d *plugin.QueryData, _ *plu
 		PageSize: maxLimit,
 	}
 
+	if d.EqualsQualString("accept_language") != "" {
+		input.AcceptLanguage = aws.String(d.EqualsQualString("accept_language"))
+	}
+	
+	filters := buildServiceCatalogProductFilter(ctx, d.Quals)
+	input.Filters = filters
+
 	paginator := servicecatalog.NewSearchProductsPaginator(svc, input, func(o *servicecatalog.SearchProductsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
@@ -257,4 +304,31 @@ func getProductArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	commonColumnData := commonData.(*awsCommonColumnData)
 	arn := "arn:" + commonColumnData.Partition + ":catalog:" + region + ":" + commonColumnData.AccountId + ":product/" + *product.ProductViewSummary.ProductId
 	return arn, nil
+}
+
+//// UTILITY FUNCTIONS
+
+// Buid servicecatalog product list call filter param
+
+func buildServiceCatalogProductFilter(ctx context.Context, quals plugin.KeyColumnQualMap) map[string][]string {
+	filterQuals := map[string]string{
+		"full_text_search":  "FullTextSearch",
+		"owner":             "Owner",
+		"type":              "ProductType",
+		"source_product_id": "SourceProductId",
+	}
+
+	filter := make(map[string][]string)
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter[filterName] = []string{val}
+			}
+		}
+	}
+
+	return filter
 }
