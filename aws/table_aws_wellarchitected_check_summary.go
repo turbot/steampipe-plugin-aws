@@ -20,10 +20,13 @@ import (
 func tableAwsWellArchitectedCheckSummary(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_wellarchitected_check_summary",
-		Description: "AWS Well-Architected Summary",
+		Description: "AWS Well-Architected Check Summary",
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedCheckSummaries,
+			// IgnoreConfig: &plugin.IgnoreConfig{
+			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
+			// },
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "choice_id", Require: plugin.Optional},
@@ -96,7 +99,7 @@ func tableAwsWellArchitectedCheckSummary(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "workload_id",
-				Description: "The ID of the question.",
+				Description: "The ID of the workload.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -106,7 +109,7 @@ func tableAwsWellArchitectedCheckSummary(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("CheckSummary.AccountSummary"),
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -128,7 +131,7 @@ func listWellArchitectedCheckSummaries(ctx context.Context, d *plugin.QueryData,
 
 	answerList, err := getAnswerDetailsForWorkload(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_wellarchitected_check_summary.listWellArchitectedCheckSummaries", "error", err)
+		plugin.Logger(ctx).Error("aws_wellarchitected_check_summary.getAnswerDetailsForWorkload", "api_error", err)
 		return nil, err
 	}
 
@@ -150,7 +153,6 @@ func listWellArchitectedCheckSummaries(ctx context.Context, d *plugin.QueryData,
 
 	for _, answer := range answerList {
 		// List call
-		// Context can be cancelled due to manual cancellation or the limit has been hit
 		if d.EqualsQualString("pillar_id") != "" && d.EqualsQualString("pillar_id") != *answer.PillarId {
 			continue
 		}
@@ -159,7 +161,7 @@ func listWellArchitectedCheckSummaries(ctx context.Context, d *plugin.QueryData,
 		}
 		_, err := fetchWellArchitectedCheckSummaries(ctx, d, svc, answer)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_wellarchitected_check_summary.listWellArchitectedCheckSummaries", "api_error", err)
+			plugin.Logger(ctx).Error("aws_wellarchitected_check_summary.fetchWellArchitectedCheckSummaries", "api_error", err)
 			return nil, err
 		}
 	}

@@ -24,6 +24,9 @@ func tableAwsWellArchitectedCheckDetail(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedCheckDetails,
+			// IgnoreConfig: &plugin.IgnoreConfig{
+			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
+			// },
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "choice_id", Require: plugin.Optional},
@@ -114,11 +117,11 @@ func tableAwsWellArchitectedCheckDetail(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "workload_id",
-				Description: "The ID of the question.",
+				Description: "The ID of the workload.",
 				Type:        proto.ColumnType_STRING,
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -234,6 +237,7 @@ func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *pl
 	workload := h.Item.(types.WorkloadSummary)
 	workloadId := workload.WorkloadId
 
+	// Validate - User inputs must not be blank and return nil if doesn't match the hydrated workload id
 	if d.EqualsQualString("workload_id") != "" && d.EqualsQualString("workload_id") != *workloadId {
 		return nil, nil
 	}
@@ -250,7 +254,7 @@ func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *pl
 	// Create session
 	svc, err := WellArchitectedClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_wellarchitected_answer.listWellArchitectedAnswers", "client_error", err)
+		plugin.Logger(ctx).Error("aws_wellarchitected_answer.getAnswerDetailsForWorkload", "client_error", err)
 		return nil, err
 	}
 
@@ -287,7 +291,7 @@ func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *pl
 				if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "ValidationException") {
 					continue
 				}
-				plugin.Logger(ctx).Error("aws_wellarchitected_answer.listWellArchitectedAnswers", "api_error", err)
+				plugin.Logger(ctx).Error("aws_wellarchitected_answer.getAnswerDetailsForWorkload", "api_error", err)
 				return nil, err
 			}
 
