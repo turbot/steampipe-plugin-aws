@@ -28,7 +28,7 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 		},
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutions,
-			ParentHydrate: listStepFunctionsStateManchines,
+			ParentHydrate: listStepFunctionsStateMachines,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "status", Require: plugin.Optional},
 				{Name: "state_machine_arn", Require: plugin.Optional},
@@ -129,17 +129,17 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		return nil, nil
 	}
 
-	arn := h.Item.(types.StateMachineListItem).StateMachineArn
+	stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
 
 	equalQuals := d.EqualsQuals
-	// Minimize the API call with the given layer name
+	// Minimize the API call with the given state machine ARN
 	if equalQuals["state_machine_arn"] != nil {
 		if equalQuals["state_machine_arn"].GetStringValue() != "" {
-			if equalQuals["state_machine_arn"].GetStringValue() != "" && equalQuals["state_machine_arn"].GetStringValue() != *arn {
+			if equalQuals["state_machine_arn"].GetStringValue() != "" && equalQuals["state_machine_arn"].GetStringValue() != *stateMachineArn {
 				return nil, nil
 			}
 		} else if len(getListValues(equalQuals["state_machine_arn"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["state_machine_arn"].GetListValue())), *arn) {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["state_machine_arn"].GetListValue())), *stateMachineArn) {
 				return nil, nil
 			}
 		}
@@ -155,7 +155,7 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		}
 	}
 	input := &sfn.ListExecutionsInput{
-		StateMachineArn: arn,
+		StateMachineArn: stateMachineArn,
 		MaxResults:      int32(maxLimit),
 	}
 	if equalQuals["status"] != nil {

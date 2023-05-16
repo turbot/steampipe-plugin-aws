@@ -1,0 +1,12 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "name": "{{ resourceName }}",
+    "policy_arn": "{{ output.resource_policy_arn.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    },
+    "vpc_id": "{{ output.resource_vpc_id.value }}"
+  }
+]

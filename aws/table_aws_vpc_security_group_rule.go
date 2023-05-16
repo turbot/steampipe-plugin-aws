@@ -81,7 +81,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "group_owner_id",
-				Description: "The AWS account ID of the owner of the security group to which rule belongs.",
+				Description: "The ID of the Amazon Web Services account that owns the security group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -106,18 +106,18 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "cidr_ip",
-				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use cidr_ipv4 instead. The IPv4 CIDR range. It can be either a CIDR range or a source security group, not both. A single IPv4 address is denoted by /32 prefix length.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use cidr_ipv4 instead. The IPv4 CIDR range.",
 				Type:        proto.ColumnType_CIDR,
 				Transform:   transform.FromField("CidrIpv4"),
 			},
 			{
 				Name:        "cidr_ipv4",
-				Description: "The IPv4 CIDR range. It can be either a CIDR range or a source security group, not both. A single IPv4 address is denoted by /32 prefix length.",
+				Description: "The IPv4 CIDR range.",
 				Type:        proto.ColumnType_CIDR,
 			},
 			{
 				Name:        "cidr_ipv6",
-				Description: "The IPv6 CIDR range. It can be either a CIDR range or a source security group, not both. A single IPv6 address is denoted by /128 prefix length.",
+				Description: "The IPv6 CIDR range.",
 				Type:        proto.ColumnType_CIDR,
 			},
 			{
@@ -189,7 +189,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "prefix_list_id",
-				Description: "The ID of the referenced prefix list.",
+				Description: "The ID of the prefix list.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
