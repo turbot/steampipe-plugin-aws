@@ -28,7 +28,7 @@ func tableAwsServiceDiscoveryNamespace(_ context.Context) *plugin.Table {
 			Hydrate: getServiceDiscoveryNamespace,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listServiceDiscoveryNamespace,
+			Hydrate: listServiceDiscoveryNamespaces,
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "type",
@@ -123,12 +123,12 @@ func tableAwsServiceDiscoveryNamespace(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listServiceDiscoveryNamespace(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listServiceDiscoveryNamespaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Client
 	svc, err := ServiceDiscoveryClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_service_discovery_namespace.listServiceDiscoveryNamespace", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_service_discovery_namespace.listServiceDiscoveryNamespaces", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -162,7 +162,7 @@ func listServiceDiscoveryNamespace(ctx context.Context, d *plugin.QueryData, _ *
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_service_discovery_namespace.listServiceDiscoveryNamespace", "api_error", err)
+			plugin.Logger(ctx).Error("aws_service_discovery_namespace.listServiceDiscoveryNamespaces", "api_error", err)
 			return nil, err
 		}
 
