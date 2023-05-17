@@ -182,13 +182,9 @@ func listServiceDiscoveryNamespaces(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getServiceDiscoveryNamespace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var id string
-	if h.Item != nil {
-		data := h.Item.(types.NamespaceSummary)
-		id = *data.Id
-	} else {
-		id = d.EqualsQuals["id"].GetStringValue()
-	}
+
+	id := d.EqualsQualString("id")
+
 	// Empty check
 	if id == "" {
 		return nil, nil
@@ -238,7 +234,7 @@ func getServiceDirectoryNamespaceTags(ctx context.Context, d *plugin.QueryData, 
 	// Create client
 	svc, err := ServiceDiscoveryClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_service_discovery_namespace.getServiceDirectoryNamespaceTags", "connection_error", err)
+		logger.Error("aws_service_discovery_namespace.getServiceDirectoryNamespaceTags", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
