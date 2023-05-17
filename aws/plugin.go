@@ -449,6 +449,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wellarchitected_answer":                                   tableAwsWellArchitectedAnswer(ctx),
 			"aws_wellarchitected_lens":                                     tableAwsWellArchitectedLens(ctx),
 			"aws_wellarchitected_lens_review":                              tableAwsWellArchitectedLensReview(ctx),
+			"aws_wellarchitected_lens_review_improvement":                  tableAwsWellArchitectedLensReviewImprovement(ctx),
 			"aws_wellarchitected_milestone":                                tableAwsWellArchitectedMilestone(ctx),
 			"aws_wellarchitected_notification":                             tableAwsWellArchitectedNotification(ctx),
 			"aws_wellarchitected_workload":                                 tableAwsWellArchitectedWorkload(ctx),
