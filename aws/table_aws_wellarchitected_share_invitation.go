@@ -81,13 +81,6 @@ func tableAwsWellArchitectedShareInvitation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ShareInvitationId"),
 			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedShareInvitationAkas,
-				Transform:   transform.FromValue(),
-			},
 		}),
 	}
 }
@@ -160,20 +153,4 @@ func listWellArchitectedShareInvitations(ctx context.Context, d *plugin.QueryDat
 	}
 
 	return nil, nil
-}
-
-func getWellArchitectedShareInvitationAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.EqualsQualString(matrixKeyRegion)
-	invitation := h.Item.(types.ShareInvitationSummary)
-
-	commonData, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":wellarchitected:" + region + ":" + commonColumnData.AccountId + ":share-invitation/" + *invitation.ShareInvitationId}
-
-	return akas, nil
 }
