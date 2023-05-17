@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -114,17 +115,14 @@ func listWellArchitectedShareInvitations(ctx context.Context, d *plugin.QueryDat
 		MaxResults: maxLimit,
 	}
 
+	if d.EqualsQualString("workload_name") != "" && d.EqualsQualString("lens_name") != "" {
+		return nil, fmt.Errorf("you can either pass workload_name or lens_name as an optional qual but not both.")
+	}
+
 	if d.EqualsQualString("workload_name") != "" {
-		if d.EqualsQualString("lens_name") != "" {
-			return nil, nil
-		}
 		input.WorkloadNamePrefix = aws.String(d.EqualsQualString("workload_name"))
-		input.ShareResourceType = types.ShareResourceTypeWorkload
 	}
 	if d.EqualsQualString("lens_name") != "" {
-		if d.EqualsQualString("workload_name") != "" {
-			return nil, nil
-		}
 		input.LensNamePrefix = aws.String(d.EqualsQualString("lens_name"))
 		input.ShareResourceType = types.ShareResourceTypeLens
 	}
