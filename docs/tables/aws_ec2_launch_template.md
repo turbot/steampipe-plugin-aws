@@ -1,10 +1,10 @@
-# Table: aws_ec2_launch_configuration
+# Table: aws_ec2_launch_template
 
 A launch template is similar to a launch configuration, in that it specifies instance configuration information.
 
 ## Examples
 
-### Basic launch configuration info
+### Basic info
 
 ```sql
 select
