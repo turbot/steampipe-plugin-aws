@@ -1,10 +1,10 @@
 # Table: aws_wellarchitected_lens_share
 
-AWS Well-Architected Framework can share a custom lens with other AWS accounts, users, AWS Organizations, and organization units (OUs)..
+AWS Well-Architected Framework can share a custom lens with other AWS accounts, users, AWS Organizations, and organization units (OUs).
 
 ## Examples
 
-## Basic info
+### Basic info
 
 ```sql
 select
@@ -17,7 +17,7 @@ from
   aws_wellarchitected_lens_share;
 ```
 
-## Get lens details for the lens shares
+### Get lens details of the shared lenses
 
 ```sql
 select
@@ -34,7 +34,7 @@ where
   s.lens_arn = l.arn;
 ```
 
-## List lens shares that are in pending state
+### List shared lenses that are in pending state
 
 ```sql
 select
