@@ -19,7 +19,7 @@ from
   aws_ssm_managed_instance_patch_state;
 ```
 
-### Count number of patches installed form patch base line
+### Count the number of patches installed from patch base line
 
 ```sql
 select
@@ -30,7 +30,7 @@ from
   aws_ssm_managed_instance_patch_state;
 ```
 
-### Count number of patches installed not form patch base line
+### Count the number of patches installed not from patch base line
 
 ```sql
 select
@@ -41,7 +41,7 @@ from
   aws_ssm_managed_instance_patch_state;
 ```
 
-### Count security non compliant per node
+### Count of non-compliant security patches for each instance
 
 ```sql
 select
