@@ -75,7 +75,7 @@ func tableAwsWellArchitectedShareInvitation(_ context.Context) *plugin.Table {
 				Description: "The ID assigned to the workload.",
 				Type:        proto.ColumnType_STRING,
 			},
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
