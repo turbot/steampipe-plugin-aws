@@ -25,11 +25,11 @@ select
   id,
   arn,
   type,
-  service_account
+  service_count
 from
   aws_service_discovery_namespace
 where
-  type ilike 'private';
+  type ilike '%private%';
 ```
 
 ### List HTTP type namespaces
