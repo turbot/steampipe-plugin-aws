@@ -4,7 +4,7 @@ The answers of a lens review in a Well-Architected workload.
 
 **Important notes:**
 
-- For improved performance, it is advised that you use the optional qual `workload_id`, `pillar_id` and `lens_alias` to limit the result set to a specific workload, lens or pillar.
+- For improved performance, it is advisable that you use the optional qual `workload_id`, `pillar_id`, and `lens_alias` to limit the result set to a specific workload, lens, or pillar.
 
 ## Examples
 
