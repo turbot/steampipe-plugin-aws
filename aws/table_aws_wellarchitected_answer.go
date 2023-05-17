@@ -2,14 +2,16 @@ package aws
 
 import (
 	"context"
-	"strings"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
+	"github.com/aws/smithy-go"
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -229,9 +231,13 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 		for paginator.HasMorePages() {
 			output, err := paginator.NextPage(ctx)
 			if err != nil {
-				if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "ValidationException") {
-					return nil, nil
+				var ae smithy.APIError
+				if errors.As(err, &ae) {
+					if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+						return nil, nil
+					}
 				}
+
 				plugin.Logger(ctx).Error("aws_wellarchitected_answer.listWellArchitectedAnswers", "api_error", err)
 				return nil, err
 			}
