@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -34,6 +35,7 @@ func tableAwsWellArchitectedLensReviewImprovement(_ context.Context) *plugin.Tab
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "lens_alias", Require: plugin.Optional},
 				{Name: "milestone_number", Require: plugin.Optional},
+				{Name: "pillar_id", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -159,9 +161,15 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 			MaxResults: maxLimit,
 		}
 
+		if d.EqualsQuals["pillar_id"] != nil {
+			input.PillarId = aws.String(d.EqualsQuals["pillar_id"].GetStringValue())
+		}
 		if d.EqualsQuals["milestone_number"] != nil {
+			milestoneNumber := int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+			if milestoneNumber < 1 || milestoneNumber > 100 {
+				return nil, fmt.Errorf("MilestoneNumber must have minimum value of 1 and maximum value of 100.")
+			}
 			input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
-			plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review_improvement.listWellArchitectedLensReviewImprovements", "milestone_number", input.MilestoneNumber)
 		}
 
 		_, err := stereamlistLensReviewImprovements(ctx, d, h, svc, input, maxLimit)
@@ -186,6 +194,8 @@ func stereamlistLensReviewImprovements(ctx context.Context, d *plugin.QueryData,
 			// Adding the igone confog in the list config does not seems to work, so we have handles it here.
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
+				// In order to handle the validation exception, we should account for potential errors thrown by the API when querying this table with the pillar_id provided in the WHERE clause. If the specified pillar_id is not available within a workload, the API may generate an error that needs to be handled appropriately.
+				// Error: operation error WellArchitected: ListLensReviewImprovements, https response error StatusCode: 400, RequestID: 8af3784e-b94e-4403-8821-a7700f23b341, ValidationException: [Validation] No pillar with ID operationalExcellence was found in workload 4fca39b680a31bb118be6bc0d177849d.
 				if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
 					return nil, nil
 				}
@@ -197,7 +207,7 @@ func stereamlistLensReviewImprovements(ctx context.Context, d *plugin.QueryData,
 		for _, item := range output.ImprovementSummaries {
 			// For Custom Lenses the lens alias is same as lens arn.
 			// https://docs.aws.amazon.com/wellarchitected/latest/APIReference/API_LensSummary.html#wellarchitected-Type-LensSummary-LensAlias
-			if output.LensAlias == nil || *output.LensAlias == "" {
+			if output.LensAlias == nil {
 				output.LensAlias = output.LensArn
 			}
 
