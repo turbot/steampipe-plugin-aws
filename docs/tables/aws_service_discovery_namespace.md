@@ -17,6 +17,21 @@ from
   aws_service_discovery_namespace;
 ```
 
+### List private namespaces
+
+```sql
+select
+  name,
+  id,
+  arn,
+  type,
+  service_account
+from
+  aws_service_discovery_namespace
+where
+  type ilike 'private';
+```
+
 ### List HTTP type namespaces
 
 ```sql
@@ -32,11 +47,11 @@ where
   type = 'HTTP';
 ```
 
-### List portfolios created in the last 30 days
+### List namespaces created in the last 30 days
 
 ```sql
-name
-  display_name,
+select
+  name,
   id,
   description,
   create_date
@@ -46,7 +61,7 @@ where
   create_date >= now() - interval '30' day;
 ```
 
-### Get HTTP property for the namespace type HTTP
+### Get HTTP property details of namespaces
 
 ```sql
 select
@@ -59,7 +74,7 @@ where
   type = 'HTTP';
 ```
 
-### Get private DNS property for the namespace type private DNS
+### Get private DNS property details of namspaces
 
 ```sql
 select
