@@ -403,6 +403,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ssm_maintenance_window":                                   tableAwsSSMMaintenanceWindow(ctx),
 			"aws_ssm_managed_instance_compliance":                          tableAwsSSMManagedInstanceCompliance(ctx),
 			"aws_ssm_managed_instance":                                     tableAwsSSMManagedInstance(ctx),
+			"aws_ssm_managed_instance_patch_state":                         tableAwsSSMManagedInstancePatchState(ctx),
 			"aws_ssm_parameter":                                            tableAwsSSMParameter(ctx),
 			"aws_ssm_patch_baseline":                                       tableAwsSSMPatchBaseline(ctx),
 			"aws_ssoadmin_account_assignment":                              tableAwsSsoAdminAccountAssignment(ctx),
