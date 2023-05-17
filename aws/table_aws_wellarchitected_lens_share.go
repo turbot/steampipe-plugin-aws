@@ -28,7 +28,7 @@ func tableAwsWellArchitectedLensShare(_ context.Context) *plugin.Table {
 			// TODO: Uncomment and remove extra check in
 			// listWellArchitectedLensShares function once this works again
 			// IgnoreConfig: &plugin.IgnoreConfig{
-			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
+			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			// },
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "lens_alias", Require: plugin.Optional},
@@ -50,7 +50,7 @@ func tableAwsWellArchitectedLensShare(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "lens_arn",
-				Description: "The ARN for the lens.",
+				Description: "The ARN of the lens.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -155,7 +155,7 @@ func listWellArchitectedLensShares(ctx context.Context, d *plugin.QueryData, h *
 		if err != nil {
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
-				if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
+				if ae.ErrorCode() == "ResourceNotFoundException" {
 					return nil, nil
 				}
 			}
