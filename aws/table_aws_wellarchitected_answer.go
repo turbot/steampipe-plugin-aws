@@ -179,7 +179,7 @@ type AnswerInfo struct {
 func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	workload := h.Item.(types.WorkloadSummary)
 
-	// Validate - User inputs must not be blank and return nil if doesn't match the hydrated workload id
+	// Validate - User inputs must not be blank and return nil if doesn't match the hydrated workload ID
 	if d.EqualsQualString("workload_id") != "" && d.EqualsQualString("workload_id") != *workload.WorkloadId {
 		return nil, nil
 	}
