@@ -167,7 +167,7 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 		if d.EqualsQuals["milestone_number"] != nil {
 			milestoneNumber := int32(d.EqualsQuals["milestone_number"].GetInt64Value())
 			if milestoneNumber < 1 || milestoneNumber > 100 {
-				return nil, fmt.Errorf("MilestoneNumber must have minimum value of 1 and maximum value of 100.")
+				return nil, fmt.Errorf("MilestoneNumber must have minimum value of 1 and maximum value of 100")
 			}
 			input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
 		}
