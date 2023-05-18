@@ -449,6 +449,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wafv2_rule_group":                                         tableAwsWafv2RuleGroup(ctx),
 			"aws_wafv2_web_acl":                                            tableAwsWafv2WebAcl(ctx),
 			"aws_wellarchitected_answer":                                   tableAwsWellArchitectedAnswer(ctx),
+			"aws_wellarchitected_check_detail":                             tableAwsWellArchitectedCheckDetail(ctx),
+			"aws_wellarchitected_check_summary":                            tableAwsWellArchitectedCheckSummary(ctx),
 			"aws_wellarchitected_lens":                                     tableAwsWellArchitectedLens(ctx),
 			"aws_wellarchitected_lens_review":                              tableAwsWellArchitectedLensReview(ctx),
 			"aws_wellarchitected_lens_review_improvement":                  tableAwsWellArchitectedLensReviewImprovement(ctx),

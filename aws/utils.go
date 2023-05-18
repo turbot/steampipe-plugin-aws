@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -191,4 +192,14 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		}
 	}
 	return value
+}
+
+func isAWSARN(s string) bool {
+
+	// Define the AWS ARN pattern
+	arnPattern := `^arn:(aws|aws-cn|aws-us-gov):[a-z0-9_-]+:[a-z0-9_-]+:\d+:([a-zA-Z0-9/-]+)?$`
+	regex := regexp.MustCompile(arnPattern)
+
+	// Test if the string matches the ARN pattern
+	return regex.MatchString(s)
 }
