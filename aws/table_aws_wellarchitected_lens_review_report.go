@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -105,7 +106,11 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 		equalQuals := d.EqualsQuals
 		if equalQuals != nil {
 			if equalQuals["milestone_number"] != nil {
-				input.MilestoneNumber = int32(equalQuals["milestone_number"].GetInt64Value())
+				milestoneNumber := int32(equalQuals["milestone_number"].GetInt64Value())
+				if milestoneNumber < 1 || milestoneNumber > 100 {
+					return nil, fmt.Errorf("MilestoneNumber must have minimum value of 1 and maximum value of 100")
+				}
+				input.MilestoneNumber = milestoneNumber
 			}
 		}
 
