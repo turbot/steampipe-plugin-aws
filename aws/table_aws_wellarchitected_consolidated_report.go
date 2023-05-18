@@ -21,6 +21,12 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 		Description: "AWS Well-Architected Consolidated Report",
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedConsolidatedReports,
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:    "include_shared_resources",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -38,6 +44,13 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 				Name:        "workload_id",
 				Description: "The ID assigned to the workload.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "include_shared_resources",
+				Description: "Set to true to have shared resources included in the report.",
+				Type:        proto.ColumnType_BOOL,
+				Default:     false,
+				Transform:   transform.FromQual("include_shared_resources"),
 			},
 			{
 				Name:        "base64_string",
@@ -99,9 +112,13 @@ func listWellArchitectedConsolidatedReports(ctx context.Context, d *plugin.Query
 	}
 
 	input := &wellarchitected.GetConsolidatedReportInput{
-		Format:                 types.ReportFormatJson,
-		IncludeSharedResources: true,
-		MaxResults:             maxLimit,
+		Format:     types.ReportFormatJson,
+		MaxResults: maxLimit,
+	}
+
+	// The default value for IncludeSharedResources in input param is false.
+	if d.EqualsQuals["include_shared_resources"] != nil {
+		input.IncludeSharedResources = d.EqualsQuals["include_shared_resources"].GetBoolValue()
 	}
 
 	paginator := wellarchitected.NewGetConsolidatedReportPaginator(svc, input, func(o *wellarchitected.GetConsolidatedReportPaginatorOptions) {
@@ -143,9 +160,13 @@ func listWellArchitectedConsolidatedReportBase64(ctx context.Context, d *plugin.
 	}
 
 	input := &wellarchitected.GetConsolidatedReportInput{
-		Format:                 types.ReportFormatPdf,
-		IncludeSharedResources: true,
-		MaxResults:             int32(15),
+		Format:     types.ReportFormatPdf,
+		MaxResults: int32(15),
+	}
+
+	// The default value for IncludeSharedResources in input param is false.
+	if d.EqualsQuals["include_shared_resources"] != nil {
+		input.IncludeSharedResources = d.EqualsQuals["include_shared_resources"].GetBoolValue()
 	}
 
 	paginator := wellarchitected.NewGetConsolidatedReportPaginator(svc, input, func(o *wellarchitected.GetConsolidatedReportPaginatorOptions) {
