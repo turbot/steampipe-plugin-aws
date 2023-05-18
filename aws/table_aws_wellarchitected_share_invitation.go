@@ -118,7 +118,7 @@ func listWellArchitectedShareInvitations(ctx context.Context, d *plugin.QueryDat
 	}
 
 	if d.EqualsQualString("workload_name") != "" && d.EqualsQualString("lens_name") != "" {
-		return nil, fmt.Errorf("you can either pass workload_name or lens_name as an optional qual but not both.")
+		return nil, fmt.Errorf("you can either pass workload_name or lens_name as an optional qual but not both")
 	}
 
 	if d.EqualsQualString("workload_name") != "" {
