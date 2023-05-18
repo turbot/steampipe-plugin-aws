@@ -2,14 +2,17 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
+	"github.com/aws/smithy-go"
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
@@ -23,9 +26,10 @@ func tableAwsWellArchitectedLensReviewReport(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       getWellArchitectedLensReviewReports,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
-			},
+			// TODO: Uncomment and remove extra check in
+			// IgnoreConfig: &plugin.IgnoreConfig{
+			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			// },
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "lens_alias", Require: plugin.Optional},
@@ -116,6 +120,13 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 
 		op, err := svc.GetLensReviewReport(ctx, input)
 		if err != nil {
+			// If user provided milestone number does not exist then the API will throw ResourceNotFoundException error.
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_wellarchitected_lens_review_report.getWellArchitectedLensReviewReports", "api_error", err)
 			return nil, err
 		}
