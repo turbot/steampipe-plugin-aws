@@ -99,6 +99,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/securitylake v1.2.0
 	github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository v1.12.0
 	github.com/aws/aws-sdk-go-v2/service/servicecatalog v1.16.5
+	github.com/aws/aws-sdk-go-v2/service/servicediscovery v1.21.4
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/ses v1.15.0
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.17.1
@@ -111,7 +112,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/waf v1.12.0
 	github.com/aws/aws-sdk-go-v2/service/wafregional v1.13.1
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.24.2
-	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.18.0
+	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0
 	github.com/aws/smithy-go v1.13.5
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
@@ -140,7 +141,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.21 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.21 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.21 // indirect
-	github.com/aws/aws-sdk-go-v2/service/servicediscovery v1.21.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.12.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

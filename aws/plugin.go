@@ -449,6 +449,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wafv2_regex_pattern_set":                                  tableAwsWafv2RegexPatternSet(ctx),
 			"aws_wafv2_rule_group":                                         tableAwsWafv2RuleGroup(ctx),
 			"aws_wafv2_web_acl":                                            tableAwsWafv2WebAcl(ctx),
+			"aws_wellarchitected_consolidated_report":                      tableAwsWellArchitectedConsolidatedReport(ctx),
 			"aws_wellarchitected_answer":                                   tableAwsWellArchitectedAnswer(ctx),
 			"aws_wellarchitected_check_detail":                             tableAwsWellArchitectedCheckDetail(ctx),
 			"aws_wellarchitected_check_summary":                            tableAwsWellArchitectedCheckSummary(ctx),
