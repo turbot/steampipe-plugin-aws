@@ -54,6 +54,7 @@ func tableAwsWellArchitectedShareInvitation(_ context.Context) *plugin.Table {
 				Name:        "share_resource_type",
 				Description: "The resource type of the share invitation.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(shareResourceType),
 			},
 			{
 				Name:        "shared_by",
@@ -122,9 +123,14 @@ func listWellArchitectedShareInvitations(ctx context.Context, d *plugin.QueryDat
 	if d.EqualsQualString("workload_name") != "" {
 		input.WorkloadNamePrefix = aws.String(d.EqualsQualString("workload_name"))
 	}
+
 	if d.EqualsQualString("lens_name") != "" {
 		input.LensNamePrefix = aws.String(d.EqualsQualString("lens_name"))
 		input.ShareResourceType = types.ShareResourceTypeLens
+	}
+
+	if d.EqualsQualString("share_resource_type") != "" {
+		input.ShareResourceType = types.ShareResourceType(d.EqualsQualString("share_resource_type"))
 	}
 
 	paginator := wellarchitected.NewListShareInvitationsPaginator(svc, input, func(o *wellarchitected.ListShareInvitationsPaginatorOptions) {
@@ -151,4 +157,14 @@ func listWellArchitectedShareInvitations(ctx context.Context, d *plugin.QueryDat
 	}
 
 	return nil, nil
+}
+
+func shareResourceType(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	shareInvitation := d.HydrateItem.(types.ShareInvitationSummary)
+
+	if shareInvitation.LensArn != nil && *shareInvitation.LensArn != "" {
+		return types.ShareResourceTypeLens, nil
+	} else {
+		return types.ShareResourceTypeWorkload, nil
+	}
 }
