@@ -26,6 +26,7 @@ func tableAwsWellArchitectedShareInvitation(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_name", Require: plugin.Optional},
 				{Name: "lens_name", Require: plugin.Optional},
+				{Name: "share_resource_type", Require: plugin.Optional},			
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
