@@ -21,7 +21,7 @@ from
   aws_wellarchitected_check_detail;
 ```
 
-### List total checks per the associated status per workload
+### List total checks per associated status per workload
 
 ```sql
 select
@@ -91,7 +91,7 @@ where
   and d.status = 'ERROR';
 ```
 
-### Get trusted advisor check details for wellarchitected lens in a particular workload
+### Get trusted advisor check details for well-architected lens in a particular workload
 
 ```sql
 select

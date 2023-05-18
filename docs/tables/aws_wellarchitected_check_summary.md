@@ -75,7 +75,7 @@ from
   aws_wellarchitected_check_summary;
 ```
 
-### Get account summary for trusted advisor checks for wellarchitected lens in a particular workload
+### Get account summary for trusted advisor checks for well-architected lens in a particular workload
 
 ```sql
 select
