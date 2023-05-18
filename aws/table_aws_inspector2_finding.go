@@ -193,11 +193,6 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "title",
-				Description: "The title of the finding.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "type",
 				Description: "The type of the finding.",
 				Type:        proto.ColumnType_STRING,
@@ -209,13 +204,11 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 			},
 
 			// Steampipe standard columns
-			// There's already a "title" column!
-			// {
-			// 	Name:        "title",
-			// 	Description: resourceInterfaceDescription("title"),
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("FindingArn").Transform(arnToTitle),
-			// },
+			{
+				Name:        "title",
+				Description: "The title of the finding.",
+				Type:        proto.ColumnType_STRING,
+			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),

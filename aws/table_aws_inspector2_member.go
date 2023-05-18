@@ -21,9 +21,6 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector2 Member",
 		List: &plugin.ListConfig{
 			Hydrate: listInspector2Member,
-			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "account_id", Require: plugin.Optional},
-			},
 		},
 
 		GetMatrixItemFunc: SupportedRegionMatrix(inspector2v1.EndpointsID),
@@ -93,11 +90,7 @@ func listInspector2Member(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
