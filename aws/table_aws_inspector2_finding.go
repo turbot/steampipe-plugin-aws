@@ -34,7 +34,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				// vulnerablePackages (exists, but complex!)
 				{Name: "finding_account_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "exploit_available", Operators: []string{"=", "<>"}, Require: plugin.Optional},
-				{Name: "finding_arn", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{Name: "arn", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "first_observed_at", Operators: []string{"<=", ">="}, Require: plugin.Optional},
 				{Name: "fix_available", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "inspector_score", Operators: []string{"<=", ">="}, Require: plugin.Optional},
@@ -67,17 +67,23 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "exploit_available",
-				Description: "If a finding discovered in your environment has an exploit available.",
+				Description: "If a finding discovered in your environment has an exploit available. Valid values are: YES | NO.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "exploitability_details",
-				Description: "The details of an exploit available for a finding discovered in your environment.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "arn",
+				Description: "The Amazon Resource Number (ARN) of the finding.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("FindingArn"),
 			},
 			{
-				Name:        "finding_arn",
-				Description: "The Amazon Resource Number (ARN) of the finding.",
+				Name:        "status",
+				Description: "The status of the finding. Valid values are: ACTIVE | SUPPRESSED | CLOSED.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "type",
+				Description: "The type of the finding. Valid values are: NETWORK_REACHABILITY | PACKAGE_VULNERABILITY.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -87,7 +93,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "fix_available",
-				Description: "Details on whether a fix is available through a version update.",
+				Description: "Details on whether a fix is available through a version update. Valid values are: YES | NO | PARTIAL.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -96,75 +102,10 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_DOUBLE,
 			},
 			{
-				Name:        "inspector_score_details",
-				Description: "An object that contains details of the Amazon Inspector score.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "last_observed_at",
 				Description: "The date and time that the finding was last observed.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
-			{
-				Name:        "network_reachability_details",
-				Description: "An object that contains the details of a network reachability finding.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "package_vulnerability_details",
-				Description: "An object that contains the details of a package vulnerability finding.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "reference_urls",
-				Description: "One or more URLs that contain details about this vulnerability type.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "related_vulnerabilities",
-				Description: "One or more vulnerabilities related to the one identified in this finding.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "source",
-				Description: "The source of the vulnerability information.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "source_url",
-				Description: "A URL to the source of the vulnerability information.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "vendor_created_at",
-				Description: "The date and time that this vulnerability was first added to the vendor’s database.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "vendor_severity",
-				Description: "The severity the vendor has given to this vulnerability type.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "vendor_updated_at",
-				Description: "The date and time the vendor last updated this vulnerability in their database.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "vulnerability_id",
-				Description: "The ID given to this vulnerability.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "vulnerable_packages",
-				Description: "The packages impacted by this vulnerability.",
-				Type:        proto.ColumnType_JSON,
-			},
-			// {
-			// 	Name:        "remediation",
-			// 	Description: "An object that contains the details about how to remediate a finding.",
-			// 	Type:        proto.ColumnType_JSON,
-			// },
 			{
 				Name:        "remediation_recommendation_text",
 				Description: "The recommended course of action to remediate the finding.",
@@ -178,29 +119,99 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Remediation.Recommendation.Url"),
 			},
 			{
-				Name:        "resources",
-				Description: "Contains information on the resources involved in a finding.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "severity",
-				Description: "The severity of the finding.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "status",
-				Description: "The status of the finding.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "type",
-				Description: "The type of the finding.",
+				Description: "The severity of the finding. Valid values are: INFORMATIONAL | LOW | MEDIUM | HIGH | CRITICAL | UNTRIAGED.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "updated_at",
 				Description: "The date and time the finding was last updated at.",
 				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "source",
+				Description: "The source of the vulnerability information.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.Source"),
+			},
+			{
+				Name:        "source_url",
+				Description: "A URL to the source of the vulnerability information.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.SourceUrl"),
+			},
+			{
+				Name:        "vendor_created_at",
+				Description: "The date and time that this vulnerability was first added to the vendor’s database.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.VendorCreatedAt"),
+			},
+			{
+				Name:        "vendor_severity",
+				Description: "The severity the vendor has given to this vulnerability type.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.VendorSeverity"),
+			},
+			{
+				Name:        "vendor_updated_at",
+				Description: "The date and time the vendor last updated this vulnerability in their database.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.vendorUpdatedAt"),
+			},
+			{
+				Name:        "vulnerability_id",
+				Description: "The ID given to this vulnerability.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.VulnerabilityId"),
+			},
+			{
+				Name:        "exploitability_details",
+				Description: "The details of an exploit available for a finding discovered in your environment.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "inspector_score_details",
+				Description: "An object that contains details of the Amazon Inspector score.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "network_reachability_details",
+				Description: "An object that contains the details of a network reachability finding.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "package_vulnerability_details",
+				Description: "An object that contains the details of a package vulnerability finding.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "cvss",
+				Description: "An object that contains details about the CVSS score of a finding.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.Cvss"),
+			},
+			{
+				Name:        "reference_urls",
+				Description: "One or more URLs that contain details about this vulnerability type.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.ReferenceUrls"),
+			},
+			{
+				Name:        "related_vulnerabilities",
+				Description: "One or more vulnerabilities related to the one identified in this finding.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.RelatedVulnerabilities"),
+			},
+			{
+				Name:        "vulnerable_packages",
+				Description: "The packages impacted by this vulnerability.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("PackageVulnerabilityDetails.VulnerablePackages"),
+			},
+			{
+				Name:        "resources",
+				Description: "Contains information on the resources involved in a finding.",
+				Type:        proto.ColumnType_JSON,
 			},
 
 			// Steampipe standard columns
@@ -213,13 +224,74 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("FindingArn").Transform(arnToAkas),
+				Transform:   transform.FromField("FindingArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
 }
 
 //// LIST FUNCTION
+
+func listInspector2Finding(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	// Create Session
+	svc, err := Inspector2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector2_finding.listInspector2Finding", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, etc., return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
+	}
+
+	input := &inspector2.ListFindingsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	filter := &types.FilterCriteria{}
+
+	buildStringFilters(d, filter)
+	buildNumberFilters(d, filter)
+	buildDateFilters(d, filter)
+
+	input.FilterCriteria = filter
+
+	paginator := inspector2.NewListFindingsPaginator(svc, input, func(o *inspector2.ListFindingsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector2_finding.listInspector2Finding", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.Findings {
+			// item := item
+			d.StreamListItem(ctx, item)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	return nil, err
+}
 
 // column-to-filter mapping
 type stringFilterField struct {
@@ -251,7 +323,7 @@ var findingStringFilters = []stringFilterField{
 		},
 	},
 	{
-		columnName: "finding_arn",
+		columnName: "arn",
 		filterField: func(f *types.FilterCriteria) *[]types.StringFilter {
 			return &(f.FindingArn)
 		},
@@ -391,69 +463,4 @@ func buildDateFilters(d *plugin.QueryData, filter *types.FilterCriteria) {
 			}
 		}
 	}
-}
-
-func listInspector2Finding(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// Create Session
-	svc, err := Inspector2Client(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_inspector2_finding.listInspector2Finding", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, etc., return no data
-		return nil, nil
-	}
-
-	// Limiting the results
-	maxLimit := int32(100)
-	if d.QueryContext.Limit != nil {
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
-		}
-	}
-
-	input := &inspector2.ListFindingsInput{
-		MaxResults: aws.Int32(maxLimit),
-	}
-
-	filter := &types.FilterCriteria{}
-
-	buildStringFilters(d, filter)
-	buildNumberFilters(d, filter)
-	buildDateFilters(d, filter)
-
-	input.FilterCriteria = filter
-
-	paginator := inspector2.NewListFindingsPaginator(svc, input, func(o *inspector2.ListFindingsPaginatorOptions) {
-		o.Limit = maxLimit
-		o.StopOnDuplicateToken = true
-	})
-
-	// List call
-	for paginator.HasMorePages() {
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_inspector2_finding.listInspector2Finding", "api_error", err)
-			return nil, err
-		}
-
-		for _, item := range output.Findings {
-			// item := item
-			d.StreamListItem(ctx, item)
-
-			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
-			}
-		}
-	}
-
-	return nil, err
 }
