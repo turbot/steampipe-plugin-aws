@@ -4,6 +4,8 @@ AWS Inspector Member refers to a user account or IAM role that has been granted 
 
 As part of the AWS Organizations feature, you can create an organization that includes multiple AWS accounts. Within this organization, you can designate specific accounts as "member accounts." These member accounts can then be granted access to various AWS services, including AWS Inspector.
 
+## Examples
+
 ### Basic info
 
 ```sql

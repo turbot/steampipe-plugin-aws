@@ -93,12 +93,6 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ResourceMetadata.Ec2.Tags"),
 			},
 			{
-				Name:        "ec2_tags",
-				Description: "The tags attached to the instance.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ResourceMetadata.Ec2.Tags").Transform(jsonTags),
-			},
-			{
 				Name:        "ecr_image_tags_src",
 				Description: "Tags associated with the Amazon ECR image metadata.",
 				Type:        proto.ColumnType_JSON,
@@ -165,12 +159,6 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ResourceId").Transform(arnToTitle),
-			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceId").Transform(arnToAkas),
 			},
 		}),
 	}
