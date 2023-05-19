@@ -2,10 +2,6 @@ package aws
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
@@ -375,34 +371,4 @@ func listInspector2Coverage(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	return nil, err
-}
-
-//// TRANSFORM HELPERS
-
-func jsonTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	if d.Value == nil {
-		return nil, nil
-	}
-
-	// always return tags in sorted order, for consistency (even though it
-	// appears AWS does as well, this ensures it)
-	m, ok := d.Value.(map[string]string)
-	if !ok {
-		return nil, errors.New("did not get expected map[string]string tags")
-	}
-
-	keys := []string{}
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	keyVals := []string{}
-	for _, k := range keys {
-		keyVals = append(keyVals, fmt.Sprintf("%q:%q", k, m[k]))
-	}
-
-	// the only real difference in presentation is that there's no enclosing
-	// "{}".
-	return strings.Join(keyVals, ","), nil
 }
