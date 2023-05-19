@@ -44,7 +44,7 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "relationship_status",
-				Description: "The status of the member account.",
+				Description: "The status of the member account. Valid values are: CREATED | INVITED | DISABLED | ENABLED | REMOVED | RESIGNED | DELETED | EMAIL_VERIFICATION_IN_PROGRESS | EMAIL_VERIFICATION_FAILED | REGION_DISABLED | ACCOUNT_SUSPENDED | CANNOT_CREATE_DETECTOR_IN_ORG_MASTER.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -59,12 +59,6 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("AccountId"),
-			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("AccountId").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
