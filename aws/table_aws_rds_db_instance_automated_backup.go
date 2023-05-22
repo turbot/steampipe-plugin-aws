@@ -260,7 +260,12 @@ func listRDSDBInstanceAutomatedBackups(ctx context.Context, d *plugin.QueryData,
 //// HYDRATE FUNCTIONS
 
 func getRDSDBInstanceAutomatedBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	arn := d.EqualsQuals["arn"].GetStringValue()
+	arn := d.EqualsQualString("arn")
+	
+	// empty arn check
+	if arn == "" {
+	    return nil, nil
+	}
 
 	// Create service
 	svc, err := RDSClient(ctx, d)
