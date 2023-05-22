@@ -29,6 +29,9 @@ func tableAwsRDSDBInstanceAutomatedBackup(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstanceAutomatedBackups,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_instance_identifier", Require: plugin.Optional},
 				{Name: "dbi_resource_id", Require: plugin.Optional},
