@@ -18,7 +18,7 @@ from
   aws_rds_db_instance_automated_backup;
 ```
 
-### List DB instances automated backups that are not encrypted
+### List DB instance automated backups that are not encrypted
 
 ```sql
 select
@@ -35,7 +35,7 @@ where
   not encrypted;
 ```
 
-### List DB instances automated backups that are not authenticated through IAM users and roles
+### List DB instance automated backups that are not authenticated through IAM users and roles
 
 ```sql
 select
@@ -66,7 +66,7 @@ where
   v.vpc_id = b.vpc_id;
 ```
 
-### List DB instances automated backups for deleted instances
+### List DB instance automated backups of deleted instances
 
 ```sql
 select
@@ -83,7 +83,7 @@ where
   status = 'retained';
 ```
 
-### Get KMS key details for each DB instances automated backup
+### Get KMS key details of each DB instance automated backup
 
 ```sql
 select
