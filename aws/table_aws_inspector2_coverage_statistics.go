@@ -39,14 +39,14 @@ func tableAwsInspector2CoverageStatistics(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: SupportedRegionMatrix(inspector2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "counts_by_group",
-				Description: "An array with the number for each group",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "total_counts",
 				Description: "The total number for all groups",
 				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "counts_by_group",
+				Description: "An array with the number for each group",
+				Type:        proto.ColumnType_JSON,
 			},
 		}),
 	}
