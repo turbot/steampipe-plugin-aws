@@ -168,13 +168,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "ecr_image_hash",
-				Description: "The Amazon ECR image hashe.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("ecr_image_hash"),
-			},
-			{
-				Name:        "ecr_image_hash",
-				Description: "The Amazon ECR image hashe.",
+				Description: "The Amazon ECR image hash.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("ecr_image_hash"),
 			},
