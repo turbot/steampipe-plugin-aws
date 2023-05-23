@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
@@ -23,13 +24,13 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listInspector2Coverage,
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "resource_account_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
-				// {Name: "ec2_tags", Require: plugin.Optional},
-				{Name: "ecr_image_tags", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{Name: "source_account_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{Name: "ec2_instance_tags", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "ecr_image_tag", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "ecr_repository_name", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "lambda_function_name", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "lambda_function_runtime", Operators: []string{"=", "<>"}, Require: plugin.Optional},
-				// {Name: "lambda_function_tags", Require: plugin.Optional},
+				{Name: "lambda_function_tags", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "resource_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "resource_type", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "scan_status_code", Operators: []string{"=", "<>"}, Require: plugin.Optional},
@@ -47,7 +48,7 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				// The account id from the data, rather than from the call (getCommonColumns).
-				Name:        "resource_account_id",
+				Name:        "source_account_id",
 				Type:        proto.ColumnType_STRING,
 				Description: "The AWS Account ID in which the resource is located.",
 				Transform:   transform.FromField("AccountId"),
@@ -77,28 +78,10 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ResourceMetadata.Ec2.AmiId"),
 			},
 			{
-				Name:        "ec2_platform",
-				Description: "The platform of the instance.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceMetadata.Ec2.Platform"),
-			},
-			{
-				Name:        "ec2_tags_src",
-				Description: "The tags attached to the instance.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceMetadata.Ec2.Tags"),
-			},
-			{
-				Name:        "ecr_image_tags_src",
-				Description: "Tags associated with the Amazon ECR image metadata.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceMetadata.EcrImage.Tags"),
-			},
-			{
-				Name:        "ecr_image_tags",
+				Name:        "ecr_image_tag",
 				Description: "Tags associated with the Amazon ECR image metadata.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ResourceMetadata.EcrImage.Tags"),
+				Transform:   transform.FromQual("ecr_image_tag"),
 			},
 			{
 				Name:        "ecr_repository_name",
@@ -119,18 +102,6 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ResourceMetadata.LambdaFunction.FunctionName"),
 			},
 			{
-				Name:        "lambda_function_tags",
-				Description: "The resource tags on an AWS Lambda function.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceMetadata.LambdaFunction.FunctionTags"),
-			},
-			{
-				Name:        "lambda_function_layers",
-				Description: "The layers for an AWS Lambda function. A Lambda function can have up to five layers.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceMetadata.LambdaFunction.Layers"),
-			},
-			{
 				Name:        "lambda_function_runtime",
 				Description: "An AWS Lambda function's runtime.",
 				Type:        proto.ColumnType_STRING,
@@ -147,6 +118,36 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 				Description: "The status code of the scan.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ScanStatus.StatusCode"),
+			},
+			{
+				Name:        "ec2_platform",
+				Description: "The platform of the instance.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ResourceMetadata.Ec2.Platform"),
+			},
+			{
+				Name:        "ec2_instance_tags",
+				Description: "The tags attached to the instance.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ResourceMetadata.Ec2.Tags"),
+			},
+			{
+				Name:        "ecr_image_tags",
+				Description: "Tags associated with the Amazon ECR image metadata.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ResourceMetadata.EcrImage.Tags"),
+			},
+			{
+				Name:        "lambda_function_tags",
+				Description: "The resource tags on an AWS Lambda function.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ResourceMetadata.LambdaFunction.FunctionTags"),
+			},
+			{
+				Name:        "lambda_function_layers",
+				Description: "The layers for an AWS Lambda function. A Lambda function can have up to five layers.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ResourceMetadata.LambdaFunction.Layers"),
 			},
 
 			// Steampipe standard columns
@@ -170,13 +171,13 @@ type coverageStringFilterInfo struct {
 
 var coverageStringFilterList = []coverageStringFilterInfo{
 	{
-		columnName: "resource_account_id",
+		columnName: "source_account_id",
 		filterField: func(f *types.CoverageFilterCriteria) *[]types.CoverageStringFilter {
 			return &(f.AccountId)
 		},
 	},
 	{
-		columnName: "ecr_image_tags",
+		columnName: "ecr_image_tag",
 		filterField: func(f *types.CoverageFilterCriteria) *[]types.CoverageStringFilter {
 			return &(f.EcrImageTags)
 		},
@@ -237,25 +238,48 @@ var coverageStringFilterList = []coverageStringFilterInfo{
 // to the underlying map-filter feature, but don't want to expose it until I
 // really understand how it's supposed to work.
 
-// type coverageMapFilterInfo struct {
-// 	columnName  string
-// 	filterField func(f *types.CoverageFilterCriteria) *[]types.CoverageMapFilter
-// }
+type coverageMapFilterInfo struct {
+	columnName  string
+	filterField func(f *types.CoverageFilterCriteria) *[]types.CoverageMapFilter
+}
 
-// var coverageMapFilterList = []coverageMapFilterInfo{
-// 	{
-// 		columnName:  "ec2_tags",
-// 		filterField: func(f *types.CoverageFilterCriteria) *[]types.CoverageMapFilter {
-//			return &(f.Ec2InstanceTags)
-//		},
-// 	},
-// 	{
-// 		columnName:  "lambda_function_tags",
-// 		filterField: func(f *types.CoverageFilterCriteria) *[]types.CoverageMapFilter {
-//			return &(f.LambdaFunctionTags)
-//		},
-// 	},
-// }
+var coverageMapFilterList = []coverageMapFilterInfo{
+	{
+		columnName: "ec2_instance_tags",
+		filterField: func(f *types.CoverageFilterCriteria) *[]types.CoverageMapFilter {
+			return &(f.Ec2InstanceTags)
+		},
+	},
+	{
+		columnName: "lambda_function_tags",
+		filterField: func(f *types.CoverageFilterCriteria) *[]types.CoverageMapFilter {
+			return &(f.LambdaFunctionTags)
+		},
+	},
+}
+
+func buildCoverageTagFilter(d *plugin.QueryData, filter *types.CoverageFilterCriteria) {
+	for _, info := range coverageMapFilterList {
+		if d.Quals[info.columnName] != nil {
+			field := info.filterField(filter)
+			tagValue := make(map[string]string, 0)
+			for _, q := range d.Quals[info.columnName].Quals {
+				val := q.Value.GetJsonbValue()
+				if val != "" && q.Operator == "=" {
+					_ = json.Unmarshal([]byte(val), &tagValue)
+					for k, v := range tagValue {
+						tagfilter := types.CoverageMapFilter{
+							Comparison: types.CoverageMapComparisonEquals,
+							Key:        aws.String(k),
+							Value:      aws.String(v),
+						}
+						*field = append(*field, tagfilter)
+					}
+				}
+			}
+		}
+	}
+}
 
 func listInspector2Coverage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
@@ -307,44 +331,11 @@ func listInspector2Coverage(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		}
 	}
 
-	// NOTE: I've commented out the map-filter keys, because they don't seem to
-	// work quite like I'd expect, and I can't find documentation that makes
-	// clear how they *should* work.  I'm reasonably confident that this code
-	// is a 1:1 mapping to the underlying map-filter feature, but don't want to
-	// expose it until I really understand how it's supposed to work.
-
-	// // The CoverageMapFilter fields are JSON, which means we need to expand some
-	// // number of key:value pairs into filter values.
-	// for _, info := range coverageMapFilterList {
-	// 	if d.Quals[info.columnName] != nil {
-	// 		for _, q := range d.Quals[info.columnName].Quals {
-	// 			var comp types.CoverageMapComparison
-	// 			switch q.Operator {
-	// 			case "=":
-	// 				comp = types.CoverageMapComparisonEquals
-	// 			}
-	// 			parts := strings.SplitN(q.Value.GetStringValue(), ":", 2)
-	// 			if len(parts) != 2 {
-	// 				plugin.Logger(ctx).Error(fmt.Sprintf("filter value for %q should be in KEY:VALUE format, got %q", info.columnName, q.Value.GetStringValue()))
-	// 				// assume an empty value, which is about all we can do...
-	// 				parts = append(parts, "")
-	// 			}
-	// 			field := info.filterField(filter)
-	// 			// Even though this appears to be the correct way to build a map
-	// 			// filter, we get no results... does "=" imply *exact* tag
-	// 			// matching? (i.e. "key:val" means *only* a tag of "key:val",
-	// 			// rather than "has a tag 'key' whose value is 'val'... and may
-	// 			// have other tags as well"?)
-	// 			*field = append(*field, types.CoverageMapFilter{
-	// 				Comparison: comp,
-	// 				Key:        aws.String(parts[0]),
-	// 				Value:      aws.String(parts[1]),
-	// 			})
-	// 		}
-	// 	}
-	// }
-
 	input.FilterCriteria = filter
+
+	buildCoverageTagFilter(d, filter)
+	plugin.Logger(ctx).Error("Ec2 Tag filter ==>>", input.FilterCriteria.Ec2InstanceTags)
+	plugin.Logger(ctx).Error("Lambda Function Tag filter ==>>", input.FilterCriteria.LambdaFunctionTags)
 
 	paginator := inspector2.NewListCoveragePaginator(svc, input, func(o *inspector2.ListCoveragePaginatorOptions) {
 		o.Limit = maxLimit

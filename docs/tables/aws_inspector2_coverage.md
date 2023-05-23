@@ -8,7 +8,7 @@ AWS Inspector coverage refers to the extent to which the AWS resources in your e
 
 ```sql
 select
-  resource_account_id,
+  source_account_id,
   resource_id,
   resource_type,
   scan_type,
@@ -18,11 +18,11 @@ from
   aws_inspector2_coverage;
 ```
 
-### List coverage that are inactive
+### List coverages that are inactive
 
 ```sql
 select
-  resource_account_id,
+  source_account_id,
   resource_id,
   resource_type,
   scan_status_code
@@ -36,7 +36,7 @@ where
 
 ```sql
 select
-  resource_account_id,
+  source_account_id,
   scan_type,
   resource_id as ec2_instance_id,
   resource_type,
@@ -48,11 +48,45 @@ where
   resource_type = 'AWS_EC2_INSTANCE';
 ```
 
-### List coverage of package scan
+### List coverages by EC2 instance tags
 
 ```sql
 select
-  resource_account_id,
+  source_account_id,
+  scan_type,
+  resource_id as ec2_instance_id,
+  resource_type,
+  ec2_ami_id,
+  ec2_platform,
+  ec2_instance_tags
+from
+  aws_inspector2_coverage
+where
+  ec2_inatance_tags = '{"foo": "bar", "foo1": "bar1"}';
+```
+
+### List coverages by lambda function tags
+
+```sql
+select
+  source_account_id,
+  scan_type,
+  resource_id as ec2_instance_id,
+  resource_type,
+  lambda_function_name,
+  lambda_function_runtime,
+  lambda_function_tags
+from
+  aws_inspector2_coverage
+where
+  lambda_function_tags = '{"foo": "bar", "foo1": "bar1"}';
+```
+
+### List coverage of a package scan
+
+```sql
+select
+  source_account_id,
   resource_id,
   resource_type,
   scan_type
