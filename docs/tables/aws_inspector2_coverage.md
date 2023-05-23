@@ -152,5 +152,5 @@ from
 where
   i.instance_id = c.resource_id
 and
-  c.resource_type = 'AWS_EC2_INSTANCE',
+  c.resource_type = 'AWS_EC2_INSTANCE';
 ```
