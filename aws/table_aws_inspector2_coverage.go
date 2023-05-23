@@ -334,8 +334,6 @@ func listInspector2Coverage(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	input.FilterCriteria = filter
 
 	buildCoverageTagFilter(d, filter)
-	plugin.Logger(ctx).Error("Ec2 Tag filter ==>>", input.FilterCriteria.Ec2InstanceTags)
-	plugin.Logger(ctx).Error("Lambda Function Tag filter ==>>", input.FilterCriteria.LambdaFunctionTags)
 
 	paginator := inspector2.NewListCoveragePaginator(svc, input, func(o *inspector2.ListCoveragePaginatorOptions) {
 		o.Limit = maxLimit
