@@ -232,12 +232,6 @@ var coverageStringFilterList = []coverageStringFilterInfo{
 	},
 }
 
-// NOTE: I've commented out the map-filter keys, because they don't seem to work
-// quite like I'd expect, and I can't find documentation that makes clear how
-// they *should* work.  I'm reasonably confident that this code is a 1:1 mapping
-// to the underlying map-filter feature, but don't want to expose it until I
-// really understand how it's supposed to work.
-
 type coverageMapFilterInfo struct {
 	columnName  string
 	filterField func(f *types.CoverageFilterCriteria) *[]types.CoverageMapFilter
