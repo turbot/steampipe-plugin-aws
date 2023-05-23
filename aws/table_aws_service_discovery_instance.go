@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/servicediscovery"
 	"github.com/aws/aws-sdk-go-v2/service/servicediscovery/types"
 
@@ -58,6 +57,7 @@ func tableAwsServiceDiscoveryInstance(_ context.Context) *plugin.Table {
 			{
 				Name:        "alias_dns_name",
 				Description: "For an alias record that routes traffic to an Elastic Load Balancing load balancer, the DNS name that's associated with the load balancer.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "instance_cname",
@@ -219,54 +219,4 @@ func getServiceDiscoveryInstance(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	return nil, nil
-}
-
-func getServiceDirectoryInstanceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	var arn string
-
-	switch item := h.Item.(type) {
-	case types.NamespaceSummary:
-		arn = *item.Arn
-	case *types.Namespace:
-		arn = *item.Arn
-	}
-
-	// Create client
-	svc, err := ServiceDiscoveryClient(ctx, d)
-	if err != nil {
-		logger.Error("aws_service_discovery_instance.getServiceDirectoryInstanceTags", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region check
-		return nil, nil
-	}
-
-	// Build the params
-	params := &servicediscovery.ListTagsForResourceInput{
-		ResourceARN: aws.String(arn),
-	}
-
-	// Get call
-	op, err := svc.ListTagsForResource(ctx, params)
-	if err != nil {
-		logger.Error("aws_service_discovery_instance.getServiceDirectoryInstanceTags", "api_error", err)
-		return nil, err
-	}
-	return op, nil
-}
-
-//// TRANSFORM FUNCTIONS
-
-func serviceDiscoveryInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags := d.HydrateItem.(*servicediscovery.ListTagsForResourceOutput)
-	var turbotTagsMap map[string]string
-	if tags.Tags != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tags.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-	}
-	return turbotTagsMap, nil
 }
