@@ -332,6 +332,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_rds_db_instance_metric_write_iops_hourly":                 tableAwsRdsInstanceMetricWriteIopsHourly(ctx),
 			"aws_rds_db_instance_metric_write_iops":                        tableAwsRdsInstanceMetricWriteIops(ctx),
 			"aws_rds_db_instance":                                          tableAwsRDSDBInstance(ctx),
+			"aws_rds_db_instance_automated_backup":                         tableAwsRDSDBInstanceAutomatedBackup(ctx),
 			"aws_rds_db_option_group":                                      tableAwsRDSDBOptionGroup(ctx),
 			"aws_rds_db_parameter_group":                                   tableAwsRDSDBParameterGroup(ctx),
 			"aws_rds_db_proxy":                                             tableAwsRDSDBProxy(ctx),
