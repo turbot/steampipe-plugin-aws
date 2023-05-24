@@ -78,7 +78,7 @@ func listAwsSSMInventoryEntries(ctx context.Context, d *plugin.QueryData, h *plu
 	// Create session
 	svc, err := SSMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ssm_inventory_entries.listAwsSSMInventoryEntries", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ssm_inventory_entries.listAwsSSMInventoryEntry", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -121,7 +121,7 @@ func listAwsSSMInventoryEntries(ctx context.Context, d *plugin.QueryData, h *plu
 		op, err := svc.ListInventoryEntries(ctx, input)
 
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_ssm_inventory_entries.listAwsSSMInventoryEntries", "api_error", err)
+			plugin.Logger(ctx).Error("aws_ssm_inventory_entries.listAwsSSMInventoryEntry", "api_error", err)
 			return nil, err
 		}
 
