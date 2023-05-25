@@ -213,3 +213,29 @@ where
   trust = '*'
   or trust like 'arn:aws:iam::%:role/%'
   ```
+  
+### Verify the Trust policy of Role has validation conditions when used with GitHub Actions
+```sql
+select
+  iam.arn as resource,
+  iam.description,
+  iam.assume_role_policy_std,
+  case
+    when pstatement -> 'Condition' -> 'StringLike' -> 'token.actions.githubusercontent.com:sub' is not null
+    or pstatement -> 'Condition' -> 'StringEquals' -> 'token.actions.githubusercontent.com:sub' is not null then 'ok'
+    else 'alarm'
+  end as status,
+  case
+    when pstatement -> 'Condition' -> 'StringLike' -> 'token.actions.githubusercontent.com:sub' is not null
+    or pstatement -> 'Condition' -> 'StringEquals' -> 'token.actions.githubusercontent.com:sub' is not null then iam.arn || ' Condition Check Exists'
+    else iam.arn || ' Missing Condition Check'
+  end as reason
+from
+  allaws.aws_iam_role as iam,
+  jsonb_array_elements(iam.assume_role_policy_std -> 'Statement') as pstatement
+where
+  pstatement -> 'Action' ?& array [ 'sts:assumerolewithwebidentity' ]
+  and (pstatement -> 'Principal' -> 'Federated') :: text like '%token.actions.githubusercontent.com%'
+order by
+  status asc
+```
