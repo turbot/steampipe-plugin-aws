@@ -2,11 +2,13 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -112,7 +114,7 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	maxLimit := int32(200)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
-			if limit < maxLimit {
+		if limit < maxLimit {
 			maxLimit = limit
 		}
 	}
@@ -138,6 +140,13 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// When a table is used as the parent hydrate in another table, the ignore config does not function as expected. Consequently, it becomes necessary to handle this situation manually.
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "InvalidLaunchTemplateId.NotFound" || ae.ErrorCode() == "InvalidLaunchTemplateName.NotFoundException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_ec2_launch_template.listEc2LaunchTemplates", "api_error", err)
 			return nil, err
 		}

@@ -1,3 +1,119 @@
+## v0.103.0 [2023-05-18]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_client_vpn_endpoint](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_client_vpn_endpoint) ([#1722](https://github.com/turbot/steampipe-plugin-aws/pull/1722))
+  - [aws_ec2_launch_template_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_launch_template_version) ([#1725](https://github.com/turbot/steampipe-plugin-aws/pull/1725))
+  - [aws_service_discovery_namespace](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_service_discovery_namespace) ([#1735](https://github.com/turbot/steampipe-plugin-aws/pull/1735))
+  - [aws_service_discovery_service](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_service_discovery_service) ([#1739](https://github.com/turbot/steampipe-plugin-aws/pull/1739))
+  - [aws_servicecatalog_product](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicecatalog_product) ([#1638](https://github.com/turbot/steampipe-plugin-aws/pull/1638))
+  - [aws_ssm_managed_instance_patch_state](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_managed_instance_patch_state) ([#1732](https://github.com/turbot/steampipe-plugin-aws/pull/1732))
+  - [aws_wellarchitected_answer](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_answer) ([#1699](https://github.com/turbot/steampipe-plugin-aws/pull/1699))
+  - [aws_wellarchitected_check_detail](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_check_detail) ([#1700](https://github.com/turbot/steampipe-plugin-aws/pull/1700))
+  - [aws_wellarchitected_check_summary](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_check_summary) ([#1700](https://github.com/turbot/steampipe-plugin-aws/pull/1700))
+  - [aws_wellarchitected_consolidated_report](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_consolidated_report) ([#1704](https://github.com/turbot/steampipe-plugin-aws/pull/1704))
+  - [aws_wellarchitected_lens_review_improvement](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_lens_review_improvement) ([#1695](https://github.com/turbot/steampipe-plugin-aws/pull/1695))
+  - [aws_wellarchitected_lens_review_report](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_lens_review_report) ([#1697](https://github.com/turbot/steampipe-plugin-aws/pull/1697))
+  - [aws_wellarchitected_lens_share](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_lens_share) ([#1698](https://github.com/turbot/steampipe-plugin-aws/pull/1698))
+  - [aws_wellarchitected_share_invitation](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_share_invitation) ([#1692](https://github.com/turbot/steampipe-plugin-aws/pull/1692))
+
+_Bug fixes_
+
+- Fixed the `source_account_id` optional qual column definition in `aws_security_hub_finding` table. ([#1737](https://github.com/turbot/steampipe-plugin-aws/pull/1737)) (Thanks [@gabrielsoltz](https://github.com/gabrielsoltz) for the contribution!)
+- Fixed the example query in the doc for the `aws_ssoadmin_account_assignment` table. ([#1734](https://github.com/turbot/steampipe-plugin-aws/pull/1734))
+
+## v0.102.0 [2023-05-11]
+
+_What's new?_
+
+- New tables added
+  - [aws_config_retention_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_config_retention_configuration) ([#1718](https://github.com/turbot/steampipe-plugin-aws/pull/1718))
+
+_Enhancements_
+
+- Added column `repository_scanning_configuration` to `aws_ecr_repository` table. ([#1719](https://github.com/turbot/steampipe-plugin-aws/pull/1719))
+- Added column `source_account_id` to `aws_securityhub_finding` table. ([#1703](https://github.com/turbot/steampipe-plugin-aws/pull/1703)) (Thanks [@gabrielsoltz](https://github.com/gabrielsoltz) for the contribution!)
+
+_Bug fixes_
+
+- Fixed `aws_ecr_image_scan_finding` table to return an empty row instead of an error when image scanning is in progress. ([#1728](https://github.com/turbot/steampipe-plugin-aws/pull/1728)) (Thanks [@aminvielledebatAtBedrock](https://github.com/aminvielledebatAtBedrock) for the contribution!)
+- Fixed the `GetConfig` of the `aws_ssm_document` table to use `arn` instead of `name` as a key column to avoid failures in querying multiple regions with the same document name. ([#1720](https://github.com/turbot/steampipe-plugin-aws/pull/1720))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.4.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v541-2023-05-05) which fixes increased plugin initialization time due to multiple connections causing the schema to be loaded repeatedly. ([#1685](https://github.com/turbot/steampipe-plugin-aws/pull/1685))
+
+## v0.101.0 [2023-04-25]
+
+_What's new?_
+
+- New tables added
+  - [aws_wellarchitected_lens](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_lens) ([#1689](https://github.com/turbot/steampipe-plugin-aws/pull/1689))
+  - [aws_wellarchitected_notification](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_notification) ([#1693](https://github.com/turbot/steampipe-plugin-aws/pull/1693))
+  - [aws_wellarchitected_workload_share](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_workload_share) ([#1690](https://github.com/turbot/steampipe-plugin-aws/pull/1690))
+
+_Enhancements_
+
+- Added `maintenance_options`, `licenses`, `placement_affinity`, `placement_group_id`, `placement_host_id`, `placement_host_resource_group_arn`, `placement_partition_number`, and `spot_instance_request_id` columns to `aws_ec2_instance` table. ([#1709](https://github.com/turbot/steampipe-plugin-aws/pull/1709))
+- Added `workspace` column to `aws_wellarchitected_milestone` table.
+- Removed hydrate requirement for `milestone_number` column in `aws_wellarchitected_lens_review` table.
+
+## v0.100.0 [2023-04-15]
+
+_What's new?_
+
+- New tables added
+  - [aws_s3_object](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3_object) ([#1623](https://github.com/turbot/steampipe-plugin-aws/pull/1623))
+  - [aws_wellarchitected_lens_review](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_lens_review) ([#1694](https://github.com/turbot/steampipe-plugin-aws/pull/1694))
+  - [aws_wellarchitected_milestone](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wellarchitected_milestone) ([#1696](https://github.com/turbot/steampipe-plugin-aws/pull/1696))
+
+## v0.99.0 [2023-04-07]
+
+_What's new?_
+
+- New tables added
+  - [aws_ssoadmin_account_assignment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_account_assignment) ([#1673](https://github.com/turbot/steampipe-plugin-aws/pull/1673)) (Thanks [@janslow](https://github.com/janslow) for the contribution!)
+  - [aws_athena_query_execution](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_athena_query_execution) ([#1666](https://github.com/turbot/steampipe-plugin-aws/pull/1666)) (Thanks [@rinzool](https://github.com/rinzool) for the contribution!)
+  - [aws_athena_workgroup](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_athena_workgroup) ([#1666](https://github.com/turbot/steampipe-plugin-aws/pull/1666)) (Thanks [@rinzool](https://github.com/rinzool) for the contribution!)
+
+_Bug fixes_
+
+- Fixed typos in the `ListConfig` of `aws_sfn_state_machine_*` tables. ([#1686](https://github.com/turbot/steampipe-plugin-aws/pull/1686)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Fixed the data type of `tags` column of `aws_securitylake_data_lake` and `aws_simspaceweaver_simulation` tables to be of `JSON` type instead of `STRING`. ([#1683](https://github.com/turbot/steampipe-plugin-aws/pull/1683))
+- Fixed the `aws_organizations_policy` table to correctly return all the organization policies instead of duplicate data. ([#1681](https://github.com/turbot/steampipe-plugin-aws/pull/1681))
+
+## v0.98.0 [2023-03-31]
+
+_What's new?_
+
+- New tables added
+  - [aws_codedeploy_deployment_config](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codedeploy_deployment_config) ([#1662](https://github.com/turbot/steampipe-plugin-aws/pull/1662))
+  - [aws_organizations_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_policy) ([#1641](https://github.com/turbot/steampipe-plugin-aws/pull/1641))
+  - [aws_s3_multi_region_access_point](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3_multi_region_access_point) ([#1486](https://github.com/turbot/steampipe-plugin-aws/pull/1486))
+  - [aws_ssm_document_permission](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_document_permission) ([#1670](https://github.com/turbot/steampipe-plugin-aws/pull/1670))
+  - [aws_vpc_eip_address_transfer](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_eip_address_transfer) ([#1521](https://github.com/turbot/steampipe-plugin-aws/pull/1521))
+  - [aws_wafregional_rule_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafregional_rule_group) ([#1661](https://github.com/turbot/steampipe-plugin-aws/pull/1661))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.3.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v530-2023-03-16) which includes fixes for query cache pending item mechanism and aggregator connections not working for dynamic tables. ([#1676](https://github.com/turbot/steampipe-plugin-aws/pull/1676))
+
+## v0.97.0 [2023-03-24]
+
+_What's new?_
+
+- New tables added
+  - [aws_appstream_image](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_appstream_image) ([#1663](https://github.com/turbot/steampipe-plugin-aws/pull/1663))
+  - [aws_codedeploy_deployment_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codedeploy_deployment_group) ([#1658](https://github.com/turbot/steampipe-plugin-aws/pull/1658))
+  - [aws_cost_by_tag](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_tag) ([#1536](https://github.com/turbot/steampipe-plugin-aws/pull/1536))
+  - [aws_networkfirewall_firewall](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_networkfirewall_firewall) ([#1630](https://github.com/turbot/steampipe-plugin-aws/pull/1630))
+  - [aws_wafregional_web_acl](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafregional_web_acl) ([#1660](https://github.com/turbot/steampipe-plugin-aws/pull/1660))
+
+_Bug fixes_
+
+- Fixed the `aws_health_affected_entity` table to correctly return results instead of an error. ([#1659](https://github.com/turbot/steampipe-plugin-aws/pull/1659))
+
 ## v0.96.0 [2023-03-10]
 
 _What's new?_

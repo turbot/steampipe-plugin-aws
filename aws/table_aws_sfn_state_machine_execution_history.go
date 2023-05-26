@@ -23,7 +23,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 		Description: "AWS Step Functions State Machine Execution History",
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutionHistories,
-			ParentHydrate: listStepFunctionsStateManchines,
+			ParentHydrate: listStepFunctionsStateMachines,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
