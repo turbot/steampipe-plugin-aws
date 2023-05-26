@@ -15,7 +15,7 @@ from
   aws_inspector2_coverage_statistics;
 ```
 
-### Get group count of the coverage statistic
+### Get the count of resources within a group
 
 ```sql
 select

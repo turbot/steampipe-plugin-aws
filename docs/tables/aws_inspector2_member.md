@@ -18,7 +18,7 @@ from
   aws_inspector2_member;
 ```
 
-### Retrieve a list of members whose status remains unchanged in the past 30 days
+### Retrieve a list of members whose status hasn't changed in the past 30 days
 
 ```sql
 select

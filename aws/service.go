@@ -783,7 +783,6 @@ func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Clien
 }
 
 func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Client, error) {
-	// cfg, err := getClientForQuerySupportedRegion(ctx, d, inspector2Endpoint.EndpointsID)
 	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err

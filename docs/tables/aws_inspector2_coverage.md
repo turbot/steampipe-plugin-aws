@@ -82,7 +82,7 @@ where
   lambda_function_tags = '{"foo": "bar", "foo1": "bar1"}';
 ```
 
-### List coverage of a package scan
+### List coverage details of a package scan
 
 ```sql
 select
