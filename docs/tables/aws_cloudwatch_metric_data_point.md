@@ -163,7 +163,7 @@ from
   aws_cloudwatch_metric_data_point
 where
   id = 'e1'
-  and account_id = '533743456432100'
+  and source_account_id = '533743456432100'
   and timestamp between '2023-03-10T00:00:00Z' and '2023-03-16T00:00:00Z'
   and metric_stat = '{
     "Metric": {
