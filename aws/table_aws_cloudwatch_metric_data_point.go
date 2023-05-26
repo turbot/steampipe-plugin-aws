@@ -120,8 +120,8 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 				Transform:   transform.FromQual("timezone"),
 			},
 			{
-				Name:       "source_account_id",
-				Description: "Source account ID from which the metrics need to be fetched.",
+				Name:        "source_account_id",
+				Description: "The ID of the account where the metrics are located.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("source_account_id"),
 			},
