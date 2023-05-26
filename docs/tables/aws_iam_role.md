@@ -16,7 +16,6 @@ where
   inline_policies is null;
 ```
 
-
 ### List the policies attached to the roles
 
 ```sql
@@ -28,7 +27,6 @@ from
   aws_iam_role
   cross join jsonb_array_elements_text(attached_policy_arns) as policy;
 ```
-
 
 ### Permission boundary information for each role
 
@@ -42,7 +40,8 @@ from
   aws_iam_role;
 ```
 
-### Find all roles that allow *
+### Find all roles that allow \*
+
 ```sql
 select
   r.name as role_name,
@@ -62,6 +61,7 @@ order by
 ```
 
 ### Find any roles that allow wildcard actions
+
 ```sql
 select
   r.name as role_name,
@@ -84,6 +84,7 @@ where
 ```
 
 ### List higher-level permissions for any specific role
+
 ```sql
 select
   r.name,
@@ -108,6 +109,7 @@ order by
 ```
 
 ### List all actions (with level) in role2, not in role1
+
 ```sql
 with roles as (
   select
@@ -175,7 +177,9 @@ order by
 ```
 
 ### List role with wildcard principal in trust policy(maintenance-role) and role(admin-role) that have trust relationship with maintenance-role
+
 [Refer here](https://twitter.com/nathanwallace/status/1442574375857922048?s=20)
+
 ```sql
 select
   maintenance.name,
@@ -201,6 +205,7 @@ where
 ```
 
 ### List the roles that might allow other roles/users to bypass their assigned IAM permissions.
+
 ```sql
 select
   r.name,
@@ -212,9 +217,10 @@ from
 where
   trust = '*'
   or trust like 'arn:aws:iam::%:role/%'
-  ```
-  
+```
+
 ### Verify the Trust policy of Role has validation conditions when used with GitHub Actions
+
 ```sql
 select
   iam.arn as resource,
@@ -231,7 +237,7 @@ select
     else iam.arn || ' Missing Condition Check'
   end as reason
 from
-  allaws.aws_iam_role as iam,
+  aws_iam_role as iam,
   jsonb_array_elements(iam.assume_role_policy_std -> 'Statement') as pstatement
 where
   pstatement -> 'Action' ?& array [ 'sts:assumerolewithwebidentity' ]
