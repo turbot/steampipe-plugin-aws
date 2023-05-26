@@ -33,7 +33,7 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 					Require: plugin.Required,
 				},
 				{
-					Name:       "account_id",
+					Name:       "source_account_id",
 					Require:    plugin.Optional,
 					CacheMatch: "exact",
 				},
@@ -118,6 +118,12 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 				Description: "You can use timezone to specify your time zone so that the labels of returned data display the correct time for your time zone.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("timezone"),
+			},
+			{
+				Name:       "source_account_id",
+				Description: "Source account ID from which the metrics need to be fetched.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("source_account_id"),
 			},
 			{
 				Name:        "metric_stat",
@@ -243,8 +249,8 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 		metricDataQueries.MetricStat = &metric_stat
 	}
 
-	if d.EqualsQuals["account_id"] != nil {
-		metricDataQueries.AccountId = aws.String(d.EqualsQuals["account_id"].GetStringValue())
+	if d.EqualsQuals["source_account_id"] != nil {
+		metricDataQueries.AccountId = aws.String(d.EqualsQuals["source_account_id"].GetStringValue())
 	}
 
 	params.MetricDataQueries = []types.MetricDataQuery{metricDataQueries}
