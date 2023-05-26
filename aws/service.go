@@ -71,6 +71,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
@@ -780,6 +781,17 @@ func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Clien
 		return nil, nil
 	}
 	return inspector.NewFromConfig(*cfg), nil
+}
+
+func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return inspector2.NewFromConfig(*cfg), nil
 }
 
 func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
