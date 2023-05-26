@@ -21,6 +21,12 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector2 Member",
 		List: &plugin.ListConfig{
 			Hydrate: listInspector2Member,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "only_associated",
+					Require: plugin.Optional,
+				},
+			},
 		},
 
 		GetMatrixItemFunc: SupportedRegionMatrix(inspector2v1.EndpointsID),
@@ -41,6 +47,12 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 				Name:        "delegated_admin_account_id",
 				Description: "The Amazon Web Services account ID of the Amazon Inspector delegated administrator for this member account.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "only_associated",
+				Description: "Specifies whether to list only currently associated members if True or to list all members within the organization if False.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("only_associated"),
 			},
 			{
 				Name:        "relationship_status",
@@ -91,6 +103,15 @@ func listInspector2Member(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	input := &inspector2.ListMembersInput{
 		MaxResults: aws.Int32(maxLimit),
 	}
+
+if d.EqualsQuals["only_associated"] != nil {
+	onlyAssociated := getQualsValueByColumn(d.Quals, "only_associated", "boolean")
+	if onlyAssociated.(string) == "true" {
+		input.OnlyAssociated = aws.Bool(true)
+	} else {
+		input.OnlyAssociated = aws.Bool(false)
+	}
+}
 
 	paginator := inspector2.NewListMembersPaginator(svc, input, func(o *inspector2.ListMembersPaginatorOptions) {
 		o.Limit = maxLimit
