@@ -1445,6 +1445,10 @@ func getClientForQuerySupportedRegionWithExclusions(ctx context.Context, d *plug
 		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
 
+	if region == "global" {
+		region = "us-east-1"
+	}
+
 	// Work out which regions are valid for this service
 	validRegions, err := listRegionsForService(ctx, d, serviceID)
 	if err != nil {
