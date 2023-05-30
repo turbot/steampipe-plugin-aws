@@ -437,28 +437,46 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 			// unsupported region check
 			return nil, nil
 		}
+
 		// Build param
 		param := &wafv2.ListResourcesForWebACLInput{
-			WebACLArn: aws.String(data["Arn"]),
+			WebACLArn:    aws.String(data["Arn"]),
 		}
 
-		op, err := svc.ListResourcesForWebACL(ctx, param)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "api_error", err)
-			var ae smithy.APIError
-			if errors.As(err, &ae) {
-				if ae.ErrorCode() == "WAFNonexistentItemException" {
-					return nil, nil
-				}
+		var resourceArns []string
+
+		resourceTypes := []types.ResourceType{types.ResourceTypeApplicationLoadBalancer, types.ResourceTypeApiGateway, types.ResourceTypeAppsync, types.ResourceTypeCognitioUserPool}
+
+		for _, resourceType := range resourceTypes {
+			param.ResourceType = resourceType
+			res, err := listAssociatedResourcesByResourcetype(ctx, svc, param)
+
+			if err != nil {
+				return nil, err
 			}
-			return nil, err
-		}
-		if len(op.ResourceArns) == 0 {
-			return nil, nil
-		}
 
-		return op.ResourceArns, nil
+			resourceArns = append(resourceArns, res...)
+		}
+		return resourceArns, nil
 	}
+}
+
+func listAssociatedResourcesByResourcetype(ctx context.Context, svc *wafv2.Client, input *wafv2.ListResourcesForWebACLInput) ([]string, error) {
+	op, err := svc.ListResourcesForWebACL(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResourcesByResourcetype", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "WAFNonexistentItemException" {
+				return nil, nil
+			}
+		}
+		return nil, err
+	}
+	if len(op.ResourceArns) == 0 {
+		return []string{}, nil
+	}
+	return op.ResourceArns, nil
 }
 
 //// TRANSFORM FUNCTIONS
