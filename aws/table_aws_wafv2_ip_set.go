@@ -122,7 +122,6 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	scope := types.ScopeRegional
 
 	if region == "global" {
-		region = "us-east-1"
 		scope = types.ScopeCloudfront
 	}
 
@@ -220,10 +219,6 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	if strings.ToLower(scope) == "cloudfront" && region != "global" {
 		return nil, nil
-	}
-
-	if region == "global" {
-		region = "us-east-1"
 	}
 
 	// Create Session

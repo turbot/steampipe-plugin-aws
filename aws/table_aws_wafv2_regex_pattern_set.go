@@ -120,7 +120,6 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 	scope := types.ScopeRegional
 
 	if region == "global" {
-		region = "us-east-1"
 		scope = types.ScopeCloudfront
 	}
 	// Create session
@@ -217,10 +216,6 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 
 	if strings.ToLower(scope) == "cloudfront" && region != "global" {
 		return nil, nil
-	}
-
-	if region == "global" {
-		region = "us-east-1"
 	}
 
 	// Create Session

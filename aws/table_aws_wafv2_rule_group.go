@@ -134,7 +134,6 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	scope := types.ScopeRegional
 
 	if region == "global" {
-		region = "us-east-1"
 		scope = types.ScopeCloudfront
 	}
 
@@ -235,10 +234,6 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, nil
 	}
 
-	if region == "global" {
-		region = "us-east-1"
-	}
-
 	// Create Session
 	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
@@ -272,9 +267,6 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.EqualsQualString(matrixKeyRegion)
 
-	if region == "global" {
-		region = "us-east-1"
-	}
 	data := ruleGroupData(h.Item)
 	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
 
