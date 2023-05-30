@@ -65,7 +65,7 @@ where
   i.instance_id = e.instance_id;
 ```
 
-### List custom inventory entries of a instance
+### List custom inventory entries of an instance
 
 ```sql
 select
