@@ -64,3 +64,20 @@ from
 where
   i.instance_id = e.instance_id;
 ```
+
+### List custom inventory entries of a instance
+
+```sql
+select
+  instance_id,
+  type_name,
+  capture_time,
+  schema_version,
+  entries
+from
+  aws_ssm_inventory_entry
+where
+  instance_id = 'i-1234567890abcwd4f'
+and
+  type_name like 'Custom%';
+```
