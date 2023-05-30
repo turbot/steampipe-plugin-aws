@@ -298,12 +298,6 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 	region := d.EqualsQualString(matrixKeyRegion)
 
 	data := webAclData(h.Item)
-	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if locationType == "global" && region != "us-east-1" {
-		return nil, nil
-	}
 
 	// Create session
 	svc, err := WAFV2Client(ctx, d, region)
@@ -333,12 +327,6 @@ func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin
 	region := d.EqualsQualString(matrixKeyRegion)
 
 	data := webAclData(h.Item)
-	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if locationType == "global" && region != "us-east-1" {
-		return nil, nil
-	}
 
 	// Create session
 	svc, err := WAFV2Client(ctx, d, region)
