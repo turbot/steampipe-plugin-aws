@@ -1445,6 +1445,7 @@ func getClientForQuerySupportedRegionWithExclusions(ctx context.Context, d *plug
 		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
 
+	// Region "global" is a special case for wafv2 cloudfront resources
 	if region == "global" {
 		region = "us-east-1"
 	}
