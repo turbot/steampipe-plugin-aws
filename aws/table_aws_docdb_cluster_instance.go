@@ -357,7 +357,7 @@ func DocDBClusterInstanceTagListToTurbotTags(ctx context.Context, d *transform.T
 	return turbotTagsMap, nil
 }
 
-// build rds db instance list call input filter
+// build instance list call input filter
 func buildDocDBInstanceFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)
 	filterQuals := map[string]string{

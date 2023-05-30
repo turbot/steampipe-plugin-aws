@@ -1,0 +1,20 @@
+[
+  {
+    "availability_zone": "us-east-1a",
+    "copy_tags_to_snapshot": false,
+    "db_instance_arn": "{{ output.resource_aka.value }}",
+    "db_instance_class": "db.t3.medium",
+    "db_instance_identifier": "{{resourceName}}",
+    "dbi_resource_id": "{{ output.dbi_resource_id.value }}",
+    "db_subnet_group_name": "default",
+    "endpoint_port": 27017,
+    "engine": "docdb",
+    "storage_encrypted": false,
+    "tags_src": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]
