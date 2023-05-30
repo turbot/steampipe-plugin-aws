@@ -364,11 +364,6 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 	data := webAclData(h.Item)
 	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
 
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if locationType == "global" && region != "us-east-1" {
-		return nil, nil
-	}
-
 	// Create session
 	if locationType == "global" {
 		svc, err := CloudFrontClient(ctx, d)
