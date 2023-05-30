@@ -410,6 +410,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ssm_document":                                             tableAwsSSMDocument(ctx),
 			"aws_ssm_document_permission":                                  tableAwsSSMDocumentPermission(ctx),
 			"aws_ssm_inventory":                                            tableAwsSSMInventory(ctx),
+			"aws_ssm_inventory_entry":                                      tableAwsSSMInventoryEntry(ctx),
 			"aws_ssm_maintenance_window":                                   tableAwsSSMMaintenanceWindow(ctx),
 			"aws_ssm_managed_instance_compliance":                          tableAwsSSMManagedInstanceCompliance(ctx),
 			"aws_ssm_managed_instance":                                     tableAwsSSMManagedInstance(ctx),
