@@ -62,7 +62,7 @@ where
   s.id = i.service_id;
 ```
 
-### Get EC2 instance details of each instance
+### Get EC2 instance details of each service discovery instance
 
 ```sql
 select
@@ -79,4 +79,18 @@ where
   i.ec2_instance_id is not null
 and
   ei.instance_id = i.ec2_instance_id;
+```
+
+### Get the IP address configuration of service discovery instances 
+
+```sql
+select
+  id,
+  service_id,
+  ec2_instance_id,
+  instance_ipv4,
+  instance_ipv6,
+  instance_port
+from
+  aws_service_discovery_instance;
 ```
