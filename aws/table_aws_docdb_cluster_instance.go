@@ -223,7 +223,7 @@ func tableAwsDocDBClusterInstance(_ context.Context) *plugin.Table {
 				Description: "A list of tags attached to the Instance.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDocDBClusterInstanceTags,
-				Transform:   transform.FromField("TagList"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Standard columns

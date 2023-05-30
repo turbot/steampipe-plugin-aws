@@ -49,7 +49,6 @@ data "null_data_source" "resource" {
 
 resource "aws_docdb_cluster" "named_test_resource" {
   cluster_identifier      = var.resource_name
-  availability_zones      = ["us-east-1a"]
   engine                  = "docdb"
   master_username         = "turbottest"
   master_password         = "test123Q"

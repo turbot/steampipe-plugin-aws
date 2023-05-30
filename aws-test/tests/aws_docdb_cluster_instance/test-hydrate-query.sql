@@ -7,7 +7,6 @@ select
   db_subnet_group_name,
   endpoint_port,
   engine,
-  availability_zone,
   storage_encrypted,
   tags_src
 from
