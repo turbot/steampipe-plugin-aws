@@ -71,6 +71,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
@@ -782,6 +783,17 @@ func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Clien
 	return inspector.NewFromConfig(*cfg), nil
 }
 
+func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return inspector2.NewFromConfig(*cfg), nil
+}
+
 func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, kafkaEndpoint.EndpointsID)
 	if err != nil {
@@ -1382,7 +1394,16 @@ func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.C
 }
 
 func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
+	var cfg *aws.Config
+	var err error
+	// For WAFv2 resources of type CloudFront, we are building the region metrix including a region value 'global'.
+	// We need to pass the the region value 'us-east-1' to get the cloudfront resource types.
+	// getClientForQuerySupportedRegion function removes the invalid region(global) while building the client for which we need the below check
+	if region == "global" {
+		cfg, err = getClient(ctx, d, "us-east-1")
+	} else {
+		cfg, err = getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
+	}
 	if err != nil {
 		return nil, err
 	}

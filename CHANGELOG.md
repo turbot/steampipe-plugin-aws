@@ -1,3 +1,20 @@
+## v0.104.0 [2023-05-26]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudwatch_metric_data_point](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_metric_data_point) ([#1655](https://github.com/turbot/steampipe-plugin-aws/pull/1655))
+  - [aws_cloudwatch_metric_statistic_data_point](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_metric_statistic_data_point) ([#1649](https://github.com/turbot/steampipe-plugin-aws/pull/1649))
+  - [aws_inspector2_coverage](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_inspector2_coverage) ([#1657](https://github.com/turbot/steampipe-plugin-aws/pull/1657)) (Thanks [@jaredreisinger-drizly](https://github.com/jaredreisinger-drizly) for the contribution!!)
+  - [aws_inspector2_coverage_statistics](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_inspector2_coverage_statistics) ([#1657](https://github.com/turbot/steampipe-plugin-aws/pull/1657)) (Thanks [@jaredreisinger-drizly](https://github.com/jaredreisinger-drizly) for the contribution!!)
+  - [aws_inspector2_finding](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_inspector2_finding) ([#1657](https://github.com/turbot/steampipe-plugin-aws/pull/1657)) (Thanks [@jaredreisinger-drizly](https://github.com/jaredreisinger-drizly) for the contribution!!)
+  - [aws_inspector2_member](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_inspector2_member) ([#1657](https://github.com/turbot/steampipe-plugin-aws/pull/1657)) (Thanks [@jaredreisinger-drizly](https://github.com/jaredreisinger-drizly) for the contribution!!)
+  - [aws_rds_db_instance_automated_backup](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_automated_backup) ([#1721](https://github.com/turbot/steampipe-plugin-aws/pull/1721))
+
+_Enhancements_
+
+- Added an example query in aws_iam_role table doc. ([#1745](https://github.com/turbot/steampipe-plugin-aws/pull/1745))
+
 ## v0.103.0 [2023-05-18]
 
 _What's new?_
