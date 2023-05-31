@@ -34,7 +34,7 @@ where
   publicly_accessible;
 ```
 
-### Get DB subnet group info for each instance
+### Get DB subnet group info of each instance
 
 ```sql
 select
@@ -46,7 +46,7 @@ from
   aws_docdb_cluster_instance;
 ```
 
-### Get VPC and subnet info for each instance
+### Get VPC and subnet info of each instance
 
 ```sql
 select

@@ -25,7 +25,7 @@ func tableAwsDocDBClusterInstance(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listDocDBClusterInstances,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "InvalidParameterCombination", "DBInstanceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "DBInstanceNotFound"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
@@ -69,7 +69,6 @@ func tableAwsDocDBClusterInstance(_ context.Context) *plugin.Table {
 				Name:        "dbi_resource_id",
 				Description: "The Amazon Web Services Region-unique, immutable identifier for the instance.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("DbiResourceId"),
 			},
 			{
 				Name:        "availability_zone",
@@ -226,7 +225,7 @@ func tableAwsDocDBClusterInstance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),

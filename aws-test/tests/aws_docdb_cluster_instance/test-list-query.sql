@@ -11,4 +11,5 @@ select
   tags_src
 from
   aws.aws_docdb_cluster_instance
-where db_instance_arn = '{{ output.resource_aka.value }}'
+where 
+  db_instance_arn = '{{ output.resource_aka.value }}';
