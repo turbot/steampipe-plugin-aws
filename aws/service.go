@@ -1394,7 +1394,16 @@ func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.C
 }
 
 func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
+	var cfg *aws.Config
+	var err error
+	// For WAFv2 resources of type CloudFront, we are building the region metrix including a region value 'global'.
+	// We need to pass the the region value 'us-east-1' to get the cloudfront resource types.
+	// getClientForQuerySupportedRegion function removes the invalid region(global) while building the client for which we need the below check
+	if region == "global" {
+		cfg, err = getClient(ctx, d, "us-east-1")
+	} else {
+		cfg, err = getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
+	}
 	if err != nil {
 		return nil, err
 	}
