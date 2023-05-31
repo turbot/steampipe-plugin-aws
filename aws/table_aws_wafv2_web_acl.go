@@ -418,7 +418,7 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 
 		for _, resourceType := range resourceTypes {
 			param.ResourceType = resourceType
-			res, err := listAssociatedResourcesByResourcetype(ctx, svc, param)
+			res, err := listAssociatedResourcesByResourceType(ctx, svc, param)
 
 			if err != nil {
 				return nil, err
@@ -430,10 +430,10 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 }
 
-func listAssociatedResourcesByResourcetype(ctx context.Context, svc *wafv2.Client, input *wafv2.ListResourcesForWebACLInput) ([]string, error) {
+func listAssociatedResourcesByResourceType(ctx context.Context, svc *wafv2.Client, input *wafv2.ListResourcesForWebACLInput) ([]string, error) {
 	op, err := svc.ListResourcesForWebACL(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResourcesByResourcetype", "api_error", err)
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResourcesByResourceType", "api_error", err)
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
 			if ae.ErrorCode() == "WAFNonexistentItemException" {
