@@ -409,7 +409,7 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 
 		// Build param
 		param := &wafv2.ListResourcesForWebACLInput{
-			WebACLArn:    aws.String(data["Arn"]),
+			WebACLArn: aws.String(data["Arn"]),
 		}
 
 		var resourceArns []string
