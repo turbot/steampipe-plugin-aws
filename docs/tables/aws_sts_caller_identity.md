@@ -33,7 +33,7 @@ from
   aws_iam_user as u
 where
   caller_identity.user_id = u.user_id
-  and caller_identity.arn like '%assumed-role%';
+  and caller_identity.arn like '%assumed%';
 ```
 
 ### Get the details of the user created with GetFederationToken
@@ -52,5 +52,5 @@ from
   aws_iam_user as u
 where
   caller_identity.user_id = u.user_id
-  caller_identity.arn like '%federated-user%';
+  and caller_identity.arn like '%federated%';
 ```
