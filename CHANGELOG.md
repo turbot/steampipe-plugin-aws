@@ -1,3 +1,19 @@
+## v0.105.0 [2023-06-01]
+
+_What's new?_
+
+- New tables added
+  - [aws_docdb_cluster_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_docdb_cluster_instance) ([#1755](https://github.com/turbot/steampipe-plugin-aws/pull/1755))
+  - [aws_service_discovery_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_service_discovery_instance) ([#1741](https://github.com/turbot/steampipe-plugin-aws/pull/1741))
+  - [aws_ssm_inventory_entry](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_inventory_entry) ([#1743](https://github.com/turbot/steampipe-plugin-aws/pull/1743))
+  - [aws_sts_caller_identity](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sts_caller_identity) ([#1746](https://github.com/turbot/steampipe-plugin-aws/pull/1746))
+
+_Bug fixes_
+
+- Fixed `aws_inspector2_*` tables to correctly return data for all supported regions instead of only the `us-east-1` region. ([#1758](https://github.com/turbot/steampipe-plugin-aws/pull/1758))
+- Fixed the `associated_resources` column in the `aws_wafv2_web_acl` table to include the associated resources of `API Gateway`, `App Sync`, and `Cognito User Pool`, in addition to the previously returned `Application Load Balancer resource type`. ([#1754](https://github.com/turbot/steampipe-plugin-aws/pull/1754))
+- Fixed the `aws_wafv2_web_acl` table to return the missing `CloudFront` level web ACLs. ([#1752](https://github.com/turbot/steampipe-plugin-aws/pull/1752))
+
 ## v0.104.0 [2023-05-26]
 
 _What's new?_
