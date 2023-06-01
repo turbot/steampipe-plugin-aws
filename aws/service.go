@@ -147,6 +147,7 @@ import (
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
+	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
 	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
 	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
@@ -784,7 +785,7 @@ func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Clien
 }
 
 func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Client, error) {
-	cfg, err := getClientForDefaultRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspector2Endpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
