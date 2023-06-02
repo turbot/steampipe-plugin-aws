@@ -377,6 +377,10 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 			return nil, nil
 		}
 
+		// Doc(https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_ListDistributionsByWebACLId.html) says
+		// We need to pass the Web ACL ID to get the associated distrubutions with it but it doesn't.
+		// By passing the Web ACL ARN we are getting the associated disctributions with it.
+		// The AWS CLI behaves the same way as the API is behaving.
 		// Build param
 		param := &cloudfront.ListDistributionsByWebACLIdInput{
 			WebACLId: aws.String(data["Arn"]),
