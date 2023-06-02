@@ -395,7 +395,6 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 		}
 
 		var ARNs []string
-
 		if op.DistributionList != nil {
 			if len(op.DistributionList.Items) > 0 {
 				for _, item := range op.DistributionList.Items {
