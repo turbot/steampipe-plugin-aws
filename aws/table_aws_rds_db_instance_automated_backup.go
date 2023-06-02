@@ -9,6 +9,7 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -245,7 +246,17 @@ func listRDSDBInstanceAutomatedBackups(ctx context.Context, d *plugin.QueryData,
 		}
 
 		for _, items := range output.DBInstanceAutomatedBackups {
-			d.StreamListItem(ctx, items)
+			if helpers.StringSliceContains(
+				[]string{
+					"aurora",
+					"aurora-mysql",
+					"aurora-postgresql",
+					"mysql",
+					"postgres",
+				},
+				*items.Engine) {
+				d.StreamListItem(ctx, items)
+			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -261,10 +272,10 @@ func listRDSDBInstanceAutomatedBackups(ctx context.Context, d *plugin.QueryData,
 
 func getRDSDBInstanceAutomatedBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	arn := d.EqualsQualString("arn")
-	
+
 	// empty arn check
 	if arn == "" {
-	    return nil, nil
+		return nil, nil
 	}
 
 	// Create service
@@ -285,7 +296,18 @@ func getRDSDBInstanceAutomatedBackup(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	if op.DBInstanceAutomatedBackups != nil && len(op.DBInstanceAutomatedBackups) > 0 {
-		return op.DBInstanceAutomatedBackups[0], nil
+		backup := op.DBInstanceAutomatedBackups[0]
+		if helpers.StringSliceContains(
+			[]string{
+				"aurora",
+				"aurora-mysql",
+				"aurora-postgresql",
+				"mysql",
+				"postgres",
+			},
+			*backup.Engine) {
+			return backup, nil
+		}
 	}
 	return nil, nil
 }
