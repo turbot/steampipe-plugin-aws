@@ -1,3 +1,10 @@
+## v0.105.1 [2023-06-02]
+
+_Bug fixes_
+
+- Fixed the `associated_resources` column of `aws_wafv2_web_acl` table to also return associated CloudFront distributions. ([#1763](https://github.com/turbot/steampipe-plugin-aws/pull/1763))
+- Fixed the syntax error in the example query of the `aws_inspector2_finding` table. ([#1764](https://github.com/turbot/steampipe-plugin-aws/pull/1764))
+
 ## v0.105.0 [2023-06-01]
 
 _What's new?_
