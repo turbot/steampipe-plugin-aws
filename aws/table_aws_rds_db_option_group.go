@@ -9,7 +9,6 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -164,17 +163,7 @@ func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		}
 
 		for _, items := range output.OptionGroupsList {
-			if helpers.StringSliceContains(
-				[]string{
-					"aurora",
-					"aurora-mysql",
-					"aurora-postgresql",
-					"mysql",
-					"postgres",
-				},
-				*items.EngineName) {
-				d.StreamListItem(ctx, items)
-			}
+			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
