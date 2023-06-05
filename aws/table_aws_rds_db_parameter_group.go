@@ -9,7 +9,6 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -137,17 +136,7 @@ func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 
 		for _, items := range output.DBParameterGroups {
-			if helpers.StringSliceContains(
-				[]string{
-					"aurora",
-					"aurora-mysql",
-					"aurora-postgresql",
-					"mysql",
-					"postgres",
-				},
-				*items.DBParameterGroupFamily) {
-				d.StreamListItem(ctx, items)
-			}
+			d.StreamListItem(ctx, items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -182,18 +171,7 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	if op.DBParameterGroups != nil && len(op.DBParameterGroups) > 0 {
-		parameterGroup := op.DBParameterGroups[0]
-		if helpers.StringSliceContains(
-			[]string{
-				"aurora",
-				"aurora-mysql",
-				"aurora-postgresql",
-				"mysql",
-				"postgres",
-			},
-			*parameterGroup.DBParameterGroupFamily) {
-			return parameterGroup, nil
-		}
+		return op.DBParameterGroups[0], nil
 	}
 	return nil, nil
 }
