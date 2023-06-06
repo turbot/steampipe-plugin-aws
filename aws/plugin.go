@@ -360,6 +360,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_resource_explorer_supported_resource_type":                tableAWSResourceExplorerSupportedResourceType(ctx),
 			"aws_route53_domain":                                           tableAwsRoute53Domain(ctx),
 			"aws_route53_health_check":                                     tableAwsRoute53HealthCheck(ctx),
+			"aws_route53_query_log":                                        tableAwsRoute53QueryLog(ctx),
 			"aws_route53_record":                                           tableAwsRoute53Record(ctx),
 			"aws_route53_resolver_endpoint":                                tableAwsRoute53ResolverEndpoint(ctx),
 			"aws_route53_resolver_rule":                                    tableAwsRoute53ResolverRule(ctx),
