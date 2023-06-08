@@ -155,11 +155,7 @@ func listApiGatewayDomainNames(ctx context.Context, d *plugin.QueryData, _ *plug
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -190,7 +186,7 @@ func listApiGatewayDomainNames(ctx context.Context, d *plugin.QueryData, _ *plug
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -245,6 +241,7 @@ func getapiGatewayDomainNameAkas(ctx context.Context, d *plugin.QueryData, h *pl
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_domain_name.getapiGatewayDomainNameAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 
