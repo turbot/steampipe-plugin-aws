@@ -8,7 +8,7 @@ _What's new?_
 
 _Bug fixes_
 
-- Fixed `aws_cloudformation_stack_resource` table list call to return correct results instead of an empty row. ([#1771](https://github.com/turbot/steampipe-plugin-aws/pull/1771))
+- Fixed the `ListConfig` of `aws_cloudformation_stack_resource` table to correctly return results instead of an empty row. ([#1771](https://github.com/turbot/steampipe-plugin-aws/pull/1771))
 
 ## v0.105.1 [2023-06-02]
 
