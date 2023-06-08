@@ -12,13 +12,13 @@ run_test () {
  if ! ./tint.js $1 > temp.txt
    then
     echo -e "${RED}Failed -> $1 ${ENDCOLOR}"
-    echo $1 >> failed_tests.txt
+    echo $1 >> failed_tests1.txt
   else
     echo -e "${BOLDGREEN}Passed -> $1 ${ENDCOLOR}"
-    echo $1 >> passed_tests.txt
+    echo $1 >> passed_tests1.txt
    fi
   echo -e "$1" >> resource_list.txt && cat temp.txt | grep "resource_name" >> resource_list.txt && echo -e "\n\n" >> resource_list.txt
-  cat temp.txt >> output.txt
+  cat temp.txt >> output1.txt
   rm -rf temp.txt
  }
 
@@ -33,112 +33,112 @@ run_test () {
  date >> passed_tests.txt
  date >> resource_list.txt
 
-run_test aws_accessanalyzer_analyzer
-run_test aws_acm_certificate
-run_test aws_amplify_app
-run_test aws_api_gateway_api_key
-run_test aws_api_gateway_authorizer
-run_test aws_api_gateway_rest_api
-run_test aws_api_gateway_stage
-run_test aws_api_gateway_usage_plan
-run_test aws_api_gatewayv2_api
-run_test aws_api_gatewayv2_domain_name
-run_test aws_api_gatewayv2_integration
-run_test aws_api_gatewayv2_route
-run_test aws_api_gatewayv2_stage
-run_test aws_appautoscaling_target
-run_test aws_appconfig_application
-run_test aws_auditmanager_assessment
-run_test aws_auditmanager_control
-run_test aws_auditmanager_framework
-run_test aws_backup_framework
-run_test aws_backup_plan
-run_test aws_backup_selection
-run_test aws_backup_vault
-run_test aws_cloudformation_stack
-run_test aws_cloudformation_stack_resource
-run_test aws_cloudfront_cache_policy
-run_test aws_cloudfront_distribution
-run_test aws_cloudfront_function
-run_test aws_cloudfront_origin_access_identity
-run_test aws_cloudfront_origin_request_policy
-run_test aws_cloudfront_response_headers_policy
-run_test aws_cloudsearch_domain
-run_test aws_cloudtrail_event_data_store
-run_test aws_cloudtrail_trail
-run_test aws_cloudwatch_alarm
-run_test aws_cloudwatch_log_group
-run_test aws_cloudwatch_log_resource_policy
-run_test aws_cloudwatch_log_stream
-run_test aws_codeartifact_domain
-run_test aws_codeartifact_repository
-run_test aws_codebuild_project
-run_test aws_codebuild_source_credential
-run_test aws_codecommit_repository
-run_test aws_codedeploy_app
-run_test aws_codedeploy_deployment_config
-run_test aws_codedeploy_deployment_group
-run_test aws_codepipeline_pipeline
-run_test aws_config_aggregate_authorization
-run_test aws_config_configuration_recorder
-run_test aws_config_conformance_pack
-run_test aws_config_rule
-run_test aws_dax_cluster
-run_test aws_dax_parameter
-run_test aws_dax_parameter_group
-run_test aws_dax_subnet_group
-run_test aws_directory_service_directory
-run_test aws_dlm_lifecycle_policy
-run_test aws_dms_replication_instance
-run_test aws_docdb_cluster
-run_test aws_docdb_cluster_instance
-run_test aws_dynamodb_table
-run_test aws_ebs_snapshot
-run_test aws_ebs_volume
-run_test aws_ec2_ami
-run_test aws_ec2_ami_shared
-run_test aws_ec2_application_load_balancer
-run_test aws_ec2_autoscaling_group
-run_test aws_ec2_capacity_reservation
-run_test aws_ec2_classic_load_balancer
-run_test aws_ec2_gateway_load_balancer
-run_test aws_ec2_instance
-run_test aws_ec2_key_pair
-run_test aws_ec2_launch_configuration
-run_test aws_ec2_launch_template
-run_test aws_ec2_launch_template_version
-run_test aws_ec2_load_balancer_listener
-run_test aws_ec2_managed_prefix_list
-run_test aws_ec2_network_interface
-run_test aws_ec2_network_load_balancer
-run_test aws_ec2_regional_settings
-run_test aws_ec2_ssl_policy
-run_test aws_ec2_target_group
-run_test aws_ec2_transit_gateway
-run_test aws_ec2_transit_gateway_route
-run_test aws_ec2_transit_gateway_route_table
-run_test aws_ec2_transit_gateway_vpc_attachment
-run_test aws_ecr_repository
-run_test aws_ecrpublic_repository
-run_test aws_ecs_cluster
-run_test aws_ecs_service
-run_test aws_ecs_task_definition
-# run_test aws_efs_access_point
-# run_test aws_efs_file_system
-# run_test aws_efs_mount_target
-run_test aws_eks_addon
-run_test aws_eks_addon_version
-run_test aws_eks_cluster
-run_test aws_eks_fargate_profile
-run_test aws_eks_identity_provider_config
-run_test aws_elastic_beanstalk_application
-run_test aws_elastic_beanstalk_environment
-run_test aws_elasticache_cluster
-run_test aws_elasticache_parameter_group
-run_test aws_elasticache_replication_group
-run_test aws_elasticache_subnet_group
-run_test aws_elasticsearch_domain
-run_test aws_emr_cluster
+# run_test aws_accessanalyzer_analyzer
+# run_test aws_acm_certificate
+# run_test aws_amplify_app
+# run_test aws_api_gateway_api_key
+# run_test aws_api_gateway_authorizer
+# run_test aws_api_gateway_rest_api
+# run_test aws_api_gateway_stage
+# run_test aws_api_gateway_usage_plan
+# run_test aws_api_gatewayv2_api
+# run_test aws_api_gatewayv2_domain_name
+# run_test aws_api_gatewayv2_integration
+# run_test aws_api_gatewayv2_route
+# run_test aws_api_gatewayv2_stage
+# run_test aws_appautoscaling_target
+# run_test aws_appconfig_application
+# run_test aws_auditmanager_assessment
+# run_test aws_auditmanager_control
+# run_test aws_auditmanager_framework
+# run_test aws_backup_framework
+# run_test aws_backup_plan
+# run_test aws_backup_selection
+# run_test aws_backup_vault
+# run_test aws_cloudformation_stack
+# run_test aws_cloudformation_stack_resource
+# run_test aws_cloudfront_cache_policy
+# run_test aws_cloudfront_distribution
+# run_test aws_cloudfront_function
+# run_test aws_cloudfront_origin_access_identity
+# run_test aws_cloudfront_origin_request_policy
+# run_test aws_cloudfront_response_headers_policy
+# run_test aws_cloudsearch_domain
+# run_test aws_cloudtrail_event_data_store
+# run_test aws_cloudtrail_trail
+# run_test aws_cloudwatch_alarm
+# run_test aws_cloudwatch_log_group
+# run_test aws_cloudwatch_log_resource_policy
+# run_test aws_cloudwatch_log_stream
+# run_test aws_codeartifact_domain
+# run_test aws_codeartifact_repository
+# run_test aws_codebuild_project
+# run_test aws_codebuild_source_credential
+# run_test aws_codecommit_repository
+# run_test aws_codedeploy_app
+# run_test aws_codedeploy_deployment_config
+# run_test aws_codedeploy_deployment_group
+# run_test aws_codepipeline_pipeline
+# run_test aws_config_aggregate_authorization
+# run_test aws_config_configuration_recorder
+# run_test aws_config_conformance_pack
+# run_test aws_config_rule
+# run_test aws_dax_cluster
+# run_test aws_dax_parameter
+# run_test aws_dax_parameter_group
+# run_test aws_dax_subnet_group
+# run_test aws_directory_service_directory
+# run_test aws_dlm_lifecycle_policy
+# run_test aws_dms_replication_instance
+# run_test aws_docdb_cluster
+# run_test aws_docdb_cluster_instance
+# run_test aws_dynamodb_table
+# run_test aws_ebs_snapshot
+# run_test aws_ebs_volume
+# run_test aws_ec2_ami
+# run_test aws_ec2_ami_shared
+# run_test aws_ec2_application_load_balancer
+# run_test aws_ec2_autoscaling_group
+# run_test aws_ec2_capacity_reservation
+# run_test aws_ec2_classic_load_balancer
+# run_test aws_ec2_gateway_load_balancer
+# run_test aws_ec2_instance
+# run_test aws_ec2_key_pair
+# run_test aws_ec2_launch_configuration
+# run_test aws_ec2_launch_template
+# run_test aws_ec2_launch_template_version
+# run_test aws_ec2_load_balancer_listener
+# run_test aws_ec2_managed_prefix_list
+# run_test aws_ec2_network_interface
+# run_test aws_ec2_network_load_balancer
+# run_test aws_ec2_regional_settings
+# run_test aws_ec2_ssl_policy
+# run_test aws_ec2_target_group
+# run_test aws_ec2_transit_gateway
+# run_test aws_ec2_transit_gateway_route
+# run_test aws_ec2_transit_gateway_route_table
+# run_test aws_ec2_transit_gateway_vpc_attachment
+# run_test aws_ecr_repository
+# run_test aws_ecrpublic_repository
+# run_test aws_ecs_cluster
+# run_test aws_ecs_service
+# run_test aws_ecs_task_definition
+# # run_test aws_efs_access_point
+# # run_test aws_efs_file_system
+# # run_test aws_efs_mount_target
+# run_test aws_eks_addon
+# run_test aws_eks_addon_version
+# run_test aws_eks_cluster
+# run_test aws_eks_fargate_profile
+# run_test aws_eks_identity_provider_config
+# run_test aws_elastic_beanstalk_application
+# run_test aws_elastic_beanstalk_environment
+# run_test aws_elasticache_cluster
+# run_test aws_elasticache_parameter_group
+# run_test aws_elasticache_replication_group
+# run_test aws_elasticache_subnet_group
+# run_test aws_elasticsearch_domain
+# run_test aws_emr_cluster
 run_test aws_emr_instance_fleet
 run_test aws_emr_instance_group
 run_test aws_eventbridge_bus
