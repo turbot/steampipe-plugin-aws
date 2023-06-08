@@ -119,7 +119,7 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 	stackName := d.EqualsQualString("stack_name")
 
 	// If a stack name is specified in optional quals, the user is not allowed to perform API calls for other stacks.
-	if stackName == "" || stackName != *stack.StackName {
+	if d.EqualsQuals["stack_name"] != nil && stackName != *stack.StackName {
 		return nil, nil
 	}
 
@@ -140,11 +140,6 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 		StackName: stack.StackName,
 	}
 
-	// Additonal Filter
-	equalQuals := d.EqualsQuals
-	if equalQuals["stack_name"] != nil {
-		input.StackName = aws.String(equalQuals["stack_name"].GetStringValue())
-	}
 	paginator := cloudformation.NewListStackResourcesPaginator(svc, input, func(o *cloudformation.ListStackResourcesPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
