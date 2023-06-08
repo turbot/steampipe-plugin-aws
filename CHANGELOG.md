@@ -1,3 +1,15 @@
+## v0.106.0 [2023-06-08]
+
+_What's new?_
+
+- New tables added
+  - [aws_api_gateway_domain_name](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_api_gateway_domain_name) ([#1665](https://github.com/turbot/steampipe-plugin-aws/pull/1665))
+  - [aws_route53_query_log](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_route53_query_log) ([#1770](https://github.com/turbot/steampipe-plugin-aws/pull/1770))
+
+_Bug fixes_
+
+- Fixed the `ListConfig` of `aws_cloudformation_stack_resource` table to correctly return results instead of an empty row. ([#1771](https://github.com/turbot/steampipe-plugin-aws/pull/1771))
+
 ## v0.105.1 [2023-06-02]
 
 _Bug fixes_
