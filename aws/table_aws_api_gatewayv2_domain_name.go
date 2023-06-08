@@ -39,6 +39,11 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "api_mapping_selection_expression",
+				Description: "The API mapping selection expression.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "domain_name_configurations",
 				Description: "The domain name configurations",
 				Type:        proto.ColumnType_JSON,
@@ -49,16 +54,18 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("MutualTlsAuthentication"),
 			},
-			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-			},
+
+			// Steampipe standard column
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DomainName"),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "akas",
@@ -170,6 +177,8 @@ func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	return nil, nil
 }
 
+//// TRANSFORM FUNCTION
+
 func getapiGatewayV2DomainNameAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.EqualsQualString(matrixKeyRegion)
 	domainName := ""
@@ -187,7 +196,7 @@ func getapiGatewayV2DomainNameAkas(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/domainnames/" + domainName}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/domainname/" + domainName}
 
 	return akas, nil
 }
