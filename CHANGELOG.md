@@ -1,3 +1,10 @@
+## v0.106.0 [2023-06-08]
+
+_What's new?_
+
+- New tables added
+  - [aws_api_gateway_domain_name](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_api_gateway_domain_name) ([#1665](https://github.com/turbot/steampipe-plugin-aws/pull/1665))
+
 ## v0.105.1 [2023-06-02]
 
 _Bug fixes_
