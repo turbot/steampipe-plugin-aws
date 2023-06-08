@@ -33,7 +33,7 @@ where
   domain_name_status = 'AVAILABLE';
 ```
 
-### Get certificate details of each domain names
+### Get certificate details of each domain name
 
 ```sql
 select
