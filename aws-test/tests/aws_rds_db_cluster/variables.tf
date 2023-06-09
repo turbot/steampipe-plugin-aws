@@ -82,6 +82,7 @@ resource "aws_db_subnet_group" "my_subnetgroup" {
 
 resource "aws_rds_cluster" "named_test_resource" {
   cluster_identifier   = var.resource_name
+  engine               = "aurora-mysql"
   master_username      = "turbottest"
   master_password      = "test123Q"
   skip_final_snapshot  = true

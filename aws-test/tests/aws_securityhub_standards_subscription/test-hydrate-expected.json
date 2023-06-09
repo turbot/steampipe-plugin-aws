@@ -1,7 +1,7 @@
 [
   {
     "standards_input": null,
-    "standards_status": "READY",
+    "standards_status": "INCOMPLETE",
     "standards_subscription_arn": "arn:aws:securityhub:{{ output.aws_region.value }}:{{ output.account_id.value }}:subscription/cis-aws-foundations-benchmark/v/1.2.0"
   }
 ]

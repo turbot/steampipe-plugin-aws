@@ -49,10 +49,10 @@ data "null_data_source" "resource" {
 resource "aws_securityhub_account" "named_test_resource" {}
 
 resource "null_resource" "named_test_resource" {
-  depends_on = [aws_securityhub_account.named_test_resource] 
+  depends_on = [aws_securityhub_account.named_test_resource]
   provisioner "local-exec" {
     command = <<EOT
-      aws securityhub describe-standards-controls --region ${data.aws_region.primary.name} --standards-subscription-arn "arn:aws:securityhub:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:subscription/aws-foundational-security-best-practices/v/1.0.0" > ${path.cwd}/control.json;
+      aws securityhub describe-standards-controls --region ${data.aws_region.primary.name} --profile ${var.aws_profile} --standards-subscription-arn arn:aws:securityhub:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:subscription/aws-foundational-security-best-practices/v/1.0.0 > ${path.cwd}/control.json;
     EOT
   }
 }

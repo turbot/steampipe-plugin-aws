@@ -49,9 +49,6 @@ data "null_data_source" "resource" {
 resource "aws_secretsmanager_secret" "named_test_resource" {
   name             = var.resource_name
   description      = "Test secret."
-  rotation_rules {
-    automatically_after_days = 7
-  }
   tags = {
     "foo" = "bar"
   }
