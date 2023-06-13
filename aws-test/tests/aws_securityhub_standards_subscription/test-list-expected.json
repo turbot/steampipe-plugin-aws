@@ -3,7 +3,6 @@
     "enabled_by_default": true,
     "name": "CIS AWS Foundations Benchmark v1.2.0",
     "standards_arn": "arn:aws:securityhub:::ruleset/cis-aws-foundations-benchmark/v/1.2.0",
-    "standards_status": "INCOMPLETE",
     "standards_subscription_arn": "arn:aws:securityhub:{{ output.aws_region.value }}:{{ output.account_id.value }}:subscription/cis-aws-foundations-benchmark/v/1.2.0"
   }
 ]

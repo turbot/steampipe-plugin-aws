@@ -10,7 +10,6 @@
     "endpoint": "{{ output.endpoint.value }}",
     "engine": "aurora-mysql",
     "engine_mode": "provisioned",
-    "engine_version": "5.7.mysql_aurora.2.11.2",
     "global_write_forwarding_requested": false,
     "http_endpoint_enabled": false,
     "iam_database_authentication_enabled": false,
