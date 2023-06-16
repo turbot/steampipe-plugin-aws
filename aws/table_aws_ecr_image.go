@@ -175,7 +175,7 @@ func getImageURI(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// AWS follows the below image URI format -
-	// with tag - {aws_account_id}.dkr.ecr.{region}.amazonaws.com/{repository name}:{tag}
+	// with tag - {aws_account_id}.dkr.ecr.{region}.amazonaws.com/{repository name}:{first tag}
 	// without tag - {aws_account_id}.dkr.ecr.{region}.amazonaws.com/{repository name}@image_digest
 	if len(image.ImageTags) == 0 {
 		uri := commonColumnData.AccountId + ".dkr.ecr." + commonColumnData.Region + ".amazonaws.com/" + *image.RepositoryName + "@" + *image.ImageDigest
