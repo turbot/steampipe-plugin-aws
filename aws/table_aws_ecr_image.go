@@ -47,7 +47,7 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "image_uri",
-				Description: "It is a unique identifier that specifies the location and version of the image.",
+				Description: "The URI for the image.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getImageURI,
 				Transform:   transform.FromValue(),
