@@ -3,8 +3,6 @@
     "arn": "{{ output.resource_aka.value }}",
     "db_cluster_identifier": "{{resourceName}}",
     "db_cluster_snapshot_identifier": "{{resourceName}}",
-    "engine": "aurora",
-    "engine_version": "5.6.mysql_aurora.1.22.5",
     "iam_database_authentication_enabled": false,
     "license_model": "aurora",
     "master_user_name": "turbottest",
