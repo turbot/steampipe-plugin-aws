@@ -1,0 +1,5 @@
+[
+  {
+    "title": "{{ output.cidr_block.value }}"
+  }
+]

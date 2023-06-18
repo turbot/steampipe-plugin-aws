@@ -180,6 +180,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_launch_template_version":                              tableAwsEc2LaunchTemplateVersion(ctx),
 			"aws_ec2_load_balancer_listener":                               tableAwsEc2ApplicationLoadBalancerListener(ctx),
 			"aws_ec2_managed_prefix_list":                                  tableAwsEc2ManagedPrefixList(ctx),
+			"aws_ec2_managed_prefix_list_entry":                            tableAwsEc2ManagedPrefixListEntry(ctx),
 			"aws_ec2_network_interface":                                    tableAwsEc2NetworkInterface(ctx),
 			"aws_ec2_network_load_balancer_metric_net_flow_count_daily":    tableAwsEc2NetworkLoadBalancerMetricNetFlowCountDaily(ctx),
 			"aws_ec2_network_load_balancer_metric_net_flow_count":          tableAwsEc2NetworkLoadBalancerMetricNetFlowCount(ctx),
