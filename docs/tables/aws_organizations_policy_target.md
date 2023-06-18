@@ -14,13 +14,12 @@ select
   id,
   arn,
   type,
-  aws_managed
+  aws_managed 
 from
-  aws_organizations_policy_target
+  aws_organizations_policy_target 
 where
-  type = 'SERVICE_CONTROL_POLICY'
-and
-  target_id = '123456789098';
+  type = 'SERVICE_CONTROL_POLICY' 
+  and target_id = '123456789098';
 ```
 
 ### List tag policies of a targeted organization that are not managed by AWS
@@ -31,15 +30,13 @@ select
   name,
   arn,
   type,
-  aws_managed
+  aws_managed 
 from
-  aws_organizations_policy_target
+  aws_organizations_policy_target 
 where
-  not aws_managed
-and
-  type = 'TAG_POLICY'
-and
-  target_id = 'ou-jsdhkek';
+  not aws_managed 
+  and type = 'TAG_POLICY' 
+  and target_id = 'ou-jsdhkek';
 ```
 
 ### List backup organization policies of an account
@@ -55,8 +52,7 @@ from
   aws_organizations_policy_target
 where
   type = 'BACKUP_POLICY'
-and
-  target_id = '123456789098';
+  and target_id = '123456789098';
 ```
 
 ### Get policy details of the service control policies of a root account
@@ -71,6 +67,5 @@ from
   aws_organizations_policy
 where
   type = 'SERVICE_CONTROL_POLICY'
-and
-  target_id = 'r-9ijkl7';
+  and target_id = 'r-9ijkl7';
 ```
