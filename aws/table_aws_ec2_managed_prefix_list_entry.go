@@ -45,7 +45,7 @@ func tableAwsEc2ManagedPrefixListEntry(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "description",
-				Description: "The description of teh entry.",
+				Description: "The description of the entry.",
 				Type:        proto.ColumnType_STRING,
 			},
 
