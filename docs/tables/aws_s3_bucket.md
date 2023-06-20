@@ -210,8 +210,8 @@ from
 select
   name,
   c -> 'Filter' as intelligent_tiering_configuration_filter,
-  c -> 'Id' as intelligent_tiering_configuration_id,
-  c -> 'Status' as intelligent_tiering_configuration_status,
+  c ->> 'Id' as intelligent_tiering_configuration_id,
+  c ->> 'Status' as intelligent_tiering_configuration_status,
   c -> 'Tierings' as intelligent_tiering_configuration_tierings
 from
   aws_s3_bucket,
