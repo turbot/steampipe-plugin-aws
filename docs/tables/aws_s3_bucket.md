@@ -204,7 +204,7 @@ from
   jsonb_array_elements(object_ownership_controls -> 'Rules') as r;
 ```
 
-### List buckets intelligent tiering configurations
+### List the intelligent tiering configuration of buckets
 
 ```sql
 select
