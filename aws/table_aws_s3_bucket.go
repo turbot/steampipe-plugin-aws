@@ -80,6 +80,10 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Func:    getBucketWebsite,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
+			{
+				Func:    getBucketIntelligentTieringConfiguration,
+				Depends: []plugin.HydrateFunc{getBucketLocation},
+			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
@@ -168,6 +172,13 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "The access control list (ACL) of a bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketACL,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "intelligent_tiering_configuration",
+				Description: "The list of S3 Intelligent-Tiering configurations for a bucket.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBucketIntelligentTieringConfiguration,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -451,6 +462,46 @@ func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	return policyStatus, nil
+}
+
+func getBucketIntelligentTieringConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
+	bucket := h.Item.(types.Bucket)
+	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+
+	// Create client
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketIntelligentTieringConfiguration", "client_error", err)
+		return nil, err
+	}
+
+	params := &s3.ListBucketIntelligentTieringConfigurationsInput{
+		Bucket: bucket.Name,
+	}
+
+	pageLeft := true
+	var configurations []types.IntelligentTieringConfiguration
+	for pageLeft {
+		op, err := svc.ListBucketIntelligentTieringConfigurations(ctx, params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_s3_bucket.getBucketIntelligentTieringConfiguration", "api_error", err)
+			return nil, err
+		}
+		configurations = append(configurations, op.IntelligentTieringConfigurationList...)
+		if op.NextContinuationToken != nil {
+			params.ContinuationToken = op.NextContinuationToken
+		} else {
+			break
+		}
+	}
+
+	return configurations, nil
 }
 
 func getBucketVersioning(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

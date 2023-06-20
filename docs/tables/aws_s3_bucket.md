@@ -203,3 +203,17 @@ from
   aws_s3_bucket as b,
   jsonb_array_elements(object_ownership_controls -> 'Rules') as r;
 ```
+
+### List buckets intelligent tiering configurations
+
+```sql
+select
+  name,
+  c -> 'Filter' as intelligent_tiering_configuration_filter,
+  c -> 'Id' as intelligent_tiering_configuration_id,
+  c -> 'Status' as intelligent_tiering_configuration_status,
+  c -> 'Tierings' as intelligent_tiering_configuration_tierings
+from
+  aws_s3_bucket,
+  jsonb_array_elements(intelligent_tiering_configuration)as c;
+```
