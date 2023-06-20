@@ -2,6 +2,8 @@
 
 AWS Route53 Resolver Log Config is a configuration that enables logging for DNS queries and responses in Route53 Resolver. Resolver logs provide detailed information about DNS traffic flowing through the Resolver service, including the source IP, query domain, query type, response code, and more. The log data can be collected and analyzed for monitoring, troubleshooting, and security purposes. Resolver Log Config in AWS Route53 allows you to define the log destination and log format, and associate it with a VPC or a Resolver rule to start capturing the DNS query and response logs.
 
+**Note:** User must have `route53resolver:ListResolverQueryLogConfigs` permission for quering the table.
+
 ## Examples
 
 ### Basic info
