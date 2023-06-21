@@ -19,7 +19,7 @@ from
   aws_s3_bucket_intelligent_tiering_configuration;
 ```
 
-### Get buckets intelligent tiering configure status
+### Get intelligent tiering configure status of buckets
 
 ```sql
 with intelligent_tiering_configuration as MATERIALIZED (
@@ -39,9 +39,9 @@ from
         when
           i.id is null
         then
-          'Bucket do not have intelligent tiering configured'
+          'Bucket does not have intelligent tiering configured'
         else
-          'Bucket have intelligent tiering configured'
+          'Bucket has intelligent tiering configured'
       end
       as intelligent_tiering_configuration_status
     from
@@ -51,7 +51,7 @@ from
         on b.name = i.bucket_name;
 ```
 
-### List enabled intelligent tiering configurations of each bucket
+### List buckets that have intelligent tiering configuration enabled
 
 ```sql
 select
@@ -65,7 +65,7 @@ where
   status = 'Enabled';
 ```
 
-### Get tiering details of each intelligent tiering configurations
+### Get tiering details of each intelligent tiering configuration
 
 ```sql
 select
@@ -79,7 +79,7 @@ from
   jsonb_array_elements(tierings) as t;
 ```
 
-### Get filter details of intelligent tiering configurations
+### Get filter details of each intelligent tiering configuration
 
 ```sql
 select
