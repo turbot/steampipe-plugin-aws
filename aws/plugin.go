@@ -372,6 +372,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_s3_account_settings":                                      tableAwsS3AccountSettings(ctx),
 			"aws_s3_bucket":                                                tableAwsS3Bucket(ctx),
 			"aws_s3_object":                                                tableAwsS3Object(ctx),
+			"aws_s3_bucket_intelligent_tiering_configuration":              tableAwsS3BucketIntelligentTieringConfiguration(ctx),
 			"aws_s3_multi_region_access_point":                             tableAwsS3MultiRegionAccessPoint(ctx),
 			"aws_sagemaker_app":                                            tableAwsSageMakerApp(ctx),
 			"aws_sagemaker_domain":                                         tableAwsSageMakerDomain(ctx),
