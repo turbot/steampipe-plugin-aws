@@ -20,7 +20,7 @@ from
   aws_route53_resolver_query_log_config;
 ```
 
-### List shared log configs
+### List log configs shared with my account
 
 ```sql
 select
@@ -51,7 +51,7 @@ where
   status = 'FAILED';
 ```
 
-### List log configurations shared with another account
+### List log configurations shared with another account or organization
 
 ```sql
 select
@@ -65,7 +65,7 @@ where
   share_status = 'SHARED';
 ```
 
-### List log configs created in last 30 days
+### List log configs created in the last 30 days
 
 ```sql
 select
