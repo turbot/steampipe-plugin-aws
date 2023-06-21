@@ -11,10 +11,6 @@ _Enhancements_
 
 - Added column `image_uri` to `aws_ecr_image` table. ([#1785](https://github.com/turbot/steampipe-plugin-aws/pull/1785))
 
-_Bug fixes_
-
-- Fixed various failing integration tests ([#1776](https://github.com/turbot/steampipe-plugin-aws/pull/1776))
-
 _Dependencies_
 
 - Recompiled plugin with [steampipe-plugin-sdk v5.5.0](https://github.com/turbot/steampipe-plugin-sdk/blob/v5.5.0/CHANGELOG.md#v550-2023-06-16) which significantly reduces API calls and boosts query performance, resulting in faster data retrieval. ([#1775](https://github.com/turbot/steampipe-plugin-aws/pull/1775))
