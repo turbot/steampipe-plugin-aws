@@ -1,3 +1,20 @@
+## v0.107.0 [2023-06-21]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_managed_prefix_list_entry](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_managed_prefix_list_entry) ([#1781](https://github.com/turbot/steampipe-plugin-aws/pull/1781))
+  - [aws_organizations_policy_target](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_policy_target) ([#1783](https://github.com/turbot/steampipe-plugin-aws/pull/1783))
+  - [aws_route53_resolver_query_log_config](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_route53_resolver_query_log_config) ([#1780](https://github.com/turbot/steampipe-plugin-aws/pull/1780))
+
+_Enhancements_
+
+- Added column `image_uri` to `aws_ecr_image` table. ([#1785](https://github.com/turbot/steampipe-plugin-aws/pull/1785))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.5.0](https://github.com/turbot/steampipe-plugin-sdk/blob/v5.5.0/CHANGELOG.md#v550-2023-06-16) which significantly reduces API calls and boosts query performance, resulting in faster data retrieval. ([#1775](https://github.com/turbot/steampipe-plugin-aws/pull/1775))
+
 ## v0.106.0 [2023-06-08]
 
 _What's new?_
