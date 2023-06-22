@@ -143,6 +143,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Description: "A list of upcoming and in-progress managed actions.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsElasticBeanstalkEnvironmentManagedActions,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "resources",
@@ -304,21 +305,28 @@ func getAwsElasticBeanstalkEnvironmentManagedActions(ctx context.Context, d *plu
 		return nil, err
 	}
 
-	name := *h.Item.(types.EnvironmentDescription).EnvironmentName
-
+	env := h.Item.(types.EnvironmentDescription)
 	// Build params
 	params := &elasticbeanstalk.DescribeEnvironmentManagedActionsInput{
-		EnvironmentName: aws.String(name),
+		EnvironmentName: env.EnvironmentName,
 	}
 
 	managedActions, err := svc.DescribeEnvironmentManagedActions(ctx, params)
 	if err != nil {
+		// The API throws InvalidParameterValue exception in the case if resource is not available.
+		// Error: operation error Elastic Beanstalk: DescribeEnvironmentManagedActions, https response error StatusCode: 400, RequestID: b7503072-3694-4370-8a79-7182e5b1170a, api error InvalidParameterValue: No Environment found for EnvironmentName = 'Test32-envtwe'.
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "InvalidParameterValue" {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("elastic_beanstalk_environment.getAwsElasticBeanstalkEnvironmentManagedActions", "api_error", err)
 		return nil, err
 	}
 
 	if managedActions != nil && len(managedActions.ManagedActions) > 0 {
-		return managedActions, nil
+		return managedActions.ManagedActions, nil
 	}
 	return nil, nil
 }
