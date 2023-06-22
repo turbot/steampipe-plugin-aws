@@ -88,3 +88,8 @@ output "aws_region" {
 output "resource_name" {
   value = var.resource_name
 }
+
+output "resource_aka" {
+  # arn:aws:route53::<account-id>:trafficpolicy/<id>/<version>
+  value = "arn:aws:route53::${data.aws_caller_identity.current.account_id}:trafficpolicy/${aws_route53_traffic_policy.named_test_resource.id}/${aws_route53_traffic_policy.named_test_resource.version}"
+}

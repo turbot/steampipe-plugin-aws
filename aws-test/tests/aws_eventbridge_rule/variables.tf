@@ -51,6 +51,9 @@ data "null_data_source" "resource" {
 resource "aws_cloudwatch_event_rule" "named_test_resource" {
   name = var.resource_name
   event_pattern = "{\"detail-type\":[\"AWS Console Sign In via CloudTrail\"]}"
+
+  # event_bus_name - (Optional) The event bus to associate with this rule. If you omit this, the default event bus is used.
+
   tags = {
     name = var.resource_name
   }

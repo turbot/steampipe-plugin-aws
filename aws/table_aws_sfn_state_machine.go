@@ -25,7 +25,7 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 			Hydrate: getStepFunctionsStateMachine,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listStepFunctionsStateManchines,
+			Hydrate: listStepFunctionsStateMachines,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -114,11 +114,11 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listStepFunctionsStateMachines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateManchines", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateMachines", "connection_error", err)
 		return nil, err
 	}
 
@@ -147,7 +147,7 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateManchines", "api_error", err)
+			plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateMachines", "api_error", err)
 			return nil, err
 		}
 		for _, stateMachine := range output.StateMachines {
@@ -161,7 +161,7 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateManchines", "api_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateMachines", "api_error", err)
 		return nil, err
 	}
 

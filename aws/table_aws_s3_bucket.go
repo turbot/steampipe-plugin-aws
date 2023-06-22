@@ -72,6 +72,14 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Func:    getS3BucketEventNotificationConfigurations,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
+			{
+				Func:    getS3BucketObjectOwnershipControl,
+				Depends: []plugin.HydrateFunc{getBucketLocation},
+			},
+			{
+				Func:    getBucketWebsite,
+				Depends: []plugin.HydrateFunc{getBucketLocation},
+			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
@@ -183,6 +191,13 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Hydrate:     getObjectLockConfiguration,
 			},
 			{
+				Name:        "object_ownership_controls",
+				Description: "The Ownership Controls for an Amazon S3 bucket.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getS3BucketObjectOwnershipControl,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "policy",
 				Description: "The resource IAM access document for the bucket.",
 				Type:        proto.ColumnType_JSON,
@@ -202,6 +217,13 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketReplication,
 				Transform:   transform.FromField("ReplicationConfiguration"),
+			},
+			{
+				Name:        "website_configuration",
+				Description: "The website configuration information of the bucket.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBucketWebsite,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags_src",
@@ -313,6 +335,46 @@ func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.Q
 	}
 
 	return nil, nil
+}
+
+func getS3BucketObjectOwnershipControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
+	name := h.Item.(types.Bucket).Name
+	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+
+	// Create client
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.getS3BucketObjectOwnershipControl", "client_error", err)
+		return nil, err
+	}
+
+	// Build param
+	input := &s3.GetBucketOwnershipControlsInput{Bucket: name}
+
+	conf, err := svc.GetBucketOwnershipControls(ctx, input)
+	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "OwnershipControlsNotFoundError" {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_s3_bucket.getS3BucketObjectOwnershipControl", "api_error", err)
+		return nil, err
+	}
+
+	if conf.OwnershipControls == nil {
+		return nil, nil
+	}
+
+	return conf.OwnershipControls, nil
 }
 
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -683,6 +745,34 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	return bucketTags, nil
+}
+
+func getBucketWebsite(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
+	bucket := h.Item.(types.Bucket)
+	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+
+	// Create client
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketWebsite", "client_error", err)
+		return nil, err
+	}
+
+	params := &s3.GetBucketWebsiteInput{Bucket: bucket.Name}
+
+	bucketwebsites, _ := svc.GetBucketWebsite(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketWebsite", "api_error", err)
+		return nil, err
+	}
+
+	return bucketwebsites, nil
 }
 
 func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

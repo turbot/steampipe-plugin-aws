@@ -239,7 +239,7 @@ func getRoute53TrafficPolicyTurbotAkas(ctx context.Context, d *plugin.QueryData,
 
 	// Get data for turbot defined properties
 	//arn:aws:route53::<account-id>:trafficpolicy/<id>/<version>
-	arn := fmt.Sprintf("arn:%s:route53::%s:trafficpolicy/%s/%s", commonColumnData.Partition, commonColumnData.AccountId, *trafficPolicy.Id, string(*trafficPolicy.Version))
+	arn := fmt.Sprintf("arn:%s:route53::%s:trafficpolicy/%s/%s", commonColumnData.Partition, commonColumnData.AccountId, *trafficPolicy.Id, fmt.Sprint(*trafficPolicy.Version))
 
 	return []string{arn}, nil
 }

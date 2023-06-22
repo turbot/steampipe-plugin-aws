@@ -89,7 +89,7 @@ func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	maxLimit := int32(1000)
+	maxLimit := int32(200)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {

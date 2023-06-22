@@ -22,6 +22,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/appstream"
+	"github.com/aws/aws-sdk-go-v2/service/athena"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
@@ -69,6 +71,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
@@ -103,6 +106,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
+	"github.com/aws/aws-sdk-go-v2/service/servicecatalog"
+	"github.com/aws/aws-sdk-go-v2/service/servicediscovery"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
@@ -117,8 +122,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
-
 	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
@@ -142,6 +147,7 @@ import (
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
+	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
 	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
 	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
@@ -267,6 +273,22 @@ func ApplicationAutoScalingClient(ctx context.Context, d *plugin.QueryData) (*ap
 		return nil, err
 	}
 	return applicationautoscaling.NewFromConfig(*cfg), nil
+}
+
+func AppStreamClient(ctx context.Context, d *plugin.QueryData) (*appstream.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return appstream.NewFromConfig(*cfg), nil
+}
+
+func AthenaClient(ctx context.Context, d *plugin.QueryData) (*athena.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return athena.NewFromConfig(*cfg), nil
 }
 
 func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager.Client, error) {
@@ -762,6 +784,17 @@ func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Clien
 	return inspector.NewFromConfig(*cfg), nil
 }
 
+func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspector2Endpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return inspector2.NewFromConfig(*cfg), nil
+}
+
 func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, kafkaEndpoint.EndpointsID)
 	if err != nil {
@@ -1152,6 +1185,18 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 	return s3control.NewFromConfig(*cfg), nil
 }
 
+// All requests to create or maintain Multi-Region Access Points are routed to the US West (Oregon) Region. so we have no choice but to hard code it here.
+// This is true regardless of which Region you are in when making the request, or what Regions the Multi-Region Access Point supports.
+// https://docs.aws.amazon.com/AmazonS3/latest/userguide/ManagingMultiRegionAccessPoints.html
+// S3 multi-region access point supports in China but not in US Gov or US ISO
+func S3ControlMultiRegionAccessClient(ctx context.Context, d *plugin.QueryData) (*s3control.Client, error) {
+	cfg, err := getClient(ctx, d, "us-west-2")
+	if err != nil {
+		return nil, err
+	}
+	return s3control.NewFromConfig(*cfg), nil
+}
+
 func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, sagemakerEndpoint.EndpointsID)
 	if err != nil {
@@ -1226,6 +1271,25 @@ func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryD
 		return nil, nil
 	}
 	return serverlessapplicationrepository.NewFromConfig(*cfg), nil
+}
+
+func ServiceCatalogClient(ctx context.Context, d *plugin.QueryData) (*servicecatalog.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return servicecatalog.NewFromConfig(*cfg), nil
+}
+
+func ServiceDiscoveryClient(ctx context.Context, d *plugin.QueryData) (*servicediscovery.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return servicediscovery.NewFromConfig(*cfg), nil
 }
 
 func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
@@ -1331,7 +1395,16 @@ func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.C
 }
 
 func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
+	var cfg *aws.Config
+	var err error
+	// For WAFv2 resources of type CloudFront, we are building the region metrix including a region value 'global'.
+	// We need to pass the the region value 'us-east-1' to get the cloudfront resource types.
+	// getClientForQuerySupportedRegion function removes the invalid region(global) while building the client for which we need the below check
+	if region == "global" {
+		cfg, err = getClient(ctx, d, "us-east-1")
+	} else {
+		cfg, err = getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -1453,7 +1526,7 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 
 // Cached form of getClient, using the per-connection and parallel safe
 // Memoize() method.
-var getClientCached = plugin.HydrateFunc(getClientUncached).Memoize(plugin.WithCacheKeyFunction(getClientCacheKey))
+var getClientCached = plugin.HydrateFunc(getClientUncached).Memoize(memoize.WithCacheKeyFunction(getClientCacheKey))
 
 // getClient is per-region, but Memoize() is per-connection, so a setup
 // a custom cache key with region information in it.
@@ -1609,7 +1682,7 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 // If we expire the cache regularly we are causing SSO sessions to end
 // prematurely, and causing the AWS SDK to refresh credentials more often
 // using the IDMS service etc.
-var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(plugin.WithTtl(time.Hour * 24 * 30))
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(memoize.WithTtl(time.Hour * 24 * 30))
 
 // Do the actual work of creating an AWS config object for reuse across many
 // regions. This client has the minimal reusable configuration on it, so it

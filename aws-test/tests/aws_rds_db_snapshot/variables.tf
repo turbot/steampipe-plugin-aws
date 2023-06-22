@@ -81,7 +81,7 @@ resource "aws_db_subnet_group" "default" {
 }
 
 resource "aws_db_instance" "my_instance" {
-  name                 = var.resource_name
+  db_name              = var.resource_name
   allocated_storage    = 20
   engine               = "mysql"
   instance_class       = "db.t2.micro"
@@ -93,7 +93,7 @@ resource "aws_db_instance" "my_instance" {
 
 resource "aws_db_snapshot" "named_test_resource" {
   db_snapshot_identifier = var.resource_name
-  db_instance_identifier = aws_db_instance.my_instance.id
+  db_instance_identifier = aws_db_instance.my_instance.identifier
   tags = {
     name = var.resource_name
   }

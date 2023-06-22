@@ -95,3 +95,19 @@ from
 where
   i.repository_name = r.repository_name;
 ```
+
+### Scan images with trivy for a particular repository
+
+```sql
+select
+  artifact_name,
+  artifact_type,
+  metadata,
+  results
+from
+  trivy_scan_artifact as a,
+  aws_ecr_image as i
+where
+  artifact_name = image_uri
+  and repository_name = 'hello';
+```

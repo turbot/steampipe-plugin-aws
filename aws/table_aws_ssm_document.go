@@ -20,7 +20,8 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_document",
 		Description: "AWS SSM Document",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
+			// To avoid the error: get call returned 23 results - the key column is not globally unique, it is recommended to use the "arn" column instead of the "name" column in the "get config" function.
+			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidDocument"}),
 			},
@@ -42,15 +43,22 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "account_ids",
-				Description: "The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
+				Description: "[DEPRECATED] The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocumentPermissionDetail,
 			},
 			{
 				Name:        "account_sharing_info_list",
-				Description: "A list of AWS accounts where the current document is shared and the version shared with each account.",
+				Description: "[DEPRECATED] A list of AWS accounts where the current document is shared and the version shared with each account.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocumentPermissionDetail,
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the document.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocumentArn,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "approved_version",
@@ -293,12 +301,32 @@ func listAwsSSMDocuments(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	var name string
+	var arn string
 	if h.Item != nil {
-		name = documentName(h.Item)
+		data, err := getAwsSSMDocumentArn(ctx, d, h)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocument", "arn_formatting_error", err)
+			return nil, err
+		}
+		arn = data.(string)
 	} else {
-		name = d.EqualsQuals["name"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
+
+	matrixRegion := d.EqualsQualString(matrixKeyRegion)
+	arnSplit := strings.Split(arn, ":") // Split ARN to get the region
+
+	// Invalid ARN check
+	if len(arnSplit) < 3 {
+		return nil, nil
+	}
+
+	// Skip ARNs in other regions
+	if matrixRegion != arnSplit[3] {
+		return nil, nil
+	}
+
+	name := strings.Split(arn, "/")[1] // Split ARN to get the document name
 
 	// Create Session
 	svc, err := SSMClient(ctx, d)
@@ -385,6 +413,27 @@ func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	return []string{aka}, nil
+}
+
+func getAwsSSMDocumentArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
+	name := documentName(h.Item)
+
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentArn", "common_data_error", err)
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":document"
+
+	if strings.HasPrefix(name, "/") {
+		arn = arn + name
+	} else {
+		arn = arn + "/" + name
+	}
+
+	return arn, nil
 }
 
 func ssmDocumentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {

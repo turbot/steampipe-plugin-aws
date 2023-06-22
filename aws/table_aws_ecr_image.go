@@ -11,6 +11,7 @@ import (
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -43,6 +44,13 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 				Name:        "image_digest",
 				Description: "The sha256 digest of the image manifest.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "image_uri",
+				Description: "The URI for the image.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getImageURI,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "image_manifest_media_type",
@@ -156,4 +164,26 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	return nil, nil
+}
+
+func getImageURI(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	image := h.Item.(types.ImageDetail)
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	// AWS follows the below image URI format -
+	// with tag - {aws_account_id}.dkr.ecr.{region}.amazonaws.com/{repository name}:{first tag}
+	// without tag - {aws_account_id}.dkr.ecr.{region}.amazonaws.com/{repository name}@image_digest
+	if len(image.ImageTags) == 0 {
+		uri := commonColumnData.AccountId + ".dkr.ecr." + commonColumnData.Region + ".amazonaws.com/" + *image.RepositoryName + "@" + *image.ImageDigest
+
+		return uri, nil
+	}
+
+	uri := commonColumnData.AccountId + ".dkr.ecr." + commonColumnData.Region + ".amazonaws.com/" + *image.RepositoryName + ":" + image.ImageTags[0]
+
+	return uri, nil
 }
