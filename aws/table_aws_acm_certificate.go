@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -30,6 +31,10 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "status",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "key_algorithm",
 					Require: plugin.Optional,
 				},
 			},
@@ -229,6 +234,9 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		logger.Error("listAwsAcmCertificates", "connection error", err)
 		return nil, err
 	}
+	// key_algorithm
+
+	keyAlgorithm := d.EqualsQualString("key_algorithm")
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -245,7 +253,26 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	input := &acm.ListCertificatesInput{
 		MaxItems: aws.Int32(maxLimit),
+		Includes: &types.Filters{},
 	}
+
+	filter := input.Includes
+
+	if keyAlgorithm != "" {
+		filter.KeyTypes = []types.KeyAlgorithm{types.KeyAlgorithm(keyAlgorithm)}
+	} else {
+		filter.KeyTypes = []types.KeyAlgorithm{
+			types.KeyAlgorithmRsa1024,
+			types.KeyAlgorithmRsa2048,
+			types.KeyAlgorithmRsa3072,
+			types.KeyAlgorithmRsa4096,
+			types.KeyAlgorithmEcPrime256v1,
+			types.KeyAlgorithmEcSecp384r1,
+			types.KeyAlgorithmEcSecp521r1,
+		}
+	}
+
+	input.Includes = filter
 
 	// Additonal Filter
 	equalQuals := d.EqualsQuals
@@ -268,9 +295,7 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		}
 
 		for _, certificate := range output.CertificateSummaryList {
-			d.StreamListItem(ctx, &types.CertificateDetail{
-				CertificateArn: certificate.CertificateArn,
-			})
+			d.StreamListItem(ctx, certificate)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -294,7 +319,7 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 
 	var arn string
 	if h.Item != nil {
-		arn = *h.Item.(*types.CertificateDetail).CertificateArn
+		arn = *h.Item.(types.CertificateSummary).CertificateArn
 	} else {
 		arn = d.EqualsQuals["certificate_arn"].GetStringValue()
 	}
@@ -308,6 +333,12 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateAttributes", "api_error", err)
 		return nil, err
 	}
+
+	// The API DOC https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateSummary.html#ACM-Type-CertificateSummary-KeyAlgorithm the API should return the responce by providing "_" between the algorithm key. but it is returning with "-".
+	if detail != nil && detail.Certificate != nil {
+		detail.Certificate.KeyAlgorithm = types.KeyAlgorithm(strings.ReplaceAll(fmt.Sprint(detail.Certificate.KeyAlgorithm), "-", "_"))
+	}
+
 	return detail.Certificate, nil
 }
 
