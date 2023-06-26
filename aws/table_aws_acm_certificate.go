@@ -334,7 +334,7 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 		return nil, err
 	}
 
-	// The API DOC https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateSummary.html#ACM-Type-CertificateSummary-KeyAlgorithm the API should return the responce by providing "_" between the algorithm key. but it is returning with "-".
+	// The API documentation (https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateSummary.html#ACM-Type-CertificateSummary-KeyAlgorithm) specifies that the API should return the response with a separator "_" between the algorithm keys. However, we have observed that it is returning the response with a "-" separator instead.
 	if detail != nil && detail.Certificate != nil {
 		detail.Certificate.KeyAlgorithm = types.KeyAlgorithm(strings.ReplaceAll(fmt.Sprint(detail.Certificate.KeyAlgorithm), "-", "_"))
 	}
