@@ -20,10 +20,6 @@ func tableAwsAppAutoScalingPolicy(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_appautoscaling_policy",
 		Description: "AWS Application Auto Scaling Policy",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"service_namespace", "policy_name"}),
-			Hydrate:    getAwsApplicationAutoScalingPolicy,
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsApplicationAutoScalingPolicies,
 			KeyColumns: []*plugin.KeyColumn{
@@ -32,7 +28,11 @@ func tableAwsAppAutoScalingPolicy(_ context.Context) *plugin.Table {
 					Require: plugin.Required,
 				},
 				{
-					Name:    "policy_ARN",
+					Name:    "resource_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "policy_name",
 					Require: plugin.Optional,
 				},
 			},
@@ -40,9 +40,10 @@ func tableAwsAppAutoScalingPolicy(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: SupportedRegionMatrix(applicationautoscalingv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "policy_ARN",
+				Name:        "policy_arn",
 				Description: "The Amazon Resource Name (ARN) of the appautoscaling policy.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PolicyARN"),
 			},
 			{
 				Name:        "policy_name",
@@ -126,6 +127,12 @@ func listAwsApplicationAutoScalingPolicies(ctx context.Context, d *plugin.QueryD
 	if equalQuals["policy_name"] != nil {
 		input.PolicyNames = []string{equalQuals["policy_name"].GetStringValue()}
 	}
+	if equalQuals["resource_id"] != nil {
+		input.ResourceId = aws.String(equalQuals["resource_id"].GetStringValue())
+	}
+	if equalQuals["scalable_dimension"] != nil {
+		input.ScalableDimension = types.ScalableDimension(equalQuals["scalable_dimension"].GetStringValue())
+	}
 
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -161,36 +168,4 @@ func listAwsApplicationAutoScalingPolicies(ctx context.Context, d *plugin.QueryD
 	}
 
 	return nil, err
-}
-
-//// HYDRATE FUNCTIONS
-
-func getAwsApplicationAutoScalingPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.EqualsQuals["service_namespace"].GetStringValue()
-	id := d.EqualsQuals["resource_id"].GetStringValue()
-
-	// create service
-	svc, err := ApplicationAutoScalingClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_appautoscaling_policy.getAwsApplicationAutoScalingPolicy", "get_client_error", err)
-		return nil, err
-	}
-
-	// Build the params
-	params := &applicationautoscaling.DescribeScalingPoliciesInput{
-		ServiceNamespace: types.ServiceNamespace(name),
-		ResourceId:       &id,
-	}
-
-	// Get call
-	op, err := svc.DescribeScalingPolicies(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_appautoscaling_policy.getAwsApplicationAutoScalingPolicy", "api_error", err)
-		return nil, err
-	}
-	if op.ScalingPolicies != nil && len(op.ScalingPolicies) > 0 {
-		return op.ScalingPolicies[0], nil
-	}
-
-	return nil, nil
 }
