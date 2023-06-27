@@ -21,12 +21,13 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 		Description: "AWS Route53 Record",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "zone_id", Require: plugin.Required},
+				{Name: "zone_id", Require: plugin.Optional},
 				{Name: "name", Require: plugin.Optional},
 				{Name: "set_identifier", Require: plugin.Optional},
 				{Name: "type", Require: plugin.Optional},
 			},
-			Hydrate: listRoute53Records,
+			ParentHydrate: listHostedZones,
+			Hydrate:       listRoute53Records,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHostedZone"}),
 			},
@@ -140,9 +141,15 @@ type recordInfo struct {
 
 //// LIST FUNCTION
 
-func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	hostedZoneID := d.EqualsQuals["zone_id"].GetStringValue()
+func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	zone_id := d.EqualsQuals["zone_id"].GetStringValue()
+	zone := h.Item.(HostedZoneResult)
+	hostedZoneID := strings.Split(*zone.Id, "/")[2]
 
+	// check if the provided zone_id is not matching with the parentHydrate
+	if zone_id != "" && zone_id != hostedZoneID {
+		return nil, nil
+	}
 	// Create session
 	svc, err := Route53Client(ctx, d)
 	if err != nil {
