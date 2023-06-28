@@ -166,6 +166,12 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "user_data",
+				Description: "The user data of the launch template.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("LaunchTemplateData.UserData").Transform(base64DecodedData),
+			},
+			{
 				Name:        "launch_template_data",
 				Description: "Information about the launch template.",
 				Type:        proto.ColumnType_JSON,
