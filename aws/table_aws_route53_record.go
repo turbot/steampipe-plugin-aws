@@ -142,7 +142,7 @@ type recordInfo struct {
 //// LIST FUNCTION
 
 func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	zone_id := d.EqualsQuals["zone_id"].GetStringValue()
+	zone_id := d.EqualsQualString("zone_id")
 	zone := h.Item.(HostedZoneResult)
 	hostedZoneID := strings.Split(*zone.Id, "/")[2]
 
