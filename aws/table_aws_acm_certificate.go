@@ -62,7 +62,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "domain_name",
 				Description: "Fully qualified domain name (FQDN), such as www.example.com or example.com, for the certificate",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "certificate_transparency_logging_preference",
@@ -75,7 +74,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "created_at",
 				Description: "The time at which the certificate was requested. This value exists only when the certificate type is AMAZON_ISSUED",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "subject",
@@ -87,7 +85,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "imported_at",
 				Description: "The name of the certificate authority that issued and signed the certificate",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "issuer",
@@ -123,19 +120,16 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "status",
 				Description: "The status of the certificate",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "key_algorithm",
 				Description: "The algorithm that was used to generate the public-private key pair",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "not_after",
 				Description: "The time after which the certificate is not valid",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "not_before",
@@ -147,7 +141,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "renewal_eligibility",
 				Description: "Specifies whether the certificate is eligible for renewal.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "revocation_reason",
@@ -159,7 +152,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "revoked_at",
 				Description: "The time at which the certificate was revoked. This value exists only when the certificate status is REVOKED",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "serial",
