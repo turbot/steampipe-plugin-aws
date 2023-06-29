@@ -453,7 +453,6 @@ role_arn = arn:aws:iam::222222222222:role/steampipe_ro_role
 source_profile = default
 ```
 
-
 ### AWS-Vault Credentials
 
 Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`. aws-vault can even be used when using AssumeRole Credentials with MFA (you must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA).
