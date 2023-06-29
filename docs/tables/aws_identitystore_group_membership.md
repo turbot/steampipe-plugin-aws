@@ -18,7 +18,8 @@ select
   member_id
 from
   aws_identitystore_group_membership
-where identity_store_id = 'd-1234567890';
+where 
+  identity_store_id = 'd-1234567890';
 ```
 
 ### Get user details of each group membership
@@ -28,16 +29,14 @@ select
   m.membership_id,
   m.group_id,
   m.identity_store_id,
-  u.name as user_name
+  u.name as user_name 
 from
   aws_identitystore_group_membership as m,
-  aws_identitystore_user as u
+  aws_identitystore_user as u 
 where
-  m.identity_store_id = 'd-1234567890'
-and
-  u.identity_store_id = m.identity_store_id
-and
-  u.id = m.member_id;
+  m.identity_store_id = 'd-1234567890' 
+  and u.identity_store_id = m.identity_store_id 
+  and u.id = m.member_id;
 ```
 
 ### Get group details of each membership
@@ -53,8 +52,6 @@ from
   aws_identitystore_group as g
 where
   m.identity_store_id = 'd-1234567890'
-and
-  g.identity_store_id = m.identity_store_id
-and
-  g.id = m.group_id;
+  and g.identity_store_id = m.identity_store_id
+  and g.id = m.group_id;
 ```
