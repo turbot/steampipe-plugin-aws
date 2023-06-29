@@ -268,6 +268,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_action":                                               tableAwsIamAction(ctx),
 			"aws_iam_credential_report":                                    tableAwsIamCredentialReport(ctx),
 			"aws_iam_group":                                                tableAwsIamGroup(ctx),
+			"aws_iam_open_id_connect_provider":                             tableAwsIamOpenIdConnectProvider(ctx),
 			"aws_iam_policy_attachment":                                    tableAwsIamPolicyAttachment(ctx),
 			"aws_iam_policy_simulator":                                     tableAwsIamPolicySimulator(ctx),
 			"aws_iam_policy":                                               tableAwsIamPolicy(ctx),
