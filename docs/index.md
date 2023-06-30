@@ -108,6 +108,7 @@ connection "aws" {
   #min_error_retry_delay = 25
 
   # List of additional AWS error codes to ignore for all queries.
+  # When encountering these errors, the API call will not be retried and empty results will be returned.
   # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
   #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
 
@@ -400,7 +401,7 @@ connection "aws_account_b" {
 
 ### AssumeRole Credentials (in ECS)
 
-If you are using Steampipe on AWS ECS then you need to ensure that have seperated your [Task Role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html) and [Execution Role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html) within the Task Definition. You will also need to create a separate service role that your `Task Role` can assume.
+If you are using Steampipe on AWS ECS then you need to ensure that have separated your [Task Role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html) and [Execution Role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html) within the Task Definition. You will also need to create a separate service role that your `Task Role` can assume.
 
 The Task Role should have permissions to assume your service role. Additionally your service role needs a trust relationship set up, and have permissions to assume your other roles.
 

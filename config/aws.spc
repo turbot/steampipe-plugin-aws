@@ -38,6 +38,7 @@ connection "aws" {
   #min_error_retry_delay = 25
 
   # List of additional AWS error codes to ignore for all queries.
+  # When encountering these errors, the API call will not be retried and empty results will be returned.
   # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
   #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
 
