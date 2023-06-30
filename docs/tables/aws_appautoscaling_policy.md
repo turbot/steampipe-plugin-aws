@@ -19,7 +19,6 @@ where
   service_namespace = 'ecs';
 ```
 
-
 ### List policies for ECS services with policy type Step scaling
 
 ```sql
