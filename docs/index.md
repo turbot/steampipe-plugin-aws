@@ -398,6 +398,61 @@ connection "aws_account_b" {
 }
 ```
 
+### AssumeRole Credentials (in ECS)
+
+If you are using Steampipe on AWS ECS then you need to ensure that have seperated your [Task Role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html) and [Execution Role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html) within the Task Definition. You will also need to create a separate service role that your `Task Role` can assume.
+
+The Task Role should have permissions to assume your service role. Additionally your service role needs a trust relationship set up, and have permissions to assume your other roles.
+
+#### Task Role IAM Assume Role
+```json
+{
+    "Version": "2012-10-17"
+    "Statement": [
+        {
+            "Action": [
+                "sts:AssumeRole"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:iam::111111111111:role/steampipe-service"
+            ]
+        }
+    ]
+}
+```
+
+#### Service Role
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::111111111111:role/steampipe-ecs-task-role"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+```
+
+This will allow you to configure steampipe now to assume the service role.
+
+#### aws credential file:
+
+```ini
+[default]
+role_arn = arn:aws:iam::111111111111:role/steampipe-service
+credential_source = EcsContainer
+
+[account_b]
+role_arn = arn:aws:iam::222222222222:role/steampipe_ro_role
+source_profile = default
+```
+
 ### AWS-Vault Credentials
 
 Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`. aws-vault can even be used when using AssumeRole Credentials with MFA (you must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA).
