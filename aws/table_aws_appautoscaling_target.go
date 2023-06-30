@@ -143,7 +143,7 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_neptune_db_cluster.listNeptuneDBClusters", "api_error", err)
+			plugin.Logger(ctx).Error("aws_appautoscaling_target.listAwsApplicationAutoScalingTargets", "api_error", err)
 			return nil, err
 		}
 
