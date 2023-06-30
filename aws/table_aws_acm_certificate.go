@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -32,6 +33,10 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 					Name:    "status",
 					Require: plugin.Optional,
 				},
+				{
+					Name:    "key_algorithm",
+					Require: plugin.Optional,
+				},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(acmv1.EndpointsID),
@@ -57,7 +62,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "domain_name",
 				Description: "Fully qualified domain name (FQDN), such as www.example.com or example.com, for the certificate",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "certificate_transparency_logging_preference",
@@ -70,7 +74,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "created_at",
 				Description: "The time at which the certificate was requested. This value exists only when the certificate type is AMAZON_ISSUED",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "subject",
@@ -82,7 +85,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "imported_at",
 				Description: "The name of the certificate authority that issued and signed the certificate",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "issuer",
@@ -118,19 +120,16 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "status",
 				Description: "The status of the certificate",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "key_algorithm",
 				Description: "The algorithm that was used to generate the public-private key pair",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "not_after",
 				Description: "The time after which the certificate is not valid",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "not_before",
@@ -142,7 +141,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "renewal_eligibility",
 				Description: "Specifies whether the certificate is eligible for renewal.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "revocation_reason",
@@ -154,7 +152,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "revoked_at",
 				Description: "The time at which the certificate was revoked. This value exists only when the certificate status is REVOKED",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "serial",
@@ -229,6 +226,9 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		logger.Error("listAwsAcmCertificates", "connection error", err)
 		return nil, err
 	}
+	// key_algorithm
+
+	keyAlgorithm := d.EqualsQualString("key_algorithm")
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -245,7 +245,26 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	input := &acm.ListCertificatesInput{
 		MaxItems: aws.Int32(maxLimit),
+		Includes: &types.Filters{},
 	}
+
+	filter := input.Includes
+
+	if keyAlgorithm != "" {
+		filter.KeyTypes = []types.KeyAlgorithm{types.KeyAlgorithm(keyAlgorithm)}
+	} else {
+		filter.KeyTypes = []types.KeyAlgorithm{
+			types.KeyAlgorithmRsa1024,
+			types.KeyAlgorithmRsa2048,
+			types.KeyAlgorithmRsa3072,
+			types.KeyAlgorithmRsa4096,
+			types.KeyAlgorithmEcPrime256v1,
+			types.KeyAlgorithmEcSecp384r1,
+			types.KeyAlgorithmEcSecp521r1,
+		}
+	}
+
+	input.Includes = filter
 
 	// Additonal Filter
 	equalQuals := d.EqualsQuals
@@ -268,9 +287,7 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		}
 
 		for _, certificate := range output.CertificateSummaryList {
-			d.StreamListItem(ctx, &types.CertificateDetail{
-				CertificateArn: certificate.CertificateArn,
-			})
+			d.StreamListItem(ctx, certificate)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -294,7 +311,7 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 
 	var arn string
 	if h.Item != nil {
-		arn = *h.Item.(*types.CertificateDetail).CertificateArn
+		arn = *h.Item.(types.CertificateSummary).CertificateArn
 	} else {
 		arn = d.EqualsQuals["certificate_arn"].GetStringValue()
 	}
@@ -308,6 +325,12 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateAttributes", "api_error", err)
 		return nil, err
 	}
+
+	// The API documentation (https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateSummary.html#ACM-Type-CertificateSummary-KeyAlgorithm) specifies that the API should return the response with a separator "_" between the algorithm keys. However, we have observed that it is returning the response with a "-" separator instead.
+	if detail != nil && detail.Certificate != nil {
+		detail.Certificate.KeyAlgorithm = types.KeyAlgorithm(strings.ReplaceAll(fmt.Sprint(detail.Certificate.KeyAlgorithm), "-", "_"))
+	}
+
 	return detail.Certificate, nil
 }
 
