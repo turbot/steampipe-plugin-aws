@@ -1,3 +1,22 @@
+## v0.108.0 [2023-06-30]
+
+_What's new?_
+
+- New tables added
+  - [aws_appautoscaling_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_appautoscaling_policy) ([#1798](https://github.com/turbot/steampipe-plugin-aws/pull/1798)) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
+  - [aws_identitystore_group_membership](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_identitystore_group_membership) ([#1782](https://github.com/turbot/steampipe-plugin-aws/pull/1782))
+  - [aws_s3_bucket_intelligent_tiering_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3_bucket_intelligent_tiering_configuration) ([#1790](https://github.com/turbot/steampipe-plugin-aws/pull/1790))
+
+_Enhancements_
+
+- Added documentation on how to configure the plugin credentials when Steampipe is running on AWS ECS. Please refer [AssumeRole Credentials (in ECS)](https://hub.steampipe.io/plugins/turbot/aws#assumerole-credentials-in-ecs) for more information. ([#1800](https://github.com/turbot/steampipe-plugin-aws/pull/1800)) (Thanks [@Wade9320](https://github.com/Wade9320) for the contribution!)
+- Added column `user_data` to `aws_ec2_launch_template_version` table. ([#1792](https://github.com/turbot/steampipe-plugin-aws/pull/1792))
+- Added column `managed_actions` to `aws_elastic_beanstalk_environment` table. ([#1620](https://github.com/turbot/steampipe-plugin-aws/pull/1620))
+
+_Bug fixes_
+
+- Fixed `aws_acm_certificate` table to return certificates of all types of key algorithms instead of only the default `RSA_2048` algorithm. ([#1797](https://github.com/turbot/steampipe-plugin-aws/pull/1797))
+
 ## v0.107.0 [2023-06-21]
 
 _What's new?_
