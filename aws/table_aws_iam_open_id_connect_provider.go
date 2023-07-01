@@ -59,23 +59,22 @@ func tableAwsIamOpenIdConnectProvider(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIamOpenIdConnectProvider,
 			},
-			// Get and Tag API not listing tags for providers
-			// {
-			// 	Name:        "tags_src",
-			// 	Description: "A list of tags that are attached to the specified IAM OIDC provider.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("Tags"),
-			// 	Hydrate:     getIamOpenIdConnectProvider,
-			// },
+			{
+				Name:        "tags_src",
+				Description: "A list of tags that are attached to the specified IAM OIDC provider.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Tags"),
+				Hydrate:     getIamOpenIdConnectProvider,
+			},
 
 			// Standard columns for all tables
-			// {
-			// 	Name:        "tags",
-			// 	Description: resourceInterfaceDescription("tags"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.From(openIDConnectTurbotTags),
-			// 	Hydrate:     getIamOpenIdConnectProvider,
-			// },
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(openIDConnectTurbotTags),
+				Hydrate:     getIamOpenIdConnectProvider,
+			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
@@ -101,7 +100,7 @@ func listIamOpenIdConnectProviders(ctx context.Context, d *plugin.QueryData, _ *
 		return nil, err
 	}
 
-	// SDK doesn't have new paginator for ListSAMLProviders action
+	// SDK doesn't have new paginator for ListOpenIDConnectProviders action
 	output, err := svc.ListOpenIDConnectProviders(ctx, &iam.ListOpenIDConnectProvidersInput{}, func(o *iam.Options) {
 	})
 	for _, provider := range output.OpenIDConnectProviderList {
@@ -157,14 +156,14 @@ func getIamOpenIdConnectProvider(ctx context.Context, d *plugin.QueryData, h *pl
 
 //// TRANSFORM FUNCTION
 
-// func openIDConnectTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-// 	tags := d.HydrateItem.(OpenIDConnectProvider)
-// 	var turbotTagsMap map[string]string
-// 	if len(tags.Tags) > 0 {
-// 		turbotTagsMap = map[string]string{}
-// 		for _, i := range tags.Tags {
-// 			turbotTagsMap[*i.Key] = *i.Value
-// 		}
-// 	}
-// 	return turbotTagsMap, nil
-// }
+func openIDConnectTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	tags := d.HydrateItem.(OpenIDConnectProvider)
+	var turbotTagsMap map[string]string
+	if len(tags.Tags) > 0 {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+	return turbotTagsMap, nil
+}
