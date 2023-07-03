@@ -117,9 +117,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0
 	github.com/aws/smithy-go v1.13.5
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/turbot/go-kit v0.6.0
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.5.0
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-alpha.2
 	golang.org/x/text v0.4.0
 )
 
@@ -228,7 +228,7 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221025140454-527a21cfbd71 // indirect
 	google.golang.org/grpc v1.51.0 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
