@@ -152,6 +152,20 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSSMDocument,
 			},
 			{
+				Name:        "content",
+				Description: "The contents of the SSM document.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocumentContent,
+				Transform:   transform.FromField("Content"),
+			},
+			{
+				Name:        "attachments_content",
+				Description: "A description of the document attachments, including names, locations, sizes, and so on.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocumentContent,
+				Transform:   transform.FromField("AttachmentsContent"),
+			},
+			{
 				Name:        "platform_types",
 				Description: "The operating system platform.",
 				Type:        proto.ColumnType_JSON,
@@ -357,6 +371,62 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	return data.Document, nil
+}
+
+func getAwsSSMDocumentContent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	var arn string
+	item, err := getAwsSSMDocumentArn(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentContent", "arn_formatting_error", err)
+		return nil, err
+	}
+	arn = item.(string)
+
+	matrixRegion := d.EqualsQualString(matrixKeyRegion)
+	arnSplit := strings.Split(arn, ":") // Split ARN to get the region
+
+	// Invalid ARN check
+	if len(arnSplit) < 3 {
+		return nil, nil
+	}
+
+	// Skip ARNs in other regions
+	if matrixRegion != arnSplit[3] {
+		return nil, nil
+	}
+
+	name := strings.Split(arn, "/")[1] // Split ARN to get the document name
+
+	// Create Session
+	svc, err := SSMClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentContent", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	// Empty name input check
+	if strings.TrimSpace(name) == "" {
+		return nil, nil
+	}
+
+	// Build the params
+	params := &ssm.GetDocumentInput{
+		Name: &name,
+	}
+
+	// Get call
+	data, err := svc.GetDocument(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentContent", "api_error", err)
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
