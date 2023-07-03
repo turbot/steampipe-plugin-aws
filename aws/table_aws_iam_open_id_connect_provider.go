@@ -25,7 +25,7 @@ func tableAwsIamOpenIdConnectProvider(ctx context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"arn"}),
 			Hydrate:    getIamOpenIdConnectProvider,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchEntity"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchEntity", "InvalidInput"}),
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -36,7 +36,7 @@ func tableAwsIamOpenIdConnectProvider(ctx context.Context) *plugin.Table {
 			},
 			{
 				Name:        "client_id_list",
-				Description: "A list of client IDs (also known as audiences) that are associated with the specified IAM OIDC provider resource object",
+				Description: "A list of client IDs (also known as audiences) that are associated with the specified IAM OIDC provider resource object.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamOpenIdConnectProvider,
 				Transform:   transform.FromField("ClientIDList"),
@@ -127,7 +127,7 @@ func getIamOpenIdConnectProvider(ctx context.Context, d *plugin.QueryData, h *pl
 		provider := h.Item.(types.OpenIDConnectProviderListEntry)
 		arn = *provider.Arn
 	} else {
-		arn = d.EqualsQuals["arn"].GetStringValue()
+		arn = d. EqualsQualString("arn")
 	}
 
 	if arn == "" {
