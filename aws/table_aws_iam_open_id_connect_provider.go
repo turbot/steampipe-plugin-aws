@@ -127,7 +127,7 @@ func getIamOpenIdConnectProvider(ctx context.Context, d *plugin.QueryData, h *pl
 		provider := h.Item.(types.OpenIDConnectProviderListEntry)
 		arn = *provider.Arn
 	} else {
-		arn = d. EqualsQualString("arn")
+		arn = d.EqualsQualString("arn")
 	}
 
 	if arn == "" {
