@@ -53,7 +53,7 @@ where
   tags ->> 'Environment' = 'Production';
 ```
 
-### List AWS OpenID Providers without required thumbprint for audience 'sts.amazonaws.com'
+### List AWS OpenID Providers without the required thumbprint for audience 'sts.amazonaws.com'
 
 ```sql
 select
@@ -68,5 +68,4 @@ from
   aws_iam_open_id_connect_provider
 where
   client_id_list @> '["sts.amazonaws.com"]'::jsonb
-  and NOT thumbprint_list @> '["1c58a3a8518e8759bf075b76b750d4f2df264fcd", "6938fd4d98bab03faadb97b34396831e3780aea1"]'::jsonb
-```
+  and not thumbprint_list @> '["1c58a3a8518e8759bf075b76b750d4f2df264fcd", "6938fd4d98bab03faadb97b34396831e3780aea1"]'::jsonb
