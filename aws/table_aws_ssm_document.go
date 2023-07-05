@@ -156,14 +156,14 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Description: "The contents of the SSM document.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSSMDocumentContent,
-				Transform:   transform.FromField("Content"),
 			},
 			{
 				Name:        "attachments_content",
 				Description: "A description of the document attachments, including names, locations, sizes, and so on.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocumentContent,
-				Transform:   transform.FromField("AttachmentsContent"),
+
+				
 			},
 			{
 				Name:        "platform_types",
