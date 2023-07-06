@@ -7,7 +7,7 @@ _What's new?_
 
 _Bug fixes_
 
-  - Fixed the `aws_route53_record` table to use `listHostedZones` from the `aws_route53_zone` table as the `ParentHydrate` to avoid the cross-account access denied errors. ([#1799](https://github.com/turbot/steampipe-plugin-aws/pull/1799))
+- Fixed the `aws_route53_record` table to use `listHostedZones` from the `aws_route53_zone` table as the `ParentHydrate` to avoid the cross-account access denied errors. ([#1799](https://github.com/turbot/steampipe-plugin-aws/pull/1799))
 
 ## v0.108.0 [2023-06-30]
 
