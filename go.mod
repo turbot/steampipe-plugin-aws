@@ -119,7 +119,7 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.3
 	github.com/turbot/go-kit v0.6.0
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-rc.3
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-dev.4
 	golang.org/x/text v0.4.0
 )
 
@@ -223,6 +223,7 @@ require (
 	golang.org/x/oauth2 v0.1.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.100.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
