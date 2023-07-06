@@ -851,8 +851,8 @@ github.com/tkrajina/go-reflector v0.5.6 h1:hKQ0gyocG7vgMD2M3dRlYN6WBBOmdoOzJ6njQ
 github.com/tkrajina/go-reflector v0.5.6/go.mod h1:ECbqLgccecY5kPmPmXg1MrHW585yMcDkVl6IvJe64T4=
 github.com/turbot/go-kit v0.6.0 h1:X+dzxuGmlOhayJ9OE8K9m1MpJ3zlSWK8s/J9rsgmc94=
 github.com/turbot/go-kit v0.6.0/go.mod h1:QIOX91BIxQ/1JEtM4rIHWDito3c3GUP2Z+dUT5F6z94=
-github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-rc.1 h1:IWs1NWeZDNXDdBpETaKtJO8j4sue0v+MJCXRv72mEAU=
-github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-rc.1/go.mod h1:8mwvRUzIyI+S0HhQ8MGpYSuMXhvLh5PWqtqUwVSbswI=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-rc.3 h1:9VXyS32BAmEW5JbDcmSy8DcpQGWElkhR/xMwJhNBeic=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-rc.3/go.mod h1:8mwvRUzIyI+S0HhQ8MGpYSuMXhvLh5PWqtqUwVSbswI=
 github.com/ulikunitz/xz v0.5.10 h1:t92gobL9l3HE202wg3rlk19F6X+JOxl9BBrCCMYEYd8=
 github.com/ulikunitz/xz v0.5.10/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
