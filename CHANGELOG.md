@@ -1,3 +1,14 @@
+## v0.109.0 [2023-07-06]
+
+_What's new?_
+
+- New tables added
+  - [aws_iam_open_id_connect_provider](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iam_open_id_connect_provider) ([#1798](https://github.com/turbot/steampipe-plugin-aws/pull/1798)) (Thanks [@LalitLab](https://github.com/LalitLab) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the `aws_route53_record` table to remove the need of passing `zone_id` in the `where` clause, to avoid cross-account access denied errors. ([#1799](https://github.com/turbot/steampipe-plugin-aws/pull/1799))
+
 ## v0.108.0 [2023-06-30]
 
 _What's new?_
