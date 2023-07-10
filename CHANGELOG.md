@@ -2,7 +2,8 @@
 
 _Bug fixes_
 
-- Fixed the `getAwsAcmCertificateProperties` hydrate function in the `aws_acm_certificate` table to correctly return the values for the `certificate` and `certificate_chain` columns instead of a panic interface conversion error. ([#1827](https://github.com/turbot/steampipe-plugin-aws/pull/1827))
+- Fixed the `certificate` and `certificate_chain` columns of the `aws_acm_certificate` table to correctly return data instead of returning an error. ([#1827](https://github.com/turbot/steampipe-plugin-aws/pull/1827))
+
 
 ## v0.109.0 [2023-07-06]
 
