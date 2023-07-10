@@ -41,7 +41,7 @@ select
   p ->> 'ParameterKey' as parameter_key,
   p ->> 'ParameterValue' as parameter_value,
   p ->> 'ResolvedValue' as resolved_value,
-  p ->> 'UsePreviousValue' as use_previous_value,
+  p ->> 'UsePreviousValue' as use_previous_value
 from
   aws_cloudformation_stack_set,
   jsonb_array_elements(parameters) as p;
