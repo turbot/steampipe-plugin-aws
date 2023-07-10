@@ -335,7 +335,12 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 }
 
 func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	item := h.Item.(*types.CertificateDetail)
+	arn, err := getCertificateArn(ctx, d, h)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.getCertificateArn", "type_error", err)
+		return nil, err
+	}
 
 	// Create session
 	svc, err := ACMClient(ctx, d)
@@ -345,7 +350,7 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	detail, err := svc.GetCertificate(ctx, &acm.GetCertificateInput{
-		CertificateArn: item.CertificateArn,
+		CertificateArn: arn,
 	})
 
 	if err != nil {
@@ -356,7 +361,12 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 }
 
 func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	item := h.Item.(*types.CertificateDetail)
+	arn, err := getCertificateArn(ctx, d, h)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.getCertificateArn", "type_error", err)
+		return nil, err
+	}
 
 	// Create session
 	svc, err := ACMClient(ctx, d)
@@ -367,7 +377,7 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// Build param
 	param := &acm.ListTagsForCertificateInput{
-		CertificateArn: item.CertificateArn,
+		CertificateArn: arn,
 	}
 
 	certificateTags, err := svc.ListTagsForCertificate(ctx, param)
@@ -376,6 +386,16 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 	return certificateTags, nil
+}
+
+func getCertificateArn(_ context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*string, error) {
+	switch item := h.Item.(type) {
+	case *types.CertificateDetail:
+			return item.CertificateArn, nil
+	case types.CertificateSummary:
+			return item.CertificateArn, nil
+	}
+	return nil, nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -391,6 +411,7 @@ func certificateTurbotTags(_ context.Context, d *transform.TransformData) (inter
 	}
 	return turbotTagsMap, nil
 }
+
 
 func certificateArnToTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	item := *d.Value.(*string)
