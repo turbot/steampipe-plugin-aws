@@ -81,6 +81,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudcontrol_resource":                                    tableAwsCloudControlResource(ctx),
 			"aws_cloudformation_stack":                                     tableAwsCloudFormationStack(ctx),
 			"aws_cloudformation_stack_resource":                            tableAwsCloudFormationStackResource(ctx),
+			"aws_cloudformation_stack_set":                                 tableAwsCloudFormationStackSet(ctx),
 			"aws_cloudfront_cache_policy":                                  tableAwsCloudFrontCachePolicy(ctx),
 			"aws_cloudfront_distribution":                                  tableAwsCloudFrontDistribution(ctx),
 			"aws_cloudfront_function":                                      tableAwsCloudFrontFunction(ctx),
