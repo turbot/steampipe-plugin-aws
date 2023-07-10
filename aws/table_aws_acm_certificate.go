@@ -412,7 +412,6 @@ func certificateTurbotTags(_ context.Context, d *transform.TransformData) (inter
 	return turbotTagsMap, nil
 }
 
-
 func certificateArnToTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	item := *d.Value.(*string)
 
