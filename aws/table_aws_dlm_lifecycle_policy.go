@@ -24,7 +24,7 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("policy_id"),
 			Hydrate:    getDLMLifecyclePolicy,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFound", "ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
