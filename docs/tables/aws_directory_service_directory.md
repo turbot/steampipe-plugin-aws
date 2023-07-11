@@ -15,7 +15,7 @@ from
   aws_directory_service_directory;
 ```
 
-### List MicrosoftAD type directories 
+### List MicrosoftAD type directories
 
 ```sql
 select
@@ -25,7 +25,7 @@ select
   type
 from
   aws_directory_service_directory
-where 
+where
   type = 'MicrosoftAD';
 ```
 
@@ -42,4 +42,32 @@ select
 from
   aws_directory_service_directory,
   jsonb_array_elements(shared_directories) sd;
+```
+
+### Get snapshot limit details of each directory
+
+```sql
+select
+  name,
+  directory_id,
+  snapshot_limit ->> 'ManualSnapshotsCurrentCount' as manual_snapshots_current_count,
+  snapshot_limit ->> 'ManualSnapshotsLimit' as manual_snapshots_limit,
+  snapshot_limit ->> 'ManualSnapshotsLimitReached' as manual_snapshots_limit_reached
+from
+  aws_directory_service_directory;
+```
+
+### Get topic details of each directory
+
+```sql
+select
+  name,
+  directory_id,
+  e ->> 'CreatedDateTime' as topic_created_date_time,
+  e ->> 'Status' as topic_status,
+  e ->> 'TopicArn' as topic_arn,
+  e ->> 'TopicName' as topic_name
+from
+  aws_directory_service_directory,
+  jsonb_array_elements(event_topics) as e;
 ```
