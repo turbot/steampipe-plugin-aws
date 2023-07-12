@@ -163,7 +163,6 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocumentContent,
 
-				
 			},
 			{
 				Name:        "platform_types",
