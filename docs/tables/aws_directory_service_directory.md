@@ -57,7 +57,7 @@ from
   aws_directory_service_directory;
 ```
 
-### Get topic details of each directory
+### Get SNS topic details of each directory
 
 ```sql
 select
