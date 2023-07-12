@@ -23,7 +23,7 @@ func tableAwsCloudFormationStackSet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("stack_set_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "StackSetNotFoundException"}),
 			},
 			Hydrate: getCloudFormationStackSet,
 		},
@@ -159,7 +159,8 @@ func tableAwsCloudFormationStackSet(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("StackId").Transform(arnToAkas),
+				Hydrate:     getCloudFormationStackSet,
+				Transform:   transform.FromField("StackSetARN").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
