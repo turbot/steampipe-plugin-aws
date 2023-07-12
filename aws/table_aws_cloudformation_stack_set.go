@@ -141,7 +141,7 @@ func tableAwsCloudFormationStackSet(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
