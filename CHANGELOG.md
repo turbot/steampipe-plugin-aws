@@ -1,8 +1,23 @@
+## v0.110.0 [2023-07-13]
+
+_What's new?_
+
+- New tables added
+  - [aws_appstream_fleet](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_appstream_fleet) ([#1838](https://github.com/turbot/steampipe-plugin-aws/pull/1838))
+
+_Enhancements_
+
+- Added the `event_topics` and `snapshot_limit` columns to the `aws_directory_service_directory` table. ([#1833](https://github.com/turbot/steampipe-plugin-aws/pull/1833))
+
+_Bug fixes_
+
+- Fixed the `aws_dlm_lifecycle_policy` table to correctly return results instead of an error. ([#1834](https://github.com/turbot/steampipe-plugin-aws/pull/1834))
+
 ## v0.109.1 [2023-07-10]
 
 _Bug fixes_
 
-- Fixed the `getAwsAcmCertificateProperties` hydrate function in the `aws_acm_certificate` table to correctly return the values for the `certificate` and `certificate_chain` columns instead of a panic interface conversion error. ([#1827](https://github.com/turbot/steampipe-plugin-aws/pull/1827))
+- Fixed the `certificate` and `certificate_chain` columns of the `aws_acm_certificate` table to correctly return data instead of returning an error. ([#1827](https://github.com/turbot/steampipe-plugin-aws/pull/1827))
 
 ## v0.109.0 [2023-07-06]
 
