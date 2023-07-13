@@ -11,7 +11,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the `aws_dlm_lifecycle_policy` table to correctly handle the `ResourceNotFoundException` error. ([#1834](https://github.com/turbot/steampipe-plugin-aws/pull/1834))
+- Fixed the `aws_dlm_lifecycle_policy` table to correctly return results instead of an error. ([#1834](https://github.com/turbot/steampipe-plugin-aws/pull/1834))
 
 ## v0.109.1 [2023-07-10]
 
