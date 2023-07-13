@@ -258,7 +258,7 @@ func getCloudFormationStackSet(ctx context.Context, d *plugin.QueryData, h *plug
 
 	op, err := svc.DescribeStackSet(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_cloudformation_stack_set.getCloudFormationStackSet", err)
+		plugin.Logger(ctx).Error("aws_cloudformation_stack_set.getCloudFormationStackSet", "api_error", err)
 		return nil, err
 	}
 
