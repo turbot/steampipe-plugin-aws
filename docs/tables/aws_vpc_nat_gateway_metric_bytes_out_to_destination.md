@@ -25,15 +25,17 @@ order by
 
 ```sql
 select
-  nat_gateway_id,
+  g.nat_gateway_id,
   vpc_id,
   subnet_id
 from
   aws_vpc_nat_gateway as g
-  left join aws_vpc_nat_gateway_metric_bytes_out_to_destination as d,
+  left join aws_vpc_nat_gateway_metric_bytes_out_to_destination as d
   on g.nat_gateway_id = d.nat_gateway_id
-where
-  minimum = 0
-order by
-  nat_gateway_id;
+group by
+  g.nat_gateway_id,
+  vpc_id,
+  subnet_id
+having
+  sum(average) = 0;
 ```

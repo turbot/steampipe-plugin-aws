@@ -34,5 +34,5 @@ func tableAwsVpcNatGatewayMetricBytesOutToDestination(_ context.Context) *plugin
 
 func listVpcNatGatewayMetricBytesOutToDestination(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	natGateway := h.Item.(types.NatGateway)
-	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/VPC", "BytesOutToDestination", "NatGatewayId", *natGateway.NatGatewayId)
+	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/NATGateway", "BytesOutToDestination", "NatGatewayId", *natGateway.NatGatewayId)
 }
