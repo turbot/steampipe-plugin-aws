@@ -23,7 +23,7 @@ func tableAwsCloudFormationStackSet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("stack_set_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "StackSetNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"StackSetNotFoundException"}),
 			},
 			Hydrate: getCloudFormationStackSet,
 		},
@@ -231,7 +231,7 @@ func getCloudFormationStackSet(ctx context.Context, d *plugin.QueryData, h *plug
 		data := h.Item.(types.StackSetSummary)
 		name = *data.StackSetName
 	} else {
-		name = d.EqualsQuals["stack_set_name"].GetStringValue()
+		name = d.EqualsQualString("stack_set_name")
 	}
 
 	// Empty check
