@@ -74,7 +74,7 @@ where
   name = 'backup_jobs_report_12_07_2023';
 ```
 
-### List the successfully deployed report plan
+### List successfully deployed report plans
 
 ```sql
 select
