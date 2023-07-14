@@ -2,12 +2,9 @@ package aws
 
 import (
 	"context"
-	// "fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
-
-	// "github.com/aws/aws-sdk-go-v2/service/backup/types"
 
 	backupv1 "github.com/aws/aws-sdk-go/service/backup"
 
@@ -23,9 +20,9 @@ func tableAwsBackupReportPlan(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_report_plan",
 		Description: "AWS Backup Report Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
+			KeyColumns: plugin.SingleColumn("report_plan_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException", "ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsBackupReportPlan,
 		},
@@ -41,10 +38,9 @@ func tableAwsBackupReportPlan(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ReportPlanArn"),
 			},
 			{
-				Name:        "name",
+				Name:        "report_plan_name",
 				Description: "The unique name of the report plan.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ReportPlanName"),
 			},
 			{
 				Name:        "description",
@@ -121,11 +117,7 @@ func listAwsBackupReportPlans(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -173,22 +165,22 @@ func getAwsBackupReportPlan(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, nil
 	}
 
-	reportplanname := d.EqualsQuals["name"].GetStringValue()
+	reportPlanName := d.EqualsQualString("report_plan_name")
 
 	// check if name is empty
-	if reportplanname == "" {
+	if reportPlanName == "" {
 		return nil, nil
 	}
 
 	params := &backup.DescribeReportPlanInput{
-		ReportPlanName:  aws.String(reportplanname),
+		ReportPlanName:  aws.String(reportPlanName),
 	}
 
 	op, err := svc.DescribeReportPlan(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_backup_report_plan.getAwsBackupReportPlan", "api_error", err)
 	}
-	// panic(fmt.Sprintf("%s", *op.ReportPlan.ReportPlanArn))
+
 	if op != nil {
 	return *op.ReportPlan, nil
 }
