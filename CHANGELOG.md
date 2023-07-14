@@ -1,3 +1,11 @@
+## v0.111.0 [2023-07-14]
+
+_What's new?_
+
+- New tables added
+  - [aws_backup_report_plan](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_report_plan) ([#1839](https://github.com/turbot/steampipe-plugin-aws/pull/1839))
+  - [aws_cloudformation_stack_set](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudformation_stack_set) ([#1826](https://github.com/turbot/steampipe-plugin-aws/pull/1826))
+
 ## v0.110.0 [2023-07-13]
 
 _What's new?_
