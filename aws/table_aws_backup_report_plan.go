@@ -182,7 +182,8 @@ func getAwsBackupReportPlan(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	if op != nil {
-	return *op.ReportPlan, nil
-}
-  return nil, nil
+	       return *op.ReportPlan, nil
+        }
+ 
+        return nil, nil
 }
