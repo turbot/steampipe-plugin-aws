@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
@@ -1719,6 +1720,19 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 			sessionToken = *awsSpcConfig.SessionToken
 		}
 		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
+		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
+	}
+
+	if awsSpcConfig.AssumeRole != nil {
+		stsCfg, err := config.LoadDefaultConfig(ctx, configOptions...)
+
+		if err != nil {
+			plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
+			return nil, err
+		}
+
+		stsClient := sts.NewFromConfig(stsCfg)
+		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(awsSpcConfig.AssumeRole))
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
