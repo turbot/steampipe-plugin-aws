@@ -1,3 +1,3 @@
-select name, arn
+select report_plan_name, arn
 from aws_backup_report_plan
-where name = '{{ output.resource_name.value }}'
+where report_plan_name = '{{ output.resource_name.value }}'

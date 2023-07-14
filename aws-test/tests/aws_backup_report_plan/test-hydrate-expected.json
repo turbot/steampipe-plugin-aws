@@ -1,6 +1,6 @@
 [
   {
     "arn": "{{output.resource_aka.value}}",
-    "name": "{{resourceName}}"
+    "report_plan_name": "{{resourceName}}"
   }
 ]

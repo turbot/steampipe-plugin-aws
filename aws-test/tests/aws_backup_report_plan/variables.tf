@@ -50,21 +50,21 @@ data "null_data_source" "resource" {
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   tags = {
-    name = var.resource_name
+    report_plan_name = var.resource_name
   }
 }
 
 resource "aws_subnet" "named_test_resource" {
-  vpc_id     = aws_vpc.main.id
+  vpc_id            = aws_vpc.main.id
   availability_zone = "us-east-1b"
-  cidr_block = "10.0.1.0/24"
+  cidr_block        = "10.0.1.0/24"
   tags = {
     Name = var.resource_name
   }
 }
 
 resource "aws_backup_report_plan" "named_test_resource" {
-  name        = var.resource_name
+  report_plan_name = var.resource_name
 
   report_delivery_channel {
     formats = [
