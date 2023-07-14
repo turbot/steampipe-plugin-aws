@@ -12,6 +12,7 @@ type awsConfig struct {
 	Regions               []string `cty:"regions"`
 	DefaultRegion         *string  `cty:"default_region"`
 	Profile               *string  `cty:"profile"`
+	AssumeRole            *string  `cty:"assume_role"`
 	AccessKey             *string  `cty:"access_key"`
 	SecretKey             *string  `cty:"secret_key"`
 	SessionToken          *string  `cty:"session_token"`
@@ -31,6 +32,9 @@ var ConfigSchema = map[string]*schema.Attribute{
 		Type: schema.TypeString,
 	},
 	"profile": {
+		Type: schema.TypeString,
+	},
+	"assume_role": {
 		Type: schema.TypeString,
 	},
 	"access_key": {
