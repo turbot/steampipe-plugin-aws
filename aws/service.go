@@ -1723,19 +1723,6 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
-	if awsSpcConfig.AssumeRole != nil {
-		stsCfg, err := config.LoadDefaultConfig(ctx, configOptions...)
-
-		if err != nil {
-			plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
-			return nil, err
-		}
-
-		stsClient := sts.NewFromConfig(stsCfg)
-		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(awsSpcConfig.AssumeRole))
-		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
-	}
-
 	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
 
 	// NOTE: EC2 metadata service IMDS throttling and retries
@@ -1771,6 +1758,12 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	if err != nil {
 		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
 		return nil, err
+	}
+
+	if awsSpcConfig.AssumeRole != nil {
+		stsClient := sts.NewFromConfig(cfg)
+		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(awsSpcConfig.AssumeRole))
+		cfg.Credentials = aws.NewCredentialsCache(provider)
 	}
 
 	// Even though we create a client per region and set the region during that
