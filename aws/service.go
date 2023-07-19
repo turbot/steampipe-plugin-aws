@@ -1760,9 +1760,24 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
-	if awsSpcConfig.AssumeRole != nil {
+	if awsSpcConfig.AssumeRoleARN != nil {
+		assumeRoleOptions := func(o *stscreds.AssumeRoleOptions) {
+			if awsSpcConfig.AssumeRoleDuration != nil {
+				duration, _ := time.ParseDuration(aws.ToString(awsSpcConfig.AssumeRoleDuration))
+				o.Duration = duration
+			}
+
+			if awsSpcConfig.AssumeRoleExternalId != nil {
+				o.ExternalID = awsSpcConfig.AssumeRoleExternalId
+			}
+
+			if awsSpcConfig.AssumeRoleSessionName != nil {
+				o.RoleSessionName = aws.ToString(awsSpcConfig.AssumeRoleSessionName)
+			}
+		}
+
 		stsClient := sts.NewFromConfig(cfg)
-		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(awsSpcConfig.AssumeRole))
+		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(awsSpcConfig.AssumeRoleARN), assumeRoleOptions)
 		cfg.Credentials = aws.NewCredentialsCache(provider)
 	}
 
