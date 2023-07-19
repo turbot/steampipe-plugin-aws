@@ -99,7 +99,7 @@ func tableAwsDirectoryServiceCertificate(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CertificateId"),
+				Transform:   transform.FromField("CommonName"),
 			},
 		}),
 	}
