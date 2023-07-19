@@ -33,6 +33,9 @@ func tableAwsDirectoryServiceCertificate(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listDirectoryServiceDirectories,
 			Hydrate:       listDirectoryServiceCertificates,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DirectoryDoesNotExistException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "directory_id",
@@ -160,11 +163,11 @@ func listDirectoryServiceCertificates(ctx context.Context, d *plugin.QueryData, 
 			// In the case of parent hydrate the ignore config is not sesms to be working fine. So we need handle it manually
 			// operation error Directory Service: ListCertificates, https response error StatusCode: 400, RequestID: 6238d084-f28d-42a7-876a-684b0ec0d999, UnsupportedOperationException: LDAPS operations are not supported for this Directory Type. : RequestId: 6238d084-f28d-42a7-876a-684b0ec0d999
 			var ae smithy.APIError
-		if errors.As(err, &ae) {
-			if ae.ErrorCode() == "UnsupportedOperationException" {
-				return nil, nil
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "UnsupportedOperationException" {
+					return nil, nil
+				}
 			}
-		}
 			plugin.Logger(ctx).Error("aws_directory_service_certificate.listDirectoryServiceCertificates", "api_error", err)
 			return nil, err
 		}
