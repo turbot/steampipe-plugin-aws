@@ -29,8 +29,11 @@ connection "aws" {
 
   # If no credentials are specified, the plugin will use the AWS credentials
   # resolver to get the current credentials in the same manner as the CLI.
-  # Alternatively, you may set a role to assume:
+  # You may set a role to assume with these credentials:
   #assume_role_arn = "myRoleARN"
+  #assume_role_duration = "10000" # Optional time in seconds
+  #assume_role_external_id = "MyOptionalExternalId"
+  #assume_role_session_name = "MyOptionalRoleSessionName"
 
   # The maximum number of attempts (including the initial call) Steampipe will
   # make for failing API calls. Can also be set with the AWS_MAX_ATTEMPTS environment variable.
