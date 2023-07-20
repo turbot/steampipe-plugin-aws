@@ -53,7 +53,7 @@ where
   state = 'Deregistered';
 ```
 
-### List certificates that are expired in the last 30 days
+### List certificates that will expire in the coming 7 days
 
 ```sql
 select
@@ -66,7 +66,7 @@ select
 from
   aws_directory_service_certificate
 where
-  expiry_date_time >= time() - interval '30' day;
+  expiry_date_time >= now() + interval '7' day;
 ```
 
 ### Get client certificate auth settings of each certificate
