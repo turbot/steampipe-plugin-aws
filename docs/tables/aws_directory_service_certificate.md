@@ -39,7 +39,7 @@ where
   d.type = 'MicrosoftAD';
 ```
 
-### List certificates that are deregistered
+### List deregistered certificates
 
 ```sql
 select
