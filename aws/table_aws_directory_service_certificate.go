@@ -159,8 +159,7 @@ func listDirectoryServiceCertificates(ctx context.Context, d *plugin.QueryData, 
 	for pagesLeft {
 		result, err := svc.ListCertificates(ctx, input)
 		if err != nil {
-			// Should we ignore this error?
-			// In the case of parent hydrate the ignore config is not sesms to be working fine. So we need handle it manually
+			// In the case of parent hydrate the ignore config seems to not work fine. So we need to handle it manually```
 			// operation error Directory Service: ListCertificates, https response error StatusCode: 400, RequestID: 6238d084-f28d-42a7-876a-684b0ec0d999, UnsupportedOperationException: LDAPS operations are not supported for this Directory Type. : RequestId: 6238d084-f28d-42a7-876a-684b0ec0d999
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
