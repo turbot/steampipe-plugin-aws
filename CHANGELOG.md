@@ -2,7 +2,7 @@
 
 _Breaking changes_
 
-- Fixed the `aws_rds_db_*` tables to list out the resources exclusing the `DocDB` ones. ([#1768](https://github.com/turbot/steampipe-plugin-aws/pull/1768))
+- Fixed the `aws_rds_db_*` tables to list out `AWS RDS` resources excluding the `AWS DocDB` ones. Please use `aws_docdb_*` instead. ([#1768](https://github.com/turbot/steampipe-plugin-aws/pull/1768))
 
 _What's new?_
 
