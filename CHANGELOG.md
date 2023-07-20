@@ -10,7 +10,7 @@ _Bug fixes_
 
 - Fixed the optional quals of the `aws_inspector2_finding` table to correctly return data instead of an empty row. ([#1847](https://github.com/turbot/steampipe-plugin-aws/pull/1847))
 - Fixed typo in the `aws_vpc_nat_gateway` table doc. ([#1848](https://github.com/turbot/steampipe-plugin-aws/pull/1848)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
-- Fixed the `aws_rds__db_cluster_*` tables to list out the resources exclusing the `DocDB` ones. ([#1768](https://github.com/turbot/steampipe-plugin-aws/pull/1768))
+- Fixed the `aws_rds_db_*` tables to list out the resources exclusing the `DocDB` ones. ([#1768](https://github.com/turbot/steampipe-plugin-aws/pull/1768))
 
 ## v0.111.0 [2023-07-14]
 
