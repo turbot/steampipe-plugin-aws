@@ -75,6 +75,7 @@ where
 select
   directory_id,
   certificate_id,
+  common_name,
   client_cert_auth_settings -> 'OCSPUrl' as ocsp_url
 from
   aws_directory_service_certificate;
