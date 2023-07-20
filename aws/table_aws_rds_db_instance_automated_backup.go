@@ -261,10 +261,10 @@ func listRDSDBInstanceAutomatedBackups(ctx context.Context, d *plugin.QueryData,
 
 func getRDSDBInstanceAutomatedBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	arn := d.EqualsQualString("arn")
-	
+
 	// empty arn check
 	if arn == "" {
-	    return nil, nil
+		return nil, nil
 	}
 
 	// Create service

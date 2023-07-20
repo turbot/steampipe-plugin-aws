@@ -445,7 +445,19 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	if op.DBClusters != nil && len(op.DBClusters) > 0 {
-		return op.DBClusters[0], nil
+
+		cluster := op.DBClusters[0]
+		if helpers.StringSliceContains(
+			[]string{
+				"aurora",
+				"aurora-mysql",
+				"aurora-postgresql",
+				"mysql",
+				"postgres",
+			},
+			*cluster.Engine) {
+			return cluster, nil
+		}
 	}
 	return nil, nil
 }
