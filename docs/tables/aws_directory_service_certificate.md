@@ -117,6 +117,6 @@ select
 from
   aws_directory_service_certificate
 order by
-  partition ,
+  partition,
   registered_date_time desc;
 ```
