@@ -446,6 +446,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_flow_log_event":                                       tableAwsVpcFlowLogEvent(ctx),
 			"aws_vpc_flow_log":                                             tableAwsVpcFlowlog(ctx),
 			"aws_vpc_internet_gateway":                                     tableAwsVpcInternetGateway(ctx),
+			"aws_vpc_nat_gateway_metric_bytes_out_to_destination":          tableAwsVpcNatGatewayMetricBytesOutToDestination(ctx),
 			"aws_vpc_nat_gateway":                                          tableAwsVpcNatGateway(ctx),
 			"aws_vpc_network_acl":                                          tableAwsVpcNetworkACL(ctx),
 			"aws_vpc_peering_connection":                                   tableAwsVpcPeeringConnection(ctx),
