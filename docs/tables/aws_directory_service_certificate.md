@@ -43,7 +43,7 @@ where
 
 ```sql
 select
-  name,
+  common_name,
   directory_id,
   type,
   state
