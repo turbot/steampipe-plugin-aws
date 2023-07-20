@@ -49,7 +49,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				{Name: "lambda_function_layers", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "lambda_function_name", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "lambda_function_runtime", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "network_protocol", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{Name: "network_protocol", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "related_vulnerabilitie", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "resource_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "resource_type", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
