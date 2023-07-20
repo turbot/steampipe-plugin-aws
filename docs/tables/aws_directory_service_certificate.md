@@ -22,7 +22,7 @@ from
   aws_directory_service_certificate;
 ```
 
-### List MicrosoftAD type directories
+### List 'MicrosoftAD' type directories
 
 ```sql
 select
