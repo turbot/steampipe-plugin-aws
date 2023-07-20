@@ -80,3 +80,43 @@ select
 from
   aws_directory_service_certificate;
 ```
+
+### Retrieve the number of certificates registered in each directory
+
+```sql
+select
+  directory_id,
+  count(*) as certificate_count
+from
+  aws_directory_service_certificate
+group by
+  directory_id;
+```
+
+### List all certificates that were registered more than a year ago and have not been deregistered
+
+```sql
+select
+  common_name,
+  directory_id,
+  type,
+  state
+from
+  aws_directory_service_certificate
+where
+  registered_date_time <= now() - interval '1 year'
+  and state not like 'Deregister%';
+```
+
+### Find the certificate with the latest registration date in each AWS partition
+
+```sql
+select
+  distinct partition,
+  registered_date_time
+from
+  aws_directory_service_certificate
+order by
+  partition ,
+  registered_date_time desc;
+```
