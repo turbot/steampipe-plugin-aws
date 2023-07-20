@@ -21,7 +21,7 @@ order by
   timestamp;
 ```
 
-### Show unused nat gateways
+### Show unused NAT gateways
 
 ```sql
 select
