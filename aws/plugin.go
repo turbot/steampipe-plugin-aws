@@ -239,6 +239,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_emr_instance":                                             tableAwsEmrInstance(ctx),
 			"aws_eventbridge_bus":                                          tableAwsEventBridgeBus(ctx),
 			"aws_eventbridge_rule":                                         tableAwsEventBridgeRule(ctx),
+			"aws_fms_policy":                                               tableAwsFMSPolicy(ctx),
 			"aws_fsx_file_system":                                          tableAwsFsxFileSystem(ctx),
 			"aws_glacier_vault":                                            tableAwsGlacierVault(ctx),
 			"aws_globalaccelerator_accelerator":                            tableAwsGlobalAcceleratorAccelerator(ctx),

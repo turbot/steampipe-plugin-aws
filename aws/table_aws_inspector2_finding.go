@@ -52,7 +52,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				{Name: "network_protocol", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "related_vulnerabilitie", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "resource_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
-				{Name: "resource_type", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "resource_type", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "ecr_image_tags", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "source", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "status", Operators: []string{"=", "<>"}, Require: plugin.Optional}, // findingStatus
