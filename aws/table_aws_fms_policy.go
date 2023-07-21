@@ -23,7 +23,7 @@ func tableAwsFMSPolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("policy_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getFmsPolicy,
 		},
@@ -257,7 +257,7 @@ func getFmsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 	op, err := svc.GetPolicy(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_fsx_file_system.getFsxFileSystem", "api_error", err)
+		plugin.Logger(ctx).Error("aws_fms_policy.getFmsPolicy", "api_error", err)
 		return nil, err
 	}
 
