@@ -21,9 +21,9 @@ func tableAwsFMSPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_fms_policy",
 		Description: "AWS FMS Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("file_system_id"),
+			KeyColumns: plugin.SingleColumn("policy_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"FileSystemNotFound", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
 			},
 			Hydrate: getFmsPolicy,
 		},
@@ -33,113 +33,95 @@ func tableAwsFMSPolicy(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: SupportedRegionMatrix(fmsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "PolicyName",
+				Name:        "policy_name",
 				Description: "The name of the specified policy.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "PolicyId",
+				Name:        "policy_id",
 				Description: "The ID of the specified policy.",
 				Type:        proto.ColumnType_STRING,
-				Transform: transform.FromField("PolicyArn"),
+				Transform:   transform.FromField("PolicyArn"),
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the specified policy.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ResourceARN"),
+				Transform:   transform.FromField("PolicyArn"),
 			},
 			{
-				Name:        "file_system_type",
-				Description: "The type of Amazon FSx file system, which can be LUSTRE, WINDOWS, or ONTAP.",
+				Name:        "policy_description",
+				Description: "The definition of the Network Firewall firewall policy.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getFmsPolicy,
+			},
+			{
+				Name:        "policy_status",
+				Description: "Indicates whether the policy is in or out of an admin's policy or Region scope. The possible values ACTIVE, OUT_OF_ADMIN_SCOPE.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "lifecycle",
-				Description: "The lifecycle status of the file system, following are the possible values AVAILABLE, CREATING, DELETING, FAILED, MISCONFIGURED, UPDATING.",
+				Name:        "resource_type",
+				Description: "The type of resource protected by or in scope of the policy.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "creation_time",
-				Description: "The time that the file system was created.",
-				Type:        proto.ColumnType_TIMESTAMP,
+				Name:        "exclude_resource_tags",
+				Description: "If set to True , resources with the tags that are specified in the ResourceTag array are not in scope of the policy.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getFmsPolicy,
 			},
 			{
-				Name:        "dns_name",
-				Description: "The DNS name for the file system.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("DNSName"),
+				Name:        "remediation_enabled",
+				Description: "Indicates if the policy should be automatically applied to new resources.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "file_system_type_version",
-				Description: "The version of your Amazon FSx for Lustre file system, either 2.10 or 2.12.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "kms_key_id",
-				Description: "The ID of the Key Management Service (KMS) key used to encrypt the file system's.",
+				Name:        "security_service_policy_data",
+				Description: "Details about the security service that is being used to protect the resources.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "owner_id",
+				Name:        "delete_unused_fm_managed_resources",
 				Description: "The AWS account that created the file system.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("DeleteUnusedFMManagedResources"),
+			},
+			{
+				Name:        "policy_update_token",
+				Description: "A unique identifier for each update to the policy. When issuing a PutPolicy request, the PolicyUpdateToken in the request must match the PolicyUpdateToken of the current policy version.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getFmsPolicy,
 			},
 			{
-				Name:        "storage_capacity",
-				Description: "The storage capacity of the file system in gibibytes (GiB).",
-				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "storage_type",
-				Description: "The storage type of the file system.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "vpc_id",
-				Description: "The ID of the primary VPC for the file system.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "administrative_actions",
-				Description: "A list of administrative actions for the file system that are in process or waiting to be processed.",
+				Name:        "exclude_map",
+				Description: "Specifies the Amazon Web Services account IDs and Organizations organizational units (OUs) to exclude from the policy.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getFmsPolicy,
 			},
 			{
-				Name:        "failure_details",
-				Description: "A structure providing details of any failures that occur when creating the file system has failed.",
+				Name:        "include_map",
+				Description: "Specifies the Amazon Web Services account IDs and Organizations organizational units (OUs) to include in the policy.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getFmsPolicy,
 			},
 			{
-				Name:        "lustre_configuration",
-				Description: "The configuration for the Amazon FSx for Lustre file system.",
+				Name:        "resource_set_ids",
+				Description: "The unique identifiers of the resource sets used by the policy.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getFmsPolicy,
 			},
 			{
-				Name:        "network_interface_ids",
-				Description: "The IDs of the elastic network interface from which a specific file system is accessible.",
+				Name:        "resource_tags",
+				Description: "An array of ResourceTag objects.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getFmsPolicy,
 			},
 			{
-				Name:        "ontap_configuration",
-				Description: "The configuration for this FSx for NetApp ONTAP file system.",
+				Name:        "resource_type_list",
+				Description: "An array of ResourceType objects. Use this only to specify multiple resource types.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "subnet_ids",
-				Description: "Specifies the IDs of the subnets that the file system is accessible from.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "tags_src",
-				Description: "A list of tags associated with Filesystem.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
-			},
-			{
-				Name:        "windows_configuration",
-				Description: "The configuration for this Microsoft Windows file system.",
-				Type:        proto.ColumnType_JSON,
+				Hydrate:     getFmsPolicy,
 			},
 
 			// Standard columns
@@ -147,41 +129,35 @@ func tableAwsFMSPolicy(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(getFsxFileSystemTurbotTitle),
-			},
-			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromP(fsxFileSystemTurbotData, "Tags"),
+				Transform:   transform.FromField("PolicyName"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceARN").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("PolicyArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
 }
 
 type PolicyInfo struct {
-    ExcludeResourceTags bool
-		PolicyArn *string
-    PolicyName *string
-    RemediationEnabled bool
-    ResourceType *string
-    SecurityServicePolicyData *types.SecurityServicePolicyData
-    DeleteUnusedFMManagedResources bool
-    ExcludeMap map[string][]string
-    IncludeMap map[string][]string
-    PolicyDescription *string
-    PolicyId *string
-    PolicyStatus types.CustomerPolicyStatus
-    PolicyUpdateToken *string
-    ResourceSetIds []string
-    ResourceTags []types.ResourceTag
-    ResourceTypeList []string
+	ExcludeResourceTags            bool
+	PolicyArn                      *string
+	PolicyName                     *string
+	RemediationEnabled             bool
+	ResourceType                   *string
+	SecurityServicePolicyData      *types.SecurityServicePolicyData
+	DeleteUnusedFMManagedResources bool
+	ExcludeMap                     map[string][]string
+	IncludeMap                     map[string][]string
+	PolicyDescription              *string
+	PolicyId                       *string
+	PolicyStatus                   types.CustomerPolicyStatus
+	PolicyUpdateToken              *string
+	ResourceSetIds                 []string
+	ResourceTags                   []types.ResourceTag
+	ResourceTypeList               []string
 }
 
 //// LIST FUNCTION
@@ -225,7 +201,18 @@ func listFmsPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		}
 
 		for _, policy := range output.PolicyList {
-			d.StreamListItem(ctx, policy)
+			d.StreamListItem(ctx, PolicyInfo{
+				PolicyArn:                      policy.PolicyArn,
+				PolicyName:                     policy.PolicyName,
+				PolicyId:                       policy.PolicyId,
+				PolicyStatus:                   policy.PolicyStatus,
+				DeleteUnusedFMManagedResources: policy.DeleteUnusedFMManagedResources,
+				RemediationEnabled:             policy.RemediationEnabled,
+				ResourceType:                   policy.ResourceType,
+				SecurityServicePolicyData: &types.SecurityServicePolicyData{
+					Type: policy.SecurityServiceType,
+				},
+			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -274,38 +261,26 @@ func getFmsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		return nil, err
 	}
 
+	if op != nil && op.Policy != nil {
+		return PolicyInfo{
+			PolicyArn:                      op.PolicyArn,
+			PolicyName:                     op.Policy.PolicyName,
+			PolicyId:                       op.Policy.PolicyId,
+			PolicyStatus:                   op.Policy.PolicyStatus,
+			DeleteUnusedFMManagedResources: op.Policy.DeleteUnusedFMManagedResources,
+			RemediationEnabled:             op.Policy.RemediationEnabled,
+			ResourceType:                   op.Policy.ResourceType,
+			SecurityServicePolicyData:      op.Policy.SecurityServicePolicyData,
+			ExcludeResourceTags:            op.Policy.ExcludeResourceTags,
+			ExcludeMap:                     op.Policy.ExcludeMap,
+			IncludeMap:                     op.Policy.IncludeMap,
+			PolicyDescription:              op.Policy.PolicyDescription,
+			PolicyUpdateToken:              op.Policy.PolicyUpdateToken,
+			ResourceSetIds:                 op.Policy.ResourceSetIds,
+			ResourceTags:                   op.Policy.ResourceTags,
+			ResourceTypeList:               op.Policy.ResourceTypeList,
+		}, nil
+	}
+
 	return op, nil
 }
-
-// //// TRANSFORM FUNCTIONS
-
-// func fsxFileSystemTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-// 	fileSystemTag := d.HydrateItem.(types.FileSystem)
-// 	if fileSystemTag.Tags == nil {
-// 		return nil, nil
-// 	}
-
-// 	// Get the resource tags
-// 	var turbotTagsMap map[string]string
-// 	if fileSystemTag.Tags != nil {
-// 		turbotTagsMap = map[string]string{}
-// 		for _, i := range fileSystemTag.Tags {
-// 			turbotTagsMap[*i.Key] = *i.Value
-// 		}
-// 	}
-// 	return turbotTagsMap, nil
-// }
-
-// func getFsxFileSystemTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-// 	fileSystemTitle := d.HydrateItem.(types.FileSystem)
-
-// 	if fileSystemTitle.Tags != nil {
-// 		for _, i := range fileSystemTitle.Tags {
-// 			if *i.Key == "Name" && len(*i.Value) > 0 {
-// 				return *i.Value, nil
-// 			}
-// 		}
-// 	}
-
-// 	return fileSystemTitle.FileSystemId, nil
-// }
