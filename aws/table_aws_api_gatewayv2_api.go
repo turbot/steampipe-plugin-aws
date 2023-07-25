@@ -49,6 +49,11 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "description",
+				Description: "The description of the API",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "protocol_type",
 				Description: "The API protocol",
 				Type:        proto.ColumnType_STRING,
