@@ -79,7 +79,7 @@ func tableAwsFMSPolicy(_ context.Context) *plugin.Table {
 			{
 				Name:        "security_service_policy_data",
 				Description: "Details about the security service that is being used to protect the resources.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "delete_unused_fm_managed_resources",
@@ -175,17 +175,17 @@ func listFmsPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, nil
 	}
 
-	maxItems := int32(100)
-	input := fms.ListPoliciesInput{
-		MaxResults: aws.Int32(maxItems),
-	}
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
+	maxItems := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
 			maxItems = int32(limit)
 		}
+	}
+
+	input := fms.ListPoliciesInput{
+		MaxResults: aws.Int32(maxItems),
 	}
 
 	paginator := fms.NewListPoliciesPaginator(svc, &input, func(o *fms.ListPoliciesPaginatorOptions) {

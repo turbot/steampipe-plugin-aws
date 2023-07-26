@@ -113,17 +113,17 @@ func listFmsAppLists(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, nil
 	}
 
-	maxItems := int32(100)
-	input := fms.ListAppsListsInput{
-		MaxResults: aws.Int32(maxItems),
-	}
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
+	maxItems := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
 			maxItems = int32(limit)
 		}
+	}
+
+	input := fms.ListAppsListsInput{
+		MaxResults: aws.Int32(maxItems),
 	}
 
 	paginator := fms.NewListAppsListsPaginator(svc, &input, func(o *fms.ListAppsListsPaginatorOptions) {
