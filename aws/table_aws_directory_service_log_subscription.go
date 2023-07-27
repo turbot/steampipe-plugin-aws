@@ -89,7 +89,7 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 	}
 	equalQuals := d.EqualsQuals
 	if equalQuals["directory_id"] != nil {
-		if equalQuals["directory_id"].GetStringValue() != "" {
+		if d.EqualsQualString("directory_id") != "" {
 			input.DirectoryId = aws.String(d.EqualsQualString("directory_id"))
 		}
 	}
