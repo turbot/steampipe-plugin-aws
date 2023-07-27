@@ -87,6 +87,7 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 	input := &directoryservice.ListLogSubscriptionsInput{
 		Limit: aws.Int32(maxLimit),
 	}
+	
 	if d.EqualsQualString("directory_id") != "" {
 		input.DirectoryId = aws.String(d.EqualsQualString("directory_id"))
 	}
