@@ -21,6 +21,9 @@ func tableAwsDirectoryServiceLogSubscription(_ context.Context) *plugin.Table {
 		Description: "AWS Directory Service Log Subscription",
 		List: &plugin.ListConfig{
 			Hydrate: listDirectoryServiceLogSubscription,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityDoesNotExistException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "directory_id",
@@ -79,16 +82,17 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 				maxLimit = limit
 			}
 		}
+	}
 
 	// Build the params
 	input := &directoryservice.ListLogSubscriptionsInput{
 		Limit: aws.Int32(maxLimit),
 	}
-
-	// Additonal Filter
 	equalQuals := d.EqualsQuals
 	if equalQuals["directory_id"] != nil {
-		input.DirectoryId = aws.String(d.EqualsQualString("directory_id"))
+		if equalQuals["directory_id"].GetStringValue() != "" {
+			input.DirectoryId = aws.String(equalQuals["directory_id"].GetStringValue())
+		}
 	}
 
 	pagesLeft := true
@@ -119,5 +123,3 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 
 	return nil, err
 	}
-	return nil, nil
-}
