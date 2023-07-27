@@ -79,7 +79,7 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-				maxLimit = limit
+			maxLimit = limit
 		}
 	}
 
@@ -87,9 +87,9 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 	input := &directoryservice.ListLogSubscriptionsInput{
 		Limit: aws.Int32(maxLimit),
 	}
-		if d.EqualsQualString("directory_id") != "" {
-			input.DirectoryId = aws.String(d.EqualsQualString("directory_id"))
-		}
+	if d.EqualsQualString("directory_id") != "" {
+		input.DirectoryId = aws.String(d.EqualsQualString("directory_id"))
+	}
 
 	pagesLeft := true
 
@@ -118,4 +118,4 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 	}
 
 	return nil, err
-	}
+}
