@@ -48,6 +48,7 @@ func tableAwsDirectoryServiceLogSubscription(_ context.Context) *plugin.Table {
 				Description: "The date and time that the log subscription was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+
 			// Steampipe Standard columns
 			{
 				Name:        "title",
@@ -78,9 +79,7 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
 				maxLimit = limit
-			}
 		}
 	}
 
@@ -91,7 +90,7 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 	equalQuals := d.EqualsQuals
 	if equalQuals["directory_id"] != nil {
 		if equalQuals["directory_id"].GetStringValue() != "" {
-			input.DirectoryId = aws.String(equalQuals["directory_id"].GetStringValue())
+			input.DirectoryId = aws.String(d.EqualsQualString("directory_id"))
 		}
 	}
 
