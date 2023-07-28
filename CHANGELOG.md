@@ -1,3 +1,15 @@
+## v0.113.0 [2023-07-28]
+
+_What's new?_
+
+- New tables added
+  - [aws_directory_service_log_subscription](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_directory_service_log_subscription) ([#1852](https://github.com/turbot/steampipe-plugin-aws/pull/1852))
+
+_Enhancements_
+
+- Added the `fifo_throughput_limit` and `deduplication_scope` columns to the `aws_sqs_queue` table. ([#1859](https://github.com/turbot/steampipe-plugin-aws/pull/1859)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Added the `description` column to the `aws_api_gatewayv2_api` table. ([#1856](https://github.com/turbot/steampipe-plugin-aws/pull/1856)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
 ## v0.112.0 [2023-07-20]
 
 _Breaking changes_
