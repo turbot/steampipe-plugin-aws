@@ -33,7 +33,7 @@ func tableAwsPricingProduct(_ context.Context) *plugin.Table {
 			{Name: "term", Description: "Whether your AWS usage is Reserved or On-Demand.", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.Term")},
 			{Name: "purchase_option", Description: "How you chose to pay for this line item (All Upfront, Partial Upfront, No Upfront).", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.TermAttributes.PurchaseOption")},
 			{Name: "lease_contract_length", Description: "The length of time that your RI is reserved for.", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.TermAttributes.LeaseContractLength")},
-			{Name: "offering_class", Description: "The type of RI (Standard or Convertible)", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.TermAttributes.OfferingClass")},
+			{Name: "offering_class", Description: "The type of RI (Standard or Convertible).", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.TermAttributes.OfferingClass")},
 			{Name: "description", Description: "Description for a product / offer / pricing-tier combination.", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.PriceDimension.Description")},
 			{Name: "begin_range", Description: "Start of billing range, by unit", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.PriceDimension.BeginRange")},
 			{Name: "end_range", Description: "Enf of billing range, by unit", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.PriceDimension.EndRange")},
