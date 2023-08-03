@@ -1,4 +1,4 @@
-SELECT
+select
   db_cluster_snapshot_identifier,
   db_cluster_snapshot_arn,
   db_cluster_identifier,
@@ -7,7 +7,7 @@ SELECT
   license_model,
   port,
   storage_encrypted
-FROM
+from
   aws.aws_neptune_db_cluster_snapshot
-WHERE
+where
   db_cluster_snapshot_identifier = '{{ resourceName }}'

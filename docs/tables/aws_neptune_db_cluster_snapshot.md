@@ -4,7 +4,7 @@ Amazon Neptune creates a storage volume snapshot of your DB cluster, backing up 
 
 ## Examples
 
-### List of cluster snapshots which are not encrypted
+### List of DB cluster snapshots which are not encrypted
 
 ```sql
 select
@@ -18,7 +18,7 @@ where
 ```
 
 
-### Db cluster info of each snapshot
+### DB cluster info of each snapshot
 
 ```sql
 select
@@ -32,7 +32,7 @@ from
 ```
 
 
-### Db cluster snapshot count per db cluster
+### DB cluster snapshot count per DB cluster
 
 ```sql
 select
@@ -45,7 +45,7 @@ group by
 ```
 
 
-### List of publicly restorable db cluster snapshot
+### List of publicly restorable DB cluster snapshot
 
 ```sql
 select
