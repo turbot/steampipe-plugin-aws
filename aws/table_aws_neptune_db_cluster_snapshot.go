@@ -40,7 +40,7 @@ func tableAwsNeptuneDBClusterSnapshot(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_snapshot_identifier",
-				Description: "pecifies the identifier for a DB cluster snapshot. Must match the identifier of an existing snapshot.",
+				Description: "Specifies the identifier for a DB cluster snapshot. Must match the identifier of an existing snapshot.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBClusterSnapshotIdentifier"),
 			},
@@ -116,7 +116,7 @@ func tableAwsNeptuneDBClusterSnapshot(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "license_model",
-				Description: "TProvides the license model information for this DB cluster snapshot.",
+				Description: "Provides the license model information for this DB cluster snapshot.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -175,7 +175,7 @@ func listNeptuneDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *
 	// Create session
 	svc, err := NeptuneClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_neptune_db_cluster.listNeptuneDBClusterSnapshots", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_neptune_db_cluster_snapshot.listNeptuneDBClusterSnapshots", "get_client_error", err)
 		return nil, err
 	}
 
@@ -209,7 +209,7 @@ func listNeptuneDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_neptune_db_cluster.listNeptuneDBClusters", "api_error", err)
+			plugin.Logger(ctx).Error("aws_neptune_db_cluster_snapshot.listNeptuneDBClusterSnapshots", "api_error", err)
 			return nil, err
 		}
 
@@ -261,7 +261,7 @@ func getNeptuneDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryD
 	// Create service
 	svc, err := NeptuneClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getAwsRDSDBClusterSnapshotAttributes", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getNeptuneDBClusterSnapshotAttributes", "connection_error", err)
 		return nil, err
 	}
 
@@ -271,7 +271,7 @@ func getNeptuneDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryD
 
 	dbClusterSnapshotData, err := svc.DescribeDBClusterSnapshotAttributes(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_neptune_db_cluster_snapshot.getNeptuneSDBClusterSnapshotAttributes", "api_error", err)
+		plugin.Logger(ctx).Error("aws_neptune_db_cluster_snapshot.getNeptuneDBClusterSnapshotAttributes", "api_error", err)
 		return nil, err
 	}
 
@@ -306,7 +306,7 @@ func buildNeptuneDbClusterSnapshotFilter(quals plugin.KeyColumnQualMap) []types.
 		"db_cluster_identifier":          "db-cluster-id",
 		"db_cluster_snapshot_identifier": "db-cluster-snapshot-id",
 		"engine":                         "engine",
-		"snapshot_type":                           "snapshot-type",
+		"snapshot_type":                  "snapshot-type",
 	}
 
 	for columnName, filterName := range filterQuals {

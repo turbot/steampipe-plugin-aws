@@ -17,7 +17,6 @@ where
   not storage_encrypted;
 ```
 
-
 ### DB cluster info of each snapshot
 
 ```sql
@@ -31,7 +30,6 @@ from
   aws_neptune_db_cluster_snapshot;
 ```
 
-
 ### DB cluster snapshot count per DB cluster
 
 ```sql
@@ -44,8 +42,7 @@ group by
   db_cluster_identifier;
 ```
 
-
-### List of publicly restorable DB cluster snapshot
+### List of publicly restorable DB cluster snapshots
 
 ```sql
 select
