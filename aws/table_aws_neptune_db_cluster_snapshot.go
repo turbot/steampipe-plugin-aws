@@ -31,7 +31,6 @@ func tableAwsNeptuneDBClusterSnapshot(_ context.Context) *plugin.Table {
 			Hydrate: listNeptuneDBClusterSnapshots,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
-				{Name: "engine", Require: plugin.Optional},
 				{Name: "snapshot_type", Require: plugin.Optional},
 			},
 		},
@@ -250,7 +249,13 @@ func getNeptuneDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-	return op.DBClusterSnapshots[0], nil
+	if op.DBClusterSnapshots != nil && len(op.DBClusterSnapshots) > 0 {
+		snapshot := op.DBClusterSnapshots[0]
+		if *snapshot.Engine == "neptune"{
+			return snapshot, nil
+		}
+	}
+	return nil, nil
 }
 
 func getNeptuneDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -302,9 +307,8 @@ func getNeptuneDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryD
 func buildNeptuneDbClusterSnapshotFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)
 	filterQuals := map[string]string{
-		"db_cluster_identifier":          "db-cluster-id",
-		"engine":                         "engine",
-		"snapshot_type":                  "snapshot-type",
+		"db_cluster_identifier": "db-cluster-id",
+		"snapshot_type":         "snapshot-type",
 	}
 
 	for columnName, filterName := range filterQuals {
