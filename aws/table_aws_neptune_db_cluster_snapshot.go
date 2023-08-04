@@ -181,10 +181,12 @@ func listNeptuneDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *
 		MaxRecords: aws.Int32(100),
 	}
 
-	filters := buildNeptuneDbClusterSnapshotFilter(d.Quals)
+	if d.EqualsQualString("db_cluster_identifier") != "" {
+		input.DBClusterIdentifier = aws.String(d.EqualsQualString("db_cluster_identifier"))
+	}
 
-	if len(filters) != 0 {
-		input.Filters = filters
+	if d.EqualsQualString("snapshot_type") != "" {
+		input.SnapshotType = aws.String(d.EqualsQualString("snapshot_type"))
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -251,7 +253,7 @@ func getNeptuneDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	if op.DBClusterSnapshots != nil && len(op.DBClusterSnapshots) > 0 {
 		snapshot := op.DBClusterSnapshots[0]
-		if *snapshot.Engine == "neptune"{
+		if *snapshot.Engine == "neptune" {
 			return snapshot, nil
 		}
 	}
@@ -299,30 +301,4 @@ func getNeptuneDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryD
 	}
 
 	return attributes, nil
-}
-
-//// UTILITY FUNCTIONS
-
-// build snapshots list call input filter
-func buildNeptuneDbClusterSnapshotFilter(quals plugin.KeyColumnQualMap) []types.Filter {
-	filters := make([]types.Filter, 0)
-	filterQuals := map[string]string{
-		"db_cluster_identifier": "db-cluster-id",
-		"snapshot_type":         "snapshot-type",
-	}
-
-	for columnName, filterName := range filterQuals {
-		if quals[columnName] != nil {
-			filter := types.Filter{
-				Name: aws.String(filterName),
-			}
-			value := getQualsValueByColumn(quals, columnName, "string")
-			val, ok := value.(string)
-			if ok {
-				filter.Values = []string{val}
-			}
-			filters = append(filters, filter)
-		}
-	}
-	return filters
 }
