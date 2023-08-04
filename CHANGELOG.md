@@ -1,3 +1,10 @@
+## v0.114.0 [2023-08-04]
+
+_What's new?_
+
+- New tables added
+  - [aws_neptune_db_cluster_snapshot](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_neptune_db_cluster_snapshot) ([#1866](https://github.com/turbot/steampipe-plugin-aws/pull/1866))
+
 ## v0.113.0 [2023-07-28]
 
 _What's new?_
