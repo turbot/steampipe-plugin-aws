@@ -31,7 +31,6 @@ func tableAwsNeptuneDBClusterSnapshot(_ context.Context) *plugin.Table {
 			Hydrate: listNeptuneDBClusterSnapshots,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
-				{Name: "db_cluster_snapshot_identifier", Require: plugin.Optional},
 				{Name: "engine", Require: plugin.Optional},
 				{Name: "snapshot_type", Require: plugin.Optional},
 			},
@@ -261,7 +260,7 @@ func getNeptuneDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryD
 	// Create service
 	svc, err := NeptuneClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getNeptuneDBClusterSnapshotAttributes", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_neptune_db_cluster_snapshot.getNeptuneDBClusterSnapshotAttributes", "connection_error", err)
 		return nil, err
 	}
 
@@ -304,7 +303,6 @@ func buildNeptuneDbClusterSnapshotFilter(quals plugin.KeyColumnQualMap) []types.
 	filters := make([]types.Filter, 0)
 	filterQuals := map[string]string{
 		"db_cluster_identifier":          "db-cluster-id",
-		"db_cluster_snapshot_identifier": "db-cluster-snapshot-id",
 		"engine":                         "engine",
 		"snapshot_type":                  "snapshot-type",
 	}
