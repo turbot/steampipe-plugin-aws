@@ -26,22 +26,22 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 			},
-			Hydrate:     getTopicAttributes,
-			ScopeValues: map[string]string{"service": "sns", "action": "GetTopicAttributes"},
+			Hydrate: getTopicAttributes,
+			Tags:    map[string]string{"service": "sns", "action": "GetTopicAttributes"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate:     listAwsSnsTopics,
-			ScopeValues: map[string]string{"service": "sns", "action": "ListTopics"},
+			Hydrate: listAwsSnsTopics,
+			Tags:    map[string]string{"service": "sns", "action": "ListTopics"},
 		},
 
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func:        listTagsForSnsTopic,
-				ScopeValues: map[string]string{"service": "sns", "action": "ListTagsForResource"},
+				Func: listTagsForSnsTopic,
+				Tags: map[string]string{"service": "sns", "action": "ListTagsForResource"},
 			},
 			{
-				Func:        getTopicAttributes,
-				ScopeValues: map[string]string{"service": "sns", "action": "GetTopicAttributes"},
+				Func: getTopicAttributes,
+				Tags: map[string]string{"service": "sns", "action": "GetTopicAttributes"},
 			},
 		},
 
