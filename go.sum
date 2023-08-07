@@ -900,6 +900,8 @@ github.com/turbot/steampipe-plugin-sdk/v5 v5.5.0 h1:a6sgeHUcATGJJ6rDn4S27WCr5DHr
 github.com/turbot/steampipe-plugin-sdk/v5 v5.5.0/go.mod h1:HH2yeMCo0nOajYnH3Oh+alEH/8iSji5m5t+o1ezfrRs=
 github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-dev.9 h1:o4YurD1RhelOUGzrcIM1+WIQTCN7Azf6s9Biy2WIGME=
 github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-dev.9/go.mod h1:GNYxF+JsulO2u7pp9IRYgTLBdB5GrHzvW8TfkUK2vNE=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-dev.11 h1:rHYG+bGFihZdI6ym3+IvfcD0Io9+AfPas7j6X9tkA5w=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-dev.11/go.mod h1:GNYxF+JsulO2u7pp9IRYgTLBdB5GrHzvW8TfkUK2vNE=
 github.com/ulikunitz/xz v0.5.10 h1:t92gobL9l3HE202wg3rlk19F6X+JOxl9BBrCCMYEYd8=
 github.com/ulikunitz/xz v0.5.10/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
