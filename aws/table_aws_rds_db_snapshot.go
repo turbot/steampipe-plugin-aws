@@ -9,7 +9,6 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -270,15 +269,7 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, items := range output.DBSnapshots {
-			if helpers.StringSliceContains(
-				[]string{
-					"aurora",
-					"aurora-mysql",
-					"aurora-postgresql",
-					"mysql",
-					"postgres",
-				},
-				*items.Engine) {
+			if isSuppportedRDSEngine(*items.Engine) {
 				d.StreamListItem(ctx, items)
 			}
 
@@ -316,15 +307,7 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	if op.DBSnapshots != nil && len(op.DBSnapshots) > 0 {
 		snapshot := op.DBSnapshots[0]
-		if helpers.StringSliceContains(
-			[]string{
-				"aurora",
-				"aurora-mysql",
-				"aurora-postgresql",
-				"mysql",
-				"postgres",
-			},
-			*snapshot.Engine) {
+		if isSuppportedRDSEngine(*snapshot.Engine) {
 			return snapshot, nil
 		}
 	}
