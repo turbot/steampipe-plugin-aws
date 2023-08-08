@@ -4,17 +4,6 @@ AWS Network Load Balancer (NLB) distributes end user traffic across multiple clo
 
 ## Examples
 
-### Security group attached to the network load balancer
-
-```sql
-select
-  name,
-  jsonb_array_elements(security_groups) as attached_security_group
-from
-  aws_ec2_network_load_balancer;
-```
-
-
 ### Count of AZs registered with network load balancers
 
 ```sql
