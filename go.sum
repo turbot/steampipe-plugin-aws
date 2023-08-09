@@ -873,6 +873,8 @@ github.com/turbot/go-kit v0.8.0-rc.0 h1:Vj1w5TmZWwdSwBTcOq6FKVlQQ+XwCd27BZVPZ9m1
 github.com/turbot/go-kit v0.8.0-rc.0/go.mod h1:JkVKhR5XHK86aXY4WzB9Lr0jdnrsafjVh4yJA8ZS3Ck=
 github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-dev.14 h1:CuFiEg9iD0J9AljpqSKWGKeKmVwxFkgo4lLuDv2GxyI=
 github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-dev.14/go.mod h1:aCOVDbfgl/y/vGUaEKkzi9jBrNerEN46l88DkQUu3Vw=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-dev-17 h1:BgNJ6znc2Tr6SqQXV46ArPAoKYlwU7JVKYINrTZQhfI=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0-dev-17/go.mod h1:Np0X1Oj3JNTcuf9JmvWwHrCqc0UB4iJLmUlOkRwMCWw=
 github.com/ulikunitz/xz v0.5.10 h1:t92gobL9l3HE202wg3rlk19F6X+JOxl9BBrCCMYEYd8=
 github.com/ulikunitz/xz v0.5.10/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
