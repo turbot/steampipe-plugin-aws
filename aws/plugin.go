@@ -308,6 +308,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lambda_function_metric_errors_daily":                      tableAwsLambdaFunctionMetricErrorsDaily(ctx),
 			"aws_lambda_function_metric_invocations_daily":                 tableAwsLambdaFunctionMetricInvocationsDaily(ctx),
 			"aws_lambda_function":                                          tableAwsLambdaFunction(ctx),
+			EV_SOURCE_MAPPING_TABLE_NAME:                                   tableAwsLambdaFunctionEventSourceMapping(ctx),
 			"aws_lambda_layer_version":                                     tableAwsLambdaLayerVersion(ctx),
 			"aws_lambda_layer":                                             tableAwsLambdaLayer(ctx),
 			"aws_lambda_version":                                           tableAwsLambdaVersion(ctx),
