@@ -1,3 +1,23 @@
+## v0.115.0 [2023-08-08]
+
+_Enhancements_
+
+- Updated the `Makefile` to build plugin in `STEAMPIPE_INSTALL_DIR` if set. ([#1857](https://github.com/turbot/steampipe-plugin-aws/pull/1857)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Added column `offering_class` to `aws_pricing_product` table ([#1863](https://github.com/turbot/steampipe-plugin-aws/pull/1863)) (Thanks [@rasta-rocket](https://github.com/rasta-rocket) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the `aws_ec2_network_load_balancer` table doc to remove the incorrect security group association example. ([#1869](https://github.com/turbot/steampipe-plugin-aws/pull/1869)) (Thanks [@
+tinder-tder](https://github.com/tinder-tder) for the contribution!)
+- Fixed `aws_rds_db_cluster`, `aws_rds_db_cluster_snapshot`, `aws_rds_db_instance`, `aws_rds_db_snapshot` tables to correctly filter out the `DocDB` and `Neptune` resources. ([#1868](https://github.com/turbot/steampipe-plugin-aws/pull/1868))
+
+## v0.114.0 [2023-08-04]
+
+_What's new?_
+
+- New tables added
+  - [aws_neptune_db_cluster_snapshot](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_neptune_db_cluster_snapshot) ([#1866](https://github.com/turbot/steampipe-plugin-aws/pull/1866))
+
 ## v0.113.0 [2023-07-28]
 
 _What's new?_

@@ -9,7 +9,6 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -488,15 +487,7 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, items := range output.DBInstances {
-			if helpers.StringSliceContains(
-				[]string{
-					"aurora",
-					"aurora-mysql",
-					"aurora-postgresql",
-					"mysql",
-					"postgres",
-				},
-				*items.Engine) {
+			if isSuppportedRDSEngine(*items.Engine) {
 				d.StreamListItem(ctx, items)
 			}
 
@@ -534,15 +525,7 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	if op.DBInstances != nil && len(op.DBInstances) > 0 {
 		instance := op.DBInstances[0]
-		if helpers.StringSliceContains(
-			[]string{
-				"aurora",
-				"aurora-mysql",
-				"aurora-postgresql",
-				"mysql",
-				"postgres",
-			},
-			*instance.Engine) {
+		if isSuppportedRDSEngine(*instance.Engine) {
 			return instance, nil
 		}
 	}
