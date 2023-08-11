@@ -1791,16 +1791,9 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		}
 	}
 
-	// Check connection config has a valid credential setup
-	_, err = cfg.Credentials.Retrieve(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("connection config '%v' has an invalid credential setup, update the configuration file", d.Connection.Name)
-		}
-
 	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
 
 	return &cfg, err
-
 }
 
 // ExponentialJitterBackoff provides backoff delays with jitter based on the
