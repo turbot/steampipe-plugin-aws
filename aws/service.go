@@ -1704,7 +1704,16 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	if awsSpcConfig.Profile != nil {
 		profile := aws.ToString(awsSpcConfig.Profile)
 		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
+
+		// Check connection config has a valid aws profile
+		cfg, _ := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(profile))
+		_, err := cfg.Credentials.Retrieve(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("connection config has an incorrect aws profile '%v', update the configuration file", profile)
+		}
+
 		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
+
 	}
 
 	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
@@ -1781,6 +1790,12 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 			return nil, err
 		}
 	}
+
+	// Check connection config has a valid credential setup
+	_, err = cfg.Credentials.Retrieve(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("connection config '%v' has an invalid credential setup, update the configuration file", d.Connection.Name)
+		}
 
 	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
 
