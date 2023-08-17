@@ -289,6 +289,8 @@ github.com/aws/aws-sdk-go-v2/service/codedeploy v1.16.1 h1:IfpSUYyAAnf1bIiQXdaEI
 github.com/aws/aws-sdk-go-v2/service/codedeploy v1.16.1/go.mod h1:a6V2kjEeGO21QyOLbNDcHq4PaASn4K+kKbJ0WI+MgbE=
 github.com/aws/aws-sdk-go-v2/service/codepipeline v1.14.0 h1:vuUng/+gXtRZ0LhMpgPy1D/yOcIo58hCQuukZhLFIEI=
 github.com/aws/aws-sdk-go-v2/service/codepipeline v1.14.0/go.mod h1:CZzLW6TnEwqFDs9BcgSVB7lbUe4KGuspzmMHGAwBTow=
+github.com/aws/aws-sdk-go-v2/service/cognitoidentity v1.15.14 h1:xvHxtLFQXzpb84cadYdZs7D7yqJeKGdvWvEqc/UeiHA=
+github.com/aws/aws-sdk-go-v2/service/cognitoidentity v1.15.14/go.mod h1:K/70M7G9PybGy0HExz/ICmaKuCd2fea7+8Jw+5ugde4=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.0 h1:duuTZRVQHwQZsH4TnK2q3Gr/y2S2zqil0Itkg69QvHQ=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.0/go.mod h1:1ObmNic2RK0BZg20466bTpGNXjauAlNsX+0px/DSlDU=
 github.com/aws/aws-sdk-go-v2/service/configservice v1.29.1 h1:xUaQ7NhFtJ5q7Iq6R0r1njb+Rq+vpwYWb3VDMaFKKjs=
@@ -471,8 +473,9 @@ github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.20.1 h1:8ID/qag72lWZQ5yT
 github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.20.1/go.mod h1:Hb9paYQ+u2HHObVp/jp4BWlgnsf2FORBwm8+MRU29e4=
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0 h1:sjfoG4ahd0yE77sKiBokTlZHd9pk1k+vPGNJo6ct2QQ=
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0/go.mod h1:oudvE1/KOdqMDrq9PG1QjLpvQb8S5R3y2Fci+Vuc6To=
-github.com/aws/smithy-go v1.13.5 h1:hgz0X/DX0dGqTYpGALqXJoRKRj5oQ7150i5FdTePzO8=
 github.com/aws/smithy-go v1.13.5/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
+github.com/aws/smithy-go v1.14.1 h1:EFKMUmH/iHMqLiwoEDx2rRjRQpI1YCn5jTysoaDujFs=
+github.com/aws/smithy-go v1.14.1/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=
 github.com/benbjohnson/clock v1.3.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
