@@ -9,21 +9,26 @@ import (
 )
 
 type awsConfig struct {
-	Regions               []string `cty:"regions"`
-	DefaultRegion         *string  `cty:"default_region"`
-	Profile               *string  `cty:"profile"`
-	AccessKey             *string  `cty:"access_key"`
-	SecretKey             *string  `cty:"secret_key"`
-	SessionToken          *string  `cty:"session_token"`
-	MaxErrorRetryAttempts *int     `cty:"max_error_retry_attempts"`
-	MinErrorRetryDelay    *int     `cty:"min_error_retry_delay"`
-	IgnoreErrorCodes      []string `cty:"ignore_error_codes"`
-	EndpointUrl           *string  `cty:"endpoint_url"`
-	S3ForcePathStyle      *bool    `cty:"s3_force_path_style"`
+	Regions                 []string `cty:"regions"`
+	DefaultRegion           *string  `cty:"default_region"`
+	Profile                 *string  `cty:"profile"`
+	AccessKey               *string  `cty:"access_key"`
+	SecretKey               *string  `cty:"secret_key"`
+	SessionToken            *string  `cty:"session_token"`
+	MaxErrorRetryAttempts   *int     `cty:"max_error_retry_attempts"`
+	MinErrorRetryDelay      *int     `cty:"min_error_retry_delay"`
+	IgnoreErrorCodes        []string `cty:"ignore_error_codes"`
+	EndpointUrl             *string  `cty:"endpoint_url"`
+	S3ForcePathStyle        *bool    `cty:"s3_force_path_style"`
+	CloudtrailEventLogPaths []string `cty:"cloudtrail_event_log_paths"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
 	"regions": {
+		Type: schema.TypeList,
+		Elem: &schema.Attribute{Type: schema.TypeString},
+	},
+	"cloudtrail_event_log_paths": {
 		Type: schema.TypeList,
 		Elem: &schema.Attribute{Type: schema.TypeString},
 	},
