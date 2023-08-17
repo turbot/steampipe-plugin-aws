@@ -6,7 +6,6 @@ _What's new?_
   - [aws_cognito_identity_provider](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cognito_identity_provider) ([#1854](https://github.com/turbot/steampipe-plugin-aws/pull/1854)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
   - [aws_cognito_user_pool](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cognito_user_pool) ([#1854](https://github.com/turbot/steampipe-plugin-aws/pull/1854)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
 
-
 ## v0.115.0 [2023-08-08]
 
 _Enhancements_
