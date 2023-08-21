@@ -116,7 +116,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0
 	github.com/aws/smithy-go v1.13.5
-	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
+	github.com/gocarina/gocsv v0.0.0-20230616125104-99d496ca653d
 	github.com/golang/protobuf v1.5.2
 	github.com/turbot/go-kit v0.6.0
 	github.com/turbot/steampipe-plugin-sdk/v5 v5.5.0

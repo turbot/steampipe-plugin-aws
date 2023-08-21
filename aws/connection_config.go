@@ -21,6 +21,7 @@ type awsConfig struct {
 	EndpointUrl             *string  `cty:"endpoint_url"`
 	S3ForcePathStyle        *bool    `cty:"s3_force_path_style"`
 	CloudtrailEventLogPaths []string `cty:"cloudtrail_event_log_paths"`
+	CostUsageReportPaths    []string `cty:"cost_usage_report_paths"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -29,6 +30,10 @@ var ConfigSchema = map[string]*schema.Attribute{
 		Elem: &schema.Attribute{Type: schema.TypeString},
 	},
 	"cloudtrail_event_log_paths": {
+		Type: schema.TypeList,
+		Elem: &schema.Attribute{Type: schema.TypeString},
+	},
+	"cost_usage_report_paths": {
 		Type: schema.TypeList,
 		Elem: &schema.Attribute{Type: schema.TypeString},
 	},
