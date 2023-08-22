@@ -101,7 +101,7 @@ func tableAwsCognitoIdentityPool(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
+				Transform:   transform.FromField("identity_pool_name"),
 			},
 		}),
 	}
