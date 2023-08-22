@@ -41,6 +41,11 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "engine_type",
+				Description: "Specifies the EngineType of the domain.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "domain_id",
 				Description: "The unique identifier for the specified domain.",
 				Type:        proto.ColumnType_STRING,
@@ -240,9 +245,7 @@ func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	for _, domainname := range op.DomainNames {
-		d.StreamListItem(ctx, types.DomainStatus{
-			DomainName: domainname.DomainName,
-		})
+		d.StreamListItem(ctx, domainname)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.RowsRemaining(ctx) == 0 {
@@ -258,7 +261,7 @@ func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var domainName string
 	if h.Item != nil {
-		domainName = *h.Item.(types.DomainStatus).DomainName
+		domainName = *h.Item.(types.DomainInfo).DomainName
 	} else {
 		domainName = d.EqualsQuals["domain_name"].GetStringValue()
 
