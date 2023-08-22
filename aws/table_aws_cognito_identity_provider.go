@@ -245,7 +245,7 @@ func getCognitoIdentityProviderTurbotAkas(ctx context.Context, d *plugin.QueryDa
 	commonColumnData := c.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	//arn:aws:cognito-idp::<account-id>:userpool/<id>/provider/<name>
+	//arn:aws:cognito-idp:<region>:<account-id>:userpool/<id>/provider/<name>
 	arn := "arn:" + commonColumnData.Partition + ":cognito-idp:" + region + ":" + commonColumnData.AccountId + ":userpool/" + userPoolId + "/provider/" + *data.ProviderName
 
 	return []string{arn}, nil

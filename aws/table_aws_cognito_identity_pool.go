@@ -69,12 +69,14 @@ func tableAwsCognitoIdentityPool(_ context.Context) *plugin.Table {
 				Description: "The ARNs of the OpenID Connect providers.",
 				Hydrate:     getCognitoIdentityPool,
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("OpenIdConnectProviderARNs"),
 			},
 			{
 				Name:        "saml_provider_arns",
 				Description: "An array of Amazon Resource Names (ARNs) of the SAML provider for your identity pool.",
 				Hydrate:     getCognitoIdentityPool,
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("SamlProviderARNs"),
 			},
 			{
 				Name:        "supported_login_providers",
@@ -87,8 +89,8 @@ func tableAwsCognitoIdentityPool(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCognitoIdentityPool,
-				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
+				Hydrate:     getCognitoIdentityPoolTurbotAkas,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags",
@@ -101,7 +103,7 @@ func tableAwsCognitoIdentityPool(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("identity_pool_name"),
+				Transform:   transform.FromField("IdentityPoolName"),
 			},
 		}),
 	}
@@ -210,4 +212,25 @@ func getCognitoIdentityPool(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 	plugin.Logger(ctx).Debug("aws_cognito_identity_pool.getCognitoIdentityPool", "identity_pool", fmt.Sprintf("%#v", *data))
 	return *data, nil
+}
+
+func getCognitoIdentityPoolTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
+	data := h.Item.(types.IdentityPoolShortDescription)
+	plugin.Logger(ctx).Debug("aws_cognito_identity_pool.getCognitoIdentityPoolTurbotAkas", "identity_pool_id", *data.IdentityPoolId)
+
+	// Get common columns
+
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_cognito_identity_pool.getCognitoIdentityPoolTurbotAkas", "common_error", err)
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
+	// Get data for turbot defined properties
+	//arn:aws:cognito-identity:<region>:<account-id>:identitypool/<id>
+	arn := "arn:" + commonColumnData.Partition + ":cognito-identity:" + region + ":" + commonColumnData.AccountId + ":identitypool/" + *data.IdentityPoolId
+
+	return []string{arn}, nil
 }
