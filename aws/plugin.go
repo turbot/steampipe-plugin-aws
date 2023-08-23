@@ -118,6 +118,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_codedeploy_deployment_config":                             tableAwsCodeDeployDeploymentConfig(ctx),
 			"aws_codedeploy_deployment_group":                              tableAwsCodeDeployDeploymentGroup(ctx),
 			"aws_codepipeline_pipeline":                                    tableAwsCodepipelinePipeline(ctx),
+			"aws_cognito_identity_pool":                                    tableAwsCognitoIdentityPool(ctx),
 			"aws_cognito_identity_provider":                                tableAwsCognitoIdentityProvider(ctx),
 			"aws_cognito_user_pool":                                        tableAwsCognitoUserPool(ctx),
 			"aws_config_aggregate_authorization":                           tableAwsConfigAggregateAuthorization(ctx),
