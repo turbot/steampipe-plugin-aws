@@ -62,6 +62,7 @@ func tableAwsCognitoIdentityPool(_ context.Context) *plugin.Table {
 			{
 				Name:        "developer_provider_name",
 				Description: "The 'domain' by which Cognito will refer to your users.",
+				Hydrate:     getCognitoIdentityPool,
 				Type:        proto.ColumnType_STRING,
 			},
 			{
