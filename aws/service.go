@@ -1705,11 +1705,11 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		profile := aws.ToString(awsSpcConfig.Profile)
 		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
 
-		// Check connection config has a valid aws profile
+		// Check if connection config has a valid AWS profile
 		cfg, _ := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(profile))
 		_, err := cfg.Credentials.Retrieve(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("connection config has an invalid AWS profile '%v', Please update the configuration file", profile)
+			return nil, fmt.Errorf("connection config has an invalid AWS profile '%v'. Please update the configuration file.", profile)
 		}
 
 		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
