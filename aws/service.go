@@ -1730,16 +1730,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	if awsSpcConfig.Profile != nil {
 		profile := aws.ToString(awsSpcConfig.Profile)
 		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
-
-		// Check if connection config has a valid AWS profile
-		cfg, _ := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(profile))
-		_, err := cfg.Credentials.Retrieve(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("connection config has an invalid AWS profile '%v'. Please update the configuration file.", profile)
-		}
-
 		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
-
 	}
 
 	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
@@ -1820,6 +1811,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
 
 	return &cfg, err
+
 }
 
 // ExponentialJitterBackoff provides backoff delays with jitter based on the
