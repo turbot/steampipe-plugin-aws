@@ -1,3 +1,15 @@
+## v0.117.0 [2023-08-25]
+
+_What's new?_
+
+- New tables added
+  - [aws_cognito_identity_pool](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cognito_identity_pool) ([#1876](https://github.com/turbot/steampipe-plugin-aws/pull/1876)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Enhancements_
+
+- Added the `engine_type` and `endpoints` columns to `aws_elasticsearch_domain` table. ([#1858](https://github.com/turbot/steampipe-plugin-aws/pull/1858)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Added a better error message when AWS creds resolver fails due to an invalid profile. ([#1873](https://github.com/turbot/steampipe-plugin-aws/pull/1873))
+
 ## v0.116.0 [2023-08-17]
 
 _What's new?_
