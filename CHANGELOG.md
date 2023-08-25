@@ -8,7 +8,6 @@ _What's new?_
 _Enhancements_
 
 - Added the `engine_type` and `endpoints` columns to `aws_elasticsearch_domain` table. ([#1858](https://github.com/turbot/steampipe-plugin-aws/pull/1858)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
-- Added a better error message when AWS creds resolver fails due to an invalid profile. ([#1873](https://github.com/turbot/steampipe-plugin-aws/pull/1873))
 
 ## v0.116.0 [2023-08-17]
 
