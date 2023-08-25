@@ -195,3 +195,18 @@ select
 from
   aws_ec2_instance;
 ```
+
+### Get instance with their subnet information
+
+```sql
+select 
+  i.instance_id, 
+  i.vpc_id, 
+  i.subnet_id, 
+  s.tags ->> 'Name' 
+from 
+  aws_ec2_instance as i, 
+  aws_vpc_subnet as s 
+where 
+  i.subnet_id = s.subnet_id;
+```
