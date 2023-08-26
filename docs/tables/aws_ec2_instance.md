@@ -196,7 +196,7 @@ from
   aws_ec2_instance;
 ```
 
-### Get instance with their subnet information
+### Get subnet details for each instance
 
 ```sql
 select 
