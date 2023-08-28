@@ -69,7 +69,7 @@ where
   directory_id = 'd-96676995ea';
 ```
 
-### List the directories that have Switch Running Mode enabled
+### List the directories that have 'SwitchRunningMode' enabled
 
 ```sql
 select
