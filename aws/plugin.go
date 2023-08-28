@@ -494,6 +494,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wellarchitected_workload":                                 tableAwsWellArchitectedWorkload(ctx),
 			"aws_wellarchitected_workload_share":                           tableAwsWellArchitectedWorkloadShare(ctx),
 			"aws_workspaces_workspace":                                     tableAwsWorkspace(ctx),
+			"aws_workspaces_directory":                                     tableAwsWorkspacesDirectory(ctx),
 		},
 	}
 
