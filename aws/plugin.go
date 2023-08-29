@@ -7,6 +7,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -37,6 +38,13 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		// Default ignore config for the plugin
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrorPluginDefault(),
+		},
+		DefaultRetryConfig: &plugin.RetryConfig{
+			MaxAttempts:          10,
+			BackoffAlgorithm:     "Exponential",
+			RetryInterval:        1000,
+			CappedDuration:       30000,
+			ShouldRetryErrorFunc: shouldRetryError,
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
@@ -498,4 +506,14 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 	}
 
 	return p
+}
+
+func shouldRetryError(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
+	// no such host
+	if strings.Contains(err.Error(), "no such host") {
+		plugin.Logger(ctx).Debug("aws.plugin.shouldRetryError", "no such host error", err.Error())
+		return true
+	}
+
+	return false
 }
