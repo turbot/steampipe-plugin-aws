@@ -203,7 +203,7 @@ select
   i.instance_id, 
   i.vpc_id, 
   i.subnet_id, 
-  s.tags ->> 'Name' 
+  s.tags ->> 'Name' as name
 from 
   aws_ec2_instance as i, 
   aws_vpc_subnet as s 
