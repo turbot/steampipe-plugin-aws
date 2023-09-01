@@ -20,7 +20,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 	p := &plugin.Plugin{
 		Name:               pluginName,
 		DefaultTransform:   transform.FromCamel(),
-		DefaultRetryConfig: snsRetryConfig(),
+		DefaultRetryConfig: pluginRetryConfig(),
 		DefaultGetConfig: &plugin.GetConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{
@@ -498,24 +498,24 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 	return p
 }
 
-func snsRetryConfig() *plugin.RetryConfig {
+func pluginRetryConfig() *plugin.RetryConfig {
 	return &plugin.RetryConfig{
 		MaxAttempts:          20,
 		BackoffAlgorithm:     "Exponential",
 		RetryInterval:        1000,
 		CappedDuration:       240000,
-		ShouldRetryErrorFunc: snsRetryError,
+		ShouldRetryErrorFunc: pluginRetryError,
 	}
 }
 
-func snsRetryError(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
+func pluginRetryError(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
 	if strings.Contains(err.Error(), "StatusCode: 408") {
-		plugin.Logger(ctx).Debug("snsRetryError", "retrying 408", err.Error())
+		plugin.Logger(ctx).Debug("pluginRetryError", "retrying 408", err.Error())
 		return true
 	}
 
 	if strings.Contains(err.Error(), "no such host") {
-		plugin.Logger(ctx).Debug("snsRetryError", "no such host", err.Error())
+		plugin.Logger(ctx).Debug("pluginRetryError", "no such host", err.Error())
 		return true
 	}
 
