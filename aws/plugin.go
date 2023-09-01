@@ -7,6 +7,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -17,8 +18,9 @@ const pluginName = "steampipe-plugin-aws"
 // Plugin creates this (aws) plugin
 func Plugin(ctx context.Context) *plugin.Plugin {
 	p := &plugin.Plugin{
-		Name:             pluginName,
-		DefaultTransform: transform.FromCamel(),
+		Name:               pluginName,
+		DefaultTransform:   transform.FromCamel(),
+		DefaultRetryConfig: snsRetryConfig(),
 		DefaultGetConfig: &plugin.GetConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{
@@ -494,4 +496,28 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 	}
 
 	return p
+}
+
+func snsRetryConfig() *plugin.RetryConfig {
+	return &plugin.RetryConfig{
+		MaxAttempts:          20,
+		BackoffAlgorithm:     "Exponential",
+		RetryInterval:        1000,
+		CappedDuration:       240000,
+		ShouldRetryErrorFunc: snsRetryError,
+	}
+}
+
+func snsRetryError(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
+	if strings.Contains(err.Error(), "StatusCode: 408") {
+		plugin.Logger(ctx).Debug("snsRetryError", "retrying 408", err.Error())
+		return true
+	}
+
+	if strings.Contains(err.Error(), "no such host") {
+		plugin.Logger(ctx).Debug("snsRetryError", "no such host", err.Error())
+		return true
+	}
+
+	return false
 }
