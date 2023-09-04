@@ -98,7 +98,7 @@ func listSSMIncidentsResponsePlans(ctx context.Context, d *plugin.QueryData, _ *
 	// Create session
 	svc, err := SSMIncidentsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ssmincidents_response_plan.listAwsSSMIncidentsResponsePlan", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ssmincidents_response_plan.listSSMIncidentsResponsePlans", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -127,7 +127,7 @@ func listSSMIncidentsResponsePlans(ctx context.Context, d *plugin.QueryData, _ *
 	for pagesLeft {
 		result, err := svc.ListResponsePlans(ctx, params)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_ssmincidents_response_plan.listAwsSSMIncidentsResponsePlan", "api_error", err)
+			plugin.Logger(ctx).Error("aws_ssmincidents_response_plan.listSSMIncidentsResponsePlans", "api_error", err)
 			return nil, err
 		}
 
