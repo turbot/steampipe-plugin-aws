@@ -5,8 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ssmincidents "github.com/aws/aws-sdk-go-v2/service/ssmincidents"
+	"github.com/aws/aws-sdk-go-v2/service/ssmincidents/types"
 
-	ssmv1 "github.com/aws/aws-sdk-go/service/ssmincidents"
+	ssmincidentsv1 "github.com/aws/aws-sdk-go/service/ssmincidents"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -18,7 +19,7 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 		Name:        "aws_ssmincidents_response_plan",
 		Description: "AWS SSMIncidents Response Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("arn"),
+			KeyColumns: plugin.AllColumns([]string{"arn", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 			},
@@ -27,7 +28,7 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSSMIncidentsResponsePlans,
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmincidentsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -154,6 +155,7 @@ func listSSMIncidentsResponsePlans(ctx context.Context, d *plugin.QueryData, _ *
 //// HYDRATE FUNCTIONS
 
 func getSSMIncidentsResponsePlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	matrixRegion := d.EqualsQualString(matrixKeyRegion)
 
 	// Create session
 	svc, err := SSMIncidentsClient(ctx, d)
@@ -166,9 +168,16 @@ func getSSMIncidentsResponsePlan(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, nil
 	}
 
-	reportPlanArn := d.EqualsQualString("arn")
+	var reportPlanArn, region string
+	if h.Item != nil {
+		reportPlanArn = *h.Item.(types.ResponsePlanSummary).Arn
+		region = matrixRegion
+	} else {
+		reportPlanArn = d.EqualsQualString("arn")
+		region = d.EqualsQualString("region")
+	}
 
-	if reportPlanArn == "" {
+	if (reportPlanArn == "" || region == "") || region != matrixRegion {
 		return nil, nil
 	}
 
