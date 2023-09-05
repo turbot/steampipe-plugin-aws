@@ -7,8 +7,6 @@ import (
 	ssmincidents "github.com/aws/aws-sdk-go-v2/service/ssmincidents"
 	"github.com/aws/aws-sdk-go-v2/service/ssmincidents/types"
 
-	ssmincidentsv1 "github.com/aws/aws-sdk-go/service/ssmincidents"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -28,7 +26,7 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSSMIncidentsResponsePlans,
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmincidentsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmincidents.ServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

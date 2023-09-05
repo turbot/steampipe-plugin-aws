@@ -179,7 +179,6 @@ import (
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
-	ssmincidentsEndpoint "github.com/aws/aws-sdk-go/service/ssmincidents"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
@@ -1853,7 +1852,7 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 }
 
 func SSMIncidentsClient(ctx context.Context, d *plugin.QueryData) (*ssmincidents.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmincidentsEndpoint.EndpointsID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmincidents.ServiceID)
 	if err != nil {
 		return nil, err
 	}
