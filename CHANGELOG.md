@@ -7,16 +7,16 @@ _What's new?_
 
 _Enhancements_
 
-- Added example query in `aws_ec2_instance` table doc for fetching subnet details of the instances. ([#1883](https://github.com/turbot/steampipe-plugin-aws/pull/1883)) (Thanks [@Pankaj-SinghR](https://github.com/Pankaj-SinghR) for the contribution!)
+- Added an example query in the `aws_ec2_instance` table doc for fetching subnet details of instances. ([#1883](https://github.com/turbot/steampipe-plugin-aws/pull/1883)) (Thanks [@Pankaj-SinghR](https://github.com/Pankaj-SinghR) for the contribution!)
 
 _Bug fixes_
 
-- Fixed the data type of `sms_configuration_failure` column in `aws_cognito_user_pool` table to be of `STRING` type instead of `JSON`. ([#1890](https://github.com/turbot/steampipe-plugin-aws/pull/1890)) (Thanks [@KTamas](https://github.com/KTamas) for the contribution!)
-- Fixed typo in the `listQueryRegionsForConnection` function. ([#1887](https://github.com/turbot/steampipe-plugin-aws/pull/1887)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Fixed the data type of the `sms_configuration_failure` column in the `aws_cognito_user_pool` table to be of `STRING` type instead of `JSON`. ([#1890](https://github.com/turbot/steampipe-plugin-aws/pull/1890)) (Thanks [@KTamas](https://github.com/KTamas) for the contribution!)
+- Fixed typo in the `listQueryRegionsForConnection` function in the `multi_regio,.go` file. ([#1887](https://github.com/turbot/steampipe-plugin-aws/pull/1887)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
 
 _Dependencies_
 
-- Recompile plugin with `golang.org/x/net v0.7.0`. ([#1864](https://github.com/turbot/steampipe-plugin-aws/pull/1864))
+- Recompiled plugin with `golang.org/x/net v0.7.0`. ([#1864](https://github.com/turbot/steampipe-plugin-aws/pull/1864))
 
 ## v0.117.0 [2023-08-25]
 
