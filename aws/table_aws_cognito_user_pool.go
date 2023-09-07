@@ -155,7 +155,7 @@ func tableAwsCognitoUserPool(_ context.Context) *plugin.Table {
 				Name:        "sms_configuration_failure",
 				Description: "The reason why the SMS configuration can't send the messages to your users.",
 				Hydrate:     getCognitoUserPool,
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "status",
