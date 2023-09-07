@@ -305,7 +305,7 @@ func getWorkspaceDirectoryArn(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// TRANSFORM FUNCTION
 
-// Transform function for workspaces resources tags
+// Transform function for workspaces directory resources tags
 func workspaceDirectoryTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.HydrateItem.(*workspaces.DescribeTagsOutput)
 
