@@ -11,7 +11,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the column type of `sms_configuration_failure` column in `aws_cognito_user_pool` table. ([#1890](https://github.com/turbot/steampipe-plugin-aws/pull/1890)) (Thanks [@KTamas](https://github.com/KTamas) for the contribution!)
+- Fixed the data type of `sms_configuration_failure` column in `aws_cognito_user_pool` table to be of `STRING` type instead of `JSON`. ([#1890](https://github.com/turbot/steampipe-plugin-aws/pull/1890)) (Thanks [@KTamas](https://github.com/KTamas) for the contribution!)
 - Fixed typo in the `listQueryRegionsForConnection` function. ([#1887](https://github.com/turbot/steampipe-plugin-aws/pull/1887)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
 
 _Dependencies_
