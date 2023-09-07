@@ -19,7 +19,7 @@ from
   aws_workspaces_directory;
 ```
 
-### List directories that have certificate authority arn enabled
+### List directories that have certificate authority ARN enabled
 
 ```sql
 select
@@ -36,7 +36,7 @@ where
   certificate_based_auth_properties ->> 'Status' = 'ENABLED';
 ```
 
-### List directories that are of a particular type
+### List directories of a particular type
 
 ```sql
 select

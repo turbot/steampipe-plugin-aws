@@ -23,7 +23,7 @@ func tableAwsWorkspacesDirectory(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("directory_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				 ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
+				 ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameterValuesException"}),
 			},
 			Hydrate: getWorkspacesDirectory,
 		},
@@ -184,11 +184,7 @@ func listWorkspacesDirectories(ctx context.Context, d *plugin.QueryData, h *plug
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
 				maxLimit = limit
-			}
 		}
 	}
 
@@ -291,7 +287,7 @@ func listWorkspacesDirectoriesTags(ctx context.Context, d *plugin.QueryData, h *
 
 // https://docs.aws.amazon.com/workspaces/latest/adminguide/workspaces-access-control.html
 func getWorkspaceDirectoryArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDirectoryArn")
+	plugin.Logger(ctx).Debug("getDirectoryArn")
 	region := d.EqualsQualString(matrixKeyRegion)
 	DirectoryId := h.Item.(types.WorkspaceDirectory).DirectoryId
 
@@ -301,6 +297,7 @@ func getWorkspaceDirectoryArn(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
+	// The format used in arn can be taken reference from (https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonworkspaces.html#amazonworkspaces-resources-for-iam-policies)
 	arn := "arn:" + commonColumnData.Partition + ":workspaces:" + region + ":" + commonColumnData.AccountId + ":directory/" + *DirectoryId
 
 	return arn, nil
