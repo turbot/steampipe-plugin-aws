@@ -1,3 +1,23 @@
+## v0.118.0 [2023-09-07]
+
+_What's new?_
+
+- New tables added
+  - [aws_workspaces_directory](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_workspaces_directory) ([#1884](https://github.com/turbot/steampipe-plugin-aws/pull/1884))
+
+_Enhancements_
+
+- Added an example query in the `aws_ec2_instance` table doc for fetching subnet details of instances. ([#1883](https://github.com/turbot/steampipe-plugin-aws/pull/1883)) (Thanks [@Pankaj-SinghR](https://github.com/Pankaj-SinghR) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the data type of the `sms_configuration_failure` column in the `aws_cognito_user_pool` table to be of `STRING` type instead of `JSON`. ([#1890](https://github.com/turbot/steampipe-plugin-aws/pull/1890)) (Thanks [@KTamas](https://github.com/KTamas) for the contribution!)
+- Fixed typo in the `listQueryRegionsForConnection` function in the `multi_regio,.go` file. ([#1887](https://github.com/turbot/steampipe-plugin-aws/pull/1887)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Dependencies_
+
+- Recompiled plugin with `golang.org/x/net v0.7.0`. ([#1864](https://github.com/turbot/steampipe-plugin-aws/pull/1864))
+
 ## v0.117.0 [2023-08-25]
 
 _What's new?_
