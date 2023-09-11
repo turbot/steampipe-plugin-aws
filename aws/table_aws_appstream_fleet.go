@@ -22,6 +22,7 @@ func tableAwsAppStreamFleet(_ context.Context) *plugin.Table {
 		Description: "AWS AppStream Fleet",
 		List: &plugin.ListConfig{
 			Hydrate: listAppStreamFleets,
+			Tags:    map[string]string{"service": "appstream", "action": "DescribeFleets"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},

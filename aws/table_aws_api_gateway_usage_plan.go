@@ -26,9 +26,11 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getUsagePlan,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetUsagePlan"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listUsagePlans,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetUsagePlans"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

@@ -31,9 +31,11 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getRestAPI,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetRestApi"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRestAPI,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetRestApis"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

@@ -26,9 +26,11 @@ func tableAwsAPIGatewayDomainName(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getApiGatewayDomainName,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetDomainName"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listApiGatewayDomainNames,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetDomainNames"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

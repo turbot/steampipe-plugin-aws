@@ -2,12 +2,14 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/acm/types"
+	"github.com/aws/smithy-go"
 
 	acmv1 "github.com/aws/aws-sdk-go/service/acm"
 
@@ -25,9 +27,14 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("certificate_arn"),
 			Hydrate:    getAwsAcmCertificateAttributes,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
+			Tags: map[string]string{"service": "acm", "action": "DescribeCertificate"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAcmCertificates,
+			Tags:    map[string]string{"service": "acm", "action": "ListCertificates"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "status",
@@ -37,6 +44,20 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 					Name:    "key_algorithm",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsAcmCertificateAttributes,
+				Tags: map[string]string{"service": "acm", "action": "DescribeCertificate"},
+			},
+			{
+				Func: getAwsAcmCertificateProperties,
+				Tags: map[string]string{"service": "acm", "action": "GetCertificate"},
+			},
+			{
+				Func: listTagsForAcmCertificate,
+				Tags: map[string]string{"service": "acm", "action": "ListTagsForCertificate"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(acmv1.EndpointsID),
@@ -322,6 +343,12 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 
 	detail, err := svc.DescribeCertificate(ctx, params)
 	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateAttributes", "api_error", err)
 		return nil, err
 	}
@@ -368,6 +395,10 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 
+	if arn == nil {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := ACMClient(ctx, d)
 	if err != nil {
@@ -389,11 +420,13 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 func getCertificateArn(_ context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*string, error) {
-	switch item := h.Item.(type) {
-	case *types.CertificateDetail:
+	if h.Item != nil {
+		switch item := h.Item.(type) {
+		case *types.CertificateDetail:
 			return item.CertificateArn, nil
-	case types.CertificateSummary:
+		case types.CertificateSummary:
 			return item.CertificateArn, nil
+		}
 	}
 	return nil, nil
 }

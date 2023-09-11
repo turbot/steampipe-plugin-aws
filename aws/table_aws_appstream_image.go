@@ -23,6 +23,7 @@ func tableAwsAppStreamImage(_ context.Context) *plugin.Table {
 		Description: "AWS AppStream Image",
 		List: &plugin.ListConfig{
 			Hydrate: listAppStreamImages,
+			Tags:    map[string]string{"service": "appstream", "action": "DescribeImages"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",

@@ -23,9 +23,17 @@ func tableAwsAppConfigApplication(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getAppConfigApplication,
+			Tags:    map[string]string{"service": "appconfig", "action": "GetApplication"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAppConfigApplication,
+			Tags:    map[string]string{"service": "appconfig", "action": "ListApplications"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listTagsForSnsTopic,
+				Tags: map[string]string{"service": "appconfig", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(appconfigv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

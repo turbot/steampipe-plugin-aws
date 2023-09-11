@@ -22,10 +22,12 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getAwsAthenaQueryExecution,
+			Tags:    map[string]string{"service": "athena", "action": "GetQueryExecution"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAthenaWorkGroups,
 			Hydrate:       listAwsAthenaQueryExecutions,
+			Tags:    map[string]string{"service": "athena", "action": "GetQueryExecutions"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "workgroup",

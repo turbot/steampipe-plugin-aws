@@ -26,10 +26,12 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIGatewayStage,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetStage"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,
 			Hydrate:       listAPIGatewayStage,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetStages"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

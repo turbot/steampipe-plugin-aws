@@ -26,9 +26,11 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIKey,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetApiKey"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIKeys,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetApiKeys"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "customer_id",

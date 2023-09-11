@@ -25,9 +25,11 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException"}),
 			},
 			Hydrate: getAmplifyApp,
+			Tags:    map[string]string{"service": "amplify", "action": "GetApp"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAmplifyApps,
+			Tags:    map[string]string{"service": "amplify", "action": "ListApps"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(amplifyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

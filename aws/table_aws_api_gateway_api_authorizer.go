@@ -27,10 +27,12 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getRestAPIAuthorizer,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetAuthorizer"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,
 			Hydrate:       listRestAPIAuthorizers,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetAuthorizers"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

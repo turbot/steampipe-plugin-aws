@@ -27,10 +27,12 @@ func tableAwsAPIGatewayV2Route(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIGatewayV2Route,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetRoute"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAPIGatewayV2API,
 			Hydrate:       listAPIGatewayV2Routes,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetRoutes"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

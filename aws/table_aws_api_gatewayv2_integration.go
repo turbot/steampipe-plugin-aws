@@ -32,10 +32,12 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException", "TooManyRequestsException"}),
 			},
 			Hydrate: getAPIGatewayV2Integration,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetIntegration"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAPIGatewayV2API,
 			Hydrate:       listAPIGatewayV2Integrations,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetIntegrations"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

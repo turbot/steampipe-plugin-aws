@@ -27,9 +27,11 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIGatewayV2API,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetApi"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIGatewayV2API,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetApis"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
