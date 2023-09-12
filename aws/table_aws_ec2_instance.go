@@ -116,7 +116,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			{
 				Name:        "capacity_reservation_specification",
 				Description: "Information about the Capacity Reservation targeting option.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "client_token",
