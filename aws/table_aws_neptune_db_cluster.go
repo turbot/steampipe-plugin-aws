@@ -335,7 +335,10 @@ func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 	if len(data.DBClusters) > 0 {
-		return data.DBClusters[0], nil
+		cluster := data.DBClusters[0]
+		if *cluster.Engine == "neptune" {
+			return cluster, nil
+		}
 	}
 	return nil, nil
 }

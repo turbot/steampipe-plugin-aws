@@ -9,8 +9,6 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/turbot/go-kit/helpers"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -397,18 +395,7 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 			// The DescribeDBClusters API returns non-RDS DB clusters as well,
 			// but we only want RDS clusters here, even if the 'engine' qual
 			// isn't passed in.
-			// Current supported RDS engine values as of 2022/08/15 are
-			// "aurora", "aurora-mysql", "aurora-postgresql", "mysql", and "postgres".
-			// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/RDS.html#createDBCluster-property
-			if helpers.StringSliceContains(
-				[]string{
-					"aurora",
-					"aurora-mysql",
-					"aurora-postgresql",
-					"mysql",
-					"postgres",
-				},
-				*items.Engine) {
+			if isSuppportedRDSEngine(*items.Engine) {
 				d.StreamListItem(ctx, items)
 			}
 
@@ -447,15 +434,7 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	if op.DBClusters != nil && len(op.DBClusters) > 0 {
 
 		cluster := op.DBClusters[0]
-		if helpers.StringSliceContains(
-			[]string{
-				"aurora",
-				"aurora-mysql",
-				"aurora-postgresql",
-				"mysql",
-				"postgres",
-			},
-			*cluster.Engine) {
+		if isSuppportedRDSEngine(*cluster.Engine) {
 			return cluster, nil
 		}
 	}
