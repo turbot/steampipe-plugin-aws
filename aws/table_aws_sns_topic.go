@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -30,6 +31,13 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopics,
+		},
+		DefaultRetryConfig: &plugin.RetryConfig{
+			MaxAttempts:          10,
+			BackoffAlgorithm:     "Exponential",
+			RetryInterval:        1000,
+			CappedDuration:       30000,
+			ShouldRetryErrorFunc: snsShouldRetryError,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(snsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -357,4 +365,13 @@ func handleSNSTopicTurbotTags(_ context.Context, d *transform.TransformData) (in
 	}
 
 	return turbotTagsMap, nil
+}
+
+func snsShouldRetryError(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
+	if strings.Contains(err.Error(), "StatusCode: 408") {
+		plugin.Logger(ctx).Debug("snsShouldRetryError", "retrying 408", err.Error())
+		return true
+	}
+
+	return false
 }
