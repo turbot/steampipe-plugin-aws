@@ -277,6 +277,10 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sns_topic.listAwsSnsTopics", "api_error", err)
 			return nil, err

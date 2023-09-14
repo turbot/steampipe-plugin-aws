@@ -301,6 +301,10 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// List call
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_acm_certificate.listAwsAcmCertificates", "api_error", err)
