@@ -21,9 +21,11 @@ func tableAwsAthenaWorkGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getAwsAthenaWorkGroup,
+			Tags:    map[string]string{"service": "athena", "action": "GetWorkGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAthenaWorkGroups,
+			Tags:    map[string]string{"service": "athena", "action": "ListWorkGroups"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(athenav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

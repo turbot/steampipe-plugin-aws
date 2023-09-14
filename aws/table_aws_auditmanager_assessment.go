@@ -27,9 +27,11 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAwsAuditManagerAssessment,
+			Tags:    map[string]string{"service": "auditmanager", "action": "GetAssessment"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAuditManagerAssessments,
+			Tags:    map[string]string{"service": "auditmanager", "action": "ListAssessments"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

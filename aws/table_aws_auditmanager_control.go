@@ -23,12 +23,14 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getAuditManagerControl,
+			Tags:    map[string]string{"service": "auditmanager", "action": "GetControl"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerControls,
+			Tags:    map[string]string{"service": "auditmanager", "action": "ListControls"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

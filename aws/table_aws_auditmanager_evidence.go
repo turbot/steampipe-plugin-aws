@@ -34,10 +34,12 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: getAuditManagerEvidence,
+			Tags:    map[string]string{"service": "auditmanager", "action": "GetEvidence"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAuditManagerAssessments,
 			Hydrate:       listAuditManagerEvidences,
+			Tags:    map[string]string{"service": "auditmanager", "action": "GetEvidenceFoldersByAssessment"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
