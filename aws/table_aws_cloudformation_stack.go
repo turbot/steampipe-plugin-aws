@@ -26,14 +26,26 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "ResourceNotFoundException"}),
 			},
 			Hydrate: getCloudFormationStack,
+			Tags:    map[string]string{"service": "cloudformation", "action": "DescribeStacks"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFormationStacks,
+			Tags:    map[string]string{"service": "cloudformation", "action": "DescribeStacks"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listTagsForSnsTopic,
+				Tags: map[string]string{"service": "cloudformation", "action": "GetTemplate"},
+			},
+			{
+				Func: getTopicAttributes,
+				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackResources"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationv1.EndpointsID),

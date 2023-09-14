@@ -26,9 +26,11 @@ func tableAwsCloudFormationStackSet(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"StackSetNotFoundException"}),
 			},
 			Hydrate: getCloudFormationStackSet,
+			Tags:    map[string]string{"service": "cloudformation", "action": "DescribeStackSet"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFormationStackSets,
+			Tags:    map[string]string{"service": "cloudformation", "action": "ListStackSets"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "status",

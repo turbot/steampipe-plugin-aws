@@ -26,10 +26,12 @@ func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "ResourceNotFoundException"}),
 			},
 			Hydrate: getCloudFormationStackResource,
+			Tags:    map[string]string{"service": "cloudformation", "action": "DescribeStackResource"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listCloudFormationStacks,
 			Hydrate:       listCloudFormationStackResources,
+			Tags:    map[string]string{"service": "cloudformation", "action": "ListStackResources"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "stack_name",
