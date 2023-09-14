@@ -27,10 +27,12 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "InvalidParameterValueException"}),
 			},
 			Hydrate: getBackupSelection,
+			Tags:    map[string]string{"service": "backup", "action": "GetBackupSelection"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate:       listBackupSelections,
 			ParentHydrate: listAwsBackupPlans,
+			Tags:    map[string]string{"service": "backup", "action": "ListBackupSelections"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

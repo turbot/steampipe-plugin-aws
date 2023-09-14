@@ -28,10 +28,12 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAwsBackupRecoveryPoint,
+			Tags:    map[string]string{"service": "backup", "action": "DescribeRecoveryPoint"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsBackupVaults,
 			Hydrate:       listAwsBackupRecoveryPoints,
+			Tags:    map[string]string{"service": "backup", "action": "ListRecoveryPointsByBackupVault"},
 			KeyColumns: []*plugin.KeyColumn{
 				// {
 				// 	Name:    "recovery_point_arn",

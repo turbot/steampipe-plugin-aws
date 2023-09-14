@@ -28,9 +28,17 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupFramework,
+			Tags:    map[string]string{"service": "backup", "action": "DescribeFramework"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupFrameworks,
+			Tags:    map[string]string{"service": "backup", "action": "ListFrameworks"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listTagsForSnsTopic,
+				Tags: map[string]string{"service": "backup", "action": "ListTags"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

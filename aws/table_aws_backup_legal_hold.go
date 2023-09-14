@@ -26,9 +26,11 @@ func tableAwsBackupLegalHold(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupLegalHold,
+			Tags:    map[string]string{"service": "backup", "action": "GetLegalHold"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupLegalHolds,
+			Tags:    map[string]string{"service": "backup", "action": "ListLegalHolds"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

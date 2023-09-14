@@ -31,9 +31,21 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "AccessDeniedException"}),
 			},
 			Hydrate: getAwsBackupVault,
+			Tags:    map[string]string{"service": "backup", "action": "DescribeBackupVault"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupVaults,
+			Tags:    map[string]string{"service": "backup", "action": "ListBackupVaults"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listTagsForSnsTopic,
+				Tags: map[string]string{"service": "backup", "action": "GetBackupVaultNotifications"},
+			},
+			{
+				Func: getTopicAttributes,
+				Tags: map[string]string{"service": "backup", "action": "GetBackupVaultAccessPolicy"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

@@ -26,9 +26,11 @@ func tableAwsBackupProtectedResource(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupProtectedResource,
+			Tags:    map[string]string{"service": "backup", "action": "DescribeProtectedResource"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupProtectedResources,
+			Tags:    map[string]string{"service": "backup", "action": "ListProtectedResources"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
