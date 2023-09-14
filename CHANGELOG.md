@@ -1,3 +1,9 @@
+## v0.118.1 [2023-09-14]
+
+_Bug fixes_
+
+- Fixed the data type of `capacity_reservation_specification` column of `aws_ec2_instance` table to be of `JSON` type instead of `STRING`. ([#1903](https://github.com/turbot/steampipe-plugin-aws/pull/1903))
+
 ## v0.118.0 [2023-09-07]
 
 _What's new?_
