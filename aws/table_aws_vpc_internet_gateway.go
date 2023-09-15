@@ -24,9 +24,11 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInternetGatewayID.NotFound", "InvalidInternetGatewayID.Malformed"}),
 			},
 			Hydrate: getVpcInternetGateway,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInternetGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcInternetGateways,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInternetGateways"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "owner_id", Require: plugin.Optional},
 			},
@@ -120,6 +122,8 @@ func listVpcInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_internet_gateway.listVpcInternetGateways", "api_error", err)

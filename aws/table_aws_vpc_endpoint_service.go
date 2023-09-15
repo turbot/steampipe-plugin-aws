@@ -25,9 +25,11 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidServiceName"}),
 			},
 			Hydrate: getVpcEndpointService,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcEndpointServices"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpointServices,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcEndpointServices"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -160,6 +162,9 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 	// API doesn't support aws-sdk-go-v2 paginator as of date
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		result, err := svc.DescribeVpcEndpointServices(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_endpoint_service.listVpcEndpointServices", "api_error", err)

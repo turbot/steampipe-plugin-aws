@@ -24,9 +24,11 @@ func tableAwsVpcNetworkACL(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidNetworkAclID.NotFound"}),
 			},
 			Hydrate: getVpcNetworkACL,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNetworkAcls"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcNetworkACLs,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNetworkAcls"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "is_default", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "owner_id", Require: plugin.Optional},
@@ -146,6 +148,9 @@ func listVpcNetworkACLs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_network_acl.listVpcNetworkACLs", "api_error", err)

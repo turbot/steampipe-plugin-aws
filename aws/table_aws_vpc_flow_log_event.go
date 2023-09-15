@@ -42,6 +42,7 @@ func tableAwsVpcFlowLogEvent(_ context.Context) *plugin.Table {
 		Description: "AWS VPC Flow Log events from CloudWatch Logs",
 		List: &plugin.ListConfig{
 			Hydrate:    listCloudwatchLogEvents,
+			Tags:    map[string]string{"service": "logs", "action": "FilterLogEvents"},
 			KeyColumns: tableAwsVpcFlowLogEventListKeyColumns(),
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),

@@ -27,9 +27,11 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"Client.InvalidInstanceID.NotFound", "InvalidParameterValue"}),
 			},
 			Hydrate: getVpcFlowlog,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeFlowLogs"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcFlowlogs,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeFlowLogs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "deliver_logs_status", Require: plugin.Optional},
 				{Name: "log_destination_type", Require: plugin.Optional},
@@ -192,6 +194,9 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_flow_log.listVpcFlowlogs", "api_error", err)
