@@ -23,9 +23,11 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidVpnGatewayID.NotFound", "InvalidVpnGatewayID.Malformed"}),
 			},
 			Hydrate: getVpcVpnGateway,
+			Tags: map[string]string{"service": "ec2", "action": "DescribeVpnGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVpnGateways,
+			Tags: map[string]string{"service": "ec2", "action": "DescribeVpnGateways"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "amazon_side_asn", Require: plugin.Optional},
 				{Name: "availability_zone", Require: plugin.Optional},

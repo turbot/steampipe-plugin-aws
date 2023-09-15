@@ -22,6 +22,7 @@ func tableAwsVpcVerifiedAccessInstance(_ context.Context) *plugin.Table {
 		Description: "AWS VPC Verified Access Instance",
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVerifiedAccessInstances,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVerifiedAccessInstances"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
@@ -113,6 +114,9 @@ func listVpcVerifiedAccessInstances(ctx context.Context, d *plugin.QueryData, _ 
 	}
 
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		// List call
 		resp, err := svc.DescribeVerifiedAccessInstances(ctx, input)
 
