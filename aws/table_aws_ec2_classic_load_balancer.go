@@ -26,9 +26,21 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"LoadBalancerNotFound"}),
 			},
 			Hydrate: getEc2ClassicLoadBalancer,
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancers"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ClassicLoadBalancers,
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancers"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEc2ClassicLoadBalancerAttributes,
+				Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancerAttributes"},
+			},
+			{
+				Func: getTopicAttributes,
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elbv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -297,6 +309,9 @@ func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.listEc2ClassicLoadBalancers", "api_error", err)
