@@ -32,7 +32,7 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,
 			Hydrate:       listRestAPIAuthorizers,
-			Tags:    map[string]string{"service": "apigateway", "action": "GetAuthorizers"},
+			Tags:          map[string]string{"service": "apigateway", "action": "GetAuthorizers"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -142,6 +142,9 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 		Limit:     aws.Int32(maxLimit),
 		RestApiId: restAPI.Id,
 	}
+
+	// apply rate limiting
+	d.WaitForListRateLimit(ctx)
 
 	op, err := svc.GetAuthorizers(ctx, params)
 	if err != nil {

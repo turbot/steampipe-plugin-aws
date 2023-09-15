@@ -163,6 +163,9 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworks", "api_error", err)

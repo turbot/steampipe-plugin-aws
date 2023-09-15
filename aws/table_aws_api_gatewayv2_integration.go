@@ -209,6 +209,9 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		result, err := svc.GetIntegrations(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.listAPIGatewayV2Integrations", "api_error", err)

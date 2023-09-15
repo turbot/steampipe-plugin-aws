@@ -155,6 +155,9 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listAPIKeys", "api_error", err)

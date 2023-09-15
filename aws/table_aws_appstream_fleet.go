@@ -218,6 +218,9 @@ func listAppStreamFleets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	pageLeft := true
 
 	for pageLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		op, err := svc.DescribeFleets(ctx, params)
 
 		if err != nil {

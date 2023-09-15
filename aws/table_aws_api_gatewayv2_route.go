@@ -175,6 +175,9 @@ func listAPIGatewayV2Routes(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		result, err := svc.GetRoutes(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gatewayv2_route.listAPIGatewayV2Routes", "api_error", err)

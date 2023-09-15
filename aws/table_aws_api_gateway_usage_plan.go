@@ -127,6 +127,9 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listUsagePlans", "api_error", err)

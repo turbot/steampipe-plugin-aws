@@ -177,6 +177,9 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	// List standard controls
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’

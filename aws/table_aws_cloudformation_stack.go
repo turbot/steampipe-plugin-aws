@@ -219,6 +219,9 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "api_error", err)

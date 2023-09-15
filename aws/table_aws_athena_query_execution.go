@@ -313,6 +313,9 @@ func listAwsAthenaQueryExecutions(ctx context.Context, d *plugin.QueryData, h *p
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaQueryExecutions", "api_error", err)

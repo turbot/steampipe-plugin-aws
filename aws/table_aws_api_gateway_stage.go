@@ -31,7 +31,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,
 			Hydrate:       listAPIGatewayStage,
-			Tags:    map[string]string{"service": "apigateway", "action": "GetStages"},
+			Tags:          map[string]string{"service": "apigateway", "action": "GetStages"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -189,6 +189,9 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	params := &apigateway.GetStagesInput{
 		RestApiId: restAPI.Id,
 	}
+
+	// apply rate limiting
+	d.WaitForListRateLimit(ctx)
 
 	op, err := svc.GetStages(ctx, params)
 	if err != nil {

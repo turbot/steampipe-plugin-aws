@@ -180,6 +180,9 @@ func listAwsAthenaWorkGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for workGroupsPaginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := workGroupsPaginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaWorkGroups", "api_error", err)

@@ -113,6 +113,9 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	pagesLeft := true
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		result, err := svc.GetDomainNames(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.listDomainNames", "api_error", err)

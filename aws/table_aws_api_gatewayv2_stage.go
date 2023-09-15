@@ -204,6 +204,9 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		result, err := svc.GetStages(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.listAPIGatewayV2Stages", "api_error", err)
