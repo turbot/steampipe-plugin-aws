@@ -1,0 +1,12 @@
+[
+  {
+    "db_cluster_identifier": "{{resourceName}}",
+    "db_cluster_snapshot_arn": "{{ output.resource_aka.value }}",
+    "db_cluster_snapshot_identifier": "{{resourceName}}",
+    "iam_database_authentication_enabled": false,
+    "license_model": "neptune",
+    "port": 0,
+    "snapshot_type": "manual",
+    "storage_encrypted": false
+  }
+]

@@ -234,7 +234,9 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		}
 
 		for _, items := range output.DBClusterSnapshots {
-			d.StreamListItem(ctx, items)
+			if isSuppportedRDSEngine(*items.Engine) {
+				d.StreamListItem(ctx, items)
+			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -269,7 +271,10 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	if op.DBClusterSnapshots != nil && len(op.DBClusterSnapshots) > 0 {
-		return op.DBClusterSnapshots[0], nil
+		snapshot := op.DBClusterSnapshots[0]
+		if isSuppportedRDSEngine(*snapshot.Engine) {
+			return snapshot, nil
+		}
 	}
 	return nil, nil
 }

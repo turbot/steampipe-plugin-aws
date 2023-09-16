@@ -40,6 +40,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codecommit"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentity"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
@@ -136,6 +138,8 @@ import (
 	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
 	codecommitEndpoint "github.com/aws/aws-sdk-go/service/codecommit"
 	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
+	cognitoidentityEndpoint "github.com/aws/aws-sdk-go/service/cognitoidentity"
+	cognitoidentityproviderEndpoint "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
 	dlmEndpoint "github.com/aws/aws-sdk-go/service/dlm"
@@ -455,6 +459,28 @@ func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline
 		return nil, nil
 	}
 	return codepipeline.NewFromConfig(*cfg), nil
+}
+
+func CognitoIdentityClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentity.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cognitoidentity.NewFromConfig(*cfg), nil
+}
+
+func CognitoIdentityProviderClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentityprovider.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityproviderEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cognitoidentityprovider.NewFromConfig(*cfg), nil
 }
 
 func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Client, error) {

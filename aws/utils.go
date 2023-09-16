@@ -13,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -202,4 +203,31 @@ func isAWSARN(s string) bool {
 
 	// Test if the string matches the ARN pattern
 	return regex.MatchString(s)
+}
+
+// The function ensures that the given engine is is not of type `docdb` or `neptune`
+// You can get the available engines list from - https://docs.aws.amazon.com/cli/latest/reference/rds/describe-db-engine-versions.html
+// Current supported RDS engine values as of 2023/08/07
+func isSuppportedRDSEngine(engine string) bool {
+	supportedEngines := []string{
+		"aurora",
+		"aurora-mysql",
+		"aurora-postgresql",
+		"custom-sqlserver-ee",
+		"custom-sqlserver-se",
+		"custom-sqlserver-web",
+		"mariadb",
+		"mysql",
+		"oracle-ee",
+		"oracle-ee-cdb",
+		"oracle-se2",
+		"oracle-se2-cdb",
+		"postgres",
+		"sqlserver-ee",
+		"sqlserver-ex",
+		"sqlserver-se",
+		"sqlserver-web",
+	}
+
+	return helpers.StringSliceContains(supportedEngines, engine)
 }

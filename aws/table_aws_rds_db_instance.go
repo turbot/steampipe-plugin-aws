@@ -487,7 +487,9 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, items := range output.DBInstances {
-			d.StreamListItem(ctx, items)
+			if isSuppportedRDSEngine(*items.Engine) {
+				d.StreamListItem(ctx, items)
+			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -522,7 +524,10 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	}
 
 	if op.DBInstances != nil && len(op.DBInstances) > 0 {
-		return op.DBInstances[0], nil
+		instance := op.DBInstances[0]
+		if isSuppportedRDSEngine(*instance.Engine) {
+			return instance, nil
+		}
 	}
 	return nil, nil
 }

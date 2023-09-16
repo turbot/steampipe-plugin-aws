@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.189
-	github.com/aws/aws-sdk-go-v2 v1.18.1
+	github.com/aws/aws-sdk-go-v2 v1.19.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.10
 	github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.19.1
@@ -32,6 +32,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/codecommit v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/codedeploy v1.16.1
 	github.com/aws/aws-sdk-go-v2/service/codepipeline v1.14.0
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentity v1.15.14
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/configservice v1.29.1
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.25.0
 	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.23.1
@@ -115,12 +117,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.24.2
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0
-	github.com/aws/smithy-go v1.13.5
+	github.com/aws/smithy-go v1.14.1
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2
 	github.com/turbot/go-kit v0.6.0
 	github.com/turbot/steampipe-plugin-sdk/v5 v5.5.0
-	golang.org/x/text v0.4.0
+	golang.org/x/text v0.7.0
 )
 
 require (
@@ -135,8 +137,8 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.21 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.34 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.28 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.35 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.29 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.18 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.11 // indirect
@@ -219,10 +221,10 @@ require (
 	go.opentelemetry.io/otel/trace v1.10.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.16.0 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
-	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.1.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.100.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

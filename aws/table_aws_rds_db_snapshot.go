@@ -269,7 +269,9 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, items := range output.DBSnapshots {
-			d.StreamListItem(ctx, items)
+			if isSuppportedRDSEngine(*items.Engine) {
+				d.StreamListItem(ctx, items)
+			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -304,7 +306,10 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	}
 
 	if op.DBSnapshots != nil && len(op.DBSnapshots) > 0 {
-		return op.DBSnapshots[0], nil
+		snapshot := op.DBSnapshots[0]
+		if isSuppportedRDSEngine(*snapshot.Engine) {
+			return snapshot, nil
+		}
 	}
 	return nil, nil
 }
