@@ -1683,7 +1683,7 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 // If we expire the cache regularly we are causing SSO sessions to end
 // prematurely, and causing the AWS SDK to refresh credentials more often
 // using the IDMS service etc.
-var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(memoize.WithTtl(time.Hour * 24 * 30))
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(memoize.WithTtl(time.Second * 10))
 
 // Do the actual work of creating an AWS config object for reuse across many
 // regions. This client has the minimal reusable configuration on it, so it
@@ -1760,24 +1760,24 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
-	if awsSpcConfig.AssumeRoleARN != nil {
+	if awsSpcConfig.AssumeRole != nil {
 		assumeRoleOptions := func(o *stscreds.AssumeRoleOptions) {
-			if awsSpcConfig.AssumeRoleDuration != nil {
-				duration, _ := time.ParseDuration(aws.ToString(awsSpcConfig.AssumeRoleDuration))
+			if awsSpcConfig.AssumeRole.Duration != nil {
+				duration, _ := time.ParseDuration(aws.ToString(awsSpcConfig.AssumeRole.Duration))
 				o.Duration = duration
 			}
 
-			if awsSpcConfig.AssumeRoleExternalId != nil {
-				o.ExternalID = awsSpcConfig.AssumeRoleExternalId
+			if awsSpcConfig.AssumeRole.ExternalId != nil {
+				o.ExternalID = awsSpcConfig.AssumeRole.ExternalId
 			}
 
-			if awsSpcConfig.AssumeRoleSessionName != nil {
-				o.RoleSessionName = aws.ToString(awsSpcConfig.AssumeRoleSessionName)
+			if awsSpcConfig.AssumeRole.SessionName != nil {
+				o.RoleSessionName = aws.ToString(awsSpcConfig.AssumeRole.SessionName)
 			}
 		}
 
 		stsClient := sts.NewFromConfig(cfg)
-		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(awsSpcConfig.AssumeRoleARN), assumeRoleOptions)
+		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(awsSpcConfig.AssumeRole.RoleARN), assumeRoleOptions)
 		cfg.Credentials = aws.NewCredentialsCache(provider)
 	}
 
