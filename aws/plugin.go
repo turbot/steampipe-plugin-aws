@@ -40,8 +40,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
-			Schema:      ConfigSchema,
+			// Schema:      ConfigSchema,
 		},
+		// SchemaMode: plugin.SchemaModeDynamic,
 		TableMap: map[string]*plugin.Table{
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
 			"aws_account_alternate_contact":                                tableAwsAccountAlternateContact(ctx),
