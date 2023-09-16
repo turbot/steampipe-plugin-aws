@@ -5,75 +5,28 @@ import (
 	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/schema"
 )
 
 type awsConfig struct {
-	Regions               []string `cty:"regions"`
-	DefaultRegion         *string  `cty:"default_region"`
-	Profile               *string  `cty:"profile"`
-	AssumeRoleARN         *string  `cty:"assume_role_arn"`
-	AssumeRoleDuration    *string  `cty:"assume_role_duration"`
-	AssumeRoleExternalId  *string  `cty:"assume_role_external_id"`
-	AssumeRoleSessionName *string  `cty:"assume_role_session_name"`
-	AccessKey             *string  `cty:"access_key"`
-	SecretKey             *string  `cty:"secret_key"`
-	SessionToken          *string  `cty:"session_token"`
-	MaxErrorRetryAttempts *int     `cty:"max_error_retry_attempts"`
-	MinErrorRetryDelay    *int     `cty:"min_error_retry_delay"`
-	IgnoreErrorCodes      []string `cty:"ignore_error_codes"`
-	EndpointUrl           *string  `cty:"endpoint_url"`
-	S3ForcePathStyle      *bool    `cty:"s3_force_path_style"`
+	Regions               []string          `hcl:"regions,optional"`
+	DefaultRegion         *string           `hcl:"default_region,optional"`
+	Profile               *string           `hcl:"profile,optional"`
+	AssumeRole            *assumeRoleConfig `hcl:"assume_role,block"`
+	AccessKey             *string           `hcl:"access_key,optional"`
+	SecretKey             *string           `hcl:"secret_key,optional"`
+	SessionToken          *string           `hcl:"session_token,optional"`
+	MaxErrorRetryAttempts *int              `hcl:"max_error_retry_attempts,optional"`
+	MinErrorRetryDelay    *int              `hcl:"min_error_retry_delay,optional"`
+	IgnoreErrorCodes      []string          `hcl:"ignore_error_codes,optional"`
+	EndpointUrl           *string           `hcl:"endpoint_url,optional"`
+	S3ForcePathStyle      *bool             `hcl:"s3_force_path_style,optional"`
 }
 
-var ConfigSchema = map[string]*schema.Attribute{
-	"regions": {
-		Type: schema.TypeList,
-		Elem: &schema.Attribute{Type: schema.TypeString},
-	},
-	"default_region": {
-		Type: schema.TypeString,
-	},
-	"profile": {
-		Type: schema.TypeString,
-	},
-	"assume_role_arn": {
-		Type: schema.TypeString,
-	},
-	"assume_role_duration": {
-		Type: schema.TypeString,
-	},
-	"assume_role_external_id": {
-		Type: schema.TypeString,
-	},
-	"assume_role_session_name": {
-		Type: schema.TypeString,
-	},
-	"access_key": {
-		Type: schema.TypeString,
-	},
-	"secret_key": {
-		Type: schema.TypeString,
-	},
-	"session_token": {
-		Type: schema.TypeString,
-	},
-	"ignore_error_codes": {
-		Type: schema.TypeList,
-		Elem: &schema.Attribute{Type: schema.TypeString},
-	},
-	"max_error_retry_attempts": {
-		Type: schema.TypeInt,
-	},
-	"min_error_retry_delay": {
-		Type: schema.TypeInt,
-	},
-	"endpoint_url": {
-		Type: schema.TypeString,
-	},
-	"s3_force_path_style": {
-		Type: schema.TypeBool,
-	},
+type assumeRoleConfig struct {
+	RoleARN     *string `hcl:"role_arn" cty:"role_arn"`
+	Duration    *string `hcl:"duration,optional" cty:"duration"`
+	ExternalId  *string `hcl:"external_id,optional" cty:"external_id"`
+	SessionName *string `hcl:"session_name,optional" cty:"session_name"`
 }
 
 func ConfigInstance() interface{} {
