@@ -11,7 +11,7 @@ type awsConfig struct {
 	Regions               []string          `hcl:"regions,optional"`
 	DefaultRegion         *string           `hcl:"default_region,optional"`
 	Profile               *string           `hcl:"profile,optional"`
-	AssumeRole            *assumeRoleConfig `hcl:"assume_role,block"`
+	AssumeRole            *assumeRoleConfig `hcl:"assume_role,optional"`
 	AccessKey             *string           `hcl:"access_key,optional"`
 	SecretKey             *string           `hcl:"secret_key,optional"`
 	SessionToken          *string           `hcl:"session_token,optional"`
@@ -24,9 +24,9 @@ type awsConfig struct {
 
 type assumeRoleConfig struct {
 	RoleARN     *string `hcl:"role_arn" cty:"role_arn"`
-	Duration    *string `hcl:"duration,optional" cty:"duration"`
-	ExternalId  *string `hcl:"external_id,optional" cty:"external_id"`
-	SessionName *string `hcl:"session_name,optional" cty:"session_name"`
+	Duration    *string `hcl:"duration,optional"`
+	ExternalId  *string `hcl:"external_id,optional"`
+	SessionName *string `hcl:"session_name,optional"`
 }
 
 func ConfigInstance() interface{} {
