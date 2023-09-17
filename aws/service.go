@@ -1786,27 +1786,6 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
-	if awsSpcConfig.AssumeRole != nil {
-		assumeRoleOptions := func(o *stscreds.AssumeRoleOptions) {
-			if awsSpcConfig.AssumeRole.Duration != nil {
-				duration, _ := time.ParseDuration(aws.ToString(awsSpcConfig.AssumeRole.Duration))
-				o.Duration = duration
-			}
-
-			if awsSpcConfig.AssumeRole.ExternalId != nil {
-				o.ExternalID = awsSpcConfig.AssumeRole.ExternalId
-			}
-
-			if awsSpcConfig.AssumeRole.SessionName != nil {
-				o.RoleSessionName = aws.ToString(awsSpcConfig.AssumeRole.SessionName)
-			}
-		}
-
-		stsClient := sts.NewFromConfig(cfg)
-		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(awsSpcConfig.AssumeRole.RoleARN), assumeRoleOptions)
-		cfg.Credentials = aws.NewCredentialsCache(provider)
-	}
-
 	// Even though we create a client per region and set the region during that
 	// step, we need to pass a region in the config options if the AWS SDK could
 	// not resolve a region from environment variables or the AWS config.
@@ -1828,6 +1807,29 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 			plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
 			return nil, err
 		}
+	}
+
+	if awsSpcConfig.AssumeRole != nil {
+		roleArn := awsSpcConfig.AssumeRole.RoleARN
+		assumeRoleOptions := func(o *stscreds.AssumeRoleOptions) {
+			o.RoleARN = aws.ToString(roleArn)
+			if awsSpcConfig.AssumeRole.Duration != nil {
+				duration, _ := time.ParseDuration(aws.ToString(awsSpcConfig.AssumeRole.Duration))
+				o.Duration = duration
+			}
+
+			if awsSpcConfig.AssumeRole.ExternalId != nil {
+				o.ExternalID = awsSpcConfig.AssumeRole.ExternalId
+			}
+
+			if awsSpcConfig.AssumeRole.SessionName != nil {
+				o.RoleSessionName = aws.ToString(awsSpcConfig.AssumeRole.SessionName)
+			}
+		}
+
+		stsClient := sts.NewFromConfig(cfg)
+		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(roleArn), assumeRoleOptions)
+		cfg.Credentials = aws.NewCredentialsCache(provider)
 	}
 
 	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
