@@ -23,9 +23,11 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed", "InvalidAction"}),
 			},
 			Hydrate: getEc2TransitGatewayVpcAttachment,
+			Tags:          map[string]string{"service": "ec2", "action": "DescribeTransitGatewayAttachments"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayVpcAttachment,
+			Tags:          map[string]string{"service": "ec2", "action": "DescribeTransitGatewayAttachments"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "association_state", Require: plugin.Optional},
 				{Name: "association_transit_gateway_route_table_id", Require: plugin.Optional},
@@ -166,6 +168,9 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_transit_gateway_vpc_attachment.listEc2TransitGatewayVpcAttachment", "api_error", err)
