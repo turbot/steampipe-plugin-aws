@@ -22,6 +22,7 @@ func tableAwsDaxParameter(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listDaxParameterGroups,
 			Hydrate:       listDaxParameters,
+			Tags:          map[string]string{"service": "dax", "action": "DescribeParameters"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ParameterGroupNotFoundFault"}),
 			},
