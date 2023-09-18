@@ -26,14 +26,22 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ApplicationDoesNotExistException", "DeploymentGroupDoesNotExistException"}),
 			},
 			Hydrate: getCodeDeployDeploymentGroup,
+			Tags:    map[string]string{"service": "codedeploy", "action": "GetDeploymentGroup"},
 		},
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.OptionalColumns([]string{"application_name"}),
+			KeyColumns:    plugin.OptionalColumns([]string{"application_name"}),
 			ParentHydrate: listCodeDeployApplications,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ApplicationDoesNotExistException"}),
 			},
 			Hydrate: listCodeDeployDeploymentGroups,
+			Tags:    map[string]string{"service": "codedeploy", "action": "ListDeploymentGroups"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCodeDeployDeploymentGroupTags,
+				Tags: map[string]string{"service": "codedeploy", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codedeployv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -232,8 +240,8 @@ func listCodeDeployDeploymentGroups(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// Check if the application name is nil or if it doesn't match the parent hydrate
-	if applicationName != "" && applicationName !=  *application.ApplicationName {
-		return nil,nil
+	if applicationName != "" && applicationName != *application.ApplicationName {
+		return nil, nil
 	}
 
 	paginator := codedeploy.NewListDeploymentGroupsPaginator(svc, &input, func(o *codedeploy.ListDeploymentGroupsPaginatorOptions) {
@@ -250,7 +258,7 @@ func listCodeDeployDeploymentGroups(ctx context.Context, d *plugin.QueryData, h 
 		for _, deploymentgroup := range output.DeploymentGroups {
 			item := &types.DeploymentGroupInfo{
 				DeploymentGroupName: aws.String(deploymentgroup),
-				ApplicationName: output.ApplicationName,
+				ApplicationName:     output.ApplicationName,
 			}
 			d.StreamListItem(ctx, item)
 
@@ -287,7 +295,7 @@ func getCodeDeployDeploymentGroup(ctx context.Context, d *plugin.QueryData, h *p
 	// Build the params
 	params := &codedeploy.GetDeploymentGroupInput{
 		DeploymentGroupName: aws.String(name),
-		ApplicationName: aws.String(appname),
+		ApplicationName:     aws.String(appname),
 	}
 
 	// Create session
