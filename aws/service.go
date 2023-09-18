@@ -1686,7 +1686,14 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 					SigningRegion: region,
 				}, nil
 			})
-			cfg.EndpointResolverWithOptions = customResolver
+			newCfg, err := config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver))
+			if err != nil {
+				plugin.Logger(ctx).Error("service.getClientWithMaxRetries", "connection_error", err)
+				return nil, err
+			}
+			newCfg.Retryer = cfg.Retryer
+			newCfg.Region = cfg.Region
+			cfg = newCfg
 		}
 	}
 
