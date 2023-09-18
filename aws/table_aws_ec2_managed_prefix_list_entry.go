@@ -27,6 +27,7 @@ func tableAwsEc2ManagedPrefixListEntry(_ context.Context) *plugin.Table {
 			},
 			ParentHydrate: listManagedPrefixList,
 			Hydrate:       listManagedPrefixListEntries,
+			Tags:    map[string]string{"service": "ec2", "action": "GetManagedPrefixListEntries"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "prefix_list_id", Require: plugin.Optional},
 			},
@@ -104,6 +105,9 @@ func listManagedPrefixListEntries(ctx context.Context, d *plugin.QueryData, h *p
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_managed_prefix_list_entry.listManagedPrefixListEntries", "api_error", err)

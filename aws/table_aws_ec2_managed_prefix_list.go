@@ -26,6 +26,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction", "InvalidRequest", "UnsupportedOperation"}),
 			},
 			Hydrate: listManagedPrefixList,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeManagedPrefixLists"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "name", Require: plugin.Optional},
 				{Name: "id", Require: plugin.Optional},
@@ -180,6 +181,9 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_managed_prefix_list.listManagedPrefixList", "api_error", err)
