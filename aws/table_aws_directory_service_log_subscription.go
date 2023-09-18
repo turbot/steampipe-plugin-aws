@@ -21,6 +21,7 @@ func tableAwsDirectoryServiceLogSubscription(_ context.Context) *plugin.Table {
 		Description: "AWS Directory Service Log Subscription",
 		List: &plugin.ListConfig{
 			Hydrate: listDirectoryServiceLogSubscription,
+			Tags:    map[string]string{"service": "directoryservice", "action": "ListLogSubscriptions"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityDoesNotExistException"}),
 			},
@@ -96,6 +97,9 @@ func listDirectoryServiceLogSubscription(ctx context.Context, d *plugin.QueryDat
 
 	// List call
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListLogSubscriptions(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_directory_service_log_subscription.listDirectoryServiceLogSubscription", "api_error", err)

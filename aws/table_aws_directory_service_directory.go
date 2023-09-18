@@ -26,14 +26,34 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
 			},
 			Hydrate: getDirectoryServiceDirectory,
+			Tags:    map[string]string{"service": "directoryservice", "action": "DescribeDirectories"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDirectoryServiceDirectories,
+			Tags:    map[string]string{"service": "directoryservice", "action": "DescribeDirectories"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "directory_id",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDirectoryServiceEventTopics,
+				Tags: map[string]string{"service": "directoryservice", "action": "DescribeEventTopics"},
+			},
+			{
+				Func: getDirectoryServiceSnapshotLimit,
+				Tags: map[string]string{"service": "directoryservice", "action": "GetSnapshotLimits"},
+			},
+			{
+				Func: getDirectoryServiceSharedDirectory,
+				Tags: map[string]string{"service": "directoryservice", "action": "DescribeSharedDirectories"},
+			},
+			{
+				Func: getDirectoryServiceDirectoryTags,
+				Tags: map[string]string{"service": "directoryservice", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(directoryservicev1.EndpointsID),
@@ -266,6 +286,9 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 
 	// List call
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		result, err := svc.DescribeDirectories(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_directory_service_directory.listDirectoryServiceDirectories", "api_error", err)
