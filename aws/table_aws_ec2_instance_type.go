@@ -25,11 +25,11 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInstanceType"}),
 			},
 			Hydrate: describeInstanceType,
-			Tags:          map[string]string{"service": "ec2", "action": "DescribeInstanceTypes"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstanceTypes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsInstanceTypesOfferings,
-			Tags:          map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
 		},
 		Columns: []*plugin.Column{
 			{
