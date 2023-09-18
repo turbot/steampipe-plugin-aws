@@ -551,7 +551,7 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 	// List call
 	for paginator.HasMorePages() {
-				// apply rate limiting
+		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
 		output, err := paginator.NextPage(ctx)
