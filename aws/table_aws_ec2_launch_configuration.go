@@ -23,9 +23,11 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationError"}),
 			},
 			Hydrate: getAwsEc2LaunchConfiguration,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeLaunchConfigurations"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEc2LaunchConfigurations,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeLaunchConfigurations"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -205,6 +207,9 @@ func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_launch_configuration.listAwsEc2LaunchConfigurations", "api_error", err)
