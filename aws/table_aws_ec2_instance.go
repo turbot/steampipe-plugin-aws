@@ -30,9 +30,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
 			},
 			Hydrate: getEc2Instance,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstances"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Instance,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "hypervisor", Require: plugin.Optional},
 				{Name: "iam_instance_profile_arn", Require: plugin.Optional},
@@ -52,6 +54,40 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				{Name: "placement_tenancy", Require: plugin.Optional},
 				{Name: "virtualization_type", Require: plugin.Optional},
 				{Name: "vpc_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getInstanceDisableAPITerminationData,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceAttribute"},
+			},
+			{
+				Func: getInstanceInitiatedShutdownBehavior,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceAttribute"},
+			},
+			{
+				Func: getInstanceKernelID,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceAttribute"},
+			},
+			{
+				Func: getInstanceRAMDiskID,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceAttribute"},
+			},
+			{
+				Func: getInstanceSriovNetSupport,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceAttribute"},
+			},
+			{
+				Func: getInstanceUserData,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceAttribute"},
+			},
+			{
+				Func: getEc2LaunchTemplateData,
+				Tags: map[string]string{"service": "ec2", "action": "GetLaunchTemplateData"},
+			},
+			{
+				Func: getInstanceStatus,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceStatus"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
@@ -515,6 +551,9 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 	// List call
 	for paginator.HasMorePages() {
+				// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_instance.listEc2Instance", "api_error", err)
