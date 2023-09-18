@@ -22,9 +22,21 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getCloudwatchLogGroup,
+			Tags:       map[string]string{"service": "logs", "action": "DescribeLogGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogGroups,
+			Tags:    map[string]string{"service": "logs", "action": "DescribeLogGroups"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudwatchLogGroupDataProtectionPolicy,
+				Tags: map[string]string{"service": "logs", "action": "GetDataProtectionPolicy"},
+			},
+			{
+				Func: getLogGroupTagging,
+				Tags: map[string]string{"service": "logs", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -139,6 +151,10 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudwatch_log_group.listCloudwatchLogGroups", "api_error", err)
