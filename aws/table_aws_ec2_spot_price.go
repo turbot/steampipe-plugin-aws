@@ -22,6 +22,7 @@ func tableAwsEc2SpotPrice(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Spot Price History",
 		List: &plugin.ListConfig{
 			Hydrate: listEc2SpotPrice,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeSpotPriceHistory"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
@@ -110,6 +111,9 @@ func listEc2SpotPrice(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	)
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_spot_price_history.listEc2SpotPrice", "api_error", err)
