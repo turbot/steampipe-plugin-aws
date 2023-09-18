@@ -28,9 +28,17 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBClusterNotFoundFault"}),
 			},
 			Hydrate: getDocDBCluster,
+			Tags:    map[string]string{"service": "docdb", "action": "DescribeDBClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDocDBClusters,
+			Tags:    map[string]string{"service": "docdb", "action": "DescribeDBClusters"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDocDBClusterTags,
+				Tags: map[string]string{"service": "docdb", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(docdbv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -268,6 +276,9 @@ func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_docdb_cluster.listDocDBClusters", "api_error", err)
