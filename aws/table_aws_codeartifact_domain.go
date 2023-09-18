@@ -48,6 +48,10 @@ func tableAwsCodeArtifactDomain(_ context.Context) *plugin.Table {
 				Func: getCodeArtifactDomainPermissionsPolicy,
 				Tags: map[string]string{"service": "codeartifact", "action": "GetDomainPermissionsPolicy"},
 			},
+			{
+				Func: getCodeArtifactDomain,
+				Tags: map[string]string{"service": "codeartifact", "action": "DescribeDomain"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codeartifactv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

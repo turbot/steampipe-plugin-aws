@@ -32,6 +32,12 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 			Hydrate: listCodeDeployDeploymentConfigs,
 			Tags:    map[string]string{"service": "codedeploy", "action": "ListDeploymentConfigs"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCodeDeployDeploymentConfig,
+				Tags: map[string]string{"service": "codedeploy", "action": "GetDeploymentConfig"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codedeployv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

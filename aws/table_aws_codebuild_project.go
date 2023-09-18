@@ -32,6 +32,12 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 			Hydrate: listCodeBuildProjects,
 			Tags:    map[string]string{"service": "codebuild", "action": "ListProjects"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCodeBuildProject,
+				Tags: map[string]string{"service": "codeartifact", "action": "BatchGetProjects"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codebuildv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
