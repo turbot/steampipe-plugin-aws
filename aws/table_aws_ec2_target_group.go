@@ -26,14 +26,26 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"LoadBalancerNotFound", "TargetGroupNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2TargetGroup,
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeTargetGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TargetGroups,
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeTargetGroups"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"TargetGroupNotFound", "ValidationError"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "target_group_name", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEc2TargetGroupTargetHealthDescription,
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTargetHealth"},
+			},
+			{
+				Func: getAwsEc2TargetGroupTags,
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elbv2v1.EndpointsID),
@@ -200,6 +212,9 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_target_group.listEc2TargetGroups", "api_error", err)
