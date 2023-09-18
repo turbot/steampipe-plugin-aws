@@ -26,6 +26,7 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidLaunchTemplateId.NotFound", "InvalidLaunchTemplateId.VersionNotFound"}),
 			},
 			Hydrate: getEc2LaunchTemplateVersion,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeLaunchTemplateVersions"},
 		},
 		List: &plugin.ListConfig{
 			// IgnoreConfig: &plugin.IgnoreConfig{
@@ -33,6 +34,7 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 			// },
 			ParentHydrate: listEc2LaunchTemplates,
 			Hydrate:       listEc2LaunchTemplateVersions,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeLaunchTemplateVersions"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "launch_template_id",
@@ -254,6 +256,9 @@ func listEc2LaunchTemplateVersions(ctx context.Context, d *plugin.QueryData, h *
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_launch_template_version.listEc2LaunchTemplateVersions", "api_error", err)
