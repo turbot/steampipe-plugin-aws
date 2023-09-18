@@ -18,6 +18,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 		Description: "AWS CodeBuild Build",
 		List: &plugin.ListConfig{
 			Hydrate: listCodeBuildBuilds,
+			Tags:    map[string]string{"service": "codebuild", "action": "ListBuilds"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "id",
@@ -246,6 +247,10 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// List call
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_codebuild_build.listCodeBuildBuilds", "api_error", err)
