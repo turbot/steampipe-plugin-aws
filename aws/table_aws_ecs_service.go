@@ -23,9 +23,16 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 		Description: "AWS ECS Service",
 		List: &plugin.ListConfig{
 			Hydrate:       listEcsServices,
+			Tags:					map[string]string{"service": "ecs", "action": "ListServices"},
 			ParentHydrate: listEcsClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundException"}),
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEcsServiceTags,
+				Tags: map[string]string{"service": "ecs", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
@@ -253,6 +260,9 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	var serviceNames []string
 	// List all available ECS services
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecs_service.listEcsServices", "api_error", err)

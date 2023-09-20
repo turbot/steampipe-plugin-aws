@@ -21,6 +21,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 		Description: "AWS ECS Task",
 		List: &plugin.ListConfig{
 			Hydrate:       listEcsTasks,
+			Tags: 				map[string]string{"service": "ecs", "action": "DescribeTasks"},
 			ParentHydrate: listEcsClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundException", "ServiceNotFoundException", "InvalidParameterException"}),
@@ -43,6 +44,12 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 					Require:    plugin.Optional,
 					CacheMatch: "exact",
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func:					 getEcsTaskProtection,
+				Tags:					 map[string]string{"service": "ecs", "action": "GetTaskProtection"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
@@ -319,6 +326,9 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Error could not be caught by ignore config, we need to handle it manually

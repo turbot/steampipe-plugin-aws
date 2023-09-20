@@ -26,9 +26,17 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterException"}),
 			},
 			Hydrate: getEcsCluster,
+			Tags: 	map[string]string{"service": "ecs", "action": "DescribeClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsClusters,
+			Tags: 	map[string]string{"service": "ecs", "action": "ListClusters"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEcsClusterTags,
+				Tags: map[string]string{"service": "ecs", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -175,6 +183,9 @@ func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecs_cluster.listEcsClusters", "api_error", err)

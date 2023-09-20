@@ -27,9 +27,11 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterException", "ClientException"}),
 			},
 			Hydrate: getEcsTaskDefinition,
+			Tags:    map[string]string{"service": "ecs", "action": "DescribeTaskDefinition"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsTaskDefinitions,
+			Tags:    map[string]string{"service": "ecs", "action": "ListTaskDefinitions"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "family", Require: plugin.Optional},
 				{Name: "status", Require: plugin.Optional},
@@ -259,6 +261,9 @@ func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecs_task_definition.listEcsTaskDefinitions", "api_error", err)
