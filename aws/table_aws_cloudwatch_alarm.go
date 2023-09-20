@@ -23,9 +23,11 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getCloudWatchAlarm,
+			Tags:       map[string]string{"service": "logs", "action": "DescribeAlarms"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudWatchAlarms,
+			Tags:    map[string]string{"service": "logs", "action": "DescribeAlarms"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
@@ -35,6 +37,12 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 					Name:    "state_value",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsCloudWatchAlarmTags,
+				Tags: map[string]string{"service": "logs", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchv1.EndpointsID),
@@ -251,6 +259,10 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	// List call
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudwatch_alarm.listCloudWatchAlarms", "api_error", err)

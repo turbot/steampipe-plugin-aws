@@ -25,14 +25,26 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getConfigRule,
+			Tags:    map[string]string{"service": "config", "action": "DescribeConfigRules"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigRules,
+			Tags:    map[string]string{"service": "config", "action": "DescribeConfigRules"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getConfigRuleTags,
+				Tags: map[string]string{"service": "config", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getComplianceByConfigRules,
+				Tags: map[string]string{"service": "config", "action": "DescribeComplianceByConfigRule"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
@@ -158,6 +170,10 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_config_conformance_pack.listConfigConformancePacks", "api_error", err)

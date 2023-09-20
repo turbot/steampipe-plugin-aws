@@ -23,9 +23,17 @@ func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getCloudTrailEventDataStore,
+			Tags:       map[string]string{"service": "cloudtrail", "action": "GetEventDataStore"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudTrailEventDataStores,
+			Tags:    map[string]string{"service": "cloudtrail", "action": "ListEventDataStores"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudTrailEventDataStore,
+				Tags: map[string]string{"service": "cloudtrail", "action": "GetEventDataStore"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -137,6 +145,10 @@ func listCloudTrailEventDataStores(ctx context.Context, d *plugin.QueryData, _ *
 
 	// List call
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudtrail_event_data_store.listCloudTrailEventDataStores", "api_error", err)

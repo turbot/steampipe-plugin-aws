@@ -20,6 +20,7 @@ func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table 
 		Description: "AWS EMR Block Public Access Configuration",
 		List: &plugin.ListConfig{
 			Hydrate: listBlockPublicAccessConfigurations,
+			Tags:    map[string]string{"service": "elasticmapreduce", "action": "GetBlockPublicAccessConfigurationInput"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

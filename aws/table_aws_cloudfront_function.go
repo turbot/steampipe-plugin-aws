@@ -24,9 +24,17 @@ func tableAwsCloudFrontFunction(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchFunctionExists"}),
 			},
 			Hydrate: getCloudFrontFunction,
+			Tags:    map[string]string{"service": "cloudfront", "action": "GetFunction"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudWatchFunctions,
+			Tags:    map[string]string{"service": "cloudfront", "action": "ListFunctions"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudFrontFunction,
+				Tags: map[string]string{"service": "cloudfront", "action": "GetFunction"},
+			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -116,6 +124,10 @@ func listCloudWatchFunctions(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Paginator not available for the API
 	pagesLeft := true
 	for pagesLeft {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		// List CloudFront functions
 		data, err := svc.ListFunctions(ctx, input)
 		if err != nil {
