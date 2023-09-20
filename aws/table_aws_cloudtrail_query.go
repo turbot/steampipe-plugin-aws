@@ -23,6 +23,7 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 		Description: "AWS CloudTrail Query",
 		Get: &plugin.GetConfig{
 			Hydrate:    getCloudTrailQuery,
+			Tags:       map[string]string{"service": "cloudtrail", "action": "DescribeQuery"},
 			KeyColumns: plugin.AllColumns([]string{"event_data_store_arn", "query_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EventDataStoreNotFoundException", "QueryIdNotFoundException"}),
@@ -31,6 +32,7 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listCloudTrailEventDataStores,
 			Hydrate:       listCloudTrailLakeQueries,
+			Tags:          map[string]string{"service": "cloudtrail", "action": "ListQueries"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "event_data_store_arn",
@@ -45,6 +47,12 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 					Require:   plugin.Optional,
 					Operators: []string{"=", "<=", "<", ">", ">="},
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudTrailQuery,
+				Tags: map[string]string{"service": "cloudtrail", "action": "DescribeQuery"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),
@@ -203,6 +211,10 @@ func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 	})
 
 	if paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		op, err := paginator.NextPage(ctx)
 		if err != nil {
 			// You cannot act on an event data store that is inactive. This error could not be caught by configuring it in ignore config
