@@ -23,9 +23,11 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getEKSCluster,
+			Tags:       map[string]string{"service": "eks", "action": "DescribeCluster"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEKSClusters,
+			Tags:    map[string]string{"service": "eks", "action": "ListClusters"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -173,6 +175,9 @@ func listEKSClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_eks_cluster.listEksClusters", "api_error", err)

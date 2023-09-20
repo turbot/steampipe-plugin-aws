@@ -23,6 +23,7 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"nodegroup_name", "cluster_name"}),
 			Hydrate:    getEKSNodeGroup,
+			Tags:       map[string]string{"service": "eks", "action": "DescribeNodegroup"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
 			},
@@ -30,6 +31,7 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEKSClusters,
 			Hydrate:       listEKSNodeGroups,
+			Tags:          map[string]string{"service": "eks", "action": "ListNodegroups"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cluster_name", Require: plugin.Optional},
 			},
@@ -240,6 +242,9 @@ func listEKSNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_eks_node_group.listEKSNodeGroups", "api_error", err)
