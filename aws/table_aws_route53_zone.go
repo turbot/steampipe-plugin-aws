@@ -22,12 +22,32 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getHostedZone,
+			Tags:       map[string]string{"service": "route53", "action": "GetHostedZone"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHostedZone"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listHostedZones,
+			Tags:    map[string]string{"service": "route53", "action": "ListHostedZones"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getHostedZone,
+				Tags: map[string]string{"service": "route53", "action": "GetHostedZone"},
+			},
+			{
+				Func: getHostedZoneTags,
+				Tags: map[string]string{"service": "route53", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getHostedZoneQueryLoggingConfigs,
+				Tags: map[string]string{"service": "route53", "action": "ListQueryLoggingConfigs"},
+			},
+			{
+				Func: getHostedZoneDNSSEC,
+				Tags: map[string]string{"service": "route53", "action": "GetDNSSEC"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -176,6 +196,10 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_zone.listHostedZones", "api_error", err)

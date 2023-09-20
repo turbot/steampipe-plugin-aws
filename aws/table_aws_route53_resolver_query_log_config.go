@@ -22,6 +22,7 @@ func tableAwsRoute53ResolverQueryLogConfig(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getRoute53ResolverQueryLogConfig,
+			Tags:       map[string]string{"service": "route53resolver", "action": "GetResolverQueryLogConfig"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -35,6 +36,7 @@ func tableAwsRoute53ResolverQueryLogConfig(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53ResolverQueryLogConfigs,
+			Tags:    map[string]string{"service": "route53resolver", "action": "ListResolverQueryLogConfigs"},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -149,6 +151,10 @@ func listRoute53ResolverQueryLogConfigs(ctx context.Context, d *plugin.QueryData
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_resolver_query_log_config.listRoute53ResolverQueryLogConfigs", "api_error", err)
