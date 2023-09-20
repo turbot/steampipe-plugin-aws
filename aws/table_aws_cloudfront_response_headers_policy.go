@@ -127,6 +127,10 @@ func listCloudFrontResponseHeadersPolicies(ctx context.Context, d *plugin.QueryD
 	// Paginator not avilable for the API
 	pagesLeft := true
 	for pagesLeft {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		data, err := svc.ListResponseHeadersPolicies(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudfront_response_headers_policy.listCloudFrontResponseHeadersPolicies", "api_error", err)
