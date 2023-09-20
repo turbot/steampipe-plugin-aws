@@ -24,9 +24,17 @@ func tableAwsCognitoIdentityPool(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("identity_pool_id"),
 			Hydrate:    getCognitoIdentityPool,
+			Tags:       map[string]string{"service": "cognito-identity", "action": "DescribeIdentityPool"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCognitoIdentityPools,
+			Tags:    map[string]string{"service": "cognito-identity", "action": "ListIdentityPools"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCognitoIdentityPool,
+				Tags: map[string]string{"service": "cognito-identity", "action": "DescribeIdentityPool"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -148,6 +156,10 @@ func listCognitoIdentityPools(ctx context.Context, d *plugin.QueryData, _ *plugi
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cognito_identity_pool.listCognitoIdentityPools", "api_error", err)
