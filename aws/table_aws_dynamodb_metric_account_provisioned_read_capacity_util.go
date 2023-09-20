@@ -14,6 +14,7 @@ func tableAwsDynamoDBMetricAccountProvisionedReadCapacityUtilization(_ context.C
 		Description: "AWS DynamoDB Metric Account Provisioned Read Capacity Utilization",
 		List: &plugin.ListConfig{
 			Hydrate: listDynamoDBMetricAccountProvisionedReadCapacityUtilization,
+			Tags: 	map[string]string{"service": "dynamodb", "action": "ListMetrics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns:           awsRegionalColumns(cwMetricColumns([]*plugin.Column{})),
