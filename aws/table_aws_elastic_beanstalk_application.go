@@ -26,9 +26,17 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getElasticBeanstalkApplication,
+			Tags: map[string]string{"service": "elasticache", "action": "DescribeApplications"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElasticBeanstalkApplications,
+			Tags:		map[string]string{"service": "elasticache", "action": "DescribeApplications"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listAwsElasticBeanstalkApplicationTags,
+				Tags: map[string]string{"service": "elasticache", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
