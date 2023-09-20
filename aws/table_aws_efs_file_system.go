@@ -28,11 +28,19 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"FileSystemNotFound", "ValidationException"}),
 			},
 			Hydrate: getElasticFileSystem,
+			Tags: 	map[string]string{"service": "efs", "action": "DescribeFileSystems"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElasticFileSystem,
+			Tags:		map[string]string{"service": "efs", "action": "DescribeFileSystems"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "creation_token", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func:getElasticFileSystemPolicy,
+				Tags: 	map[string]string{"service": "efs", "action": "DescribeFileSystemPolicy"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(efsv1.EndpointsID),
@@ -198,6 +206,9 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_efs_access_point.listElasticFileSystem", "api_error", err)

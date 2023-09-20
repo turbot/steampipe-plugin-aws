@@ -27,10 +27,18 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"MountTargetNotFound", "InvalidParameter"}),
 			},
 			Hydrate: getAwsEfsMountTarget,
+			Tags: map[string]string{"service": "efs", "action": "DescribeMountTargets"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listElasticFileSystem,
 			Hydrate:       listAwsEfsMountTargets,
+			Tags: map[string]string{"service": "efs", "action": "DescribeMountTargets"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func:     getAwsEfsMountTargetSecurityGroup,
+				Tags: map[string]string{"service": "efs", "action": "DescribeMountTargetSecurityGroups"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(efsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -145,6 +153,9 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// List call
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.DescribeMountTargets(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_efs_mount_target.listAwsEfsMountTargets", "api_error", err)

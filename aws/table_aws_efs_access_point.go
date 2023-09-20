@@ -26,9 +26,11 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AccessPointNotFound"}),
 			},
 			Hydrate: getEfsAccessPoint,
+			Tags:		map[string]string{"service": "efs", "action": "DescribeAccessPoints"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEfsAccessPoints,
+			Tags:		map[string]string{"service": "efs", "action": "DescribeAccessPoints"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"FileSystemNotFound"}),
 			},
@@ -152,6 +154,9 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "api_error", err)
