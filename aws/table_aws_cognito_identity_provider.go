@@ -29,12 +29,20 @@ func tableAwsCognitoIdentityProvider(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"provider_name", "user_pool_id"}),
 			Hydrate:    getCognitoIdentityProvider,
+			Tags:       map[string]string{"service": "cognito-identity", "action": "DescribeIdentityProvider"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listCognitoUserPools,
 			Hydrate:       listCognitoIdentityProviders,
+			Tags:          map[string]string{"service": "cognito-identity", "action": "ListIdentityProviders"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "user_pool_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCognitoIdentityProvider,
+				Tags: map[string]string{"service": "cognito-identity", "action": "DescribeIdentityProvider"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityproviderv1.EndpointsID),
@@ -155,6 +163,10 @@ func listCognitoIdentityProviders(ctx context.Context, d *plugin.QueryData, h *p
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cognito_identity_provider.listCognitoIdentityProviders", "api_error", err)
