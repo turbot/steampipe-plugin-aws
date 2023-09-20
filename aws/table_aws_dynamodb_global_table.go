@@ -25,9 +25,11 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getDynamoDBGlobalTable,
+			Tags:    map[string]string{"service": "dynamodb", "action": "DescribeGlobalTable"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamoDBGlobalTables,
+			Tags:    map[string]string{"service": "dynamodb", "action": "ListGlobalTables"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "global_table_name",

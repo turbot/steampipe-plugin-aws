@@ -24,10 +24,12 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ExportNotFoundException"}),
 			},
 			Hydrate: getTableExport,
+			Tags:    map[string]string{"service": "dynamodb", "action": "DescribeExport"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listDynamoDBTables,
 			Hydrate:       listTableExports,
+			Tags:          map[string]string{"service": "dynamodb", "action": "ListExports"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -207,6 +209,9 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_dynamodb_table_export.listTableExports", "api_error", err)
