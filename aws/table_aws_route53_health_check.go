@@ -20,12 +20,24 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getHealthCheck,
+			Tags:       map[string]string{"service": "route53", "action": "GetHealthCheck"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHealthCheck"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listHealthChecks,
+			Tags:    map[string]string{"service": "route53", "action": "ListHealthChecks"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getHealthCheckStatus,
+				Tags: map[string]string{"service": "route53", "action": "GetHealthCheckStatus"},
+			},
+			{
+				Func: getHealthCheckTags,
+				Tags: map[string]string{"service": "route53", "action": "ListTagsForResource"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -137,6 +149,10 @@ func listHealthChecks(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_health_check.listHealthChecks", "api_error", err)

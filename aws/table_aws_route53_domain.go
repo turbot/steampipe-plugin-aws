@@ -21,9 +21,21 @@ func tableAwsRoute53Domain(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("domain_name"),
 			Hydrate:    getRoute53Domain,
+			Tags:       map[string]string{"service": "route53domains", "action": "GetDomainDetail"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRoute53Domains,
+			Tags:    map[string]string{"service": "route53domains", "action": "ListDomains"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRoute53Domain,
+				Tags: map[string]string{"service": "route53domains", "action": "GetDomainDetail"},
+			},
+			{
+				Func: getRoute53DomainTags,
+				Tags: map[string]string{"service": "route53domains", "action": "ListTagsForDomain"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -229,6 +241,10 @@ func listRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_domain.listRoute53Domains", "api_error", err)

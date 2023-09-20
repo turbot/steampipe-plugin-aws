@@ -20,6 +20,7 @@ func tableAwsRoute53QueryLog(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getRoute53QueryLog,
+			Tags:       map[string]string{"service": "route53", "action": "GetQueryLoggingConfig"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchQueryLoggingConfig"}),
 			},
@@ -29,6 +30,7 @@ func tableAwsRoute53QueryLog(_ context.Context) *plugin.Table {
 				{Name: "hosted_zone_id", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53QueryLogs,
+			Tags:    map[string]string{"service": "route53", "action": "ListQueryLoggingConfigs"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHostedZone"}),
 			},
@@ -104,6 +106,10 @@ func listRoute53QueryLogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_query_log.listRoute53QueryLogs", "api_error", err)

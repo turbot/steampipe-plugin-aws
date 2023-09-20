@@ -28,6 +28,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 			},
 			ParentHydrate: listHostedZones,
 			Hydrate:       listRoute53Records,
+			Tags:          map[string]string{"service": "route53", "action": "ListResourceRecordSets"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHostedZone"}),
 			},
@@ -194,6 +195,10 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Paginator is not supported in AWS SDK v2 as of 2022/11/04
 	// So we use generic pagination handling instead
 	for {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		op, err := svc.ListResourceRecordSets(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_record.listRoute53Records", "api_error", err)
