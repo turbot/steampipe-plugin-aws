@@ -23,6 +23,7 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstances,
+			Tags:          map[string]string{"service": "elasticmapreduce", "action": "ListInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cluster_id", Require: plugin.Optional},
 				{Name: "instance_fleet_id", Require: plugin.Optional},
@@ -186,6 +187,9 @@ func listEmrInstances(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_emr_cluster.listEmrClusters", "api_error", err)
