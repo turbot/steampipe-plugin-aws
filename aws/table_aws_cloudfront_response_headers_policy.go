@@ -25,6 +25,13 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				},
 			},
 			Hydrate: listCloudFrontResponseHeadersPolicies,
+			Tags:    map[string]string{"service": "cloudfront", "action": "ListResponseHeadersPolicies"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getETagValue,
+				Tags: map[string]string{"service": "cloudfront", "action": "GetResponseHeadersPolicy"},
+			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
