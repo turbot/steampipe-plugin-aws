@@ -22,9 +22,11 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchConformancePackException"}),
 			},
 			Hydrate: getConfigConformancePack,
+			Tags:    map[string]string{"service": "config", "action": "DescribeConformancePacks"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConformancePacks,
+			Tags:    map[string]string{"service": "config", "action": "DescribeConformancePacks"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
@@ -129,6 +131,10 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_config_conformance_pack.listConfigConformancePacks", "api_error", err)
