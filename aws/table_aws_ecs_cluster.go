@@ -34,6 +34,10 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
+				Func: getEcsCluster,
+				Tags: map[string]string{"service": "ecs", "action": "DescribeClusters"},
+			},
+			{
 				Func: getAwsEcsClusterTags,
 				Tags: map[string]string{"service": "ecs", "action": "ListTagsForResource"},
 			},

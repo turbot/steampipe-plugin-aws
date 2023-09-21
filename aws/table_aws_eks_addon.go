@@ -33,6 +33,12 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 			Hydrate:       listEKSAddons,
 			Tags:          map[string]string{"service": "eks", "action": "ListAddons"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEksAddon,
+				Tags: map[string]string{"service": "eks", "action": "DescribeAddon"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

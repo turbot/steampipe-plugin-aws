@@ -41,6 +41,10 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
+				Func: getAwsEcrRepositories,
+				Tags: map[string]string{"service": "ecr", "action": "DescribeRepositories"},
+			},
+			{
 				Func: listAwsEcrRepositoryTags,
 				Tags: map[string]string{"service": "ecr", "action": "ListTagsForResource"},
 			},

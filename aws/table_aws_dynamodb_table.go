@@ -45,6 +45,10 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
+				Func: getDynamoDBTable,
+				Tags 	: map[string]string{"service": "dynamodb", "action": "DescribeTable"},
+			},
+			{
 				Func: getTableTagging,
 				Tags: map[string]string{"service": "dynamodb", "action": "ListTagsOfResource"},
 			},

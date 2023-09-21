@@ -31,6 +31,12 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 			Hydrate:       listTableExports,
 			Tags:          map[string]string{"service": "dynamodb", "action": "ListExports"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getTableExport,
+				Tags: map[string]string{"service": "dynamodb", "action": "DescribeExport"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

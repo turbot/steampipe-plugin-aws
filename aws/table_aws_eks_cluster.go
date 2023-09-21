@@ -29,6 +29,12 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 			Hydrate: listEKSClusters,
 			Tags:    map[string]string{"service": "eks", "action": "ListClusters"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEKSCluster,
+				Tags: map[string]string{"service": "eks", "action": "DescribeCluster"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

@@ -31,6 +31,12 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 			Hydrate: listAwsDRSSourceServers,
 			Tags:    map[string]string{"service": "drs", "action": "DescribeSourceServers"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsDRSSourceServerLaunchConfiguration,
+				Tags: map[string]string{"service": "drs", "action": "GetLaunchConfiguration"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(drsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

@@ -37,6 +37,12 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEcsTaskDefinition,
+				Tags: map[string]string{"service": "ecs", "action": "DescribeTaskDefinition"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

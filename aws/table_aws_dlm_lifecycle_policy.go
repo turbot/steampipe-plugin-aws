@@ -23,14 +23,20 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("policy_id"),
 			Hydrate:    getDLMLifecyclePolicy,
-			Tags:			 map[string]string{"service": "dlm", "action": "GetLifecyclePolicy"},
+			Tags:       map[string]string{"service": "dlm", "action": "GetLifecyclePolicy"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDLMLifecyclePolicies,
-			Tags:		map[string]string{"service": "dlm", "action": "GetLifecyclePolicies"},
+			Tags:    map[string]string{"service": "dlm", "action": "GetLifecyclePolicies"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDLMLifecyclePolicy,
+				Tags: map[string]string{"service": "dlm", "action": "GetLifecyclePolicy"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(dlmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
