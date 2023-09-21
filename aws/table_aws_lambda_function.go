@@ -25,11 +25,23 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getAwsLambdaFunction,
+			Tags:       map[string]string{"service": "lambda", "action": "GetFunction"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaFunctions,
+			Tags:    map[string]string{"service": "lambda", "action": "ListFunctions"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsLambdaFunction,
+				Tags: map[string]string{"service": "lambda", "action": "GetFunction"},
+			},
+			{
+				Func: getFunctionPolicy,
+				Tags: map[string]string{"service": "lambda", "action": "GetPolicy"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -313,6 +325,9 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)
