@@ -29,16 +29,24 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ResourceNotFoundException"}),
 			},
 			Hydrate: getLambdaAlias,
+			Tags:    map[string]string{"service": "lambda", "action": "GetAlias"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaAliases,
+			Tags:          map[string]string{"service": "lambda", "action": "ListAliases"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "function_version", Require: plugin.Optional},
 				{Name: "function_name", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getLambdaAliasPolicy,
+				Tags: map[string]string{"service": "lambda", "action": "GetPolicy"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -175,6 +183,9 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)
