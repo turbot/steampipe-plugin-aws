@@ -26,14 +26,26 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
 			},
 			Hydrate: describeFirehoseDeliveryStream,
+			Tags:    map[string]string{"service": "firehose", "action": "DescribeDeliveryStream"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listFirehoseDeliveryStreams,
+			Tags:    map[string]string{"service": "firehose", "action": "ListDeliveryStreams"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "delivery_stream_type", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kinesisv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: describeFirehoseDeliveryStream,
+				Tags: map[string]string{"service": "firehose", "action": "DescribeDeliveryStream"},
+			},
+			{
+				Func: listFirehoseDeliveryStreamTags,
+				Tags: map[string]string{"service": "firehose", "action": "ListTagsForDeliveryStream"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "delivery_stream_name",
