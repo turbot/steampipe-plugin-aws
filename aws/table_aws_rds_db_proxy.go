@@ -26,11 +26,19 @@ func tableAwsRDSDBProxy(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBProxyNotFoundFault"}),
 			},
 			Hydrate: getRDSDBProxy,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBProxies"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBProxies,
+			Tags: map[string]string{"service": "rds", "action": "DescribeDBProxies"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRDSDBProxyTags,
+				Tags: map[string]string{"service": "rds", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
@@ -175,6 +183,9 @@ func listRDSDBProxies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_proxy.listRDSDBProxies", "api_error", err)

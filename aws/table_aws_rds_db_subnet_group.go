@@ -26,9 +26,17 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBSubnetGroupNotFoundFault"}),
 			},
 			Hydrate: getRDSDBSubnetGroup,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBSubnetGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSubnetGroups,
+			Tags: 	map[string]string{"service": "rds", "action": "DescribeDBSubnetGroups"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRDSDBSubnetGroupTags,
+				Tags: map[string]string{"service": "rds", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -133,6 +141,9 @@ func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_subnet_group.listRDSDBSubnetGroups", "api_error", err)
