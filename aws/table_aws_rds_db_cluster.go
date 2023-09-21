@@ -26,12 +26,20 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBClusterNotFoundFault"}),
 			},
 			Hydrate: getRDSDBCluster,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusters,
+			Tags: 	map[string]string{"service": "rds", "action": "DescribeDBClusters"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "clone_group_id", Require: plugin.Optional},
 				{Name: "engine", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRDSDBClusterPendingMaintenanceAction,
+				Tags: map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
@@ -385,6 +393,9 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_cluster.listRDSDBClusters", "api_error", err)
