@@ -26,9 +26,11 @@ func tableAwsElastiCacheReservedCacheNode(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReservedCacheNodeNotFound"}),
 			},
 			Hydrate: getElastiCacheReservedCacheNode,
+			Tags:		map[string]string{"service": "elasticache", "action": "DescribeReservedCacheNodes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheReservedCacheNodes,
+			Tags:		map[string]string{"service": "elasticache", "action": "DescribeReservedCacheNodes"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cache_node_type", Require: plugin.Optional},
 				{Name: "duration", Require: plugin.Optional},
@@ -170,6 +172,9 @@ func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData,
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_elasticache_reserved_cache_node.listElastiCacheReservedCacheNodes", "api_error", err)

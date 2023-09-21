@@ -23,14 +23,17 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsElasticsearchDomain,
+			Tags:    map[string]string{"service": "es", "action": "DescribeElasticsearchDomain"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsElasticsearchDomains,
+			Tags: 	map[string]string{"service": "es", "action": "ListDomainNames"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    listAwsElasticsearchDomainTags,
 				Depends: []plugin.HydrateFunc{getAwsElasticsearchDomain},
+				Tags:		map[string]string{"service": "es", "action": "ListTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticsearchservicev1.EndpointsID),
