@@ -19,6 +19,7 @@ func tableAwsEcsClusterMetricCpuUtilizationHourly(_ context.Context) *plugin.Tab
 		List: &plugin.ListConfig{
 			ParentHydrate: listEcsClusters,
 			Hydrate:       listEcsClusterMetricCpuUtilizationHourly,
+			Tags:          map[string]string{"service": "ecs", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
