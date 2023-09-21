@@ -18,6 +18,7 @@ func tableAwsRdsInstanceMetricReadIops(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listRDSDBInstances,
 			Hydrate:       listRdsInstanceMetricReadIops,
+			Tags:          map[string]string{"service": "rds", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
