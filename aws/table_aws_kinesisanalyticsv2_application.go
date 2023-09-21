@@ -26,11 +26,23 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getKinesisAnalyticsV2Application,
+			Tags:    map[string]string{"service": "kinesisanalytics", "action": "DescribeApplication"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisAnalyticsV2Applications,
+			Tags:    map[string]string{"service": "kinesisanalytics", "action": "ListApplications"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kinesisanalyticsv2v1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getKinesisAnalyticsV2Application,
+				Tags: map[string]string{"service": "firehose", "action": "DescribeApplication"},
+			},
+			{
+				Func: getKinesisAnalyticsV2ApplicationTags,
+				Tags: map[string]string{"service": "firehose", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "application_name",
@@ -160,6 +172,9 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 	// API doesn't support aws-sdk-go-v2 paginator as of data
 
 	for pagesLeft {
+		// apply rate limiting
+    d.WaitForListRateLimit(ctx)
+		
 		result, err := svc.ListApplications(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.listKinesisAnalyticsV2Applications", "api_error", err)

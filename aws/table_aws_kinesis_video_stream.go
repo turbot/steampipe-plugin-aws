@@ -26,11 +26,19 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getKinesisVideoStream,
+			Tags:    map[string]string{"service": "kinesisvideo", "action": "DescribeStream"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisVideoStreams,
+			Tags:    map[string]string{"service": "kinesisvideo", "action": "ListStreams"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kinesisv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listKinesisVideoStreamTags,
+				Tags: map[string]string{"service": "firehose", "action": "ListTagsForStream"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stream_name",
@@ -141,6 +149,9 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_kinesis_video_stream.listKinesisVideoStreams", "api_error", err)
