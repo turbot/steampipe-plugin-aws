@@ -40,11 +40,11 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: listTagsForSnsTopic,
+				Func: getStackTemplate,
 				Tags: map[string]string{"service": "cloudformation", "action": "GetTemplate"},
 			},
 			{
-				Func: getTopicAttributes,
+				Func: describeStackResources,
 				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackResources"},
 			},
 		},
@@ -221,7 +221,7 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "api_error", err)
