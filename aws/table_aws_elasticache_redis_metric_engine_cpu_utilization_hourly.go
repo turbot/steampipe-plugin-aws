@@ -18,6 +18,7 @@ func tableAwsElasticacheRedisEngineCPUUtilizationHourly(_ context.Context) *plug
 		List: &plugin.ListConfig{
 			ParentHydrate: listElastiCacheClusters,
 			Hydrate:       listElastiCacheMetricEngineCPUUtilizationHourly,
+			Tags:          map[string]string{"service": "elasticache", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
