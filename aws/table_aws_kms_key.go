@@ -34,8 +34,31 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKmsKeys,
+			Tags:    map[string]string{"service": "kms", "action": "ListKeys"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kmsv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsKmsKeyData,
+				Tags: map[string]string{"service": "kms", "action": "DescribeKey"},
+			},
+			{
+				Func: getAwsKmsKeyAliases,
+				Tags: map[string]string{"service": "kms", "action": "ListAliases"},
+			},
+			{
+				Func: getAwsKmsKeyRotationStatus,
+				Tags: map[string]string{"service": "kms", "action": "GetKeyRotationStatus"},
+			},
+			{
+				Func: getAwsKmsKeyPolicy,
+				Tags: map[string]string{"service": "kms", "action": "GetKeyPolicy"},
+			},
+			{
+				Func: getAwsKmsKeyTagging,
+				Tags: map[string]string{"service": "kms", "action": "ListResourceTags"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -220,6 +243,9 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	})
 
 	for paginator.HasMorePages() {
+    // apply rate limiting
+    d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_kms_key.listKmsKeys", "api_error", err)
@@ -368,6 +394,9 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	})
 
 	for paginator.HasMorePages() {
+    // apply rate limiting
+    d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyTagging", "api_error", err)
@@ -414,6 +443,9 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	})
 
 	for paginator.HasMorePages() {
+    // apply rate limiting
+    d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyAliases", "api_error", err)

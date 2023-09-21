@@ -23,6 +23,7 @@ func tableAwsKmsAlias(ctx context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listKmsKeys,
 			Hydrate:       listKmsAliases,
+			Tags:          map[string]string{"service": "kms", "action": "ListAliases"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kmsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -112,6 +113,9 @@ func listKmsAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	})
 
 	for paginator.HasMorePages() {
+    // apply rate limiting
+    d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_kms_key_alias.listKmsAliases", "api_error", err)
