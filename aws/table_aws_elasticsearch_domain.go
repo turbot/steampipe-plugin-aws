@@ -27,13 +27,17 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsElasticsearchDomains,
-			Tags: 	map[string]string{"service": "es", "action": "ListDomainNames"},
+			Tags:    map[string]string{"service": "es", "action": "ListDomainNames"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    listAwsElasticsearchDomainTags,
 				Depends: []plugin.HydrateFunc{getAwsElasticsearchDomain},
-				Tags:		map[string]string{"service": "es", "action": "ListTags"},
+				Tags:    map[string]string{"service": "es", "action": "ListTags"},
+			},
+			{
+				Func: getAwsElasticsearchDomain,
+				Tags: map[string]string{"service": "es", "action": "DescribeElasticsearchDomain"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticsearchservicev1.EndpointsID),

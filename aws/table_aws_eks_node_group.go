@@ -36,6 +36,12 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 				{Name: "cluster_name", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEKSNodeGroup,
+				Tags: map[string]string{"service": "eks", "action": "DescribeNodegroup"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

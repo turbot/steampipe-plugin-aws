@@ -36,6 +36,12 @@ func tableAwsEksFargateProfile(_ context.Context) *plugin.Table {
 				},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEKSFargateProfile,
+				Tags: map[string]string{"service": "eks", "action": "DescribeFargateProfile"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

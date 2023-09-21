@@ -36,6 +36,12 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 			Hydrate:       listEKSIdentityProviderConfigs,
 			Tags:          map[string]string{"service": "eks", "action": "ListIdentityProviderConfigs"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEKSIdentityProviderConfig,
+				Tags: map[string]string{"service": "eks", "action": "DescribeIdentityProviderConfig"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

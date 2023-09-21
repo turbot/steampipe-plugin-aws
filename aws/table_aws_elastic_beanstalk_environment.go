@@ -41,6 +41,10 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
+				Func: getElasticBeanstalkEnvironment,
+				Tags: map[string]string{"service": "elasticache", "action": "DescribeEnvironments"},
+			},
+			{
 				Func: listElasticBeanstalkEnvironmentTags,
 				Tags: map[string]string{"service": "elasticache", "action": "ListTagsForResource"},
 			},
