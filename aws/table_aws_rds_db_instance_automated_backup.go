@@ -26,9 +26,11 @@ func tableAwsRDSDBInstanceAutomatedBackup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBInstanceAutomatedBackupNotFound"}),
 			},
 			Hydrate: getRDSDBInstanceAutomatedBackup,
+			Tags:map[string]string{"service":"rds", "action": "DescribeDBInstanceAutomatedBackups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstanceAutomatedBackups,
+			Tags:map[string]string{"service":"rds", "action": "DescribeDBInstanceAutomatedBackups"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
@@ -238,6 +240,9 @@ func listRDSDBInstanceAutomatedBackups(ctx context.Context, d *plugin.QueryData,
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_instance_automated_backup.listRDSDBInstanceAutomatedBackups", "api_error", err)
