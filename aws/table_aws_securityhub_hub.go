@@ -25,11 +25,23 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException", "ResourceNotFoundException"}),
 			},
 			Hydrate: getSecurityHub,
+			Tags:    map[string]string{"service": "securityhub", "action": "DescribeHub"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubs,
+			Tags:    map[string]string{"service": "securityhub", "action": "DescribeHub"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSecurityHubAdministratorAccount,
+				Tags: map[string]string{"service": "securityhub", "action": "GetAdministratorAccount"},
+			},
+			{
+				Func: getSecurityHubTags,
+				Tags: map[string]string{"service": "securityhub", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "hub_arn",
