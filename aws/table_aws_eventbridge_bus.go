@@ -34,7 +34,7 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: listTagsForSnsTopic,
+				Func: getAwsEventBridgeBusTags,
 				Tags: map[string]string{"service": "events", "action": "ListTagsForResource"},
 			},
 		},
