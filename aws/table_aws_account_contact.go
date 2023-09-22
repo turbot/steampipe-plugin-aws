@@ -20,6 +20,7 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 		Description: "AWS Account Contact",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAccountContacts,
+			Tags: map[string]string{"service": "account", "action": "GetContactInformation"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:       "linked_account_id",
