@@ -20,6 +20,7 @@ func tableAwsCostByServiceMonthly(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Service (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceMonthly,
+			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "service", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 			},
