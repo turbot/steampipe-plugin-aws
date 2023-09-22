@@ -22,12 +22,14 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getSecurityHubInsight,
+			Tags:       map[string]string{"service": "securityhub", "action": "GetInsights"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidInputException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubInsights,
+			Tags:    map[string]string{"service": "securityhub", "action": "GetInsights"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -111,6 +113,9 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Handle error for accounts that are not subscribed to AWS Security Hub
