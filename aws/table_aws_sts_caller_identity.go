@@ -14,6 +14,7 @@ func tableAwsSTSCallerIdentity(_ context.Context) *plugin.Table {
 		Description: "AWS STS Caller Identity",
 		List: &plugin.ListConfig{
 			Hydrate: getStsCallerIdentity,
+			Tags:    map[string]string{"service": "sts", "action": "GetCallerIdentity"},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{

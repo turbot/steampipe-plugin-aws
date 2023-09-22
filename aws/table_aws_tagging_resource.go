@@ -20,6 +20,7 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 		Description: "AWS Tagging Resource",
 		Get: &plugin.GetConfig{
 			Hydrate:    getTaggingResource,
+			Tags:    map[string]string{"service": "tag", "action": "GetResources"},
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterException"}),
@@ -27,6 +28,7 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listTaggingResources,
+			Tags:    map[string]string{"service": "tag", "action": "GetResources"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(resourcegroupstaggingapiv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -122,6 +124,9 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_tagging_resource.listTaggingResources", "api_error", err)
