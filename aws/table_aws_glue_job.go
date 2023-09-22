@@ -26,14 +26,22 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueJob,
+			Tags:    map[string]string{"service": "glue", "action": "GetJob"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlueJobs,
+			Tags:    map[string]string{"service": "glue", "action": "GetJobs"},
 		},
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGlueJobBookmark,
+				Tags:    map[string]string{"service": "glue", "action": "GetJobBookmark"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -205,6 +213,9 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "api_error", err)

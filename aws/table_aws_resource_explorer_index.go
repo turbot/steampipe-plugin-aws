@@ -18,6 +18,7 @@ func tableAWSResourceExplorerIndex(_ context.Context) *plugin.Table {
 		Description: "AWS Resource Explorer Index",
 		List: &plugin.ListConfig{
 			Hydrate: listAWSExplorerIndexes,
+			Tags:    map[string]string{"service": "resource-explorer-2", "action": "ListIndexes"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				// ValidationException error thrown for below cases in the table
 				// 1. Type of the index type passed as input is not a valid value
@@ -85,6 +86,10 @@ func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, h *plugin.
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_resource_explorer_index.listAWSExplorerIndexes", "api_error", err)

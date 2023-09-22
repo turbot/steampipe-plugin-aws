@@ -26,11 +26,19 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueDevEndpoint,
+			Tags:    map[string]string{"service": "glue", "action": "GetDevEndpoint"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlueDevEndpoints,
+			Tags:    map[string]string{"service": "glue", "action": "GetDevEndpoints"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGlueDevEndpoint,
+				Tags:    map[string]string{"service": "glue", "action": "GetDevEndpoint"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "endpoint_name",
@@ -217,6 +225,9 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "api_error", err)

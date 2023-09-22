@@ -28,6 +28,7 @@ func tableAwsGuardDutyFinding(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listGuardDutyFindings,
+			Tags:    map[string]string{"service": "guardduty", "action": "ListFindings"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "detector_id", Require: plugin.Optional},
 				{Name: "id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
@@ -165,6 +166,9 @@ func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	var findingIds [][]string
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_guardduty_finding.listGuardDutyFindings", "api_error", err)
@@ -175,6 +179,9 @@ func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	// Using this pattern as the GetFindings API supports an array of findings
 	for _, ids := range findingIds {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		param := &guardduty.GetFindingsInput{
 			DetectorId: aws.String(detectorId),
 			FindingIds: ids,

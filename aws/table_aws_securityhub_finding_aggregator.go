@@ -23,14 +23,22 @@ func tableAwsSecurityHubFindingAggregator(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getSecurityHubFindingAggregator,
+			Tags:       map[string]string{"service": "securityhub", "action": "GetFindingAggregator"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubFindingAggregators,
+			Tags:    map[string]string{"service": "securityhub", "action": "ListFindingAggregators"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSecurityHubFindingAggregator,
+				Tags: map[string]string{"service": "securityhub", "action": "GetFindingAggregator"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -106,6 +114,9 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Handle error for accounts that are not subscribed to AWS Security Hub
