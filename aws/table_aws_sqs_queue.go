@@ -27,9 +27,21 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 			},
 			Hydrate: getQueueAttributes,
+			Tags:    map[string]string{"service": "sqs", "action": "GetQueueAttributes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSqsQueues,
+			Tags: 	map[string]string{"service": "sqs", "action": "ListQueues"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getQueueAttributes,
+				Tags: map[string]string{"service": "sqs", "action": "GetQueueAttributes"},
+			},
+			{
+				Func: listQueueTags,
+				Tags: map[string]string{"service": "sqs", "action": "ListQueueTags"},
+			},
 		},
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
@@ -206,6 +218,9 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sqs_queue.listAwsSqsQueues", "api_error", err)

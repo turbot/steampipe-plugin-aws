@@ -33,7 +33,6 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 			Hydrate: listAwsSnsTopics,
 			Tags:    map[string]string{"service": "sns", "action": "ListTopics"},
 		},
-
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: listTagsForSnsTopic,
@@ -44,7 +43,6 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sns", "action": "GetTopicAttributes"},
 			},
 		},
-
 		GetMatrixItemFunc: SupportedRegionMatrix(snsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
