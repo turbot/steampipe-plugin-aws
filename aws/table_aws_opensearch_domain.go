@@ -23,13 +23,20 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getOpenSearchDomain,
+			Tags:    map[string]string{"service": "es", "action": "DescribeDomain"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOpenSearchDomains,
+			Tags:    map[string]string{"service": "es", "action": "ListDomainNames"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
+				Func: getOpenSearchDomain,
+				Tags: map[string]string{"service": "es", "action": "DescribeDomain"},
+			},
+			{
 				Func:    listOpenSearchDomainTags,
+				Tags:    map[string]string{"service": "es", "action": "ListTags"},
 				Depends: []plugin.HydrateFunc{getOpenSearchDomain},
 			},
 		},

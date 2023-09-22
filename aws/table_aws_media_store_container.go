@@ -28,11 +28,23 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ContainerNotFoundException", "ContainerInUseException"}),
 			},
 			Hydrate: getMediaStoreContainer,
+			Tags:    map[string]string{"service": "mediastore", "action": "DescribeContainer"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listMediaStoreContainers,
+			Tags:    map[string]string{"service": "mediastore", "action": "ListContainers"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ContainerInUseException"}),
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getMediaStoreContainerPolicy,
+				Tags: map[string]string{"service": "mediastore", "action": "GetContainerPolicy"},
+			},
+			{
+				Func: listMediaStoreContainerTags,
+				Tags: map[string]string{"service": "mediastore", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(mediastorev1.EndpointsID),
@@ -155,6 +167,9 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_media_store_container.listMediaStoreContainers", "api_error", err)

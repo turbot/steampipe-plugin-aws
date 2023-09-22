@@ -27,12 +27,24 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
 			},
 			Hydrate: getPatchBaseline,
+			Tags:    map[string]string{"service": "ssm", "action": "GetPatchBaseline"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: describePatchBaselines,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribePatchBaselines"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "name", Require: plugin.Optional},
 				{Name: "operating_system", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getPatchBaseline,
+				Tags: map[string]string{"service": "ssm", "action": "GetPatchBaseline"},
+			},
+			{
+				Func: getAwsSSMParameterTags,
+				Tags: map[string]string{"service": "ssm", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
@@ -214,6 +226,9 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_patch_baseline.describePatchBaselines", "api_error", err)

@@ -24,9 +24,17 @@ func tableAwsOAMSink(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsOAMSink,
+			Tags:    map[string]string{"service": "oam", "action": "GetSink"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsOAMSinks,
+			Tags:    map[string]string{"service": "oam", "action": "ListSinks"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsOAMSink,
+				Tags: map[string]string{"service": "oam", "action": "GetSink"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(oamv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -102,6 +110,9 @@ func listAwsOAMSinks(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_oam_sink.listAwsOAMSinks", "api_error", err)
