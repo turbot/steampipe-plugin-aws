@@ -41,6 +41,10 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Func: getFunctionPolicy,
 				Tags: map[string]string{"service": "lambda", "action": "GetPolicy"},
 			},
+			{
+				Func: getLambdaFunctionUrlConfig,
+				Tags: map[string]string{"service": "lambda", "action": "GetFunctionUrlConfig"},
+			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

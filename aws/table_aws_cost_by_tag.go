@@ -26,6 +26,7 @@ func tableAwsCostByTag(_ context.Context) *plugin.Table {
 				{Name: "tag_key_2", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
 			},
 			Hydrate: listCostAndUsageByTags,
+			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{

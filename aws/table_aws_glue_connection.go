@@ -27,6 +27,7 @@ func tableAwsGlueConnection(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueConnection,
+			Tags:    map[string]string{"service": "glue", "action": "GetConnection"},
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"connection_type"}),
@@ -34,6 +35,7 @@ func tableAwsGlueConnection(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
 			},
 			Hydrate: listGlueConnections,
+			Tags:    map[string]string{"service": "glue", "action": "GetConnections"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -156,6 +158,9 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "api_error", err)

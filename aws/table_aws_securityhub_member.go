@@ -28,6 +28,7 @@ func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
 		Description: "AWS Securityhub Member",
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubMembers,
+			Tags:    map[string]string{"service": "securityhub", "action": "ListMembers"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "BadRequestException"}),
 			},
@@ -149,6 +150,9 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_securityhub_member.listSecurityHubMembers", "api_error", err)

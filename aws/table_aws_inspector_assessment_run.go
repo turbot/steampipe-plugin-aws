@@ -22,6 +22,7 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector Assessment Run",
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentRuns,
+			Tags:    map[string]string{"service": "inspector", "action": "ListAssessmentRuns"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "assessment_template_arn", Require: plugin.Optional},
 				{Name: "name", Require: plugin.Optional},
@@ -179,6 +180,9 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector_assessment_run.listInspectorAssessmentRuns", "api_error", err)

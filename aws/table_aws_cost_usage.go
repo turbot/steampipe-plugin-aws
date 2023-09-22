@@ -21,6 +21,7 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 			//KeyColumns: plugin.AllColumns([]string{"search_start_time", "search_end_time", "granularity", "dimension_type_1", "dimension_type_2"}),
 			KeyColumns: plugin.AllColumns([]string{"granularity", "dimension_type_1", "dimension_type_2"}),
 			Hydrate:    listCostAndUsage,
+			Tags:       map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
