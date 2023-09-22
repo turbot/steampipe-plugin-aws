@@ -23,7 +23,7 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("namespace_name"),
 			Hydrate:    getRedshiftServerlessNamespace,
-			Tags:    map[string]string{"service": "redshift-serverless", "action": "GetNamespace"},
+			Tags:       map[string]string{"service": "redshift-serverless", "action": "GetNamespace"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftServerlessNamespaces,

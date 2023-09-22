@@ -22,8 +22,19 @@ func tableAwsSsoAdminPermissionSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listSsoAdminInstances,
 			Hydrate:       listSsoAdminPermissionSets,
+			Tags:          map[string]string{"service": "sso", "action": "ListPermissionSets"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "instance_arn", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSsoAdminPermissionSet,
+				Tags: map[string]string{"service": "sso", "action": "DescribePermissionSet"},
+			},
+			{
+				Func: getNamespaceTags,
+				Tags: map[string]string{"service": "sso", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminv1.EndpointsID),
@@ -162,6 +173,9 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.listSsoAdminPermissionSets", "api_error", err)
@@ -265,6 +279,9 @@ func getSsoAdminResourceTags(ctx context.Context, d *plugin.QueryData, instanceA
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.getSsoAdminResourceTags", "api_error", err)
