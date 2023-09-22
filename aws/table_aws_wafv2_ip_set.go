@@ -24,11 +24,23 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
 			},
 			Hydrate: getAwsWafv2IpSet,
+			Tags:    map[string]string{"service": "wafv2", "action": "GetIPSet"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2IpSets,
+			Tags:    map[string]string{"service": "wafv2", "action": "ListIPSets"},
 		},
 		GetMatrixItemFunc: WAFRegionMatrix,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafv2IpSet,
+				Tags: map[string]string{"service": "wafv2", "action": "GetIPSet"},
+			},
+			{
+				Func: listTagsForAwsWafv2IpSet,
+				Tags: map[string]string{"service": "wafv2", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -158,6 +170,9 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// ListIPSets API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListIPSets(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafv2_ip_set.listAwsWafv2IpSets", "api_error", err)
