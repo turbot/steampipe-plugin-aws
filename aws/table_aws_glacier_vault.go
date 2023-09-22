@@ -30,9 +30,29 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: getGlacierVault,
+			Tags:    map[string]string{"service": "glacier", "action": "DescribeVault"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlacierVault,
+			Tags:    map[string]string{"service": "glacier", "action": "ListVaults"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGlacierVaultAccessPolicy,
+				Tags: map[string]string{"service": "glacier", "action": "GetVaultAccessPolicy"},
+			},
+			{
+				Func: getGlacierVaultLockPolicy,
+				Tags: map[string]string{"service": "glacier", "action": "GetVaultLock"},
+			},
+			{
+				Func: getGlacierVaultNotifications,
+				Tags: map[string]string{"service": "glacier", "action": "GetVaultNotifications"},
+			},
+			{
+				Func: listTagsForGlacierVault,
+				Tags: map[string]string{"service": "glacier", "action": "ListTagsForVault"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(glacierv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

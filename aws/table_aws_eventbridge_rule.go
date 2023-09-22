@@ -25,13 +25,25 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getAwsEventBridgeRule,
+			Tags:    map[string]string{"service": "events", "action": "DescribeRule"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsEventBridgeBuses,
 			Hydrate:       listAwsEventBridgeRules,
+			Tags:    map[string]string{"service": "events", "action": "ListRules"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "event_bus_name", Require: plugin.Optional},
 				{Name: "name_prefix", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEventBridgeTargetByRule,
+				Tags: map[string]string{"service": "events", "action": "ListTargetsByRule"},
+			},
+			{
+				Func: getAwsEventBridgeRuleTags,
+				Tags: map[string]string{"service": "events", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eventbridgev1.EndpointsID),
@@ -174,6 +186,9 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	// API doesn't support aws-go-sdk-v2 paginator as of date
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := svc.ListRules(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_eventbridge_rule.listAwsEventBridgeRules", "api_error", err)

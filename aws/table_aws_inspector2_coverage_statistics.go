@@ -35,6 +35,7 @@ func tableAwsInspector2CoverageStatistics(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector2 Coverage Statistics",
 		List: &plugin.ListConfig{
 			Hydrate: listInspector2CoverageStatistics,
+			Tags:    map[string]string{"service": "inspector2", "action": "ListCoverageStatistics"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(inspector2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -77,6 +78,9 @@ func listInspector2CoverageStatistics(ctx context.Context, d *plugin.QueryData, 
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector2_coverage_statistics.listInspector2CoverageStatistics", "api_error", err)
