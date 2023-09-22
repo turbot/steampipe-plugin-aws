@@ -24,10 +24,12 @@ func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getIdentityStoreGroup,
+			Tags:    map[string]string{"service": "identitystore", "action": "DescribeGroup"},
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.AllColumns([]string{"identity_store_id"}),
 			Hydrate:    listIdentityStoreGroups,
+			Tags:       map[string]string{"service": "identitystore", "action": "ListGroups"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -106,6 +108,9 @@ func listIdentityStoreGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_identitystore_group.listIdentityStoreGroups", "api_error", err)
