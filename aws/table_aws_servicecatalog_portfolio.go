@@ -25,9 +25,11 @@ func tableAwsServicecatalogPortfolio(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getServiceCatalogPortfolio,
+			Tags:    map[string]string{"service": "servicecatalog", "action": "DescribePortfolio"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceCatalogPortfolios,
+			Tags:    map[string]string{"service": "servicecatalog", "action": "ListPortfolios"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -149,6 +151,9 @@ func listServiceCatalogPortfolios(ctx context.Context, d *plugin.QueryData, _ *p
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_servicecatalog_portfolio.listServiceCatalogPortfolios", "api_error", err)
