@@ -26,10 +26,12 @@ func tableAwsGuardDutyMember(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyMember,
+			Tags:    map[string]string{"service": "guardduty", "action": "GetMembers"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listGuardDutyMembers,
+			Tags:          map[string]string{"service": "guardduty", "action": "GetMembers"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "detector_id", Require: plugin.Optional},
 			},
@@ -129,6 +131,9 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aaws_guardduty_member.listGuardDutyMembers", "api_error", err)
