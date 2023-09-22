@@ -31,10 +31,12 @@ func tableAwsWellArchitectedLensReview(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getWellArchitectedLensReview,
+			Tags:    map[string]string{"service": "wellarchitected", "action": "GetLensReview"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedLensReviews,
+			Tags:          map[string]string{"service": "wellarchitected", "action": "ListLensReviews"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "milestone_number", Require: plugin.Optional, CacheMatch: "exact"},
@@ -182,6 +184,9 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// TODO: Shouldn't be needed, but the List IgnoreConfig doesn't seem to

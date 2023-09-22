@@ -20,6 +20,7 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 		Description: "AWS Health Event",
 		List: &plugin.ListConfig{
 			Hydrate: listHealthEvents,
+			Tags:    map[string]string{"service": "health", "action": "DescribeEvents"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "arn", Require: plugin.Optional},
 				{Name: "availability_zone", Require: plugin.Optional},
@@ -136,6 +137,9 @@ func listHealthEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_health_event.listHealthEvents", "api_error", err)

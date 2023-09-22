@@ -37,6 +37,7 @@ func tableAwsIamAccessAdvisor(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.SingleColumn("principal_arn"),
 			Hydrate:    listAccessAdvisor,
+			Tags:    map[string]string{"service": "iam", "action": "GetServiceLastAccessedDetails"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -147,6 +148,9 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	retryNumber := 0
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		resp, err := svc.GetServiceLastAccessedDetails(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_access_advisor.listAccessAdvisor", "list_advisoer_details_error", err)

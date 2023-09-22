@@ -23,12 +23,20 @@ func tableAwsWorkspacesDirectory(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("directory_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				 ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameterValuesException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameterValuesException"}),
 			},
 			Hydrate: getWorkspacesDirectory,
+			Tags:    map[string]string{"service": "workspaces", "action": "DescribeWorkspaceDirectories"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWorkspacesDirectories,
+			Tags:    map[string]string{"service": "workspaces", "action": "DescribeWorkspaceDirectories"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listWorkspacesDirectoriesTags,
+				Tags: map[string]string{"service": "workspaces", "action": "DescribeTags"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(workspacesv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -184,7 +192,7 @@ func listWorkspacesDirectories(ctx context.Context, d *plugin.QueryData, h *plug
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-				maxLimit = limit
+			maxLimit = limit
 		}
 	}
 
@@ -198,6 +206,9 @@ func listWorkspacesDirectories(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_workspaces_directory.listWorkspacesDirectories", "api_error", err)

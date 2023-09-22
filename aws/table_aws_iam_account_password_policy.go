@@ -18,6 +18,7 @@ func tableAwsIamAccountPasswordPolicy(_ context.Context) *plugin.Table {
 		Description: "AWS IAM Account Password Policy",
 		List: &plugin.ListConfig{
 			Hydrate: listAccountPasswordPolicies,
+			Tags:    map[string]string{"service": "iam", "action": "GetAccountPasswordPolicy"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

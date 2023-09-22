@@ -20,6 +20,7 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamUsers,
 			Hydrate:       listUserAccessKeys,
+			Tags:    map[string]string{"service": "iam", "action": "ListAccessKeys"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "user_name", Require: plugin.Optional},
 			},
@@ -117,6 +118,9 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_access_key.listUserAccessKeys", "api_error", err)

@@ -28,11 +28,31 @@ func tableAwsWafRegionalWebAcl(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			},
 			Hydrate: getWafRegionalWebAcl,
+			Tags:    map[string]string{"service": "waf-regional", "action": "GetWebACL"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWafRegionalWebAcls,
+			Tags:    map[string]string{"service": "waf-regional", "action": "ListWebACLs"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wafregionalv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWafRegionalWebAcl,
+				Tags: map[string]string{"service": "waf-regional", "action": "GetWebACL"},
+			},
+			{
+				Func: getWafRegionalLoggingConfiguration,
+				Tags: map[string]string{"service": "waf-regional", "action": "GetLoggingConfiguration"},
+			},
+			{
+				Func: getWafRegionalResources,
+				Tags: map[string]string{"service": "waf-regional", "action": "ListResourcesForWebACL"},
+			},
+			{
+				Func: listTagsForWafRegionalWebAcl,
+				Tags: map[string]string{"service": "waf-regional", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -127,7 +147,7 @@ func listWafRegionalWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		plugin.Logger(ctx).Error("aws_wafregional_web_acl.listWafRegionalWebAcls", "client_error", err)
 		return nil, err
 	}
-	
+
 	maxItems := int32(100)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -145,6 +165,9 @@ func listWafRegionalWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// API doesn't support aws-sdk-go-v2 paginator as of date
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafregional_web_acl.listWafRegionalWebAcls", "api_error", err)

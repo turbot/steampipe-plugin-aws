@@ -20,6 +20,7 @@ func tableAwsS3MultiRegionAccessPoint(_ context.Context) *plugin.Table {
 		Description: "AWS S3 Multi Region Access Point",
 		List: &plugin.ListConfig{
 			Hydrate: listS3MultiRegionAccessPoints,
+			Tags:    map[string]string{"service": "s3", "action": "ListMultiRegionAccessPoints"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "InvalidRequest"}),
 			},
@@ -30,6 +31,7 @@ func tableAwsS3MultiRegionAccessPoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "account_id"}),
 			Hydrate:    getS3MultiRegionAccessPoint,
+			Tags:       map[string]string{"service": "s3", "action": "GetMultiRegionAccessPoint"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchMultiRegionAccessPoint", "InvalidParameter", "InvalidRequest"}),
 			},
@@ -133,6 +135,10 @@ func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *
 	})
 
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.listS3MultiRegionAccessPoints", "api_error", err)

@@ -28,13 +28,21 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
 			},
 			Hydrate: getSageMakerApp,
+			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeApp"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsSageMakerDomains,
 			Hydrate:       listSageMakerApps,
+			Tags:          map[string]string{"service": "sagemaker", "action": "ListApps"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "user_profile_name", Require: plugin.Optional},
 				{Name: "domain_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSageMakerApp,
+				Tags: map[string]string{"service": "sagemaker", "action": "DescribeApp"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
@@ -172,6 +180,10 @@ func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	// List call
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sagemaker_app.listSageMakerApps", "api_error", err)
