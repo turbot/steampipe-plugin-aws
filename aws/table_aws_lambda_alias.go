@@ -46,6 +46,10 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 				Func: getLambdaAliasPolicy,
 				Tags: map[string]string{"service": "lambda", "action": "GetPolicy"},
 			},
+			{
+				Func: getLambdaAliasUrlConfig,
+				Tags: map[string]string{"service": "lambda", "action": "GetFunctionUrlConfig"},
+			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -185,7 +189,7 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)
