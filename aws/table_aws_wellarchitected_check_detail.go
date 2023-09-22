@@ -26,6 +26,7 @@ func tableAwsWellArchitectedCheckDetail(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedCheckDetails,
+			Tags:          map[string]string{"service": "wellarchitected", "action": "ListCheckDetails"},
 			// IgnoreConfig: &plugin.IgnoreConfig{
 			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			// },
@@ -215,6 +216,9 @@ func fetchWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, 
 		})
 
 		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
+
 			output, err := paginator.NextPage(ctx)
 			if err != nil {
 				var ae smithy.APIError

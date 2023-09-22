@@ -21,6 +21,7 @@ func tableAwsS3BucketIntelligentTieringConfiguration(_ context.Context) *plugin.
 		Description: "AWS S3 Bucket Intelligent Tiering Configuration",
 		Get: &plugin.GetConfig{
 			Hydrate:    getBucketIntelligentTieringConfiguration,
+			Tags:       map[string]string{"service": "s3", "action": "GetIntelligentTieringConfiguration"},
 			KeyColumns: plugin.AllColumns([]string{"bucket_name", "id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchConfiguration"}),
@@ -29,6 +30,7 @@ func tableAwsS3BucketIntelligentTieringConfiguration(_ context.Context) *plugin.
 		List: &plugin.ListConfig{
 			ParentHydrate: listS3Buckets,
 			Hydrate:       listBucketIntelligentTieringConfigurations,
+			Tags:          map[string]string{"service": "s3", "action": "ListBucketIntelligentTieringConfigurations"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Optional, CacheMatch: "exact"},
 			},
@@ -107,6 +109,10 @@ func listBucketIntelligentTieringConfigurations(ctx context.Context, d *plugin.Q
 
 	pageLeft := true
 	for pageLeft {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		op, err := svc.ListBucketIntelligentTieringConfigurations(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_s3_bucket_intelligent_tiering_configuration.listBucketIntelligentTieringConfigurations", "api_error", err)
