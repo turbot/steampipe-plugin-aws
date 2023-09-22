@@ -26,9 +26,11 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getWellArchitectedWorkload,
+			Tags:    map[string]string{"service": "wellarchitected", "action": "GetWorkload"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedWorkloads,
+			Tags:    map[string]string{"service": "wellarchitected", "action": "ListWorkloads"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_name", Require: plugin.Optional},
 			},
@@ -227,6 +229,9 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wellarchitected_workload.listWellArchitectedWorkloads", "api_error", err)

@@ -25,6 +25,7 @@ func tableAwsWellArchitectedLensShare(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedLenses,
 			Hydrate:       listWellArchitectedLensShares,
+			Tags:          map[string]string{"service": "wellarchitected", "action": "ListLensShares"},
 			// TODO: Uncomment and remove extra check in
 			// listWellArchitectedLensShares function once this works again
 			// IgnoreConfig: &plugin.IgnoreConfig{
@@ -151,6 +152,9 @@ func listWellArchitectedLensShares(ctx context.Context, d *plugin.QueryData, h *
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			var ae smithy.APIError
