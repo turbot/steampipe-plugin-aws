@@ -25,6 +25,16 @@ func tableAwsEc2RegionalSettings(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listEc2RegionalSettings,
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDefaultEBSVolumeEncryption,
+				Tags: map[string]string{"service": "ec2", "action": "GetEbsEncryptionByDefault"},
+			},
+			{
+				Func: getDefaultEBSVolumeEncryptionKey,
+				Tags: map[string]string{"service": "ec2", "action": "GetEbsDefaultKmsKeyId"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
