@@ -21,6 +21,7 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector2 Member",
 		List: &plugin.ListConfig{
 			Hydrate: listInspector2Member,
+			Tags: map[string]string{"service": "inspector2", "action": "ListMembers"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "only_associated",
@@ -120,6 +121,9 @@ if d.EqualsQuals["only_associated"] != nil {
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector2_member.listInspector2Member", "api_error", err)
