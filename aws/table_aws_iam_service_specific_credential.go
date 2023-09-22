@@ -20,6 +20,7 @@ func tableAwsIamUserServiceSpecificCredential(ctx context.Context) *plugin.Table
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamUsers,
 			Hydrate:       listAwsIamUserServiceSpecificCredentials,
+			Tags:    map[string]string{"service": "iam", "action": "ListServiceSpecificCredentials"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_name", Require: plugin.Optional},
 				{Name: "user_name", Require: plugin.Optional},
