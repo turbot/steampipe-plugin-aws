@@ -25,14 +25,30 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
 			Hydrate:    getIamRole,
+			Tags:    map[string]string{"service": "iam", "action": "GetRole"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamRoles,
+			Tags:    map[string]string{"service": "iam", "action": "ListRoles"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsIamInstanceProfileData,
+				Tags: map[string]string{"service": "iam", "action": "ListInstanceProfilesForRole"},
+			},
+			{
+				Func: getAwsIamRoleAttachedPolicies,
+				Tags: map[string]string{"service": "iam", "action": "ListAttachedRolePolicies"},
+			},
+			{
+				Func: getAwsIamRoleAttachedPolicies,
+				Tags: map[string]string{"service": "iam", "action": "ListRolePolicies"},
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -218,6 +234,9 @@ func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "api_error", err)
@@ -288,6 +307,9 @@ func getAwsIamInstanceProfileData(ctx context.Context, d *plugin.QueryData, h *p
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_policy.getAwsIamInstanceProfileData", "api_error", err)
@@ -320,6 +342,9 @@ func getAwsIamRoleAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *
 
 	var attachedPolicyArns []string
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_policy.getAwsIamRoleAttachedPolicies", "api_error", err)
@@ -351,6 +376,9 @@ func listAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 
 	var policyNames []string
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_policy.listAwsIamRoleInlinePolicies", "api_error", err)
