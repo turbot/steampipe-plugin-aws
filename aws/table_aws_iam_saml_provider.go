@@ -21,12 +21,14 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"arn"}),
 			Hydrate:    getIamSamlProvider,
+			Tags:    map[string]string{"service": "iam", "action": "GetSAMLProvider"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchEntity"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamSamlProviders,
+			Tags:    map[string]string{"service": "iam", "action": "ListSAMLProviders"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
