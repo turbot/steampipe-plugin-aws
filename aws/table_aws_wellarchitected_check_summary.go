@@ -24,6 +24,7 @@ func tableAwsWellArchitectedCheckSummary(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedCheckSummaries,
+			Tags:          map[string]string{"service": "wellarchitected", "action": "ListCheckSummaries"},
 			// IgnoreConfig: &plugin.IgnoreConfig{
 			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			// },
@@ -200,6 +201,9 @@ func fetchWellArchitectedCheckSummaries(ctx context.Context, d *plugin.QueryData
 		})
 
 		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
+
 			output, err := paginator.NextPage(ctx)
 			if err != nil {
 				if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "ValidationException") {

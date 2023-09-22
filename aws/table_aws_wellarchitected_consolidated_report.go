@@ -21,11 +21,18 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 		Description: "AWS Well-Architected Consolidated Report",
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedConsolidatedReports,
+			Tags:    map[string]string{"service": "wellarchitected", "action": "GetConsolidatedReport"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "include_shared_resources",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listWellArchitectedConsolidatedReportBase64,
+				Tags: map[string]string{"service": "wellarchitected", "action": "GetConsolidatedReport"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -128,6 +135,9 @@ func listWellArchitectedConsolidatedReports(ctx context.Context, d *plugin.Query
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wellarchitected_consolidated_report.listWellArchitectedConsolidatedReports", "api_error", err)
@@ -177,6 +187,9 @@ func listWellArchitectedConsolidatedReportBase64(ctx context.Context, d *plugin.
 	var pdfFormatbase64Encoded []*string
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wellarchitected_consolidated_report.listWellArchitectedConsolidatedReportBase64", "api_error", err)

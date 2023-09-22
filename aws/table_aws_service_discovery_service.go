@@ -26,14 +26,26 @@ func tableAwsServiceDiscoveryService(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ServiceNotFound"}),
 			},
 			Hydrate: getServiceDiscoveryService,
+			Tags:    map[string]string{"service": "servicediscovery", "action": "GetService"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceDiscoveryServices,
+			Tags: 	map[string]string{"service": "servicediscovery", "action": "ListServices"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "namespace_id",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func:     getServiceDirectoryServiceTags,
+				Tags:		 map[string]string{"service": "servicediscovery", "action": "ListTagsForResource"},
+			},
+			{
+				Func:     getServiceDiscoveryService,
+				Tags: 	 map[string]string{"service": "servicediscovery", "action": "GetService"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(servicediscoveryv1.EndpointsID),
@@ -174,6 +186,9 @@ func listServiceDiscoveryServices(ctx context.Context, d *plugin.QueryData, _ *p
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_service_discovery_service.listServiceDiscoveryServices", "api_error", err)

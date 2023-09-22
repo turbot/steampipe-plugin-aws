@@ -26,13 +26,25 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
 			},
 			Hydrate: getAwsSageMakerNotebookInstance,
+			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeNotebookInstance"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerNotebookInstances,
+			Tags:    map[string]string{"service": "sagemaker", "action": "ListNotebookInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "default_code_repository", Require: plugin.Optional},
 				{Name: "notebook_instance_lifecycle_config_name", Require: plugin.Optional},
 				{Name: "notebook_instance_status", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSageMakerNotebookInstance,
+				Tags: map[string]string{"service": "sagemaker", "action": "DescribeNotebookInstance"},
+			},
+			{
+				Func: listAwsSageMakerNotebookInstanceTags,
+				Tags: map[string]string{"service": "sagemaker", "action": "ListTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
@@ -238,6 +250,10 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 
 	// List call
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.listAwsSageMakerNotebookInstances", "api_error", err)
@@ -312,6 +328,10 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 	pagesLeft := true
 	tags := []types.Tag{}
 	for pagesLeft {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		keyTags, err := svc.ListTags(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sagemaker_notebook_instance.listAwsSageMakerNotebookInstanceTags", "api_error", err)

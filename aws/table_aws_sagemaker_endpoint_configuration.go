@@ -26,11 +26,23 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException"}),
 			},
 			Hydrate: getSagemakerEndpointConfiguration,
+			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeEndpointConfig"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSagemakerEndpointConfigurations,
+			Tags:    map[string]string{"service": "sagemaker", "action": "ListEndpointConfigs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSagemakerEndpointConfiguration,
+				Tags: map[string]string{"service": "sagemaker", "action": "DescribeEndpointConfig"},
+			},
+			{
+				Func: listSageMakerEndpointConfigurationTags,
+				Tags: map[string]string{"service": "sagemaker", "action": "ListTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
@@ -152,6 +164,10 @@ func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryDat
 
 	// List call
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.listSagemakerEndpointConfigurations", "api_error", err)
@@ -230,6 +246,10 @@ func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Query
 	pagesLeft := true
 	tags := []types.Tag{}
 	for pagesLeft {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		keyTags, err := svc.ListTags(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.listSageMakerEndpointConfigurationTags", "api_error", err)

@@ -26,6 +26,7 @@ func tableAwsWellArchitectedLensReviewImprovement(_ context.Context) *plugin.Tab
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedLensReviewImprovements,
+			Tags:          map[string]string{"service": "wellarchitected", "action": "ListLensReviewImprovements"},
 			// TODO: Uncomment and remove extra check in
 			// listWellArchitectedLensReviewImprovements function once this works again
 			// IgnoreConfig: &plugin.IgnoreConfig{
@@ -189,6 +190,9 @@ func stereamlistLensReviewImprovements(ctx context.Context, d *plugin.QueryData,
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Adding the igone confog in the list config does not seems to work, so we have handles it here.
