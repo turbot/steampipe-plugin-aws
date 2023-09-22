@@ -26,9 +26,17 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getRedshiftServerlessWorkgroup,
+			Tags:    map[string]string{"service": "redshift-serverless", "action": "GetWorkgroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftServerlessWorkgroups,
+			Tags:    map[string]string{"service": "redshift-serverless", "action": "ListWorkgroups"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWorkgroupTags,
+				Tags: map[string]string{"service": "redshift-serverless", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(redshiftserverlessv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -168,6 +176,9 @@ func listRedshiftServerlessWorkgroups(ctx context.Context, d *plugin.QueryData, 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_redshiftserverless_workgroup.listRedshiftServerlessWorkgroups", "api_error", err)
