@@ -26,13 +26,21 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getMacie2ClassificationJob,
+			Tags:    map[string]string{"service": "macie2", "action": "DescribeClassificationJob"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listMacie2ClassificationJobs,
+			Tags:    map[string]string{"service": "macie2", "action": "ListClassificationJobs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "job_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "job_type", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getMacie2ClassificationJob,
+				Tags: map[string]string{"service": "macie2", "action": "DescribeClassificationJob"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(macie2v1.EndpointsID),
@@ -197,6 +205,9 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Throws "AccessDeniedException: Macie is not enabled." when AWS Macie is not enabled in a region

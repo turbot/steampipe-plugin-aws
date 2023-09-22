@@ -21,9 +21,17 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AccountNotFoundException", "InvalidInputException"}),
 			},
 			Hydrate: getOrganizationsAccount,
+			Tags:    map[string]string{"service": "organizations", "action": "DescribeAccount"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOrganizationsAccounts,
+			Tags:    map[string]string{"service": "organizations", "action": "ListAccounts"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getOrganizationsAccountTags,
+				Tags: map[string]string{"service": "organizations", "action": "ListTagsForResource"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -127,6 +135,9 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_organizations_account.listOrganizationsAccounts", "api_error", err)
@@ -199,6 +210,9 @@ func getOrganizationsResourceTags(ctx context.Context, d *plugin.QueryData, reso
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_organizations_account.getOrganizationsResourceTags", "api_error", err)

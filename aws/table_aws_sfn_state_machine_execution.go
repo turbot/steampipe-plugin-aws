@@ -25,9 +25,11 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ExecutionDoesNotExist", "InvalidArn"}),
 			},
 			Hydrate: getStepFunctionsStateMachineExecution,
+			Tags:    map[string]string{"service": "states", "action": "DescribeExecution"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutions,
+			Tags:          map[string]string{"service": "states", "action": "ListExecutions"},
 			ParentHydrate: listStepFunctionsStateMachines,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "status", Require: plugin.Optional},
@@ -167,6 +169,9 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.listStepFunctionsStateMachineExecutions", "api_error", err)
