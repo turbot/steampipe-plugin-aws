@@ -23,6 +23,7 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector2 Coverage",
 		List: &plugin.ListConfig{
 			Hydrate: listInspector2Coverage,
+			Tags:    map[string]string{"service": "inspector2", "action": "ListCoverage"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "source_account_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "ec2_instance_tags", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: "exact"},
@@ -336,6 +337,9 @@ func listInspector2Coverage(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector2_coverage.listInspector2Coverage", "api_error", err)
