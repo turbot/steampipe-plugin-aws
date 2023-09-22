@@ -20,6 +20,17 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 		Description: "AWS SES Email Identity",
 		List: &plugin.ListConfig{
 			Hydrate: listSESEmailIdentities,
+			Tags:    map[string]string{"service": "ses", "action": "ListIdentities"},
+		},
+		HydrateConfig:     []plugin.HydrateConfig{
+			{
+				Func: getSESIdentityVerificationAttributes,
+				Tags: map[string]string{"service": "ses", "action": "GetIdentityVerificationAttributes"},
+			},
+			{
+				Func: getSESIdentityNotificationAttributes,
+				Tags: map[string]string{"service": "ses", "action": "GetIdentityNotificationAttributes"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sesv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -113,6 +124,9 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ses_email_identity.listSESEmailIdentities", "api_error", err)
