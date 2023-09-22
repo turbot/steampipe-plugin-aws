@@ -26,12 +26,24 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidDocument"}),
 			},
 			Hydrate: getAwsSSMDocument,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeDocument"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMDocuments,
+			Tags:    map[string]string{"service": "ssm", "action": "ListDocuments"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "document_type", Require: plugin.Optional},
 				{Name: "owner_type", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSSMDocumentPermissionDetail,
+				Tags: map[string]string{"service": "ssm", "action": "DescribeDocumentPermission"},
+			},
+			{
+				Func: getAwsSSMDocument,
+				Tags: map[string]string{"service": "ssm", "action": "DescribeDocument"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
@@ -278,6 +290,9 @@ func listAwsSSMDocuments(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_document.listAwsSSMDocuments", "api_error", err)
