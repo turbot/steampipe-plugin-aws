@@ -31,6 +31,12 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 			Hydrate: listAwsInstanceTypesOfferings,
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: describeInstanceType,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceTypes"},
+			},
+		},
 		Columns: []*plugin.Column{
 			{
 				Name:        "instance_type",
