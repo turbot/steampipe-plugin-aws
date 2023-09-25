@@ -132,6 +132,13 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "configuration_settings",
+				Description: "Returns a description of the settings for the specified configuration set, that is, either a configuration template or the configuration set associated with a running environment.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticBeanstalkConfigurationSettings,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "environment_links",
 				Description: "A list of links to other environments in the same group.",
 				Type:        proto.ColumnType_JSON,
@@ -327,6 +334,41 @@ func getAwsElasticBeanstalkEnvironmentManagedActions(ctx context.Context, d *plu
 
 	if managedActions != nil && len(managedActions.ManagedActions) > 0 {
 		return managedActions.ManagedActions, nil
+	}
+	return nil, nil
+}
+
+func getAwsElasticBeanstalkConfigurationSettings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create Session
+	svc, err := ElasticBeanstalkClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("elastic_beanstalk_environment.getAwsElasticBeanstalkConfigurationSettings", "connection_error", err)
+		return nil, err
+	}
+
+	env := h.Item.(types.EnvironmentDescription)
+	// Build params
+	params := &elasticbeanstalk.DescribeConfigurationSettingsInput {
+		ApplicationName: env.ApplicationName,
+		EnvironmentName: env.EnvironmentName,
+	}
+
+	configurationSettings, err := svc.DescribeConfigurationSettings(ctx, params)
+	if err != nil {
+		// The API throws InvalidParameterValue exception in the case if resource is not available.
+		// Error: operation error Elastic Beanstalk: DescribeEnvironmentManagedActions, https response error StatusCode: 400, RequestID: b7503072-3694-4370-8a79-7182e5b1170a, api error InvalidParameterValue: No Environment found for EnvironmentName = 'Test32-envtwe'.
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "InvalidParameterValue" {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("elastic_beanstalk_environment.getAwsElasticBeanstalkEnvironmentManagedActions", "api_error", err)
+		return nil, err
+	}
+
+	if configurationSettings != nil && len(configurationSettings.ConfigurationSettings) > 0 {
+		return configurationSettings.ConfigurationSettings, nil
 	}
 	return nil, nil
 }
