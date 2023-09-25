@@ -32,6 +32,12 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 			Hydrate: listAwsBackupPlans,
 			Tags:    map[string]string{"service": "backup", "action": "ListBackupPlans"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsBackupPlan,
+				Tags: map[string]string{"service": "backup", "action": "GetBackupPlan"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -146,7 +152,7 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_plan.listAwsBackupPlans", "api_error", err)

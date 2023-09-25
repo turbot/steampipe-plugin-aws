@@ -38,6 +38,12 @@ func tableAwsCloudFormationStackSet(_ context.Context) *plugin.Table {
 				},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudFormationStackSet,
+				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackSet"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -188,7 +194,7 @@ func listCloudFormationStackSets(ctx context.Context, d *plugin.QueryData, _ *pl
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-				maxLimit = limit
+			maxLimit = limit
 		}
 	}
 	status := d.EqualsQualString("status")
@@ -207,7 +213,7 @@ func listCloudFormationStackSets(ctx context.Context, d *plugin.QueryData, _ *pl
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudformation_stack_set.listCloudFormationStackSets", "api_error", err)
@@ -255,7 +261,6 @@ func getCloudFormationStackSet(ctx context.Context, d *plugin.QueryData, h *plug
 		// Unsupported region check
 		return nil, nil
 	}
-
 
 	params := &cloudformation.DescribeStackSetInput{
 		StackSetName: aws.String(name),

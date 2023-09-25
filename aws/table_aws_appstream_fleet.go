@@ -33,6 +33,12 @@ func tableAwsAppStreamFleet(_ context.Context) *plugin.Table {
 				},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAppStreamFleetTags,
+				Tags: map[string]string{"service": "appstream", "action": "ListTagsForResource"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(appstreamv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -220,7 +226,7 @@ func listAppStreamFleets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	for pageLeft {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		op, err := svc.DescribeFleets(ctx, params)
 
 		if err != nil {

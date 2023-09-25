@@ -32,6 +32,12 @@ func tableAwsBackupLegalHold(_ context.Context) *plugin.Table {
 			Hydrate: listAwsBackupLegalHolds,
 			Tags:    map[string]string{"service": "backup", "action": "ListLegalHolds"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsBackupLegalHold,
+				Tags: map[string]string{"service": "backup", "action": "GetLegalHold"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -134,7 +140,7 @@ func listAwsBackupLegalHolds(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_legal_hold.listAwsBackupLegalHolds", "api_error", err)

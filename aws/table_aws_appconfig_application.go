@@ -23,7 +23,7 @@ func tableAwsAppConfigApplication(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getAppConfigApplication,
-			Tags:    map[string]string{"service": "appconfig", "action": "GetApplication"},
+			Tags:       map[string]string{"service": "appconfig", "action": "GetApplication"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAppConfigApplication,
@@ -31,7 +31,7 @@ func tableAwsAppConfigApplication(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: listTagsForSnsTopic,
+				Func: getAppConfigTags,
 				Tags: map[string]string{"service": "appconfig", "action": "ListTagsForResource"},
 			},
 		},
@@ -121,7 +121,7 @@ func listAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugi
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_appconfig_application.listAppConfigApplication", "api_error", err)

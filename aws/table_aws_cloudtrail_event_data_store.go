@@ -145,7 +145,6 @@ func listCloudTrailEventDataStores(ctx context.Context, d *plugin.QueryData, _ *
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

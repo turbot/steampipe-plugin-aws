@@ -144,7 +144,6 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 	// Paginator not avilable for API ListCachePolicies
 	pagesLeft := true
 	for pagesLeft {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

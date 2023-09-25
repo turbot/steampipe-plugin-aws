@@ -36,7 +36,11 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: listTagsForSnsTopic,
+				Func: getAwsBackupFramework,
+				Tags: map[string]string{"service": "backup", "action": "DescribeFramework"},
+			},
+			{
+				Func: listAwsBackupFrameworkTags,
 				Tags: map[string]string{"service": "backup", "action": "ListTags"},
 			},
 		},
@@ -165,7 +169,7 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworks", "api_error", err)
@@ -274,6 +278,9 @@ func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plu
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listRestAPI", "api_error", err)

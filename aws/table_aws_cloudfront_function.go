@@ -124,7 +124,6 @@ func listCloudWatchFunctions(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Paginator not available for the API
 	pagesLeft := true
 	for pagesLeft {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

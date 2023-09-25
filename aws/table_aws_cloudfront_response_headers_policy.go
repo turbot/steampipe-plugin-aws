@@ -134,7 +134,6 @@ func listCloudFrontResponseHeadersPolicies(ctx context.Context, d *plugin.QueryD
 	// Paginator not avilable for the API
 	pagesLeft := true
 	for pagesLeft {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

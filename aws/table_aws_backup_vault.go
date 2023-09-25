@@ -39,11 +39,11 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: listTagsForSnsTopic,
+				Func: getAwsBackupVaultNotification,
 				Tags: map[string]string{"service": "backup", "action": "GetBackupVaultNotifications"},
 			},
 			{
-				Func: getTopicAttributes,
+				Func: getAwsBackupVaultAccessPolicy,
 				Tags: map[string]string{"service": "backup", "action": "GetBackupVaultAccessPolicy"},
 			},
 		},
@@ -166,7 +166,7 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_vault.listAwsBackupVaults", "api_error", err)

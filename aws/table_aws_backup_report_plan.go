@@ -136,7 +136,7 @@ func listAwsBackupReportPlans(ctx context.Context, d *plugin.QueryData, _ *plugi
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_report_plan.listAwsBackupReportPlans", "api_error", err)

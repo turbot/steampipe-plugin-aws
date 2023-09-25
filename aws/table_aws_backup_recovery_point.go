@@ -33,7 +33,7 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsBackupVaults,
 			Hydrate:       listAwsBackupRecoveryPoints,
-			Tags:    map[string]string{"service": "backup", "action": "ListRecoveryPointsByBackupVault"},
+			Tags:          map[string]string{"service": "backup", "action": "ListRecoveryPointsByBackupVault"},
 			KeyColumns: []*plugin.KeyColumn{
 				// {
 				// 	Name:    "recovery_point_arn",
@@ -217,7 +217,7 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			if strings.Contains(err.Error(), "not supported resource type") {

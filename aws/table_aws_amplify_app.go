@@ -209,7 +209,7 @@ func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	for pagesLeft {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		result, err := svc.ListApps(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_amplify_app.listAmplifyApps", "api_error", err)

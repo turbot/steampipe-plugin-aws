@@ -137,7 +137,6 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 
 	pagesLeft := true
 	for pagesLeft {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

@@ -32,7 +32,7 @@ func tableAwsAPIGatewayV2Route(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAPIGatewayV2API,
 			Hydrate:       listAPIGatewayV2Routes,
-			Tags:    map[string]string{"service": "apigateway", "action": "GetRoutes"},
+			Tags:          map[string]string{"service": "apigateway", "action": "GetRoutes"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -177,7 +177,7 @@ func listAPIGatewayV2Routes(ctx context.Context, d *plugin.QueryData, h *plugin.
 	for pagesLeft {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		result, err := svc.GetRoutes(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gatewayv2_route.listAPIGatewayV2Routes", "api_error", err)

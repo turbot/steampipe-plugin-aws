@@ -44,7 +44,7 @@ func tableAwsCloudtrailImport(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getCloudTrailEventDataStore,
+				Func: getCloudTrailImport,
 				Tags: map[string]string{"service": "cloudtrail", "action": "GetImport"},
 			},
 		},
@@ -146,7 +146,6 @@ func listCloudTrailImports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

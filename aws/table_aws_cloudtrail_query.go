@@ -211,7 +211,6 @@ func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 	})
 
 	if paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
