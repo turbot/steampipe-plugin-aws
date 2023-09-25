@@ -23,11 +23,11 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed", "InvalidAction"}),
 			},
 			Hydrate: getEc2TransitGatewayVpcAttachment,
-			Tags:          map[string]string{"service": "ec2", "action": "DescribeTransitGatewayAttachments"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeTransitGatewayAttachments"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayVpcAttachment,
-			Tags:          map[string]string{"service": "ec2", "action": "DescribeTransitGatewayAttachments"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeTransitGatewayAttachments"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "association_state", Require: plugin.Optional},
 				{Name: "association_transit_gateway_route_table_id", Require: plugin.Optional},
