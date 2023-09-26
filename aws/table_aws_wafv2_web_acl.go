@@ -221,6 +221,9 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 	// ListWebACLs API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAwsWafv2WebAcls", "api_error", err)
