@@ -37,6 +37,12 @@ func tableAwsWellArchitectedMilestone(_ context.Context) *plugin.Table {
 				{Name: "workload_id", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWellArchitectedMilestone,
+				Tags: map[string]string{"service": "wellarchitected", "action": "GetMilestone"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

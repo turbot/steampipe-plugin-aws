@@ -35,6 +35,12 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 				{Name: "workload_name", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWellArchitectedWorkload,
+				Tags: map[string]string{"service": "wellarchitected", "action": "GetWorkload"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

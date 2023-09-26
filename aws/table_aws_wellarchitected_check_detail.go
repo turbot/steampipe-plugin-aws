@@ -296,6 +296,9 @@ func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *pl
 
 		// List call
 		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
+
 			output, err := paginator.NextPage(ctx)
 			if err != nil {
 				var ae smithy.APIError

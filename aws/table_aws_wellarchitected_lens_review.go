@@ -47,6 +47,12 @@ func tableAwsWellArchitectedLensReview(_ context.Context) *plugin.Table {
 			//	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			//},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWellArchitectedLensReview,
+				Tags: map[string]string{"service": "wellarchitected", "action": "GetLensReview"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

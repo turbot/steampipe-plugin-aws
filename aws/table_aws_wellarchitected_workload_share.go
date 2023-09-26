@@ -24,7 +24,7 @@ func tableAwsWellArchitectedWorkloadShare(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedWorkloadShares,
-			Tags:    map[string]string{"service": "wellarchitected", "action": "ListWorkloadShares"},
+			Tags:          map[string]string{"service": "wellarchitected", "action": "ListWorkloadShares"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "shared_with", Require: plugin.Optional},

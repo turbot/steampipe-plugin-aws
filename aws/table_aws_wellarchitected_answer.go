@@ -44,6 +44,12 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 				{Name: "milestone_number", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWellArchitectedAnswer,
+				Tags: map[string]string{"service": "wellarchitected", "action": "GetAnswer"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
