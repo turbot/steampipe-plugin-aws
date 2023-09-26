@@ -36,11 +36,11 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getKinesisAnalyticsV2Application,
-				Tags: map[string]string{"service": "firehose", "action": "DescribeApplication"},
+				Tags: map[string]string{"service": "kinesisanalytics", "action": "DescribeApplication"},
 			},
 			{
 				Func: getKinesisAnalyticsV2ApplicationTags,
-				Tags: map[string]string{"service": "firehose", "action": "ListTagsForResource"},
+				Tags: map[string]string{"service": "kinesisanalytics", "action": "ListTagsForResource"},
 			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
