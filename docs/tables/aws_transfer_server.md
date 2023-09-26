@@ -41,3 +41,29 @@ from
 order by
   user_count desc;
 ```
+
+### List workflows on upload event
+
+```sql
+select
+  server_id,
+  domain,
+  identity_provider_type,
+  endpoint_type,
+  workflow_details ->> 'OnUpload' as on_upload_workflow
+from
+  aws_transfer_server;
+```
+
+### List structured destination CloudWatch groups
+
+```sql
+select
+  server_id,
+  domain,
+  identity_provider_type,
+  endpoint_type,
+  structured_log_destinations
+from
+  aws_transfer_server
+```
