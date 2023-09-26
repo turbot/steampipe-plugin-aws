@@ -145,6 +145,9 @@ func listServiceQuotasService(ctx context.Context, d *plugin.QueryData, h *plugi
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.listServiceQuotasService", "api_error", err)

@@ -36,6 +36,12 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 				{Name: "state_machine_arn", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getStepFunctionsStateMachineExecution,
+				Tags: map[string]string{"service": "states", "action": "DescribeExecution"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

@@ -28,6 +28,7 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getKmsKey,
+			Tags:       map[string]string{"service": "kms", "action": "DescribeKey"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException", "InvalidParameter"}),
 			},

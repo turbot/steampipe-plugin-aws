@@ -26,7 +26,7 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidRequestException", "ValidationException"}),
 			},
 			Hydrate: getNetworkFirewallFirewall,
-			Tags:    map[string]string{"service": "networkfirewall", "action": "DescribeFirewall"},
+			Tags:    map[string]string{"service": "network-firewall", "action": "DescribeFirewall"},
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"vpc_id"}),
@@ -34,12 +34,12 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequestException", "ValidationException"}),
 			},
 			Hydrate: listNetworkFirewallFirewalls,
-			Tags:    map[string]string{"service": "networkfirewall", "action": "ListFirewalls"},
+			Tags:    map[string]string{"service": "network-firewall", "action": "ListFirewalls"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getNetworkFirewallFirewall,
-				Tags: map[string]string{"service": "networkfirewall", "action": "DescribeFirewall"},
+				Tags: map[string]string{"service": "network-firewall", "action": "DescribeFirewall"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),

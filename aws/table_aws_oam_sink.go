@@ -32,8 +32,8 @@ func tableAwsOAMSink(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getAwsOAMSink,
-				Tags: map[string]string{"service": "oam", "action": "GetSink"},
+				Func: listAwsOAMSinkTags,
+				Tags: map[string]string{"service": "oam", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(oamv1.EndpointsID),

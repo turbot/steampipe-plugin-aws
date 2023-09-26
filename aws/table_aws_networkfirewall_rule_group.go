@@ -23,16 +23,16 @@ func tableAwsNetworkFirewallRuleGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"arn", "rule_group_name"}),
 			Hydrate:    getNetworkFirewallRuleGroup,
-			Tags:       map[string]string{"service": "networkfirewall", "action": "DescribeRuleGroup"},
+			Tags:       map[string]string{"service": "network-firewall", "action": "DescribeRuleGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listNetworkFirewallRuleGroups,
-			Tags:    map[string]string{"service": "networkfirewall", "action": "ListRuleGroups"},
+			Tags:    map[string]string{"service": "network-firewall", "action": "ListRuleGroups"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getNetworkFirewallRuleGroup,
-				Tags: map[string]string{"service": "networkfirewall", "action": "DescribeRuleGroup"},
+				Tags: map[string]string{"service": "network-firewall", "action": "DescribeRuleGroup"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),

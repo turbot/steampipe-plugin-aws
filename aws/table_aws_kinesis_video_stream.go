@@ -36,7 +36,7 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: listKinesisVideoStreamTags,
-				Tags: map[string]string{"service": "firehose", "action": "ListTagsForStream"},
+				Tags: map[string]string{"service": "kinesisvideo", "action": "ListTagsForStream"},
 			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{

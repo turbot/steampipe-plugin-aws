@@ -23,16 +23,16 @@ func tableAwsNetworkFirewallPolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"arn", "name"}),
 			Hydrate:    getNetworkFirewallPolicy,
-			Tags:       map[string]string{"service": "networkfirewall", "action": "DescribeFirewallPolicy"},
+			Tags:       map[string]string{"service": "network-firewall", "action": "DescribeFirewallPolicy"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listNetworkFirewallPolicies,
-			Tags:    map[string]string{"service": "networkfirewall", "action": "ListFirewallPolicies"},
+			Tags:    map[string]string{"service": "network-firewall", "action": "ListFirewallPolicies"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getNetworkFirewallPolicy,
-				Tags: map[string]string{"service": "networkfirewall", "action": "DescribeFirewallPolicy"},
+				Tags: map[string]string{"service": "network-firewall", "action": "DescribeFirewallPolicy"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),

@@ -43,7 +43,7 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ssm", "action": "GetPatchBaseline"},
 			},
 			{
-				Func: getAwsSSMParameterTags,
+				Func: getAwsSSMPatchBaselineTags,
 				Tags: map[string]string{"service": "ssm", "action": "ListTagsForResource"},
 			},
 		},
