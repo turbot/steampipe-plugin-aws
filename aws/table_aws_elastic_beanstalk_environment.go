@@ -348,22 +348,20 @@ func getAwsElasticBeanstalkConfigurationSettings(ctx context.Context, d *plugin.
 
 	env := h.Item.(types.EnvironmentDescription)
 	// Build params
-	params := &elasticbeanstalk.DescribeConfigurationSettingsInput {
+	params := &elasticbeanstalk.DescribeConfigurationSettingsInput{
 		ApplicationName: env.ApplicationName,
 		EnvironmentName: env.EnvironmentName,
 	}
 
 	configurationSettings, err := svc.DescribeConfigurationSettings(ctx, params)
 	if err != nil {
-		// The API throws InvalidParameterValue exception in the case if resource is not available.
-		// Error: operation error Elastic Beanstalk: DescribeEnvironmentManagedActions, https response error StatusCode: 400, RequestID: b7503072-3694-4370-8a79-7182e5b1170a, api error InvalidParameterValue: No Environment found for EnvironmentName = 'Test32-envtwe'.
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
 			if ae.ErrorCode() == "InvalidParameterValue" {
 				return nil, nil
 			}
 		}
-		plugin.Logger(ctx).Error("elastic_beanstalk_environment.getAwsElasticBeanstalkEnvironmentManagedActions", "api_error", err)
+		plugin.Logger(ctx).Error("elastic_beanstalk_environment.getAwsElasticBeanstalkConfigurationSettings", "api_error", err)
 		return nil, err
 	}
 
