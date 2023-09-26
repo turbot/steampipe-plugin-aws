@@ -26,11 +26,11 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AccessPointNotFound"}),
 			},
 			Hydrate: getEfsAccessPoint,
-			Tags:    map[string]string{"service": "efs", "action": "DescribeAccessPoints"},
+			Tags:    map[string]string{"service": "elasticfilesystem", "action": "DescribeAccessPoints"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEfsAccessPoints,
-			Tags:    map[string]string{"service": "efs", "action": "DescribeAccessPoints"},
+			Tags:    map[string]string{"service": "elasticfilesystem", "action": "DescribeAccessPoints"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"FileSystemNotFound"}),
 			},

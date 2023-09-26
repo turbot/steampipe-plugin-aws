@@ -27,11 +27,11 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
 			},
 			Hydrate: getAwsEcrpublicRepository,
-			Tags:    map[string]string{"service": "ecrpublic", "action": "DescribeRepositories"},
+			Tags:    map[string]string{"service": "ecr-public", "action": "DescribeRepositories"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrpublicRepositories,
-			Tags:    map[string]string{"service": "ecrpublic", "action": "DescribeRepositories"},
+			Tags:    map[string]string{"service": "ecr-public", "action": "DescribeRepositories"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "registry_id", Require: plugin.Optional},
 			},
@@ -39,15 +39,15 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: listAwsEcrpublicRepositoryTags,
-				Tags: map[string]string{"service": "ecrpublic", "action": "ListTagsForResource"},
+				Tags: map[string]string{"service": "ecr-public", "action": "ListTagsForResource"},
 			},
 			{
 				Func: getAwsEcrpublicRepositoryPolicy,
-				Tags: map[string]string{"service": "ecrpublic", "action": "GetRepositoryPolicy"},
+				Tags: map[string]string{"service": "ecr-public", "action": "GetRepositoryPolicy"},
 			},
 			{
 				Func: getAwsEcrpublicDescribeImages,
-				Tags: map[string]string{"service": "ecrpublic", "action": "DescribeImages"},
+				Tags: map[string]string{"service": "ecr-public", "action": "DescribeImages"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecrpublicv1.EndpointsID),

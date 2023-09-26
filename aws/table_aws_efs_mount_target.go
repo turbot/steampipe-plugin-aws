@@ -27,17 +27,17 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"MountTargetNotFound", "InvalidParameter"}),
 			},
 			Hydrate: getAwsEfsMountTarget,
-			Tags:    map[string]string{"service": "efs", "action": "DescribeMountTargets"},
+			Tags:    map[string]string{"service": "elasticfilesystem", "action": "DescribeMountTargets"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listElasticFileSystem,
 			Hydrate:       listAwsEfsMountTargets,
-			Tags:          map[string]string{"service": "efs", "action": "DescribeMountTargets"},
+			Tags:          map[string]string{"service": "elasticfilesystem", "action": "DescribeMountTargets"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getAwsEfsMountTargetSecurityGroup,
-				Tags: map[string]string{"service": "efs", "action": "DescribeMountTargetSecurityGroups"},
+				Tags: map[string]string{"service": "elasticfilesystem", "action": "DescribeMountTargetSecurityGroups"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(efsv1.EndpointsID),
