@@ -30,7 +30,7 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSnapshots,
-			Tags:		map[string]string{"service": "rds", "action": "DescribeDBSnapshots"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBSnapshots"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_instance_identifier", Require: plugin.Optional},
 				{Name: "dbi_resource_id", Require: plugin.Optional},

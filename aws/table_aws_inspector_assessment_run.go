@@ -182,7 +182,7 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector_assessment_run.listInspectorAssessmentRuns", "api_error", err)

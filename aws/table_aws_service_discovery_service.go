@@ -30,7 +30,7 @@ func tableAwsServiceDiscoveryService(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceDiscoveryServices,
-			Tags: 	map[string]string{"service": "servicediscovery", "action": "ListServices"},
+			Tags:    map[string]string{"service": "servicediscovery", "action": "ListServices"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "namespace_id",
@@ -40,12 +40,12 @@ func tableAwsServiceDiscoveryService(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func:     getServiceDirectoryServiceTags,
-				Tags:		 map[string]string{"service": "servicediscovery", "action": "ListTagsForResource"},
+				Func: getServiceDirectoryServiceTags,
+				Tags: map[string]string{"service": "servicediscovery", "action": "ListTagsForResource"},
 			},
 			{
-				Func:     getServiceDiscoveryService,
-				Tags: 	 map[string]string{"service": "servicediscovery", "action": "GetService"},
+				Func: getServiceDiscoveryService,
+				Tags: map[string]string{"service": "servicediscovery", "action": "GetService"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(servicediscoveryv1.EndpointsID),

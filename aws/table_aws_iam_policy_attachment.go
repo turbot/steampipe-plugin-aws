@@ -21,7 +21,7 @@ func tableAwsIamPolicyAttachment(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamPolicies,
 			Hydrate:       listIamPolicyAttachments,
-			Tags:    map[string]string{"service": "iam", "action": "ListEntitiesForPolicy"},
+			Tags:          map[string]string{"service": "iam", "action": "ListEntitiesForPolicy"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "is_attached", Require: plugin.Optional, Operators: []string{"<>", "="}},
 			},

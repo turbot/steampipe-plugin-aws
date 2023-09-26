@@ -25,7 +25,7 @@ func tableAwsIamOpenIdConnectProvider(ctx context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"arn"}),
 			Hydrate:    getIamOpenIdConnectProvider,
-			Tags:    map[string]string{"service": "iam", "action": "ListOpenIDConnectProviders"},
+			Tags:       map[string]string{"service": "iam", "action": "ListOpenIDConnectProviders"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchEntity", "InvalidInput"}),
 			},

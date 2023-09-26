@@ -26,11 +26,11 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterException"}),
 			},
 			Hydrate: getEcsCluster,
-			Tags: 	map[string]string{"service": "ecs", "action": "DescribeClusters"},
+			Tags:    map[string]string{"service": "ecs", "action": "DescribeClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsClusters,
-			Tags: 	map[string]string{"service": "ecs", "action": "ListClusters"},
+			Tags:    map[string]string{"service": "ecs", "action": "ListClusters"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{

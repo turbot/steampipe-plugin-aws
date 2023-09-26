@@ -25,7 +25,7 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
 			Hydrate:    getIamRole,
-			Tags:    map[string]string{"service": "iam", "action": "GetRole"},
+			Tags:       map[string]string{"service": "iam", "action": "GetRole"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			},

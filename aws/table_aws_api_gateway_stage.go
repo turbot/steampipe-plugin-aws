@@ -190,9 +190,6 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		RestApiId: restAPI.Id,
 	}
 
-	// apply rate limiting
-	d.WaitForListRateLimit(ctx)
-
 	op, err := svc.GetStages(ctx, params)
 	if err != nil {
 		return nil, err

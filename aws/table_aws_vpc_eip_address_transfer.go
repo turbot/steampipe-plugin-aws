@@ -20,7 +20,7 @@ func tableAwsVpcEipAddressTransfer(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listVpcEips,
 			Hydrate:       listVpcEipAddressTransfers,
-			Tags:    map[string]string{"service": "ec2", "action": "DescribeAddressTransfers"},
+			Tags:          map[string]string{"service": "ec2", "action": "DescribeAddressTransfers"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "allocation_id", Require: plugin.Optional},
 			},

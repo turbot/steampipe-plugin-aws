@@ -47,8 +47,8 @@ func tableAwsDirectoryServiceCertificate(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func:		getDirectoryServiceCertificate,
-				Tags:    map[string]string{"service": "directoryservice", "action": "DescribeCertificate"},
+				Func: getDirectoryServiceCertificate,
+				Tags: map[string]string{"service": "directoryservice", "action": "DescribeCertificate"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(directoryservicev1.EndpointsID),

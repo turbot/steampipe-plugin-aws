@@ -35,7 +35,7 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 			},
 			ParentHydrate: listGlueCatalogDatabases,
 			Hydrate:       listGlueCatalogTables,
-			Tags:    map[string]string{"service": "glue", "action": "GetTables"},
+			Tags:          map[string]string{"service": "glue", "action": "GetTables"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

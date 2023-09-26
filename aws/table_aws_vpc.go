@@ -26,11 +26,11 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException", "InvalidVpcID.NotFound"}),
 			},
 			Hydrate: getVpc,
-			Tags: map[string]string{"service": "ec2", "action": "DescribeVpcs"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcs"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcs,
-			Tags: map[string]string{"service": "ec2", "action": "DescribeVpcs"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cidr_block", Require: plugin.Optional},
 				{Name: "dhcp_options_id", Require: plugin.Optional},

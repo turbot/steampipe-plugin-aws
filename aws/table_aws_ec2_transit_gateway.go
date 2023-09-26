@@ -27,11 +27,11 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidTransitGatewayID.NotFound", "InvalidTransitGatewayID.Unavailable", "InvalidTransitGatewayID.Malformed", "InvalidAction"}),
 			},
 			Hydrate: getEc2TransitGateway,
-			Tags: map[string]string{"service": "ec2", "action": "DescribeTransitGateways"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeTransitGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGateways,
-			Tags: map[string]string{"service": "ec2", "action": "DescribeTransitGateways"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeTransitGateways"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "propagation_default_route_table_id", Require: plugin.Optional},
 				{Name: "amazon_side_asn", Require: plugin.Optional},
@@ -218,7 +218,7 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_transit_gateway.listEc2TransitGateways", "api_error", err)

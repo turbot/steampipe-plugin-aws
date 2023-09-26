@@ -35,7 +35,7 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getGlueCrawler,
-				Tags:    map[string]string{"service": "glue", "action": "GetCrawler"},
+				Tags: map[string]string{"service": "glue", "action": "GetCrawler"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),

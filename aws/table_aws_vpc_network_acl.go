@@ -150,7 +150,7 @@ func listVpcNetworkACLs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_network_acl.listVpcNetworkACLs", "api_error", err)

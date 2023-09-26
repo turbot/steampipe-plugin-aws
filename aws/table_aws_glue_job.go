@@ -39,7 +39,7 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getGlueJobBookmark,
-				Tags:    map[string]string{"service": "glue", "action": "GetJobBookmark"},
+				Tags: map[string]string{"service": "glue", "action": "GetJobBookmark"},
 			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{

@@ -39,7 +39,7 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getEmrCluster,
-				Tags:    map[string]string{"service": "elasticmapreduce", "action": "DescribeCluster"},
+				Tags: map[string]string{"service": "elasticmapreduce", "action": "DescribeCluster"},
 			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -281,7 +281,7 @@ func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_emr_cluster.listEmrClusters", "api_error", err)

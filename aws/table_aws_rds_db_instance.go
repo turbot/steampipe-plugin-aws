@@ -30,7 +30,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstances,
-			Tags:		map[string]string{"service": "rds", "action": "DescribeDBInstances"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "resource_id", Require: plugin.Optional},
@@ -39,12 +39,12 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func:     getRDSDBInstancePendingMaintenanceAction,
-				Tags:		map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
+				Func: getRDSDBInstancePendingMaintenanceAction,
+				Tags: map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
 			},
 			{
-				Func: 	 getRDSDBInstanceCertificate,
-				Tags: 	 map[string]string{"service": "rds", "action": "DescribeCertificates"},
+				Func: getRDSDBInstanceCertificate,
+				Tags: map[string]string{"service": "rds", "action": "DescribeCertificates"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),

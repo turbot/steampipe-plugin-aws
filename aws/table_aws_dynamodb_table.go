@@ -31,11 +31,11 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getDynamoDBTable,
-			Tags 	: map[string]string{"service": "dynamodb", "action": "DescribeTable"},
+			Tags:    map[string]string{"service": "dynamodb", "action": "DescribeTable"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamoDBTables,
-			Tags 	: map[string]string{"service": "dynamodb", "action": "ListTables"},
+			Tags:    map[string]string{"service": "dynamodb", "action": "ListTables"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
@@ -46,7 +46,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getDynamoDBTable,
-				Tags 	: map[string]string{"service": "dynamodb", "action": "DescribeTable"},
+				Tags: map[string]string{"service": "dynamodb", "action": "DescribeTable"},
 			},
 			{
 				Func: getTableTagging,

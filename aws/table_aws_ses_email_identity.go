@@ -22,7 +22,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 			Hydrate: listSESEmailIdentities,
 			Tags:    map[string]string{"service": "ses", "action": "ListIdentities"},
 		},
-		HydrateConfig:     []plugin.HydrateConfig{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getSESIdentityVerificationAttributes,
 				Tags: map[string]string{"service": "ses", "action": "GetIdentityVerificationAttributes"},

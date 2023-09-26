@@ -28,7 +28,7 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			Hydrate:    getIamServerCertificate,
 			KeyColumns: plugin.AllColumns([]string{"name"}),
-			Tags:    map[string]string{"service": "iam", "action": "GetServerCertificate"},
+			Tags:       map[string]string{"service": "iam", "action": "GetServerCertificate"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

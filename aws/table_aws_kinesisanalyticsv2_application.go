@@ -173,8 +173,8 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 
 	for pagesLeft {
 		// apply rate limiting
-    d.WaitForListRateLimit(ctx)
-		
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListApplications(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.listKinesisAnalyticsV2Applications", "api_error", err)

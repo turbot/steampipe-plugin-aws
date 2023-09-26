@@ -281,7 +281,7 @@ func getSsoAdminResourceTags(ctx context.Context, d *plugin.QueryData, instanceA
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.getSsoAdminResourceTags", "api_error", err)

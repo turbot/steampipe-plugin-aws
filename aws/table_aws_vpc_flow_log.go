@@ -196,7 +196,7 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_flow_log.listVpcFlowlogs", "api_error", err)

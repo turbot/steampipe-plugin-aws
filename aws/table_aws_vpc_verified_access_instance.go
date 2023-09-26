@@ -116,7 +116,7 @@ func listVpcVerifiedAccessInstances(ctx context.Context, d *plugin.QueryData, _ 
 	for {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		// List call
 		resp, err := svc.DescribeVerifiedAccessInstances(ctx, input)
 

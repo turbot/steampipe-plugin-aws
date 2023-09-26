@@ -23,7 +23,7 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 		Description: "AWS ECR Image Scan Finding",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrImageScanFindings,
-			Tags:		map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
+			Tags:    map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
 			},

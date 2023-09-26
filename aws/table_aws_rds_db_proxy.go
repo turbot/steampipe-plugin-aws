@@ -30,7 +30,7 @@ func tableAwsRDSDBProxy(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBProxies,
-			Tags: map[string]string{"service": "rds", "action": "DescribeDBProxies"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBProxies"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
 			},

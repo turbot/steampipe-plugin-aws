@@ -29,7 +29,7 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException", "BadRequestException"}),
 			},
 			Hydrate: listAwsDRSJobs,
-			Tags: 	map[string]string{"service": "drs", "action": "DescribeJobs"},
+			Tags:    map[string]string{"service": "drs", "action": "DescribeJobs"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(drsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

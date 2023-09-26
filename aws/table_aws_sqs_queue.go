@@ -31,7 +31,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSqsQueues,
-			Tags: 	map[string]string{"service": "sqs", "action": "ListQueues"},
+			Tags:    map[string]string{"service": "sqs", "action": "ListQueues"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{

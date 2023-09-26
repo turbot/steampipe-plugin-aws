@@ -185,7 +185,7 @@ func getServiceCatalogPortfolio(ctx context.Context, d *plugin.QueryData, h *plu
 	} else {
 		id = d.EqualsQuals["id"].GetStringValue()
 	}
-       // Empty check
+	// Empty check
 	if id == "" {
 		return nil, nil
 	}

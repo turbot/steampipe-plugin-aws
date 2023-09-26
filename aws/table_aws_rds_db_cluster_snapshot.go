@@ -26,11 +26,11 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBSnapshotNotFound", "DBClusterSnapshotNotFoundFault"}),
 			},
 			Hydrate: getRDSDBClusterSnapshot,
-			Tags:		map[string]string{"service": "rds", "action": "DescribeDBClusterSnapshots"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusterSnapshots"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusterSnapshots,
-			Tags:		map[string]string{"service": "rds", "action": "DescribeDBClusterSnapshots"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusterSnapshots"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "db_cluster_snapshot_identifier", Require: plugin.Optional},

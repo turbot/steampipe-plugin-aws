@@ -20,7 +20,7 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamUsers,
 			Hydrate:       listUserAccessKeys,
-			Tags:    map[string]string{"service": "iam", "action": "ListAccessKeys"},
+			Tags:          map[string]string{"service": "iam", "action": "ListAccessKeys"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "user_name", Require: plugin.Optional},
 			},

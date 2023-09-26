@@ -34,7 +34,7 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 			// },
 			ParentHydrate: listEc2LaunchTemplates,
 			Hydrate:       listEc2LaunchTemplateVersions,
-			Tags:    map[string]string{"service": "ec2", "action": "DescribeLaunchTemplateVersions"},
+			Tags:          map[string]string{"service": "ec2", "action": "DescribeLaunchTemplateVersions"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "launch_template_id",

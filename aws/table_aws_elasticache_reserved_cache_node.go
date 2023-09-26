@@ -26,11 +26,11 @@ func tableAwsElastiCacheReservedCacheNode(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReservedCacheNodeNotFound"}),
 			},
 			Hydrate: getElastiCacheReservedCacheNode,
-			Tags:		map[string]string{"service": "elasticache", "action": "DescribeReservedCacheNodes"},
+			Tags:    map[string]string{"service": "elasticache", "action": "DescribeReservedCacheNodes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheReservedCacheNodes,
-			Tags:		map[string]string{"service": "elasticache", "action": "DescribeReservedCacheNodes"},
+			Tags:    map[string]string{"service": "elasticache", "action": "DescribeReservedCacheNodes"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cache_node_type", Require: plugin.Optional},
 				{Name: "duration", Require: plugin.Optional},

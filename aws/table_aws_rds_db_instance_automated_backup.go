@@ -26,11 +26,11 @@ func tableAwsRDSDBInstanceAutomatedBackup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBInstanceAutomatedBackupNotFound"}),
 			},
 			Hydrate: getRDSDBInstanceAutomatedBackup,
-			Tags:map[string]string{"service":"rds", "action": "DescribeDBInstanceAutomatedBackups"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstanceAutomatedBackups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstanceAutomatedBackups,
-			Tags:map[string]string{"service":"rds", "action": "DescribeDBInstanceAutomatedBackups"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstanceAutomatedBackups"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},

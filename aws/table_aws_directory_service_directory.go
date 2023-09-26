@@ -288,7 +288,7 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 	for pagesLeft {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		result, err := svc.DescribeDirectories(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_directory_service_directory.listDirectoryServiceDirectories", "api_error", err)

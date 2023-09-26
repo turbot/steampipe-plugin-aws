@@ -23,7 +23,7 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 		Description: "AWS ECS Service",
 		List: &plugin.ListConfig{
 			Hydrate:       listEcsServices,
-			Tags:					map[string]string{"service": "ecs", "action": "ListServices"},
+			Tags:          map[string]string{"service": "ecs", "action": "ListServices"},
 			ParentHydrate: listEcsClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundException"}),

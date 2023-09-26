@@ -31,7 +31,7 @@ func tableAwsGlobalAcceleratorListener(_ context.Context) *plugin.Table {
 			},
 			ParentHydrate: listGlobalAcceleratorAccelerators,
 			Hydrate:       listGlobalAcceleratorListeners,
-			Tags:    map[string]string{"service": "globalaccelerator", "action": "ListListeners"},
+			Tags:          map[string]string{"service": "globalaccelerator", "action": "ListListeners"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

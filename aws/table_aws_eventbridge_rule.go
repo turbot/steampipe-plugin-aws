@@ -30,7 +30,7 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsEventBridgeBuses,
 			Hydrate:       listAwsEventBridgeRules,
-			Tags:    map[string]string{"service": "events", "action": "ListRules"},
+			Tags:          map[string]string{"service": "events", "action": "ListRules"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "event_bus_name", Require: plugin.Optional},
 				{Name: "name_prefix", Require: plugin.Optional},

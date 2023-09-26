@@ -112,7 +112,7 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			if strings.Contains(err.Error(), "not subscribed") {

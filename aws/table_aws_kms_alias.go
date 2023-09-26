@@ -113,8 +113,8 @@ func listKmsAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	})
 
 	for paginator.HasMorePages() {
-    // apply rate limiting
-    d.WaitForListRateLimit(ctx)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {

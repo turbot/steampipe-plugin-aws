@@ -36,7 +36,7 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listGuardDutyThreatIntelSets,
-			Tags:    map[string]string{"service": "guardduty", "action": "ListThreatIntelSets"},
+			Tags:          map[string]string{"service": "guardduty", "action": "ListThreatIntelSets"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "detector_id", Require: plugin.Optional},
 			},
@@ -44,7 +44,7 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getGuardDutyThreatIntelSet,
-				Tags:    map[string]string{"service": "guardduty", "action": "GetThreatIntelSet"},
+				Tags: map[string]string{"service": "guardduty", "action": "GetThreatIntelSet"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),

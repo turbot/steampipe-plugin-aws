@@ -26,7 +26,7 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReservedDBInstanceNotFound"}),
 			},
 			Hydrate: getRDSReservedDBInstance,
-			Tags:		map[string]string{"service": "rds", "action": "DescribeReservedDBInstances"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeReservedDBInstances"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSReservedDBInstances,

@@ -21,7 +21,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 		Description: "AWS ECS Task",
 		List: &plugin.ListConfig{
 			Hydrate:       listEcsTasks,
-			Tags: 				map[string]string{"service": "ecs", "action": "DescribeTasks"},
+			Tags:          map[string]string{"service": "ecs", "action": "DescribeTasks"},
 			ParentHydrate: listEcsClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundException", "ServiceNotFoundException", "InvalidParameterException"}),
@@ -48,8 +48,8 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func:					 getEcsTaskProtection,
-				Tags:					 map[string]string{"service": "ecs", "action": "GetTaskProtection"},
+				Func: getEcsTaskProtection,
+				Tags: map[string]string{"service": "ecs", "action": "GetTaskProtection"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),

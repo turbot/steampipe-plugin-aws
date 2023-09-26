@@ -37,7 +37,7 @@ func tableAwsIamAccessAdvisor(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.SingleColumn("principal_arn"),
 			Hydrate:    listAccessAdvisor,
-			Tags:    map[string]string{"service": "iam", "action": "GetServiceLastAccessedDetails"},
+			Tags:       map[string]string{"service": "iam", "action": "GetServiceLastAccessedDetails"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

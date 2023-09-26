@@ -36,7 +36,7 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getGlueDevEndpoint,
-				Tags:    map[string]string{"service": "glue", "action": "GetDevEndpoint"},
+				Tags: map[string]string{"service": "glue", "action": "GetDevEndpoint"},
 			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{

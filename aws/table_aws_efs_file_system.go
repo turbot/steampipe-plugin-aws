@@ -28,19 +28,19 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"FileSystemNotFound", "ValidationException"}),
 			},
 			Hydrate: getElasticFileSystem,
-			Tags: 	map[string]string{"service": "efs", "action": "DescribeFileSystems"},
+			Tags:    map[string]string{"service": "efs", "action": "DescribeFileSystems"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElasticFileSystem,
-			Tags:		map[string]string{"service": "efs", "action": "DescribeFileSystems"},
+			Tags:    map[string]string{"service": "efs", "action": "DescribeFileSystems"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "creation_token", Require: plugin.Optional},
 			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func:getElasticFileSystemPolicy,
-				Tags: 	map[string]string{"service": "efs", "action": "DescribeFileSystemPolicy"},
+				Func: getElasticFileSystemPolicy,
+				Tags: map[string]string{"service": "efs", "action": "DescribeFileSystemPolicy"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(efsv1.EndpointsID),

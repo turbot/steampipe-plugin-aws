@@ -34,7 +34,7 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listAwsGuardDutyIPSets,
-			Tags:    map[string]string{"service": "guardduty", "action": "ListIPSets"},
+			Tags:          map[string]string{"service": "guardduty", "action": "ListIPSets"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "detector_id", Require: plugin.Optional},
 			},

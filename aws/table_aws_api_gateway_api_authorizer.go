@@ -143,9 +143,6 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 		RestApiId: restAPI.Id,
 	}
 
-	// apply rate limiting
-	d.WaitForListRateLimit(ctx)
-
 	op, err := svc.GetAuthorizers(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_authorizer.listRestAPIAuthorizers", "api_error", err)

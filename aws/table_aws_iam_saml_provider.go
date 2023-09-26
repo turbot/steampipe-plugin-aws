@@ -21,7 +21,7 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"arn"}),
 			Hydrate:    getIamSamlProvider,
-			Tags:    map[string]string{"service": "iam", "action": "GetSAMLProvider"},
+			Tags:       map[string]string{"service": "iam", "action": "GetSAMLProvider"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchEntity"}),
 			},

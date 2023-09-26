@@ -46,7 +46,7 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getGlueDataQualityRuleset,
-				Tags:    map[string]string{"service": "glue", "action": "GetDataQualityRuleset"},
+				Tags: map[string]string{"service": "glue", "action": "GetDataQualityRuleset"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),

@@ -20,7 +20,7 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 		Description: "AWS Tagging Resource",
 		Get: &plugin.GetConfig{
 			Hydrate:    getTaggingResource,
-			Tags:    map[string]string{"service": "tag", "action": "GetResources"},
+			Tags:       map[string]string{"service": "tag", "action": "GetResources"},
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterException"}),

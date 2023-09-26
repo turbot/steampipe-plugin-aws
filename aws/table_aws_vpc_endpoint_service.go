@@ -164,7 +164,7 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for pagesLeft {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		result, err := svc.DescribeVpcEndpointServices(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_endpoint_service.listVpcEndpointServices", "api_error", err)

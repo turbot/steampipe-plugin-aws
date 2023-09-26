@@ -34,7 +34,7 @@ func tableAwsCloudwatchLogEvent(_ context.Context) *plugin.Table {
 		Description: "AWS CloudWatch Log Event",
 		List: &plugin.ListConfig{
 			Hydrate:    listCloudwatchLogEvents,
-			Tags:    map[string]string{"service": "logs", "action": "FilterLogEvents"},
+			Tags:       map[string]string{"service": "logs", "action": "FilterLogEvents"},
 			KeyColumns: tableAwsCloudwatchLogEventListKeyColumns(),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),

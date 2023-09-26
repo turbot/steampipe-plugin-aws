@@ -30,7 +30,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusters,
-			Tags: 	map[string]string{"service": "rds", "action": "DescribeDBClusters"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusters"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "clone_group_id", Require: plugin.Optional},
 				{Name: "engine", Require: plugin.Optional},

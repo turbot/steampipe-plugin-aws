@@ -30,7 +30,7 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSubnetGroups,
-			Tags: 	map[string]string{"service": "rds", "action": "DescribeDBSubnetGroups"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBSubnetGroups"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{

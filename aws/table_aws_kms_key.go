@@ -243,8 +243,8 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	})
 
 	for paginator.HasMorePages() {
-    // apply rate limiting
-    d.WaitForListRateLimit(ctx)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -394,8 +394,8 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	})
 
 	for paginator.HasMorePages() {
-    // apply rate limiting
-    d.WaitForListRateLimit(ctx)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -443,8 +443,8 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	})
 
 	for paginator.HasMorePages() {
-    // apply rate limiting
-    d.WaitForListRateLimit(ctx)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {

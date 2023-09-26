@@ -28,11 +28,11 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidNetworkInterfaceID.NotFound", "InvalidNetworkInterfaceID.Unavailable", "InvalidNetworkInterfaceID.Malformed"}),
 			},
 			Hydrate: getEc2NetworkInterface,
-			Tags: map[string]string{"service": "ec2", "action": "DescribeNetworkInterfaces"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNetworkInterfaces"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2NetworkInterfaces,
-			Tags: map[string]string{"service": "ec2", "action": "DescribeNetworkInterfaces"},
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNetworkInterfaces"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "association_id", Require: plugin.Optional},
 				{Name: "association_allocation_id", Require: plugin.Optional},

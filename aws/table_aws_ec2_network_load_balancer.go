@@ -26,11 +26,11 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"LoadBalancerNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2NetworkLoadBalancer,
-			Tags: map[string]string{"service": "autoscaling", "action": "DescribeLoadBalancers"},
+			Tags:    map[string]string{"service": "autoscaling", "action": "DescribeLoadBalancers"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2NetworkLoadBalancers,
-			Tags: map[string]string{"service": "autoscaling", "action": "DescribeLoadBalancers"},
+			Tags:    map[string]string{"service": "autoscaling", "action": "DescribeLoadBalancers"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"LoadBalancerNotFound", "ValidationError"}),
 			},

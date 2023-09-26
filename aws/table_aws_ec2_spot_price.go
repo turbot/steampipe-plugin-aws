@@ -113,7 +113,7 @@ func listEc2SpotPrice(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
-		
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_spot_price_history.listEc2SpotPrice", "api_error", err)
