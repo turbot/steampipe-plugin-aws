@@ -36,6 +36,20 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "inspector", "action": "ListAssessmentTemplates"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listAwsInspectorAssessmentEventSubscriptions,
+				Tags: map[string]string{"service": "inspector", "action": "ListEventSubscriptions"},
+			},
+			{
+				Func: getInspectorAssessmentTemplate,
+				Tags: map[string]string{"service": "inspector", "action": "DescribeAssessmentTemplates"},
+			},
+			{
+				Func: getAwsInspectorAssessmentTemplateTags,
+				Tags: map[string]string{"service": "inspector", "action": "ListTagsForResource"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(inspectorv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -308,6 +322,9 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector_assessment_template.listAwsInspectorAssessmentEventSubscriptions", "api_error", err)
