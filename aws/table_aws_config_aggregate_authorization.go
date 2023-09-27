@@ -113,7 +113,6 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 	plugin.Logger(ctx).Info("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "HAS MORE PAGES", err)
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

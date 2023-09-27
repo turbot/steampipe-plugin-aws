@@ -264,7 +264,6 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	for {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

@@ -25,6 +25,12 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIamAccessKeyLastUsed,
+				Tags: map[string]string{"service": "iam", "action": "GetAccessKeyLastUsed"},
+			},
+		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "access_key_id",

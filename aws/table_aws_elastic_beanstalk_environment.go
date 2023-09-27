@@ -29,11 +29,11 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getElasticBeanstalkEnvironment,
-			Tags:    map[string]string{"service": "elasticache", "action": "DescribeEnvironments"},
+			Tags:    map[string]string{"service": "elasticbeanstalk", "action": "DescribeEnvironments"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElasticBeanstalkEnvironments,
-			Tags:    map[string]string{"service": "elasticache", "action": "DescribeEnvironments"},
+			Tags:    map[string]string{"service": "elasticbeanstalk", "action": "DescribeEnvironments"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "environment_id", Require: plugin.Optional},
 				{Name: "application_name", Require: plugin.Optional},

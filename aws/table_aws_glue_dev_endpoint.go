@@ -33,12 +33,6 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "glue", "action": "GetDevEndpoints"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func: getGlueDevEndpoint,
-				Tags: map[string]string{"service": "glue", "action": "GetDevEndpoint"},
-			},
-		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "endpoint_name",

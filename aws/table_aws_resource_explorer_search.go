@@ -196,7 +196,6 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 	})
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

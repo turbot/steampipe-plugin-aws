@@ -33,7 +33,7 @@ func tableAwsSsoAdminPermissionSet(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sso", "action": "DescribePermissionSet"},
 			},
 			{
-				Func: getNamespaceTags,
+				Func: getSsoAdminPermissionSetTags,
 				Tags: map[string]string{"service": "sso", "action": "ListTagsForResource"},
 			},
 		},

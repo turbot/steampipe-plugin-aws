@@ -164,7 +164,6 @@ func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryDat
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

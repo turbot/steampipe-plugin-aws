@@ -89,7 +89,6 @@ func listCloudwatchLogResourcePolicies(ctx context.Context, d *plugin.QueryData,
 
 	// This API doesn't have Paginator available
 	for {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

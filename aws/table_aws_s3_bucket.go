@@ -19,7 +19,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		Description: "AWS S3 Bucket",
 		List: &plugin.ListConfig{
 			Hydrate: listS3Buckets,
-			Tags:    map[string]string{"service": "s3", "action": "ListBuckets"},
+			Tags:    map[string]string{"service": "s3", "action": "ListBucket"},
 		},
 		// Note: No Get for S3 buckets, since it must list all the buckets
 		// anyway just to get the creation_date which is only available via the
@@ -53,7 +53,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			{
 				Func:    getBucketLifecycle,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketLifecycleConfiguration"},
+				Tags:    map[string]string{"service": "s3", "action": "GetLifecycleConfiguration"},
 			},
 			{
 				Func:    getBucketLogging,

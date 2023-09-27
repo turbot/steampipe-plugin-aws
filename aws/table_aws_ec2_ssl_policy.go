@@ -26,11 +26,11 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SSLPolicyNotFound"}),
 			},
 			Hydrate: getEc2SslPolicy,
-			Tags:    map[string]string{"service": "ec2", "action": "DescribeSSLPolicies"},
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeSSLPolicies"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2SslPolicies,
-			Tags:    map[string]string{"service": "ec2", "action": "DescribeSSLPolicies"},
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeSSLPolicies"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elbv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

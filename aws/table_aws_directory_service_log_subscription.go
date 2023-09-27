@@ -21,7 +21,7 @@ func tableAwsDirectoryServiceLogSubscription(_ context.Context) *plugin.Table {
 		Description: "AWS Directory Service Log Subscription",
 		List: &plugin.ListConfig{
 			Hydrate: listDirectoryServiceLogSubscription,
-			Tags:    map[string]string{"service": "directoryservice", "action": "ListLogSubscriptions"},
+			Tags:    map[string]string{"service": "ds", "action": "ListLogSubscriptions"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityDoesNotExistException"}),
 			},

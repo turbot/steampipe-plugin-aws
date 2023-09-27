@@ -29,12 +29,12 @@ func tableAwsDirectoryServiceCertificate(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CertificateDoesNotExistException", "DirectoryDoesNotExistException", "InvalidParameterException"}),
 			},
 			Hydrate: getDirectoryServiceCertificate,
-			Tags:    map[string]string{"service": "directoryservice", "action": "DescribeCertificate"},
+			Tags:    map[string]string{"service": "ds", "action": "DescribeCertificate"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listDirectoryServiceDirectories,
 			Hydrate:       listDirectoryServiceCertificates,
-			Tags:          map[string]string{"service": "directoryservice", "action": "ListCertificates"},
+			Tags:          map[string]string{"service": "ds", "action": "ListCertificates"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DirectoryDoesNotExistException"}),
 			},
@@ -48,7 +48,7 @@ func tableAwsDirectoryServiceCertificate(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getDirectoryServiceCertificate,
-				Tags: map[string]string{"service": "directoryservice", "action": "DescribeCertificate"},
+				Tags: map[string]string{"service": "ds", "action": "DescribeCertificate"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(directoryservicev1.EndpointsID),

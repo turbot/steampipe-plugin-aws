@@ -26,11 +26,11 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
 			},
 			Hydrate: getDirectoryServiceDirectory,
-			Tags:    map[string]string{"service": "directoryservice", "action": "DescribeDirectories"},
+			Tags:    map[string]string{"service": "ds", "action": "DescribeDirectories"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDirectoryServiceDirectories,
-			Tags:    map[string]string{"service": "directoryservice", "action": "DescribeDirectories"},
+			Tags:    map[string]string{"service": "ds", "action": "DescribeDirectories"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "directory_id",
@@ -41,19 +41,19 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getDirectoryServiceEventTopics,
-				Tags: map[string]string{"service": "directoryservice", "action": "DescribeEventTopics"},
+				Tags: map[string]string{"service": "ds", "action": "DescribeEventTopics"},
 			},
 			{
 				Func: getDirectoryServiceSnapshotLimit,
-				Tags: map[string]string{"service": "directoryservice", "action": "GetSnapshotLimits"},
+				Tags: map[string]string{"service": "ds", "action": "GetSnapshotLimits"},
 			},
 			{
 				Func: getDirectoryServiceSharedDirectory,
-				Tags: map[string]string{"service": "directoryservice", "action": "DescribeSharedDirectories"},
+				Tags: map[string]string{"service": "ds", "action": "DescribeSharedDirectories"},
 			},
 			{
 				Func: getDirectoryServiceDirectoryTags,
-				Tags: map[string]string{"service": "directoryservice", "action": "ListTagsForResource"},
+				Tags: map[string]string{"service": "ds", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(directoryservicev1.EndpointsID),

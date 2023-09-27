@@ -253,6 +253,9 @@ func listCodeDeployDeploymentGroups(ctx context.Context, d *plugin.QueryData, h 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_codedeploy_deployment_group.listCodeDeployDeploymentGroups", "api_error", err)

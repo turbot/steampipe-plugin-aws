@@ -217,7 +217,6 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

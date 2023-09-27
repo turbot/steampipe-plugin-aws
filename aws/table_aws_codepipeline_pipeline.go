@@ -34,7 +34,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getCodeDeployDeploymentGroupTags,
+				Func: getPipelineTags,
 				Tags: map[string]string{"service": "codepipeline", "action": "ListTagsForResource"},
 			},
 			{
@@ -174,7 +174,6 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
@@ -267,7 +266,6 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

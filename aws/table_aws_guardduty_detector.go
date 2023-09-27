@@ -29,7 +29,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyDetector,
-			Tags:    map[string]string{"service": "guardduty", "action": "GetSecurityConfiguration"},
+			Tags:    map[string]string{"service": "guardduty", "action": "GetDetector"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGuardDutyDetectors,

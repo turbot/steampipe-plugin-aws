@@ -34,6 +34,10 @@ func tableAwsGlobalAcceleratorAccelerator(_ context.Context) *plugin.Table {
 				Func: getGlobalAcceleratorAcceleratorTags,
 				Tags: map[string]string{"service": "globalaccelerator", "action": "ListTagsForResource"},
 			},
+			{
+				Func: getGlobalAcceleratorAcceleratorAttributes,
+				Tags: map[string]string{"service": "globalaccelerator", "action": "DescribeAcceleratorAttributes"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

@@ -31,6 +31,16 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 			Hydrate: listVpcEndpointServices,
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcEndpointServices"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listVpcEndpointServicePermissions,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeVpcEndpointServicePermissions"},
+			},
+			{
+				Func: getVpcEndpointConnections,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeVpcEndpointConnections"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -243,6 +253,9 @@ func listVpcEndpointServicePermissions(ctx context.Context, d *plugin.QueryData,
 
 	var allowedPrincipals []types.AllowedPrincipal
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			if err != nil {

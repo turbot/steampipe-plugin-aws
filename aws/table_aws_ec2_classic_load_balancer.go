@@ -38,7 +38,7 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancerAttributes"},
 			},
 			{
-				Func: getTopicAttributes,
+				Func: getAwsEc2ClassicLoadBalancerTags,
 				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
 			},
 		},

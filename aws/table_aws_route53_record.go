@@ -195,7 +195,6 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Paginator is not supported in AWS SDK v2 as of 2022/11/04
 	// So we use generic pagination handling instead
 	for {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

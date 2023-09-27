@@ -54,10 +54,6 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 				Func: getS3AccessPointPolicy,
 				Tags: map[string]string{"service": "s3", "action": "GetAccessPointPolicy"},
 			},
-			{
-				Func: getHostedZoneDNSSEC,
-				Tags: map[string]string{"service": "route53", "action": "GetDNSSEC"},
-			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(s3controlv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -220,7 +216,6 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

@@ -38,6 +38,10 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
+				Func: getAwsEventBridgeRule,
+				Tags: map[string]string{"service": "events", "action": "DescribeRule"},
+			},
+			{
 				Func: getAwsEventBridgeTargetByRule,
 				Tags: map[string]string{"service": "events", "action": "ListTargetsByRule"},
 			},
