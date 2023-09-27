@@ -39,11 +39,11 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getAwsEc2ClassicLoadBalancerAttributes,
+				Func: getAwsEc2GatewayLoadBalancerAttributes,
 				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancerAttributes"},
 			},
 			{
-				Func: getTopicAttributes,
+				Func: getAwsEc2GatewayLoadBalancerTags,
 				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
 			},
 		},

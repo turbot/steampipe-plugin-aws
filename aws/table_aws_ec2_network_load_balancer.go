@@ -26,11 +26,11 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"LoadBalancerNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2NetworkLoadBalancer,
-			Tags:    map[string]string{"service": "autoscaling", "action": "DescribeLoadBalancers"},
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancers"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2NetworkLoadBalancers,
-			Tags:    map[string]string{"service": "autoscaling", "action": "DescribeLoadBalancers"},
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancers"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"LoadBalancerNotFound", "ValidationError"}),
 			},
@@ -44,11 +44,11 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getAwsEc2NetworkLoadBalancerAttributes,
-				Tags: map[string]string{"service": "autoscaling", "action": "DescribeLoadBalancerAttributes"},
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancerAttributes"},
 			},
 			{
 				Func: getAwsEc2NetworkLoadBalancerTags,
-				Tags: map[string]string{"service": "autoscaling", "action": "DescribeTags"},
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elbv2v1.EndpointsID),

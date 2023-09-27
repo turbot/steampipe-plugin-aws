@@ -23,11 +23,11 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationError"}),
 			},
 			Hydrate: getAwsEc2LaunchConfiguration,
-			Tags:    map[string]string{"service": "ec2", "action": "DescribeLaunchConfigurations"},
+			Tags:    map[string]string{"service": "autoscaling", "action": "DescribeLaunchConfigurations"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEc2LaunchConfigurations,
-			Tags:    map[string]string{"service": "ec2", "action": "DescribeLaunchConfigurations"},
+			Tags:    map[string]string{"service": "autoscaling", "action": "DescribeLaunchConfigurations"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
