@@ -45,6 +45,12 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 				{Name: "detector_id", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGuardDutyPublishingDestination,
+				Tags: map[string]string{"service": "guardduty", "action": "DescribePublishingDestination"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{

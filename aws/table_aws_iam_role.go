@@ -47,7 +47,7 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "iam", "action": "ListAttachedRolePolicies"},
 			},
 			{
-				Func: getAwsIamRoleAttachedPolicies,
+				Func: listAwsIamRoleInlinePolicies,
 				Tags: map[string]string{"service": "iam", "action": "ListRolePolicies"},
 			},
 		},

@@ -30,6 +30,12 @@ func tableAwsIamOpenIdConnectProvider(ctx context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchEntity", "InvalidInput"}),
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIamOpenIdConnectProvider,
+				Tags: map[string]string{"service": "iam", "action": "ListOpenIDConnectProviders"},
+			},
+		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",

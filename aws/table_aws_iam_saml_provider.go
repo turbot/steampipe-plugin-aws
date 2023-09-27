@@ -30,6 +30,12 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 			Hydrate: listIamSamlProviders,
 			Tags:    map[string]string{"service": "iam", "action": "ListSAMLProviders"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIamSamlProvider,
+				Tags: map[string]string{"service": "iam", "action": "GetSAMLProvider"},
+			},
+		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
