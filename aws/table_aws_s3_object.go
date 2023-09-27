@@ -46,10 +46,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "s3", "action": "GetObjectTagging"},
 			},
 			{
-				Func: getBucketACL,
-				Tags: map[string]string{"service": "s3", "action": "GetBucketAcl"},
-			},
-			{
 				Func: getBucketLocationForObjects,
 				Tags: map[string]string{"service": "s3", "action": "GetBucketLocation"},
 			},
@@ -434,7 +430,6 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	// execute list call
 	for {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

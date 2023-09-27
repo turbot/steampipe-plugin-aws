@@ -250,7 +250,6 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
@@ -328,7 +327,6 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 	pagesLeft := true
 	tags := []types.Tag{}
 	for pagesLeft {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

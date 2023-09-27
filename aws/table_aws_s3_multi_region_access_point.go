@@ -135,7 +135,6 @@ func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *
 	})
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

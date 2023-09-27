@@ -180,7 +180,6 @@ func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

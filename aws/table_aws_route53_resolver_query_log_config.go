@@ -151,7 +151,6 @@ func listRoute53ResolverQueryLogConfigs(ctx context.Context, d *plugin.QueryData
 	})
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

@@ -109,7 +109,6 @@ func listBucketIntelligentTieringConfigurations(ctx context.Context, d *plugin.Q
 
 	pageLeft := true
 	for pageLeft {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

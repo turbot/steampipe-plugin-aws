@@ -24,7 +24,7 @@ func tableAwsDocDBClusterInstance(_ context.Context) *plugin.Table {
 		Description: "AWS DocumentDB Cluster Instance",
 		List: &plugin.ListConfig{
 			Hydrate: listDocDBClusterInstances,
-			Tags:    map[string]string{"service": "docdb", "action": "DescribeDBInstances"},
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "DBInstanceNotFound"}),
 			},

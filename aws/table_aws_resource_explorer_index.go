@@ -86,7 +86,6 @@ func listAWSExplorerIndexes(ctx context.Context, d *plugin.QueryData, h *plugin.
 	})
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

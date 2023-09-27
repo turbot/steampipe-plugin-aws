@@ -183,7 +183,6 @@ func listAwsSageMakerModels(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
@@ -269,7 +268,6 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 	pagesLeft := true
 	tags := []types.Tag{}
 	for pagesLeft {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

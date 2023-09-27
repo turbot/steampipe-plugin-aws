@@ -151,7 +151,6 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

@@ -131,7 +131,6 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 	})
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

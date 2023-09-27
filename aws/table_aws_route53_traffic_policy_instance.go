@@ -124,7 +124,6 @@ func listTrafficPolicyInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 	// List call
 	pagesLeft := true
 	for pagesLeft {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

@@ -179,7 +179,6 @@ func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, sv
 	// List call
 	pagesLeft := true
 	for pagesLeft {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

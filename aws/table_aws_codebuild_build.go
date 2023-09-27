@@ -247,7 +247,6 @@ func listCodeBuildBuilds(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// List call
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

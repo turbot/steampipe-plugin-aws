@@ -149,7 +149,6 @@ func listHealthChecks(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	})
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

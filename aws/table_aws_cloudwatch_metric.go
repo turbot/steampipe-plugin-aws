@@ -125,7 +125,6 @@ func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	})
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 

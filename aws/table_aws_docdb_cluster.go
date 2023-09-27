@@ -28,16 +28,16 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBClusterNotFoundFault"}),
 			},
 			Hydrate: getDocDBCluster,
-			Tags:    map[string]string{"service": "docdb", "action": "DescribeDBClusters"},
+			Tags:    map[string]string{"service": "docdb-elastic", "action": "GetCluster"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDocDBClusters,
-			Tags:    map[string]string{"service": "docdb", "action": "DescribeDBClusters"},
+			Tags:    map[string]string{"service": "docdb-elastic", "action": "ListClusters"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getDocDBClusterTags,
-				Tags: map[string]string{"service": "docdb", "action": "ListTagsForResource"},
+				Tags: map[string]string{"service": "docdb-elastic", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(docdbv1.EndpointsID),

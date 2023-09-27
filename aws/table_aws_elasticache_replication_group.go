@@ -201,6 +201,7 @@ func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 	for paginator.HasMorePages() {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_elasticache_replication_group.listElastiCacheParameterGroup", "api_error", err)

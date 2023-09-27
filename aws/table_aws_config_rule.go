@@ -170,7 +170,6 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	})
 
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
