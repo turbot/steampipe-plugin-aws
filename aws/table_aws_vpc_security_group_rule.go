@@ -40,6 +40,12 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 				},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getReferencedSecurityGroupDetails,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeSecurityGroups"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
