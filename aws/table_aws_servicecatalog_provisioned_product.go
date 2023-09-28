@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/servicecatalog"
@@ -250,7 +251,7 @@ func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryDat
 	}
 
 	if id != "" && name != "" {
-		return nil, nil
+		return nil, fmt.Errorf("Both ProvisionedProductName and ProvisionedProductId cannot be passed in the where clause.")
 	}
 
 	// Create client
