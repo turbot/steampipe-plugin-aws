@@ -410,6 +410,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_serverlessapplicationrepository_application":              tableAwsServerlessApplicationRepositoryApplication(ctx),
 			"aws_servicecatalog_portfolio":                                 tableAwsServicecatalogPortfolio(ctx),
 			"aws_servicecatalog_product":                                   tableAwsServicecatalogProduct(ctx),
+			"aws_servicecatalog_provisioned_product":                       tableAwsServicecatalogProvisionedProduct(ctx),
 			"aws_service_discovery_instance":                               tableAwsServiceDiscoveryInstance(ctx),
 			"aws_service_discovery_namespace":                              tableAwsServiceDiscoveryNamespace(ctx),
 			"aws_service_discovery_service":                                tableAwsServiceDiscoveryService(ctx),
