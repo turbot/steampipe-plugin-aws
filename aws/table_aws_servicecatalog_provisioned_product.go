@@ -21,7 +21,7 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 		Name:        "aws_servicecatalog_provisioned_product",
 		Description: "AWS Service Catalog Provisioned Product",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("id"),
+			KeyColumns: plugin.AnyColumn([]string{"id", "name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -156,7 +156,7 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ProvisionedProductDetail.Arn"),
+				Transform:   transform.FromField("ProvisionedProductDetail.Arn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -241,15 +241,15 @@ func listServiceCatalogProvisionedProducts(ctx context.Context, d *plugin.QueryD
 //// HYDRATE FUNCTIONS
 
 func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var id string
-	if h.Item != nil {
-		data := h.Item.(*servicecatalog.DescribeProvisionedProductOutput)
-		id = *data.ProvisionedProductDetail.Id
-	} else {
-		id = d.EqualsQualString("id")
+	var id, name string
+	id = d.EqualsQualString("id")
+	name = d.EqualsQualString("name")
+
+	if id == "" && name == "" {
+		return nil, nil
 	}
 
-	if id == "" {
+	if id != "" && name != "" {
 		return nil, nil
 	}
 
@@ -264,19 +264,32 @@ func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryDat
 		return nil, nil
 	}
 
-	// Build the params
-	params := &servicecatalog.DescribeProvisionedProductInput{
-		Id: aws.String(id),
+	// Get call by passing id
+	if id != "" {
+		params := &servicecatalog.DescribeProvisionedProductInput{
+			Id: aws.String(id),
+		}
+		op, err := svc.DescribeProvisionedProduct(ctx, params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_servicecatalog_provisioned_product.getServiceCatalogProvisionedProduct", "api_error", err)
+			return nil, err
+		}
+		return op, nil
 	}
 
-	// Get call
-	op, err := svc.DescribeProvisionedProduct(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_servicecatalog_provisioned_product.getServiceCatalogProvisionedProduct", "api_error", err)
-		return nil, err
+	// Get call by passing name
+	if name != "" {
+		params := &servicecatalog.DescribeProvisionedProductInput{
+			Name: aws.String(name),
+		}
+		op, err := svc.DescribeProvisionedProduct(ctx, params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_servicecatalog_provisioned_product.getServiceCatalogProvisionedProduct", "api_error", err)
+			return nil, err
+		}
+		return op, nil
 	}
-
-	return op.ProvisionedProductDetail, nil
+	return nil, nil
 }
 
 //// UTILITY FUNCTIONS
