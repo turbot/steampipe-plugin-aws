@@ -2,14 +2,17 @@
 
 _Enhancements_
 
-- Updated `service.go` file to use `info level logging` instead of `trace`. ([#1919](https://github.com/turbot/steampipe-plugin-aws/pull/1919))
-- Updated the `make file` to build the netgo package for darwin system. ([#1918](https://github.com/turbot/steampipe-plugin-aws/pull/1918))
+- Updated the `Makefile` to build the netgo package for darwin system. ([#1918](https://github.com/turbot/steampipe-plugin-aws/pull/1918))
 - Added column `configuration_settings` to `aws_elastic_beanstalk_environment` table. ([#1916](https://github.com/turbot/steampipe-plugin-aws/pull/1916))
 
 _Bug fixes_
 
 - Fixed the table `aws_dynamodb_backup` to return nil instead of an error when backup does not exist. ([#1914](https://github.com/turbot/steampipe-plugin-aws/pull/1914))
 - Fixed the `capacity_reservation_specification` column of `aws_ec2_instance` table to be of `JSON` type instead of `STRING`. ([#1903](https://github.com/turbot/steampipe-plugin-aws/pull/1903))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.5.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v552-2023-09-29) ([#1921](https://github.com/turbot/steampipe-plugin-aws/pull/1921))
 
 ## v0.118.1 [2023-09-14]
 
