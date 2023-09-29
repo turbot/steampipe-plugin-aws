@@ -13,6 +13,7 @@ _Bug fixes_
 _Dependencies_
 
 - Recompiled plugin with [steampipe-plugin-sdk v5.5.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v552-2023-09-29) which improves logging for connection config updates. ([#1921](https://github.com/turbot/steampipe-plugin-aws/pull/1921))
+
 ## v0.118.1 [2023-09-14]
 
 _Bug fixes_
