@@ -3,7 +3,7 @@
 _Enhancements_
 
 - Updated the `Makefile` to build the netgo package for darwin system. ([#1918](https://github.com/turbot/steampipe-plugin-aws/pull/1918))
-- Added column `configuration_settings` to `aws_elastic_beanstalk_environment` table. ([#1916](https://github.com/turbot/steampipe-plugin-aws/pull/1916))
+- Added the `configuration_settings` column to `aws_elastic_beanstalk_environment` table. ([#1916](https://github.com/turbot/steampipe-plugin-aws/pull/1916))
 
 _Bug fixes_
 
