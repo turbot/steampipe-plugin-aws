@@ -1,3 +1,19 @@
+## v0.119.0 [2023-09-29]
+
+_Enhancements_
+
+- Updated the `Makefile` to build the netgo package only for darwin systems. ([#1918](https://github.com/turbot/steampipe-plugin-aws/pull/1918))
+- Added the `configuration_settings` column to `aws_elastic_beanstalk_environment` table. ([#1916](https://github.com/turbot/steampipe-plugin-aws/pull/1916))
+
+_Bug fixes_
+
+- Fixed the table `aws_dynamodb_backup` to return nil instead of an error when backup does not exist. ([#1914](https://github.com/turbot/steampipe-plugin-aws/pull/1914))
+- Fixed the `capacity_reservation_specification` column of `aws_ec2_instance` table to be of `JSON` type instead of `STRING`. ([#1903](https://github.com/turbot/steampipe-plugin-aws/pull/1903))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.5.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v552-2023-09-29) which improves logging for connection config updates. ([#1921](https://github.com/turbot/steampipe-plugin-aws/pull/1921))
+
 ## v0.118.1 [2023-09-14]
 
 _Bug fixes_
