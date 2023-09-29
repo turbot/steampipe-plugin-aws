@@ -2,7 +2,7 @@
 
 _Enhancements_
 
-- Updated the `Makefile` to build the netgo package for darwin system. ([#1918](https://github.com/turbot/steampipe-plugin-aws/pull/1918))
+- Updated the `Makefile` to build the netgo package only for darwin systems. ([#1918](https://github.com/turbot/steampipe-plugin-aws/pull/1918))
 - Added the `configuration_settings` column to `aws_elastic_beanstalk_environment` table. ([#1916](https://github.com/turbot/steampipe-plugin-aws/pull/1916))
 
 _Bug fixes_
@@ -12,8 +12,7 @@ _Bug fixes_
 
 _Dependencies_
 
-- Recompiled plugin with [steampipe-plugin-sdk v5.5.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v552-2023-09-29) ([#1921](https://github.com/turbot/steampipe-plugin-aws/pull/1921))
-
+- Recompiled plugin with [steampipe-plugin-sdk v5.5.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v552-2023-09-29) which improves logging for connection config updates. ([#1921](https://github.com/turbot/steampipe-plugin-aws/pull/1921))
 ## v0.118.1 [2023-09-14]
 
 _Bug fixes_
