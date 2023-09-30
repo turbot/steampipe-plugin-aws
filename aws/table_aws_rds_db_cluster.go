@@ -280,6 +280,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "members",
 				Description: "A list of instances that make up the DB cluster.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("DBClusterMembers"),
 			},
 			{
 				Name:        "option_group_memberships",
