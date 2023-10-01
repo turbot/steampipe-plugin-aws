@@ -249,6 +249,7 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				Name:        "source_account_id",
 				Description: "The account id where the affected resource lives.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AwsAccountId"),
 			},
 			/// Steampipe standard columns
 			{
