@@ -23,6 +23,7 @@ func tableAwsGlobalAcceleratorEndpointGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlobalAcceleratorEndpointGroup,
+			Tags:    map[string]string{"service": "globalaccelerator", "action": "DescribeEndpointGroup"},
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
@@ -33,6 +34,7 @@ func tableAwsGlobalAcceleratorEndpointGroup(_ context.Context) *plugin.Table {
 			//ParentHydrate: listGlobalAcceleratorListeners,
 			ParentHydrate: listGlobalAcceleratorAccelerators,
 			Hydrate:       listGlobalAcceleratorEndpointGroups,
+			Tags:          map[string]string{"service": "globalaccelerator", "action": "ListListeners"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -153,6 +155,9 @@ func listGlobalAcceleratorEndpointGroups(ctx context.Context, d *plugin.QueryDat
 
 	// List listeners
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.listGlobalAcceleratorEndpointGroups", "api_error", err)

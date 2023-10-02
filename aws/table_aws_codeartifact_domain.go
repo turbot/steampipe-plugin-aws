@@ -33,9 +33,25 @@ func tableAwsCodeArtifactDomain(_ context.Context) *plugin.Table {
 				},
 			},
 			Hydrate: getCodeArtifactDomain,
+			Tags:    map[string]string{"service": "codeartifact", "action": "DescribeDomain"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodeArtifactDomains,
+			Tags:    map[string]string{"service": "codeartifact", "action": "ListDomains"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCodeArtifactDomainTags,
+				Tags: map[string]string{"service": "codeartifact", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getCodeArtifactDomainPermissionsPolicy,
+				Tags: map[string]string{"service": "codeartifact", "action": "GetDomainPermissionsPolicy"},
+			},
+			{
+				Func: getCodeArtifactDomain,
+				Tags: map[string]string{"service": "codeartifact", "action": "DescribeDomain"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codeartifactv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -173,6 +189,9 @@ func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_codeartifact_domain.listCodeArtifactDomains", "api_error", err)

@@ -26,9 +26,17 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: getGlueCrawler,
+			Tags:    map[string]string{"service": "glue", "action": "GetCrawler"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlueCrawlers,
+			Tags:    map[string]string{"service": "glue", "action": "GetCrawlers"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGlueCrawler,
+				Tags: map[string]string{"service": "glue", "action": "GetCrawler"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -192,6 +200,9 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "api_error", err)

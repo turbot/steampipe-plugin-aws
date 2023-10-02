@@ -25,9 +25,11 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException"}),
 			},
 			Hydrate: getAmplifyApp,
+			Tags:    map[string]string{"service": "amplify", "action": "GetApp"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAmplifyApps,
+			Tags:    map[string]string{"service": "amplify", "action": "ListApps"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(amplifyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -205,6 +207,9 @@ func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	pagesLeft := true
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListApps(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_amplify_app.listAmplifyApps", "api_error", err)

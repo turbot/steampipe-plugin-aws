@@ -25,9 +25,17 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError"}),
 			},
 			Hydrate: getAwsEc2AutoScalingGroup,
+			Tags:    map[string]string{"service": "autoscaling", "action": "DescribeAutoScalingGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEc2AutoScalingGroup,
+			Tags:    map[string]string{"service": "autoscaling", "action": "DescribeAutoScalingGroups"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEc2AutoScalingGroupPolicy,
+				Tags: map[string]string{"service": "autoscaling", "action": "DescribePolicies"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(autoscalingv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -298,6 +306,9 @@ func listAwsEc2AutoScalingGroup(ctx context.Context, d *plugin.QueryData, _ *plu
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoScalingGroup", "api_error", err)
@@ -385,6 +396,9 @@ func getAwsEc2AutoScalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoScalingGroupPolicy", "api_error", err)

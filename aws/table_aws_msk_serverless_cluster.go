@@ -21,12 +21,20 @@ func tableAwsMSKServerlessCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getKafkaCluster(string(types.ClusterTypeServerless)),
+			Tags:       map[string]string{"service": "kafka", "action": "DescribeCluster"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKafkaClusters(string(types.ClusterTypeServerless)),
+			Tags:    map[string]string{"service": "kafka", "action": "ListClusters"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getKafkaClusterOperation,
+				Tags: map[string]string{"service": "kafka", "action": "DescribeClusterOperation"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kafkav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

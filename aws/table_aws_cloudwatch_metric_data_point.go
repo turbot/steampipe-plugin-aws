@@ -24,6 +24,7 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 		Description: "AWS CloudWatch Metric Data Point",
 		List: &plugin.ListConfig{
 			Hydrate: listCloudWatchMetricDataPoints,
+			Tags:    map[string]string{"service": "cloudwatch", "action": "GetMetricData"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
@@ -263,6 +264,9 @@ func listCloudWatchMetricDataPoints(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		data, err := svc.GetMetricData(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudwatch_metric_data_point.listCloudWatchMetricDataPoints", "api_error", err)

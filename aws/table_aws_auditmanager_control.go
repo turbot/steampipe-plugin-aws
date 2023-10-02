@@ -23,12 +23,20 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getAuditManagerControl,
+			Tags:       map[string]string{"service": "auditmanager", "action": "GetControl"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerControls,
+			Tags:    map[string]string{"service": "auditmanager", "action": "ListControls"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAuditManagerControl,
+				Tags: map[string]string{"service": "auditmanager", "action": "GetControl"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -175,6 +183,9 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	// List standard controls
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
@@ -205,6 +216,9 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	// List standard controls
 	for paginatorCustom.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginatorCustom.NextPage(ctx)
 		if err != nil {
 			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’

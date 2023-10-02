@@ -24,13 +24,25 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
 			},
 			Hydrate: getAwsSageMakerTrainingJob,
+			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeTrainingJob"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerTrainingJobs,
+			Tags:    map[string]string{"service": "sagemaker", "action": "ListTrainingJobs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
 				{Name: "last_modified_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
 				{Name: "training_job_status", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSageMakerTrainingJob,
+				Tags: map[string]string{"service": "sagemaker", "action": "DescribeTrainingJob"},
+			},
+			{
+				Func: getAwsSageMakerTrainingJobTags,
+				Tags: map[string]string{"service": "sagemaker", "action": "ListTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
@@ -365,6 +377,9 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sagemaker_training_job.listAwsSageMakerTrainingJobs", "api_error", err)
@@ -438,6 +453,9 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 	pagesLeft := true
 	tags := []types.Tag{}
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		keyTags, err := svc.ListTags(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sagemaker_training_job.getAwsSageMakerTrainingJobTags", "api_error", err)

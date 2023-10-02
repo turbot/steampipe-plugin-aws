@@ -22,9 +22,32 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 		Description: "List AWS S3 Objects in S3 buckets by bucket name.",
 		List: &plugin.ListConfig{
 			Hydrate: listS3Objects,
+			Tags:    map[string]string{"service": "s3", "action": "ListObjectsV2"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Required, CacheMatch: "exact"},
 				{Name: "prefix", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getS3Object,
+				Tags: map[string]string{"service": "s3", "action": "GetObject"},
+			},
+			{
+				Func: getS3ObjectAttributes,
+				Tags: map[string]string{"service": "s3", "action": "GetObjectAttributes"},
+			},
+			{
+				Func: getS3ObjectACL,
+				Tags: map[string]string{"service": "s3", "action": "GetObjectAcl"},
+			},
+			{
+				Func: getS3ObjectTagging,
+				Tags: map[string]string{"service": "s3", "action": "GetObjectTagging"},
+			},
+			{
+				Func: getBucketLocationForObjects,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketLocation"},
 			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
@@ -407,6 +430,9 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	// execute list call
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		objects, err := svc.ListObjectsV2(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_s3_object.ListObjectsV2", "api_error", err)

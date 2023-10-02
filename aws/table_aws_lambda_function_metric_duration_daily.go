@@ -18,6 +18,7 @@ func tableAwsLambdaFunctionMetricDurationDaily(_ context.Context) *plugin.Table 
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaFunctionMetricDurationDaily,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(

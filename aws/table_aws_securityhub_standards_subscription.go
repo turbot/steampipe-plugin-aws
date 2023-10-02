@@ -23,8 +23,15 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 		Description: "AWS Security Hub Standards Subscription",
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubStandardsSubcriptions,
+			Tags:    map[string]string{"service": "securityhub", "action": "GetEnabledStandards"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: GetEnabledStandards,
+				Tags: map[string]string{"service": "securityhub", "action": "GetEnabledStandards"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -133,6 +140,9 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_securityhub_standards_subscription.listSecurityHubStandardsSubcriptions", "api_error", err)

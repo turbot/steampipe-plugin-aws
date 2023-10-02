@@ -22,15 +22,23 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getAwsAthenaQueryExecution,
+			Tags:       map[string]string{"service": "athena", "action": "GetQueryExecution"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAthenaWorkGroups,
 			Hydrate:       listAwsAthenaQueryExecutions,
+			Tags:          map[string]string{"service": "athena", "action": "GetQueryExecutions"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "workgroup",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsAthenaQueryExecution,
+				Tags: map[string]string{"service": "athena", "action": "GetQueryExecution"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(athenav1.EndpointsID),
@@ -311,6 +319,9 @@ func listAwsAthenaQueryExecutions(ctx context.Context, d *plugin.QueryData, h *p
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaQueryExecutions", "api_error", err)

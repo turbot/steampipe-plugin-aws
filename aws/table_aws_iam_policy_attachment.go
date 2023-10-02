@@ -21,6 +21,7 @@ func tableAwsIamPolicyAttachment(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamPolicies,
 			Hydrate:       listIamPolicyAttachments,
+			Tags:          map[string]string{"service": "iam", "action": "ListEntitiesForPolicy"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "is_attached", Require: plugin.Optional, Operators: []string{"<>", "="}},
 			},
@@ -96,6 +97,9 @@ func listIamPolicyAttachments(ctx context.Context, d *plugin.QueryData, h *plugi
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_policy_attachment.listIamPolicyAttachments", "api_error", err)

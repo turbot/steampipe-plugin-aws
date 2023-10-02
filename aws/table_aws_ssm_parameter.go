@@ -28,14 +28,26 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
 			},
 			Hydrate: getAwsSSMParameter,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeParameters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMParameters,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeParameters"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "type", Require: plugin.Optional},
 				{Name: "key_id", Require: plugin.Optional},
 				{Name: "tier", Require: plugin.Optional},
 				{Name: "data_type", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSSMParameterDetails,
+				Tags: map[string]string{"service": "ssm", "action": "GetParameter"},
+			},
+			{
+				Func: getAwsSSMParameterTags,
+				Tags: map[string]string{"service": "ssm", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
@@ -189,6 +201,9 @@ func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_parameter.listAwsSSMParameters", "api_error", err)

@@ -27,12 +27,20 @@ func tableAwsWellArchitectedMilestone(_ context.Context) *plugin.Table {
 				{Name: "workload_id", Require: plugin.Required},
 			},
 			Hydrate: getWellArchitectedMilestone,
+			Tags:    map[string]string{"service": "wellarchitected", "action": "GetMilestone"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedMilestones,
+			Tags:          map[string]string{"service": "wellarchitected", "action": "ListMilestones"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWellArchitectedMilestone,
+				Tags: map[string]string{"service": "wellarchitected", "action": "GetMilestone"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -113,6 +121,9 @@ func listWellArchitectedMilestones(ctx context.Context, d *plugin.QueryData, h *
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			if strings.Contains(err.Error(), "NotFoundException") || strings.Contains(err.Error(), "ValidationException") {

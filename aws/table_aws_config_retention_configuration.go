@@ -18,6 +18,7 @@ func tableAwsConfigRetentionConfiguration(_ context.Context) *plugin.Table {
 		Description: "AWS Config Retention Configuration",
 		List: &plugin.ListConfig{
 			Hydrate: listConfigRetentionConfigurations,
+			Tags:    map[string]string{"service": "config", "action": "DescribeRetentionConfigurations"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -62,6 +63,9 @@ func listConfigRetentionConfigurations(ctx context.Context, d *plugin.QueryData,
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_config_configuration_recorder.listConfigRetentionConfigurations", "api_error", err)

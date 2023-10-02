@@ -25,6 +25,7 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 		Description: "AWS S3 Access Point",
 		List: &plugin.ListConfig{
 			Hydrate: listS3AccessPoints,
+			Tags:    map[string]string{"service": "s3", "action": "ListAccessPoints"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchAccessPoint", "InvalidParameter", "InvalidRequest"}),
 			},
@@ -35,8 +36,23 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
 			Hydrate:    getS3AccessPoint,
+			Tags:       map[string]string{"service": "s3", "action": "GetAccessPoint"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchAccessPoint", "InvalidParameter", "InvalidRequest"}),
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getS3AccessPoint,
+				Tags: map[string]string{"service": "s3", "action": "GetAccessPoint"},
+			},
+			{
+				Func: getS3AccessPointPolicyStatus,
+				Tags: map[string]string{"service": "s3", "action": "GetAccessPointPolicyStatus"},
+			},
+			{
+				Func: getS3AccessPointPolicy,
+				Tags: map[string]string{"service": "s3", "action": "GetAccessPointPolicy"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(s3controlv1.EndpointsID),
@@ -200,6 +216,9 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_s3_access_point.listS3AccessPoints", "api_error", err)

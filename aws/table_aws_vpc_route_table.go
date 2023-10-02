@@ -26,9 +26,11 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
 			},
 			Hydrate: getVpcRouteTable,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeRouteTables"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcRouteTables,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeRouteTables"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "owner_id", Require: plugin.Optional},
 				{Name: "vpc_id", Require: plugin.Optional},
@@ -141,6 +143,9 @@ func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_route_table.listVpcRouteTables", "api_error", err)

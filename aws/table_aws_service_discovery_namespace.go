@@ -26,9 +26,11 @@ func tableAwsServiceDiscoveryNamespace(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NamespaceNotFound"}),
 			},
 			Hydrate: getServiceDiscoveryNamespace,
+			Tags:    map[string]string{"service": "servicediscovery", "action": "GetNamespace"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceDiscoveryNamespaces,
+			Tags:    map[string]string{"service": "servicediscovery", "action": "ListNamespaces"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "type",
@@ -38,6 +40,12 @@ func tableAwsServiceDiscoveryNamespace(_ context.Context) *plugin.Table {
 					Name:    "name",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getServiceDirectoryNamespaceTags,
+				Tags: map[string]string{"service": "servicediscovery", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(servicediscoveryv1.EndpointsID),
@@ -160,6 +168,9 @@ func listServiceDiscoveryNamespaces(ctx context.Context, d *plugin.QueryData, _ 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_service_discovery_namespace.listServiceDiscoveryNamespaces", "api_error", err)
@@ -284,7 +295,7 @@ func buildServiceDiscoveryNamespaceFilter(quals plugin.KeyColumnQualMap) []types
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
 			filter := types.NamespaceFilter{
-				Name: types.NamespaceFilterName(filterName),
+				Name:      types.NamespaceFilterName(filterName),
 				Condition: types.FilterConditionEq,
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")

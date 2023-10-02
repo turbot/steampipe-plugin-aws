@@ -19,6 +19,7 @@ func tableAwsSsoAdminInstance(_ context.Context) *plugin.Table {
 		Description: "AWS SSO Instance",
 		List: &plugin.ListConfig{
 			Hydrate: listSsoAdminInstances,
+			Tags:    map[string]string{"service": "sso", "action": "ListInstances"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -89,6 +90,9 @@ func listSsoAdminInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssoadmin_instance.listSsoAdminInstances", "api_error", err)

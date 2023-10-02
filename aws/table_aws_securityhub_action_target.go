@@ -22,12 +22,14 @@ func tableAwsSecurityHubActionTarget(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getSecurityHubActionTarget,
+			Tags:       map[string]string{"service": "securityhub", "action": "DescribeActionTargets"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubActionTargets,
+			Tags:    map[string]string{"service": "securityhub", "action": "DescribeActionTargets"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -108,6 +110,9 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			if strings.Contains(err.Error(), "not subscribed") {

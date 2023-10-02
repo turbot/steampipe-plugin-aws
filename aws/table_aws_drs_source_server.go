@@ -29,6 +29,13 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException", "BadRequestException"}),
 			},
 			Hydrate: listAwsDRSSourceServers,
+			Tags:    map[string]string{"service": "drs", "action": "DescribeSourceServers"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsDRSSourceServerLaunchConfiguration,
+				Tags: map[string]string{"service": "drs", "action": "GetLaunchConfiguration"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(drsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -189,6 +196,9 @@ func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_drs_source_server.listAwsDRSSourceServers", "api_error", err)

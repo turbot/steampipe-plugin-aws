@@ -21,6 +21,7 @@ func tableAwsDaxParameterGroup(_ context.Context) *plugin.Table {
 		Description: "AWS DAX Parameter Group",
 		List: &plugin.ListConfig{
 			Hydrate: listDaxParameterGroups,
+			Tags:    map[string]string{"service": "dax", "action": "DescribeParameterGroups"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ParameterGroupNotFoundFault"}),
 			},
@@ -96,6 +97,9 @@ func listDaxParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.DescribeParameterGroups(ctx, params)
 		if err != nil {
 			logger.Error("aws_dax_parameter_group.listDaxParameterGroups", "api_error", err)

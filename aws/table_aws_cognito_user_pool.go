@@ -24,9 +24,17 @@ func tableAwsCognitoUserPool(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getCognitoUserPool,
+			Tags:       map[string]string{"service": "cognito-idp", "action": "DescribeUserPool"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCognitoUserPools,
+			Tags:    map[string]string{"service": "cognito-idp", "action": "ListUserPools"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCognitoUserPool,
+				Tags: map[string]string{"service": "cognito-idp", "action": "DescribeUserPool"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityproviderv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -256,6 +264,9 @@ func listCognitoUserPools(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cognito_user_pool.listCognitoUserPools", "api_error", err)

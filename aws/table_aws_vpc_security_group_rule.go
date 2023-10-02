@@ -28,14 +28,22 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidGroup.NotFound", "InvalidSecurityGroupRuleId.Malformed", "InvalidSecurityGroupRuleId.NotFound"}),
 			},
 			Hydrate: getSecurityGroupRule,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeSecurityGroupRules"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityGroupRules,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeSecurityGroupRules"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "group_id",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getReferencedSecurityGroupDetails,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeSecurityGroups"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
@@ -252,6 +260,9 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_security_group_rule.listSecurityGroupRules", "api_error", err)

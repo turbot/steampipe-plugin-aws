@@ -26,9 +26,11 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"FileSystemNotFound", "ValidationException"}),
 			},
 			Hydrate: getFsxFileSystem,
+			Tags:    map[string]string{"service": "fsx", "action": "DescribeFileSystems"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listFsxFileSystems,
+			Tags:    map[string]string{"service": "fsx", "action": "DescribeFileSystems"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(fsxv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -197,6 +199,9 @@ func listFsxFileSystems(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_fsx_file_system.aws_fsx_file_system.listFsxFileSystems", "api_error", err)

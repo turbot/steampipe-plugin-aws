@@ -26,9 +26,11 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidCapacityReservationId.NotFound", "InvalidCapacityReservationId.Unavailable", "InvalidCapacityReservationId.Malformed"}),
 			},
 			Hydrate: getEc2CapacityReservation,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeCapacityReservations"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2CapacityReservations,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeCapacityReservations"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "instance_type", Require: plugin.Optional},
 				{Name: "owner_id", Require: plugin.Optional},
@@ -209,6 +211,9 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_capacity_reservation.listEc2CapacityReservations", "api_error", err)
