@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	typehelpers "github.com/turbot/go-kit/types"
 	"log"
 	"math"
 	"math/rand"
@@ -1582,6 +1583,16 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// waiting too long to return results
 	maxRetries := 9
 	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
+
+	secretKey := typehelpers.SafeString(awsSpcConfig.SecretKey)
+	if l := len(secretKey); l > 0 {
+		secretKey = secretKey[l-4:]
+	}
+	sessionToken := typehelpers.SafeString(awsSpcConfig.SessionToken)
+	if l := len(sessionToken); l > 0 {
+		sessionToken = sessionToken[l-4:]
+	}
+	plugin.Logger(ctx).Info("getClientUncached", "profile", typehelpers.SafeString(awsSpcConfig.Profile), "accessKey", typehelpers.SafeString(awsSpcConfig.AccessKey), "secretKey", secretKey, "sessionToken", sessionToken)
 
 	// Set max retry count from config file or env variable (config file has precedence)
 	if awsSpcConfig.MaxErrorRetryAttempts != nil {
