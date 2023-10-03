@@ -2,8 +2,8 @@
 
 _Bug fixes_
 
-- Fixed the `members` column of `aws_rds_db_cluster` table to correctly return data instead of `null`. ([#1926](https://github.com/turbot/steampipe-plugin-aws/pull/1926))
 - Fixed the `source_account_id` column of `aws_securityhub_finding` table to correctly return data instead of `null`. ([#1927](https://github.com/turbot/steampipe-plugin-aws/pull/1927)) (Thanks [@gabrielsoltz](https://github.com/gabrielsoltz) for the contribution!)
+- Fixed the `members` column of `aws_rds_db_cluster` table to correctly return data instead of `null`. ([#1926](https://github.com/turbot/steampipe-plugin-aws/pull/1926))
 
 _Dependencies_
 
