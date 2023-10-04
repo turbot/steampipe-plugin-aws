@@ -1653,6 +1653,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 	})
 	cfg.Retryer = func() aws.Retryer {
+		// UnknownError is the code returned for a 408 from the aws go sdk, these can be frequent on large accounts especially around SNS Topics, etc.
 		additionalErrors := []string{"UnknownError"}
 		return retry.AddWithErrorCodes(retryer, additionalErrors...)
 	}
