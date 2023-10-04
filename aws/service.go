@@ -1646,7 +1646,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	// Add the retryer definition
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		// reseting state of rand to generate different random values
-		rand.Seed(time.Now().UnixNano())
+		rand.New(rand.NewSource(time.Now().UnixNano()))
 		o.MaxAttempts = maxRetries
 		o.MaxBackoff = 5 * time.Minute
 		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
