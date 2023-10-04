@@ -1,3 +1,10 @@
+## v0.120.2 [2023-10-04]
+
+_Bug fixes_
+
+- Removed custom plugin level retryer which was unnecessary as the plugin already uses the AWS SDK retryer. ([#1932](https://github.com/turbot/steampipe-plugin-aws/pull/1932))
+- The plugin now retries errors with the error code `UnknownError`. These are often thrown by services like SNS when performing a large number of requests. ([#1932](https://github.com/turbot/steampipe-plugin-aws/pull/1932))
+
 ## v0.120.1 [2023-10-03]
 
 _Bug fixes_
