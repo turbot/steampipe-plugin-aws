@@ -1653,7 +1653,8 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 	})
 	cfg.Retryer = func() aws.Retryer {
-		return retryer
+		additionalErrors := []string{"UnknownError"}
+		return retry.AddWithErrorCodes(retryer, additionalErrors...)
 	}
 
 	// Plugin level config
