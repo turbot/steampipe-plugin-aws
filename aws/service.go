@@ -1192,7 +1192,7 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 
 	// Depending on their configuration, the S3 client may need to be configured
 	// to use path-style addressing.
-	awsSpcConfig := GetConfig(d.Connection)
+	awsSpcConfig := GetConfig(d.GetConnection())
 	if awsSpcConfig.S3ForcePathStyle != nil {
 		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
 			o.UsePathStyle = *awsSpcConfig.S3ForcePathStyle
@@ -1576,7 +1576,7 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
-	awsSpcConfig := GetConfig(d.Connection)
+	awsSpcConfig := GetConfig(d.GetConnection())
 
 	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
 	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
@@ -1592,7 +1592,8 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if l := len(sessionToken); l > 0 {
 		sessionToken = sessionToken[l-4:]
 	}
-	plugin.Logger(ctx).Info("getClientUncached", "profile", typehelpers.SafeString(awsSpcConfig.Profile), "accessKey", typehelpers.SafeString(awsSpcConfig.AccessKey), "secretKey", secretKey, "sessionToken", sessionToken)
+
+	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "profile", typehelpers.SafeString(awsSpcConfig.Profile), "accessKey", typehelpers.SafeString(awsSpcConfig.AccessKey), "secretKey", secretKey, "sessionToken", sessionToken)
 
 	// Set max retry count from config file or env variable (config file has precedence)
 	if awsSpcConfig.MaxErrorRetryAttempts != nil {
@@ -1668,7 +1669,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	}
 
 	// Plugin level config
-	awsSpcConfig := GetConfig(d.Connection)
+	awsSpcConfig := GetConfig(d.GetConnection())
 
 	// If there is a custom endpoint, use it
 	var awsEndpointUrl string
@@ -1728,7 +1729,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 
 	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
 
-	awsSpcConfig := GetConfig(d.Connection)
+	awsSpcConfig := GetConfig(d.GetConnection())
 
 	var configOptions []func(*config.LoadOptions) error
 
