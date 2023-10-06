@@ -1192,7 +1192,7 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 
 	// Depending on their configuration, the S3 client may need to be configured
 	// to use path-style addressing.
-	awsSpcConfig := GetConfig(d.GetConnection())
+	awsSpcConfig := GetConfig(d.Connection)
 	if awsSpcConfig.S3ForcePathStyle != nil {
 		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
 			o.UsePathStyle = *awsSpcConfig.S3ForcePathStyle
@@ -1576,7 +1576,7 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
-	awsSpcConfig := GetConfig(d.GetConnection())
+	awsSpcConfig := GetConfig(d.Connection)
 
 	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
 	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
@@ -1669,7 +1669,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	}
 
 	// Plugin level config
-	awsSpcConfig := GetConfig(d.GetConnection())
+	awsSpcConfig := GetConfig(d.Connection)
 
 	// If there is a custom endpoint, use it
 	var awsEndpointUrl string
@@ -1729,7 +1729,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 
 	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
 
-	awsSpcConfig := GetConfig(d.GetConnection())
+	awsSpcConfig := GetConfig(d.Connection)
 
 	var configOptions []func(*config.LoadOptions) error
 

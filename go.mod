@@ -2,6 +2,7 @@ module github.com/turbot/steampipe-plugin-aws
 
 go 1.21
 
+//replace github.com/turbot/steampipe-plugin-sdk/v5  => /Users/kai/Dev/github/turbot/steampipe-plugin-sdk
 require (
 	github.com/aws/aws-sdk-go v1.44.189
 	github.com/aws/aws-sdk-go-v2 v1.19.0
@@ -122,7 +123,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/turbot/go-kit v0.8.0-rc.0
 	// lock_connection_map
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.3-0.20231005174414-c7be409c5807
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.3-0.20231006132109-69ee521444c4
 	golang.org/x/text v0.11.0
 )
 

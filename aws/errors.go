@@ -12,7 +12,7 @@ import (
 // shouldIgnoreErrors:: function which returns an ErrorPredicate for AWS API calls
 func shouldIgnoreErrors(notFoundErrors []string) plugin.ErrorPredicateWithContext {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
-		awsConfig := GetConfig(d.GetConnection())
+		awsConfig := GetConfig(d.Connection)
 
 		// If the get or list hydrate functions have an overriding IgnoreConfig
 		// defined using the shouldIgnoreErrors function, then it should
@@ -38,7 +38,7 @@ func shouldIgnoreErrorPluginDefault() plugin.ErrorPredicateWithContext {
 			return false
 		}
 
-		awsConfig := GetConfig(d.GetConnection())
+		awsConfig := GetConfig(d.Connection)
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
 			// Added to support regex in not found errors

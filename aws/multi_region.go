@@ -191,7 +191,7 @@ func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []stri
 func listQueryRegionsForConnection(ctx context.Context, d *plugin.QueryData) ([]string, error) {
 
 	// Retrieve regions list from the AWS plugin steampipe connection config
-	awsSpcConfig := GetConfig(d.GetConnection())
+	awsSpcConfig := GetConfig(d.Connection)
 
 	// If there is no regions defined in SPC, then we default to targeting
 	// the default region only for queries.
@@ -520,7 +520,7 @@ var getDefaultRegionCached = plugin.HydrateFunc(getDefaultRegionUncached).Memoiz
 
 // Helper function to get the default region from the Steampipe config
 func getAwsSpcConfigDefaultRegion(ctx context.Context, d *plugin.QueryData) string {
-	awsSpcConfig := GetConfig(d.GetConnection())
+	awsSpcConfig := GetConfig(d.Connection)
 
 	if awsSpcConfig.DefaultRegion == nil {
 		return ""
@@ -557,7 +557,7 @@ func getAwsSdkRegion(ctx context.Context, d *plugin.QueryData) string {
 // list of regions in the Steampipe config if any of them have enough
 // information to indicate our preferred partition.
 func awsLastResortRegionFromRegionsConfig(ctx context.Context, d *plugin.QueryData) string {
-	awsSpcConfig := GetConfig(d.GetConnection())
+	awsSpcConfig := GetConfig(d.Connection)
 
 	if awsSpcConfig.Regions != nil {
 		for _, r := range awsSpcConfig.Regions {
