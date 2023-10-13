@@ -1,3 +1,8 @@
+---
+title: "Table: aws_iam_role - Query AWS IAM Roles using SQL"
+description: "Allows DevOps to query IAM role details, including permissions, trust policies & associated metadata to assess compliance and check their AWS security posture."
+---
+
 # Table: aws_iam_role - Query AWS IAM Roles using SQL
 
 The aws_iam_role table in Steampipe provides information about IAM roles within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query role-specific details, including permissions, trust policies, and associated metadata. Users can utilize this table to gather insights on roles, such as roles with wildcard permissions, trust relationships between roles, verification of trust policies, and more. The schema outlines the various attributes of the IAM role, including the role ARN, creation date, attached policies, and associated tags.
