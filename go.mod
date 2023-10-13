@@ -120,9 +120,9 @@ require (
 	github.com/aws/smithy-go v1.14.1
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.3
-	github.com/turbot/go-kit v0.8.0-rc.0
+	github.com/turbot/go-kit v0.9.0-rc.1
 	// standalone
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.3-0.20231011093711-27c3a5b1710e
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.7.0-alpha.2
 	golang.org/x/text v0.11.0
 )
 
@@ -182,7 +182,7 @@ require (
 	github.com/hashicorp/go-plugin v1.5.2 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
-	github.com/hashicorp/hcl/v2 v2.18.0 // indirect
+	github.com/hashicorp/hcl/v2 v2.18.1 // indirect
 	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -210,7 +210,7 @@ require (
 	github.com/stevenle/topsort v0.2.0 // indirect
 	github.com/tkrajina/go-reflector v0.5.6 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
-	github.com/zclconf/go-cty v1.14.0 // indirect
+	github.com/zclconf/go-cty v1.14.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.17.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.17.0 // indirect
