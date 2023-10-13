@@ -122,7 +122,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/turbot/go-kit v0.9.0-rc.1
 	// standalone
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.7.0-alpha.2
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.7.0-alpha.3
 	golang.org/x/text v0.11.0
 )
 
