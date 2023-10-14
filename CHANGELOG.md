@@ -1,3 +1,10 @@
+## v0.121.0 [2023-10-13]
+
+_Enhancements_
+
+- Improved documentation and descriptions for the `aws_iam_role` table. ([#1940](https://github.com/turbot/steampipe-plugin-aws/pull/1940))
+- Replaced uses of `rand.Seed` with latest `rand.NewSource`. ([#1933](https://github.com/turbot/steampipe-plugin-aws/pull/1933))
+
 ## v0.120.2 [2023-10-04]
 
 _Bug fixes_
