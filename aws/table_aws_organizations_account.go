@@ -36,7 +36,7 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The description of the permission set.",
+				Description: "The name of the member account.",
 				Type:        proto.ColumnType_STRING,
 			},
 			// This description has added text for better clarification on ID type
