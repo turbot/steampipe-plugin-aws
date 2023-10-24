@@ -36,7 +36,7 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the member account.",
+				Description: "The friendly name of the account.",
 				Type:        proto.ColumnType_STRING,
 			},
 			// This description has added text for better clarification on ID type
