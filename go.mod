@@ -123,7 +123,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/turbot/go-kit v0.8.0-rc.0
 	// lock_connection_map
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.3-0.20231006193250-2f3218ccf895
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.3-0.20231024100909-1aa40b1fb1d8
 	golang.org/x/text v0.11.0
 )
 
