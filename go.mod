@@ -2,7 +2,8 @@ module github.com/turbot/steampipe-plugin-aws
 
 go 1.21
 
-//replace github.com/turbot/steampipe-plugin-sdk/v5  => /Users/kai/Dev/github/turbot/steampipe-plugin-sdk
+//replace github.com/turbot/steampipe-plugin-sdk/v5 => /Users/kai/Dev/github/turbot/steampipe-plugin-sdk
+
 require (
 	github.com/aws/aws-sdk-go v1.44.189
 	github.com/aws/aws-sdk-go-v2 v1.19.0
@@ -123,7 +124,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/turbot/go-kit v0.8.0-rc.0
 	// lock_connection_map
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.3-0.20231025142539-df906cfbb841
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.3-0.20231025145902-2303ee72745c
 	golang.org/x/text v0.11.0
 )
 
@@ -133,7 +134,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.1 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
-	github.com/XiaoMi/pegasus-go-client v0.0.0-20210427083443-f3b6b08bc4c2 // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/allegro/bigcache/v3 v3.1.0 // indirect
@@ -153,24 +153,24 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
-	github.com/bradfitz/gomemcache v0.0.0-20221031212613-62deef7fc822 // indirect
 	github.com/btubbs/datetime v0.1.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
-	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/eko/gocache/v3 v3.1.2 // indirect
+	github.com/eko/gocache/lib/v4 v4.1.5 // indirect
+	github.com/eko/gocache/store/bigcache/v4 v4.2.1 // indirect
+	github.com/eko/gocache/store/ristretto/v4 v4.2.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gertd/go-pluralize v0.2.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/golang/glog v1.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -198,7 +198,6 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/pegasus-kv/thrift v0.13.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
@@ -206,8 +205,6 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sethvargo/go-retry v0.2.4 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
 	github.com/stevenle/topsort v0.2.0 // indirect
 	github.com/tkrajina/go-reflector v0.5.6 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
@@ -239,8 +236,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
 	google.golang.org/grpc v1.58.2 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
-	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/apimachinery v0.25.3 // indirect
 )
