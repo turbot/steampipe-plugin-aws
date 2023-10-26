@@ -180,9 +180,6 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	// Additonal Filter
 	equalQuals := d.EqualsQuals
-	if equalQuals["name"] != nil {
-		input.LogStreamNamePrefix = aws.String(equalQuals["name"].GetStringValue())
-	}
 	if equalQuals["descending"] != nil {
 		input.Descending = aws.Bool(equalQuals["descending"].GetBoolValue())
 	}
@@ -191,12 +188,22 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 	// If you order the results by event time, you cannot specify the logStreamNamePrefix parameter.
 	if equalQuals["order_by"] != nil {
 		input.OrderBy = types.OrderBy(equalQuals["order_by"].GetStringValue())
-	} else if equalQuals["order_by"] != nil && input.OrderBy != types.OrderByLastEventTime {
+
+		if input.OrderBy != types.OrderByLastEventTime {
+			if equalQuals["name"] != nil {
+				input.LogStreamNamePrefix = aws.String(equalQuals["name"].GetStringValue())
+			}
+			if equalQuals["log_stream_name_prefix"] != nil {
+				input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
+			}
+		}
+	} else {
+		if equalQuals["name"] != nil {
+			input.LogStreamNamePrefix = aws.String(equalQuals["name"].GetStringValue())
+		}
 		if equalQuals["log_stream_name_prefix"] != nil {
 			input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
 		}
-	} else if equalQuals["log_stream_name_prefix"] != nil {
-		input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
 	}
 
 	for paginator.HasMorePages() {
