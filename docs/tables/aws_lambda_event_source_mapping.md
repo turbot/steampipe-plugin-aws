@@ -37,12 +37,18 @@ where
 ### List Kafka Bootstrap Servers from a self-managed Kafka cluster feeding events to Lambda functions
 
 ```sql
+-- Returns the list of bootstrap servers for your Kafka brokers
+
+--  function_name | jsonb_array_elements_text
+-- ---------------+---------------------------
+--  myFunction    | abc.xyz.com:xxxx
+--  myFunction    | abc2.xyz.com:xxxx
+
 select
-  function_name, jsonb_array_elements_text(jsonb_extract_path(self_managed_event_source, 'Endpoints', 'KAFKA_BOOTSTRAP_SERVERS'))
+  function_name,
+  jsonb_array_elements_text(jsonb_extract_path(self_managed_event_source, 'Endpoints', 'KAFKA_BOOTSTRAP_SERVERS'))
 from
-  aws_lambda_event_source_mapping
-where
-  function_name = 'MyFunctionName'
+  aws_lambda_event_source_mapping;
 ```
 
 ### Get source access configuration of event source mappings
@@ -95,4 +101,20 @@ from
   jsonb_array_elements(filter_criteria -> 'Filters') as filter
 where
   filter ->> 'Pattern' like '{ \"Metadata\" : [ 1, 2 ]}';
+```
+
+### Get lambda function details of each event source mapping
+
+```sql
+select
+  m.event_source_arn,
+  m.function_arn,
+  f.runtime,
+  f.handler,
+  f.architectures
+from
+  aws_lambda_event_source_mapping as m,
+  aws_lambda_function as f
+where
+  f.name = m.function_name;
 ```
