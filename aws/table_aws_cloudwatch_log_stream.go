@@ -39,6 +39,18 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 					Name:    "name",
 					Require: plugin.Optional,
 				},
+				{
+					Name:    "log_stream_name_prefix",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "descending",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "order_by",
+					Require: plugin.Optional,
+				},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
@@ -60,6 +72,28 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 				Description: "The name of the log group, in which the log stream belongs.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("LogGroup"),
+			},
+			{
+				Name:        "log_stream_name_prefix",
+				Description: "The prefix to match the name of the log stream.",
+				Type:        proto.ColumnType_STRING,
+				// Hydrate:     getLogStreamNamePrefix,
+				// Transform:   transform.FromValue(),
+				Transform: transform.FromQual("log_stream_name_prefix"),
+			},
+			{
+				Name:        "descending",
+				Description: "If the value is true, results are returned in descending order. If the value is to false, results are returned in ascending order. The default value is false.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromQual("descending"),
+				Default:     false,
+			},
+			{
+				Name:        "order_by",
+				Description: "If the value is LogStreamName, the results are ordered by log stream name. If the value is LastEventTime, the results are ordered by the event time. The default value is LogStreamName.If you order the results by event time, you cannot specify the logStreamNamePrefix parameter. lastEventTimestamp represents the time of the most recent log event in the log stream in CloudWatch Logs.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("order_by"),
+				Default:     "LogStreamName",
 			},
 			{
 				Name:        "creation_time",
@@ -149,6 +183,21 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 	if equalQuals["name"] != nil {
 		input.LogStreamNamePrefix = aws.String(equalQuals["name"].GetStringValue())
 	}
+	if equalQuals["descending"] != nil {
+		input.Descending = aws.Bool(equalQuals["descending"].GetBoolValue())
+	}
+
+	// If the value is LogStreamName, the results are ordered by log stream name. If the value is LastEventTime, the results are ordered by the event time. The default value is LogStreamName.
+	// If you order the results by event time, you cannot specify the logStreamNamePrefix parameter.
+	if equalQuals["order_by"] != nil {
+		input.OrderBy = types.OrderBy(equalQuals["order_by"].GetStringValue())
+	} else if equalQuals["order_by"] != nil && input.OrderBy != types.OrderByLastEventTime {
+		if equalQuals["log_stream_name_prefix"] != nil {
+			input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
+		}
+	} else if equalQuals["log_stream_name_prefix"] != nil {
+		input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
+	}
 
 	for paginator.HasMorePages() {
 		// apply rate limiting
@@ -212,3 +261,16 @@ func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	return nil, nil
 }
+
+// func getLogStreamNamePrefix(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+// 	logStream := h.Item.(logStreamInfo)
+// 	equalQuals := d.EqualsQuals
+// 	if equalQuals["log_stream_name_prefix"] != nil {
+// 		if strings.Contains(*logStream.LogStream.LogStreamName, equalQuals["log_stream_name_prefix"].GetStringValue()) {
+// 			return equalQuals["log_stream_name_prefix"].GetStringValue(), nil
+// 		} else {
+// 			return *logStream.LogStream.LogStreamName, nil
+// 		}
+// 	}
+// 	return nil, nil
+// }
