@@ -9,7 +9,7 @@ Event Source Mappings are triggers that route events from services like Kafka, K
 
 ```sql
 select
-  event_source_arn,
+  arn,
   function_arn,
   function_name,
   last_processing_result,
@@ -56,7 +56,7 @@ from
 ```sql
 select
   uuid,
-  event_source_arn,
+  arn,
   a ->> 'Type' as source_access_type,
   a ->> 'URL' as source_access_url
 from
@@ -69,7 +69,7 @@ from
 ```sql
 select
   uuid,
-  event_source_arn,
+  arn,
   scaling_config ->> 'MaximumConcurrency' as maximum_concurrency
 from
   aws_lambda_event_source_mapping;
@@ -92,7 +92,7 @@ from
 ```sql
 select
   uuid,
-  event_source_arn,
+  arn,
   function_arn,
   state,
   filter ->> 'Pattern' as filter_criteria_pattern
@@ -107,7 +107,7 @@ where
 
 ```sql
 select
-  m.event_source_arn,
+  m.arn,
   m.function_arn,
   f.runtime,
   f.handler,

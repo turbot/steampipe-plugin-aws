@@ -25,7 +25,7 @@ func tableAwsLambdaEventSourceMapping(_ context.Context) *plugin.Table {
 			Hydrate: listAwsLambdaEventSourceMappings,
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:    "event_source_arn",
+					Name:    "arn",
 					Require: plugin.Optional,
 				},
 				{
@@ -47,9 +47,10 @@ func tableAwsLambdaEventSourceMapping(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("UUID"),
 			},
 			{
-				Name:        "event_source_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the event source.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("EventSourceArn"),
 			},
 			{
 				Name:        "function_arn",
@@ -183,7 +184,7 @@ func tableAwsLambdaEventSourceMapping(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Configuration.FunctionName", "FunctionName"),
+				Transform:   transform.From(getEventSourceMappingTitle),
 			},
 		}),
 	}
@@ -205,8 +206,8 @@ func listAwsLambdaEventSourceMappings(ctx context.Context, d *plugin.QueryData, 
 
 	maxItems := int32(10000)
 	input := lambda.ListEventSourceMappingsInput{}
-	if d.EqualsQualString("event_source_arn") != "" {
-		input.EventSourceArn = aws.String(d.EqualsQualString("event_source_arn"))
+	if d.EqualsQualString("arn") != "" {
+		input.EventSourceArn = aws.String(d.EqualsQualString("arn"))
 	}
 	if d.EqualsQualString("function_arn") != "" || d.EqualsQualString("function_name") != "" {
 		if d.EqualsQualString("function_arn") != "" {
@@ -247,7 +248,7 @@ func listAwsLambdaEventSourceMappings(ctx context.Context, d *plugin.QueryData, 
 	return nil, nil
 }
 
-//// HYDRATE FUNCTION
+//// HYDRATE FUNCTIONS
 
 func getAwsLambdaEventSourceMapping(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
@@ -289,8 +290,16 @@ func getAwsLambdaEventSourceMapping(ctx context.Context, d *plugin.QueryData, h 
 
 }
 
+//// TRANSFORM FUNCTIONS
+
 func getFunctionNameFromArn(ctx context.Context, td *transform.TransformData) (interface{}, error) {
 	arn := *td.HydrateItem.(types.EventSourceMappingConfiguration).FunctionArn
+	parts := strings.Split(arn, ":")
+	return parts[len(parts)-1], nil
+}
+
+func getEventSourceMappingTitle(ctx context.Context, td *transform.TransformData) (interface{}, error) {
+	arn := *td.HydrateItem.(types.EventSourceMappingConfiguration).EventSourceArn
 	parts := strings.Split(arn, ":")
 	return parts[len(parts)-1], nil
 }
