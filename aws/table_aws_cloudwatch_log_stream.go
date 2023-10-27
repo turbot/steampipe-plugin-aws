@@ -213,7 +213,7 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Info("aws_cloudwatch_log_group.listCloudwatchLogGroups", "api_error", err)
+			plugin.Logger(ctx).Info("aws_cloudwatch_log_stream.listCloudwatchLogGroups", "api_error", err)
 			return nil, err
 		}
 
@@ -246,7 +246,7 @@ func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Create session
 	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Trace("aws_cloudwatch_log_group.getCloudwatchLogStream", "client_error", err)
+		plugin.Logger(ctx).Trace("aws_cloudwatch_log_stream.getCloudwatchLogStream", "client_error", err)
 		return nil, err
 	}
 
