@@ -77,9 +77,7 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 				Name:        "log_stream_name_prefix",
 				Description: "The prefix to match the name of the log stream.",
 				Type:        proto.ColumnType_STRING,
-				// Hydrate:     getLogStreamNamePrefix,
-				// Transform:   transform.FromValue(),
-				Transform: transform.FromQual("log_stream_name_prefix"),
+				Transform:   transform.FromQual("log_stream_name_prefix"),
 			},
 			{
 				Name:        "descending",
@@ -197,6 +195,9 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 				input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
 			}
 		}
+		if (input.OrderBy == types.OrderByLastEventTime && equalQuals["log_stream_name_prefix"] != nil) || (input.OrderBy == types.OrderByLastEventTime && equalQuals["log_stream_name_prefix"] != nil && equalQuals["name"] != nil) {
+			input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
+		}
 	} else {
 		if equalQuals["name"] != nil {
 			input.LogStreamNamePrefix = aws.String(equalQuals["name"].GetStringValue())
@@ -268,16 +269,3 @@ func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	return nil, nil
 }
-
-// func getLogStreamNamePrefix(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	logStream := h.Item.(logStreamInfo)
-// 	equalQuals := d.EqualsQuals
-// 	if equalQuals["log_stream_name_prefix"] != nil {
-// 		if strings.Contains(*logStream.LogStream.LogStreamName, equalQuals["log_stream_name_prefix"].GetStringValue()) {
-// 			return equalQuals["log_stream_name_prefix"].GetStringValue(), nil
-// 		} else {
-// 			return *logStream.LogStream.LogStreamName, nil
-// 		}
-// 	}
-// 	return nil, nil
-// }
