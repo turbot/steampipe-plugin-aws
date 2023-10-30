@@ -184,27 +184,26 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	// If the value is LogStreamName, the results are ordered by log stream name. If the value is LastEventTime, the results are ordered by the event time. The default value is LogStreamName.
 	// If you order the results by event time, you cannot specify the logStreamNamePrefix parameter.
-	if equalQuals["order_by"] != nil {
-		input.OrderBy = types.OrderBy(equalQuals["order_by"].GetStringValue())
+	// Set default ordering by LogStreamName unless specified.
+	orderBy := types.OrderByLogStreamName
+	if val, exists := equalQuals["order_by"]; exists {
+		orderBy = types.OrderBy(val.GetStringValue())
+	}
+	input.OrderBy = orderBy
 
-		if input.OrderBy != types.OrderByLastEventTime {
-			if equalQuals["name"] != nil {
-				input.LogStreamNamePrefix = aws.String(equalQuals["name"].GetStringValue())
-			}
-			if equalQuals["log_stream_name_prefix"] != nil {
-				input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
-			}
+	// Check if the order is by LastEventTime.
+	isOrderedByEventTime := orderBy == types.OrderByLastEventTime
+
+	// Assign LogStreamNamePrefix if order is not by LastEventTime.
+	if !isOrderedByEventTime {
+		if name, exists := equalQuals["name"]; exists {
+			input.LogStreamNamePrefix = aws.String(name.GetStringValue())
+		} else if prefix, exists := equalQuals["log_stream_name_prefix"]; exists {
+			input.LogStreamNamePrefix = aws.String(prefix.GetStringValue())
 		}
-		if (input.OrderBy == types.OrderByLastEventTime && equalQuals["log_stream_name_prefix"] != nil) || (input.OrderBy == types.OrderByLastEventTime && equalQuals["log_stream_name_prefix"] != nil && equalQuals["name"] != nil) {
-			input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
-		}
-	} else {
-		if equalQuals["name"] != nil {
-			input.LogStreamNamePrefix = aws.String(equalQuals["name"].GetStringValue())
-		}
-		if equalQuals["log_stream_name_prefix"] != nil {
-			input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
-		}
+	} else if _, exists := equalQuals["log_stream_name_prefix"]; exists {
+		// If ordered by LastEventTime and log_stream_name_prefix is specified, use it.
+		input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
 	}
 
 	for paginator.HasMorePages() {
