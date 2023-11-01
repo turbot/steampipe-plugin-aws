@@ -29,12 +29,32 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DoesNotExistException"}),
 			},
 			Hydrate: getAwsSSMMaintenanceWindow,
+			Tags:    map[string]string{"service": "ssm", "action": "GetMaintenanceWindow"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMMaintenanceWindow,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeMaintenanceWindows"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "name", Require: plugin.Optional},
 				{Name: "enabled", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSSMMaintenanceWindow,
+				Tags: map[string]string{"service": "ssm", "action": "GetMaintenanceWindow"},
+			},
+			{
+				Func: getAwsSSMMaintenanceWindowTags,
+				Tags: map[string]string{"service": "ssm", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getMaintenanceWindowTargets,
+				Tags: map[string]string{"service": "ssm", "action": "DescribeMaintenanceWindowTargets"},
+			},
+			{
+				Func: getMaintenanceWindowTasks,
+				Tags: map[string]string{"service": "ssm", "action": "DescribeMaintenanceWindowTasks"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
@@ -208,6 +228,9 @@ func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *pl
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_maintenance_window.listAwsSSMMaintenanceWindow", "api_error", err)

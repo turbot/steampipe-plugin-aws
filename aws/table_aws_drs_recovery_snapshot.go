@@ -30,6 +30,7 @@ func tableAwsDRSRecoverySnapshot(_ context.Context) *plugin.Table {
 			},
 			ParentHydrate: listAwsDRSSourceServers,
 			Hydrate:       listAwsDRSRecoverySnapshots,
+			Tags:          map[string]string{"service": "drs", "action": "DescribeRecoverySnapshots"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(drsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -143,6 +144,9 @@ func listAwsDRSRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *pl
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_drs_recovery_snapshot.listAwsDRSRecoverySnapshots", "api_error", err)

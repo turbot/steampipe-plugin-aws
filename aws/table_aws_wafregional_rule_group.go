@@ -25,11 +25,27 @@ func tableAwsWafRegionalRuleGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NonexistentItemException", "WAFNonexistentItemException"}),
 			},
 			Hydrate: getWafRegionalRuleGroup,
+			Tags:    map[string]string{"service": "waf-regional", "action": "GetRuleGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWafRegionalRuleGroups,
+			Tags:    map[string]string{"service": "waf-regional", "action": "ListRuleGroups"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wafregionalv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWafRegionalRuleGroup,
+				Tags: map[string]string{"service": "waf-regional", "action": "GetRuleGroup"},
+			},
+			{
+				Func: getWafRegionalRuleGroupActivatedRules,
+				Tags: map[string]string{"service": "waf-regional", "action": "ListActivatedRulesInRuleGroup"},
+			},
+			{
+				Func: listTagsForWafRegionalRuleGroup,
+				Tags: map[string]string{"service": "waf-regional", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -123,6 +139,9 @@ func listWafRegionalRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plug
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafregional_rule_group.listWafRegionalRuleGroups", "api_error", err)

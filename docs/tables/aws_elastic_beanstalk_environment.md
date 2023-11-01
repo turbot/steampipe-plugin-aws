@@ -69,3 +69,25 @@ from
   aws_elastic_beanstalk_environment,
   jsonb_array_elements(managed_actions) as a;
 ```
+
+### list the configuration settings for each environment
+
+```sql
+select
+  environment_name,
+  application_name,
+  c ->> 'DateCreated' as date_created,
+  c ->> 'DateUpdated' as date_updated,
+  c ->> 'DeploymentStatus' as deployment_status,
+  c ->> 'Description' as description,
+  c -> 'OptionSettings' ->> 'Namespace' as option_settings_namespace,
+  c -> 'OptionSettings' ->> 'OptionName' as option_name,
+  c -> 'OptionSettings' ->> 'ResourceName' as option_resource_name,
+  c -> 'OptionSettings' ->> 'Value' as option_value,
+  c ->> 'PlatformArn' as platform_arn,
+  c ->> 'SolutionStackName' as solution_stack_name,
+  c ->> 'TemplateName' as template_name
+from
+  aws_elastic_beanstalk_environment,
+  jsonb_array_elements(configuration_settings) as c;
+```

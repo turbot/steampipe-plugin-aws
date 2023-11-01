@@ -29,6 +29,7 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException", "BadRequestException"}),
 			},
 			Hydrate: listAwsDRSJobs,
+			Tags:    map[string]string{"service": "drs", "action": "DescribeJobs"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(drsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -175,6 +176,9 @@ func listAwsDRSJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_drs_job.listAwsDRSJobs", "api_error", err)

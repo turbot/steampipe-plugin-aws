@@ -26,9 +26,11 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ReservedDBInstanceNotFound"}),
 			},
 			Hydrate: getRDSReservedDBInstance,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeReservedDBInstances"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSReservedDBInstances,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeReservedDBInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "class", Require: plugin.Optional},
 				{Name: "duration", Require: plugin.Optional},
@@ -210,6 +212,9 @@ func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_reserved_db_instance.listRDSReservedDBInstances", "api_error", err)

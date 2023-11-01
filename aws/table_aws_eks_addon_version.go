@@ -22,8 +22,15 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 		Description: "AWS EKS Addon Version",
 		List: &plugin.ListConfig{
 			Hydrate: listEksAddonVersions,
+			Tags:    map[string]string{"service": "eks", "action": "DescribeAddonVersions"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "addon_name", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEksAddonConfiguration,
+				Tags: map[string]string{"service": "eks", "action": "DescribeAddonConfiguration"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
@@ -127,6 +134,9 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_eks_addon_version.listEksAddonVersions", "api_error", err)

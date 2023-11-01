@@ -46,6 +46,7 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 		Description: "AWS IAM Credential Report",
 		List: &plugin.ListConfig{
 			Hydrate: listCredentialReports,
+			Tags:    map[string]string{"service": "iam", "action": "GetCredentialReport"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

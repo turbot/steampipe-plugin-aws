@@ -18,6 +18,7 @@ func tableAwsCloudwatchLogResourcePolicy(_ context.Context) *plugin.Table {
 		Description: "AWS CloudWatch Log Resource Policy",
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogResourcePolicies,
+			Tags:    map[string]string{"service": "logs", "action": "DescribeResourcePolicies"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -88,6 +89,9 @@ func listCloudwatchLogResourcePolicies(ctx context.Context, d *plugin.QueryData,
 
 	// This API doesn't have Paginator available
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		resp, err := svc.DescribeResourcePolicies(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudwatch_log_resource_policy.listCloudwatchLogResourcePolicies", "api_error", err)

@@ -25,9 +25,11 @@ func tableAwsBackupReportPlan(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException", "ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsBackupReportPlan,
+			Tags:    map[string]string{"service": "backup", "action": "DescribeReportPlan"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupReportPlans,
+			Tags:    map[string]string{"service": "backup", "action": "ListReportPlans"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -121,7 +123,7 @@ func listAwsBackupReportPlans(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 	}
 
-	input := &backup.ListReportPlansInput {
+	input := &backup.ListReportPlansInput{
 		MaxResults: aws.Int32(maxLimit),
 	}
 
@@ -132,6 +134,9 @@ func listAwsBackupReportPlans(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_report_plan.listAwsBackupReportPlans", "api_error", err)
@@ -173,7 +178,7 @@ func getAwsBackupReportPlan(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	params := &backup.DescribeReportPlanInput{
-		ReportPlanName:  aws.String(reportPlanName),
+		ReportPlanName: aws.String(reportPlanName),
 	}
 
 	op, err := svc.DescribeReportPlan(ctx, params)
@@ -182,8 +187,8 @@ func getAwsBackupReportPlan(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	if op != nil {
-	       return *op.ReportPlan, nil
-        }
- 
-        return nil, nil
+		return *op.ReportPlan, nil
+	}
+
+	return nil, nil
 }

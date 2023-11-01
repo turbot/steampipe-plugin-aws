@@ -27,9 +27,17 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getPinpointApp,
+			Tags:    map[string]string{"service": "mobiletargeting", "action": "GetApp"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listPinpointApps,
+			Tags:    map[string]string{"service": "mobiletargeting", "action": "GetApps"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getPinpointApplicationSettings,
+				Tags: map[string]string{"service": "mobiletargeting", "action": "GetApplicationSettings"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(pinpointv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -129,6 +137,9 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	// API doesn't support aws-g0-sdk-v2 paginator as of date
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		apps, err := svc.GetApps(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_pinpoint_app.listPinpointApps", "api_error", err)

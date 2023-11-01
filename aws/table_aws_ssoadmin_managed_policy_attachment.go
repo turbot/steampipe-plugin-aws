@@ -23,6 +23,7 @@ func tableAwsSsoAdminManagedPolicyAttachment(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.AllColumns([]string{"permission_set_arn"}),
 			Hydrate:    listSsoAdminManagedPolicyAttachments,
+			Tags:       map[string]string{"service": "sso", "action": "ListManagedPoliciesInPermissionSet"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -105,6 +106,9 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssoadmin_managed_policy_attachment.listSsoAdminManagedPolicyAttachments", "api_error", err)

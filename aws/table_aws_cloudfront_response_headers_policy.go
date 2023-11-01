@@ -25,6 +25,13 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				},
 			},
 			Hydrate: listCloudFrontResponseHeadersPolicies,
+			Tags:    map[string]string{"service": "cloudfront", "action": "ListResponseHeadersPolicies"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getETagValue,
+				Tags: map[string]string{"service": "cloudfront", "action": "GetResponseHeadersPolicy"},
+			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -127,6 +134,9 @@ func listCloudFrontResponseHeadersPolicies(ctx context.Context, d *plugin.QueryD
 	// Paginator not avilable for the API
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		data, err := svc.ListResponseHeadersPolicies(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudfront_response_headers_policy.listCloudFrontResponseHeadersPolicies", "api_error", err)

@@ -22,6 +22,12 @@ func tableAwsS3AccountSettings(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listS3Account,
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAccountBucketPublicAccessBlock,
+				Tags: map[string]string{"service": "s3", "action": "GetAccountPublicAccessBlock"},
+			},
+		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "block_public_acls",

@@ -24,9 +24,11 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
 			},
 			Hydrate: getVpcEgressOnlyInternetGateway,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeEgressOnlyInternetGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEgressOnlyInternetGateways,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeEgressOnlyInternetGateways"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -104,6 +106,9 @@ func listVpcEgressOnlyInternetGateways(ctx context.Context, d *plugin.QueryData,
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_egress_only_internet_gateway.listVpcEgressOnlyInternetGateways", "api_error", err)

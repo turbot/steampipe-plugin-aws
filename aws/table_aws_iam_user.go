@@ -29,11 +29,39 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			},
 			Hydrate: getIamUser,
+			Tags:    map[string]string{"service": "iam", "action": "GetUser"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamUsers,
+			Tags:    map[string]string{"service": "iam", "action": "ListUsers"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsIamUserLoginProfile,
+				Tags: map[string]string{"service": "iam", "action": "GetLoginProfile"},
+			},
+			{
+				Func: getAwsIamUserData,
+				Tags: map[string]string{"service": "iam", "action": "GetUser"},
+			},
+			{
+				Func: getAwsIamUserAttachedPolicies,
+				Tags: map[string]string{"service": "iam", "action": "ListAttachedUserPolicies"},
+			},
+			{
+				Func: getAwsIamUserGroups,
+				Tags: map[string]string{"service": "iam", "action": "ListGroupsForUser"},
+			},
+			{
+				Func: getAwsIamUserMfaDevices,
+				Tags: map[string]string{"service": "iam", "action": "ListMFADevices"},
+			},
+			{
+				Func: listAwsIamUserInlinePolicies,
+				Tags: map[string]string{"service": "iam", "action": "ListUserPolicies"},
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -196,6 +224,9 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "api_error", err)

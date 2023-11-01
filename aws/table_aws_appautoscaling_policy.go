@@ -22,6 +22,7 @@ func tableAwsAppAutoScalingPolicy(_ context.Context) *plugin.Table {
 		Description: "AWS Application Auto Scaling Policy",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsApplicationAutoScalingPolicies,
+			Tags:    map[string]string{"service": "application-autoscaling", "action": "DescribeScalingPolicies"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "service_namespace",
@@ -151,6 +152,9 @@ func listAwsApplicationAutoScalingPolicies(ctx context.Context, d *plugin.QueryD
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_appautoscaling_policy.listAwsApplicationAutoScalingPolicies", "api_error", err)

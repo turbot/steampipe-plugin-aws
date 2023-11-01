@@ -18,6 +18,7 @@ func tableAwsVpcNatGatewayMetricBytesOutToDestination(_ context.Context) *plugin
 		List: &plugin.ListConfig{
 			ParentHydrate: listVpcNatGateways,
 			Hydrate:       listVpcNatGatewayMetricBytesOutToDestination,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(

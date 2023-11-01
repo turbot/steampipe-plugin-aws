@@ -28,9 +28,11 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
 			},
 			Hydrate: getEBSVolume,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVolumes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEBSVolume,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVolumes"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "availability_zone", Require: plugin.Optional},
 				{Name: "encrypted", Require: plugin.Optional, Operators: []string{"=", "<>"}},
@@ -41,6 +43,16 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 				{Name: "volume_id", Require: plugin.Optional},
 				{Name: "volume_type", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getVolumeAutoEnableIOData,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeVolumeAttribute"},
+			},
+			{
+				Func: getVolumeProductCodes,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeVolumeAttribute"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
@@ -206,6 +218,9 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ebs_volume.listEBSVolume", "api_error", err)

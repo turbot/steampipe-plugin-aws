@@ -26,9 +26,11 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterSubnetGroupNotFoundFault"}),
 			},
 			Hydrate: getRedshiftSubnetGroup,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSubnetGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftSubnetGroups,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSubnetGroups"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -121,6 +123,9 @@ func listRedshiftSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_redshift_subnet_group.listRedshiftSubnetGroups", "api_error", err)

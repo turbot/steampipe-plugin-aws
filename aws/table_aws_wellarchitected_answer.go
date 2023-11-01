@@ -31,15 +31,23 @@ func tableAwsWellArchitectedAnswer(_ context.Context) *plugin.Table {
 				{Name: "milestone_number", Require: plugin.Optional},
 			},
 			Hydrate: getWellArchitectedAnswer,
+			Tags:    map[string]string{"service": "wellarchitected", "action": "GetAnswer"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedAnswers,
+			Tags:          map[string]string{"service": "wellarchitected", "action": "ListAnswers"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "lens_alias", Require: plugin.Optional},
 				{Name: "pillar_id", Require: plugin.Optional},
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "milestone_number", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWellArchitectedAnswer,
+				Tags: map[string]string{"service": "wellarchitected", "action": "GetAnswer"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -229,6 +237,9 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 
 		// List call
 		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
+
 			output, err := paginator.NextPage(ctx)
 			if err != nil {
 				var ae smithy.APIError

@@ -29,10 +29,12 @@ func tableAwsDirectoryServiceCertificate(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CertificateDoesNotExistException", "DirectoryDoesNotExistException", "InvalidParameterException"}),
 			},
 			Hydrate: getDirectoryServiceCertificate,
+			Tags:    map[string]string{"service": "ds", "action": "DescribeCertificate"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listDirectoryServiceDirectories,
 			Hydrate:       listDirectoryServiceCertificates,
+			Tags:          map[string]string{"service": "ds", "action": "ListCertificates"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DirectoryDoesNotExistException"}),
 			},
@@ -41,6 +43,12 @@ func tableAwsDirectoryServiceCertificate(_ context.Context) *plugin.Table {
 					Name:    "directory_id",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDirectoryServiceCertificate,
+				Tags: map[string]string{"service": "ds", "action": "DescribeCertificate"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(directoryservicev1.EndpointsID),
@@ -157,6 +165,9 @@ func listDirectoryServiceCertificates(ctx context.Context, d *plugin.QueryData, 
 	pagesLeft := true
 	// List call
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListCertificates(ctx, input)
 		if err != nil {
 			// In the case of parent hydrate the ignore config seems to not work fine. So we need to handle it manually

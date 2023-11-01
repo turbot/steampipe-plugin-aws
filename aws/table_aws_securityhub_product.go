@@ -25,9 +25,11 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
 			},
 			Hydrate: getSecurityHubProduct,
+			Tags:    map[string]string{"service": "securityhub", "action": "DescribeProducts"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubProducts,
+			Tags:    map[string]string{"service": "securityhub", "action": "DescribeProducts"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -133,6 +135,9 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Handle error for accounts that are not subscribed to AWS Security Hub

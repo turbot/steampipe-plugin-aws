@@ -28,10 +28,12 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"log_group_name", "name"}),
 			Hydrate:    getCloudwatchLogStream,
+			Tags:       map[string]string{"service": "logs", "action": "DescribeLogStreams"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listCloudwatchLogGroups,
 			Hydrate:       listCloudwatchLogStreams,
+			Tags:          map[string]string{"service": "logs", "action": "DescribeLogStreams"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
@@ -149,6 +151,9 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Info("aws_cloudwatch_log_group.listCloudwatchLogGroups", "api_error", err)

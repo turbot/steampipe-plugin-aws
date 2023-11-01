@@ -7,7 +7,6 @@ package aws
 
 import (
 	"context"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
@@ -494,6 +493,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wellarchitected_share_invitation":                         tableAwsWellArchitectedShareInvitation(ctx),
 			"aws_wellarchitected_workload":                                 tableAwsWellArchitectedWorkload(ctx),
 			"aws_wellarchitected_workload_share":                           tableAwsWellArchitectedWorkloadShare(ctx),
+			"aws_workspaces_directory":                                     tableAwsWorkspacesDirectory(ctx),
 			"aws_workspaces_workspace":                                     tableAwsWorkspace(ctx),
 		},
 	}

@@ -26,6 +26,7 @@ func tableAwsEc2LaunchTemplate(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidLaunchTemplateName.NotFoundException", "InvalidLaunchTemplateId.NotFound", "InvalidLaunchTemplateId.Malformed"}),
 			},
 			Hydrate: listEc2LaunchTemplates,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeLaunchTemplates"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "launch_template_name",
@@ -138,6 +139,9 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// When a table is used as the parent hydrate in another table, the ignore config does not function as expected. Consequently, it becomes necessary to handle this situation manually.

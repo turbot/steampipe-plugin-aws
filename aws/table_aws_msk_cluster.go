@@ -23,12 +23,24 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getKafkaCluster(string(types.ClusterTypeProvisioned)),
+			Tags:       map[string]string{"service": "kafka", "action": "DescribeCluster"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKafkaClusters(string(types.ClusterTypeProvisioned)),
+			Tags:    map[string]string{"service": "kafka", "action": "ListClusters"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getKafkaClusterConfiguration,
+				Tags: map[string]string{"service": "kafka", "action": "DescribeConfiguration"},
+			},
+			{
+				Func: getKafkaClusterOperation,
+				Tags: map[string]string{"service": "kafka", "action": "DescribeClusterOperation"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kafkav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -156,6 +168,9 @@ func listKafkaClusters(clusterType string) func(ctx context.Context, d *plugin.Q
 		})
 
 		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
+
 			output, err := paginator.NextPage(ctx)
 			if err != nil {
 				plugin.Logger(ctx).Error("aws_msk_cluster.listKafkaClusters", "api_error", err)

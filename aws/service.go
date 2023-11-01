@@ -1575,7 +1575,7 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// but a clever pass through of context for our case.
 	region := h.Item.(string)
 
-	plugin.Logger(ctx).Trace("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
 	awsSpcConfig := GetConfig(d.Connection)
 
@@ -1614,13 +1614,13 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Trace("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "done")
 	return sess, err
 }
 
 func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 
-	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
 	if region == "" {
 		return nil, fmt.Errorf("getClientWithMaxRetries called with an empty region")
@@ -1633,7 +1633,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		return nil, err
 	}
 	cfg := baseCfg.Copy()
-	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "copy_base_config")
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "copy_base_config")
 
 	// Set the region for this client
 	// Note: The region set directly in cfg.Region will not be used by the AWS
@@ -1643,19 +1643,21 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	// a signing error will be thrown for API calls with this client, e.g.,
 	// Error: operation error CloudFront: ListDistributions, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, failed to resolve service endpoint, an AWS region is required, but was not found
 	cfg.Region = region
-	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "set_client_region")
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "set_client_region")
 
 	// Add the retryer definition
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		// reseting state of rand to generate different random values
-		rand.Seed(time.Now().UnixNano())
+		rand.New(rand.NewSource(time.Now().UnixNano()))
 		o.MaxAttempts = maxRetries
 		o.MaxBackoff = 5 * time.Minute
 		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
 		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 	})
 	cfg.Retryer = func() aws.Retryer {
-		return retryer
+		// UnknownError is the code returned for a 408 from the aws go sdk, these can be frequent on large accounts especially around SNS Topics, etc.
+		additionalErrors := []string{"UnknownError"}
+		return retry.AddWithErrorCodes(retryer, additionalErrors...)
 	}
 
 	// Plugin level config
@@ -1678,7 +1680,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		}
 	}
 
-	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
 
 	return &cfg, err
 }
@@ -1717,7 +1719,7 @@ var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUn
 // can be modified in the higher level client functions.
 func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
+	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
 
 	awsSpcConfig := GetConfig(d.Connection)
 
@@ -1731,7 +1733,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 
 	if awsSpcConfig.Profile != nil {
 		profile := aws.ToString(awsSpcConfig.Profile)
-		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
+		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
 		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
 	}
 
@@ -1740,17 +1742,17 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
 		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
 	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
-		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
+		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
 		sessionToken := ""
 		if awsSpcConfig.SessionToken != nil {
-			plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
+			plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
 			sessionToken = *awsSpcConfig.SessionToken
 		}
 		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
-	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
 
 	// NOTE: EC2 metadata service IMDS throttling and retries
 	//
@@ -1801,7 +1803,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 			return nil, err
 		}
 
-		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "region", defaultRegion, "status", "set_default_region")
+		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "region", defaultRegion, "status", "set_default_region")
 		configOptions = append(configOptions, config.WithRegion(defaultRegion))
 		cfg, err = config.LoadDefaultConfig(ctx, configOptions...)
 		if err != nil {
@@ -1810,7 +1812,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		}
 	}
 
-	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
+	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
 
 	return &cfg, err
 

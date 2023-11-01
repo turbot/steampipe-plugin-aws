@@ -24,6 +24,7 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 		Description: "AWS CloudWatch Metric",
 		List: &plugin.ListConfig{
 			Hydrate: listCloudWatchMetrics,
+			Tags:    map[string]string{"service": "cloudwatch", "action": "ListMetrics"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
@@ -124,6 +125,9 @@ func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Info("aws_cloudwatch_metric.listCloudWatchMetrics", "api_error", err)

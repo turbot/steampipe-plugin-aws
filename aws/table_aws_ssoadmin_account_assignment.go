@@ -27,6 +27,7 @@ func tableAwsSsoAdminAccountAssignment(_ context.Context) *plugin.Table {
 				plugin.OptionalColumns([]string{"instance_arn"})...,
 			),
 			Hydrate: listSsoAdminAccountAssignments,
+			Tags:    map[string]string{"service": "sso", "action": "ListAccountAssignments"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -83,8 +84,8 @@ func listSsoAdminAccountAssignments(ctx context.Context, d *plugin.QueryData, h 
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-				maxLimit = limit
-			}
+			maxLimit = limit
+		}
 	}
 
 	permissionSetArn := d.EqualsQualString("permission_set_arn")
@@ -109,6 +110,9 @@ func listSsoAdminAccountAssignments(ctx context.Context, d *plugin.QueryData, h 
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error(d.Table.Name+".listSsoAdminAccountAssignments", "api_error", err)

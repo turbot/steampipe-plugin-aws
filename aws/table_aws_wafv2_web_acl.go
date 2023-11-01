@@ -28,11 +28,31 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			},
 			Hydrate: getAwsWafv2WebAcl,
+			Tags:    map[string]string{"service": "wafv2", "action": "GetWebACL"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2WebAcls,
+			Tags:    map[string]string{"service": "wafv2", "action": "ListWebACLs"},
 		},
 		GetMatrixItemFunc: WAFRegionMatrix,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafv2WebAcl,
+				Tags: map[string]string{"service": "wafv2", "action": "GetWebACL"},
+			},
+			{
+				Func: listAssociatedResources,
+				Tags: map[string]string{"service": "wafv2", "action": "ListResourcesForWebACL"},
+			},
+			{
+				Func: getLoggingConfiguration,
+				Tags: map[string]string{"service": "wafv2", "action": "GetLoggingConfiguration"},
+			},
+			{
+				Func: listTagsForAwsWafv2WebAcl,
+				Tags: map[string]string{"service": "wafv2", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -201,6 +221,9 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 	// ListWebACLs API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAwsWafv2WebAcls", "api_error", err)

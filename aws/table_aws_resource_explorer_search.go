@@ -22,6 +22,7 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 		Description: "AWS Resource Explorer Search",
 		List: &plugin.ListConfig{
 			Hydrate: awsResourceExplorerSearch,
+			Tags:    map[string]string{"service": "resource-explorer-2", "action": "Search"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "query", Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "view_arn", Require: plugin.Optional, CacheMatch: "exact"},
@@ -195,6 +196,9 @@ func awsResourceExplorerSearch(ctx context.Context, d *plugin.QueryData, h *plug
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_resource_explorer_search.awsResourceExplorerSearch", "search_api_error", err)
