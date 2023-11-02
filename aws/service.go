@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
@@ -1720,7 +1721,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
 
 	awsSpcConfig := GetConfig(d.Connection)
-
+	plugin.Logger(ctx).Error("config", d.Connection.Config.(awsConfig).AssumeRole)
 	var configOptions []func(*config.LoadOptions) error
 
 	// Note about region config: We deliberately do not set a region when
@@ -1808,6 +1809,33 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 			plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
 			return nil, err
 		}
+	}
+
+	if awsSpcConfig.AssumeRole != nil {
+		roleArn := awsSpcConfig.AssumeRole.RoleARN
+		assumeRoleOptions := func(o *stscreds.AssumeRoleOptions) {
+			o.RoleARN = aws.ToString(roleArn)
+			plugin.Logger(ctx).Error("roleArn", roleArn)
+			if awsSpcConfig.AssumeRole.Duration != nil {
+				duration, _ := time.ParseDuration(aws.ToString(awsSpcConfig.AssumeRole.Duration))
+				o.Duration = duration
+				plugin.Logger(ctx).Error("duration", duration)
+			}
+
+			if awsSpcConfig.AssumeRole.ExternalId != nil {
+				o.ExternalID = awsSpcConfig.AssumeRole.ExternalId
+				plugin.Logger(ctx).Error("ExternalId", aws.ToString(awsSpcConfig.AssumeRole.ExternalId))
+			}
+
+			if awsSpcConfig.AssumeRole.SessionName != nil {
+				o.RoleSessionName = aws.ToString(awsSpcConfig.AssumeRole.SessionName)
+				plugin.Logger(ctx).Error("ExternalId", aws.ToString(awsSpcConfig.AssumeRole.SessionName))
+			}
+		}
+
+		stsClient := sts.NewFromConfig(cfg)
+		provider := stscreds.NewAssumeRoleProvider(stsClient, aws.ToString(roleArn), assumeRoleOptions)
+		cfg.Credentials = aws.NewCredentialsCache(provider)
 	}
 
 	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
