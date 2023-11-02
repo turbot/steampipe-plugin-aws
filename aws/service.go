@@ -1829,7 +1829,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 
 			if awsSpcConfig.AssumeRole.SessionName != nil {
 				o.RoleSessionName = aws.ToString(awsSpcConfig.AssumeRole.SessionName)
-				plugin.Logger(ctx).Error("ExternalId", aws.ToString(awsSpcConfig.AssumeRole.SessionName))
+				plugin.Logger(ctx).Error("SessionName", aws.ToString(awsSpcConfig.AssumeRole.SessionName))
 			}
 		}
 
