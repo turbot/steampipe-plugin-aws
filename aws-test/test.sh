@@ -3,11 +3,12 @@
  GREEN="\e[32m"
  BLACK="\e[30m"
  BOLDGREEN="\e[1;${GREEN}"
+ YELLOW="\e[93m"
  ENDCOLOR="\e[0m"
 
 # Define your function here
 run_test () {
-   echo -e "${BLACK}Running $1 ${ENDCOLOR}"
+   echo -e "${YELLOW}Running $1 ${ENDCOLOR}"
  if ! ./tint.js $1 >> output.txt
    then
     echo -e "${RED}Failed -> $1 ${ENDCOLOR}"
