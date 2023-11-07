@@ -121,7 +121,7 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			params.MaxResults = limit
+			params.MaxResults = aws.Int32(limit)
 		}
 	}
 

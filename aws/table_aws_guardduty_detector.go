@@ -7,6 +7,7 @@ import (
 
 	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -97,6 +98,12 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Hydrate:     getGuardDutyDetector,
 			},
 			{
+				Name:        "features",
+				Description: "Describes the features that have been enabled for the detector.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGuardDutyDetector,
+			},
+			{
 				Name:        "master_account",
 				Description: "Contains information about the administrator account and invitation.",
 				Type:        proto.ColumnType_JSON,
@@ -141,14 +148,14 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	maxItems := int32(50)
 	params := &guardduty.ListDetectorsInput{
-		MaxResults: maxItems,
+		MaxResults: aws.Int32(maxItems),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			params.MaxResults = limit
+			params.MaxResults = aws.Int32(limit)
 		}
 	}
 
