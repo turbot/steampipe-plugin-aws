@@ -23,15 +23,23 @@ func tableAwsEksFargateProfile(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"cluster_name", "fargate_profile_name"}),
 			Hydrate:    getEKSFargateProfile,
+			Tags:       map[string]string{"service": "eks", "action": "DescribeFargateProfile"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEKSClusters,
 			Hydrate:       listEKSFargateProfiles,
+			Tags:          map[string]string{"service": "eks", "action": "ListFargateProfiles"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "cluster_name",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEKSFargateProfile,
+				Tags: map[string]string{"service": "eks", "action": "DescribeFargateProfile"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
@@ -156,6 +164,9 @@ func listEKSFargateProfiles(ctx context.Context, d *plugin.QueryData, h *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_eks_fargate_profile.listEKSFargateProfiles", "api_error", err)

@@ -23,13 +23,20 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getOpenSearchDomain,
+			Tags:    map[string]string{"service": "es", "action": "DescribeDomain"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOpenSearchDomains,
+			Tags:    map[string]string{"service": "es", "action": "ListDomainNames"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
+				Func: getOpenSearchDomain,
+				Tags: map[string]string{"service": "es", "action": "DescribeDomain"},
+			},
+			{
 				Func:    listOpenSearchDomainTags,
+				Tags:    map[string]string{"service": "es", "action": "ListTags"},
 				Depends: []plugin.HydrateFunc{getOpenSearchDomain},
 			},
 		},
@@ -38,6 +45,11 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 			{
 				Name:        "domain_name",
 				Description: "The name of the domain.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "engine_type",
+				Description: "Specifies the EngineType of the domain.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -240,9 +252,7 @@ func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	for _, domainname := range op.DomainNames {
-		d.StreamListItem(ctx, types.DomainStatus{
-			DomainName: domainname.DomainName,
-		})
+		d.StreamListItem(ctx, domainname)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.RowsRemaining(ctx) == 0 {
@@ -258,7 +268,7 @@ func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var domainName string
 	if h.Item != nil {
-		domainName = *h.Item.(types.DomainStatus).DomainName
+		domainName = *h.Item.(types.DomainInfo).DomainName
 	} else {
 		domainName = d.EqualsQuals["domain_name"].GetStringValue()
 

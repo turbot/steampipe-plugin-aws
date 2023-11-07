@@ -31,9 +31,11 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getRestAPI,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetRestApi"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRestAPI,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetRestApis"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -174,6 +176,9 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listRestAPI", "api_error", err)

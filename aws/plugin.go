@@ -7,7 +7,6 @@ package aws
 
 import (
 	"context"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
@@ -63,6 +62,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_appautoscaling_policy":                                    tableAwsAppAutoScalingPolicy(ctx),
 			"aws_appautoscaling_target":                                    tableAwsAppAutoScalingTarget(ctx),
 			"aws_appconfig_application":                                    tableAwsAppConfigApplication(ctx),
+			"aws_appstream_fleet":                                          tableAwsAppStreamFleet(ctx),
 			"aws_appstream_image":                                          tableAwsAppStreamImage(ctx),
 			"aws_athena_query_execution":                                   tableAwsAthenaQueryExecution(ctx),
 			"aws_athena_workgroup":                                         tableAwsAthenaWorkGroup(ctx),
@@ -77,11 +77,13 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_backup_plan":                                              tableAwsBackupPlan(ctx),
 			"aws_backup_protected_resource":                                tableAwsBackupProtectedResource(ctx),
 			"aws_backup_recovery_point":                                    tableAwsBackupRecoveryPoint(ctx),
+			"aws_backup_report_plan":                                       tableAwsBackupReportPlan(ctx),
 			"aws_backup_selection":                                         tableAwsBackupSelection(ctx),
 			"aws_backup_vault":                                             tableAwsBackupVault(ctx),
 			"aws_cloudcontrol_resource":                                    tableAwsCloudControlResource(ctx),
 			"aws_cloudformation_stack":                                     tableAwsCloudFormationStack(ctx),
 			"aws_cloudformation_stack_resource":                            tableAwsCloudFormationStackResource(ctx),
+			"aws_cloudformation_stack_set":                                 tableAwsCloudFormationStackSet(ctx),
 			"aws_cloudfront_cache_policy":                                  tableAwsCloudFrontCachePolicy(ctx),
 			"aws_cloudfront_distribution":                                  tableAwsCloudFrontDistribution(ctx),
 			"aws_cloudfront_function":                                      tableAwsCloudFrontFunction(ctx),
@@ -115,6 +117,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_codedeploy_deployment_config":                             tableAwsCodeDeployDeploymentConfig(ctx),
 			"aws_codedeploy_deployment_group":                              tableAwsCodeDeployDeploymentGroup(ctx),
 			"aws_codepipeline_pipeline":                                    tableAwsCodepipelinePipeline(ctx),
+			"aws_cognito_identity_pool":                                    tableAwsCognitoIdentityPool(ctx),
+			"aws_cognito_identity_provider":                                tableAwsCognitoIdentityProvider(ctx),
+			"aws_cognito_user_pool":                                        tableAwsCognitoUserPool(ctx),
 			"aws_config_aggregate_authorization":                           tableAwsConfigAggregateAuthorization(ctx),
 			"aws_config_configuration_recorder":                            tableAwsConfigConfigurationRecorder(ctx),
 			"aws_config_conformance_pack":                                  tableAwsConfigConformancePack(ctx),
@@ -136,7 +141,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_dax_parameter_group":                                      tableAwsDaxParameterGroup(ctx),
 			"aws_dax_parameter":                                            tableAwsDaxParameter(ctx),
 			"aws_dax_subnet_group":                                         tableAwsDaxSubnetGroup(ctx),
+			"aws_directory_service_certificate":                            tableAwsDirectoryServiceCertificate(ctx),
 			"aws_directory_service_directory":                              tableAwsDirectoryServiceDirectory(ctx),
+			"aws_directory_service_log_subscription":                       tableAwsDirectoryServiceLogSubscription(ctx),
 			"aws_dlm_lifecycle_policy":                                     tableAwsDLMLifecyclePolicy(ctx),
 			"aws_dms_replication_instance":                                 tableAwsDmsReplicationInstance(ctx),
 			"aws_docdb_cluster":                                            tableAwsDocDBCluster(ctx),
@@ -332,6 +339,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ram_resource_association":                                 tableAwsRAMResourceAssociation(ctx),
 			"aws_rds_db_cluster_parameter_group":                           tableAwsRDSDBClusterParameterGroup(ctx),
 			"aws_rds_db_cluster_snapshot":                                  tableAwsRDSDBClusterSnapshot(ctx),
+			"aws_neptune_db_cluster_snapshot":                              tableAwsNeptuneDBClusterSnapshot(ctx),
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
 			"aws_rds_db_event_subscription":                                tableAwsRDSDBEventSubscription(ctx),
 			"aws_rds_db_instance_metric_connections_daily":                 tableAwsRdsInstanceMetricConnectionsDaily(ctx),
@@ -445,6 +453,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_flow_log_event":                                       tableAwsVpcFlowLogEvent(ctx),
 			"aws_vpc_flow_log":                                             tableAwsVpcFlowlog(ctx),
 			"aws_vpc_internet_gateway":                                     tableAwsVpcInternetGateway(ctx),
+			"aws_vpc_nat_gateway_metric_bytes_out_to_destination":          tableAwsVpcNatGatewayMetricBytesOutToDestination(ctx),
 			"aws_vpc_nat_gateway":                                          tableAwsVpcNatGateway(ctx),
 			"aws_vpc_network_acl":                                          tableAwsVpcNetworkACL(ctx),
 			"aws_vpc_peering_connection":                                   tableAwsVpcPeeringConnection(ctx),
@@ -485,6 +494,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wellarchitected_share_invitation":                         tableAwsWellArchitectedShareInvitation(ctx),
 			"aws_wellarchitected_workload":                                 tableAwsWellArchitectedWorkload(ctx),
 			"aws_wellarchitected_workload_share":                           tableAwsWellArchitectedWorkloadShare(ctx),
+			"aws_workspaces_directory":                                     tableAwsWorkspacesDirectory(ctx),
 			"aws_workspaces_workspace":                                     tableAwsWorkspace(ctx),
 		},
 	}

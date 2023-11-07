@@ -21,9 +21,17 @@ func tableAwsAthenaWorkGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getAwsAthenaWorkGroup,
+			Tags:       map[string]string{"service": "athena", "action": "GetWorkGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAthenaWorkGroups,
+			Tags:    map[string]string{"service": "athena", "action": "ListWorkGroups"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsAthenaWorkGroup,
+				Tags: map[string]string{"service": "athena", "action": "GetWorkGroup"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(athenav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -178,6 +186,9 @@ func listAwsAthenaWorkGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for workGroupsPaginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := workGroupsPaginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_athena_query_execution.listAwsAthenaWorkGroups", "api_error", err)

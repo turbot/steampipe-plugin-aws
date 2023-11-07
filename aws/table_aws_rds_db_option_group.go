@@ -26,12 +26,20 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"OptionGroupNotFoundFault"}),
 			},
 			Hydrate: getRDSDBOptionGroup,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeOptionGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBOptionGroups,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeOptionGroups"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "engine_name", Require: plugin.Optional},
 				{Name: "major_engine_version", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsRDSOptionGroupTags,
+				Tags: map[string]string{"service": "rds", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
@@ -156,6 +164,9 @@ func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			logger.Error("aws_rds_db_option_group.listRDSDBOptionGroups", "api_error", err)

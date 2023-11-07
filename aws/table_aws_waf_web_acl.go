@@ -27,9 +27,25 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			},
 			Hydrate: getWafWebAcl,
+			Tags:    map[string]string{"service": "waf", "action": "GetWebACL"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWafWebAcls,
+			Tags:    map[string]string{"service": "waf", "action": "ListWebACLs"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWafWebAcl,
+				Tags: map[string]string{"service": "waf", "action": "GetWebACL"},
+			},
+			{
+				Func: getClassicLoggingConfiguration,
+				Tags: map[string]string{"service": "waf", "action": "GetLoggingConfiguration"},
+			},
+			{
+				Func: listTagsForWafWebAcl,
+				Tags: map[string]string{"service": "waf", "action": "ListTagsForResource"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -132,6 +148,9 @@ func listWafWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// API doesn't support aws-sdk-go-v2 paginator as of date
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_waf_web_acl.listWafWebAcls", "api_error", err)

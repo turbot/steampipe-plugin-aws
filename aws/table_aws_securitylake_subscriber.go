@@ -25,9 +25,11 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getSecurityLakeSubscriber,
+			Tags:    map[string]string{"service": "securitylake", "action": "GetSubscriber"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityLakeSubscribers,
+			Tags:    map[string]string{"service": "securitylake", "action": "ListSubscribers"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(securitylakev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -157,6 +159,9 @@ func listSecurityLakeSubscribers(ctx context.Context, d *plugin.QueryData, _ *pl
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_securitylake_subscriber.listSecurityLakeSubscribers", "api_error", err)

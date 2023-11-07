@@ -1,4 +1,4 @@
-# Table: aws_nat_gateway
+# Table: aws_vpc_nat_gateway
 
 NAT Gateway is a highly available AWS managed service that makes it easy to connect to the Internet from instances within a private subnet in an Amazon Virtual Private Cloud (Amazon VPC).
 

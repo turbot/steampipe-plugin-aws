@@ -24,9 +24,11 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidDhcpOptionID.NotFound"}),
 			},
 			Hydrate: getVpcDhcpOption,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeDhcpOptions"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcDhcpOptions,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeDhcpOptions"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "owner_id", Require: plugin.Optional},
 			},
@@ -146,6 +148,9 @@ func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_dhcp_options.listVpcDhcpOptions", "api_error", err)

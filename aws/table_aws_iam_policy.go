@@ -20,15 +20,27 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_policy",
 		Description: "AWS IAM Policy",
 		Get: &plugin.GetConfig{
+			Tags:       map[string]string{"service": "iam", "action": "GetPolicy"},
 			KeyColumns: plugin.AllColumns([]string{"arn"}),
 			Hydrate:    getIamPolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamPolicies,
+			Tags:    map[string]string{"service": "iam", "action": "ListPolicies"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "is_aws_managed", Require: plugin.Optional, Operators: []string{"<>", "="}},
 				{Name: "is_attached", Require: plugin.Optional, Operators: []string{"<>", "="}},
 				{Name: "path", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getPolicyVersion,
+				Tags: map[string]string{"service": "iam", "action": "GetPolicyVersion"},
+			},
+			{
+				Func: getIamPolicy,
+				Tags: map[string]string{"service": "iam", "action": "GetPolicy"},
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -171,6 +183,9 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	params.MaxItems = aws.Int32(maxItems)
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_policy.listIamPolicies", "api_error", err)

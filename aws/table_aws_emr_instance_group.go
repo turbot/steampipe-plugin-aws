@@ -25,6 +25,7 @@ func tableAwsEmrInstanceGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstanceGroups,
+			Tags:          map[string]string{"service": "elasticmapreduce", "action": "ListInstanceGroups"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -191,6 +192,9 @@ func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			var ae smithy.APIError

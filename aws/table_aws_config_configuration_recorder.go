@@ -23,9 +23,17 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchConfigurationRecorderException"}),
 			},
 			Hydrate: getConfigConfigurationRecorder,
+			Tags:    map[string]string{"service": "config", "action": "DescribeConfigurationRecorders"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConfigurationRecorders,
+			Tags:    map[string]string{"service": "config", "action": "DescribeConfigurationRecorders"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getConfigConfigurationRecorderStatus,
+				Tags: map[string]string{"service": "config", "action": "DescribeConfigurationRecorderStatus"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

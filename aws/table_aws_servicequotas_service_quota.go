@@ -26,6 +26,7 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"service_code", "quota_code"}),
 			Hydrate:    getServiceQuota,
+			Tags:       map[string]string{"service": "servicequotas", "action": "GetServiceQuota"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 			},
@@ -33,11 +34,18 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listServiceQuotasService,
 			Hydrate:       listServiceQuotas,
+			Tags:          map[string]string{"service": "servicequotas", "action": "ListServiceQuotas"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getServiceQuotaTags,
+				Tags: map[string]string{"service": "servicequotas", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(servicequotasv1.EndpointsID),
@@ -180,6 +188,9 @@ func listServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_servicequotas_service_quota.listServiceQuotas", "api_error", err)

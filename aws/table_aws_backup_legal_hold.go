@@ -26,9 +26,17 @@ func tableAwsBackupLegalHold(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupLegalHold,
+			Tags:    map[string]string{"service": "backup", "action": "GetLegalHold"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupLegalHolds,
+			Tags:    map[string]string{"service": "backup", "action": "ListLegalHolds"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsBackupLegalHold,
+				Tags: map[string]string{"service": "backup", "action": "GetLegalHold"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -130,6 +138,9 @@ func listAwsBackupLegalHolds(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_legal_hold.listAwsBackupLegalHolds", "api_error", err)

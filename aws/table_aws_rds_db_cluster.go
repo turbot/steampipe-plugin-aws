@@ -9,8 +9,6 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/turbot/go-kit/helpers"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -28,12 +26,20 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBClusterNotFoundFault"}),
 			},
 			Hydrate: getRDSDBCluster,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusters,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusters"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "clone_group_id", Require: plugin.Optional},
 				{Name: "engine", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRDSDBClusterPendingMaintenanceAction,
+				Tags: map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
@@ -282,6 +288,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "members",
 				Description: "A list of instances that make up the DB cluster.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("DBClusterMembers"),
 			},
 			{
 				Name:        "option_group_memberships",
@@ -387,6 +394,9 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_cluster.listRDSDBClusters", "api_error", err)
@@ -397,18 +407,7 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 			// The DescribeDBClusters API returns non-RDS DB clusters as well,
 			// but we only want RDS clusters here, even if the 'engine' qual
 			// isn't passed in.
-			// Current supported RDS engine values as of 2022/08/15 are
-			// "aurora", "aurora-mysql", "aurora-postgresql", "mysql", and "postgres".
-			// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/RDS.html#createDBCluster-property
-			if helpers.StringSliceContains(
-				[]string{
-					"aurora",
-					"aurora-mysql",
-					"aurora-postgresql",
-					"mysql",
-					"postgres",
-				},
-				*items.Engine) {
+			if isSuppportedRDSEngine(*items.Engine) {
 				d.StreamListItem(ctx, items)
 			}
 
@@ -445,7 +444,11 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	if op.DBClusters != nil && len(op.DBClusters) > 0 {
-		return op.DBClusters[0], nil
+
+		cluster := op.DBClusters[0]
+		if isSuppportedRDSEngine(*cluster.Engine) {
+			return cluster, nil
+		}
 	}
 	return nil, nil
 }

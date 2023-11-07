@@ -23,12 +23,20 @@ func tableAwsCloudtrailChannel(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getCloudTrailChannel,
+			Tags:       map[string]string{"service": "cloudtrail", "action": "GetChannel"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ChannelNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudTrailChannels,
+			Tags:    map[string]string{"service": "cloudtrail", "action": "ListChannels"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudSearchDomain,
+				Tags: map[string]string{"service": "cloudtrail", "action": "GetChannel"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -124,6 +132,9 @@ func listCloudTrailChannels(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudtrail_channel.listCloudTrailChannels", "api_error", err)

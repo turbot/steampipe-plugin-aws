@@ -28,14 +28,22 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException"}),
 			},
 			Hydrate: getAwsWAFRegionalRule,
+			Tags:    map[string]string{"service": "waf-regional", "action": "GetRule"},
 		},
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException"}),
 			},
 			Hydrate: listAwsWAFRegionalRules,
+			Tags:    map[string]string{"service": "waf-regional", "action": "ListRules"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wafregionalv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWAFRegionalRule,
+				Tags: map[string]string{"service": "waf-regional", "action": "GetRule"},
+			},
+		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -116,6 +124,9 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	// API doesn't support aws-sdk-go-v2 paginator as of date
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListRules(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafregional_rule.listAwsWAFRegionalRules", "api_error", err)

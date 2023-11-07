@@ -26,12 +26,28 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{}),
 			},
 			Hydrate: getInspectorAssessmentTemplate,
+			Tags:    map[string]string{"service": "inspector", "action": "DescribeAssessmentTemplates"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentTemplates,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "name", Require: plugin.Optional},
 				{Name: "assessment_target_arn", Require: plugin.Optional},
+			},
+			Tags: map[string]string{"service": "inspector", "action": "ListAssessmentTemplates"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listAwsInspectorAssessmentEventSubscriptions,
+				Tags: map[string]string{"service": "inspector", "action": "ListEventSubscriptions"},
+			},
+			{
+				Func: getInspectorAssessmentTemplate,
+				Tags: map[string]string{"service": "inspector", "action": "DescribeAssessmentTemplates"},
+			},
+			{
+				Func: getAwsInspectorAssessmentTemplateTags,
+				Tags: map[string]string{"service": "inspector", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(inspectorv1.EndpointsID),
@@ -180,6 +196,9 @@ func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, 
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector_assessment_template.listInspectorAssessmentTemplates", "api_error", err)
@@ -303,6 +322,9 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector_assessment_template.listAwsInspectorAssessmentEventSubscriptions", "api_error", err)

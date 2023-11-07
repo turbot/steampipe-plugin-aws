@@ -23,12 +23,14 @@ func tableAwsCloudtrailImport(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("import_id"),
 			Hydrate:    getCloudTrailImport,
+			Tags:       map[string]string{"service": "cloudtrail", "action": "GetImport"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnsupportedOperationException", "ImportNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudTrailImports,
+			Tags:    map[string]string{"service": "cloudtrail", "action": "ListImports"},
 			// For the location where the API operation is not supported, we receive UnsupportedOperationException.
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnsupportedOperationException"}),
@@ -38,6 +40,12 @@ func tableAwsCloudtrailImport(_ context.Context) *plugin.Table {
 					Name:    "import_status",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudTrailImport,
+				Tags: map[string]string{"service": "cloudtrail", "action": "GetImport"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),
@@ -138,6 +146,9 @@ func listCloudTrailImports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudtrail_import.listCloudTrailImports", "api_error", err)

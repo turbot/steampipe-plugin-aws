@@ -21,6 +21,7 @@ func tableAwsWellArchitectedNotification(_ context.Context) *plugin.Table {
 		Description: "AWS Well-Architected Notification",
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedNotifications,
+			Tags:    map[string]string{"service": "wellarchitected", "action": "ListNotifications"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 			},
@@ -110,6 +111,9 @@ func listWellArchitectedNotifications(ctx context.Context, d *plugin.QueryData, 
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wellarchitected_notification.listWellArchitectedNotifications", "api_error", err)

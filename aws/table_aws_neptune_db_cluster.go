@@ -23,12 +23,20 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
 			Hydrate:    getNeptuneDBCluster,
+			Tags:       map[string]string{"service": "neptune", "action": "DescribeDBClusters"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBClusterNotFoundFault"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listNeptuneDBClusters,
+			Tags:    map[string]string{"service": "neptune", "action": "DescribeDBClusters"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getNeptuneDBClusterTags,
+				Tags: map[string]string{"service": "neptune", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(neptunev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -285,6 +293,9 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_neptune_db_cluster.listNeptuneDBClusters", "api_error", err)
@@ -335,7 +346,10 @@ func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 	if len(data.DBClusters) > 0 {
-		return data.DBClusters[0], nil
+		cluster := data.DBClusters[0]
+		if *cluster.Engine == "neptune" {
+			return cluster, nil
+		}
 	}
 	return nil, nil
 }

@@ -18,6 +18,7 @@ func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.AllColumns([]string{"principal_arn", "action", "resource_arn"}),
 			Hydrate:    listIamPolicySimulation,
+			Tags:       map[string]string{"service": "iam", "action": "SimulatePrincipalPolicy"},
 		},
 		Columns: []*plugin.Column{
 			// "Key" Columns

@@ -23,6 +23,7 @@ func tableAwsSSMManagedInstancePatchState(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listSsmManagedInstances,
 			Hydrate:       listSsmManagedInstancePatchStates,
+			Tags:          map[string]string{"service": "ssm", "action": "DescribeInstancePatchStates"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "instance_id", Require: plugin.Optional},
 			},
@@ -195,6 +196,9 @@ func listSsmManagedInstancePatchStates(ctx context.Context, d *plugin.QueryData,
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_managed_instance_patch_state.listSsmManagedInstancePatchStates", "api_error", err)

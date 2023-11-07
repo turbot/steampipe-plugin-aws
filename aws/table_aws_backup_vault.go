@@ -31,9 +31,21 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "AccessDeniedException"}),
 			},
 			Hydrate: getAwsBackupVault,
+			Tags:    map[string]string{"service": "backup", "action": "DescribeBackupVault"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupVaults,
+			Tags:    map[string]string{"service": "backup", "action": "ListBackupVaults"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsBackupVaultNotification,
+				Tags: map[string]string{"service": "backup", "action": "GetBackupVaultNotifications"},
+			},
+			{
+				Func: getAwsBackupVaultAccessPolicy,
+				Tags: map[string]string{"service": "backup", "action": "GetBackupVaultAccessPolicy"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -152,6 +164,9 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_vault.listAwsBackupVaults", "api_error", err)

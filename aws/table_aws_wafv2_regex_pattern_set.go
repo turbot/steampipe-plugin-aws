@@ -24,11 +24,23 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAwsWafv2RegexPatternSet,
+			Tags:    map[string]string{"service": "wafv2", "action": "GetRegexPatternSet"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RegexPatternSets,
+			Tags:    map[string]string{"service": "wafv2", "action": "ListRegexPatternSets"},
 		},
 		GetMatrixItemFunc: WAFRegionMatrix,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafv2RegexPatternSet,
+				Tags: map[string]string{"service": "wafv2", "action": "GetRegexPatternSet"},
+			},
+			{
+				Func: listTagsForAwsWafv2RegexPatternSet,
+				Tags: map[string]string{"service": "wafv2", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -154,6 +166,9 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 
 	// ListRegexPatternSets API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListRegexPatternSets(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listAwsWafv2RegexPatternSets", "api_error", err)
