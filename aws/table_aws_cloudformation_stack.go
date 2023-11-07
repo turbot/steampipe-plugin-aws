@@ -2,12 +2,17 @@ package aws
 
 import (
 	"context"
+	"net/url"
+	"regexp"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	go_kit "github.com/turbot/go-kit/types"
 
 	cloudformationv1 "github.com/aws/aws-sdk-go/service/cloudformation"
+	"k8s.io/apimachinery/pkg/util/yaml"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -146,14 +151,14 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Description: "Structure containing the template body.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getStackTemplate,
-				Transform:   transform.FromField("TemplateBody"),
+				Transform:   transform.FromField("TemplateBody").Transform(transform.ToString),
 			},
 			{
 				Name:        "template_body_json",
 				Description: "Structure containing the template body. Parsed into json object for better readability.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getStackTemplate,
-				Transform:   transform.FromField("TemplateBody").Transform(transform.UnmarshalYAML),
+				Transform:   transform.FromField("TemplateBody").Transform(formatJsonBody),
 			},
 			{
 				Name:        "resources",
@@ -329,7 +334,7 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 	return stackResources, nil
 }
 
-// // TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTIONS
 func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	stack := d.HydrateItem.(types.Stack)
 	var turbotTagsMap map[string]string
@@ -342,4 +347,42 @@ func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (in
 		}
 	}
 	return turbotTagsMap, nil
+}
+
+// The Steampipe SDK's defined transform function (transform.UnmarshalYAML) throws an error while parsing the YAML template to JSON.
+// Internally, the Steampipe SDK uses the gopkg.in/yaml.v3 Go package for converting YAML data to JSON. However, it encounters issues when parsing the template body received from the API response, likely due to the presence of code blocks, conditions, functions, etc.
+// The following function can handle all these scenarios and properly render the JSON data format of the template body returned by the API.
+func formatJsonBody(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	if d.Value == nil {
+		return nil, nil
+	}
+
+	inputStr := go_kit.SafeString(d.Value)
+	var result interface{}
+	if inputStr != "" {
+
+		// Escape only URLs instead of checking if any % is not followed by two hexadecimal digits.
+		// QueryUnescape does the inverse transformation of QueryEscape, converting each 3-byte encoded substring of the form "%AB" into the hex-decoded byte 0xAB. It returns an error if any % is not followed by two hexadecimal digits.
+		regex := regexp.MustCompile(`(https?://[^\s]+)`)
+
+		// Find all matches in the input string
+		matches := regex.FindAllString(inputStr, -1)
+
+		// Iterate the matched URLs
+		for _, match := range matches {
+			// The `QueryUnescape()` function returns an error if any '%' character is not followed by two hexadecimal digits while unescaping the URL.
+			// The template body may contain instances where '%' is not followed by two hexadecimal digits, so we need to handle such cases carefully.
+			decoded, err := url.QueryUnescape(match)
+			if err != nil {
+				return nil, err
+			}
+			inputStr = strings.ReplaceAll(inputStr, match, decoded)
+		}
+
+		err := yaml.Unmarshal([]byte(inputStr), &result)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
