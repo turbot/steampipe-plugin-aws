@@ -7,7 +7,6 @@ import (
 
 	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -148,14 +147,14 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	maxItems := int32(50)
 	params := &guardduty.ListDetectorsInput{
-		MaxResults: aws.Int32(maxItems),
+		MaxResults: maxItems,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			params.MaxResults = aws.Int32(limit)
+			params.MaxResults = limit
 		}
 	}
 

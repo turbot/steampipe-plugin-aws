@@ -147,7 +147,7 @@ func listGuardDutyPublishingDestinations(ctx context.Context, d *plugin.QueryDat
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			input.MaxResults = aws.Int32(limit)
+			input.MaxResults = limit
 		}
 	}
 
@@ -229,7 +229,7 @@ func getGuardDutyPublishingDestination(ctx context.Context, d *plugin.QueryData,
 		DestinationArn:                  data.DestinationProperties.DestinationArn,
 		KmsKeyArn:                       data.DestinationProperties.KmsKeyArn,
 		Status:                          data.Status,
-		PublishingFailureStartTimestamp: data.PublishingFailureStartTimestamp,
+		PublishingFailureStartTimestamp: aws.Int64(data.PublishingFailureStartTimestamp),
 		DetectorId:                      detectorID,
 	}, nil
 }
