@@ -26,9 +26,17 @@ func tableAwsFMSAppList(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getFmsAppList,
+			Tags:    map[string]string{"service": "fms", "action": "GetAppsList"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listFmsAppLists,
+			Tags:    map[string]string{"service": "fms", "action": "ListAppsLists"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getFmsAppList,
+				Tags: map[string]string{"service": "fms", "action": "GetAppsList"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(fmsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
