@@ -26,13 +26,13 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-2"
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
 variable "aws_region_alternate" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
