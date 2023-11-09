@@ -1,0 +1,7 @@
+[
+  {
+    "domain": "{{domain}}",
+    "identity_provider_type": "{{identityProviderType}}",
+    "endpoint_type": "{{resourceName}}"
+  }
+]
