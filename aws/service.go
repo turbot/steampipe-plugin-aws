@@ -1650,7 +1650,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		o.MaxAttempts = maxRetries
 		o.MaxBackoff = 5 * time.Minute
 		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
-		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
+		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries, d.Table.Name)
 	})
 	cfg.Retryer = func() aws.Retryer {
 		// UnknownError is the code returned for a 408 from the aws go sdk, these can be frequent on large accounts especially around SNS Topics, etc.
@@ -1821,12 +1821,13 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 type ExponentialJitterBackoff struct {
 	minDelay           time.Duration
 	maxBackoffAttempts int
+	tableName          string
 }
 
 // NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
 // for the max backoff.
-func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int) *ExponentialJitterBackoff {
-	return &ExponentialJitterBackoff{minDelay, maxAttempts}
+func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int, tableName string) *ExponentialJitterBackoff {
+	return &ExponentialJitterBackoff{minDelay, maxAttempts, tableName}
 }
 
 // BackoffDelay returns the duration to wait before the next attempt should be
@@ -1847,7 +1848,7 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	// Low level method to log retries since we don't have context etc here.
 	// Logging is helpful for visibility into retries and choke points in using
 	// the API.
-	log.Printf("[WARN] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
+	log.Printf("[WARN] BackoffDelay: table=%s, attempt=%d, retryTime=%s, err=%v", j.tableName, attempt, retryTime.String(), err)
 
 	return retryTime, nil
 }
