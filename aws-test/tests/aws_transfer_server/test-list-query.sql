@@ -1,2 +1,2 @@
-select domain, identity_provider_type, endpoint_type
+select server_id, arn
 from aws.aws_transfer_server

@@ -1,7 +1,6 @@
 [
   {
-    "domain": "{{domain}}",
-    "identity_provider_type": "{{identityProviderType}}",
-    "endpoint_type": "{{resourceName}}"
+    "arn": "{{output.resource_aka.value}}",
+    "server_id": "{{output.resource_id.value}}"
   }
 ]

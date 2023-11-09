@@ -21,10 +21,21 @@ func tableAwsTransferServer(_ context.Context) *plugin.Table {
 		Description: "AWS Transfer Server",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("server_id"),
-			Hydrate:    getTransferServer,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getTransferServer,
+			Tags:    map[string]string{"service": "transfer", "action": "DescribeServer"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listTransferServers,
+			Tags:    map[string]string{"service": "transfer", "action": "ListServers"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getTransferServer,
+				Tags: map[string]string{"service": "transfer", "action": "DescribeServer"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(transferv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -73,77 +84,66 @@ func tableAwsTransferServer(_ context.Context) *plugin.Table {
 				Description: "Specifies the ARN of the Amazon Web ServicesCertificate Manager (ACM) certificate.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("Certificate"),
-			},
-			{
-				Name:        "protocol_details",
-				Description: "The protocol settings that are configured for your server.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("ProtocolDetails"),
-			},
-			{
-				Name:        "endpoint_details",
-				Description: "The virtual private cloud (VPC) endpoint settings that are configured for your server.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("EndpointDetails"),
 			},
 			{
 				Name:        "host_key_fingerprint",
 				Description: "Specifies the Base64-encoded SHA256 fingerprint of the server's host key.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("HostKeyFingerprint"),
-			},
-			{
-				Name:        "identity_provider_details",
-				Description: "Specifies information to call a customer-supplied authentication API.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("IdentityProviderDetails"),
 			},
 			{
 				Name:        "pre_authentication_login_banner",
 				Description: "Specifies a string to display when users connect to a server. This string is displayed before the user authenticates.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("PreAuthenticationLoginBanner"),
 			},
 			{
 				Name:        "post_authentication_login_banner",
 				Description: "Specifies a string to display when users connect to a server. This string is displayed after the user authenticates.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("PostAuthenticationLoginBanner"),
-			},
-			{
-				Name:        "protocols",
-				Description: "Specifies the file transfer protocol or protocols over which your file transfer protocol client can connect to your server's endpoint.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("Protocols"),
 			},
 			{
 				Name:        "security_policy_name",
 				Description: "Specifies the name of the security policy that is attached to the server.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("SecurityPolicyName"),
+			},
+			{
+				Name:        "identity_provider_details",
+				Description: "Specifies information to call a customer-supplied authentication API.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTransferServer,
+			},
+			{
+				Name:        "protocol_details",
+				Description: "The protocol settings that are configured for your server.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTransferServer,
+			},
+			{
+				Name:        "endpoint_details",
+				Description: "The virtual private cloud (VPC) endpoint settings that are configured for your server.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTransferServer,
+			},
+			{
+				Name:        "protocols",
+				Description: "Specifies the file transfer protocol or protocols over which your file transfer protocol client can connect to your server's endpoint.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTransferServer,
 			},
 			{
 				Name:        "workflow_details",
 				Description: "Specifies the workflow ID for the workflow to assign and the execution role that's used for executing the workflow.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("WorkflowDetails"),
 			},
 			{
 				Name:        "structured_log_destinations",
 				Description: "Specifies the log groups to which your server logs are sent.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTransferServer,
-				Transform:   transform.FromField("StructuredLogDestinations"),
 			},
 
 			// Steampipe standard columns
@@ -163,7 +163,7 @@ func tableAwsTransferServer(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(arnToAkas),
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -182,15 +182,11 @@ func listTransferServers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, nil
 	}
 	// Limiting the results
-	maxLimit := int32(100)
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -239,6 +235,11 @@ func getTransferServer(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		serverID = *h.Item.(types.ListedServer).ServerId
 	} else {
 		serverID = d.EqualsQuals["server_id"].GetStringValue()
+	}
+
+	// Empty Check
+	if serverID == "" {
+		return nil, nil
 	}
 
 	// Build the params

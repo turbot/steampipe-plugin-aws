@@ -67,3 +67,18 @@ select
 from
   aws_transfer_server
 ```
+
+### Get certificate details for servers
+
+```sql
+select
+  s.server_id,
+  c.certificate_arn,
+  c.status as certificate_status,
+  c.key_algorithm
+from
+  aws_transfer_server as s,
+  aws_acm_certificate as c
+where
+  s.certificate = c.certificate_arn;
+```

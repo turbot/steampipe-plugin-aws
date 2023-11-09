@@ -73,6 +73,10 @@ output "canonical_user_id" {
   value = data.aws_canonical_user_id.current_user.id
 }
 
+output "resource_id" {
+  value = aws_transfer_server.named_test_resource.id
+}
+
 output "resource_aka" {
   value = aws_transfer_server.named_test_resource.arn
 }
