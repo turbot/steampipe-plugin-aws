@@ -65,7 +65,7 @@ select
   endpoint_type,
   structured_log_destinations
 from
-  aws_transfer_server
+  aws_transfer_server;
 ```
 
 ### Get certificate details for servers
