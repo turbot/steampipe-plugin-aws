@@ -1,3 +1,16 @@
+## v0.122.0 [2023-11-10]
+
+_What's new?_
+
+- New tables added
+  - [aws_fms_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_fms_policy) ([#1851](https://github.com/turbot/steampipe-plugin-aws/pull/1851)) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
+  - [aws_fms_app_list](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_fms_app_list) ([#1851](https://github.com/turbot/steampipe-plugin-aws/pull/1851)) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
+  - [aws_transfer_server](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_transfer_server) ([#1909](https://github.com/turbot/steampipe-plugin-aws/pull/1909)) 
+
+_Enhancements_
+
+- Added the `features` column to `aws_guardduty_detector` table. ([#1958](https://github.com/turbot/steampipe-plugin-aws/pull/1958))
+
 ## v0.121.1 [2023-11-06]
 
 _Bug fixes_
