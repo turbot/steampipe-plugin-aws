@@ -64,6 +64,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/firehose"
+	"github.com/aws/aws-sdk-go-v2/service/fms"
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/glacier"
 	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
@@ -719,6 +720,14 @@ func FirehoseClient(ctx context.Context, d *plugin.QueryData) (*firehose.Client,
 		return nil, err
 	}
 	return firehose.NewFromConfig(*cfg), nil
+}
+
+func FMSClient(ctx context.Context, d *plugin.QueryData) (*fms.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return fms.NewFromConfig(*cfg), nil
 }
 
 func FSxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
