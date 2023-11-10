@@ -119,6 +119,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
@@ -179,6 +180,7 @@ import (
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
+	transferEndpoint "github.com/aws/aws-sdk-go/service/transfer"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
@@ -1396,6 +1398,18 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 	return ssoadmin.NewFromConfig(*cfg), nil
 }
 
+func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {
+	// AWS Transfer Family
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, transferEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return transfer.NewFromConfig(*cfg), nil
+}
+
 func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
 	// WAF Classic a global service with a single DNS endpoint
 	// (waf.amazonaws.com).
@@ -1674,7 +1688,14 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 					SigningRegion: region,
 				}, nil
 			})
-			cfg.EndpointResolverWithOptions = customResolver
+			newCfg, err := config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver))
+			if err != nil {
+				plugin.Logger(ctx).Error("service.getClientWithMaxRetries", "connection_error", err)
+				return nil, err
+			}
+			newCfg.Retryer = cfg.Retryer
+			newCfg.Region = cfg.Region
+			cfg = newCfg
 		}
 	}
 
