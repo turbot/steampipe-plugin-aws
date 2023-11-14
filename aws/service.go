@@ -136,12 +136,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
+	"github.com/aws/smithy-go/logging"
+	"github.com/hashicorp/go-hclog"
 	"github.com/rs/dnscache"
-	"golang.org/x/sync/semaphore"
-
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"golang.org/x/sync/semaphore"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
@@ -2008,6 +2009,12 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
+	if plugin.Logger(ctx).GetLevel() <= hclog.Debug {
+		logger := plugin.Logger(ctx)
+		configOptions = append(configOptions, config.WithLogger(NewHCLoggerToSmithyLoggerWrapper(&logger)))
+		configOptions = append(configOptions, config.WithClientLogMode(aws.LogRetries))
+	}
+
 	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
 
 	// NOTE: EC2 metadata service IMDS throttling and retries
@@ -2074,6 +2081,19 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 
 	return &cfg, err
 
+}
+
+// HCLoggerToSmithyLoggerWrapper wraps an hclog Logger in order to pass it as an AWS SDK smithy Logger
+type HCLoggerToSmithyLoggerWrapper struct {
+	hclogger *hclog.Logger
+}
+
+func (logger *HCLoggerToSmithyLoggerWrapper) Logf(classification logging.Classification, format string, v ...interface{}) {
+	(*logger.hclogger).Debug(fmt.Sprintf(format, v...))
+}
+
+func NewHCLoggerToSmithyLoggerWrapper(l *hclog.Logger) *HCLoggerToSmithyLoggerWrapper {
+	return &HCLoggerToSmithyLoggerWrapper{l}
 }
 
 // ExponentialJitterBackoff provides backoff delays with jitter based on the
