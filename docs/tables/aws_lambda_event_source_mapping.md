@@ -33,7 +33,7 @@ where
   state = 'Disabled';
 ```
 
-### List Kafka Bootstrap Servers from a self-managed Kafka cluster feeding events to Lambda functions
+### Retrieve bootstrap server endpoints from a self-managed Kafka cluster integrated with AWS Lambda
 
 ```sql
 -- Returns the list of bootstrap servers for your Kafka brokers
