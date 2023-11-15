@@ -361,6 +361,7 @@ func getRoute53HostedZoneLimit(ctx context.Context, d *plugin.QueryData, h *plug
 
 	resp, err := svc.GetHostedZoneLimit(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.getRoute53HostedZoneLimit", "api_error", err)
 		return nil, err
 	}
 
