@@ -27,9 +27,11 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getServiceCatalogProvisionedProduct,
+			Tags:    map[string]string{"service": "servicecatalog", "action": "DescribeProvisionedProduct"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceCatalogProvisionedProducts,
+			Tags:    map[string]string{"service": "servicecatalog", "action": "DescribeProvisionedProduct"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "accept_language",
@@ -39,6 +41,56 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 					Name:    "search_query",
 					Require: plugin.Optional,
 				},
+				{
+					Name:    "arn",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "created_time",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "last_record_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "idempotency_token",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "product_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "type",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "status",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "last_provisioning_record_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "last_successful_provisioning_record_id",
+					Require: plugin.Optional,
+				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAppConfigTags,
+				Tags: map[string]string{"service": "servicecatalog", "action": "DescribeProvisionedProduct"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogv1.EndpointsID),
@@ -157,7 +209,7 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ProvisionedProductDetail.Arn").Transform(arnToAkas),
+				Transform:   transform.FromField("ProvisionedProductDetail.Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -251,7 +303,7 @@ func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryDat
 	}
 
 	if id != "" && name != "" {
-		return nil, fmt.Errorf("Both ProvisionedProductName and ProvisionedProductId cannot be passed in the where clause.")
+		return nil, fmt.Errorf("Both ProvisionedProductName and ProvisionedProductId cannot be passed in the where clause simultaneously.")
 	}
 
 	// Create client
@@ -265,32 +317,20 @@ func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryDat
 		return nil, nil
 	}
 
-	// Get call by passing id
+	// Input parameter
+	params := &servicecatalog.DescribeProvisionedProductInput{}
+	// Get call by passing id or name
 	if id != "" {
-		params := &servicecatalog.DescribeProvisionedProductInput{
-			Id: aws.String(id),
-		}
-		op, err := svc.DescribeProvisionedProduct(ctx, params)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_servicecatalog_provisioned_product.getServiceCatalogProvisionedProduct", "api_error", err)
-			return nil, err
-		}
-		return op, nil
+		params.Id = aws.String(id)
+	} else {
+		params.Name = aws.String(name)
 	}
-
-	// Get call by passing name
-	if name != "" {
-		params := &servicecatalog.DescribeProvisionedProductInput{
-			Name: aws.String(name),
-		}
-		op, err := svc.DescribeProvisionedProduct(ctx, params)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_servicecatalog_provisioned_product.getServiceCatalogProvisionedProduct", "api_error", err)
-			return nil, err
-		}
-		return op, nil
+	op, err := svc.DescribeProvisionedProduct(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_servicecatalog_provisioned_product.getServiceCatalogProvisionedProduct", "api_error", err)
+		return nil, err
 	}
-	return nil, nil
+	return op, nil
 }
 
 //// UTILITY FUNCTIONS
@@ -299,7 +339,18 @@ func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryDat
 
 func buildServiceCatalogProvisionedProductFilter(ctx context.Context, quals plugin.KeyColumnQualMap) map[string][]string {
 	filterQuals := map[string]string{
-		"search_query": "SearchQuery",
+		"search_query":                           "SearchQuery",
+		"arn":                                    "arn",
+		"created_time":                           "createdTime",
+		"id":                                     "id",
+		"last_record_id":                         "lastRecordId",
+		"idempotency_token":                      "idempotencyToken",
+		"name":                                   "name",
+		"product_id":                             "productId",
+		"type":                                   "type",
+		"status":                                 "status",
+		"last_provisioning_record_id":            "lastProvisioningRecordId",
+		"last_successful_provisioning_record_id": "lastSuccessfulProvisioningRecordId",
 	}
 
 	filter := make(map[string][]string)
