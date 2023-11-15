@@ -62,7 +62,7 @@ from
   jsonb_array_elements(source_access_configurations) as a;
 ```
 
-### Get scaling configuration details of event sourcce mappings
+### Get scaling configuration details of event source mappings
 
 ```sql
 select
