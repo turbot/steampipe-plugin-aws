@@ -257,7 +257,7 @@ func getAwsLambdaEventSourceMapping(ctx context.Context, d *plugin.QueryData, h 
 	if h.Item != nil {
 		uuid = *h.Item.(types.EventSourceMappingConfiguration).UUID
 	} else {
-		uuid = d.EqualsQuals["uuid"].GetStringValue()
+		uuid = d.EqualsQualString("uuid")
 	}
 
 	// Empty input check
