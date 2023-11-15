@@ -45,6 +45,12 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getBatchJob,
+				Tags: map[string]string{"service": "batch", "action": "DescribeJobs"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(batchv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
