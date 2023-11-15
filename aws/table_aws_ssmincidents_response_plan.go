@@ -22,9 +22,17 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 			},
 			Hydrate: getSSMIncidentsResponsePlan,
+			Tags:    map[string]string{"service": "ssm-incidents", "action": "GetResponsePlan"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSSMIncidentsResponsePlans,
+			Tags:    map[string]string{"service": "ssm-incidents", "action": "ListResponsePlans"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSSMIncidentsResponsePlan,
+				Tags: map[string]string{"service": "ssm-incidents", "action": "GetResponsePlan"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmincidents.ServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
