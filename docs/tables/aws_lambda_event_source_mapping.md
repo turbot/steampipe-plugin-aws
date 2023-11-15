@@ -85,7 +85,7 @@ from
   aws_lambda_event_source_mapping;
 ```
 
-### List event source maps by filter criteria
+### List AWS Lambda event source mappings with specific filter criteria patterns
 
 ```sql
 select
