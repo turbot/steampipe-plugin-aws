@@ -1,7 +1,6 @@
 # Table: aws_lambda_event_source_mapping
 
-AWS Lambda is a compute service that lets you run code without provisioning or managing servers.
-Event Source Mappings are triggers that route events from services like Kafka, Kinesis, SQS or SNS to the configured AWS Lambda.
+AWS Lambda is a compute service that lets you run code without provisioning or managing servers. Event Source Mappings are triggers that route events from services like Kafka, Kinesis, SQS, or SNS to the configured AWS Lambda.
 
 ## Examples
 
