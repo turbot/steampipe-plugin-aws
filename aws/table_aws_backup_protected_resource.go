@@ -26,9 +26,11 @@ func tableAwsBackupProtectedResource(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupProtectedResource,
+			Tags:    map[string]string{"service": "backup", "action": "DescribeProtectedResource"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupProtectedResources,
+			Tags:    map[string]string{"service": "backup", "action": "ListProtectedResources"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -98,6 +100,9 @@ func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, _
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_protected_resource.listAwsBackupProtectedResources", "api_error", err)

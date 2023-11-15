@@ -25,14 +25,26 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"LoadBalancerNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2GatewayLoadBalancer,
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeClientVpnEndpoints"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2GatewayLoadBalancers,
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeClientVpnEndpoints"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "arn", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEc2GatewayLoadBalancerAttributes,
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancerAttributes"},
+			},
+			{
+				Func: getAwsEc2GatewayLoadBalancerTags,
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elbv2v1.EndpointsID),
@@ -186,6 +198,9 @@ func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_gateway_load_balancer.listEc2GatewayLoadBalancers", "api_error", err)

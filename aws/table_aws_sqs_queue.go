@@ -27,9 +27,21 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 			},
 			Hydrate: getQueueAttributes,
+			Tags:    map[string]string{"service": "sqs", "action": "GetQueueAttributes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSqsQueues,
+			Tags:    map[string]string{"service": "sqs", "action": "ListQueues"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getQueueAttributes,
+				Tags: map[string]string{"service": "sqs", "action": "GetQueueAttributes"},
+			},
+			{
+				Func: listQueueTags,
+				Tags: map[string]string{"service": "sqs", "action": "ListQueueTags"},
+			},
 		},
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
@@ -55,6 +67,14 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.FifoQueue"),
+				Default:     false,
+			},
+			{
+				Name:        "fifo_throughput_limit",
+				Description: "Specifies whether the FIFO queue throughput quota applies to the entire queue or per message group.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getQueueAttributes,
+				Transform:   transform.FromField("Attributes.FifoThroughputLimit"),
 				Default:     false,
 			},
 			{
@@ -129,6 +149,13 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Attributes.ContentBasedDeduplication"),
 			},
 			{
+				Name:        "deduplication_scope",
+				Description: "Specifies whether message deduplication occurs at the message group or queue level.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getQueueAttributes,
+				Transform:   transform.FromField("Attributes.DeduplicationScope"),
+			},
+			{
 				Name:        "kms_master_key_id",
 				Description: "The ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom CMK.",
 				Type:        proto.ColumnType_STRING,
@@ -191,6 +218,9 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sqs_queue.listAwsSqsQueues", "api_error", err)

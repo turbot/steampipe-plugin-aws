@@ -19,6 +19,7 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Record Type (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByRecordTypeMonthly,
+			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{

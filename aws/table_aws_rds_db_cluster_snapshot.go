@@ -26,14 +26,22 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBSnapshotNotFound", "DBClusterSnapshotNotFoundFault"}),
 			},
 			Hydrate: getRDSDBClusterSnapshot,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusterSnapshots"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusterSnapshots,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusterSnapshots"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "db_cluster_snapshot_identifier", Require: plugin.Optional},
 				{Name: "engine", Require: plugin.Optional},
 				{Name: "type", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsRDSDBClusterSnapshotAttributes,
+				Tags: map[string]string{"service": "rds", "action": "DescribeDBClusterSnapshotAttributes"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
@@ -227,6 +235,9 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.listRDSDBClusterSnapshots", "api_error", err)
@@ -234,7 +245,9 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		}
 
 		for _, items := range output.DBClusterSnapshots {
-			d.StreamListItem(ctx, items)
+			if isSuppportedRDSEngine(*items.Engine) {
+				d.StreamListItem(ctx, items)
+			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -269,7 +282,10 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	if op.DBClusterSnapshots != nil && len(op.DBClusterSnapshots) > 0 {
-		return op.DBClusterSnapshots[0], nil
+		snapshot := op.DBClusterSnapshots[0]
+		if isSuppportedRDSEngine(*snapshot.Engine) {
+			return snapshot, nil
+		}
 	}
 	return nil, nil
 }

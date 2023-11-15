@@ -28,14 +28,22 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AssociationDoesNotExist", "ValidationException"}),
 			},
 			Hydrate: getAwsSSMAssociation,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeAssociation"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMAssociations,
+			Tags:    map[string]string{"service": "ssm", "action": "ListAssociations"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "association_name", Require: plugin.Optional},
 				{Name: "instance_id", Require: plugin.Optional},
 				{Name: "status", Require: plugin.Optional},
 				{Name: "last_execution_date", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSSMAssociation,
+				Tags: map[string]string{"service": "ssm", "action": "DescribeAssociation"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
@@ -258,6 +266,9 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_association.listAwsSSMAssociations", "api_error", err)

@@ -23,10 +23,11 @@ func tableAwsWellArchitectedShareInvitation(_ context.Context) *plugin.Table {
 		Description: "AWS Well-Architected Share Invitation",
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedShareInvitations,
+			Tags:    map[string]string{"service": "wellarchitected", "action": "ListShareInvitations"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_name", Require: plugin.Optional},
 				{Name: "lens_name", Require: plugin.Optional},
-				{Name: "share_resource_type", Require: plugin.Optional},			
+				{Name: "share_resource_type", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -141,6 +142,9 @@ func listWellArchitectedShareInvitations(ctx context.Context, d *plugin.QueryDat
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wellarchitected_share_invitation.listWellArchitectedShareInvitations", "api_error", err)

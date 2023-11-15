@@ -26,6 +26,7 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 		Description: "CloudTrail events from cloudwatch service.",
 		List: &plugin.ListConfig{
 			Hydrate:    listCloudwatchLogTrailEvents,
+			Tags:       map[string]string{"service": "logs", "action": "FilterLogEvents"},
 			KeyColumns: tableAwsCloudtrailEventsListKeyColumns(),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
@@ -299,6 +300,10 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 	})
 	// List call
 	for paginator.HasMorePages() {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudtrail_trail_event.listCloudwatchLogTrailEvents", "api_error", err)

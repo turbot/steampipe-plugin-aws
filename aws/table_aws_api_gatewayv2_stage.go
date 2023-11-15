@@ -27,10 +27,12 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIGatewayV2Stage,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetStages"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAPIGatewayV2API,
 			Hydrate:       listAPIGatewayV2Stages,
+			Tags:          map[string]string{"service": "apigateway", "action": "GetStages"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -202,6 +204,9 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.GetStages(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.listAPIGatewayV2Stages", "api_error", err)

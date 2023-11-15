@@ -26,9 +26,21 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"PipelineNotFoundException"}),
 			},
 			Hydrate: getCodepipelinePipeline,
+			Tags:    map[string]string{"service": "codepipeline", "action": "GetPipeline"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodepipelinePipelines,
+			Tags:    map[string]string{"service": "codepipeline", "action": "ListPipelines"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getPipelineTags,
+				Tags: map[string]string{"service": "codepipeline", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getCodepipelinePipeline,
+				Tags: map[string]string{"service": "codepipeline", "action": "GetPipeline"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codepipelinev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -162,6 +174,9 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_codepipeline_pipeline.listCodepipelinePipelines", "api_error", err)
@@ -251,6 +266,9 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_codepipeline_pipeline.getPipelineTags", "api_error", err)

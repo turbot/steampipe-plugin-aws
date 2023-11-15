@@ -23,9 +23,21 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "StateMachineDoesNotExist", "InvalidArn"}),
 			},
 			Hydrate: getStepFunctionsStateMachine,
+			Tags:    map[string]string{"service": "states", "action": "DescribeStateMachine"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listStepFunctionsStateMachines,
+			Tags:    map[string]string{"service": "states", "action": "ListStateMachines"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getStepFunctionsStateMachine,
+				Tags: map[string]string{"service": "states", "action": "DescribeStateMachine"},
+			},
+			{
+				Func: getStepFunctionStateMachineTags,
+				Tags: map[string]string{"service": "states", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -145,6 +157,9 @@ func listStepFunctionsStateMachines(ctx context.Context, d *plugin.QueryData, _ 
 	})
 	//list call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sfn_state_machine.listStepFunctionsStateMachines", "api_error", err)

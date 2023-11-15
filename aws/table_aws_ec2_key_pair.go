@@ -26,9 +26,11 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidKeyPair.NotFound", "InvalidKeyPair.Unavailable", "InvalidKeyPair.Malformed"}),
 			},
 			Hydrate: getEc2KeyPair,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeKeyPairs"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2KeyPairs,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeKeyPairs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "key_pair_id", Require: plugin.Optional},
 				{Name: "key_fingerprint", Require: plugin.Optional},

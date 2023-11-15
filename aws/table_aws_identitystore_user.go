@@ -24,10 +24,12 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getIdentityStoreUser,
+			Tags:    map[string]string{"service": "identitystore", "action": "DescribeUser"},
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.AllColumns([]string{"identity_store_id"}),
 			Hydrate:    listIdentityStoreUsers,
+			Tags:       map[string]string{"service": "identitystore", "action": "ListUsers"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -99,6 +101,9 @@ func listIdentityStoreUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_identitystore_user.listIdentityStoreUsers", "api_error", err)

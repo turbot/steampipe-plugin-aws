@@ -26,10 +26,18 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
 			},
 			Hydrate: getEksAddon,
+			Tags:    map[string]string{"service": "eks", "action": "DescribeAddon"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEKSClusters,
 			Hydrate:       listEKSAddons,
+			Tags:          map[string]string{"service": "eks", "action": "ListAddons"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEksAddon,
+				Tags: map[string]string{"service": "eks", "action": "DescribeAddon"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -151,6 +159,9 @@ func listEKSAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_eks_addon.listEKSAddons", "api_error", err)

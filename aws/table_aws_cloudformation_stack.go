@@ -26,14 +26,26 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "ResourceNotFoundException"}),
 			},
 			Hydrate: getCloudFormationStack,
+			Tags:    map[string]string{"service": "cloudformation", "action": "DescribeStacks"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFormationStacks,
+			Tags:    map[string]string{"service": "cloudformation", "action": "DescribeStacks"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getStackTemplate,
+				Tags: map[string]string{"service": "cloudformation", "action": "GetTemplate"},
+			},
+			{
+				Func: describeStackResources,
+				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackResources"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationv1.EndpointsID),
@@ -207,6 +219,9 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "api_error", err)

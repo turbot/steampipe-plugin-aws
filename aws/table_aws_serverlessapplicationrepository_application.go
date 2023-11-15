@@ -26,9 +26,21 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "NotFoundException"}),
 			},
 			Hydrate: getServerlessApplicationRepositoryApplication,
+			Tags:    map[string]string{"service": "serverlessrepo", "action": "GetApplication"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServerlessApplicationRepositoryApplications,
+			Tags:    map[string]string{"service": "serverlessrepo", "action": "ListApplications"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getServerlessApplicationRepositoryApplicationPolicy,
+				Tags: map[string]string{"service": "serverlessrepo", "action": "GetApplicationPolicy"},
+			},
+			{
+				Func: getServerlessApplicationRepositoryApplication,
+				Tags: map[string]string{"service": "serverlessrepo", "action": "GetApplication"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(serverlessapplicationrepositoryv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -167,6 +179,9 @@ func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plu
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.listServerlessApplicationRepositoryApplications", "api_error", err)

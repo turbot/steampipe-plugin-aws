@@ -24,6 +24,7 @@ func tableAwsWellArchitectedWorkloadShare(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       listWellArchitectedWorkloadShares,
+			Tags:          map[string]string{"service": "wellarchitected", "action": "ListWorkloadShares"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "workload_id", Require: plugin.Optional},
 				{Name: "shared_with", Require: plugin.Optional},
@@ -141,6 +142,9 @@ func listWellArchitectedWorkloadShares(ctx context.Context, d *plugin.QueryData,
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			if strings.Contains(err.Error(), "ResourceNotFoundException") {

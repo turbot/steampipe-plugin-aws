@@ -23,9 +23,11 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAllocationID.NotFound", "InvalidAllocationID.Malformed"}),
 			},
 			Hydrate: getVpcEip,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeAddresses"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEips,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeAddresses"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "association_id", Require: plugin.Optional},
 				{Name: "domain", Require: plugin.Optional},
@@ -173,6 +175,9 @@ func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	if len(filters) > 0 {
 		input.Filters = filters
 	}
+
+	// apply rate limiting
+	d.WaitForListRateLimit(ctx)
 
 	// List call
 	resp, err := svc.DescribeAddresses(ctx, input)

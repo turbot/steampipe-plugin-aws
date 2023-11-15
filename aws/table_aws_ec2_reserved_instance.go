@@ -28,9 +28,11 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
 			},
 			Hydrate: getEc2ReservedInstance,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeReservedInstances"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ReservedInstances,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeReservedInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "availability_zone", Require: plugin.Optional},
 				{Name: "duration", Require: plugin.Optional},
@@ -44,6 +46,12 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 				{Name: "usage_price", Require: plugin.Optional},
 				{Name: "offering_class", Require: plugin.Optional},
 				{Name: "offering_type", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEc2ReservedInstanceModificationDetails,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeReservedInstancesModifications"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),

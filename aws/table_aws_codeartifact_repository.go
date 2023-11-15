@@ -37,14 +37,29 @@ func tableAwsCodeArtifactRepository(_ context.Context) *plugin.Table {
 				},
 			},
 			Hydrate: getCodeArtifactRepository,
+			Tags:    map[string]string{"service": "codeartifact", "action": "DescribeRepository"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodeArtifactRepositories,
+			Tags:    map[string]string{"service": "codeartifact", "action": "ListRepositories"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getCodeArtifactRepositoryEndpoints,
 				Depends: []plugin.HydrateFunc{getCodeArtifactRepository},
+				Tags:    map[string]string{"service": "codeartifact", "action": "GetRepositoryEndpoint"},
+			},
+			{
+				Func: getCodeArtifactRepositoryTags,
+				Tags: map[string]string{"service": "codeartifact", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getCodeArtifactRepositoryPermissionsPolicy,
+				Tags: map[string]string{"service": "codeartifact", "action": "GetRepositoryPermissionsPolicy"},
+			},
+			{
+				Func: getCodeArtifactRepository,
+				Tags: map[string]string{"service": "codeartifact", "action": "DescribeRepository"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codeartifactv1.EndpointsID),
@@ -184,6 +199,9 @@ func listCodeArtifactRepositories(ctx context.Context, d *plugin.QueryData, h *p
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_codeartifact_repository.listCodeArtifactRepositories", "api_error", err)

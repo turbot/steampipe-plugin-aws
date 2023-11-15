@@ -20,6 +20,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 		Description: "AWS EBS Snapshot",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEBSSnapshots,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeSnapshots"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue", "InvalidUserID.Malformed"}),
 			},
@@ -66,6 +67,12 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEBSSnapshotCreateVolumePermissions,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeSnapshotAttribute"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_id",
@@ -214,6 +221,9 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ebs_snapshot.listAwsEBSSnapshots", "api_error", err)

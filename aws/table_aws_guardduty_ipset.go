@@ -29,12 +29,20 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
 			},
 			Hydrate: getAwsGuardDutyIPSet,
+			Tags:    map[string]string{"service": "guardduty", "action": "GetIPSet"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listAwsGuardDutyIPSets,
+			Tags:          map[string]string{"service": "guardduty", "action": "ListIPSets"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "detector_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsGuardDutyIPSet,
+				Tags: map[string]string{"service": "guardduty", "action": "GetIPSet"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
@@ -141,6 +149,9 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_guardduty_ipset.getAwsGuardDutyIPSet", "api_error", err)

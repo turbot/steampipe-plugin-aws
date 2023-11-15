@@ -23,6 +23,7 @@ func tableAwsCloudWatchMetricStatisticDataPoint(_ context.Context) *plugin.Table
 		Description: "AWS CloudWatch Metric Statistic Data Point",
 		List: &plugin.ListConfig{
 			Hydrate: listCloudWatchMetricStatisticDataPoints,
+			Tags:    map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},

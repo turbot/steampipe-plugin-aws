@@ -18,6 +18,7 @@ func tableAwsLambdaLayer(_ context.Context) *plugin.Table {
 		Description: "AWS Lambda Layer",
 		List: &plugin.ListConfig{
 			Hydrate: listLambdaLayers,
+			Tags:    map[string]string{"service": "lambda", "action": "ListLayers"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -129,6 +130,9 @@ func listLambdaLayers(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)

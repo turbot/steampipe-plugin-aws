@@ -26,14 +26,22 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBSnapshotNotFound"}),
 			},
 			Hydrate: getRDSDBSnapshot,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBSnapshots"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSnapshots,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBSnapshots"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_instance_identifier", Require: plugin.Optional},
 				{Name: "dbi_resource_id", Require: plugin.Optional},
 				{Name: "engine", Require: plugin.Optional},
 				{Name: "type", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsRDSDBSnapshotAttributes,
+				Tags: map[string]string{"service": "rds", "action": "DescribeDBSnapshotAttributes"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
@@ -262,6 +270,9 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_snapshot.listRDSDBSnapshots", "api_error", err)
@@ -269,7 +280,9 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, items := range output.DBSnapshots {
-			d.StreamListItem(ctx, items)
+			if isSuppportedRDSEngine(*items.Engine) {
+				d.StreamListItem(ctx, items)
+			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -304,7 +317,10 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	}
 
 	if op.DBSnapshots != nil && len(op.DBSnapshots) > 0 {
-		return op.DBSnapshots[0], nil
+		snapshot := op.DBSnapshots[0]
+		if isSuppportedRDSEngine(*snapshot.Engine) {
+			return snapshot, nil
+		}
 	}
 	return nil, nil
 }

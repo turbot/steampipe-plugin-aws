@@ -22,6 +22,7 @@ func tableAwsSSMManagedInstance(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Managed Instance",
 		List: &plugin.ListConfig{
 			Hydrate: listSsmManagedInstances,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeInstanceInformation"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "instance_id", Require: plugin.Optional},
 				{Name: "agent_version", Require: plugin.Optional},
@@ -193,6 +194,9 @@ func listSsmManagedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_managed_instance.listSsmManagedInstances", "api_error", err)

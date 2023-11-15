@@ -23,6 +23,7 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getInspectorFinding,
+			Tags:       map[string]string{"service": "inspector", "action": "ListFindings"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorFindings,
@@ -34,6 +35,7 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 				{Name: "auto_scaling_group", Require: plugin.Optional, Operators: []string{"="}},
 				{Name: "severity", Require: plugin.Optional, Operators: []string{"="}},
 			},
+			Tags: map[string]string{"service": "inspector", "action": "DescribeFindings"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(inspectorv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -227,6 +229,9 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector_finding.listInspectorFindings", "api_error", err)

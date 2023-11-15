@@ -18,6 +18,7 @@ func tableAwsEc2InstanceMetricCpuUtilizationHourly(_ context.Context) *plugin.Ta
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2Instance,
 			Hydrate:       listEc2InstanceMetricCpuUtilizationHourly,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(

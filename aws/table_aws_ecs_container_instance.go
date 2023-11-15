@@ -21,6 +21,7 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEcsClusters,
 			Hydrate:       listEcsContainerInstances,
+			Tags:          map[string]string{"service": "ecs", "action": "ListContainerInstances"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -192,6 +193,9 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecs_cluster.listEcsClusters", "api_error", err)

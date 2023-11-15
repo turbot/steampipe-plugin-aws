@@ -24,12 +24,14 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getSecurityHubFinding,
+			Tags:       map[string]string{"service": "securityhub", "action": "GetFindings"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubFindings,
+			Tags:    map[string]string{"service": "securityhub", "action": "GetFindings"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "company_name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "compliance_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
@@ -249,6 +251,7 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				Name:        "source_account_id",
 				Description: "The account id where the affected resource lives.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AwsAccountId"),
 			},
 			/// Steampipe standard columns
 			{
@@ -304,6 +307,9 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Handle error for accounts that are not subscribed to AWS Security Hub

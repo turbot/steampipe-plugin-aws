@@ -26,14 +26,22 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAccessAnalyzer,
+			Tags:    map[string]string{"service": "access-analyzer", "action": "GetAnalyzer"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAccessAnalyzers,
+			Tags:    map[string]string{"service": "access-analyzer", "action": "ListAnalyzers"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "type",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listAccessAnalyzerFindings,
+				Tags: map[string]string{"service": "access-analyzer", "action": "ListFindings"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(accessanalyzerv1.EndpointsID),
@@ -150,6 +158,9 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.listAccessAnalyzers", "api_error", err)
@@ -218,6 +229,9 @@ func listAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plu
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.listAccessAnalyzerFindings", "api_error", err)

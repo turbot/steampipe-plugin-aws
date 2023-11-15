@@ -26,9 +26,11 @@ func tableAwsVpcVerifiedAccessGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "InvalidVerifiedAccessGroupId.NotFound", "InvalidAction"}),
 			},
 			Hydrate: getVpcVerifiedAccessGroup,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVerifiedAccessGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVerifiedAccessGroups,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVerifiedAccessGroups"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
@@ -145,6 +147,9 @@ func listVpcVerifiedAccessGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		// List call
 		resp, err := svc.DescribeVerifiedAccessGroups(ctx, input)
 

@@ -20,6 +20,7 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 		Description: "AWS IAM Server Certificate",
 		List: &plugin.ListConfig{
 			Hydrate: listIamServerCertificates,
+			Tags:    map[string]string{"service": "iam", "action": "ListServerCertificates"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
 			},
@@ -27,6 +28,13 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			Hydrate:    getIamServerCertificate,
 			KeyColumns: plugin.AllColumns([]string{"name"}),
+			Tags:       map[string]string{"service": "iam", "action": "GetServerCertificate"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIamServerCertificate,
+				Tags: map[string]string{"service": "iam", "action": "GetServerCertificate"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -144,6 +152,9 @@ func listIamServerCertificates(ctx context.Context, d *plugin.QueryData, _ *plug
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_server_certificate.listIamServerCertificates", "api_error", err)

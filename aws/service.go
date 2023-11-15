@@ -39,6 +39,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codecommit"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentity"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
@@ -62,6 +64,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/firehose"
+	"github.com/aws/aws-sdk-go-v2/service/fms"
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/glacier"
 	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
@@ -117,6 +120,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
@@ -135,6 +139,8 @@ import (
 	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
 	codecommitEndpoint "github.com/aws/aws-sdk-go/service/codecommit"
 	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
+	cognitoidentityEndpoint "github.com/aws/aws-sdk-go/service/cognitoidentity"
+	cognitoidentityproviderEndpoint "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
 	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
 	dlmEndpoint "github.com/aws/aws-sdk-go/service/dlm"
@@ -175,6 +181,7 @@ import (
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
+	transferEndpoint "github.com/aws/aws-sdk-go/service/transfer"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
@@ -456,6 +463,28 @@ func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline
 	return codepipeline.NewFromConfig(*cfg), nil
 }
 
+func CognitoIdentityClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentity.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cognitoidentity.NewFromConfig(*cfg), nil
+}
+
+func CognitoIdentityProviderClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentityprovider.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityproviderEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cognitoidentityprovider.NewFromConfig(*cfg), nil
+}
+
 func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -691,6 +720,14 @@ func FirehoseClient(ctx context.Context, d *plugin.QueryData) (*firehose.Client,
 		return nil, err
 	}
 	return firehose.NewFromConfig(*cfg), nil
+}
+
+func FMSClient(ctx context.Context, d *plugin.QueryData) (*fms.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return fms.NewFromConfig(*cfg), nil
 }
 
 func FSxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
@@ -1370,6 +1407,18 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 	return ssoadmin.NewFromConfig(*cfg), nil
 }
 
+func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {
+	// AWS Transfer Family
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, transferEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return transfer.NewFromConfig(*cfg), nil
+}
+
 func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
 	// WAF Classic a global service with a single DNS endpoint
 	// (waf.amazonaws.com).
@@ -1547,7 +1596,7 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// but a clever pass through of context for our case.
 	region := h.Item.(string)
 
-	plugin.Logger(ctx).Trace("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
 	awsSpcConfig := GetConfig(d.Connection)
 
@@ -1586,13 +1635,13 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Trace("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "done")
 	return sess, err
 }
 
 func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 
-	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
 	if region == "" {
 		return nil, fmt.Errorf("getClientWithMaxRetries called with an empty region")
@@ -1605,7 +1654,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		return nil, err
 	}
 	cfg := baseCfg.Copy()
-	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "copy_base_config")
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "copy_base_config")
 
 	// Set the region for this client
 	// Note: The region set directly in cfg.Region will not be used by the AWS
@@ -1615,19 +1664,21 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	// a signing error will be thrown for API calls with this client, e.g.,
 	// Error: operation error CloudFront: ListDistributions, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, failed to resolve service endpoint, an AWS region is required, but was not found
 	cfg.Region = region
-	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "set_client_region")
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "set_client_region")
 
 	// Add the retryer definition
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		// reseting state of rand to generate different random values
-		rand.Seed(time.Now().UnixNano())
+		rand.New(rand.NewSource(time.Now().UnixNano()))
 		o.MaxAttempts = maxRetries
 		o.MaxBackoff = 5 * time.Minute
 		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
 		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 	})
 	cfg.Retryer = func() aws.Retryer {
-		return retryer
+		// UnknownError is the code returned for a 408 from the aws go sdk, these can be frequent on large accounts especially around SNS Topics, etc.
+		additionalErrors := []string{"UnknownError"}
+		return retry.AddWithErrorCodes(retryer, additionalErrors...)
 	}
 
 	// Plugin level config
@@ -1646,11 +1697,18 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 					SigningRegion: region,
 				}, nil
 			})
-			cfg.EndpointResolverWithOptions = customResolver
+			newCfg, err := config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver))
+			if err != nil {
+				plugin.Logger(ctx).Error("service.getClientWithMaxRetries", "connection_error", err)
+				return nil, err
+			}
+			newCfg.Retryer = cfg.Retryer
+			newCfg.Region = cfg.Region
+			cfg = newCfg
 		}
 	}
 
-	plugin.Logger(ctx).Trace("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
 
 	return &cfg, err
 }
@@ -1689,7 +1747,7 @@ var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUn
 // can be modified in the higher level client functions.
 func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
+	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
 
 	awsSpcConfig := GetConfig(d.Connection)
 
@@ -1703,7 +1761,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 
 	if awsSpcConfig.Profile != nil {
 		profile := aws.ToString(awsSpcConfig.Profile)
-		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
+		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
 		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
 	}
 
@@ -1712,17 +1770,17 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
 		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
 	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
-		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
+		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
 		sessionToken := ""
 		if awsSpcConfig.SessionToken != nil {
-			plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
+			plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
 			sessionToken = *awsSpcConfig.SessionToken
 		}
 		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
-	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
 
 	// NOTE: EC2 metadata service IMDS throttling and retries
 	//
@@ -1773,7 +1831,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 			return nil, err
 		}
 
-		plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "region", defaultRegion, "status", "set_default_region")
+		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "region", defaultRegion, "status", "set_default_region")
 		configOptions = append(configOptions, config.WithRegion(defaultRegion))
 		cfg, err = config.LoadDefaultConfig(ctx, configOptions...)
 		if err != nil {
@@ -1782,7 +1840,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 		}
 	}
 
-	plugin.Logger(ctx).Trace("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
+	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
 
 	return &cfg, err
 
