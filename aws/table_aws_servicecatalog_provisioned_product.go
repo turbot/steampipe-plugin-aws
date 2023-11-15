@@ -89,7 +89,7 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getAppConfigTags,
+				Func: getServiceCatalogProvisionedProduct,
 				Tags: map[string]string{"service": "servicecatalog", "action": "DescribeProvisionedProduct"},
 			},
 		},
