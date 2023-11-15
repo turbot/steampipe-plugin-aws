@@ -110,7 +110,7 @@ func listSSMIncidentsResponsePlans(ctx context.Context, d *plugin.QueryData, _ *
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-                       maxLimit = limit
+			maxLimit = limit
 		}
 	}
 
