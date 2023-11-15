@@ -19,7 +19,7 @@ from
   aws_lambda_event_source_mapping;
 ```
 
-### List of lambda event source mappings that are disabled
+### List lambda event source mappings that are disabled
 
 ```sql
 select
