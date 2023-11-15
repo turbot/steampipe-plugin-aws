@@ -97,6 +97,12 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Hydrate:     getGuardDutyDetector,
 			},
 			{
+				Name:        "features",
+				Description: "Describes the features that have been enabled for the detector.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGuardDutyDetector,
+			},
+			{
 				Name:        "master_account",
 				Description: "Contains information about the administrator account and invitation.",
 				Type:        proto.ColumnType_JSON,

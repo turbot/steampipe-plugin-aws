@@ -1,3 +1,26 @@
+## v0.122.0 [2023-11-10]
+
+_What's new?_
+
+- New tables added
+  - [aws_fms_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_fms_policy) ([#1851](https://github.com/turbot/steampipe-plugin-aws/pull/1851))
+  - [aws_fms_app_list](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_fms_app_list) ([#1851](https://github.com/turbot/steampipe-plugin-aws/pull/1851))
+  - [aws_transfer_server](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_transfer_server) ([#1909](https://github.com/turbot/steampipe-plugin-aws/pull/1909)) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
+
+_Enhancements_
+
+- Added the `features` column to `aws_guardduty_detector` table. ([#1958](https://github.com/turbot/steampipe-plugin-aws/pull/1958))
+
+## v0.121.1 [2023-11-06]
+
+_Bug fixes_
+
+- Fixed the description of the `name` column in `aws_organizations_account` table. ([#1947](https://github.com/turbot/steampipe-plugin-aws/pull/1947)) (Thanks [@badideasforsale](https://github.com/badideasforsale) for the contribution!)
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.6.3](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v563-2023-11-06) which addresses the issue of expired credentials being intermittently retained in the connection cache. ([#1956](https://github.com/turbot/steampipe-plugin-aws/pull/1956))
+
 ## v0.121.0 [2023-10-13]
 
 _Enhancements_
