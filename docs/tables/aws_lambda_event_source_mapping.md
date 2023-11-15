@@ -35,14 +35,13 @@ where
 
 ### Retrieve bootstrap server endpoints from a self-managed Kafka cluster integrated with AWS Lambda
 
-```sql
 -- Returns the list of bootstrap servers for your Kafka brokers
 
 --  function_name | jsonb_array_elements_text
 -- ---------------+---------------------------
 --  myFunction    | abc.xyz.com:xxxx
 --  myFunction    | abc2.xyz.com:xxxx
-
+```sql
 select
   function_name,
   jsonb_array_elements_text(jsonb_extract_path(self_managed_event_source, 'Endpoints', 'KAFKA_BOOTSTRAP_SERVERS'))
