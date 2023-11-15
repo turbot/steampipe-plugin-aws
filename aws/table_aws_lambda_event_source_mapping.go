@@ -20,9 +20,11 @@ func tableAwsLambdaEventSourceMapping(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("uuid"),
 			Hydrate:    getAwsLambdaEventSourceMapping,
+			Tags:       map[string]string{"service": "lambda", "action": "GetEventSourceMapping"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaEventSourceMappings,
+			Tags:       map[string]string{"service": "lambda", "action": "ListEventSourceMappings"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "arn",
