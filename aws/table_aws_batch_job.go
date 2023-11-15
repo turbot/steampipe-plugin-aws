@@ -25,11 +25,11 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getBatchJob,
-			Tags:          map[string]string{"service": "batch", "action": "DescribeJobs"},
+			Tags:    map[string]string{"service": "batch", "action": "DescribeJobs"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBatchJobs,
-			Tags:          map[string]string{"service": "batch", "action": "ListJobs"},
+			Tags:    map[string]string{"service": "batch", "action": "ListJobs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "job_queue",
