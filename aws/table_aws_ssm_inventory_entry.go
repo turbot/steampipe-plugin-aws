@@ -18,6 +18,7 @@ func tableAwsSSMInventoryEntry(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsSSMInventories,
 			Hydrate:       listAwsSSMInventoryEntries,
+			Tags:          map[string]string{"service": "ssm", "action": "ListInventoryEntries"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "instance_id", Require: plugin.Optional},
 				{Name: "type_name", Require: plugin.Optional},
@@ -114,6 +115,9 @@ func listAwsSSMInventoryEntries(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		op, err := svc.ListInventoryEntries(ctx, input)
 
 		if err != nil {

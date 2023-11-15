@@ -17,6 +17,13 @@ func tableAwsRAMPrincipalAssociation(_ context.Context) *plugin.Table {
 		Description: "AWS RAM Principal Association",
 		List: &plugin.ListConfig{
 			Hydrate: listResourceShareAssociations(associationType),
+			Tags:    map[string]string{"service": "ram", "action": "GetResourceShareAssociations"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getResourceSharePermissions,
+				Tags: map[string]string{"service": "ram", "action": "ListResourceSharePermissions"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ramv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

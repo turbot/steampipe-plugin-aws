@@ -23,6 +23,7 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 		Description: "AWS Well-Architected Lens",
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedLenses,
+			Tags:    map[string]string{"service": "wellarchitected", "action": "ListLenses"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
@@ -30,6 +31,12 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 				{Name: "lens_name", Require: plugin.Optional},
 				{Name: "lens_status", Require: plugin.Optional},
 				{Name: "lens_type", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWellArchitectedLens,
+				Tags: map[string]string{"service": "wellarchitected", "action": "GetLens"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
@@ -175,6 +182,9 @@ func listWellArchitectedLenses(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wellarchitected_lens.listWellArchitectedLenses", "api_error", err)

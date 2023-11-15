@@ -26,11 +26,27 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: describeStream,
+			Tags:    map[string]string{"service": "kinesis", "action": "DescribeStream"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listStreams,
+			Tags:    map[string]string{"service": "kinesis", "action": "ListStreams"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kinesisv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: describeStream,
+				Tags: map[string]string{"service": "kinesis", "action": "DescribeStream"},
+			},
+			{
+				Func: describeStreamSummary,
+				Tags: map[string]string{"service": "kinesis", "action": "DescribeStreamSummary"},
+			},
+			{
+				Func: getAwsKinesisStreamTags,
+				Tags: map[string]string{"service": "kinesis", "action": "ListTagsForStream"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stream_name",
@@ -182,6 +198,9 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 	// API doesn't support aws-sdk-go-v2 paginator as of date
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListStreams(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_kinesis_stream.listStreams", "api_error", err)

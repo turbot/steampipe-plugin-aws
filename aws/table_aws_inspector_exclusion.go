@@ -28,6 +28,7 @@ func tableAwsInspectorExclusion(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listInspectorAssessmentRuns,
 			Hydrate:       listInspectorExclusions,
+			Tags:          map[string]string{"service": "inspector", "action": "DescribeExclusions"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "assessment_run_arn", Require: plugin.Optional},
 			},
@@ -123,6 +124,9 @@ func listInspectorExclusions(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector_exclusion.listInspectorExclusions", "api_error", err)

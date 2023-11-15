@@ -24,14 +24,22 @@ func tableAwsPipes(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAwsPipe,
+			Tags:    map[string]string{"service": "pipes", "action": "DescribePipe"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsPipes,
+			Tags:    map[string]string{"service": "pipes", "action": "ListPipes"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "current_state", Require: plugin.Optional},
 				{Name: "desired_state", Require: plugin.Optional},
 				{Name: "source_prefix", Require: plugin.Optional},
 				{Name: "target_prefix", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsPipe,
+				Tags: map[string]string{"service": "pipes", "action": "DescribePipe"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(pipesv1.EndpointsID),
@@ -191,6 +199,9 @@ func listAwsPipes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 	// API doesn't support aws-go-sdk-v2 paginator as of date
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := svc.ListPipes(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_pipes_pipe.listAwsPipes", "api_error", err)

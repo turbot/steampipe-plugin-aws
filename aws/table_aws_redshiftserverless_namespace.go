@@ -23,9 +23,17 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("namespace_name"),
 			Hydrate:    getRedshiftServerlessNamespace,
+			Tags:       map[string]string{"service": "redshift-serverless", "action": "GetNamespace"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftServerlessNamespaces,
+			Tags:    map[string]string{"service": "redshift-serverless", "action": "ListNamespaces"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getNamespaceTags,
+				Tags: map[string]string{"service": "redshift-serverless", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(redshiftserverlessv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -155,6 +163,9 @@ func listRedshiftServerlessNamespaces(ctx context.Context, d *plugin.QueryData, 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_redshiftserverless_namespace.listRedshiftServerlessNamespaces", "api_error", err)

@@ -35,12 +35,20 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyPublishingDestination,
+			Tags:    map[string]string{"service": "guardduty", "action": "DescribePublishingDestination"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
+			Tags:          map[string]string{"service": "guardduty", "action": "ListPublishingDestinations"},
 			Hydrate:       listGuardDutyPublishingDestinations,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "detector_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGuardDutyPublishingDestination,
+				Tags: map[string]string{"service": "guardduty", "action": "DescribePublishingDestination"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
@@ -149,6 +157,9 @@ func listGuardDutyPublishingDestinations(ctx context.Context, d *plugin.QueryDat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_guardduty_publishing_destination.listGuardDutyPublishingDestinations", "api_error", err)

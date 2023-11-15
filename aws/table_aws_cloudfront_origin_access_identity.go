@@ -23,9 +23,17 @@ func tableAwsCloudFrontOriginAccessIdentity(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchCloudFrontOriginAccessIdentity"}),
 			},
 			Hydrate: getCloudFrontOriginAccessIdentity,
+			Tags:    map[string]string{"service": "cloudfront", "action": "GetCloudFrontOriginAccessIdentity"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginAccessIdentities,
+			Tags:    map[string]string{"service": "cloudfront", "action": "ListCloudFrontOriginAccessIdentities"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudFrontOriginAccessIdentity,
+				Tags: map[string]string{"service": "cloudfront", "action": "GetCloudFrontOriginAccessIdentity"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -122,6 +130,9 @@ func listCloudFrontOriginAccessIdentities(ctx context.Context, d *plugin.QueryDa
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudfront_origin_access_identity.listCloudFrontOriginAccessIdentities", "api_error", err)

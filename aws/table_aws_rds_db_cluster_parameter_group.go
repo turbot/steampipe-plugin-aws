@@ -26,9 +26,21 @@ func tableAwsRDSDBClusterParameterGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBParameterGroupNotFound"}),
 			},
 			Hydrate: getRDSDBClusterParameterGroup,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusterParameterGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusterParameterGroups,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBClusterParameterGroups"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsRDSClusterParameterGroupParameters,
+				Tags: map[string]string{"service": "rds", "action": "DescribeDBClusterParameters"},
+			},
+			{
+				Func: getAwsRDSClusterParameterGroupTags,
+				Tags: map[string]string{"service": "rds", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -129,6 +141,9 @@ func listRDSDBClusterParameterGroups(ctx context.Context, d *plugin.QueryData, _
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.listRDSDBClusterParameterGroups", "api_error", err)
@@ -200,6 +215,9 @@ func getAwsRDSClusterParameterGroupParameters(ctx context.Context, d *plugin.Que
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.getAwsRDSClusterParameterGroupParameters", "api_error", err)

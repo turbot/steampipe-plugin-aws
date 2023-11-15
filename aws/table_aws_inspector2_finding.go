@@ -24,6 +24,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector2 Finding",
 		List: &plugin.ListConfig{
 			Hydrate: listInspector2Finding,
+			Tags:    map[string]string{"service": "inspector2", "action": "ListFindings"},
 			KeyColumns: plugin.KeyColumnSlice{
 				// The AWS CLI supports EQUALS, PREFIX, and NOT_EQUALS... we can't represent PREFIX.
 				{Name: "finding_account_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
@@ -424,6 +425,9 @@ func listInspector2Finding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector2_finding.listInspector2Finding", "api_error", err)

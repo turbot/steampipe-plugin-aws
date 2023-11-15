@@ -24,9 +24,11 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
 			},
 			Hydrate: getVpcSubnet,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeSubnets"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcSubnets,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeSubnets"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "availability_zone", Require: plugin.Optional},
 				{Name: "availability_zone_id", Require: plugin.Optional},
@@ -204,6 +206,9 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "api_error", err, "connection_name", d.Connection.Name, "region", d.EqualsQualString(matrixKeyRegion))

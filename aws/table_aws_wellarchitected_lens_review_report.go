@@ -26,6 +26,7 @@ func tableAwsWellArchitectedLensReviewReport(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listWellArchitectedWorkloads,
 			Hydrate:       getWellArchitectedLensReviewReports,
+			Tags:          map[string]string{"service": "wellarchitected", "action": "GetLensReviewReport"},
 			// TODO: Uncomment and remove extra check in
 			// IgnoreConfig: &plugin.IgnoreConfig{
 			// 	ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),

@@ -23,6 +23,7 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsEcrRepositories,
 			Hydrate:       listAwsEcrImages,
+			Tags:          map[string]string{"service": "ecr", "action": "DescribeImages"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "repository_name", Require: plugin.Optional},
 				{Name: "registry_id", Require: plugin.Optional},
@@ -147,6 +148,9 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImages", "api_error", err)

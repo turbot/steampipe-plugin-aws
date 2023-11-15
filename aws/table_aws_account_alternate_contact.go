@@ -20,6 +20,7 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 		Description: "AWS Account Alternate Contact",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAccountAlternateContacts,
+			Tags:    map[string]string{"service": "account", "action": "GetAlternateContact"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},

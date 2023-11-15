@@ -23,6 +23,7 @@ func tableAwsEc2TransitGatewayRoute(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2TransitGatewayRouteTable,
 			Hydrate:       listEc2TransitGatewayRoute,
+			Tags:          map[string]string{"service": "ec2", "action": "SearchTransitGatewayRoutes"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "prefix_list_id", Require: plugin.Optional},
 				{Name: "state", Require: plugin.Optional},

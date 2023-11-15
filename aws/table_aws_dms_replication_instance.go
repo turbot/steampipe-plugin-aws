@@ -26,9 +26,11 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "InvalidParameterCombinationException"}),
 			},
 			Hydrate: getDmsReplicationInstance,
+			Tags:    map[string]string{"service": "dms", "action": "DescribeReplicationInstances"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDmsReplicationInstances,
+			Tags:    map[string]string{"service": "dms", "action": "DescribeReplicationInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "replication_instance_identifier",
@@ -46,6 +48,12 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 					Name:    "engine_version",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDmsReplicationInstanceTags,
+				Tags: map[string]string{"service": "dms", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(databasemigrationservicev1.EndpointsID),
@@ -268,6 +276,9 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_dms_replication_instance.listDmsReplicationInstances", "api_error", err)

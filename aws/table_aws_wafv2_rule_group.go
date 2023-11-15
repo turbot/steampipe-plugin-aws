@@ -24,11 +24,23 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAwsWafv2RuleGroup,
+			Tags:    map[string]string{"service": "wafv2", "action": "GetRuleGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RuleGroups,
+			Tags:    map[string]string{"service": "wafv2", "action": "ListRuleGroups"},
 		},
 		GetMatrixItemFunc: WAFRegionMatrix,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafv2RuleGroup,
+				Tags: map[string]string{"service": "wafv2", "action": "GetRuleGroup"},
+			},
+			{
+				Func: listTagsForAwsWafv2RuleGroup,
+				Tags: map[string]string{"service": "wafv2", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -169,6 +181,9 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// ListRuleGroups API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafv2_rule_group.listAwsWafv2RuleGroups", "api_error", err)

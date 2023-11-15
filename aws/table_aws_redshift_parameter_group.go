@@ -25,9 +25,17 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterParameterGroupNotFound"}),
 			},
 			Hydrate: getRedshiftParameterGroup,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterParameterGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftParameterGroups,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterParameterGroups"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRedshiftParameters,
+				Tags: map[string]string{"service": "redshift", "action": "DescribeClusterParameters"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -118,6 +126,9 @@ func listRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_redshift_parameter_group.listRedshiftParameterGroups", "api_error", err)

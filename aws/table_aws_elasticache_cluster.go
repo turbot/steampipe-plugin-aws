@@ -29,10 +29,19 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
 			},
 			Hydrate: getElastiCacheCluster,
+			Tags:    map[string]string{"service": "elasticache", "action": "DescribeCacheClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheClusters,
+			Tags:    map[string]string{"service": "elasticache", "action": "DescribeCacheClusters"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listTagsForElastiCacheCluster,
+				Tags: map[string]string{"service": "elasticache", "action": "ListTagsForResource"},
+			},
+		},
+
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -220,6 +229,9 @@ func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_elasticache_cluster.listElastiCacheClusters", "api_error", err)

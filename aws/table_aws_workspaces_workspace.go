@@ -26,13 +26,21 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
 			},
 			Hydrate: getWorkspace,
+			Tags:    map[string]string{"service": "workspaces", "action": "DescribeWorkspaces"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWorkspaces,
+			Tags:    map[string]string{"service": "workspaces", "action": "DescribeWorkspaces"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bundle_id", Require: plugin.Optional},
 				{Name: "directory_id", Require: plugin.Optional},
 				{Name: "user_name", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listWorkspacesTags,
+				Tags: map[string]string{"service": "workspaces", "action": "DescribeTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(workspacesv1.EndpointsID),
@@ -209,6 +217,9 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_workspaces_workspace.listWorkspaces", "api_error", err)

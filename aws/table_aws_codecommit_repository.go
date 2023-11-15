@@ -25,6 +25,13 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter"}),
 			},
 			Hydrate: listCodeCommitRepositories,
+			Tags:    map[string]string{"service": "codecommit", "action": "ListRepositories"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listCodeCommitRepositoryTags,
+				Tags: map[string]string{"service": "codecommit", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codecommitv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -123,6 +130,9 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_codecommit_repository.listCodeCommitRepositories", "api_error", err)

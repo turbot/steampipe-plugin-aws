@@ -29,9 +29,21 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyDetector,
+			Tags:    map[string]string{"service": "guardduty", "action": "GetDetector"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGuardDutyDetectors,
+			Tags:    map[string]string{"service": "guardduty", "action": "ListDetectors"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGuardDutyDetector,
+				Tags: map[string]string{"service": "guardduty", "action": "GetDetector"},
+			},
+			{
+				Func: getGuardDutyDetectorMasterAccount,
+				Tags: map[string]string{"service": "guardduty", "action": "GetAdministratorAccount"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -81,6 +93,12 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 			{
 				Name:        "data_sources",
 				Description: "Describes which data sources are enabled for the detector.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGuardDutyDetector,
+			},
+			{
+				Name:        "features",
+				Description: "Describes the features that have been enabled for the detector.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getGuardDutyDetector,
 			},
@@ -146,6 +164,9 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_guardduty_detector.listGuardDutyDetectors", "api_error", err)

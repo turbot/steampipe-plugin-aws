@@ -26,6 +26,7 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidRequestException", "ValidationException"}),
 			},
 			Hydrate: getNetworkFirewallFirewall,
+			Tags:    map[string]string{"service": "network-firewall", "action": "DescribeFirewall"},
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"vpc_id"}),
@@ -33,6 +34,13 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequestException", "ValidationException"}),
 			},
 			Hydrate: listNetworkFirewallFirewalls,
+			Tags:    map[string]string{"service": "network-firewall", "action": "ListFirewalls"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getNetworkFirewallFirewall,
+				Tags: map[string]string{"service": "network-firewall", "action": "DescribeFirewall"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -196,6 +204,9 @@ func listNetworkFirewallFirewalls(ctx context.Context, d *plugin.QueryData, _ *p
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_networkfirewall_firewall.listNetworkFirewallFirewalls", "api_error", err)

@@ -26,9 +26,11 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIKey,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetApiKey"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIKeys,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetApiKeys"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "customer_id",
@@ -153,6 +155,9 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listAPIKeys", "api_error", err)

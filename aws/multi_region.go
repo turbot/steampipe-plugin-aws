@@ -222,7 +222,7 @@ func listQueryRegionsForConnection(ctx context.Context, d *plugin.QueryData) ([]
 	if regionData.APIRetrivedList {
 		maxTargetRegions = regionData.ActiveRegions
 	} else {
-		plugin.Logger(ctx).Warn("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "status", "target regions not avaialble via EC2.DescribeRegions API, assuming all regions for partition are active", "targetRegions", maxTargetRegions)
+		plugin.Logger(ctx).Warn("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "status", "target regions not available via EC2.DescribeRegions API, assuming all regions for partition are active", "targetRegions", maxTargetRegions)
 	}
 
 	// Filter to regions that match the patterns in the config.

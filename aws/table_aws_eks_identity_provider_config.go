@@ -29,10 +29,18 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "type", "cluster_name"}),
 			Hydrate:    getEKSIdentityProviderConfig,
+			Tags:       map[string]string{"service": "eks", "action": "DescribeIdentityProviderConfig"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEKSClusters,
 			Hydrate:       listEKSIdentityProviderConfigs,
+			Tags:          map[string]string{"service": "eks", "action": "ListIdentityProviderConfigs"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEKSIdentityProviderConfig,
+				Tags: map[string]string{"service": "eks", "action": "DescribeIdentityProviderConfig"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -169,6 +177,9 @@ func listEKSIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_eks_identity_provider_config.listEKSIdentityProviderConfigs", "api_error", err)

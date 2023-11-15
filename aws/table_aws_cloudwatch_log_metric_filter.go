@@ -21,9 +21,11 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getCloudwatchLogMetricFilter,
+			Tags:       map[string]string{"service": "logs", "action": "DescribeMetricFilters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogMetricFilters,
+			Tags:    map[string]string{"service": "logs", "action": "DescribeMetricFilters"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -155,6 +157,9 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudwatch_log_metric_filter.listCloudwatchLogMetricFilters", "api_error", err)

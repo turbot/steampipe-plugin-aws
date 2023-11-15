@@ -20,8 +20,15 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 		Description: "AWS IAM Virtual MFA device",
 		List: &plugin.ListConfig{
 			Hydrate: listIamVirtualMFADevices,
+			Tags:    map[string]string{"service": "iam", "action": "ListVirtualMFADevices"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "assignment_status", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIamMfaDeviceTags,
+				Tags: map[string]string{"service": "iam", "action": "ListMFADeviceTags"},
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -142,6 +149,9 @@ func listIamVirtualMFADevices(ctx context.Context, d *plugin.QueryData, _ *plugi
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_virtual_mfa_device.listIamVirtualMFADevices", "api_error", err)

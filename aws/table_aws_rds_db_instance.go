@@ -26,13 +26,25 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBInstanceNotFound"}),
 			},
 			Hydrate: getRDSDBInstance,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstances,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "resource_id", Require: plugin.Optional},
 				{Name: "engine", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRDSDBInstancePendingMaintenanceAction,
+				Tags: map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
+			},
+			{
+				Func: getRDSDBInstanceCertificate,
+				Tags: map[string]string{"service": "rds", "action": "DescribeCertificates"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
@@ -480,6 +492,9 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_instance.listRDSDBInstances", "api_error", err)

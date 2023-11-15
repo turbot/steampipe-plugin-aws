@@ -26,9 +26,11 @@ func tableAwsGlueSecurityConfiguration(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueSecurityConfiguration,
+			Tags:    map[string]string{"service": "glue", "action": "GetSecurityConfiguration"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlueSecurityConfigurations,
+			Tags:    map[string]string{"service": "glue", "action": "GetSecurityConfigurations"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -110,6 +112,9 @@ func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glue_security_configuration.listGlueSecurityConfigurations", "api_error", err)

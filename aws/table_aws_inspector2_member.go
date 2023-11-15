@@ -21,6 +21,7 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector2 Member",
 		List: &plugin.ListConfig{
 			Hydrate: listInspector2Member,
+			Tags:    map[string]string{"service": "inspector2", "action": "ListMembers"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "only_associated",
@@ -104,14 +105,14 @@ func listInspector2Member(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-if d.EqualsQuals["only_associated"] != nil {
-	onlyAssociated := getQualsValueByColumn(d.Quals, "only_associated", "boolean")
-	if onlyAssociated.(string) == "true" {
-		input.OnlyAssociated = aws.Bool(true)
-	} else {
-		input.OnlyAssociated = aws.Bool(false)
+	if d.EqualsQuals["only_associated"] != nil {
+		onlyAssociated := getQualsValueByColumn(d.Quals, "only_associated", "boolean")
+		if onlyAssociated.(string) == "true" {
+			input.OnlyAssociated = aws.Bool(true)
+		} else {
+			input.OnlyAssociated = aws.Bool(false)
+		}
 	}
-}
 
 	paginator := inspector2.NewListMembersPaginator(svc, input, func(o *inspector2.ListMembersPaginatorOptions) {
 		o.Limit = maxLimit
@@ -120,6 +121,9 @@ if d.EqualsQuals["only_associated"] != nil {
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector2_member.listInspector2Member", "api_error", err)

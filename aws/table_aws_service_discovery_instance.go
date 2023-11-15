@@ -25,10 +25,12 @@ func tableAwsServiceDiscoveryInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InstanceNotFound"}),
 			},
 			Hydrate: getServiceDiscoveryInstance,
+			Tags:    map[string]string{"service": "servicediscovery", "action": "GetInstance"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listServiceDiscoveryServices,
 			Hydrate:       listServiceDiscoveryInstances,
+			Tags:          map[string]string{"service": "servicediscovery", "action": "ListInstances"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "service_id",
@@ -155,6 +157,9 @@ func listServiceDiscoveryInstances(ctx context.Context, d *plugin.QueryData, h *
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_service_discovery_instance.listServiceDiscoveryInstances", "api_error", err)
