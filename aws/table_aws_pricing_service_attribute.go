@@ -19,8 +19,15 @@ func tableAwsPricingServiceAttribute(_ context.Context) *plugin.Table {
 		Description: "AWS Pricing Service Attribute",
 		List: &plugin.ListConfig{
 			Hydrate: listPricingServiceAttributes,
+			Tags:    map[string]string{"service": "pricing", "action": "DescribeServices"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listAttributeValues,
+				Tags: map[string]string{"service": "pricing", "action": "GetAttributeValues"},
 			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
@@ -90,6 +97,9 @@ func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *p
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_pricing_service_attribute.listPricingServiceAttributes", "api_error", err)
@@ -153,6 +163,9 @@ func listAttributeValues(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_pricing_service_attribute.listAttributeValues", "api_error", err)

@@ -29,12 +29,28 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getElasticBeanstalkEnvironment,
+			Tags:    map[string]string{"service": "elasticbeanstalk", "action": "DescribeEnvironments"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElasticBeanstalkEnvironments,
+			Tags:    map[string]string{"service": "elasticbeanstalk", "action": "DescribeEnvironments"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "environment_id", Require: plugin.Optional},
 				{Name: "application_name", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getElasticBeanstalkEnvironment,
+				Tags: map[string]string{"service": "elasticache", "action": "DescribeEnvironments"},
+			},
+			{
+				Func: listElasticBeanstalkEnvironmentTags,
+				Tags: map[string]string{"service": "elasticache", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getAwsElasticBeanstalkEnvironmentManagedActions,
+				Tags: map[string]string{"service": "elasticache", "action": "DescribeEnvironmentManagedActions"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkv1.EndpointsID),
@@ -233,6 +249,9 @@ func listElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.DescribeEnvironments(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_elastic_beanstalk_environment.listElasticBeanstalkEnvironments", "api_error", err)

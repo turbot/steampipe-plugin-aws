@@ -20,9 +20,16 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Inventory",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMInventories,
+			Tags:    map[string]string{"service": "ssm", "action": "GetInventory"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "type_name", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSSMInventorySchema,
+				Tags: map[string]string{"service": "ssm", "action": "GetInventorySchema"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
@@ -116,6 +123,9 @@ func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_inventory.listAwsSSMInventories", "api_error", err)
@@ -172,6 +182,9 @@ func getAwsSSMInventorySchema(ctx context.Context, d *plugin.QueryData, h *plugi
 	var schemas []types.InventoryItemSchema
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_inventory.getAwsSSMInventorySchema", "api_error", err)

@@ -22,6 +22,7 @@ func tableAwsDaxSubnetGroup(_ context.Context) *plugin.Table {
 		Description: "AWS DAX Subnet Group",
 		List: &plugin.ListConfig{
 			Hydrate: listDaxSubnetGroups,
+			Tags:    map[string]string{"service": "dax", "action": "DescribeSubnetGroups"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubnetGroupNotFoundFault"}),
 			},
@@ -114,6 +115,9 @@ func listDaxSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.DescribeSubnetGroups(ctx, params)
 		if err != nil {
 			logger.Error("aws_dax_subnet_group.listSubnetGroups", "api_error", err)

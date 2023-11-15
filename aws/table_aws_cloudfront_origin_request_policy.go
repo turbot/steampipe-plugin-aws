@@ -24,9 +24,17 @@ func tableAwsCloudFrontOriginRequestPolicy(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
 			},
 			Hydrate: getCloudFrontOriginRequestPolicy,
+			Tags:    map[string]string{"service": "cloudfront", "action": "GetOriginRequestPolicy"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginRequestPolicies,
+			Tags:    map[string]string{"service": "cloudfront", "action": "ListOriginRequestPolicies"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudFrontOriginRequestPolicy,
+				Tags: map[string]string{"service": "cloudfront", "action": "GetOriginRequestPolicy"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -129,6 +137,9 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListOriginRequestPolicies(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudfront_origin_request_policy.listCloudFrontOriginRequestPolicies", "api_error", err)

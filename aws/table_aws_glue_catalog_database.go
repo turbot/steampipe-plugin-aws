@@ -26,9 +26,11 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueCatalogDatabase,
+			Tags:    map[string]string{"service": "glue", "action": "GetDatabase"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlueCatalogDatabases,
+			Tags:    map[string]string{"service": "glue", "action": "GetDatabases"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -132,6 +134,9 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)

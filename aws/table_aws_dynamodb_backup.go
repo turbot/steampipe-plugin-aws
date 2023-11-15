@@ -24,9 +24,11 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "BackupNotFoundException"}),
 			},
 			Hydrate: getDynamodbBackup,
+			Tags:    map[string]string{"service": "dynamodb", "action": "DescribeBackup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamodbBackups,
+			Tags:    map[string]string{"service": "dynamodb", "action": "ListBackups"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "backup_type",

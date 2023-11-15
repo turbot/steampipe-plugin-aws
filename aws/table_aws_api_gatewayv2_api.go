@@ -27,9 +27,11 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIGatewayV2API,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetApi"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIGatewayV2API,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetApis"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -135,6 +137,9 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.GetApis(ctx, params)
 		if err != nil {
 			logger.Error("aws_api_gatewayv2_api.listAPIGatewayV2API", "api_error", err)

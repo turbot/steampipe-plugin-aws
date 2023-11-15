@@ -25,9 +25,11 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidVpnConnectionID.NotFound", "InvalidVpnConnectionID.Malformed"}),
 			},
 			Hydrate: getVpcVpnConnection,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpnConnections"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVpnConnections,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpnConnections"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},

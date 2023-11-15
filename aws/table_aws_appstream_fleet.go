@@ -22,6 +22,7 @@ func tableAwsAppStreamFleet(_ context.Context) *plugin.Table {
 		Description: "AWS AppStream Fleet",
 		List: &plugin.ListConfig{
 			Hydrate: listAppStreamFleets,
+			Tags:    map[string]string{"service": "appstream", "action": "DescribeFleets"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -30,6 +31,12 @@ func tableAwsAppStreamFleet(_ context.Context) *plugin.Table {
 					Name:    "name",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAppStreamFleetTags,
+				Tags: map[string]string{"service": "appstream", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(appstreamv1.EndpointsID),
@@ -217,6 +224,9 @@ func listAppStreamFleets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	pageLeft := true
 
 	for pageLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		op, err := svc.DescribeFleets(ctx, params)
 
 		if err != nil {

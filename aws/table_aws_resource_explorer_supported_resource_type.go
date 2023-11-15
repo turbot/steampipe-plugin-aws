@@ -17,6 +17,7 @@ func tableAWSResourceExplorerSupportedResourceType(_ context.Context) *plugin.Ta
 		Description: "AWS Resource Explorer Supported Resource Type",
 		List: &plugin.ListConfig{
 			Hydrate: listAWSExplorerSupportedTypes,
+			Tags:    map[string]string{"service": "resource-explorer-2", "action": "ListSupportedResourceTypes"},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
@@ -59,6 +60,9 @@ func listAWSExplorerSupportedTypes(ctx context.Context, d *plugin.QueryData, h *
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_resource_explorer_supported_resource_type.listAWSExplorerSupportedTypes", "api_error", err)

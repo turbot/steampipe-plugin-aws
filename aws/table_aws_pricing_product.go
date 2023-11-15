@@ -22,6 +22,7 @@ func tableAwsPricingProduct(_ context.Context) *plugin.Table {
 		Description: "AWS Pricing Product",
 		List: &plugin.ListConfig{
 			Hydrate: listPricingProduct,
+			Tags:    map[string]string{"service": "pricing", "action": "GetProducts"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Required},
 				{Name: "filters", Require: plugin.Optional, CacheMatch: "exact"},
@@ -160,6 +161,9 @@ func listPricingProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_pricing_product.listPricingProduct", "api_error", err)

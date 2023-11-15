@@ -30,11 +30,43 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
 			},
 			Hydrate: getAwsEcrRepositories,
+			Tags:    map[string]string{"service": "ecr", "action": "DescribeRepositories"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrRepositories,
+			Tags:    map[string]string{"service": "ecr", "action": "DescribeRepositories"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "registry_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEcrRepositories,
+				Tags: map[string]string{"service": "ecr", "action": "DescribeRepositories"},
+			},
+			{
+				Func: listAwsEcrRepositoryTags,
+				Tags: map[string]string{"service": "ecr", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getAwsEcrRepositoryPolicy,
+				Tags: map[string]string{"service": "ecr", "action": "GetRepositoryPolicy"},
+			},
+			{
+				Func: getAwsEcrDescribeImages,
+				Tags: map[string]string{"service": "ecr", "action": "DescribeImages"},
+			},
+			{
+				Func: getAwsEcrDescribeImageScanningFindings,
+				Tags: map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
+			},
+			{
+				Func: getAwsEcrRepositoryLifecyclePolicy,
+				Tags: map[string]string{"service": "ecr", "action": "GetLifecyclePolicy"},
+			},
+			{
+				Func: getAwsEcrRepositoryScanningConfiguration,
+				Tags: map[string]string{"service": "ecr", "action": "BatchGetRepositoryScanningConfiguration"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
@@ -206,6 +238,9 @@ func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecr_repository.listAwsEcrRepositories", "api_error", err)
@@ -379,6 +414,9 @@ func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.Query
 
 		// List call
 		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
+
 			scan, err := paginator.NextPage(ctx)
 			if err != nil {
 				if strings.Contains(err.Error(), "ScanNotFoundException") {

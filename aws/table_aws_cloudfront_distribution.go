@@ -23,9 +23,21 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchDistribution"}),
 			},
 			Hydrate: getCloudFrontDistribution,
+			Tags:    map[string]string{"service": "cloudfront", "action": "GetDistribution"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsCloudFrontDistributions,
+			Tags:    map[string]string{"service": "cloudfront", "action": "ListDistributions"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudFrontDistribution,
+				Tags: map[string]string{"service": "cloudfront", "action": "GetDistribution"},
+			},
+			{
+				Func: getCloudFrontDistributionTags,
+				Tags: map[string]string{"service": "cloudfront", "action": "ListTagsForResource"},
+			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -263,6 +275,9 @@ func listAwsCloudFrontDistributions(ctx context.Context, d *plugin.QueryData, _ 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudfront_distribution.listAwsCloudFrontDistributions", "api_error", err)

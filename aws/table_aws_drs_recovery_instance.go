@@ -27,6 +27,7 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException", "BadRequestException"}),
 			},
 			Hydrate: listAwsDRSRecoveryInstances,
+			Tags:    map[string]string{"service": "drs", "action": "DescribeRecoveryInstances"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(drsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -172,6 +173,9 @@ func listAwsDRSRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_drs_recovery_instance.listAwsDRSRecoveryInstances", "api_error", err)

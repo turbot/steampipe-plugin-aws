@@ -27,9 +27,11 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundFault", "ServiceLinkedRoleNotFoundFault"}),
 			},
 			Hydrate: getDaxCluster,
+			Tags:    map[string]string{"service": "dax", "action": "DescribeClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDaxClusters,
+			Tags:    map[string]string{"service": "dax", "action": "DescribeClusters"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
@@ -38,6 +40,12 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 					Name:    "cluster_name",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDaxClusterTags,
+				Tags: map[string]string{"service": "dax", "action": "ListTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(daxv1.EndpointsID),
@@ -201,6 +209,9 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.DescribeClusters(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_dax_cluster.listDaxClusters", "api_error", err)

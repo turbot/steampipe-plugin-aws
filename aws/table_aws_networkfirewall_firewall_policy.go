@@ -23,9 +23,17 @@ func tableAwsNetworkFirewallPolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"arn", "name"}),
 			Hydrate:    getNetworkFirewallPolicy,
+			Tags:       map[string]string{"service": "network-firewall", "action": "DescribeFirewallPolicy"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listNetworkFirewallPolicies,
+			Tags:    map[string]string{"service": "network-firewall", "action": "ListFirewallPolicies"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getNetworkFirewallPolicy,
+				Tags: map[string]string{"service": "network-firewall", "action": "DescribeFirewallPolicy"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -174,6 +182,9 @@ func listNetworkFirewallPolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_networkfirewall_firewall_policy.listNetworkFirewallPolicies", "api_error", err)

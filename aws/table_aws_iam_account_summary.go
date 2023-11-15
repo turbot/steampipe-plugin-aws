@@ -53,6 +53,7 @@ func tableAwsIamAccountSummary(_ context.Context) *plugin.Table {
 		DefaultTransform: transform.FromGo(),
 		List: &plugin.ListConfig{
 			Hydrate: listAccountSummary,
+			Tags:    map[string]string{"service": "iam", "action": "GetAccountSummary"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

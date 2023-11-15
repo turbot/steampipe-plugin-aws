@@ -27,9 +27,11 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
 			},
 			Hydrate: getEc2TransitGatewayRouteTable,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeTransitGatewayRouteTables"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayRouteTable,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeTransitGatewayRouteTables"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "transit_gateway_id", Require: plugin.Optional},
 				{Name: "state", Require: plugin.Optional},
@@ -155,6 +157,9 @@ func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_transit_gateway_route_table.listEc2TransitGatewayRouteTable", "api_error", err)

@@ -26,12 +26,20 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsKinesisConsumer,
+			Tags:    map[string]string{"service": "kinesis", "action": "DescribeStreamConsumer"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listStreams,
 			Hydrate:       listKinesisConsumers,
+			Tags:          map[string]string{"service": "kinesis", "action": "ListStreamConsumers"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kinesisv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsKinesisConsumer,
+				Tags: map[string]string{"service": "kinesis", "action": "DescribeStreamConsumer"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "consumer_name",
@@ -128,6 +136,9 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)

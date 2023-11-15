@@ -25,9 +25,17 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInstanceType"}),
 			},
 			Hydrate: describeInstanceType,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstanceTypes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsInstanceTypesOfferings,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: describeInstanceType,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceTypes"},
+			},
 		},
 		Columns: []*plugin.Column{
 			{
@@ -233,6 +241,9 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_instance_type.listAwsInstanceTypesOfferings", "api_error", err)

@@ -19,6 +19,7 @@ func tableAwsSSMDocumentPermission(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Document Permission",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMDocumentPermissions,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeDocumentPermission"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "document_name", Require: plugin.Required},
 			},
@@ -104,6 +105,9 @@ func listAwsSSMDocumentPermissions(ctx context.Context, d *plugin.QueryData, h *
 	// API doesn't support aws-sdk-go-v2 paginator as of date
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.DescribeDocumentPermission(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_document_permission.listAwsSSMDocumentPermissions", "api_error", err)

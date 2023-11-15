@@ -26,9 +26,11 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "InvalidQueryParameter", "InvalidParameterValue", "InvalidClientVpnEndpointId.NotFound"}),
 			},
 			Hydrate: getEC2ClientVPNEndpoint,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeClientVpnEndpoints"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEC2ClientVPNEndpoints,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeClientVpnEndpoints"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "transport_protocol", Require: plugin.Optional},
 			},
@@ -146,7 +148,7 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				Description: "The protocol used by the VPN session.",
 				Type:        proto.ColumnType_JSON,
 			},
-			
+
 			// Steampipe standard columns
 			{
 				Name:        "title",
@@ -205,6 +207,9 @@ func listEC2ClientVPNEndpoints(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_client_vpn_endpoint.listEC2ClientVPNEndpoints", "api_error", err)

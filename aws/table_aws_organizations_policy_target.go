@@ -21,12 +21,20 @@ func tableAwsOrganizationsPolicyTarget(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"PolicyNotFoundException", "InvalidInputException"}),
 			},
 			Hydrate: getOrganizationsPolicy,
+			Tags:    map[string]string{"service": "organizations", "action": "DescribePolicy"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate:    listOrganizationsPolicyTragets,
+			Tags:       map[string]string{"service": "organizations", "action": "ListPoliciesForTarget"},
 			KeyColumns: plugin.AllColumns([]string{"type", "target_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "TargetNotFoundException"}),
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getOrganizationsPolicy,
+				Tags: map[string]string{"service": "organizations", "action": "DescribePolicy"},
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -138,6 +146,9 @@ func listOrganizationsPolicyTragets(ctx context.Context, d *plugin.QueryData, _ 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_organizations_policy_target.listOrganizationsPolicies", "api_error", err)

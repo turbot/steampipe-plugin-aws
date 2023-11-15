@@ -26,6 +26,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 AMI - All public, private, and shared AMIs",
 		List: &plugin.ListConfig{
 			Hydrate: listAmisByOwner,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeImages"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "owner_id", Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "architecture", Require: plugin.Optional},
@@ -242,6 +243,10 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if len(filters) != 0 {
 		input.Filters = filters
 	}
+
+	// apply rate limiting
+	d.WaitForListRateLimit(ctx)
+
 	// There is no MaxResult property in param, through which we can limit the number of results
 	resp, err := svc.DescribeImages(ctx, input)
 	if err != nil {

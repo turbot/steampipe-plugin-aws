@@ -28,11 +28,27 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			},
 			Hydrate: getIamGroup,
+			Tags:    map[string]string{"service": "iam", "action": "GetGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamGroups,
+			Tags:    map[string]string{"service": "iam", "action": "ListGroups"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsIamGroupAttachedPolicies,
+				Tags: map[string]string{"service": "iam", "action": "ListAttachedGroupPolicies"},
+			},
+			{
+				Func: getAwsIamGroupUsers,
+				Tags: map[string]string{"service": "iam", "action": "GetGroup"},
+			},
+			{
+				Func: listAwsIamGroupInlinePolicies,
+				Tags: map[string]string{"service": "iam", "action": "ListGroupPolicies"},
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -143,6 +159,9 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aaws_iam_group.listIamGroups", "api_error", err)

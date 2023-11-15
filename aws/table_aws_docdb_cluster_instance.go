@@ -24,6 +24,7 @@ func tableAwsDocDBClusterInstance(_ context.Context) *plugin.Table {
 		Description: "AWS DocumentDB Cluster Instance",
 		List: &plugin.ListConfig{
 			Hydrate: listDocDBClusterInstances,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "DBInstanceNotFound"}),
 			},
@@ -31,6 +32,12 @@ func tableAwsDocDBClusterInstance(_ context.Context) *plugin.Table {
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "db_instance_identifier", Require: plugin.Optional},
 				{Name: "db_instance_arn", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDocDBClusterInstanceTags,
+				Tags: map[string]string{"service": "docdb", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(docdbv1.EndpointsID),
@@ -289,6 +296,9 @@ func listDocDBClusterInstances(ctx context.Context, d *plugin.QueryData, _ *plug
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_docdb_cluster_instance.listDocDBClusterInstances", "api_error", err)

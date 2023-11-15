@@ -26,9 +26,11 @@ func tableAwsVpcVerifiedAccessEndpoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "InvalidVerifiedAccessEndpointId.NotFound", "InvalidAction"}),
 			},
 			Hydrate: getVpcVerifiedAccessEndpoint,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVerifiedAccessEndpoints"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVerifiedAccessEndpoints,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVerifiedAccessEndpoints"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
@@ -190,6 +192,9 @@ func listVpcVerifiedAccessEndpoints(ctx context.Context, d *plugin.QueryData, _ 
 	}
 
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		// List call
 		resp, err := svc.DescribeVerifiedAccessEndpoints(ctx, input)
 

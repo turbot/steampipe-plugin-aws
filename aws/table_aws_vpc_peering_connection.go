@@ -22,6 +22,7 @@ func tableAwsVpcPeeringConnection(_ context.Context) *plugin.Table {
 		Description: "AWS VPC Peering Connection",
 		List: &plugin.ListConfig{
 			Hydrate: listVpcPeeringConnections,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcPeeringConnections"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "accepter_cidr_block", Require: plugin.Optional},
 				{Name: "accepter_owner_id", Require: plugin.Optional},
@@ -219,6 +220,9 @@ func listVpcPeeringConnections(ctx context.Context, d *plugin.QueryData, _ *plug
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_peering_connection.listVpcPeeringConnections", "api_error", err)

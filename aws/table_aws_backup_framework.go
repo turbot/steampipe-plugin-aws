@@ -28,9 +28,21 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupFramework,
+			Tags:    map[string]string{"service": "backup", "action": "DescribeFramework"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupFrameworks,
+			Tags:    map[string]string{"service": "backup", "action": "ListFrameworks"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsBackupFramework,
+				Tags: map[string]string{"service": "backup", "action": "DescribeFramework"},
+			},
+			{
+				Func: listAwsBackupFrameworkTags,
+				Tags: map[string]string{"service": "backup", "action": "ListTags"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -155,6 +167,9 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworks", "api_error", err)
@@ -263,6 +278,9 @@ func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plu
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listRestAPI", "api_error", err)

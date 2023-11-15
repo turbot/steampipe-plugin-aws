@@ -19,6 +19,7 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost Forecast (Daily)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostForecastDaily,
+			Tags:    map[string]string{"service": "ce", "action": "GetCostForecast"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

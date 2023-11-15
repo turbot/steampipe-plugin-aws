@@ -1,10 +1,27 @@
-# Table: aws_iam_role
+---
+title: "Table: aws_iam_role - Query AWS IAM Roles using SQL"
+description: "Allows DevOps to query IAM role details, including permissions, trust policies & associated metadata to assess compliance and check their AWS security posture."
+---
 
-An IAM role is an AWS Identity and Access Management (IAM) entity with permissions to make AWS service requests.
+# `aws_iam_role` table - Use SQL to query AWS IAM Roles
+
+The `aws_iam_role` table in Steampipe provides information about IAM roles within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query role-specific details, including permissions, trust policies, and associated metadata. Users can utilize this table to gather insights on roles, such as roles with wildcard permissions, trust relationships between roles, verification of trust policies, and more. The schema outlines the various attributes of the IAM role, including the role ARN, creation date, attached policies, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the aws_iam_role table, you can use the ```.inspect `aws_iam_role```` command in Steampipe.
+
+**Key columns**:
+
+- **arn**: The Amazon Resource Name (ARN) specifying the role. Useful as a unique identifier and for joining with other AWS tables that reference roles by ARN.
+- **account_id**: The AWS Account ID in which the resource is located. Essential for multi-account queries and linking data between different AWS tables.
+- **name**: The friendly name that identifies the role. Useful for human-readable queries and cross-referencing with configurations or documentation.
+
 
 ## Examples
 
-### List of IAM roles with no inline policy
+### List IAM roles that have an inline policy.
+Use this query to identify AWS IAM roles that have inline policies to help administrators identify roles that might be using inline policies instead of the recommended managed policies.
 
 ```sql
 select
@@ -13,10 +30,11 @@ select
 from
   aws_iam_role
 where
-  inline_policies is null;
+  inline_policies is not null;
 ```
 
-### List the policies attached to the roles
+### List the attached policies for each IAM role.
+Use this query to determine which policies are attached to each AWS IAM role and highlights the importance of understanding the permissions granted to those roles.
 
 ```sql
 select
@@ -28,7 +46,8 @@ from
   cross join jsonb_array_elements_text(attached_policy_arns) as policy;
 ```
 
-### Permission boundary information for each role
+### List IAM roles with their associated permission boundaries.
+Use this query to list AWS IAM roles with their descriptions and associated permissions boundaries to better manage and understand role permissions.
 
 ```sql
 select
@@ -40,7 +59,8 @@ from
   aws_iam_role;
 ```
 
-### Find all roles that allow \*
+### List IAM roles that have policies allowing all (\*) actions.
+Use this query to identify which AWS IAM roles and their respective policies allow all actions, in order to assess potential security concerns.
 
 ```sql
 select
@@ -60,7 +80,8 @@ order by
   r.name;
 ```
 
-### Find any roles that allow wildcard actions
+### Find all iam policy actions with wildcards for a given role.
+Use this query to identify AWS IAM policy actions that use wildcard characters for any role to ensure policy configurations are not overly permissive.
 
 ```sql
 select
@@ -83,7 +104,8 @@ where
   );
 ```
 
-### List higher-level permissions for any specific role
+### Identify actions that grant elevated privileges to a specific IAM role.
+Use this query to identify which actions permit an IAM role (e.g., "AWSServiceRoleForRDS") in AWS to execute tasks beyond basic list and read functions, aiding in recognizing and addressing potential security concerns.
 
 ```sql
 select
@@ -108,7 +130,8 @@ order by
   action;
 ```
 
-### List all actions (with level) in role2, not in role1
+### Compare permission actions between two roles.
+Use this query to identify which permission actions and their associated access levels are unique to a specified IAM role, to understand differences in permissions when compared to another specific IAM role.
 
 ```sql
 with roles as (
@@ -176,7 +199,8 @@ order by
   action;
 ```
 
-### List role with wildcard principal in trust policy(maintenance-role) and role(admin-role) that have trust relationship with maintenance-role
+### Identify roles using wildcard principals in their trust policy and those roles trusted by them.
+Use this query to locate AWS IAM roles with an open trust policy within the same organization and identify other roles that trust them.
 
 [Refer here](https://twitter.com/nathanwallace/status/1442574375857922048?s=20)
 
@@ -205,6 +229,7 @@ where
 ```
 
 ### List the roles that might allow other roles/users to bypass their assigned IAM permissions.
+Use this query to determine which AWS IAM roles can be potentially assumed by any user or another role, highlighting potential security concerns for unauthorized access or privilege escalation
 
 ```sql
 select
@@ -220,6 +245,7 @@ where
 ```
 
 ### Verify the Trust policy of Role has validation conditions when used with GitHub Actions
+Use this query to evaluate AWS IAM roles and ascertain if they include validation conditions when invoked via GitHub Actions. Specifically, it checks for the presence of conditions related to the token.actions.githubusercontent.com domain within the trust policy of the role. If such conditions exist, it will label the role as 'ok'; otherwise, it will be labeled as 'alarm'. Additionally, the query provides a reason for the assigned status based on whether the condition check exists or is missing.
 
 ```sql
 select

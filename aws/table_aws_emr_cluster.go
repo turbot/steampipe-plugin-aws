@@ -26,14 +26,22 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequestException"}),
 			},
 			Hydrate: getEmrCluster,
+			Tags:    map[string]string{"service": "elasticmapreduce", "action": "DescribeCluster"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEmrClusters,
+			Tags:    map[string]string{"service": "elasticmapreduce", "action": "ListClusters"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "state", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEmrCluster,
+				Tags: map[string]string{"service": "elasticmapreduce", "action": "DescribeCluster"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -271,6 +279,9 @@ func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_emr_cluster.listEmrClusters", "api_error", err)

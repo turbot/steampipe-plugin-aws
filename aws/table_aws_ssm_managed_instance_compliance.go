@@ -25,6 +25,7 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidResourceId", "ValidationException"}),
 			},
 			Hydrate: listSsmManagedInstanceCompliances,
+			Tags:    map[string]string{"service": "ssm", "action": "ListComplianceItems"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "resource_id", Require: plugin.Required},
 				{Name: "resource_type", Require: plugin.Optional},
@@ -143,6 +144,9 @@ func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData,
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssm_managed_instance_compliance.listSsmManagedInstanceCompliances", "api_error", err)

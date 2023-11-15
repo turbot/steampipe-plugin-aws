@@ -23,15 +23,23 @@ func tableAwsNeptuneDBClusterSnapshot(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_snapshot_identifier"),
 			Hydrate:    getNeptuneDBClusterSnapshot,
+			Tags:       map[string]string{"service": "neptune", "action": "DescribeDBClusterSnapshots"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBClusterSnapshotNotFoundFault"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listNeptuneDBClusterSnapshots,
+			Tags:    map[string]string{"service": "neptune", "action": "DescribeDBClusterSnapshots"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "snapshot_type", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getNeptuneDBClusterSnapshotAttributes,
+				Tags: map[string]string{"service": "neptune", "action": "DescribeDBClusterSnapshotAttributes"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(neptunev1.EndpointsID),
@@ -207,6 +215,9 @@ func listNeptuneDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_neptune_db_cluster_snapshot.listNeptuneDBClusterSnapshots", "api_error", err)

@@ -24,9 +24,17 @@ func tableAwsCloudFrontCachePolicy(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchCachePolicy"}),
 			},
 			Hydrate: getCloudFrontCachePolicy,
+			Tags:    map[string]string{"service": "cloudfront", "action": "GetCachePolicy"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontCachePolicies,
+			Tags:    map[string]string{"service": "cloudfront", "action": "ListCachePolicies"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudFrontCachePolicy,
+				Tags: map[string]string{"service": "cloudfront", "action": "GetCachePolicy"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -136,6 +144,9 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 	// Paginator not avilable for API ListCachePolicies
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListCachePolicies(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudfront_cache_policy.listCloudFrontCachePolicies", "api_error", err)
