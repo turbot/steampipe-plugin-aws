@@ -327,6 +327,17 @@ func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, err
 	return backup.NewFromConfig(*cfg), nil
 }
 
+func BatchClient(ctx context.Context, d *plugin.QueryData) (*batch.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, batchEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return batch.NewFromConfig(*cfg), nil
+}
+
 func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {
 	// CloudControl returns GeneralServiceException in a lot of situations, which
 	// AWS SDK treats as retryable. This is frustrating because we end up retrying
@@ -1852,15 +1863,4 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	log.Printf("[WARN] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
 
 	return retryTime, nil
-}
-
-func BatchClient(ctx context.Context, d *plugin.QueryData) (*batch.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, batchEndpoint.EndpointsID)
-	if err != nil {
-		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
-	}
-	return batch.NewFromConfig(*cfg), nil
 }

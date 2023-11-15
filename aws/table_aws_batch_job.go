@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/batch"
-	// "github.com/aws/aws-sdk-go-v2/service/batch/types"
 
 	batchv1 "github.com/aws/aws-sdk-go/service/batch"
 
@@ -21,14 +20,30 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 		Name:        "aws_batch_job",
 		Description: "AWS Batch Job",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
+			KeyColumns: plugin.SingleColumn("job_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getBatchJob,
+			Tags:          map[string]string{"service": "batch", "action": "DescribeJobs"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBatchJobs,
+			Tags:          map[string]string{"service": "batch", "action": "ListJobs"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "job_queue",
+					Require: plugin.Required,
+				},
+				{
+					Name:    "status",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "job_id",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(batchv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -44,20 +59,10 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "name",
+				Name:        "job_name",
 				Description: "The job name.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("JobName"),
-			},
-			{
-				Name:        "array_properties",
-				Description: "The array properties of the job, if it's an array job.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "container",
-				Description: "An object that represents the details of the container that's associated with the job.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "created_at",
@@ -68,12 +73,6 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				Name:        "job_definition",
 				Description: "The Amazon Resource Name (ARN) of the job definition.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "single_node_properties",
-				Description: "The node properties for a single node in a job summary list.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("NodeProperties"),
 			},
 			{
 				Name:        "started_at",
@@ -102,6 +101,60 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				Hydrate:     getBatchJob,
 			},
 			{
+				Name:        "is_cancelled",
+				Description: "Indicates whether the job is canceled.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getBatchJob,
+			},
+			{
+				Name:        "is_terminated",
+				Description: "Indicates whether the job is terminated.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getBatchJob,
+			},
+			{
+				Name:        "platform_capabilities",
+				Description: "The platform capabilities required by the job definition. If no value is specified, it defaults to EC2.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBatchJob,
+			},
+			{
+				Name:        "propagate_tags",
+				Description: "Specifies whether to propagate the tags from the job or job definition to the corresponding Amazon ECS task. If no value is specified, the tags aren't propagated.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getBatchJob,
+			},
+			{
+				Name:        "scheduling_priority",
+				Description: "The scheduling policy of the job definition. This only affects jobs in job queues with a fair share policy. Jobs with a higher scheduling priority are scheduled before jobs with a lower scheduling priority.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getBatchJob,
+			},
+			{
+				Name:        "share_identifier",
+				Description: "The share identifier for the job.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBatchJob,
+			},
+
+			//JSON columns
+			{
+				Name:        "array_properties",
+				Description: "The array properties of the job, if it's an array job.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "container",
+				Description: "An object that represents the details of the container that's associated with the job.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "single_node_properties",
+				Description: "The node properties for a single node in a job summary list.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("NodeProperties"),
+			},
+			{
 				Name:        "attempts",
 				Description: "A list of job attempts that are associated with this job.",
 				Type:        proto.ColumnType_JSON,
@@ -126,18 +179,6 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				Hydrate:     getBatchJob,
 			},
 			{
-				Name:        "is_cancelled",
-				Description: "Indicates whether the job is canceled.",
-				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getBatchJob,
-			},
-			{
-				Name:        "is_terminated",
-				Description: "Indicates whether the job is terminated.",
-				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getBatchJob,
-			},
-			{
 				Name:        "node_details",
 				Description: "An object that represents the details of a node that's associated with a multi-node parallel job.",
 				Type:        proto.ColumnType_JSON,
@@ -157,33 +198,9 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				Hydrate:     getBatchJob,
 			},
 			{
-				Name:        "platform_capabilities",
-				Description: "The platform capabilities required by the job definition. If no value is specified, it defaults to EC2.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBatchJob,
-			},
-			{
-				Name:        "propagate_tags",
-				Description: "Specifies whether to propagate the tags from the job or job definition to the corresponding Amazon ECS task. If no value is specified, the tags aren't propagated.",
-				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getBatchJob,
-			},
-			{
 				Name:        "retry_strategy",
 				Description: "The retry strategy to use for this job if an attempt fails.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
-			},
-			{
-				Name:        "scheduling_priority",
-				Description: "The scheduling policy of the job definition. This only affects jobs in job queues with a fair share policy. Jobs with a higher scheduling priority are scheduled before jobs with a lower scheduling priority.",
-				Type:        proto.ColumnType_INT,
-				Hydrate:     getBatchJob,
-			},
-			{
-				Name:        "share_identifier",
-				Description: "The share identifier for the job.",
-				Type:        proto.ColumnType_STRING,
 				Hydrate:     getBatchJob,
 			},
 			{
@@ -192,6 +209,7 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBatchJob,
 			},
+
 			// Steampipe standard columns
 			{
 				Name:        "title",
@@ -231,15 +249,11 @@ func listAwsBatchJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	}
 
 	// Limiting the results
-	maxLimit := int32(1000)
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -247,32 +261,31 @@ func listAwsBatchJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	pagesLeft := true
+	paginator := batch.NewListJobsPaginator(svc, input, func(o *batch.ListJobsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-	for pagesLeft {
-		result, err := svc.ListJobs(ctx, input)
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_batch_job.listAwsBatchJobs", "api_error", err)
 			return nil, err
 		}
 
-		for _, item := range result.JobSummaryList {
-			d.StreamListItem(ctx, item)
+		for _, items := range output.JobSummaryList {
+			d.StreamListItem(ctx, items)
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
-		if result.NextToken != nil {
-			pagesLeft = true
-			input.NextToken = result.NextToken
-		} else {
-			pagesLeft = false
-		}
 	}
-
 	return nil, nil
 }
 
