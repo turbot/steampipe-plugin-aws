@@ -3,7 +3,7 @@
 _What's new?_
 
 - New tables added
-  - [aws_lambda_event_source_mapping](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_event_source_mapping) ([#1948](https://github.com/turbot/steampipe-plugin-aws/pull/1948))
+  - [aws_lambda_event_source_mapping](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_event_source_mapping) ([#1948](https://github.com/turbot/steampipe-plugin-aws/issues/1872)) (Thanks [@nickman](https://github.com/nickman) for the contribution!)
 
 _Enhancements_
 
