@@ -44,7 +44,7 @@ func tableAwsCodeArtifactPackage(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listCodeArtifactRepositories,
 			Hydrate:       listCodeArtifactPackages,
-			Tags:    map[string]string{"service": "codeartifact", "action": "ListPackages"},
+			Tags:          map[string]string{"service": "codeartifact", "action": "ListPackages"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "domain",
@@ -178,6 +178,7 @@ func listCodeArtifactPackages(ctx context.Context, d *plugin.QueryData, h *plugi
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_codeartifact_package.listCodeArtifactPackages", "api_error", err)
