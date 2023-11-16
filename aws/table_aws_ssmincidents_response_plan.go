@@ -128,6 +128,7 @@ func listSSMIncidentsResponsePlans(ctx context.Context, d *plugin.QueryData, _ *
 	}
 
 	for pagesLeft {
+		// apply rate limiting
 		result, err := svc.ListResponsePlans(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssmincidents_response_plan.listSSMIncidentsResponsePlans", "api_error", err)
