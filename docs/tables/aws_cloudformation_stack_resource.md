@@ -1,6 +1,21 @@
-# Table: aws_cloudformation_stack_resource
+---
+title: "Table: aws_cloudformation_stack_resource - Query AWS CloudFormation Stack Resources using SQL"
+description: "Allows users to query AWS CloudFormation Stack Resources, providing details about each resource within the stack, including its status, type, and associated metadata. This table is useful for managing and analyzing AWS CloudFormation resources."
+---
 
-A stack is a collection of AWS resources that you can manage as a single unit.
+# Table: aws_cloudformation_stack_resource - Query AWS CloudFormation Stack Resources using SQL
+
+The `aws_cloudformation_stack_resource` table in Steampipe provides information about Stack Resources within AWS CloudFormation. This table allows DevOps engineers to query resource-specific details, including the current status, resource type, and associated metadata. Users can utilize this table to gather insights on resources, such as resource status, the type of resources used in the stack, and more. The schema outlines the various attributes of the Stack Resource, including the stack name, resource status, logical resource id, and physical resource id.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudformation_stack_resource` table, you can use the `.inspect aws_cloudformation_stack_resource` command in Steampipe.
+
+Key columns:
+
+- `stack_name`: The name associated with the stack. This can be used to join with other tables that contain stack name information.
+- `resource_status`: The status of the resource (e.g., CREATE_COMPLETE, DELETE_FAILED). This is useful for tracking the lifecycle of resources within a stack.
+- `resource_type`: The type of resource provisioned by CloudFormation. This can be used to join with other tables that contain resource type information.
 
 ## Examples
 

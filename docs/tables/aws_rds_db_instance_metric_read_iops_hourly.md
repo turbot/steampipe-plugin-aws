@@ -1,7 +1,25 @@
-# Table: aws_rds_db_instance_metric_read_iops_hourly
+---
+title: "Table: aws_rds_db_instance_metric_read_iops_hourly - Query AWS RDS DB Instances using SQL"
+description: "Allows users to query AWS RDS DB Instances and retrieve hourly metrics related to read IOPS (Input/Output Operations Per Second)."
+---
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_rds_db_instance_metric_read_iops_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
+# Table: aws_rds_db_instance_metric_read_iops_hourly - Query AWS RDS DB Instances using SQL
 
+The `aws_rds_db_instance_metric_read_iops_hourly` table in Steampipe provides information about the read IOPS metrics for AWS Relational Database Service (RDS) DB instances on an hourly basis. This table allows DevOps engineers, database administrators, and other technical professionals to query read IOPS metrics, which can be useful for monitoring database performance, planning for capacity, and troubleshooting performance issues. The schema outlines various attributes of the read IOPS metrics, including the timestamp, average, maximum, and minimum read IOPS, as well as the standard deviation.
+
+The `aws_rds_db_instance_metric_read_iops_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_metric_read_iops_hourly` table, you can use the `.inspect aws_rds_db_instance_metric_read_iops_hourly` command in Steampipe.
+
+### Key columns:
+
+- `db_instance_identifier`: The identifier for the DB instance. This column is important as it uniquely identifies the DB instance for which the read IOPS metrics are being retrieved. It can be used to join this table with other tables that contain information about the DB instance.
+
+- `timestamp`: The date and time at which the read IOPS metrics were recorded. This column is useful for tracking the performance of the DB instance over time.
+
+- `average`: The average read IOPS for the hour. This column is significant as it gives an overview of the DB instance's read performance during the hour. It can be useful for identifying trends and patterns in the DB instance's performance.
 
 ## Examples
 

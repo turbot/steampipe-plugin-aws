@@ -1,6 +1,21 @@
-# Table: aws_kinesis_stream
+---
+title: "Table: aws_kinesis_stream - Query AWS Kinesis Stream using SQL"
+description: "Allows users to query AWS Kinesis Stream data, including stream name, status, creation time, and associated tags."
+---
 
-A stream captures and transports data records that are continuously emitted from different data sources or producers. Scale-out within a stream is explicitly supported by means of shards, which are uniquely identified groups of data records in a stream.
+# Table: aws_kinesis_stream - Query AWS Kinesis Stream using SQL
+
+The `aws_kinesis_stream` table in Steampipe provides information about Kinesis streams within AWS Kinesis. This table allows DevOps engineers to query stream-specific details, including the stream name, status, creation time, and associated metadata. Users can utilize this table to gather insights on streams, such as stream health, data throughput, and more. The schema outlines the various attributes of the Kinesis stream, including the stream ARN, creation timestamp, number of shards, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_kinesis_stream` table, you can use the `.inspect aws_kinesis_stream` command in Steampipe.
+
+### Key columns:
+
+- `stream_name`: This is the name of the Kinesis stream. It is a key column because it is the unique identifier for each stream and can be used to join this table with other tables.
+- `stream_arn`: This is the Amazon Resource Name (ARN) of the Kinesis stream. It is a key column because it provides a unique identifier across all of AWS, which can be used for joining with other tables.
+- `status`: This column indicates the current status of the stream (e.g., CREATING, DELETING, ACTIVE, UPDATING). It is a key column because it provides important information about the stream's lifecycle state.
 
 ## Examples
 

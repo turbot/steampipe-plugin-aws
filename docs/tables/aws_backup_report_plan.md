@@ -1,6 +1,21 @@
-# Table: aws_backup_report_plan
+---
+title: "Table: aws_backup_report_plan - Query AWS Backup Report Plan using SQL"
+description: "Allows users to query AWS Backup Report Plan data, including details about backup jobs, recovery points, and backup vaults."
+---
 
-A report plan is a document that contains information about the contents of the report and where AWS Backup will deliver it.
+# Table: aws_backup_report_plan - Query AWS Backup Report Plan using SQL
+
+The `aws_backup_report_plan` table in Steampipe provides information about the report plans within AWS Backup service. This table allows DevOps engineers to query report plan-specific details, including report delivery channel configurations, report jobs, and associated metadata. Users can utilize this table to gather insights on report plans, such as report plan status, configurations, and more. The schema outlines the various attributes of the report plan, including the report plan ARN, creation time, report delivery channel, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_backup_report_plan` table, you can use the `.inspect aws_backup_report_plan` command in Steampipe.
+
+Key columns:
+
+- **report_plan_arn**: The Amazon Resource Name (ARN) of the report plan. This column can be used to join this table with other tables as it uniquely identifies the report plan.
+- **report_delivery_channel_s3_bucket_name**: The name of the S3 bucket where the report will be saved. This can be used to join with S3 bucket-related tables and gather more information about the storage of the report.
+- **creation_time**: The time at which the report plan was created. This information can be used to track the history and changes of the report plan over time.
 
 ## Examples
 

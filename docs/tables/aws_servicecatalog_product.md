@@ -1,6 +1,21 @@
-# Table: aws_servicecatalog_product
+---
+title: "Table: aws_servicecatalog_product - Query AWS Service Catalog Product using SQL"
+description: "Allows users to query AWS Service Catalog Product data including product details, owner, type, and associated metadata."
+---
 
-AWS ServiceCatalog Product contains information about the product, such as its name, description, version, associated resources, configurations, and metadata. It serves as a central repository for managing and provisioning standardized IT services and resources across an organization.
+# Table: aws_servicecatalog_product - Query AWS Service Catalog Product using SQL
+
+The `aws_servicecatalog_product` table in Steampipe provides information about products within AWS Service Catalog. This table allows DevOps engineers to query product-specific details, including product owner, type, and associated metadata. Users can utilize this table to gather insights on products such as their distribution status, launch paths, provisioning artifacts, and more. The schema outlines the various attributes of the AWS Service Catalog Product, including the product ARN, creation time, product type, owner, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_servicecatalog_product` table, you can use the `.inspect aws_servicecatalog_product` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the product. This can be used to join with other tables that contain product information.
+- `arn`: The Amazon Resource Name (ARN) of the product. This unique identifier is useful for joining with other tables that reference AWS resources.
+- `product_id`: The identifier of the product. This can be used to join with other tables that contain product-specific information.
 
 ## Examples
 

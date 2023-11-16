@@ -1,6 +1,21 @@
-# Table: aws_cloudformation_stack_set
+---
+title: "Table: aws_cloudformation_stack_set - Query AWS CloudFormation StackSets using SQL"
+description: "Allows users to query AWS CloudFormation StackSets, providing detailed information about each StackSet's configuration, status, and associated AWS resources."
+---
 
-AWS CloudFormation Stack Set is a service that allows you to create, update, or delete stacks across multiple accounts and regions with a single CloudFormation template. It provides centralized management and deployment of CloudFormation stacks, making it easier to manage infrastructure resources across a large number of accounts and regions. Stack Sets can be used to enforce compliance policies, deploy standard infrastructure configurations, and simplify the management of infrastructure changes at scale.
+# Table: aws_cloudformation_stack_set - Query AWS CloudFormation StackSets using SQL
+
+The `aws_cloudformation_stack_set` table in Steampipe provides information about StackSets within AWS CloudFormation. This table allows DevOps engineers to query StackSet-specific details, including its configuration, status, and AWS resources associated with it. Users can utilize this table to gather insights on StackSets, such as StackSets with specific configurations, their current status, and more. The schema outlines the various attributes of the StackSet, including the StackSet ID, description, status, template body, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudformation_stack_set` table, you can use the `.inspect aws_cloudformation_stack_set` command in Steampipe.
+
+### Key columns:
+
+- `stack_set_name`: The name of the AWS CloudFormation StackSet. This can be used to join this table with other tables that also contain StackSet names.
+- `stack_set_id`: The unique identifier for the StackSet. This is useful for joining with other tables that may reference the StackSet by its ID.
+- `status`: The current status of the StackSet. This can be useful for filtering StackSets based on their status or for joining with other tables that track resource statuses.
 
 ## Examples
 

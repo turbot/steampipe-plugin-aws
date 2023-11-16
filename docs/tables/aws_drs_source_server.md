@@ -1,6 +1,21 @@
-# Table: aws_drs_source_server
+---
+title: "Table: aws_drs_source_server - Query AWS Database Migration Service Source Server using SQL"
+description: "Allows users to query AWS Database Migration Service Source Servers for detailed information about the replication servers used in database migrations."
+---
 
-AWS Elastic Disaster Recovery (AWS DRS) minimizes downtime and data loss with fast, reliable recovery of on-premises and cloud-based applications using affordable storage, minimal compute, and point-in-time recovery.
+# Table: aws_drs_source_server - Query AWS Database Migration Service Source Server using SQL
+
+The `aws_drs_source_server` table in Steampipe provides information about source servers within AWS Database Migration Service (DMS). This table allows DevOps engineers to query server-specific details, including server type, replication job status, associated replication tasks, and more. Users can utilize this table to gather insights on source servers, such as server status, assigned replication tasks, and server configuration details. The schema outlines the various attributes of the source server, including the server ID, status, replication job details, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_drs_source_server` table, you can use the `.inspect aws_drs_source_server` command in Steampipe.
+
+### Key columns:
+
+- `server_id`: This is the unique identifier of the source server. This column can be used to join this table with other tables to get more specific details about a particular source server.
+- `status`: This column provides the current status of the source server. It can be used to filter out servers based on their current status.
+- `replication_job_id`: This column holds the ID of the replication job associated with the source server. It can be used to join this table with replication job tables to get detailed information about the replication tasks.
 
 ## Examples
 

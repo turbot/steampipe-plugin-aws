@@ -1,6 +1,21 @@
-# Table: aws_msk_cluster
+---
+title: "Table: aws_msk_cluster - Query AWS MSK Clusters using SQL"
+description: "Allows users to query AWS Managed Streaming for Apache Kafka (MSK) clusters."
+---
 
-Amazon Managed Streaming for Apache Kafka (Amazon MSK) is a fully managed service that enables you to build and run applications that use Apache Kafka to process streaming data. Amazon MSK provides the control-plane operations, such as those for creating, updating, and deleting clusters. It lets you use Apache Kafka data-plane operations, such as those for producing and consuming data. It runs open-source versions of Apache Kafka.
+# Table: aws_msk_cluster - Query AWS MSK Clusters using SQL
+
+The `aws_msk_cluster` table in Steampipe provides information about Managed Streaming for Apache Kafka (MSK) clusters within AWS. This table allows DevOps engineers to query cluster-specific details, including the cluster ARN, creation time, and associated metadata. Users can utilize this table to gather insights on clusters, such as the number of broker nodes, the version of Apache Kafka, the state of the cluster, and more. The schema outlines the various attributes of the MSK cluster, including the broker node group info, encryption info, open monitoring status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_msk_cluster` table, you can use the `.inspect aws_msk_cluster` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Number (ARN) of the MSK cluster. It can be used to join with other tables that contain ARN references.
+- `cluster_name`: The name of the MSK cluster. This can be used to join with other tables that reference the cluster by name.
+- `state`: The current state of the MSK cluster. This is useful for filtering clusters based on their current state.
 
 ## Examples
 

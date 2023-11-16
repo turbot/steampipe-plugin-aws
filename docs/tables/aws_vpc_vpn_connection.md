@@ -1,6 +1,21 @@
-# Table: aws_vpc_vpn_connection
+---
+title: "Table: aws_vpc_vpn_connection - Query AWS VPC VPN Connection using SQL"
+description: "Allows users to query VPN connections in an AWS VPC."
+---
 
-A VPN connection can be used to configure secure access to your AWS resources with remote and on-premisis networks.
+# Table: aws_vpc_vpn_connection - Query AWS VPC VPN Connection using SQL
+
+The `aws_vpc_vpn_connection` table in Steampipe provides information about VPN connections within AWS Virtual Private Cloud (VPC). This table allows DevOps engineers to query VPN connection-specific details, including the VPN connection ID, state, VPN gateway configurations, customer gateway configurations, and associated metadata. Users can utilize this table to gather insights on VPN connections, such as connection states, associated VPN and customer gateways, static routes, and more. The schema outlines the various attributes of the VPN connection, including the VPN connection ID, creation time, VPN gateway ID, customer gateway ID, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_vpn_connection` table, you can use the `.inspect aws_vpc_vpn_connection` command in Steampipe.
+
+### Key columns:
+
+- `vpn_connection_id`: The ID of the VPN connection. This can be used to join this table with other tables that contain VPN connection information.
+- `vpn_gateway_id`: The ID of the VPN gateway at the AWS side of the VPN connection. This can be used to join this table with other tables that contain VPN gateway information.
+- `customer_gateway_id`: The ID of the customer gateway at your end of the VPN connection. This can be used to join this table with other tables that contain customer gateway information.
 
 ## Examples
 

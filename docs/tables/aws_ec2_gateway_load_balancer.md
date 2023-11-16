@@ -1,6 +1,21 @@
-# Table: aws_ec2_gateway_load_balancer
+---
+title: "Table: aws_ec2_gateway_load_balancer - Query AWS EC2 Gateway Load Balancer using SQL"
+description: "Allows users to query AWS EC2 Gateway Load Balancer details, including its configuration, state, type, and associated tags."
+---
 
-Gateway Load Balancer makes it easy to deploy, scale, and run third-party virtual networking appliances. Providing load balancing and auto scaling for fleets of third-party appliances, Gateway Load Balancer is transparent to the source and destination of traffic. This capability makes it well suited for working with third-party appliances for security, network analytics, and other use cases.
+# Table: aws_ec2_gateway_load_balancer - Query AWS EC2 Gateway Load Balancer using SQL
+
+The `aws_ec2_gateway_load_balancer` table in Steampipe provides information about Gateway Load Balancers within Amazon Elastic Compute Cloud (EC2). This table allows DevOps engineers to query load balancer-specific details, including its configuration, state, type, and associated tags. Users can utilize this table to gather insights on load balancers, such as their availability zones, subnets, and security groups. The schema outlines the various attributes of the Gateway Load Balancer, including the load balancer ARN, creation date, DNS name, scheme, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_gateway_load_balancer` table, you can use the `.inspect aws_ec2_gateway_load_balancer` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the load balancer. This can be used to join with other tables that contain load balancer ARNs.
+- `load_balancer_name`: The name of the load balancer. This is useful for joining with tables that contain load balancer names.
+- `vpc_id`: The ID of the Virtual Private Cloud (VPC) for the load balancer. This is useful for joining with tables that contain VPC IDs.
 
 ## Examples
 

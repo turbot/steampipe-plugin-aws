@@ -1,12 +1,21 @@
-# Table: aws_securityhub_standards_control
+---
+title: "Table: aws_securityhub_standards_control - Query AWS Security Hub Standards Control using SQL"
+description: "Allows users to query AWS Security Hub Standards Control data including details about each security standard control available in an AWS account."
+---
 
-Security Hub provides controls for the following standards.
+# Table: aws_securityhub_standards_control - Query AWS Security Hub Standards Control using SQL
 
-- `CIS AWS Foundations`
+The `aws_securityhub_standards_control` table in Steampipe provides information about each security standard control available in an AWS account. This table allows DevOps engineers, security analysts, and other professionals to query control-specific details, including its status, related AWS resources, severity, and compliance status. Users can utilize this table to gather insights on controls, such as controls that are currently non-compliant, controls that have a high severity level, and more. The schema outlines the various attributes of the standards control, including the control ID, control status, related AWS resources, severity, and compliance status.
 
-- `Payment Card Industry Data Security Standard (PCI DSS)`
+## Table Usage Guide
 
-- `AWS Foundational Security Best Practices`
+To gain a deeper understanding of the structure and metadata of the `aws_securityhub_standards_control` table, you can use the `.inspect aws_securityhub_standards_control` command in Steampipe.
+
+### Key columns:
+
+- `standards_control_arn`: The ARN of the standards control. This can be useful for joining with other tables that reference the standards control by ARN.
+- `control_id`: The ID of the control. This is a unique identifier for the control and can be used for specific queries or joins with other tables.
+- `compliance_status`: The compliance status of the control. This can be useful for identifying controls that are non-compliant and may need attention.
 
 ## Examples
 

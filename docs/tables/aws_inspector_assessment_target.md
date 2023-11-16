@@ -1,6 +1,21 @@
-# Table: aws_inspector_assessment_target
+---
+title: "Table: aws_inspector_assessment_target - Query AWS Inspector Assessment Targets using SQL"
+description: "Allows users to query AWS Inspector Assessment Targets. The `aws_inspector_assessment_target` table in Steampipe provides information about assessment targets within AWS Inspector. This table allows DevOps engineers to query target-specific details, including ARN, name, and associated resource group ARN. Users can utilize this table to gather insights on assessment targets, such as their creation time, last updated time, and more. The schema outlines the various attributes of the assessment target, including the target ARN, creation date, and associated tags."
+---
 
-The AWS Inspector Assessment Target resource specify the Amazon EC2 instances that will be analyzed during an assessment run.
+# Table: aws_inspector_assessment_target - Query AWS Inspector Assessment Targets using SQL
+
+The `aws_inspector_assessment_target` table in Steampipe provides information about assessment targets within AWS Inspector. This table allows DevOps engineers to query target-specific details, including ARN, name, and associated resource group ARN. Users can utilize this table to gather insights on assessment targets, such as their creation time, last updated time, and more. The schema outlines the various attributes of the assessment target, including the target ARN, creation date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the aws_inspector_assessment_target table, you can use the `.inspect aws_inspector_assessment_target` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The ARN of the assessment target. It can be used to join this table with other AWS tables.
+- `name`: The name of the assessment target. It provides a human-readable identifier for the target.
+- `resource_group_arn`: The ARN of the resource group associated with the assessment target. This can be used to join with the `aws_inspector_resource_group` table for more detailed information.
 
 ## Examples
 

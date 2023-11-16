@@ -1,8 +1,21 @@
-# Table: aws_rds_db_cluster
+---
+title: "Table: aws_rds_db_cluster - Query AWS RDS DB Clusters using SQL"
+description: "Allows users to query AWS RDS DB Clusters and retrieve valuable information about the status, configuration, and security settings of each DB cluster."
+---
 
-An Amazon Aurora DB cluster consists of one or more DB instances and a cluster volume that manages the data for those DB instances.
+# Table: aws_rds_db_cluster - Query AWS RDS DB Clusters using SQL
 
-**Note**: This table only returns RDS DB clusters, e.g., Aurora, MySQL, Postgres, not DocumentDB or Neptune DB clusters.
+The `aws_rds_db_cluster` table in Steampipe provides information about DB clusters within Amazon Relational Database Service (RDS). This table allows DevOps engineers to query DB cluster-specific details, including configuration, status, and security settings. Users can utilize this table to gather insights on DB clusters, such as their availability, backup settings, encryption status, and more. The schema outlines the various attributes of the DB cluster, including the DB cluster identifier, creation time, DB cluster members, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_rds_db_cluster` table, you can use the `.inspect aws_rds_db_cluster` command in Steampipe.
+
+### Key columns:
+
+- `db_cluster_identifier`: The identifier for the DB cluster. This identifier is unique in the scope of an AWS account and can be used to join this table with other AWS RDS tables.
+- `status`: The status of the DB cluster, such as 'available', 'modifying', etc. This is important for monitoring the availability and health of the DB cluster.
+- `creation_time`: The timestamp when the DB cluster was created. This can be useful for auditing and tracking the lifecycle of DB clusters.
 
 ## Examples
 

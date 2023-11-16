@@ -1,6 +1,21 @@
-# Table: aws_glue_connection
+---
+title: "Table: aws_glue_connection - Query AWS Glue Connections using SQL"
+description: "Allows users to query AWS Glue Connections to retrieve detailed information about each connection."
+---
 
-An AWS Glue connection is a Data Catalog object that stores connection information for a particular data store. Connections store login credentials, URI strings, virtual private cloud (VPC) information, and more. Creating connections in the Data Catalog saves the effort of having to specify all connection details every time you create a crawler or job. You can use connections for both sources and targets.
+# Table: aws_glue_connection - Query AWS Glue Connections using SQL
+
+The `aws_glue_connection` table in Steampipe provides information about connections within AWS Glue. This table allows DevOps engineers to query connection-specific details, including the connection name, the connection type, the physical connection requirements, and the connection properties. Users can utilize this table to gather insights on connections, such as the type of connections, their properties, and the requirements for physical connections. The schema outlines the various attributes of the AWS Glue connection, including the catalog ID, creation time, last updated time, match criteria, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_glue_connection` table, you can use the `.inspect aws_glue_connection` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the connection. This can be used to join this table with other tables that require connection name.
+- `connection_type`: The type of the connection (JDBC, SFTP, etc.). This can provide insights into the type of connections used.
+- `physical_connection_requirements`: The physical connection requirements. This can be useful in understanding the requirements for establishing the connection.
 
 ## Examples
 

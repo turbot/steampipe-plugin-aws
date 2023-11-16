@@ -1,6 +1,21 @@
-# Table: aws_media_store_container
+---
+title: "Table: aws_media_store_container - Query AWS MediaStore Container using SQL"
+description: "Allows users to query AWS MediaStore Container information, including ARN, creation time, status, and access logging details."
+---
 
-AWS Elemental MediaStore is a video origination and storage service that offers the high performance, predictable low latency, and immediate consistency required for live origination. You use containers in MediaStore to store your folders and objects. Related objects can be grouped in containers in the same way that you use a directory to group files in a file system. 
+# Table: aws_media_store_container - Query AWS MediaStore Container using SQL
+
+The `aws_media_store_container` table in Steampipe provides information about containers within AWS Elemental MediaStore. This table allows DevOps engineers to query container-specific details, such as ARN, creation time, status, and access logging details. Users can utilize this table to gather insights on containers, such as the container's lifecycle policy, CORS policy, and more. The schema outlines the various attributes of the MediaStore container, including the container ARN, creation time, status, access logging details, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_media_store_container` table, you can use the `.inspect aws_media_store_container` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the container. This can be used to join with other tables that contain MediaStore container ARNs.
+- `name`: The name of the container. This can be used to join with other tables that contain MediaStore container names.
+- `status`: The status of the container. This is useful for filtering containers based on their status.
 
 ## Examples
 

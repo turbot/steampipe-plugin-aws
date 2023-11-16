@@ -1,6 +1,21 @@
-# Table: aws_transfer_server
+---
+title: "Table: aws_transfer_server - Query AWS Transfer for SFTP Servers using SQL"
+description: "Allows users to query AWS Transfer for SFTP Servers and retrieve detailed information about SFTP servers in their AWS account."
+---
 
-Transfer Family is a fully managed service that enables the transfer of files over the File Transfer Protocol (FTP), File Transfer Protocol over SSL (FTPS), or Secure Shell (SSH) File Transfer Protocol (SFTP) directly into and out of Amazon Simple Storage Service (Amazon S3) or Amazon EFS.
+# Table: aws_transfer_server - Query AWS Transfer for SFTP Servers using SQL
+
+The `aws_transfer_server` table in Steampipe provides information about SFTP servers within AWS Transfer for SFTP. This table allows DevOps engineers to query server-specific details, including server configurations, endpoint details, and associated metadata. Users can utilize this table to gather insights on SFTP servers, such as server states, user counts, endpoint types, and more. The schema outlines the various attributes of the SFTP server, including the server ID, ARN, endpoint type, logging role, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_transfer_server` table, you can use the `.inspect aws_transfer_server` command in Steampipe.
+
+### Key columns:
+
+- `server_id`: The unique ID of the SFTP server. This is a primary identifier that can be used to join this table with other tables.
+- `arn`: The Amazon Resource Number (ARN) of the SFTP server. This is a globally unique identifier that can be used for joining with other AWS resource tables.
+- `endpoint_type`: The endpoint type of the SFTP server (PUBLIC or VPC_ENDPOINT). This column can provide insights into the network accessibility of the SFTP server.
 
 ## Examples
 

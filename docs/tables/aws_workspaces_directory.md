@@ -1,6 +1,21 @@
-# Table: aws_workspaces_directory
+---
+title: "Table: aws_workspaces_directory - Query AWS WorkSpaces Directory using SQL"
+description: "Allows users to query AWS WorkSpaces Directory information to retrieve details such as directory ID, directory type, workspace creation properties, and more."
+---
 
-Amazon WorkSpaces Directory refers to the service that manages user identities and access control for Amazon WorkSpaces. Amazon WorkSpaces is a cloud-based desktop computing service that allows users to access virtual desktops from anywhere, on any device. The directory in Amazon WorkSpaces serves as the central source for user authentication and management. It can be thought of as the repository of user accounts and permissions that control who can access and use WorkSpaces instances.
+# Table: aws_workspaces_directory - Query AWS WorkSpaces Directory using SQL
+
+The `aws_workspaces_directory` table in Steampipe provides information about directories within AWS WorkSpaces. This table allows DevOps engineers to query directory-specific details, including directory ID, directory type, workspace creation properties, workspace security group ID, and other associated metadata. Users can utilize this table to gather insights on directories, such as the state of the directory, registration code, subnet IDs, and more. The schema outlines the various attributes of the AWS WorkSpaces Directory, including the self-service permissions, workspace access properties, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_workspaces_directory` table, you can use the `.inspect aws_workspaces_directory` command in Steampipe.
+
+### Key columns:
+
+- `directory_id`: The identifier of the directory. This column can be used to join with other tables that require the directory ID.
+- `state`: The state of the directory. This column can be useful for filtering directories based on their current state (e.g., available, unavailable).
+- `workspace_security_group_id`: The ID of the security group used with WorkSpaces. This column can be used to join with other tables that require the security group ID.
 
 ## Examples
 

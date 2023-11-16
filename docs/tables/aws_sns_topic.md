@@ -1,6 +1,21 @@
-# Table: aws_sns_topic
+---
+title: "Table: aws_sns_topic - Query AWS SNS Topics using SQL"
+description: "Allows users to query AWS SNS Topics to gather information about each topic, including its name, owner, ARN, and other related data."
+---
 
-Amazon Simple Notification Service (Amazon SNS) is a fully managed messaging service for both application-to-application (A2A) and application-to-person (A2P) communication. SNS topic is a logical access point that acts as a communication channel.
+# Table: aws_sns_topic - Query AWS SNS Topics using SQL
+
+The `aws_sns_topic` table in Steampipe provides information about each topic in Amazon Simple Notification Service (SNS). This table allows DevOps engineers to query topic-specific details, including the topic name, owner, ARN, and other associated metadata. Users can utilize this table to gather insights on SNS topics, such as topic subscription details, policy attributes, and more. The schema outlines the various attributes of the SNS topic, including the topic ARN, owner, subscription count, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_sns_topic` table, you can use the `.inspect aws_sns_topic` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the SNS Topic. It can be used to join this table with other AWS resource tables that reference the SNS Topic ARN.
+- `owner`: The AWS account ID of the topic's owner. This can be helpful in scenarios where you need to join this table with other tables that contain owner information.
+- `policy`: The policy that defines who can publish and subscribe to the topic. This can be used to join with other tables that need policy information for security analysis.
 
 ## Examples
 

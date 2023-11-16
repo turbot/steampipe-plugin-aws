@@ -1,6 +1,23 @@
-# Table: aws_elasticache_parameter_group
+---
+title: "Table: aws_elasticache_parameter_group - Query AWS Elasticache Parameter Groups using SQL"
+description: "Allows users to query AWS Elasticache Parameter Groups, providing detailed information about each group's configurations, parameters, and associated metadata."
+---
 
-Parameter Groups are a collection of parameters which control the behavior of the ElastiCache cluster.
+# Table: aws_elasticache_parameter_group - Query AWS Elasticache Parameter Groups using SQL
+
+The `aws_elasticache_parameter_group` table in Steampipe provides information about Parameter Groups within AWS Elasticache. This table allows DevOps engineers, database administrators, and other technical professionals to query group-specific details, including associated parameters, parameter values, and descriptions. Users can utilize this table to gather insights on parameter groups, such as their configurations, default system parameters, and user-defined parameters. The schema outlines the various attributes of the Parameter Group, including the group name, family, description, and associated parameters.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_elasticache_parameter_group` table, you can use the `.inspect aws_elasticache_parameter_group` command in Steampipe.
+
+Key columns:
+
+- `name` - The name of the cache parameter group. This column can be used to join this table with other tables that need parameter group information.
+- `family` - The name of the cache parameter group family that the parameter group can be used with. This column can be used to join tables that are grouped by family.
+- `description` - Provides a description of the cache parameter group. This column can be used to join tables that require detailed descriptions of each parameter group.
+
+## Examples
 
 ### Basic info
 

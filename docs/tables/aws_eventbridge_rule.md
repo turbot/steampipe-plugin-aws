@@ -1,6 +1,21 @@
-# Table: aws_eventbridge_rule
+---
+title: "Table: aws_eventbridge_rule - Query AWS EventBridge Rule using SQL"
+description: "Allows users to query AWS EventBridge Rule to access information regarding the EventBridge rules defined within an AWS account."
+---
 
-Amazon EventBridge defines the building and management of event-driven applications by taking care of event ingestion and delivery, security, authorization, and error-handling.
+# Table: aws_eventbridge_rule - Query AWS EventBridge Rule using SQL
+
+The `aws_eventbridge_rule` table in Steampipe provides information about EventBridge rules within AWS EventBridge. This table allows DevOps engineers to query rule-specific details, including the rule name, ARN, state, description, schedule expression, and associated metadata. Users can utilize this table to gather insights on rules, such as the rules associated with a specific event bus, the state of the rules (whether they are enabled or disabled), and more. The schema outlines the various attributes of the EventBridge rule, including the rule ARN, event bus name, description, state, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_eventbridge_rule` table, you can use the `.inspect aws_eventbridge_rule` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the rule. This can be used to join with other tables that need to reference the rule.
+- `arn`: The Amazon Resource Name (ARN) of the rule. This can be used to join with other tables that use ARNs for identification.
+- `event_bus_name`: The name of the event bus associated with the rule. This can be used to join with tables that contain information about event buses.
 
 ## Examples
 

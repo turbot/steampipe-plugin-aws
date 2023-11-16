@@ -1,6 +1,21 @@
-# Table: aws_efs_file_system
+---
+title: "Table: aws_efs_file_system - Query AWS Elastic File System using SQL"
+description: "Allows users to query AWS Elastic File System (EFS) file systems, providing detailed information about each file system such as its ID, ARN, creation token, performance mode, and lifecycle state."
+---
 
-Amazon Elastic File System is a cloud storage service provided by Amazon Web Services designed to provide scalable, elastic, concurrent with some restrictions, and encrypted file storage for use with both AWS cloud services and on-premises resources.
+# Table: aws_efs_file_system - Query AWS Elastic File System using SQL
+
+The `aws_efs_file_system` table in Steampipe provides information about file systems within AWS Elastic File System (EFS). This table allows DevOps engineers to query file system-specific details, including its ID, ARN, creation token, performance mode, lifecycle state, and associated metadata. Users can utilize this table to gather insights on file systems, such as their performance mode, lifecycle state, and more. The schema outlines the various attributes of the EFS file system, including the file system ID, creation token, tags, and associated mount targets.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_efs_file_system` table, you can use the `.inspect aws_efs_file_system` command in Steampipe.
+
+Key columns:
+
+- `file_system_id`: The ID of the file system. This is a unique identifier that can be used to join this table with other tables.
+- `owner_id`: The AWS account that created the file system. This can be useful for auditing and managing access control.
+- `creation_token`: The opaque string specified in the request to ensure idempotent creation. This can be useful to verify the creation process of the file system.
 
 ## Examples
 

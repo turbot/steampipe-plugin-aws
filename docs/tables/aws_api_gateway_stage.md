@@ -1,6 +1,21 @@
-# Table: aws_api_gateway_stage
+---
+title: "Table: aws_api_gateway_stage - Query AWS API Gateway Stages using SQL"
+description: "Allows users to query AWS API Gateway Stages for information related to deployment, API, and stage details."
+---
 
-A stage is a named reference to a deployment, which is a snapshot of the API.
+# Table: aws_api_gateway_stage - Query AWS API Gateway Stages using SQL
+
+The `aws_api_gateway_stage` table in Steampipe provides information about stages within AWS API Gateway. This table allows DevOps engineers to query stage-specific details, including the associated deployment, API, stage description, and associated metadata. Users can utilize this table to gather insights on stages, such as the stage's deployment ID, the associated API, stage settings, and more. The schema outlines the various attributes of the API Gateway stage, including the stage name, deployment ID, API ID, created date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_api_gateway_stage` table, you can use the `.inspect aws_api_gateway_stage` command in Steampipe.
+
+### Key columns:
+
+- `api_id`: The identifier of the API associated with the stage. This column can be used to join with other tables that contain API details.
+- `stage_name`: The name of the stage. This column can be used to filter results by specific stage names.
+- `deployment_id`: The identifier of the deployment that the stage points to. This column can be used to join with other tables that contain deployment details.
 
 ## Examples
 

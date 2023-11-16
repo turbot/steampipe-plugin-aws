@@ -1,6 +1,21 @@
-# Table: aws_codedeploy_deployment_config
+---
+title: "Table: aws_codedeploy_deployment_config - Query AWS CodeDeploy Deployment Configurations using SQL"
+description: "Allows users to query AWS CodeDeploy Deployment Configurations to retrieve information about the deployment configurations within AWS CodeDeploy service."
+---
 
-A deployment configuration is a set of rules and success and failure conditions used by CodeDeploy during a deployment. These rules and conditions are different, depending on whether you deploy to an EC2/On-Premises compute platform, AWS Lambda compute platform, or Amazon ECS compute platform.
+# Table: aws_codedeploy_deployment_config - Query AWS CodeDeploy Deployment Configurations using SQL
+
+The `aws_codedeploy_deployment_config` table in Steampipe provides information about deployment configurations within AWS CodeDeploy. This table allows DevOps engineers, developers and system administrators to query deployment configuration details, including deployment configuration names, minimum healthy hosts and compute platform. Users can utilize this table to gather insights on configurations, such as those with specific compute platforms, minimum healthy host requirements, and more. The schema outlines the various attributes of the deployment configuration, including the deployment configuration ID, deployment configuration name, and the compute platform.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_codedeploy_deployment_config` table, you can use the `.inspect aws_codedeploy_deployment_config` command in Steampipe.
+
+Key columns:
+
+- `deployment_config_id`: The unique ID of a deployment configuration. This can be used to join with other tables when there is a need to correlate more information based on deployment configuration ID.
+- `deployment_config_name`: The name of a deployment configuration. This is useful when querying specific deployment configurations by name.
+- `compute_platform`: The name of the compute platform. This is important when filtering or joining tables based on the compute platform.
 
 ## Examples
 

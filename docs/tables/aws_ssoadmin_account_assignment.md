@@ -1,6 +1,21 @@
-# Table: aws_ssoadmin_account_assignment
+---
+title: "Table: aws_ssoadmin_account_assignment - Query AWS SSO Admin Account Assignment using SQL"
+description: "Allows users to query AWS SSO Admin Account Assignments. This table provides information about each AWS SSO admin account assignment within an AWS account."
+---
 
-Contains information about AWS SSO account assignments (an assignment of a SSO permission set to an Identity Store User/Group in an Account).
+# Table: aws_ssoadmin_account_assignment - Query AWS SSO Admin Account Assignment using SQL
+
+The `aws_ssoadmin_account_assignment` table in Steampipe provides information about each AWS SSO (Single Sign-On) admin account assignment within an AWS account. This table allows DevOps engineers, administrators, and AWS users to query details related to SSO admin account assignments, including the principal type, principal ID, target type, target ID, and permission set. Users can utilize this table to gather insights on SSO admin account assignments, such as the account assignments for a specific principal or target, the permission sets assigned to a target, and more. The schema outlines the various attributes of the SSO admin account assignment, including the instance ARN, principal type, principal ID, target type, target ID, and permission set.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ssoadmin_account_assignment` table, you can use the `.inspect aws_ssoadmin_account_assignment` command in Steampipe.
+
+### Key columns:
+
+- `instance_arn`: The ARN of the SSO instance under which the assignment was made. This can be useful for joining with other tables that also contain SSO instance ARNs.
+- `principal_id`: The identifier of the principal (user or group) that the assignment applies to. This can be used to join with other tables that contain principal identifiers.
+- `target_id`: The identifier of the target (AWS account or AWS Organizations unit) that the assignment applies to. This can be used to join with other tables that contain target identifiers.
 
 ## Examples
 

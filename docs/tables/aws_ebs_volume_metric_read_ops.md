@@ -1,7 +1,23 @@
-# Table: aws_ebs_volume_metric_read_ops
+---
+title: "Table: aws_ebs_volume_metric_read_ops - Query AWS EBS Volume using SQL"
+description: "Allows users to query AWS EBS Volume read operations metrics."
+---
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_ebs_volume_metric_read_ops` table provides metric statistics at 5 minute intervals for the most recent 5 days.
+# Table: aws_ebs_volume_metric_read_ops - Query AWS EBS Volume using SQL
 
+The `aws_ebs_volume_metric_read_ops` table in Steampipe provides information about read operations metrics of volumes within AWS Elastic Block Store (EBS). This table allows DevOps engineers to query volume-specific details, including the number of read operations that completed, the timestamp of the measurement, and associated metadata. Users can utilize this table to gather insights on volumes, such as the frequency of read operations, the performance of volumes over time, and more. The schema outlines the various attributes of the EBS volume read operations metrics, including the volume id, timestamp, and the number of read operations.
+
+The `aws_ebs_volume_metric_read_ops` table provides metric statistics at 5 minute intervals for the most recent 5 days.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ebs_volume_metric_read_ops` table, you can use the `.inspect aws_ebs_volume_metric_read_ops` command in Steampipe.
+
+Key columns:
+
+- `title`: This is the title of the EBS volume metric. It is important as it identifies the specific volume that the read operation metrics pertain to.
+- `value`: This column represents the number of read operations that completed. It is useful for monitoring the read operations of the volume over time.
+- `timestamp`: This column records the time when the measurement was taken. It is crucial for tracking the performance of the volume over time.
 
 ## Examples
 

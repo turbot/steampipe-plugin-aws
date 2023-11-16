@@ -1,6 +1,21 @@
-# Table: aws_cloudtrail_trail
+---
+title: "Table: aws_cloudtrail_trail - Query AWS CloudTrail Trail using SQL"
+description: "Allows users to query AWS CloudTrail Trails for information about the AWS CloudTrail service's trail records. This includes trail configuration details, status, and associated metadata."
+---
 
-AWS CloudTrail is a service that enables governance, compliance, operational auditing, and risk auditing of an AWS account. With CloudTrail, one can log, continuously monitor, and retain account activity related to actions across the AWS infrastructure.
+# Table: aws_cloudtrail_trail - Query AWS CloudTrail Trail using SQL
+
+The `aws_cloudtrail_trail` table in Steampipe provides information about each trail within the AWS CloudTrail service. This table allows DevOps engineers to query trail-specific details, including configuration settings, trail status, and associated metadata. Users can utilize this table to gather insights on trails, such as CloudTrail configuration, trail status, and more. The schema outlines the various attributes of the trail, including the trail ARN, home region, log file validation, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_trail` table, you can use the `.inspect aws_cloudtrail_trail` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the trail. This can be used to join this table with other tables that reference the trail name.
+- `trail_arn`: The Amazon Resource Name (ARN) of the trail. This is a unique identifier for the trail and can be used to join this table with other tables that reference the trail ARN.
+- `home_region`: The AWS region in which the trail was created. This can be useful for joining this table with other tables that reference AWS regions.
 
 ## Examples
 

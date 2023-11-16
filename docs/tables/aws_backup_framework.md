@@ -1,7 +1,21 @@
-# Table: aws_backup_framework
+---
+title: "Table: aws_backup_framework - Query AWS Backup Frameworks using SQL"
+description: "Allows users to query AWS Backup Frameworks and retrieve comprehensive data about each backup plan, including its unique ARN, version, creation and deletion dates, and more."
+---
 
-AWS Backup framework is a collection of controls that you can use to evaluate your backup practices.
-The AWS Backup framework will then evaluate whether your backup practices comply with your policies and highlight which resources are not yet in compliance.
+# Table: aws_backup_framework - Query AWS Backup Frameworks using SQL
+
+The `aws_backup_framework` table in Steampipe provides information about each backup framework within AWS Backup service. This table allows DevOps engineers to query backup plan-specific details, including the backup plan's ARN, version, creation date, deletion date, and more. Users can utilize this table to gather insights on backup plans, such as their status, associated rules, and other relevant metadata. The schema outlines the various attributes of the backup plan, including the backup plan ARN, version, creation and deletion dates, and more.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_backup_framework` table, you can use the `.inspect aws_backup_framework` command in Steampipe.
+
+### Key columns:
+
+- `backup_plan_arn`: The Amazon Resource Name (ARN) for the backup plan. This column is important as it uniquely identifies each backup plan and can be used to join this table with other tables that contain backup plan ARN data.
+- `creation_date`: The date and time a backup plan is created. This column is useful for tracking the lifespan of backup plans and identifying those that might need updating or retiring.
+- `version_id`: The unique version ID of a backup plan. This column is important for tracking changes and updates to backup plans over time.
 
 ## Examples
 

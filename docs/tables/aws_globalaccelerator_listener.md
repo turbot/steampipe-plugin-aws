@@ -1,11 +1,21 @@
-# Table: aws_globalaccelerator_listener
+---
+title: "Table: aws_globalaccelerator_listener - Query AWS Global Accelerator Listener using SQL"
+description: "Allows users to query AWS Global Accelerator Listener data, including details about each listener that processes inbound connections based on the port or port ranges that you configure."
+---
 
-A listener processes inbound connections from clients to Global Accelerator, based on the port (or port range) and
-protocol (or protocols) that you configure. A listener can be configured for TCP, UDP, or both TCP and UDP protocols.
-Each listener has one or more endpoint groups associated with it, and traffic is forwarded to endpoints in one of
-the groups. You associate endpoint groups with listeners by specifying the Regions that you want to distribute traffic
-to. With a standard accelerator, traffic is distributed to optimal endpoints within the endpoint groups associated
-with a listener.
+# Table: aws_globalaccelerator_listener - Query AWS Global Accelerator Listener using SQL
+
+The `aws_globalaccelerator_listener` table in Steampipe provides information about each listener that processes inbound connections based on the port or port ranges that you configure. This table allows network engineers to query listener-specific details, including Accelerator ARN, Listener ARN, Client Affinity, and associated metadata. Users can utilize this table to gather insights on listeners, such as which listeners are processing inbound connections, what port ranges are being used, and more. The schema outlines the various attributes of the Global Accelerator Listener, including the listener ARN, accelerator ARN, client affinity, and port ranges.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_globalaccelerator_listener` table, you can use the `.inspect aws_globalaccelerator_listener` command in Steampipe.
+
+### Key columns:
+
+- `accelerator_arn`: The Amazon Resource Name (ARN) of the accelerator. This column is important as it is the unique identifier of the accelerator and can be used to join this table with the `aws_globalaccelerator_accelerator` table.
+- `listener_arn`: The ARN of the listener. This column is useful because it uniquely identifies the listener and can be used to join this table with other tables that contain listener-specific information.
+- `client_affinity`: The client affinity setting for the listener. This column is important as it allows users to understand how the Global Accelerator is distributing incoming connections across the endpoints.
 
 ## Examples
 

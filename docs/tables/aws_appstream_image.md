@@ -1,6 +1,21 @@
-# Table: aws_appstream_image
+---
+title: "Table: aws_appstream_image - Query AWS AppStream Images using SQL"
+description: "Allows users to query AWS AppStream Images to gain insights into their properties, states, and associated metadata."
+---
 
-Amazon AppStream 2.0 contains applications you can stream to your users and default system and application settings to enable your users to get started with those applications quickly. However, after you create an image, you can't change it. To add other applications, update existing applications, or change image settings, you must start and reconnect to the image builder that you used to create the image. If you deleted the image builder, launch a new image builder that is based on your image.
+# Table: aws_appstream_image - Query AWS AppStream Images using SQL
+
+The `aws_appstream_image` table in Steampipe provides information about images within AWS AppStream. This table allows DevOps engineers to query image-specific details, including the image's name, ARN, state, platform, and associated metadata. Users can utilize this table to gather insights on images, such as their visibility, status, and the applications they are associated with. The schema outlines the various attributes of the AppStream Image, including the image ARN, creation time, visibility status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_appstream_image` table, you can use the `.inspect aws_appstream_image` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the image. This can be used to join with other tables that reference the image by name.
+- `arn`: The Amazon Resource Number (ARN) of the image. This is a unique identifier that can be used to join with other tables that reference the image by ARN.
+- `state`: The current state of the image. This can be useful when joining with other tables to understand the status of the image.
 
 ## Examples
 

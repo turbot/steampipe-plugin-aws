@@ -1,10 +1,21 @@
-# Table: aws_directory_service_certificate
+---
+title: "Table: aws_directory_service_certificate - Query AWS Directory Service Certificates using SQL"
+description: "Allows users to query AWS Directory Service Certificates to gather information about the certificates associated with AWS Managed Microsoft AD and Simple AD directories."
+---
 
-AWS Directory Service is a managed service provided by Amazon Web Services (AWS) that allows you to connect and integrate your AWS resources with an existing on-premises Microsoft Active Directory (AD) or establish a new, standalone directory in the AWS Cloud.
+# Table: aws_directory_service_certificate - Query AWS Directory Service Certificates using SQL
 
-When setting up AWS Directory Service, you have the option to use Secure Sockets Layer (SSL) certificates to secure the communication between your on-premises directory and the AWS Cloud. This is especially important if you have a hybrid environment where you need to establish a secure connection between your on-premises AD and the AWS Cloud.
+The `aws_directory_service_certificate` table in Steampipe provides information about the certificates associated with AWS Managed Microsoft AD and Simple AD directories. This table allows IT administrators and security professionals to query certificate-specific details, including certificate state, expiry date, and associated metadata. Users can utilize this table to gather insights on certificates, such as active certificates, expired certificates, and certificates nearing expiry. The schema outlines the various attributes of the Directory Service Certificate, including the certificate ID, common name, expiry date, registered date, and the state of the certificate.
 
-The AWS Directory Service certificate refers to the SSL certificate that is used to secure the communication between your on-premises AD and AWS. This certificate is typically issued by a trusted certificate authority (CA) and ensures that the communication is encrypted and secure.
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_directory_service_certificate` table, you can use the `.inspect aws_directory_service_certificate` command in Steampipe.
+
+### Key columns:
+
+- `certificate_id`: The identifier of the AWS Managed Microsoft AD directory certificate. It can be used to join with other tables to gather more specific information about a particular certificate.
+- `directory_id`: The identifier of the AWS Directory Service. This can be used to join with other AWS Directory Service tables to gather more information about the directory associated with the certificate.
+- `common_name`: The fully qualified domain name (FQDN) of the certificate. This can be used to join with other tables that may contain information about the domain associated with the certificate.
 
 ## Examples
 

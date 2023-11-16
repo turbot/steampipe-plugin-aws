@@ -1,6 +1,21 @@
-# Table: aws_kms_key
+---
+title: "Table: aws_kms_key - Query AWS KMS Key using SQL"
+description: "Allows users to query AWS KMS Key data including cryptographic details, key usage, key state, and associated metadata."
+---
 
-AWS Key Management Service (KMS) is an Amazon Web Services product that allows administrators to create, delete and control keys that encrypt data stored in AWS databases and products.
+# Table: aws_kms_key - Query AWS KMS Key using SQL
+
+The `aws_kms_key` table in Steampipe provides information about Key Management Service (KMS) keys within AWS. This table allows DevOps engineers to query key-specific details, including cryptographic details, key usage, key state, and associated metadata. Users can utilize this table to gather insights on keys, such as keys rotation status, key type, key state, and more. The schema outlines the various attributes of the KMS key, including the key ARN, creation date, key state, key usage, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_kms_key` table, you can use the `.inspect aws_kms_key` command in Steampipe.
+
+### Key columns:
+
+- `key_id`: The unique identifier for the KMS key. It can be used to join this table with other tables.
+- `arn`: The Amazon Resource Name (ARN) for the KMS key. It provides a unique identifier for the key across all of AWS.
+- `key_state`: The state of the KMS key. It can be used to filter keys based on their current state.
 
 ## Examples
 

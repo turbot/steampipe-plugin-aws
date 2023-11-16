@@ -30,7 +30,7 @@ select
 from
   aws_networkfirewall_firewall_policy
 where 
-  encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
+  encryption_configuration ->> 'Type' = `aws_OWNED_KMS_KEY';
 ```
 
 ### List inactive policies

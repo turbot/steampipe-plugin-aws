@@ -1,6 +1,21 @@
-# Table: aws_ec2_autoscaling_group
+---
+title: "Table: aws_ec2_autoscaling_group - Query AWS EC2 Auto Scaling Groups using SQL"
+description: "Allows users to query AWS EC2 Auto Scaling Groups and access detailed information about each group's configuration, instances, policies, and more."
+---
 
-An Auto Scaling group contains a collection of Amazon EC2 instances that are treated as a logical grouping for the purposes of automatic scaling and management.
+# Table: aws_ec2_autoscaling_group - Query AWS EC2 Auto Scaling Groups using SQL
+
+The `aws_ec2_autoscaling_group` table in Steampipe provides information about Auto Scaling Groups within AWS EC2. This table allows DevOps engineers to query group-specific details, including configuration, associated instances, scaling policies, and associated metadata. Users can utilize this table to gather insights on groups, such as their desired, minimum and maximum sizes, default cooldown periods, load balancer names, and more. The schema outlines the various attributes of the Auto Scaling Group, including the ARN, creation date, health check type and grace period, launch configuration name, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_autoscaling_group` table, you can use the `.inspect aws_ec2_autoscaling_group` command in Steampipe.
+
+### Key columns:
+
+- `auto_scaling_group_arn`: The Amazon Resource Name (ARN) of the Auto Scaling group. This can be used to join with other tables that store ARN information.
+- `auto_scaling_group_name`: The name of the Auto Scaling group. This is a unique identifier and can be used to join with other tables that store Auto Scaling group names.
+- `vpc_zone_identifier`: The identifiers of the subnets to which the Auto Scaling group is assigned. This can be used to join with other tables that store subnet identifiers.
 
 ## Examples
 

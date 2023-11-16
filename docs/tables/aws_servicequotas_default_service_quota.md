@@ -1,6 +1,21 @@
-# Table: aws_servicequotas_default_service_quota
+---
+title: "Table: aws_servicequotas_default_service_quota - Query AWS Service Quotas using SQL"
+description: "Allows users to query AWS Service Quotas Default Service Quota to retrieve information about the default values of service quotas for AWS services."
+---
 
-AWS account has default quotas, formerly referred to as limits, for each AWS service. Unless otherwise noted, each quota is Region-specific. You can request increases for some quotas, and other quotas cannot be increased.
+# Table: aws_servicequotas_default_service_quota - Query AWS Service Quotas using SQL
+
+The `aws_servicequotas_default_service_quota` table in Steampipe provides information about the default values of service quotas for AWS services. This table allows DevOps engineers to query quota-specific details, including quota names, quota codes, and the default values. Users can utilize this table to gather insights on service quotas, such as understanding the default limits for each AWS service, identifying services that might require a quota increase, and more. The schema outlines the various attributes of the service quota, including the quota ARN, service name, quota code, quota name, and the default value.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_servicequotas_default_service_quota` table, you can use the `.inspect aws_servicequotas_default_service_quota` command in Steampipe.
+
+### Key columns:
+
+- `quota_arn`: The Amazon Resource Name (ARN) of the service quota. This can be used to join with other tables that use ARN as a unique identifier.
+- `service_name`: The name of the AWS service. This is useful to join with other tables that provide service-specific information.
+- `quota_code`: The unique code for the service quota. This can be used to join with other tables that provide quota-specific information.
 
 ## Examples
 

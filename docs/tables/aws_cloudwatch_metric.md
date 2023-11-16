@@ -1,8 +1,21 @@
-# Table: aws_cloudwatch_metric
+---
+title: "Table: aws_cloudwatch_metric - Query AWS CloudWatch Metrics using SQL"
+description: "Allows users to query AWS CloudWatch Metrics to gather information about the performance of their AWS resources and applications."
+---
 
-Metrics are data about the performance of your systems. By default, many services provide free metrics for resources (such as Amazon EC2 instances, Amazon EBS volumes, and Amazon RDS DB instances).
+# Table: aws_cloudwatch_metric - Query AWS CloudWatch Metrics using SQL
 
-**Note**: Up to 10 dimensions can be included in the `dimensions_filter` column.
+The `aws_cloudwatch_metric` table in Steampipe provides information about CloudWatch Metrics within AWS CloudWatch. This table allows DevOps engineers to query metric-specific details, including metric names, namespaces, dimensions, and statistics. Users can utilize this table to gather insights on metrics, such as tracking the CPU usage of an EC2 instance, monitoring the latency of an ELB, or even the request count of an API Gateway. The schema outlines the various attributes of the CloudWatch Metric, including the metric name, namespace, dimensions, statistics, and associated metadata.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_metric` table, you can use the `.inspect aws_cloudwatch_metric` command in Steampipe.
+
+### Key columns:
+
+- `metric_name`: The name of the metric. This is a key identifier and can be used to join with other tables that require metric information.
+- `namespace`: The namespace of the metric. This provides context for the metric and can be used to join with tables that require namespace information.
+- `dimensions`: The dimensions for the metric. Dimensions are name-value pairs that uniquely identify a metric. They are useful for filtering and aggregating data across various AWS resources.
 
 ## Examples
 

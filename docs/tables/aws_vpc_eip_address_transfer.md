@@ -1,6 +1,21 @@
-# Table: aws_vpc_eip_address_transfer
+---
+title: "Table: aws_vpc_eip_address_transfer - Query AWS VPC Elastic IP Address Transfers using SQL"
+description: "Allows users to query Elastic IP Address Transfers in AWS VPC."
+---
 
-An Elastic IP Address Transfer is a static, public IPv4 address that transfers from an AWS account (source account) to any other AWS account in the same AWS Region.
+# Table: aws_vpc_eip_address_transfer - Query AWS VPC Elastic IP Address Transfers using SQL
+
+The `aws_vpc_eip_address_transfer` table in Steampipe provides information about Elastic IP Address Transfers within Amazon Virtual Private Cloud (VPC). This table allows DevOps engineers to query transfer-specific details, including associated Elastic IPs, transfer status, and associated metadata. Users can utilize this table to gather insights on transfer events, such as tracking the movement of Elastic IPs, monitoring the status of IP transfers, and more. The schema outlines the various attributes of the Elastic IP Address transfer, including the transfer ID, allocation ID, status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_eip_address_transfer` table, you can use the `.inspect aws_vpc_eip_address_transfer` command in Steampipe.
+
+### Key columns:
+
+- `transfer_id`: This is the unique identifier for the transfer. It is useful for tracking specific transfers and can be used to join with other tables that track transfer events.
+- `public_ip`: This column contains the Elastic IP that is being transferred. This is essential for identifying which IPs are involved in transfers.
+- `status`: This column indicates the status of the transfer. It is useful for monitoring the progress of IP transfers.
 
 ## Examples
 

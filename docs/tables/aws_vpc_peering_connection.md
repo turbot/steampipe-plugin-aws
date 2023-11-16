@@ -1,6 +1,21 @@
-# Table: aws_vpc_peering_connection
+---
+title: "Table: aws_vpc_peering_connection - Query AWS VPC Peering Connections using SQL"
+description: "Allows users to query VPC Peering Connections in Amazon Virtual Private Cloud (VPC)."
+---
 
-A VPC peering connection is a networking connection between two VPCs that enables you to route traffic between them using private IPv4 addresses or IPv6 addresses. Instances in either VPC can communicate with each other as if they are within the same network. You can create a VPC peering connection between your own VPCs, or with a VPC in another AWS account. The VPCs can be in different regions (also known as an inter-region VPC peering connection).
+# Table: aws_vpc_peering_connection - Query AWS VPC Peering Connections using SQL
+
+The `aws_vpc_peering_connection` table in Steampipe provides information about VPC Peering Connections within Amazon Virtual Private Cloud (VPC). This table allows DevOps engineers, security teams, and system administrators to query peering connection-specific details, including peering statuses, VPC IDs, region, and associated metadata. Users can utilize this table to gather insights on peering connections, such as connection status, verification of peering options, and more. The schema outlines the various attributes of the VPC peering connection, including the peering connection ID, creation date, requester VPC info, accepter VPC info, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_peering_connection` table, you can use the `.inspect aws_vpc_peering_connection` command in Steampipe.
+
+### Key columns:
+
+- `pcx_id`: The ID of the VPC peering connection. This is the primary key of the table and can be used to join this table with other tables.
+- `requester_vpc_id`: The ID of the requester VPC. This can be used to join this table with the `aws_vpc` table to get more details about the requester VPC.
+- `accepter_vpc_id`: The ID of the accepter VPC. This can be used to join this table with the `aws_vpc` table to get more details about the accepter VPC.
 
 ## Examples
 

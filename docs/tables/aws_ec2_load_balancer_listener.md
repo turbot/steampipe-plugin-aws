@@ -1,8 +1,21 @@
-# Table: aws_ec2_load_balancer_listener
+---
+title: "Table: aws_ec2_load_balancer_listener - Query AWS EC2 Load Balancer Listeners using SQL"
+description: "Allows users to query AWS EC2 Load Balancer Listener data, which provides information about listeners for an Application Load Balancer or Network Load Balancer."
+---
 
-A listener is a process that checks for connection requests. It is configured with a protocol and a port for front-end (client to load balancer) connections, and a protocol and a port for back-end (load balancer to back-end instance) connections.
+# Table: aws_ec2_load_balancer_listener - Query AWS EC2 Load Balancer Listeners using SQL
 
-Note: This table lists the listeners for application load balancers and network load balancers only.
+The `aws_ec2_load_balancer_listener` table in Steampipe provides information about listeners for an Application Load Balancer or Network Load Balancer in Amazon Elastic Compute Cloud (EC2). This table allows DevOps engineers to query listener-specific details, including protocol, port, SSL policy, and associated actions. Users can utilize this table to gather insights on listeners, such as their current state, default actions, and certificates. The schema outlines the various attributes of the Load Balancer Listener, including the listener ARN, load balancer ARN, default actions, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_load_balancer_listener` table, you can use the `.inspect aws_ec2_load_balancer_listener` command in Steampipe.
+
+### Key columns:
+
+- `listener_arn`: The Amazon Resource Name (ARN) of the listener. This can be used to join this table with other tables.
+- `load_balancer_arn`: The ARN of the load balancer. This can be used to join this table with the `aws_ec2_load_balancer` table.
+- `port`: The port on which the load balancer is listening. This column is useful in understanding the traffic flow of the load balancer.
 
 ## Examples
 

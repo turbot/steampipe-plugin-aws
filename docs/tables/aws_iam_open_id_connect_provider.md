@@ -1,6 +1,21 @@
-# Table: aws_iam_open_id_connect_provider
+---
+title: "Table: aws_iam_open_id_connect_provider - Query AWS IAM OpenID Connect Providers using SQL"
+description: "Allows users to query AWS IAM OpenID Connect Providers and retrieve details about the OpenID Connect (OIDC) identity providers in their AWS account."
+---
 
-IAM OIDC identity providers are entities in IAM that describe an external identity provider (IdP) service that supports the OpenID Connect (OIDC) standard, such as Google or Salesforce. You use an IAM OIDC identity provider when you want to establish trust between an OIDC-compatible IdP and your AWS account. This is useful when creating a mobile app or web application that requires access to AWS resources, but you don't want to create custom sign-in code or manage your own user identities.
+# Table: aws_iam_open_id_connect_provider - Query AWS IAM OpenID Connect Providers using SQL
+
+The `aws_iam_open_id_connect_provider` table in Steampipe provides information about OpenID Connect (OIDC) identity providers within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query provider-specific details, including ARNs, URLs, client IDs, thumbprint lists, and creation times. Users can utilize this table to gather insights on OIDC identity providers, such as their associated client IDs, verification of thumbprint lists, and more. The schema outlines the various attributes of the OIDC identity provider, including the provider ARN, creation date, client ID list, thumbprint list, and URL.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_iam_open_id_connect_provider` table, you can use the `.inspect aws_iam_open_id_connect_provider` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the IAM OIDC provider. This can be used to join with other tables that contain IAM OIDC provider ARNs.
+- `url`: The URL of the IAM OIDC provider. This is useful for joining with other tables that contain IAM OIDC provider URLs.
+- `client_id_list`: The list of client IDs (also known as audiences) for the IAM OIDC provider. This can be used to join with other tables that contain IAM OIDC provider client IDs.
 
 ## Examples
 

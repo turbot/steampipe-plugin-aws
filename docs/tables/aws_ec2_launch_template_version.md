@@ -1,6 +1,21 @@
-# Table: aws_ec2_launch_template_version
+---
+title: "Table: aws_ec2_launch_template_version - Query AWS EC2 Launch Template Versions using SQL"
+description: "Allows users to query AWS EC2 Launch Template Versions, providing details about each version of an Amazon EC2 launch template."
+---
 
-An AWS EC2 launch template version is a specific configuration of an EC2 instance or a set of instances that defines instance details such as the AMI ID, instance type, security groups, block device mappings, and other parameters. It allows you to create a consistent set of instances and launch them quickly with the desired configuration.
+# Table: aws_ec2_launch_template_version - Query AWS EC2 Launch Template Versions using SQL
+
+The `aws_ec2_launch_template_version` table in Steampipe provides information about each version of an Amazon EC2 launch template. This table allows DevOps engineers, system administrators, and other IT professionals to query version-specific details, including the template ID, version number, and associated metadata. Users can utilize this table to gather insights on EC2 launch template versions, such as tracking changes between versions, verifying configuration details, and more. The schema outlines the various attributes of the EC2 launch template version, including the template ID, version number, creation date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_launch_template_version` table, you can use the `.inspect aws_ec2_launch_template_version` command in Steampipe.
+
+### Key columns:
+
+- `launch_template_id`: This is the ID of the launch template. It is useful for joining with other tables that reference EC2 launch templates.
+- `version_number`: This is the version number of the launch template. It is essential for tracking changes and differentiating between different versions of the same template.
+- `created_by`: This column indicates the AWS account that created the launch template version. It can be used to track and manage access and usage across different AWS accounts.
 
 ## Examples
 

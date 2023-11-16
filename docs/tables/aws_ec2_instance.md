@@ -1,6 +1,21 @@
-# Table: aws_ec2_instance
+---
+title: "Table: aws_ec2_instance - Query AWS EC2 Instances using SQL"
+description: "Allows users to query AWS EC2 Instances for comprehensive data on each instance, including instance type, state, tags, and more."
+---
 
-An AWS EC2 instance is a virtual server in the AWS cloud.
+# Table: aws_ec2_instance - Query AWS EC2 Instances using SQL
+
+The `aws_ec2_instance` table in Steampipe provides information about EC2 Instances within AWS Elastic Compute Cloud (EC2). This table allows DevOps engineers to query instance-specific details, including instance state, launch time, instance type, and associated metadata. Users can utilize this table to gather insights on instances, such as instances with specific tags, instances in a specific state, instances of a specific type, and more. The schema outlines the various attributes of the EC2 instance, including the instance ID, instance state, instance type, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_instance` table, you can use the `.inspect aws_ec2_instance` command in Steampipe.
+
+Key columns:
+
+- `instance_id`: This is the unique identifier for each EC2 instance. It is useful for joining with other tables that reference the instance by its ID.
+- `instance_state`: This column indicates the current state of the instance (e.g., running, stopped, terminated). It is useful for filtering instances based on their state.
+- `instance_type`: This column specifies the instance type of the EC2 instance. It can be used to join with other tables that require information about the instance type.
 
 ## Examples
 

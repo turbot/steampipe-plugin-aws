@@ -1,7 +1,23 @@
-# Table: aws_ebs_volume_metric_write_ops
+---
+title: "Table: aws_ebs_volume_metric_write_ops - Query AWS Elastic Block Store (EBS) using SQL"
+description: "Allows users to query AWS Elastic Block Store (EBS) volume write operations metrics."
+---
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_ebs_volume_metric_write_ops` table provides metric statistics at 5 minute intervals for the most recent 5 days.
+# Table: aws_ebs_volume_metric_write_ops - Query AWS Elastic Block Store (EBS) using SQL
 
+The `aws_ebs_volume_metric_write_ops` table in Steampipe provides information about the write operations metrics of EBS volumes within AWS Elastic Block Store (EBS). This table allows DevOps engineers to query volume-specific details, including the number of write operations, the timestamp of the data point, and the statistical value of the data point. Users can utilize this table to gather insights on EBS volumes, such as volume performance, write load, and more. The schema outlines the various attributes of the EBS volume write operations metrics, including the volume ID, timestamp, and statistical values.
+
+The `aws_ebs_volume_metric_write_ops` table provides metric statistics at 5 minute intervals for the most recent 5 days.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ebs_volume_metric_write_ops` table, you can use the `.inspect aws_ebs_volume_metric_write_ops` command in Steampipe.
+
+Key columns:
+
+- `title_id`: The ID of the EBS volume. This can be used to join this table with other tables that contain EBS volume information.
+- `timestamp`: The timestamp for the data point. This can be used to track the write operations over time.
+- `average`: The statistical value for the data point. This can provide insights into the average number of write operations for the EBS volume.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_glue_data_catalog_encryption_settings
+---
+title: "Table: aws_glue_data_catalog_encryption_settings - Query AWS Glue Data Catalog using SQL"
+description: "Allows users to query AWS Glue Data Catalog Encryption Settings."
+---
 
-The Data Catalog Encryption Settings in AWS Glue maintains Data Catalog resources security. 
+# Table: aws_glue_data_catalog_encryption_settings - Query AWS Glue Data Catalog using SQL
+
+The `aws_glue_data_catalog_encryption_settings` table in Steampipe provides information about the encryption settings of AWS Glue Data Catalogs. This table allows DevOps engineers and security analysts to query encryption-specific details, including the encryption-at-rest settings and the return connection password encryption settings. Users can utilize this table to gather insights on the encryption settings of their data catalogs, such as understanding the type of encryption used, the AWS KMS key ID used for encryption, and more. The schema outlines the various attributes of the encryption settings, including the catalog ID, create time, update time, and associated metadata.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_glue_data_catalog_encryption_settings` table, you can use the `.inspect aws_glue_data_catalog_encryption_settings` command in Steampipe.
+
+### Key columns:
+
+- `catalog_id`: The ID of the data catalog. This is a key column that can be used to join this table with other tables to get more detailed information about the data catalog.
+- `create_time`: The time at which the encryption settings were created. This can be useful for auditing and tracking changes over time.
+- `update_time`: The time at which the encryption settings were last updated. This can be useful for monitoring and ensuring that encryption settings are up-to-date.
 
 ## Examples
 

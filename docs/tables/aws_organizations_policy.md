@@ -1,8 +1,23 @@
-# Table: aws_organizations_policy
+---
+title: "Table: aws_organizations_policy - Query AWS Organizations Policy using SQL"
+description: "Allows users to query AWS Organizations Policy to retrieve detailed information on policies within AWS Organizations. This table can be utilized to gain insights on policy-specific details, such as policy type, content, and associated metadata."
+---
 
-Policies in AWS Organizations enable you to apply additional types of management to the AWS accounts in your organization.
+# Table: aws_organizations_policy - Query AWS Organizations Policy using SQL
 
-Note: The `type` column in this table is required to make the API call.
+The `aws_organizations_policy` table in Steampipe provides information about policies within AWS Organizations. This table allows DevOps engineers to query policy-specific details, including policy type, content, and associated metadata. Users can utilize this table to gather insights on policies, such as policy names, policy types, and the contents of the policies. The schema outlines the various attributes of the policy, including the policy ARN, policy type, policy content, policy name, and associated tags.
+
+**Note**: The `type` column in this table is required to make the API call.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_organizations_policy` table, you can use the `.inspect aws_organizations_policy` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the policy. This can be used to join this table with other tables that contain policy ARN as a column.
+- `name`: The friendly name of the policy. This can be used to join this table with other tables that contain policy name as a column.
+- `type`: The type of the policy. This can be useful in filtering policies based on their types.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_ecs_cluster
+---
+title: "Table: aws_ecs_cluster - Query AWS ECS Clusters using SQL"
+description: "Allows users to query AWS ECS Clusters to retrieve detailed information about each cluster's configuration, status, and associated resources."
+---
 
-An Amazon ECS cluster is a logical grouping of tasks or services. If you are running tasks or services that use the EC2 launch type, a cluster is also a grouping of container instances. If you are using capacity providers, a cluster is also a logical grouping of capacity providers.
+# Table: aws_ecs_cluster - Query AWS ECS Clusters using SQL
+
+The `aws_ecs_cluster` table in Steampipe provides information about clusters within AWS Elastic Container Service (ECS). This table allows DevOps engineers to query cluster-specific details, including its configuration, status, and associated resources. Users can utilize this table to gather insights on clusters, such as cluster capacity providers, default capacity provider strategy, and more. The schema outlines the various attributes of the ECS cluster, including the cluster ARN, cluster name, status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ecs_cluster` table, you can use the `.inspect aws_ecs_cluster` command in Steampipe.
+
+### Key columns:
+
+- `cluster_name`: The name of the cluster. It can be used to join with other tables that reference the cluster by its name.
+- `cluster_arn`: The Amazon Resource Name (ARN) that identifies the cluster. This can be used to join with other tables that reference the cluster by its ARN.
+- `status`: The status of the cluster (e.g., "ACTIVE"). This can be used to filter or join with other tables based on the cluster's status.
 
 ## Examples
 

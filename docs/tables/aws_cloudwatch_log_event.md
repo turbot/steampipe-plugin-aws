@@ -1,23 +1,21 @@
-# Table: aws_cloudwatch_log_event
+---
+title: "Table: aws_cloudwatch_log_event - Query AWS CloudWatch Log Events using SQL"
+description: "Allows users to query AWS CloudWatch Log Events to retrieve information about log events from a specified log group. Users can utilize this table to monitor and troubleshoot systems and applications using their existing log data."
+---
 
-A log group is a group of log streams that share the same retention, monitoring, and access control settings. Log streams contain sequences of log events that share the same source.
+# Table: aws_cloudwatch_log_event - Query AWS CloudWatch Log Events using SQL
 
-This table lists events from a CloudWatch log group.
+The `aws_cloudwatch_log_event` table in Steampipe provides information about Log Events within AWS CloudWatch. This table allows DevOps engineers, system administrators, and developers to query event-specific details, including the event message, event timestamp, and associated metadata. Users can utilize this table to gather insights on log events, such as event patterns, event frequency, event sources, and more. The schema outlines the various attributes of the Log Event, including the event ID, log group name, log stream name, and ingestion time.
 
-**Important notes:**
+## Table Usage Guide
 
-- You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
-- For improved performance, it is advised that you use the optional qual `timestamp` to limit the result set to a specific time period.
-- This table supports optional quals. Queries with optional quals are optimised to use CloudWatch filters. Optional quals are supported for the following columns:
-  - `filter`
-  - `log_stream_name`
-  - `region`
-  - `timestamp`
+To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_log_event` table, you can use the `.inspect aws_cloudwatch_log_event` command in Steampipe.
 
-The following tables also retrieve data from CloudWatch log groups, but have columns specific to the log type for easier querying:
+Key columns:
 
-- [aws_cloudtrail_trail_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudtrail_trail_event)
-- [aws_vpc_flow_log_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log_event)
+- `log_group_name`: This is the name of the log group where the log event was created. This can be used to join with other tables that contain log group information.
+- `log_stream_name`: This is the name of the log stream where the log event was created. This can be used to join with other tables that contain log stream information.
+- `event_id`: This is the unique identifier of the log event. This can be used to join with other tables that contain event-specific information.
 
 ## Examples
 

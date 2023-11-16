@@ -1,6 +1,21 @@
-# Table: aws_appstream_fleet
+---
+title: "Table: aws_appstream_fleet - Query AWS AppStream Fleet using SQL"
+description: "Allows users to query AWS AppStream Fleets for detailed information about each fleet, including its state, instance type, and associated stack details."
+---
 
-AWS AppStream Fleet is a group of streaming instances that deliver desktop applications to users. It is a service provided by Amazon Web Services (AWS) that allows you to stream desktop applications from the cloud to any device with an internet connection. A fleet consists of a collection of streaming instances that are provisioned and managed as a single entity. These instances run the applications and stream the user interface and input/output back and forth between the user's device and the cloud. AppStream Fleet helps simplify the management and delivery of applications, allowing users to access their applications securely from anywhere.
+# Table: aws_appstream_fleet - Query AWS AppStream Fleet using SQL
+
+The `aws_appstream_fleet` table in Steampipe provides information about fleets within AWS AppStream. This table allows DevOps engineers to query fleet-specific details, including the fleet state, instance type, associated stack details, and more. Users can utilize this table to gather insights on fleets, such as the fleet's current capacity, the fleet's idle disconnect timeout settings, and the fleet's stream view. The schema outlines the various attributes of the AppStream Fleet, including the fleet ARN, creation time, fleet type, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_appstream_fleet` table, you can use the `.inspect aws_appstream_fleet` command in Steampipe.
+
+* Key columns:
+
+    - `name`: The name of the fleet. This column can be used to join with other tables that contain fleet-specific information.
+    - `arn`: The Amazon Resource Name (ARN) of the fleet. This column can be used to join with other tables that contain ARN-specific information.
+    - `state`: The current state of the fleet. This column can be used to join with other tables that contain state-specific information.
 
 ## Examples
 

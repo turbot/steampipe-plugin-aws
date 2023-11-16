@@ -1,10 +1,21 @@
-# Table: aws_service_discovery_instance
+---
+title: "Table: aws_service_discovery_instance - Query AWS Cloud Map Service Instances using SQL"
+description: "Allows users to query AWS Cloud Map Service Instances and retrieve detailed information about each instance associated with a specified service. This information includes the instance ID, instance attributes, and the health status of the instance."
+---
 
-In AWS, Service Discovery Instance refers to a resource that represents an individual instance of a service within a service discovery namespace.
+# Table: aws_service_discovery_instance - Query AWS Cloud Map Service Instances using SQL
 
-AWS Service Discovery is a managed service that makes it easy to discover and locate services within your infrastructure. It enables automatic registration and DNS-based service discovery for microservices running on AWS.
+The `aws_service_discovery_instance` table in Steampipe provides information about service instances within AWS Cloud Map. This table allows DevOps engineers to query instance-specific details, including instance ID, attributes, and health status. Users can utilize this table to gather insights on instances, such as instances with specific attributes, health status of instances, and more. The schema outlines the various attributes of the service instance, including the instance ID, service ID, attributes, and health status.
 
-By registering service instances with AWS Service Discovery, you can easily discover and access those instances using the DNS name associated with the service. This simplifies the process of locating and communicating with services within a distributed architecture, particularly in a dynamic and scalable environment.
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_service_discovery_instance` table, you can use the `.inspect aws_service_discovery_instance` command in Steampipe.
+
+### Key columns:
+
+- `instance_id`: The ID of the instance that you want to get information about. This can be used to join this table with other tables that contain instance-specific information.
+- `service_id`: The ID of the service that the instance is associated with. This can be used to join this table with other tables that contain service-specific information.
+- `health_status`: The health status of the service instance. This is important as it can be used to monitor the health of the instances and take necessary action if required.
 
 ## Examples
 

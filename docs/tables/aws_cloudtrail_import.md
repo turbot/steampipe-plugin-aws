@@ -1,6 +1,21 @@
-# Table: aws_cloudtrail_import
+---
+title: "Table: aws_cloudtrail_import - Query AWS CloudTrail using SQL"
+description: "Allows users to query AWS CloudTrail imports to extract data about imported trail files such as the file name, import time, hash value, and more."
+---
 
-AWS CloudTrail import of logged trail events from a source S3 bucket to a destination event data store. By default, CloudTrail only imports events contained in the S3 bucket's CloudTrail prefix and the prefixes inside the CloudTrail prefix, and does not check prefixes for other AWS services.
+# Table: aws_cloudtrail_import - Query AWS CloudTrail using SQL
+
+The `aws_cloudtrail_import` table in Steampipe provides information about imported trail files within AWS CloudTrail. This table allows DevOps engineers to query import-specific details, including the file name, import time, hash value, and more. Users can utilize this table to gather insights on imported trail files, such as their import status, hash type, and hash value. The schema outlines the various attributes of the imported trail file, including the import ID, import time, file name, and associated metadata.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_import` table, you can use the `.inspect aws_cloudtrail_import` command in Steampipe.
+
+### Key columns:
+
+- `import_id`: This is the unique identifier for each import. It can be used to join this table with other tables to get more detailed information about specific imports.
+- `file_name`: This is the name of the imported trail file. It can be used to filter results based on specific file names.
+- `import_time`: This is the time when the trail file was imported. It can be used to filter results based on import times.
 
 ## Examples
 

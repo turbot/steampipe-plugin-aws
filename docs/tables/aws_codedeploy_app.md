@@ -1,6 +1,21 @@
-# Table: aws_codedeploy_app
+---
+title: "Table: aws_codedeploy_app - Query AWS CodeDeploy Applications using SQL"
+description: "Allows users to query AWS CodeDeploy Applications to return detailed information about each application, including application name, ID, and associated deployment groups."
+---
 
-An application is a name that uniquely identifies the application you want to deploy. CodeDeploy uses this name, which functions as a container, to ensure the correct combination of revision, deployment configuration, and deployment group are referenced during a deployment.
+# Table: aws_codedeploy_app - Query AWS CodeDeploy Applications using SQL
+
+The `aws_codedeploy_app` table in Steampipe provides information about applications within AWS CodeDeploy. This table allows DevOps engineers to query application-specific details, including application name, compute platform, and linked deployment groups. Users can utilize this table to gather insights on applications, such as their deployment configurations, linked deployment groups, and compute platforms. The schema outlines the various attributes of the CodeDeploy application, including the application name, application ID, and the linked deployment groups.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_codedeploy_app` table, you can use the `.inspect aws_codedeploy_app` command in Steampipe.
+
+### Key columns:
+
+- `application_name`: The name of the application. This can be used to join with other tables that require the application name.
+- `application_id`: The unique ID of the application. This can be used to join with other tables that require the application ID.
+- `compute_platform`: The platform type (e.g., ECS, Lambda, or Server) of the application. This can be used to join with other tables that require the compute platform.
 
 ## Examples
 

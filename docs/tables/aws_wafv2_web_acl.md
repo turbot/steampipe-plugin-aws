@@ -1,6 +1,21 @@
-# Table: aws_wafv2_web_acl
+---
+title: "Table: aws_wafv2_web_acl - Query AWS WAFv2 WebACLs using SQL"
+description: "Allows users to query AWS WAFv2 WebACLs to retrieve and manage information about WebACL resources within AWS WAFv2."
+---
 
-A web access control list (web ACL) gives you fine-grained control over the web requests that your protected resource responds to.
+# Table: aws_wafv2_web_acl - Query AWS WAFv2 WebACLs using SQL
+
+The `aws_wafv2_web_acl` table in Steampipe provides information about WebACL resources within AWS WAFv2. This table allows DevOps engineers to query WebACL-specific details, including associated rules, actions, visibility configurations, and associated metadata. Users can utilize this table to gather insights on WebACLs, such as rules associated with each WebACL, actions for each rule, and the scope of the WebACL. The schema outlines the various attributes of the WebACL, including the ARN, capacity, default action, description, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_wafv2_web_acl` table, you can use the `.inspect aws_wafv2_web_acl` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the WebACL. This can be used to join with other tables that provide WebACL-specific information.
+- `id`: The unique identifier of the WebACL. This can be used to join with other tables that provide WebACL-specific information.
+- `name`: The name of the WebACL. This can be used to join with other tables that provide WebACL-specific information.
 
 ## Examples
 

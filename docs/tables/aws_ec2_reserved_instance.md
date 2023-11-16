@@ -1,6 +1,21 @@
-# Table: aws_ec2_reserved_instance
+---
+title: "Table: aws_ec2_reserved_instance - Query AWS EC2 Reserved Instances using SQL"
+description: "Allows users to query AWS EC2 Reserved Instances to gather comprehensive insights on the reserved instances, such as their configurations, state, and associated tags."
+---
 
-Amazon EC2 Reserved Instances (RI) provide a significant discount (up to 72%) compared to On-Demand pricing and provide a capacity reservation when used in a specific Availability Zone.
+# Table: aws_ec2_reserved_instance - Query AWS EC2 Reserved Instances using SQL
+
+The `aws_ec2_reserved_instance` table in Steampipe provides information about Reserved Instances within Amazon Elastic Compute Cloud (EC2). This table allows DevOps engineers to query reserved instance-specific details, including instance type, offering class, and state. Users can utilize this table to gather insights on reserved instances, such as their configurations, reserved instance state, and associated tags. The schema outlines the various attributes of the reserved instance, including its ARN, instance type, offering class, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_reserved_instance` table, you can use the `.inspect aws_ec2_reserved_instance` command in Steampipe.
+
+### Key columns:
+
+- `reservation_id`: The ID of the Reserved Instance. This can be used to join this table with other tables that contain information about the reserved instance.
+- `instance_type`: The instance type on which the Reserved Instance can be used. This can be used to join this table with other tables that contain information about the instance type.
+- `state`: The state of the Reserved Instance. This can be used to join this table with other tables that contain information about the state of the reserved instance.
 
 ## Examples
 

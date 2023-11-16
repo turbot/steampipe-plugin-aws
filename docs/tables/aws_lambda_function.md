@@ -1,6 +1,21 @@
-# Table: aws_lambda_function
+---
+title: "Table: aws_lambda_function - Query AWS Lambda Function using SQL"
+description: "Allows users to query AWS Lambda Functions, providing information about each function's configuration, including runtime, code size, timeout, and associated tags."
+---
 
-AWS Lambda is a compute service that lets you run code without provisioning or managing servers.
+# Table: aws_lambda_function - Query AWS Lambda Function using SQL
+
+The `aws_lambda_function` table in Steampipe provides information about AWS Lambda Functions. This table allows DevOps engineers to query function-specific details, including the function's runtime, code size, timeout, and associated tags. Users can utilize this table to gather insights on functions, such as the function's configuration, handler, last modified date, and more. The schema outlines the various attributes of the AWS Lambda Function, including the function name, ARN, description, and associated environment variables.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_lambda_function` table, you can use the `.inspect aws_lambda_function` command in Steampipe.
+
+### Key columns:
+
+- `function_name`: The name of the function. This can be used to join with other tables that reference the function by name.
+- `arn`: The Amazon Resource Name (ARN) of the function. This can be used to join with other tables that reference the function by ARN.
+- `runtime`: The runtime environment for the function. This is useful to identify and manage functions based on their runtime environments.
 
 ## Examples
 

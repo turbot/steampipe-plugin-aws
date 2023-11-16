@@ -1,27 +1,21 @@
-# Table: aws_cloudtrail_trail_event
+---
+title: "Table: aws_cloudtrail_trail_event - Query AWS CloudTrail Events using SQL"
+description: "Allows users to query AWS CloudTrail Events, providing information about each trail event within AWS CloudTrail. The table can be used to retrieve details such as the event time, event name, resources involved, and much more."
+---
 
-AWS CloudTrail is an AWS service that helps you enable governance, compliance, and operational and risk auditing of your AWS account. Actions taken by a user, role, or an AWS service are recorded as events in CloudTrail. These events can be sent to a CloudWatch log group to allow for easy monitoring.
+# Table: aws_cloudtrail_trail_event - Query AWS CloudTrail Events using SQL
 
-This table reads CloudTrail event data from a CloudWatch log group that is configured to log events from a trail.
+The `aws_cloudtrail_trail_event` table in Steampipe provides information about each trail event within AWS CloudTrail. This table allows DevOps engineers to query event-specific details, including event time, event name, resources involved, and more. Users can utilize this table to gather insights on trail events, such as event source, user identity, and request parameters. The schema outlines the various attributes of the CloudTrail event, including the event ID, event version, read only, and associated tags.
 
-**Important notes:**
+## Table Usage Guide
 
-- You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
-- For improved performance, it is advised that you use the optional qual `timestamp` to limit the result set to a specific time period.
-- This table supports optional quals. Queries with optional quals are optimised to use CloudWatch filters. Optional quals are supported for the following columns:
-  - `access_key_id`
-  - `aws_region` (region of the event, useful in case of multi-region trails)
-  - `error_code`
-  - `event_category`
-  - `event_id`
-  - `event_name`
-  - `event_source`
-  - `filter`
-  - `log_stream_name`
-  - `region`
-  - `source_ip_address`
-  - `timestamp`
-  - `username`
+To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_trail_event` table, you can use the `.inspect aws_cloudtrail_trail_event` command in Steampipe.
+
+### Key columns:
+
+- `event_time`: This is the timestamp of the event. It can be used to filter events based on the time of occurrence.
+- `event_name`: This is the name of the event. It can be used to filter events based on specific actions.
+- `event_id`: This is the unique identifier for the event. It can be used to join this table with other tables or to retrieve specific events.
 
 ## Examples
 

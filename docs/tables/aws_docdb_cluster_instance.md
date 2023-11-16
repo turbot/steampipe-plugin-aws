@@ -1,6 +1,21 @@
-# Table: aws_docdb_cluster_instance
+---
+title: "Table: aws_docdb_cluster_instance - Query Amazon DocumentDB Cluster Instances using SQL"
+description: "Allows users to query Amazon DocumentDB Cluster Instances to gather detailed information such as instance identifier, cluster identifier, instance class, availability zone, engine version, and more."
+---
 
-An Amazon DocumentDB instance is an isolated database environment in the cloud. An instance can contain multiple user-created databases.
+# Table: aws_docdb_cluster_instance - Query Amazon DocumentDB Cluster Instances using SQL
+
+The `aws_docdb_cluster_instance` table in Steampipe provides information about Amazon DocumentDB Cluster Instances. This table allows DevOps engineers, database administrators, and other technical professionals to query detailed information about each cluster instance, such as its identifier, associated cluster identifier, instance class, availability zone, engine version, and other relevant metadata. Users can utilize this table to gather insights on the configuration, performance, and status of their DocumentDB cluster instances. The schema outlines the various attributes of the DocumentDB cluster instance, including instance ARN, creation time, instance status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_docdb_cluster_instance` table, you can use the `.inspect aws_docdb_cluster_instance` command in Steampipe.
+
+Key columns:
+
+- `db_instance_identifier`: This is the unique identifier for the instance. It's useful for joining with other tables that contain instance-specific data.
+- `db_cluster_identifier`: This is the identifier of the cluster that the instance is part of. It can be used to join with other tables that contain cluster-specific information.
+- `availability_zone`: This column contains the name of the availability zone the instance is located in. It's useful for joining with other tables that contain availability zone-specific data.
 
 ## Examples
 

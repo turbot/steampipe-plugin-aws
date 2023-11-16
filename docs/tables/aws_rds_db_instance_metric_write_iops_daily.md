@@ -1,7 +1,23 @@
-# Table: aws_rds_db_instance_metric_write_iops_daily
+---
+title: "Table: aws_rds_db_instance_metric_write_iops_daily - Query AWS RDS DBInstance using SQL"
+description: "Allows users to query AWS RDS DBInstance metrics for daily write IOPS."
+---
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_rds_db_instance_metric_write_iops_daily` table provides metric statistics at 24 hour intervals for the last year.
+# Table: aws_rds_db_instance_metric_write_iops_daily - Query AWS RDS DBInstance using SQL
 
+The `aws_rds_db_instance_metric_write_iops_daily` table in Steampipe provides information about the daily write IOPS (Input/Output Operations Per Second) metrics for each AWS RDS DBInstance. This table allows DevOps engineers, DBAs, and other technical professionals to query and analyze the daily write IOPS metrics, which can be critical for performance tuning, capacity planning, and cost management. The schema outlines the various attributes of the daily write IOPS metrics, including the DBInstance identifier, timestamp, minimum, maximum, sum, and average values, among others.
+
+The `aws_rds_db_instance_metric_write_iops_daily` table provides metric statistics at 24 hour intervals for the last year.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_metric_write_iops_daily` table, you can use the `.inspect aws_rds_db_instance_metric_write_iops_daily` command in Steampipe.
+
+Key columns:
+
+- `db_instance_identifier`: The identifier of the DBInstance. This column is critical as it uniquely identifies the DBInstance and can be used to join this table with other RDS DBInstance tables.
+- `timestamp`: The timestamp of the metric data point. This column is essential for analyzing the daily write IOPS metrics over time.
+- `average`: The average of the metric value for the data points during the day. This column is useful for understanding the typical daily write IOPS for the DBInstance.
 
 ## Examples
 

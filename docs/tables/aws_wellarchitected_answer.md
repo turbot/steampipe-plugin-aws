@@ -1,10 +1,21 @@
-# Table: aws_wellarchitected_answer
+---
+title: "Table: aws_wellarchitected_answer - Query AWS Well-Architected Tool Answer using SQL"
+description: "Allows users to query AWS Well-Architected Tool Answer data, including information about the workloads, lens, and questions associated with each answer."
+---
 
-The answers of a lens review in a Well-Architected workload.
+# Table: aws_wellarchitected_answer - Query AWS Well-Architected Tool Answer using SQL
 
-**Important notes:**
+The `aws_wellarchitected_answer` table in Steampipe provides information about the answers within AWS Well-Architected Tool. This table allows DevOps engineers to query answer-specific details, including the workload, lens, and question associated with each answer. Users can utilize this table to gather insights on answers, such as the workload and lens associated with a specific answer, the question that the answer corresponds to, and more. The schema outlines the various attributes of the Well-Architected Tool answer, including the answer ID, workload ID, lens alias, and associated metadata.
 
-- For improved performance, it is advisable that you use the optional qual `workload_id`, `pillar_id`, and `lens_alias` to limit the result set to a specific workload, pillar, or lens.
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_answer` table, you can use the `.inspect aws_wellarchitected_answer` command in Steampipe.
+
+###  Key columns:
+
+- `answer_id`: This is the unique identifier for each answer in the AWS Well-Architected Tool. It is crucial for joining this table with other tables that contain answer-specific information.
+- `workload_id`: This column contains the identifier of the workload associated with each answer. It is important for correlating answers with their respective workloads.
+- `lens_alias`: This column holds the alias of the lens associated with each answer. It is useful for grouping answers by their associated lens.
 
 ## Examples
 

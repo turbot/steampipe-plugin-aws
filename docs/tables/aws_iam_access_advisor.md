@@ -1,16 +1,29 @@
-# Table: aws_iam_access_advisor
+---
+title: "Table: aws_iam_access_advisor - Query AWS IAM Access Advisor using SQL"
+description: "Allows users to query AWS IAM Access Advisor to retrieve information about the service last accessed data for IAM entities (users, groups, and roles)."
+---
 
-Access Advisor returns details about when an IAM principal (user, group, role, or policy) was last used in an attempt to access AWS services. Recent activity usually appears within four hours. IAM reports activity for the last 365 days, or less if your Region began supporting this feature within the last year.
+# Table: aws_iam_access_advisor - Query AWS IAM Access Advisor using SQL
 
+The `aws_iam_access_advisor` table in Steampipe provides information about the service last accessed data for IAM entities like users, groups, and roles within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query details about the services that IAM entities can access, the actions they can perform, and when they last accessed the services. Users can utilize this table to gather insights on access patterns, such as identifying unused permissions or verifying least privilege policies. The schema outlines the various attributes of the IAM entity, including the entity ARN, last accessed time, and the services accessible.
 
 **Important Notes:**
+
 - You ***must*** specify a single `principal_arn` in a `where` or `join` clause in order to use this table.  
 
 - The service last accessed data includes all attempts to access an AWS API, not just the successful ones. This includes all attempts that were made using the AWS Management Console, the AWS API through any of the SDKs, or any of the command line tools. An unexpected entry in the service last accessed data does not mean that your account has been compromised, because the request might have been denied. Refer to your CloudTrail logs as the authoritative source for information about all API calls and whether they were successful or denied access. 
 
 - Service last accessed data does not use other policy types when determining whether a resource could access a service. These other policy types include resource-based policies, access control lists, AWS Organizations policies, IAM permissions boundaries, and AWS STS assume role policies. It only applies permissions policy logic. For more about the evaluation of policy types, see Evaluating Policies in the IAM User Guide.
 
+## Table Usage Guide
 
+To gain a deeper understanding of the structure and metadata of the `aws_iam_access_advisor` table, you can use the `.inspect aws_iam_access_advisor` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the IAM entity. This can be used to join this table with other tables that contain IAM entity information.
+- `service_name`: The name of the AWS service. This can be used to join this table with other tables that contain AWS service information.
+- `last_authenticated`: The date and time, in ISO 8601 date-time format, when the IAM entity last attempted to access the AWS service. This can be used to identify unused permissions or verify least privilege policies.
 
 ## Examples
 

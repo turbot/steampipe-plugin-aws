@@ -1,6 +1,21 @@
-# Table: aws_docdb_cluster
+---
+title: "Table: aws_docdb_cluster - Query Amazon DocumentDB Cluster using SQL"
+description: "Allows users to query Amazon DocumentDB Clusters for detailed information about their configuration, status, and associated metadata."
+---
 
-Amazon DocumentDB (with MongoDB compatibility) is a fast, reliable, and fully managed database service. Amazon DocumentDB makes it easy to set up, operate, and scale MongoDB-compatible databases in the cloud. With Amazon DocumentDB, you can run the same application code and use the same drivers and tools that you use with MongoDB.
+# Table: aws_docdb_cluster - Query Amazon DocumentDB Cluster using SQL
+
+The `aws_docdb_cluster` table in Steampipe provides information about Amazon DocumentDB clusters within AWS. This table allows DevOps engineers, database administrators, and other technical professionals to query cluster-specific details, including configurations, status, and associated metadata. Users can utilize this table to gather insights on clusters, such as their availability, backup and restore settings, encryption status, and more. The schema outlines the various attributes of the DocumentDB cluster, including the cluster ARN, creation time, DB subnet group, associated VPC, and backup retention period.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_docdb_cluster` table, you can use the `.inspect aws_docdb_cluster` command in Steampipe.
+
+### Key columns:
+
+- `cluster_identifier`: This is the unique identifier for the Amazon DocumentDB cluster. It is crucial for joining this table with others as it uniquely identifies each cluster.
+- `vpc_security_groups`: This column provides information about the VPC security groups associated with the cluster. It is useful for querying security configurations and joining with other security-related tables.
+- `db_subnet_group`: This column contains information about the DB subnet group associated with the cluster. It is important for understanding the network configuration of the cluster and can be used to join with network-related tables.
 
 ## Examples
 

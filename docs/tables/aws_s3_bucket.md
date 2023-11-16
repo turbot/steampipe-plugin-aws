@@ -1,6 +1,21 @@
-# Table: aws_s3_bucket
+---
+title: "Table: aws_s3_bucket - Query AWS S3 Buckets using SQL"
+description: "Allows users to query AWS S3 buckets for detailed information about their configuration, policies, and permissions."
+---
 
-An Amazon S3 bucket is a public cloud storage resource available in Amazon Web Services' (AWS) Simple Storage Service (S3), an object storage offering.
+# Table: aws_s3_bucket - Query AWS S3 Buckets using SQL
+
+The `aws_s3_bucket` table in Steampipe provides information about S3 buckets within Amazon Simple Storage Service (S3). This table allows DevOps engineers to query bucket-specific details, including configuration, policies, and permissions. Users can utilize this table to gather insights on buckets, such as bucket policies, access controls, versioning status, and more. The schema outlines the various attributes of the S3 bucket, including the bucket name, creation date, region, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_s3_bucket` table, you can use the `.inspect aws_s3_bucket` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the bucket. This is the primary key of the table and can be used to join with other tables.
+- `region`: The region where the bucket is located. This can be useful for joining with tables that are also region-specific.
+- `creation_date`: The date the bucket was created. This can be useful for auditing and tracking the lifecycle of your S3 resources.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_ec2_launch_configuration
+---
+title: "Table: aws_ec2_launch_configuration - Query AWS EC2 Launch Configurations using SQL"
+description: "Allows users to query AWS EC2 Launch Configurations to gain insights into their configurations, metadata, and associated instances."
+---
 
-A launch configuration is a template that an EC2 Auto Scaling group uses to launch EC2 instances
+# Table: aws_ec2_launch_configuration - Query AWS EC2 Launch Configurations using SQL
+
+The `aws_ec2_launch_configuration` table in Steampipe provides information about EC2 Launch Configurations within AWS Elastic Compute Cloud (EC2). This table allows DevOps engineers to query configuration-specific details, including associated instances, security groups, and metadata. Users can utilize this table to gather insights on launch configurations, such as the instance type specified, kernel id, ram disk id, and more. The schema outlines the various attributes of the EC2 Launch Configuration, including the launch configuration name, creation date, image id, and associated key pairs.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_launch_configuration` table, you can use the `.inspect aws_ec2_launch_configuration` command in Steampipe.
+
+Key columns:
+
+- `launch_configuration_name`: The name of the launch configuration. It can be used to join this table with other tables that contain launch configuration information.
+- `image_id`: The ID of the Amazon Machine Image (AMI) associated with the launch configuration. This can be used to join with tables that contain AMI information.
+- `instance_type`: The instance type for the instances. This can be used to join with tables that contain instance type information.
 
 ## Examples
 

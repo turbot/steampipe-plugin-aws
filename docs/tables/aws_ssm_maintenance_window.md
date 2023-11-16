@@ -1,6 +1,21 @@
-# Table: aws_ssm_maintenance_window
+---
+title: "Table: aws_ssm_maintenance_window - Query AWS Systems Manager Maintenance Windows using SQL"
+description: "Allows users to query AWS Systems Manager Maintenance Windows to retrieve details about scheduled maintenance tasks for AWS resources."
+---
 
-AWS Systems Manager Maintenance Windows let you define a schedule for when to perform potentially disruptive actions on your instances such as patching an operating system, updating drivers, or installing software or patches.
+# Table: aws_ssm_maintenance_window - Query AWS Systems Manager Maintenance Windows using SQL
+
+The `aws_ssm_maintenance_window` table in Steampipe provides information about Maintenance Windows within AWS Systems Manager. This table allows DevOps engineers to query details about scheduled maintenance tasks for AWS resources, including the maintenance window ID, name, description, and schedule. Users can utilize this table to gather insights on maintenance windows, such as their duration, cut-off time, and whether they are enabled or not. The schema outlines the various attributes of the maintenance window, including the window ID, ARN, owner, enabled status, priority, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ssm_maintenance_window` table, you can use the `.inspect aws_ssm_maintenance_window` command in Steampipe.
+
+### Key columns:
+
+- `window_id`: The ID of the maintenance window. This can be used to join with other tables that reference the maintenance window ID.
+- `name`: The name of the maintenance window. This can be useful for identifying specific maintenance windows.
+- `enabled`: Indicates whether the maintenance window is enabled. This can be useful for filtering active vs inactive maintenance windows.
 
 ## Examples
 

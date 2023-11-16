@@ -1,6 +1,21 @@
-# Table: aws_vpc_verified_access_instance
+---
+title: "Table: aws_vpc_verified_access_instance - Query AWS VPC Verified Access Instances using SQL"
+description: "Allows users to query AWS VPC Verified Access Instances and provides information about the Amazon VPC verified access instances. This table can be used to gather details such as the instance ID, instance state, instance type, and associated tags."
+---
 
-A Verified Access instance is an AWS resource that helps you organize your trust providers and Verified Access groups.
+# Table: aws_vpc_verified_access_instance - Query AWS VPC Verified Access Instances using SQL
+
+The `aws_vpc_verified_access_instance` table in Steampipe provides information about the Amazon VPC verified access instances. This table allows network administrators and security analysts to query instance-specific details, including instance ID, instance state, instance type, and associated tags. Users can utilize this table to gather insights on instances, such as instance state, type, and associated tags. The schema outlines the various attributes of the VPC verified access instance, including the instance ID, instance state, instance type, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_verified_access_instance` table, you can use the `.inspect aws_vpc_verified_access_instance` command in Steampipe.
+
+### Key columns:
+
+- `instance_id`: The unique identifier for the instance. This can be used to join with other tables that contain instance-specific information.
+- `instance_state`: The current state of the instance. This is useful for identifying instances that are inactive or in an error state.    
+- `instance_type`: The type of the instance. This is useful for identifying the capacity and performance characteristics of the instance.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_ssm_association
+---
+title: "Table: aws_ssm_association - Query AWS SSM Association using SQL"
+description: "Allows users to query AWS SSM Associations for detailed information about the AWS Systems Manager associations, including their status, targets, and parameters."
+---
 
-An association is a configuration that is assigned to your managed instances. The configuration defines the state that you want to maintain on your instances. For example, an association can specify that antivirus software must be installed and running on your instances, or that certain ports must be closed. The association specifies a schedule for when the configuration is applied once or reapplied at specified times.
+# Table: aws_ssm_association - Query AWS SSM Association using SQL
+
+The `aws_ssm_association` table in Steampipe provides information about the AWS Systems Manager (SSM) associations. This table allows DevOps engineers to query association-specific details, including the association ID, the instance ID it is associated with, the association version, and the parameters of the association. Users can utilize this table to gather insights on associations, such as the status of associations, the targets of associations, and the parameters of associations. The schema outlines the various attributes of the SSM association, including the association name, association ID, instance ID, association version, parameters, and more.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ssm_association` table, you can use the `.inspect aws_ssm_association` command in Steampipe.
+
+### Key columns:
+
+- `association_id`: The unique identifier for the association. This column can be used to join this table with other tables that require the association ID.
+- `instance_id`: The ID of the instance that the association is associated with. This column can be used to join this table with other tables that require the instance ID.
+- `name`: The name of the association. This column can be used to join this table with other tables that require the association name.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_iam_user
+---
+title: "Table: aws_iam_user - Query AWS IAM User using SQL"
+description: "Allows users to query AWS IAM User data, providing details such as user ID, name, path, creation date, and more. This table is useful for security audits, policy enforcement, and operational troubleshooting."
+---
 
-An AWS Identity and Access Management (IAM) user is an entity that you create in AWS to represent the person or application that uses it to interact with.
+# Table: aws_iam_user - Query AWS IAM User using SQL
+
+The `aws_iam_user` table in Steampipe provides information about IAM users within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query user-specific details, including user ID, name, path, and creation date. Users can utilize this table to gather insights on user permissions, access keys, and associated metadata. The schema outlines the various attributes of the IAM user, including the user ARN, creation date, attached policies, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_iam_user` table, you can use the `.inspect aws_iam_user` command in Steampipe.
+
+### Key columns:
+
+- `user_name`: The name of the IAM user. This can be used to join with other tables that contain user-specific information.
+- `arn`: The Amazon Resource Name (ARN) of the user. This is a unique identifier that can be used to join with any other table that contains ARN information.
+- `user_id`: The unique ID assigned by AWS to the user. This can be used to join with other tables that contain user ID information.
 
 ## Examples
 

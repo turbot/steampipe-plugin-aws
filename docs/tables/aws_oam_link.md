@@ -1,8 +1,23 @@
-# Table: aws_oam_link
+---
+title: "Table: aws_oam_link - Query AWS OAM Links using SQL"
+description: "Allows users to query AWS OAM Links to gather information about the link between an AWS resource and an AWS OAM resource."
+---
 
-Amazon CloudWatch Observability Access Manager (OAM) link shares the observability data with the monitoring account. The shared observability data can include metrics in Amazon CloudWatch, logs in Amazon CloudWatch Logs, and traces in AWS X-Ray.
+# Table: aws_oam_link - Query AWS OAM Links using SQL
 
-## Example
+The `aws_oam_link` table in Steampipe provides information about the links between an AWS resource and an AWS OAM (Operations Account Management) resource. This table allows DevOps engineers to query link-specific details, including the link status, link type, and associated metadata. Users can utilize this table to gather insights on links, such as their current status, the type of AWS resource linked, the type of OAM resource linked, and more. The schema outlines the various attributes of the OAM link, including the link ID, creation date, status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_oam_link` table, you can use the `.inspect aws_oam_link` command in Steampipe.
+
+### Key columns:
+
+- `link_id`: This is the unique identifier for the link. It can be used to join this table with other tables that contain link-specific information.
+- `resource_arn`: This is the Amazon Resource Name (ARN) of the AWS resource that is linked. It can be used to join with other tables that contain resource-specific information.
+- `oam_resource_arn`: This is the Amazon Resource Name (ARN) of the OAM resource that is linked. It can be used to join with other tables that contain OAM resource-specific information.
+
+## Examples
 
 ### Basic info
 

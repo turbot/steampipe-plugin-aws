@@ -1,6 +1,21 @@
-# Table: aws_inspector_assessment_run
+---
+title: "Table: aws_inspector_assessment_run - Query AWS Inspector Assessment Runs using SQL"
+description: "Allows users to query AWS Inspector Assessment Runs to get detailed information about each assessment run, including its state, duration, findings, and more."
+---
 
-The AWS Inspector Assessment Template resource specifies the Inspector assessment targets that will be evaluated by an assessment run and its related configurations. You use the template to start an assessment run, which is the monitoring and analysis process that results in a set of findings.
+# Table: aws_inspector_assessment_run - Query AWS Inspector Assessment Runs using SQL
+
+The `aws_inspector_assessment_run` table in Steampipe provides information about assessment runs within AWS Inspector. This table allows DevOps engineers to query run-specific details, including its state, duration, findings, and associated metadata. Users can utilize this table to gather insights on runs, such as the number of findings, the state of the run, and the time it took for the run to complete. The schema outlines the various attributes of the assessment run, including the run ARN, creation date, state, duration, findings, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_inspector_assessment_run` table, you can use the `.inspect aws_inspector_assessment_run` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The ARN of the assessment run. This is the unique identifier of the run and can be used to join this table with other tables that also contain AWS Inspector Assessment Run ARNs.
+- `state`: The state of the assessment run. This can be used to filter runs based on their state (e.g., COMPLETED, STARTED, STOPPED, etc.).
+- `duration_in_seconds`: The duration of the assessment run. This can be used to analyze the time taken by different runs and optimize accordingly.
 
 ## Examples
 

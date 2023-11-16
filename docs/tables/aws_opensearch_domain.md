@@ -1,8 +1,23 @@
-# Table: aws_opensearch_domain
+---
+title: "Table: aws_opensearch_domain - Query AWS OpenSearch Service Domains using SQL"
+description: "Allows users to query AWS OpenSearch Service Domains for detailed information on their configuration, status, and associated resources."
+---
 
-Amazon OpenSearch Service is a managed service that makes it easy to deploy, operate, and scale OpenSearch clusters in the AWS Clouds. Domains are clusters with the settings, instance types, instance counts, and storage resources that you specify.
+# Table: aws_opensearch_domain - Query AWS OpenSearch Service Domains using SQL
 
-## Example
+The `aws_opensearch_domain` table in Steampipe provides information about domains within the AWS OpenSearch Service. This table allows DevOps engineers to query domain-specific details, including configurations, access policies, and associated metadata. Users can utilize this table to gather insights on domains, such as their encryption status, node-to-node encryption options, automated snapshot settings, and more. The schema outlines the various attributes of the OpenSearch domain, including the domain ARN, domain ID, created date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_opensearch_domain` table, you can use the `.inspect aws_opensearch_domain` command in Steampipe.
+
+### Key columns:
+
+- `domain_name`: This is the name of the OpenSearch domain. It is a key column because it is a unique identifier for each domain and can be used to join this table with other tables.
+- `arn`: This is the Amazon Resource Name (ARN) of the OpenSearch domain. It is a key column because it provides a consistent way to identify AWS resources across all AWS services.
+- `domain_id`: This is the unique identifier for the OpenSearch domain. It is a key column because it can be used to join this table with other tables that contain information about OpenSearch domains.
+
+## Examples
 
 ### Basic info
 

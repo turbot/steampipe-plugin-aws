@@ -1,6 +1,21 @@
-# Table: aws_vpc_security_group
+---
+title: "Table: aws_vpc_security_group - Query AWS VPC Security Groups using SQL"
+description: "Allows users to query AWS VPC Security Groups and retrieve data such as group ID, name, description, owner ID, and associated VPC ID. This table can be used to gain insights on security group configurations, policies, and related metadata."
+---
 
-A security group acts as a virtual firewall for EC2 instances to control incoming and outgoing traffic.
+# Table: aws_vpc_security_group - Query AWS VPC Security Groups using SQL
+
+The `aws_vpc_security_group` table in Steampipe provides information about Security Groups within AWS Virtual Private Cloud (VPC). This table enables DevOps engineers to query security group-specific details, including configurations, associated policies, and related metadata. Users can utilize this table to gather insights on security groups, such as understanding the security rules applied, verifying the security policies, and more. The schema outlines the various attributes of the security group, including the group ID, name, description, owner ID, and associated VPC ID.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_security_group` table, you can use the `.inspect aws_vpc_security_group` command in Steampipe.
+
+### Key columns:
+
+- `group_id`: This is the unique identifier of the security group. It can be used to join this table with other tables that contain security group information.
+- `vpc_id`: This is the ID of the VPC for the security group. It can be used to join this table with other tables that contain VPC information.
+- `owner_id`: This is the AWS account ID of the owner of the security group. It can be useful when analyzing resources across different AWS accounts.
 
 ## Examples
 

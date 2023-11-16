@@ -1,6 +1,21 @@
-# Table: aws_iam_group
+---
+title: "Table: aws_iam_group - Query AWS IAM Group using SQL"
+description: "Allows users to query AWS IAM Group data such as group name, path, and ARN. This table provides information about IAM groups within AWS Identity and Access Management (IAM)."
+---
 
-An IAM group is a collection of IAM users. Groups let you specify permissions for multiple users, which makes it easier to manage the permissions for those users.
+# Table: aws_iam_group - Query AWS IAM Group using SQL
+
+The `aws_iam_group` table in Steampipe provides information about IAM groups within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query group-specific details, including group name, path, and ARN. Users can utilize this table to gather insights on groups, such as group membership, group policy attachments, and more. The schema outlines the various attributes of the IAM group, including the group ARN, creation date, group ID, and associated metadata.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_iam_group` table, you can use the `.inspect aws_iam_group` command in Steampipe.
+
+Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) specifying the group. This can be used to join with other tables where group ARN is required.
+- `group_name`: The friendly name that identifies the group. This can be used to join with other tables where group name is required.
+- `group_id`: The stable and unique string identifying the group. This can be used to join with other tables where group ID is required.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_config_configuration_recorder
+---
+title: "Table: aws_config_configuration_recorder - Query AWS Config Configuration Recorder using SQL"
+description: "Allows users to query AWS Config Configuration Recorder"
+---
 
-AWS Config uses the configuration recorder to detect changes in your resource configurations and capture these changes as configuration items. You must create a configuration recorder before AWS Config can track your resource configurations.
+# Table: aws_config_configuration_recorder - Query AWS Config Configuration Recorder using SQL
+
+The `aws_config_configuration_recorder` table in Steampipe provides information about Configuration Recorders within AWS Config. This table allows DevOps engineers, security analysts, and cloud administrators to query configuration recorder-specific details, including its current status, associated role ARN, and whether it is recording all resource types. Users can utilize this table to gather insights on configuration recorders, such as which resources are being recorded, the recording status, and more. The schema outlines the various attributes of the Configuration Recorder, including the name, role ARN, resource types, and recording group.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_config_configuration_recorder` table, you can use the `.inspect aws_config_configuration_recorder` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the configuration recorder. It can be used to join with other tables that contain information about the configuration recorder.
+- `role_arn`: The Amazon Resource Name (ARN) of the role used to make read or write requests to the delivery channel. This is useful for joining with tables that contain IAM role information.
+- `recording_group_all_supported`: Indicates whether the configuration recorder is recording all resources. It can be used to filter or join with other tables based on the recording status.
 
 ## Examples
 

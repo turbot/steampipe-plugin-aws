@@ -1,8 +1,11 @@
-# Table: aws_vpc_flow_log_event
+---
+title: "Table: aws_vpc_flow_log_event - Query AWS VPC Flow Logs using SQL"
+description: "Allows users to query AWS VPC Flow Logs and retrieve information about the IP traffic going to and from network interfaces in their VPC."
+---
 
-VPC flow logs capture information about the IP traffic going to and from network interfaces in your VPC.
+# Table: aws_vpc_flow_log_event - Query AWS VPC Flow Logs using SQL
 
-This table reads flow log records from CloudWatch log groups.
+The `aws_vpc_flow_log_event` table in Steampipe provides information about the IP traffic going to and from network interfaces in a user's Virtual Private Cloud (VPC). This table allows network administrators, security analysts, and DevOps engineers to query details about each traffic flow, including source and destination IP addresses, ports, protocol numbers, packet and byte counts, actions, and more. Users can utilize this table to monitor traffic patterns, troubleshoot connectivity issues, and analyze security incidents. The schema outlines the various attributes of the VPC flow log event, including the event time, log status, and associated metadata.
 
 **Important notes:**
 
@@ -21,6 +24,16 @@ This table reads flow log records from CloudWatch log groups.
   - `src_addr`
   - `src_port`
   - `timestamp`
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_flow_log_event` table, you can use the `.inspect aws_vpc_flow_log_event` command in Steampipe.
+
+### Key columns:
+
+- `vpc_id`: The ID of the VPC for the network interface for which the traffic is recorded. This column is useful for joining with other tables that contain VPC-related information.
+- `interface_id`: The ID of the network interface for which the traffic is recorded. This column is useful for joining with other tables that contain network interface-related information.
+- `start`: The start of the time interval for which the traffic is recorded. This column is useful for time-based analysis and correlations.
 
 ## Examples
 

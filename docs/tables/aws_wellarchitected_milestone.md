@@ -1,6 +1,21 @@
-# Table: aws_wellarchitected_milestone
+---
+title: "Table: aws_wellarchitected_milestone - Query AWS Well-Architected Tool Milestones using SQL"
+description: "Allows users to query AWS Well-Architected Tool Milestones for detailed information about the milestones of a workload."
+---
 
-A milestone records the state of a workload at a particular point in time. Save a milestone after you initially complete all the questions associated with a workload. As you change your workload based on items in your improvement plan, you can save additional milestones to measure progress.
+# Table: aws_wellarchitected_milestone - Query AWS Well-Architected Tool Milestones using SQL
+
+The `aws_wellarchitected_milestone` table in Steampipe provides information about the milestones of a workload within AWS Well-Architected Tool. This table allows DevOps engineers, architects, and developers to query milestone-specific details, including the milestone name, date, and associated workload information. Users can utilize this table to gather insights on milestones, such as milestone history of a workload, changes made in each milestone, and more. The schema outlines the various attributes of the milestone, including the milestone number, record ID, workload ID, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_milestone` table, you can use the `.inspect aws_wellarchitected_milestone` command in Steampipe.
+
+### Key columns:
+
+- `milestone_number`: This is the milestone number. It can be used to identify a specific milestone of a workload.
+- `workload_id`: This is the ID of the workload that the milestone is associated with. This can be used to join this table with the workload table.
+- `record_id`: This is the unique ID of the milestone record. It can be used to uniquely identify a milestone in a workload.
 
 ## Examples
 

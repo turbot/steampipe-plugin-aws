@@ -1,6 +1,21 @@
-# Table: aws_rds_db_cluster_parameter_group
+---
+title: "Table: aws_rds_db_cluster_parameter_group - Query AWS RDS DB Cluster Parameter Groups using SQL"
+description: "Allows users to query AWS RDS DB Cluster Parameter Groups, providing detailed information about each parameter group's configuration, including its name, family, description, and ARN. This table can be used to identify unused or misconfigured parameter groups and to ensure they comply with security and operational best practices."
+---
 
-A DB parameter group acts as a container for engine configuration values that are applied to one or more DB instances. DB parameter groups apply to DB instances in both Amazon RDS and Aurora.
+# Table: aws_rds_db_cluster_parameter_group - Query AWS RDS DB Cluster Parameter Groups using SQL
+
+The `aws_rds_db_cluster_parameter_group` table in Steampipe provides information about DB Cluster Parameter Groups within Amazon RDS (Relational Database Service). This table allows DevOps engineers, DBAs, and security professionals to query parameter group-specific details, including its name, family, description, and ARN. Users can utilize this table to gather insights on parameter groups, such as identifying unused or misconfigured parameter groups and ensuring they comply with security and operational best practices. The schema outlines the various attributes of the DB Cluster Parameter Group, including the parameter group name, family, description, ARN, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_rds_db_cluster_parameter_group` table, you can use the `.inspect aws_rds_db_cluster_parameter_group` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the DB Cluster Parameter Group. This column can be used to join with other tables that contain DB Cluster Parameter Group names.
+- `arn`: The Amazon Resource Number (ARN) of the DB Cluster Parameter Group. This column can be used to join with any table that contains AWS ARNs.
+- `family`: The DB parameter group family name. This column can be used to join with other tables that contain parameter group family names.
 
 ## Examples
 

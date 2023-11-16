@@ -1,7 +1,23 @@
-# Table: aws_ebs_volume_metric_write_ops_hourly
+---
+title: "Table: aws_ebs_volume_metric_write_ops_hourly - Query AWS EBS Volume Metrics using SQL"
+description: "Allows users to query AWS EBS Volume Metrics on hourly write operations."
+---
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_ebs_volume_metric_write_ops_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
+# Table: aws_ebs_volume_metric_write_ops_hourly - Query AWS EBS Volume Metrics using SQL
 
+The `aws_ebs_volume_metric_write_ops_hourly` table in Steampipe provides information about the hourly write operations metrics of AWS Elastic Block Store (EBS) volumes. This table allows cloud engineers, DevOps teams, and data analysts to query and analyze the hourly write operation details of EBS volumes, including the number of write operations and the timestamp of the data points. Users can utilize this table to track write operations, monitor EBS performance, and plan capacity. The schema outlines the various attributes of the EBS volume metrics, including the volume ID, timestamp, and the number of write operations.
+
+The `aws_ebs_volume_metric_write_ops_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ebs_volume_metric_write_ops_hourly` table, you can use the `.inspect aws_ebs_volume_metric_write_ops_hourly` command in Steampipe.
+
+### Key columns:
+
+- `volume_id`: The ID of the EBS volume. This column can be used to join with other tables that contain EBS volume details.
+- `timestamp`: The timestamp for the data point. This column is useful for tracking and analyzing the timing of write operations.
+- `write_ops`: The number of write operations during the specified period. This column is essential for monitoring and analyzing the performance of EBS volumes.
 
 ## Examples
 

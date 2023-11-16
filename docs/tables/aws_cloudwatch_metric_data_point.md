@@ -1,4 +1,11 @@
-# Table: aws_cloudwatch_metric_data_point
+---
+title: "Table: aws_cloudwatch_metric_data_point - Query AWS CloudWatch MetricDataPoints using SQL"
+description: "Allows users to query AWS CloudWatch MetricDataPoints to fetch detailed information about the data points for a defined metric."
+---
+
+# Table: aws_cloudwatch_metric_data_point - Query AWS CloudWatch MetricDataPoints using SQL
+
+The `aws_cloudwatch_metric_data_point` table in Steampipe provides information about MetricDataPoints within AWS CloudWatch. This table allows DevOps engineers to query specific details about the data points for a defined metric, including the timestamp, sample count, sum, minimum, and maximum values. Users can utilize this table to gather insights on metrics, such as tracking the number of requests to an application over time, monitoring the CPU usage and network traffic of EC2 instances, and more. The schema outlines the various attributes of the MetricDataPoint, including the average, sample count, sum, minimum, and maximum values, along with the timestamp of the data point.
 
 This table provides metric data points for the specified id. The maximum number of data points returned from a single call is 100,800.
 
@@ -14,6 +21,16 @@ This table provides metric data points for the specified id. The maximum number 
 - We recommend specifying the `period` column in the query to optimize the table output. If you do not specify the `timestamp` then the default value for `period` is 60 seconds. If you specify the `timestamp` then the period will be calculated based on the duration mentioned ([here](https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/cloudwatch/types#MetricStat.Period)).
 
 Note: Using this table adds to cost to your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. Please refer to AWS CloudWatch Pricing to understand the cost implications.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_metric_data_point` table, you can use the `.inspect aws_cloudwatch_metric_data_point` command in Steampipe.
+
+### Key columns:
+
+- `timestamp`: This column is crucial as it indicates the time when the metric data point was recorded. It can be used to join this table with others that contain time-series data.
+- `average`: This column holds the average of metric values that correspond to the specified time period. It can be useful for understanding the overall trend of a particular metric.
+- `sample_count`: This column represents the number of data points used for the statistical calculation. It can be important when comparing metrics with different sample sizes.
 
 ## Examples
 

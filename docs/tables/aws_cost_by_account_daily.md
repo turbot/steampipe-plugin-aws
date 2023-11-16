@@ -1,8 +1,25 @@
-# Table: aws_cost_by_account_daily
+---
+title: "Table: aws_cost_by_account_daily - Query AWS Cost Explorer using SQL"
+description: "Allows users to query daily AWS costs by account. This table provides an overview of AWS usage and cost data for each AWS account on a daily basis."
+---
+
+# Table: aws_cost_by_account_daily - Query AWS Cost Explorer using SQL
+
+The `aws_cost_by_account_daily` table in Steampipe provides information about daily AWS costs for each account within AWS Cost Explorer. This table allows financial analysts, cloud economists, and DevOps engineers to query daily cost-specific details, including cost usage, unblended costs, and associated metadata. Users can utilize this table to gather insights on daily AWS spending, such as cost trends, cost spikes, and cost predictions. The schema outlines the various attributes of the daily cost, including the linked account, service, currency code, and cost usage details.
 
 Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_account_daily` table provides a simplified view of cost for your account (or all linked accounts when run against the organization master), summarized by day, for the last year.  
 
 Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cost_by_account_daily` table, you can use the `.inspect aws_cost_by_account_daily` command in Steampipe.
+
+### Key columns:
+
+- `linked_account`: This column stores the ID of the linked AWS account. It can be used to join this table with other tables that contain account-specific information.
+- `service`: This column stores the AWS service name. It can be used to join this table with other tables that contain service-specific information.
+- `date`: This column stores the date for the daily cost record. It can be used to join this table with other tables that contain date-specific information.
 
 ## Examples
 

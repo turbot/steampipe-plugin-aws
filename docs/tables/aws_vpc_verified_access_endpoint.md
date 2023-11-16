@@ -1,6 +1,21 @@
-# Table: aws_vpc_verified_access_endpoint
+---
+title: "Table: aws_vpc_verified_access_endpoint - Query AWS VPC Verified Access Endpoint using SQL"
+description: "Allows users to query AWS VPC Verified Access Endpoint data, including details about the endpoint configuration, service name, and VPC ID. This information can be used to manage and secure network access to services within an AWS Virtual Private Cloud."
+---
 
-A Verified Access endpoint represents an application. Each endpoint is associated with a Verified Access group and inherits the access policy for the group. You can optionally attach an application-specific endpoint policy to each endpoint.
+# Table: aws_vpc_verified_access_endpoint - Query AWS VPC Verified Access Endpoint using SQL
+
+The `aws_vpc_verified_access_endpoint` table in Steampipe provides information about the verified access endpoints within AWS Virtual Private Cloud (VPC). This table allows DevOps engineers to query endpoint-specific details, including the endpoint configuration, service name, and VPC ID. Users can utilize this table to gather insights on endpoints, such as endpoint configurations, associated services, and the VPCs they belong to. The schema outlines the various attributes of the VPC verified access endpoint, including the endpoint ID, creation timestamp, attached security groups, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_verified_access_endpoint` table, you can use the `.inspect aws_vpc_verified_access_endpoint` command in Steampipe.
+
+### Key columns:
+
+- `vpc_endpoint_id`: The ID of the VPC endpoint. This can be used to join this table with other tables that contain VPC endpoint information.
+- `vpc_id`: The ID of the VPC where the endpoint is located. This can be used to join this table with other tables that contain VPC information.
+- `service_name`: The name of the service to which the endpoint is connected. This can be used to join this table with other tables that contain service information.
 
 ## Examples
 

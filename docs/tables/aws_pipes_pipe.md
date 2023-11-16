@@ -1,6 +1,21 @@
-# Table: aws_pipes_pipe
+---
+title: "Table: aws_pipes_pipe - Query AWS Pipes using SQL"
+description: "Allows users to query AWS Pipes to obtain detailed information about individual pipes."
+---
 
-Amazon EventBridge Pipes connect sources to targets. It reduces the need for specialized knowledge and integration code when developing event-driven architectures, fostering consistency across your company’s applications. To set up a pipe, you choose the source, add optional filtering, define optional enrichment, and choose the target for the event data.
+# Table: aws_pipes_pipe - Query AWS Pipes using SQL
+
+The `aws_pipes_pipe` table in Steampipe provides information about individual pipes within AWS Pipes. This table allows DevOps engineers to query pipe-specific details, including the pipe name, pipe ARN, and the creation time. Users can utilize this table to gather insights on pipes, such as pipe statuses, pipe types, and more. The schema outlines the various attributes of the pipe, including the pipe name, pipe ARN, creation time, and pipe status.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_pipes_pipe` table, you can use the `.inspect aws_pipes_pipe` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the pipe. This can be used to join this table with other tables that also contain pipe names.
+- `arn`: The Amazon Resource Number (ARN) of the pipe. This unique identifier can be used to join this table with other tables that also contain pipe ARNs.
+- `status`: The status of the pipe. This can be used to filter pipes based on their status.
 
 ## Examples
 

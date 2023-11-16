@@ -1,6 +1,11 @@
-# Table: aws_s3_object
+---
+title: "Table: aws_s3_object - Query AWS S3 Object using SQL"
+description: "Allows users to query AWS S3 Objects and retrieve metadata and details about each object stored in S3 buckets."
+---
 
-Amazon S3 objects are stored in one or more Amazon S3 buckets, and each object can be up to 5 TB in size.
+# Table: aws_s3_object - Query AWS S3 Object using SQL
+
+The `aws_s3_object` table in Steampipe provides information about objects within AWS Simple Storage Service (S3). This table allows DevOps engineers to query object-specific details, including its size, last modified date, storage class, and associated metadata. Users can utilize this table to gather insights on objects, such as objects' storage utilization, retrieval of object metadata, verification of object encryption status, and more. The schema outlines the various attributes of the S3 object, including the bucket name, key, size, storage class, and associated tags.
 
 You **_must_** specify a `bucket_name` in a where or join clause in order to use this table.
 
@@ -10,6 +15,16 @@ The `body` column returns the raw bytes of the object data as a string. if the b
 ([refer example below](#get-data-details-of-a-particular-object-in-a-bucket)) otherwise for the invalid UTF8 runes, e.g., `.png files`, the bas64 encoding of the bytes will be set as column value and we will not be able to query the object body for those objects.
 
 Note: Using this table adds to cost to your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. Please refer to AWS S3 Pricing to understand the cost implications.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_s3_object` table, you can use the `.inspect aws_s3_object` command in Steampipe.
+
+### Key columns:
+
+- `bucket_name`: The name of the bucket containing the object. This can be used to join with the `aws_s3_bucket` table.
+- `key`: The key for the object. This is unique for each object within a bucket and can be used to identify specific objects.
+- `storage_class`: The storage class used for the object. This can be used to identify how the object is stored and retrieved, and to manage costs.
 
 ## Examples
 

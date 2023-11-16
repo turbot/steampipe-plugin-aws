@@ -1,6 +1,21 @@
-# Table: aws_servicecatalog_portfolio
+---
+title: "Table: aws_servicecatalog_portfolio - Query AWS Service Catalog Portfolio using SQL"
+description: "Allows users to query AWS Service Catalog Portfolios. The aws_servicecatalog_portfolio table in Steampipe provides information about portfolios within AWS Service Catalog. This table allows DevOps engineers to query portfolio-specific details, including owner, description, created time, and associated metadata. Users can utilize this table to gather insights on portfolios, such as portfolio details, associated products, and more. The schema outlines the various attributes of the portfolio, including the portfolio ARN, creation date, and associated tags."
+---
 
-AWS Service Catalog allows IT administrators to create, manage, and distribute catalogs of approved products to end users, who can then access the products they need in a personalized portal.
+# Table: aws_servicecatalog_portfolio - Query AWS Service Catalog Portfolio using SQL
+
+The `aws_servicecatalog_portfolio` table in Steampipe provides information about portfolios within AWS Service Catalog. This table allows DevOps engineers to query portfolio-specific details, including owner, description, created time, and associated metadata. Users can utilize this table to gather insights on portfolios, such as portfolio details, associated products, and more. The schema outlines the various attributes of the portfolio, including the portfolio ARN, creation date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the aws_servicecatalog_portfolio table, you can use the `.inspect aws_servicecatalog_portfolio` command in Steampipe.
+
+### Key columns:
+
+- `portfolio_id`: The unique identifier for the portfolio. This column is important for joining with other tables because it is the primary key that represents each individual portfolio.
+- `arn`: The Amazon Resource Name (ARN) of the portfolio. This column is useful for joining with other tables because it provides a unique identifier for the portfolio in the AWS ecosystem.
+- `name`: The name of the portfolio. This column is important because it provides a human-readable identifier for the portfolio, which can be useful for reporting and analysis.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_guardduty_publishing_destination
+---
+title: "Table: aws_guardduty_publishing_destination - Query AWS GuardDuty Publishing Destinations using SQL"
+description: "Allows users to query AWS GuardDuty Publishing Destinations to retrieve information about where GuardDuty findings are published."
+---
 
-AWS Guardduty Publishing Destinations provide a resource to export the guard duty findings. This requires an existing GuardDuty Detector.
+# Table: aws_guardduty_publishing_destination - Query AWS GuardDuty Publishing Destinations using SQL
+
+The `aws_guardduty_publishing_destination` table in Steampipe provides information about publishing destinations in AWS GuardDuty. This table allows security analysts and DevOps engineers to query destination-specific details, including the destination type, status, and associated metadata. Users can utilize this table to gather insights on destinations, such as their current statuses, the types of destinations, and more. The schema outlines the various attributes of the publishing destination, including the destination type, destination ARN, and status.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_guardduty_publishing_destination` table, you can use the `.inspect aws_guardduty_publishing_destination` command in Steampipe.
+
+### Key columns:
+
+- `detector_id`: The unique ID of the detector that the publishing destination is associated with. This can be used to join with the `aws_guardduty_detector` table.
+- `destination_arn`: The ARN of the destination. This can be used to join with other AWS resource tables that may refer to the destination.
+- `destination_type`: The type of the destination (e.g., S3, SNS). This can be useful for filtering or grouping by destination type.
 
 ## Examples
 

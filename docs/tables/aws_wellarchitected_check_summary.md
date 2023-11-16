@@ -1,6 +1,21 @@
-# Table: aws_wellarchitected_check_summary
+---
+title: "Table: aws_wellarchitected_check_summary - Query AWS Well-Architected Tool Check Summary using SQL"
+description: "Allows users to query AWS Well-Architected Tool Check Summary for detailed information about the checks for all workloads. This table provides insights into the state of your workloads, highlighting potential risks and areas for improvement."
+---
 
-Trusted Advisor check summary.
+# Table: aws_wellarchitected_check_summary - Query AWS Well-Architected Tool Check Summary using SQL
+
+The `aws_wellarchitected_check_summary` table in Steampipe provides information about the check summaries of all workloads within AWS Well-Architected Tool. This table allows DevOps engineers to query check-specific details, including the workload ID, lens alias, pillar ID, and risk counts. Users can utilize this table to gather insights on checks, such as the number of high-risk items, medium-risk items, and checks that are not applicable. The schema outlines the various attributes of the check summary, including the workload ID, lens alias, pillar ID, and risk counts.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_check_summary` table, you can use the `.inspect aws_wellarchitected_check_summary` command in Steampipe.
+
+### Key columns:
+
+- `workload_id`: This is the ID of the workload. It can be used to join with the `aws_wellarchitected_workload` table to get more details about the workload.
+- `lens_alias`: This is the alias of the lens. It can be used to join with the `aws_wellarchitected_lens` table to get more information about the lens.
+- `pillar_id`: This is the ID of the pillar. It can be used to join with the `aws_wellarchitected_pillar` table to get more information about the pillar.
 
 ## Examples
 

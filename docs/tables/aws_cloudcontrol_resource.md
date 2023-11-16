@@ -1,19 +1,21 @@
-# Table: aws_cloudcontrol_resource
+---
+title: "Table: aws_cloudcontrol_resource - Query AWS Cloud Control API Resource using SQL"
+description: "Allows users to query AWS Cloud Control API Resource data, providing detailed insights into resource properties, types, and statuses."
+---
 
-The Cloud Control resource table allows you to list and read a wide range of AWS and third-party resources. A full list of supported AWS resource types can be found at [Resource types that support Cloud Control API](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/supported-resources.html).
+# Table: aws_cloudcontrol_resource - Query AWS Cloud Control API Resource using SQL
 
-In order to list resources, the `type_name` column must be specified. Some resources also require additional information, which is specified in the `resource_model` column. For more information on these resource types, please see [Resources that require additional information](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers).
+The `aws_cloudcontrol_resource` table in Steampipe provides information about resources within AWS Cloud Control API. This table allows DevOps engineers to query resource-specific details, including resource properties, types, and statuses. Users can utilize this table to gather insights on resources, such as the resource's specific properties, the type of the resource, and the current status of the resource. The schema outlines the various attributes of the AWS Cloud Control API resource, including the resource name, resource type, role ARN, and associated metadata.
 
-In order to read a resource, the `type_name` and `identifier` columns must be specified. The identifier for each resource type is different, for more information on identifiers please see [Identifying resources](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-identifier.html).
+## Table Usage Guide
 
-_We recommend you use native Steampipe tables when available, but this table is helpful to query uncommon resources not yet supported._
+To gain a deeper understanding of the structure and metadata of the `aws_cloudcontrol_resource` table, you can use the `.inspect aws_cloudcontrol_resource` command in Steampipe.
 
-## Known limitations
+### Key columns:
 
-* `AWS::S3::Bucket` will only include detailed information if an identifier is provided. There is no way to determine the region of a bucket from the list result, so full information cannot be automatically hydrated.
-* Global resources like `AWS::IAM::Role` will return duplicate results per region. Specify `region = 'us-east-1'` (or similar) in the where clause to avoid.
-
-For more information on other Cloud Control limitations and caveats, please see [A deep dive into AWS Cloud Control for asset inventory](https://steampipe.io/blog/aws-cloud-control).
+- `resource_name`: This is the unique identifier of the resource. It is important as it can be used to join this table with other tables that also contain resource identifiers.
+- `resource_type`: This column provides information about the type of the resource. It is useful for filtering or grouping resources based on their types.
+- `status`: This column indicates the current status of the resource. It can be used to filter or group resources based on their statuses.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_ecr_image
+---
+title: "Table: aws_ecr_image - Query Amazon ECR Images using SQL"
+description: "Allows users to query Amazon Elastic Container Registry (ECR) Images and retrieve detailed information about each image, including image tags, push timestamps, image sizes, and more."
+---
 
-Amazon Elastic Container Registry (Amazon ECR) stores Docker images, Open Container Initiative (OCI) images, and OCI compatible artifacts in private repositories. You can use the Docker CLI, or your preferred client, to push and pull images to and from your repositories.
+# Table: aws_ecr_image - Query Amazon ECR Images using SQL
+
+The `aws_ecr_image` table in Steampipe provides information about Images within Amazon Elastic Container Registry (ECR). This table allows DevOps engineers to query image-specific details, including image tags, push timestamps, image sizes, and associated metadata. Users can utilize this table to gather insights on images, such as image scan findings, image vulnerability details, verification of image tags, and more. The schema outlines the various attributes of the ECR image, including the image digest, image tags, image scan status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ecr_image` table, you can use the `.inspect aws_ecr_image` command in Steampipe.
+
+### Key columns:
+
+- `repository_name`: The name of the repository that the image resides in. This column is useful for joining with the `aws_ecr_repository` table.
+- `image_digest`: The sha256 digest of the image manifest. This column is important as it uniquely identifies an image within a repository.
+- `image_tags`: The list of image tags associated with the image. This column is useful for filtering and categorizing images.
 
 ## Examples
 

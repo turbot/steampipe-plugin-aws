@@ -1,6 +1,21 @@
-# Table: aws_ssm_managed_instance
+---
+title: "Table: aws_ssm_managed_instance - Query AWS SSM Managed Instances using SQL"
+description: "Allows users to query AWS SSM Managed Instances to retrieve their configuration and status information."
+---
 
-A managed instance is any machine configured for AWS Systems Manager. You can configure Amazon Elastic Compute Cloud (Amazon EC2) instances or on-premises machines in a hybrid environment as managed instances. Systems Manager supports various distributions of Linux, including Raspberry Pi devices, macOS, and Microsoft Windows Server.
+# Table: aws_ssm_managed_instance - Query AWS SSM Managed Instances using SQL
+
+The `aws_ssm_managed_instance` table in Steampipe provides information about managed instances within AWS Systems Manager (SSM). This table allows DevOps engineers to query managed instance-specific details, including instance ID, name, platform type, platform version, and associated metadata. Users can utilize this table to gather insights on instances, such as their operational status, last ping time, agent version, and more. The schema outlines the various attributes of the managed instance, including the instance ARN, registration date, resource type, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ssm_managed_instance` table, you can use the `.inspect aws_ssm_managed_instance` command in Steampipe.
+
+### Key columns:
+
+- `instance_id`: The ID of the managed instance. This is a key column for joining with other tables because it uniquely identifies each managed instance.
+- `name`: The name of the managed instance. This column is useful for joining with other tables when the instance ID is not known.
+- `platform_type`: The type of operating system running on the managed instance. This column can be used to filter instances based on their operating system type.
 
 ## Examples
 

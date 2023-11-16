@@ -1,11 +1,21 @@
-# Table: aws_ec2_managed_prefix_list
+---
+title: "Table: aws_ec2_managed_prefix_list - Query AWS EC2 Managed Prefix Lists using SQL"
+description: "Allows users to query AWS EC2 Managed Prefix Lists, providing information about IP address ranges (CIDRs), permissions, and associated metadata."
+---
 
-A prefix list is a set of one or more CIDR blocks. You can use prefix lists to make it easier to configure and maintain your security groups and route tables. You can create a prefix list from the IP addresses that you frequently use, and reference them as a set in security group rules and routes instead of referencing them individually.
+# Table: aws_ec2_managed_prefix_list - Query AWS EC2 Managed Prefix Lists using SQL
 
-There are two types of prefix lists:
+The `aws_ec2_managed_prefix_list` table in Steampipe provides information about Managed Prefix Lists within AWS EC2. This table allows DevOps engineers to query details about IP address ranges, permissions, and associated metadata. Users can utilize this table to gather insights on IP address ranges, such as which IP addresses are allowed or denied access to a VPC, the maximum number of entries that a prefix list can have, and more. The schema outlines the various attributes of the Managed Prefix List, including the prefix list id, name, owner id, and associated tags.
 
-* **Customer-managed prefix lists** - Sets of IP address ranges that you define and manage. You can share your prefix list with other AWS accounts, enabling those accounts to reference the prefix list in their own resources.
-* **AWS-managed prefix lists** - Sets of IP address ranges for AWS services. You cannot create, modify, share, or delete an AWS-managed prefix list.
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_managed_prefix_list` table, you can use the `.inspect aws_ec2_managed_prefix_list` command in Steampipe.
+
+### Key columns:
+
+- `prefix_list_id`: The ID of the managed prefix list. This can be used to join with other tables that reference prefix lists.
+- `owner_id`: The AWS account ID of the owner of the managed prefix list. This can be used to join with other tables that reference AWS account ownership.
+- `entries`: The entries (CIDR blocks) for the prefix list. This can be used to join with other tables that reference IP address ranges.
 
 ## Examples
 

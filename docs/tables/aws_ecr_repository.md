@@ -1,6 +1,21 @@
-# Table: aws_ecr_repository
+---
+title: "Table: aws_ecr_repository - Query AWS ECR Repositories using SQL"
+description: "Allows users to query AWS Elastic Container Registry (ECR) Repositories and retrieve detailed information about each repository."
+---
 
-Amazon Elastic Container Registry (Amazon ECR) is a managed container image registry service.
+# Table: aws_ecr_repository - Query AWS ECR Repositories using SQL
+
+The `aws_ecr_repository` table in Steampipe provides information about repositories within AWS Elastic Container Registry (ECR). This table allows DevOps engineers to query repository-specific details, including repository ARN, repository URI, and creation date. Users can utilize this table to gather insights on repositories, such as repository policies, image scanning configurations, image tag mutability, and more. The schema outlines the various attributes of the ECR repository, including the repository name, creation date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ecr_repository` table, you can use the `.inspect aws_ecr_repository` command in Steampipe.
+
+Key columns:
+
+- `repository_name`: The name of the repository. This column can be used to join this table with others that contain repository-specific information.
+- `repository_arn`: The Amazon Resource Number (ARN) of the repository. This column is useful for joining with other tables that use ARN for resource identification.
+- `repository_uri`: The URI of the repository. This column is important as it provides the location of the repository, which can be used for joining with other tables that contain URI-based resource data.
 
 ## Examples
 

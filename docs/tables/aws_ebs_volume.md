@@ -1,6 +1,21 @@
-# Table: aws_ebs_volume
+---
+title: "Table: aws_ebs_volume - Query AWS Elastic Block Store (EBS) using SQL"
+description: "Allows users to query AWS Elastic Block Store (EBS) volumes for detailed information about their configuration, status, and associated tags."
+---
 
-An Amazon EBS volume is a durable, block-level storage device that you can attach to your instances.
+# Table: aws_ebs_volume - Query AWS Elastic Block Store (EBS) using SQL
+
+The `aws_ebs_volume` table in Steampipe provides information about volumes within AWS Elastic Block Store (EBS). This table allows DevOps engineers to query volume-specific details, including size, state, type, and associated metadata. Users can utilize this table to gather insights on volumes, such as their encryption status, IOPS performance, and snapshot details. The schema outlines the various attributes of the EBS volume, including the volume ID, creation time, attached instances, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ebs_volume` table, you can use the `.inspect aws_ebs_volume` command in Steampipe.
+
+### Key columns:
+
+- `volume_id`: This is the unique identifier for the EBS volume. It is a key column for joining with other tables that reference EBS volumes.
+- `state`: This column provides the current state of the EBS volume (e.g., creating, available, in-use, deleting, deleted, error). This information can be useful for monitoring and managing EBS volumes.
+- `tags`: This column contains metadata that you can create and assign to your AWS resources. It can be used to manage and filter EBS volumes based on custom criteria.
 
 ## Examples
 

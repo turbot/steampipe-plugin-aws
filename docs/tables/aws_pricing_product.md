@@ -1,6 +1,21 @@
-# Table: aws_pricing_product
+---
+title: "Table: aws_pricing_product - Query AWS Pricing Product using SQL"
+description: "Allows users to query AWS Pricing Product details such as the product's description, pricing details, and associated attributes."
+---
 
-Returns costs, and offer definition, for the corresponding service.
+# Table: aws_pricing_product - Query AWS Pricing Product using SQL
+
+The `aws_pricing_product` table in Steampipe provides information about pricing products within AWS Pricing. This table allows financial analysts, cloud cost managers, and DevOps engineers to query product-specific details, including product descriptions, pricing details, and associated attributes. Users can utilize this table to gather insights on products, such as the cost of each AWS service, the pricing model, and the location. The schema outlines the various attributes of the pricing product, including the product description, pricing details, and associated attributes.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_pricing_product` table, you can use the `.inspect aws_pricing_product` command in Steampipe.
+
+### Key columns:
+
+- `product_family` - This column is important as it allows users to filter or join with other tables based on the product family. For example, you can find all pricing details for a specific product family.
+- `servicecode` - This column is useful for joining with other tables that contain service code information. This allows for more detailed queries related to specific AWS services.
+- `location` - This column is important as it allows users to filter or join with other tables based on the location. This can be useful for queries related to the cost of services in specific geographical locations.
 
 ## Examples
 

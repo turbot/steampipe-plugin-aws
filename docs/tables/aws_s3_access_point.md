@@ -1,6 +1,21 @@
-# Table: aws_s3_access_point
+---
+title: "Table: aws_s3_access_point - Query AWS S3 Access Point using SQL"
+description: "Allows users to query AWS S3 Access Point details such as name, bucket, network origin, policy status, creation time, and more."
+---
 
-An Amazon S3 bucket is a public cloud storage resource available in Amazon Web Services' (AWS) Simple Storage Service (S3), an object storage offering.
+# Table: aws_s3_access_point - Query AWS S3 Access Point using SQL
+
+The `aws_s3_access_point` table in Steampipe provides information about Access Points within AWS Simple Storage Service (S3). This table allows DevOps engineers, developers, and data analysts to query Access Point-specific details, including the Access Point's name, associated bucket, network origin, policy status, and creation time. Users can utilize this table to gather insights on Access Points, such as their permissions, associated buckets, and more. The schema outlines the various attributes of the S3 Access Point, including the ARN, bucket name, creation date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_s3_access_point` table, you can use the `.inspect aws_s3_access_point` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the access point. This column can be used to join with other tables that need access point information.
+- `bucket`: The name of the bucket associated with the access point. This column is useful for joining with other tables that need bucket information.
+- `arn`: The Amazon Resource Name (ARN) of the access point. This column is useful for joining with other tables that need ARN information.
 
 ## Examples
 

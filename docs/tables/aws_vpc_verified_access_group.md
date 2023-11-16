@@ -1,6 +1,21 @@
-# Table: aws_vpc_verified_access_group
+---
+title: "Table: aws_vpc_verified_access_group - Query AWS VPC Verified Access Groups using SQL"
+description: "Allows users to query VPC Verified Access Groups within AWS Virtual Private Cloud (VPC). This table provides information about each verified access group within a VPC, including details such as group ID, group name, and the VPC ID it is associated with."
+---
 
-An AWS Verified Access group is a collection of Verified Access endpoints and a group-level Verified Access policy. Each endpoint within a group shares the Verified Access policy. You can use groups to gather together endpoints that have common security requirements. This can help simplify policy administration by using one policy for the security needs of multiple applications.
+# Table: aws_vpc_verified_access_group - Query AWS VPC Verified Access Groups using SQL
+
+The `aws_vpc_verified_access_group` table in Steampipe provides information about each verified access group within a VPC in AWS Virtual Private Cloud (VPC). This table allows network administrators and security personnel to query group-specific details, including the group ID, group name, and the VPC ID it is associated with. Users can utilize this table to gain insights on access groups, such as which VPCs have certain access groups, the names of these groups, and more. The schema outlines the various attributes of the verified access group, including the group ID, group name, and associated VPC ID.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_verified_access_group` table, you can use the `.inspect aws_vpc_verified_access_group` command in Steampipe.
+
+### Key columns:
+
+- `group_id`: This is the unique identifier of the verified access group. It can be used to join with other tables that reference the group ID.
+- `group_name`: This is the name of the verified access group. It can be useful for filtering or sorting results based on the group name.
+- `vpc_id`: This is the ID of the VPC that the verified access group is associated with. It can be used to join with other tables that contain VPC information.
 
 ## Examples
 

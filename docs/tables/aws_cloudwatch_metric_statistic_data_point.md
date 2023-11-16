@@ -1,6 +1,11 @@
-# Table: aws_cloudwatch_metric_statistic_data_point
+---
+title: "Table: aws_cloudwatch_metric_statistic_data_point - Query AWS CloudWatch Metric Statistics Data Point using SQL"
+description: "Allows users to query AWS CloudWatch Metric Statistics Data Point to obtain detailed metrics data."
+---
 
-This table provides statistic data points for the specified metric.
+# Table: aws_cloudwatch_metric_statistic_data_point - Query AWS CloudWatch Metric Statistics Data Point using SQL
+
+The `aws_cloudwatch_metric_statistic_data_point` table in Steampipe provides information about the data points for a specified metric in AWS CloudWatch. This table allows DevOps engineers to query detailed metrics data, including timestamps, samples count, maximum, minimum, and average values. Users can utilize this table to gather insights on metric data points, such as observing trends, identifying peaks or anomalies, and monitoring the overall performance of AWS resources. The schema outlines the various attributes of the metric data points, including the namespace, metric name, dimensions, and the period, start time, and end time of the data points.
 
 The maximum number of data points returned from a single call is 1,440. If you request more than 1,440 data points, CloudWatch returns an error. To reduce the number of data points, you can narrow the specified time range and make multiple requests across adjacent time ranges, or you can increase the specified period. Data points are not returned in chronological order.
 
@@ -18,6 +23,16 @@ If you need to fetch more than 1440 data points then please use the `aws_cloudwa
   - timestamp < ‘2023-03-15T00:00:00Z’ (The data will be fetched from one day before the provided time to the provided time)
 
 - We recommend specifying the `period` column in the query to optimize the table output. If you do not specify the `timestamp` then the default value for `period` is 60 seconds. If you specify the `timestamp` then the period will be calculated based on the duration to provide a good spread under the 1440 datapoints.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_metric_statistic_data_point` table, you can use the `.inspect aws_cloudwatch_metric_statistic_data_point` command in Steampipe.
+
+### Key columns:
+
+- `namespace`: This is the namespace of the metric. It can be used to join with other tables that also contain metric namespace information.
+- `metric_name`: This is the name of the metric. It can be used to join with other tables that also contain metric name information.
+- `timestamp`: This is the timestamp for the data point. It can be used to join with other tables that also contain timestamp information, allowing for time-based analysis of the data points.
 
 ## Examples
 

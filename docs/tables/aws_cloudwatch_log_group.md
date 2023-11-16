@@ -1,6 +1,21 @@
-# Table: aws_cloudwatch_log_group
+---
+title: "Table: aws_cloudwatch_log_group - Query AWS CloudWatch Log Groups using SQL"
+description: "Allows users to query AWS CloudWatch Log Groups and retrieve their attributes such as ARN, creation time, stored bytes, metric filter count, and more."
+---
 
-A log group is a group of log streams that share the same retention, monitoring, and access control settings.
+# Table: aws_cloudwatch_log_group - Query AWS CloudWatch Log Groups using SQL
+
+The `aws_cloudwatch_log_group` table in Steampipe provides information about Log Groups within AWS CloudWatch. This table allows DevOps engineers to query Log Group-specific details, including the ARN, creation time, stored bytes, metric filter count, retention period, and associated tags. Users can utilize this table to gather insights on Log Groups, such as their size, age, and associated metrics. The schema outlines the various attributes of the Log Group, including the ARN, creation time, stored bytes, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_log_group` table, you can use the `.inspect aws_cloudwatch_log_group` command in Steampipe.
+
+Key columns:
+
+- `arn`: The Amazon Resource Number (ARN) of the Log Group. This can be used to join this table with other tables that reference AWS resources by their ARN.
+- `name`: The name of the Log Group. This can be used to join this table with other tables that reference AWS resources by their name.
+- `creation_time`: The creation time of the Log Group. This can be useful for joining with other tables that track resource creation times, to analyze resource age or lifecycle.
 
 ## Examples
 

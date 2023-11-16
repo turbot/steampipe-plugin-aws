@@ -1,6 +1,21 @@
-# Table: aws_config_rule
+---
+title: "Table: aws_config_rule - Query AWS Config Rules using SQL"
+description: "Allows users to query Config Rules in AWS Config service. It provides information about each Config Rule, including its name, ARN, description, scope, and compliance status."
+---
 
-An AWS Config rule represents an AWS Lambda function that you create for a custom rule or a predefined function for an AWS managed rule. The function evaluates configuration items to assess whether your AWS resources comply with your desired configurations. This function can run when AWS Config detects a configuration change to an AWS resource and at a periodic frequency that you choose (for example, every 24 hours).
+# Table: aws_config_rule - Query AWS Config Rules using SQL
+
+The `aws_config_rule` table in Steampipe provides information about Config Rules within AWS Config service. This table allows DevOps engineers to query rule-specific details, including the rule name, ARN, description, scope, and compliance status. Users can utilize this table to gather insights on Config Rules, such as rules that are non-compliant, rules applied to specific resources, and more. The schema outlines the various attributes of the Config Rule, including the rule ARN, creation date, input parameters, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_config_rule` table, you can use the `.inspect aws_config_rule` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the AWS Config rule. This is the primary key of the table and can be used to join with other tables that contain Config rule names.
+- `arn`: The Amazon Resource Number (ARN) of the Config rule. This can be used to join with any other table that contains Config rule ARNs.
+- `compliance.status`: The compliance status of the Config rule. This column is useful for filtering rules based on their compliance status.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_securityhub_standards_subscription
+---
+title: "Table: aws_securityhub_standards_subscription - Query AWS Security Hub Standards Subscriptions using SQL"
+description: "Allows users to query AWS Security Hub Standards Subscriptions, providing detailed information about each standard subscription in AWS Security Hub."
+---
 
-Security Hub also generates its own findings as the result of running automated and continuous checks against the rules in a set of supported security standards. These checks provide a readiness score and identify specific accounts and resources that require attention.
+# Table: aws_securityhub_standards_subscription - Query AWS Security Hub Standards Subscriptions using SQL
+
+The `aws_securityhub_standards_subscription` table in Steampipe provides information about standards subscriptions within AWS Security Hub. This table allows DevOps engineers to query subscription-specific details, including the standard's ARN, name, description, and compliance status. Users can utilize this table to gather insights on standards, such as their status, updates, and the regions in which they are enabled. The schema outlines the various attributes of the standards subscription, including the standards ARN, status, and enabled timestamp.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_securityhub_standards_subscription` table, you can use the `.inspect aws_securityhub_standards_subscription` command in Steampipe.
+
+### Key columns:
+
+- `standards_arn`: The ARN of a standard. This can be used to join with other tables that reference AWS Security Hub standards.
+- `standards_subscription_arn`: The ARN of a standards subscription. This can be used to join with other tables that reference AWS Security Hub standards subscriptions.
+- `standards_status`: The status of the standards subscription. This is useful for querying the compliance status of various standards.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_emr_instance_group
+---
+title: "Table: aws_emr_instance_group - Query AWS EMR Instance Groups using SQL"
+description: "Allows users to query AWS EMR Instance Groups to fetch details about each instance group within an EMR cluster."
+---
 
-An AWS EMR instance group is a group of instances that have common purpose. With the instance groups configuration, each node type (master, core, or task) consists of the same instance type and the same purchasing option for instances.
+# Table: aws_emr_instance_group - Query AWS EMR Instance Groups using SQL
+
+The `aws_emr_instance_group` table in Steampipe provides information about instance groups within AWS Elastic MapReduce (EMR). This table allows DevOps engineers to query instance group-specific details, including instance group ID, instance type, instance count, and associated metadata. Users can utilize this table to gather insights on instance groups, such as their current status, market type, and more. The schema outlines the various attributes of the EMR instance group, including the cluster ID, instance group type, EBS volumes, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_emr_instance_group` table, you can use the `.inspect aws_emr_instance_group` command in Steampipe.
+
+### Key columns:
+
+- `cluster_id`: The unique identifier for the cluster. This column can be used to join with other tables that contain information about EMR clusters.
+- `instance_group_id`: The unique identifier for the instance group. This is critical when joining with tables that contain additional details on specific instance groups within an EMR cluster.
+- `instance_type`: The type of instance group. This column is useful to understand the resources allocated to the instance group, which can help in capacity planning and cost analysis.
 
 ## Examples
 

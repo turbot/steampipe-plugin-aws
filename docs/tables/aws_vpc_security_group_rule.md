@@ -1,6 +1,21 @@
-# Table: aws_vpc_security_group_rule
+---
+title: "Table: aws_vpc_security_group_rule - Query AWS VPC Security Group Rule using SQL"
+description: "Allows users to query AWS VPC Security Group Rule, providing detailed information about security group rules within Amazon Virtual Private Cloud (VPC)."
+---
 
-Security group rules define the inbound and outbound traffic to the instances.
+# Table: aws_vpc_security_group_rule - Query AWS VPC Security Group Rule using SQL
+
+The `aws_vpc_security_group_rule` table in Steampipe provides information about security group rules within Amazon Virtual Private Cloud (VPC). This table allows DevOps engineers, security analysts, and system administrators to query rule-specific details, including rule type, IP protocol, port range, and associated metadata. Users can utilize this table to gather insights on security group rules, such as rules with open IP ranges, verification of port ranges, and more. The schema outlines the various attributes of the security group rule, including the rule ID, security group ID, IP range, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_security_group_rule` table, you can use the `.inspect aws_vpc_security_group_rule` command in Steampipe.
+
+### Key columns:
+
+- `rule_id`: This is the unique identifier for the security group rule. This column is important as it allows users to uniquely identify and query specific security group rules.
+- `group_id`: This is the ID of the security group that the rule belongs to. This column is useful for joining this table with the `aws_vpc_security_group` table to get more information about the security group.
+- `ip_protocol`: This column indicates the IP protocol used in the rule. This is useful for analyzing the protocols used in security group rules.
 
 ## Examples
 

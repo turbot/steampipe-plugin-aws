@@ -1,6 +1,21 @@
-# Table: aws_codedeploy_app
+---
+title: "Table: aws_codedeploy_deployment_group - Query AWS CodeDeploy Deployment Group using SQL"
+description: "Allows users to query AWS CodeDeploy Deployment Group details including deployment configurations, target revisions, and associated alarm configurations."
+---
 
-A deployment group is the AWS CodeDeploy entity for grouping EC2 instances or AWS Lambda functions in a CodeDeploy deployment. For EC2 deployments, it is a set of instances associated with an application that you target for a deployment.
+# Table: aws_codedeploy_deployment_group - Query AWS CodeDeploy Deployment Group using SQL
+
+The `aws_codedeploy_deployment_group` table in Steampipe provides information about deployment groups within AWS CodeDeploy. This table allows DevOps engineers to query deployment group-specific details, including deployment configurations, target revisions, and associated alarm configurations. Users can utilize this table to gather insights on deployment groups, such as deployment configuration names, target revisions, and alarm configurations. The schema outlines the various attributes of the deployment group, including the deployment group name, service role ARN, deployment configuration name, target revision, and associated alarm configurations.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_codedeploy_deployment_group` table, you can use the `.inspect aws_codedeploy_deployment_group` command in Steampipe.
+
+Key columns:
+
+- `deployment_group_name`: The name of the deployment group. It is a key identifier and can be used to join with other tables to fetch detailed information.
+- `deployment_config_name`: The name of the deployment configuration associated with the deployment group. It can be used to join with the deployment configuration table.
+- `service_role_arn`: The service role ARN associated with the deployment group. It can be used to join with IAM role tables for more detailed role information.
 
 ## Examples
 

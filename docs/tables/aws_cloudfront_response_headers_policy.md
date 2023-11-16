@@ -1,16 +1,21 @@
-# Table: aws_cloudfront_response_headers_policy
+---
+title: "Table: aws_cloudfront_response_headers_policy - Query AWS CloudFront Response Headers Policy using SQL"
+description: "Allows users to query AWS CloudFront Response Headers Policies, providing information about the policy configurations that determine the headers CloudFront includes in HTTP responses."
+---
 
-AWS CloudFront is a globally-distributed network offered by AWS used to securely transfers digital content to its clients using a high transfer speed.
+# Table: aws_cloudfront_response_headers_policy - Query AWS CloudFront Response Headers Policy using SQL
 
-Response headers policies are provided to simplify the process of HTTP header response manipulation.
-They allow the user to define CORS, security, and custom response headers as a configuration setting in CloudFront.
+The `aws_cloudfront_response_headers_policy` table in Steampipe provides information about the Response Headers Policies within AWS CloudFront. This table allows DevOps engineers to query policy-specific details, including policy ID, name, header behavior, and associated custom headers. Users can utilize this table to gather insights on policies, such as custom header configurations, header behavior settings, and more. The schema outlines the various attributes of the Response Headers Policy, including the policy ARN, creation time, last modified time, and associated tags.
 
-This table details the contents of the response header policies.
+## Table Usage Guide
 
-**Important notes:**
+To gain a deeper understanding of the structure and metadata of the `aws_cloudfront_response_headers_policy` table, you can use the `.inspect aws_cloudfront_response_headers_policy` command in Steampipe.
 
-This table supports the optional quals `type`.
-Queries with optional quals are optimised to use additional filtering provided by the AWS API function.
+Key columns:
+
+- `id`: This is the unique identifier of the Response Headers Policy. It can be used to join this table with other tables that also contain policy IDs.
+- `arn`: This is the Amazon Resource Name (ARN) of the Response Headers Policy. It can be used to join with other tables that contain ARNs.
+- `name`: This is the name of the Response Headers Policy. It can be used to join with other tables that contain policy names, allowing for more human-readable queries and results.
 
 ## Examples
 

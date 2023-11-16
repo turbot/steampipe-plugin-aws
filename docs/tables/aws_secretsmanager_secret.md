@@ -1,6 +1,21 @@
-# Table: aws_secretsmanager_secret
+---
+title: "Table: aws_secretsmanager_secret - Query AWS Secrets Manager Secret using SQL"
+description: "Allows users to query AWS Secrets Manager Secret data, including metadata, versions, rotation configuration, and more."
+---
 
-The AWS Secrets Manager Secret resource creates a secret and stores it in Secrets Manager.
+# Table: aws_secretsmanager_secret - Query AWS Secrets Manager Secret using SQL
+
+The `aws_secretsmanager_secret` table in Steampipe provides information about secrets within AWS Secrets Manager. This table allows DevOps engineers to query secret-specific details, including metadata, versions, rotation configuration, and more. Users can utilize this table to gather insights on secrets, such as secret rotation status, associated resource policies, and more. The schema outlines the various attributes of the secret, including the secret ARN, name, description, rotation rules, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_secretsmanager_secret` table, you can use the `.inspect aws_secretsmanager_secret` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the secret. This is a unique identifier that is used to join this table with other tables.
+- `name`: The friendly name of the secret. This can be used to join with other tables that also contain secret names.
+- `rotation_enabled`: Indicates whether automatic rotation is enabled for the secret. This is useful for understanding the security posture of your secrets.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_lambda_alias
+---
+title: "Table: aws_lambda_alias - Query AWS Lambda Alias using SQL"
+description: "Allows users to query AWS Lambda Alias, providing detailed information about each alias associated with AWS Lambda functions."
+---
 
-A Lambda alias is like a pointer to a specific function version.
+# Table: aws_lambda_alias - Query AWS Lambda Alias using SQL
+
+The `aws_lambda_alias` table in Steampipe provides information about alias resources within AWS Lambda. This table allows DevOps engineers to query alias-specific details, including the associated function name, function version, and alias ARN. Users can utilize this table to gather insights on aliases, such as the alias description, routing configuration, and revision ID. The schema outlines the various attributes of the Lambda alias, including the name, ARN, function version, and associated routing configuration.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_lambda_alias` table, you can use the `.inspect aws_lambda_alias` command in Steampipe.
+
+### Key columns:
+
+- `name`: This column contains the name of the alias. It can be used to join with other tables that contain Lambda alias names.
+- `function_name`: This column contains the name of the Lambda function associated with the alias. It is useful for joining with other tables that contain Lambda function names.
+- `arn`: This column contains the Amazon Resource Name (ARN) of the alias. This is a unique identifier that can be used to join with other tables that contain Lambda alias ARNs.
 
 ## Examples
 

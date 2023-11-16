@@ -1,22 +1,23 @@
 ---
-title: "Table: aws_iam_role - Query AWS IAM Roles using SQL"
-description: "Allows DevOps to query IAM role details, including permissions, trust policies & associated metadata to assess compliance and check their AWS security posture."
+title: "Table: aws_iam_role - Query AWS Identity and Access Management (IAM) Roles using SQL"
+description: "Allows users to query IAM Roles to gain insights into their permissions, trust policies, and associated metadata."
 ---
 
-# `aws_iam_role` table - Use SQL to query AWS IAM Roles
+# Table: aws_iam_role - Query AWS Identity and Access Management (IAM) Roles using SQL
 
 The `aws_iam_role` table in Steampipe provides information about IAM roles within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query role-specific details, including permissions, trust policies, and associated metadata. Users can utilize this table to gather insights on roles, such as roles with wildcard permissions, trust relationships between roles, verification of trust policies, and more. The schema outlines the various attributes of the IAM role, including the role ARN, creation date, attached policies, and associated tags.
 
 ## Table Usage Guide
 
-To gain a deeper understanding of the structure and metadata of the aws_iam_role table, you can use the ```.inspect `aws_iam_role```` command in Steampipe.
+To gain a deeper understanding of the structure and metadata of the `aws_iam_role` table, you can use the `.inspect aws_iam_role` command in Steampipe.
 
-**Key columns**:
+### Key columns:
 
-- **arn**: The Amazon Resource Name (ARN) specifying the role. Useful as a unique identifier and for joining with other AWS tables that reference roles by ARN.
-- **account_id**: The AWS Account ID in which the resource is located. Essential for multi-account queries and linking data between different AWS tables.
-- **name**: The friendly name that identifies the role. Useful for human-readable queries and cross-referencing with configurations or documentation.
+- `arn`: The Amazon Resource Name (ARN) of the role. This can be used to join with other tables that also contain IAM role ARNs.
 
+- `role_name`: The name of the role. This can be used to join with other tables that also contain IAM role names.
+
+- `create_date`: The date and time, in ISO 8601 date-time format, when the role was created. This can be useful in determining the age of the role.
 
 ## Examples
 

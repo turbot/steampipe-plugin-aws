@@ -1,10 +1,27 @@
-# Table: aws_iam_action
+---
+title: "Table: aws_iam_action - Query AWS IAM Action using SQL"
+description: "Allows users to query IAM Actions in AWS Identity and Access Management (IAM)."
+---
+
+# Table: aws_iam_action - Query AWS IAM Action using SQL
+
+The `aws_iam_action` table in Steampipe provides information about IAM actions within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query action-specific details, including the action name, description, resource types, and condition keys. Users can utilize this table to gather insights on actions, such as actions allowed for a specific resource type, actions that support specific condition keys, and more. The schema outlines the various attributes of the IAM action, including the action name, description, resource types, condition keys, and associated metadata.
 
 The list of possible IAM actions in AWS, along with their access levels and descriptions. The data is sourced from [Parliament](https://github.com/duo-labs/parliament).
 
 When using the `aws_iam_action` to search for actions in other tables:
 - You probably want to use the `policy_std` column instead of `policy`, as the format is standardized including converting action names to lower case.
 - You probably want to join on the `action` column in the `aws_iam_action` as it is also converted to lowercase.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_iam_action` table, you can use the `.inspect aws_iam_action` command in Steampipe.
+
+Key columns:
+
+- `name`: The name of the action. This is the primary key of the table and can be used to join this table with other tables.
+- `resource_types`: The types of resources that the action can apply to. This can be useful when querying for actions that are applicable to specific resource types.
+- `condition_keys`: The condition keys that the action supports. This can be useful when querying for actions that support specific condition keys.
 
 ## Examples
 

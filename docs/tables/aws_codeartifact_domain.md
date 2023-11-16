@@ -1,6 +1,21 @@
-# Table: aws_codeartifact_domain
+---
+title: "Table: aws_codeartifact_domain - Query AWS CodeArtifact Domains using SQL"
+description: "Allows users to query AWS CodeArtifact Domains for details such as domain ownership, encryption key, and policy information."
+---
 
-A domain contains one or more repositories. All assets and metadata in a domain's repositories are encrypted with one customer master key (CMK) stored in AWS Key Management Service (AWS KMS).
+# Table: aws_codeartifact_domain - Query AWS CodeArtifact Domains using SQL
+
+The `aws_codeartifact_domain` table in Steampipe provides information about domains within AWS CodeArtifact. This table allows DevOps engineers to query domain-specific details, including domain ownership, encryption key, and associated policy information. Users can utilize this table to gather insights on domains, such as who owns a domain, what encryption key is used, and what policies are applied. The schema outlines the various attributes of the AWS CodeArtifact domain, including the domain ARN, domain owner, encryption key, and associated policies.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_codeartifact_domain` table, you can use the `.inspect aws_codeartifact_domain` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the domain. It is unique to an AWS account and useful for joining with other tables that reference AWS CodeArtifact domains by name.
+- `arn`: The Amazon Resource Number (ARN) of the domain. This is a unique identifier for the domain and can be used for joining with other tables that reference AWS CodeArtifact domains by ARN.
+- `domain_owner`: The AWS account ID that owns the domain. This can be used for joining with other tables that reference AWS account IDs.
 
 ## Examples
 

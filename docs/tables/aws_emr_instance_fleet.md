@@ -1,6 +1,21 @@
-# Table: aws_emr_instance_fleet
+---
+title: "Table: aws_emr_instance_fleet - Query AWS EMR Instance Fleets using SQL"
+description: "Allows users to query AWS EMR Instance Fleets to obtain detailed information about each instance fleet, including its configuration, instance type specifications, target capacities, and associated metadata."
+---
 
-The instance fleet configuration for Amazon EMR clusters lets you select a wide variety of provisioning options for Amazon EC2 instances, and helps you develop a flexible and elastic resourcing strategy for each node type in your cluster. You can have only one instance fleet per master, core, and task node type. In an instance fleet configuration, you specify a target capacity for On-Demand Instances and Spot Instances within each fleet.
+# Table: aws_emr_instance_fleet - Query AWS EMR Instance Fleets using SQL
+
+The `aws_emr_instance_fleet` table in Steampipe provides information about instance fleets within AWS Elastic MapReduce (EMR). This table allows DevOps engineers to query instance fleet-specific details, including instance type specifications, target capacities, and associated metadata. Users can utilize this table to gather insights on instance fleets, such as the current status of instance fleets, the target and provisioned capacities of on-demand and spot instances, and the instance type configurations. The schema outlines the various attributes of the EMR instance fleet, including the fleet ID, cluster ID, name, state, instance type specifications, target capacities, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_emr_instance_fleet` table, you can use the `.inspect aws_emr_instance_fleet` command in Steampipe.
+
+### Key columns:
+
+- `fleet_id`: The unique identifier of the instance fleet. This column is important as it can be used to join this table with other tables to fetch more specific data related to each instance fleet.
+- `cluster_id`: The unique identifier of the cluster. This column is useful to join with other tables to obtain detailed information about the cluster associated with each instance fleet.
+- `instance_fleet_type`: The type of instance fleet. This column is useful to filter the data based on the type of instance fleet (TASK, CORE, or MASTER).
 
 ## Examples
 

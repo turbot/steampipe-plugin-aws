@@ -1,6 +1,21 @@
-# Table: aws_vpc_subnet
+---
+title: "Table: aws_vpc_subnet - Query AWS VPC Subnets using SQL"
+description: "Allows users to query AWS VPC Subnets and obtain detailed information about each subnet, including its configuration, associated VPC, availability zone, and CIDR block."
+---
 
-AWS VPC Subnet is a logical subdivision of an IP network. It enables dividing a network into two or more networks.
+# Table: aws_vpc_subnet - Query AWS VPC Subnets using SQL
+
+The `aws_vpc_subnet` table in Steampipe provides information about subnets within Amazon Virtual Private Cloud (VPC). This table allows DevOps engineers to query subnet-specific details, including its configuration, associated VPC, availability zone, and CIDR block. Users can utilize this table to gather insights on subnets, such as subnet size, associated route tables, network ACLs, and more. The schema outlines the various attributes of the subnet, including the subnet ID, VPC ID, state, CIDR block, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_subnet` table, you can use the `.inspect aws_vpc_subnet` command in Steampipe.
+
+### Key columns:
+
+- `subnet_id`: This is the unique identifier for the subnet. It is useful for joining with other tables that reference subnets.
+- `vpc_id`: This column contains the ID of the VPC the subnet is a part of. It can be used to join with the `aws_vpc` table to get more information about the VPC.
+- `cidr_block`: This column contains the IPv4 network range for the subnet, which can be useful for identifying overlapping subnets or planning network architecture.
 
 ## Examples
 

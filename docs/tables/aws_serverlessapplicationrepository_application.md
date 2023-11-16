@@ -1,8 +1,21 @@
-# Table: aws_serverlessapplicationrepository_application
+---
+title: "Table: aws_serverlessapplicationrepository_application - Query AWS Serverless Application Repository Applications using SQL"
+description: "Allows users to query AWS Serverless Application Repository Applications to fetch details like application name, status, author, description, labels, license URL, creation time, and more."
+---
 
-The AWS Serverless Application Repository is a managed repository for serverless applications. It enables teams, organizations, and individual developers to store and share reusable applications, and easily assemble and deploy serverless architectures in powerful new ways. Using the Serverless Application Repository, you don't need to clone, build, package, or publish source code to AWS before deploying it. Instead, you can use pre-built applications from the Serverless Application Repository in your serverless architectures, helping you and your teams reduce duplicated work, ensure organizational best practices, and get to market faster.
+# Table: aws_serverlessapplicationrepository_application - Query AWS Serverless Application Repository Applications using SQL
 
-A serverless application is a combination of Lambda functions, event sources, and other resources that work together to perform tasks.
+The `aws_serverlessapplicationrepository_application` table in Steampipe provides information about Applications within AWS Serverless Application Repository. This table allows DevOps engineers to query application-specific details, including application name, status, author, description, labels, license URL, creation time, and more. Users can utilize this table to gather insights on applications, such as applications by specific authors, applications with certain labels, applications under certain licenses, and more. The schema outlines the various attributes of the Application, including the application ID, home page URL, semantic version, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_serverlessapplicationrepository_application` table, you can use the `.inspect aws_serverlessapplicationrepository_application` command in Steampipe.
+
+### Key columns:
+
+- `application_id`: The Amazon Resource Name (ARN) of the application. It is a unique identifier and can be used to join this table with other tables.
+- `author`: The name of the author publishing the app. It can be used to filter applications by a specific author.
+- `creation_time`: The date/time the application was created. It can be used to filter applications based on their creation time.
 
 ## Examples
 

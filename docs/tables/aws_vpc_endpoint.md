@@ -1,6 +1,21 @@
-# Table: aws_vpc_endpoint
+---
+title: "Table: aws_vpc_endpoint - Query AWS VPC Endpoints using SQL"
+description: "Allows users to query AWS VPC Endpoints and retrieve information about each endpoint's configuration, type, status, and related resources such as network interfaces, DNS entries, and security groups."
+---
 
-A VPC endpoint enables private connections between your VPC and supported AWS services and VPC endpoint services powered by AWS PrivateLink.
+# Table: aws_vpc_endpoint - Query AWS VPC Endpoints using SQL
+
+The `aws_vpc_endpoint` table in Steampipe provides information about VPC Endpoints within Amazon Virtual Private Cloud (VPC). This table allows network administrators and DevOps engineers to query endpoint-specific details, including its service configuration, type (Interface or Gateway), status, and associated resources such as network interfaces, DNS entries, and security groups. Users can utilize this table to gather insights on VPC Endpoints, such as their accessibility, security configuration, and integration with other AWS services. The schema outlines the various attributes of the VPC Endpoint, including the endpoint ID, VPC ID, service name, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_endpoint` table, you can use the `.inspect aws_vpc_endpoint` command in Steampipe.
+
+### Key columns:
+
+- `vpc_endpoint_id`: This is the unique identifier for the VPC endpoint. This can be used to join this table with other tables that contain VPC endpoint information.
+- `vpc_id`: This is the ID of the VPC in which the endpoint is located. This can be used to join this table with other tables that contain VPC information.
+- `service_name`: This is the name of the AWS service that the endpoint is configured for. This can be used to join this table with other tables that contain AWS service information.
 
 ## Examples
 

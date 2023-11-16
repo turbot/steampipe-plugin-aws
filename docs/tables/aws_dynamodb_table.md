@@ -1,6 +1,21 @@
-# Table: aws_dynamodb_table
+---
+title: "Table: aws_dynamodb_table - Query AWS DynamoDB Tables using SQL"
+description: "Allows users to query AWS DynamoDB Tables and retrieve detailed information about their configuration, status, and associated attributes."
+---
 
-Amazon DynamoDB is a key-value and document database that delivers single-digit millisecond performance at any scale. It's a fully managed, multi-region, multi-active, durable database with built-in security, backup and restore, and in-memory caching for internet-scale applications.
+# Table: aws_dynamodb_table - Query AWS DynamoDB Tables using SQL
+
+The `aws_dynamodb_table` table in Steampipe provides information about tables within AWS DynamoDB. This table allows DevOps engineers to query table-specific details, including provisioned throughput, global secondary indexes, local secondary indexes, and associated metadata. Users can utilize this table to gather insights on tables, such as their read/write capacity mode, encryption status, and more. The schema outlines the various attributes of the DynamoDB table, including the table name, creation date, item count, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_dynamodb_table` table, you can use the `.inspect aws_dynamodb_table` command in Steampipe.
+
+### Key columns:
+
+- `table_name`: This is the name of the DynamoDB table. It is a critical column as it uniquely identifies each table and can be used to join with other tables that require table-specific information.
+- `arn`: This is the Amazon Resource Name (ARN) of the DynamoDB table. It is important because it provides a universally unique identifier for the table across all of AWS.
+- `status`: This column indicates the current status of the table (e.g., 'ACTIVE'). This is useful for assessing the availability and health of the table.
 
 ## Examples
 

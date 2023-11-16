@@ -1,6 +1,23 @@
-# Table: aws_iam_account_password_policy
+---
+title: "Table: aws_iam_account_password_policy - Query AWS IAM Account Password Policies using SQL"
+description: "Allows users to query AWS IAM Account Password Policies to gain insights about password policy details such as minimum password length, password expiration period, and whether it requires at least one number or symbol."
+---
 
-The password policy for the AWS account. For more information about using a password policy, go to [Managing an IAM Password Policy](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_ManagingPasswordPolicies.html).
+# Table: aws_iam_account_password_policy - Query AWS IAM Account Password Policies using SQL
+
+The `aws_iam_account_password_policy` table in Steampipe provides information about IAM account password policies within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query password policy-specific details, including minimum password length, password expiration period, and whether it requires at least one number or symbol. Users can utilize this table to gather insights on password policies, such as password complexity requirements, password rotation policies, and more. The schema outlines the various attributes of the IAM account password policy, including the allow users to change password, hard expiry, and password reuse prevention.
+
+For more information about using a password policy, go to [Managing an IAM Password Policy](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_ManagingPasswordPolicies.html).
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_iam_account_password_policy` table, you can use the `.inspect aws_iam_account_password_policy` command in Steampipe.
+
+### Key columns:
+
+- `title`: The title of the password policy. This is useful for identifying the specific password policy.
+- `minimum_password_length`: This column is important as it gives information about the minimum password length required by the policy.
+- `max_password_age`: This column is useful for understanding the password expiration period set by the policy.
 
 ## Examples
 

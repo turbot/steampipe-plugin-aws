@@ -1,6 +1,21 @@
-# Table: aws_networkfirewall_firewall
+---
+title: "Table: aws_networkfirewall_firewall - Query AWS Network Firewall using SQL"
+description: "Allows users to query AWS Network Firewalls for detailed information about each firewall's properties and settings."
+---
 
-The firewall defines the configuration settings for an AWS Network Firewall firewall. The settings include the firewall policy, the subnets in your VPC to use for the firewall endpoints, and any tags that are attached to the firewall AWS resource.
+# Table: aws_networkfirewall_firewall - Query AWS Network Firewall using SQL
+
+The `aws_networkfirewall_firewall` table in Steampipe provides information about each firewall in AWS Network Firewall. This table allows network administrators, security analysts, and DevOps engineers to query specific details about firewalls, including firewall policies, subnet mappings, and associated VPCs. Users can utilize this table to gain insights into firewall configurations, such as firewall policy ARNs, VPC IDs, subnet IDs, and more. The schema outlines the various attributes of the firewall, including the firewall ARN, firewall name, firewall policy ARN, VPC ID, subnet mapping, delete protection status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_networkfirewall_firewall` table, you can use the `.inspect aws_networkfirewall_firewall` command in Steampipe.
+
+### Key columns:
+
+- `firewall_arn`: The Amazon Resource Number (ARN) of the firewall. This is a unique identifier and can be used to join this table with other tables that contain firewall ARNs.
+- `firewall_name`: The name of the firewall. This can be useful for joining with other tables that reference firewalls by name.
+- `vpc_id`: The ID of the VPC where the firewall is deployed. This column can be used to join this table with other tables that contain VPC IDs, providing context about the network in which the firewall operates.
 
 ## Examples
 
@@ -30,7 +45,7 @@ select
 from
   aws_networkfirewall_firewall
 where 
-  encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
+  encryption_configuration ->> 'Type' = `aws_OWNED_KMS_KEY';
 ```
 
 ### List firewalls having deletion protection disabled
@@ -108,6 +123,6 @@ from
   aws_kms_key k
 where
   k.id = encryption_configuration ->> 'KeyId'
-  and not f.encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
+  and not f.encryption_configuration ->> 'Type' = `aws_OWNED_KMS_KEY';
 ```
 

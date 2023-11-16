@@ -1,6 +1,21 @@
-# Table: aws_inspector_exclusion
+---
+title: "Table: aws_inspector_exclusion - Query AWS Inspector Exclusions using SQL"
+description: "Allows users to query AWS Inspector Exclusions and retrieve data about AWS Inspector Exclusions, including their ARNs, descriptions, and recommendations."
+---
 
-The AWS Inspector Exclusions are an output of assessment runs. Exclusions show which of your security checks can't be completed and how to resolve the issues.
+# Table: aws_inspector_exclusion - Query AWS Inspector Exclusions using SQL
+
+The `aws_inspector_exclusion` table in Steampipe provides information about exclusions within AWS Inspector. This table allows DevOps engineers to query exclusion-specific details, including the ARN, description, and recommendation. Users can utilize this table to gather insights on exclusions, such as their status, the reasons behind their exclusions, and more. The schema outlines the various attributes of the AWS Inspector exclusion, including the ARN, description, recommendation, and associated metadata.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_inspector_exclusion` table, you can use the `.inspect aws_inspector_exclusion` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The ARN of the exclusion. This is a unique identifier for the exclusion and can be used to join this table with other tables.
+- `description`: The description of the exclusion. This provides context about the exclusion and can be useful when analyzing the data.
+- `recommendation`: The recommendation for the exclusion. This provides additional information about the exclusion and can be used to understand the reasons behind the exclusion.
 
 ## Examples
 

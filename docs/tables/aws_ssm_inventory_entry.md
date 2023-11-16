@@ -1,6 +1,21 @@
-# Table: aws_ssm_inventory_entry
+---
+title: "Table: aws_ssm_inventory_entry - Query AWS Systems Manager Inventory Entry using SQL"
+description: "Allows users to query AWS Systems Manager Inventory Entry to fetch information about the inventory entries of managed instances. The table provides details such as instance ID, type name, schema version, capture time, and inventory data."
+---
 
-AWS SSM (Systems Manager) Inventory Entries refer to the collected metadata information about the managed instances in your AWS environment. It includes details such as installed software, configuration settings, and other attributes of the instances. The inventory entries provide a comprehensive view of the software and configuration across your fleet of managed instances, allowing you to effectively manage and track the resources in your AWS infrastructure.
+# Table: aws_ssm_inventory_entry - Query AWS Systems Manager Inventory Entry using SQL
+
+The `aws_ssm_inventory_entry` table in Steampipe provides information about the inventory entries of managed instances within AWS Systems Manager. This table allows DevOps engineers to query inventory-specific details, including the instance ID, type name, schema version, capture time, and the actual inventory data. Users can utilize this table to gather insights on inventory entries, such as the software installed on instances, network configurations, Windows updates status, and more. The schema outlines the various attributes of the inventory entry, including the instance ID, type name, schema version, capture time, and inventory data.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ssm_inventory_entry` table, you can use the `.inspect aws_ssm_inventory_entry` command in Steampipe.
+
+### Key columns:
+
+- `instance_id`: This is the ID of the managed instance. It is useful for linking inventory entries to their respective instances.
+- `type_name`: This represents the type of inventory item. It helps in categorizing and filtering inventory entries.
+- `capture_time`: This is the timestamp when the inventory information was collected. It is useful for tracking the inventory status over time.
 
 ## Examples
 

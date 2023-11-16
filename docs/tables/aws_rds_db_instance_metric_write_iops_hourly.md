@@ -1,7 +1,23 @@
-# Table: aws_rds_db_instance_metric_write_iops_hourly
+---
+title: "Table: aws_rds_db_instance_metric_write_iops_hourly - Query AWS RDS DBInstance Metrics using SQL"
+description: "Allows users to query AWS RDS DBInstance write IOPS metrics on an hourly basis."
+---
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_rds_db_instance_metric_write_iops_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
+# Table: aws_rds_db_instance_metric_write_iops_hourly - Query AWS RDS DBInstance Metrics using SQL
 
+The `aws_rds_db_instance_metric_write_iops_hourly` table in Steampipe provides information about the Input/Output operations per second (IOPS) for write operations on an AWS RDS DBInstance, aggregated on an hourly basis. This table allows DevOps engineers, database administrators, and other technical professionals to query DBInstance-specific details, including the number of write IOPS, the timestamp of the data point, and the statistical value. Users can utilize this table to gather insights on the write performance of their DBInstances, such as identifying periods of high write activity, monitoring the impact of performance tuning measures, and more. The schema outlines the various attributes of the DBInstance metric, including the DBInstance identifier, the period, the unit, and the timestamp.
+
+The `aws_rds_db_instance_metric_write_iops_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the aws_rds_db_instance_metric_write_iops_hourly table, you can use the `.inspect aws_rds_db_instance_metric_write_iops_hourly` command in Steampipe.
+
+Key columns:
+
+- `db_instance_identifier`: The identifier of the DBInstance. This can be used to join this table with other tables that also include DBInstance identifiers.
+- `timestamp`: The timestamp for the data point. This is useful for tracking changes over time and identifying periods of high write activity.
+- `statistic`: The statistical value for the data point. This can be used to analyze the write performance of the DBInstance.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_amplify_app
+---
+title: "Table: aws_amplify_app - Query AWS Amplify Apps using SQL"
+description: "Allows users to query AWS Amplify Apps to retrieve detailed information about each application, including its name, ARN, creation date, default domain, and more."
+---
 
-AWS Amplify is a full-suite package of tools and services specifically designed to help developers create and launch apps with ease. The Apps represent the different branches of a repository for building, deploying, and hosting an Amplify app.
+# Table: aws_amplify_app - Query AWS Amplify Apps using SQL
+
+The `aws_amplify_app` table in Steampipe provides information about apps within AWS Amplify. This table allows DevOps engineers to query app-specific details, including the name, ARN, creation date, last update date, default domain, and associated metadata. Users can utilize this table to gather insights on Amplify Apps, such as the apps' status, platform, repository, and more. The schema outlines the various attributes of the Amplify App, including the app ID, app ARN, platform, repository, production branch, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_amplify_app` table, you can use the `.inspect aws_amplify_app` command in Steampipe.
+
+### Key columns:
+
+- `app_id`: The unique identifier for an Amplify app. This can be used to join this table with other tables that reference Amplify apps.
+- `app_arn`: The Amazon Resource Name (ARN) of the Amplify app. This column can be used to join with other tables when ARNs are available.
+- `name`: The name of the Amplify app. This column is useful for queries that require the app's name.
 
 ## Examples
 

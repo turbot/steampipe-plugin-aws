@@ -1,6 +1,21 @@
-# Table: aws_glue_dev_endpoint
+---
+title: "Table: aws_glue_dev_endpoint - Query AWS Glue Development Endpoints using SQL"
+description: "Allows users to query AWS Glue Development Endpoints to retrieve detailed information about individual endpoints, their configurations, and related metadata."
+---
 
-A development endpoint is an environment that you can use to develop and test your AWS Glue scripts. You can use AWS Glue to create, edit, and delete development endpoints.
+# Table: aws_glue_dev_endpoint - Query AWS Glue Development Endpoints using SQL
+
+The `aws_glue_dev_endpoint` table in Steampipe provides comprehensive information about Development Endpoints within AWS Glue. This table allows developers and data engineers to query endpoint-specific details, including the endpoint status, security configurations, associated subnet ID, VPC ID, and much more. Users can utilize this table to analyze and manage their Glue Development Endpoints, such as identifying endpoints with specific security configurations, verifying endpoint statuses, and understanding the network configurations of the endpoints. The schema outlines the various attributes of the Glue Development Endpoint, including the endpoint name, role ARN, public key, creation time, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_glue_dev_endpoint` table, you can use the `.inspect aws_glue_dev_endpoint` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the development endpoint. This is the unique identifier for the endpoint and can be used to join this table with other tables that reference Glue Development Endpoints.
+- `role_arn`: The ARN of the IAM role used in the creation of the development endpoint. This can be useful for joining with IAM tables to gather more information about the permissions and policies associated with the endpoint.
+- `vpc_id`: The ID of the VPC associated with the development endpoint. This can be used to join with VPC tables to understand the network configurations and security settings of the VPC where the endpoint resides.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_iam_saml_provider
+---
+title: "Table: aws_iam_saml_provider - Query AWS IAM SAML Providers using SQL"
+description: "Allows users to query AWS IAM SAML Providers and retrieve detailed information about each SAML provider within AWS Identity and Access Management (IAM)."
+---
 
-An IAM SAML 2.0 identity provider is an entity in IAM that describes an external identity provider (IdP) service that supports the SAML 2.0 (Security Assertion Markup Language 2.0) standard. You use an IAM identity provider when you want to establish trust between a SAML-compatible IdP such as Shibboleth or Active Directory Federation Services and AWS, so that users in your organization can access AWS resources. IAM SAML identity providers are used as principals in an IAM trust policy.
+# Table: aws_iam_saml_provider - Query AWS IAM SAML Providers using SQL
+
+The `aws_iam_saml_provider` table in Steampipe provides information about SAML providers within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query SAML provider-specific details, including the provider's ARN, creation date, validity period, and the SAML metadata document. Users can utilize this table to gather insights on SAML providers, such as provider validity, associated metadata, and more. The schema outlines the various attributes of the SAML provider, including the provider ARN, creation date, and validity period.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_iam_saml_provider` table, you can use the `.inspect aws_iam_saml_provider` command in Steampipe.
+
+Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the SAML provider. This can be used to join with other tables where a SAML provider ARN is referenced.
+- `create_date`: The date and time when the SAML provider was created. This can be useful for tracking the age of the SAML provider.
+- `valid_until`: The expiration date and time for the SAML provider. This can be used for monitoring and alerting on upcoming SAML provider expirations.
 
 ## Examples
 

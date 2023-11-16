@@ -1,6 +1,21 @@
-# Table: aws_ec2_network_load_balancer
+---
+title: "Table: aws_ec2_network_load_balancer - Query AWS EC2 Network Load Balancer using SQL"
+description: "Allows users to query AWS EC2 Network Load Balancer data including configuration, status, and other related information."
+---
 
-AWS Network Load Balancer (NLB) distributes end user traffic across multiple cloud resources to ensure low latency and high throughput for applications. When a target becomes slow or unavailable, the Network Load Balancer routes traffic to another target.
+# Table: aws_ec2_network_load_balancer - Query AWS EC2 Network Load Balancer using SQL
+
+The `aws_ec2_network_load_balancer` table in Steampipe provides information about Network Load Balancers within AWS Elastic Compute Cloud (EC2). This table allows cloud administrators and DevOps engineers to query load balancer-specific details, including type, state, availability zones, and associated metadata. Users can utilize this table to gather insights on load balancers, such as their current status, associated subnets, and more. The schema outlines the various attributes of the Network Load Balancer, including the load balancer name, ARN, creation date, DNS name, scheme, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_network_load_balancer` table, you can use the `.inspect aws_ec2_network_load_balancer` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the load balancer. This can be used to join with other tables that contain load balancer-specific information.
+- `arn`: The Amazon Resource Name (ARN) of the load balancer. This unique identifier can be used to join with other tables that reference Network Load Balancers.
+- `state_code`: The current state of the load balancer. This is useful for filtering load balancers based on their operational status.
 
 ## Examples
 

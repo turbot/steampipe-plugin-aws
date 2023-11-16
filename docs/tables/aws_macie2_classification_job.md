@@ -1,6 +1,21 @@
-# Table: aws_macie2_classification_job
+---
+title: "Table: aws_macie2_classification_job - Query AWS Macie2 Classification Jobs using SQL"
+description: "Allows users to query AWS Macie2 Classification Jobs and retrieve detailed information about each job's settings, status, and results."
+---
 
-A classification job, also referred to as a sensitive data discovery job, is a job that analyzes objects in Amazon Simple Storage Service (Amazon S3) buckets to determine whether the objects contain sensitive data. Each job uses managed data identifiers that Amazon Macie provides and, optionally, custom data identifiers that you create.
+# Table: aws_macie2_classification_job - Query AWS Macie2 Classification Jobs using SQL
+
+The `aws_macie2_classification_job` table in Steampipe provides information about classification jobs within AWS Macie2. This table allows DevOps engineers to query job-specific details, including job type, job status, and job creation and completion times. Users can utilize this table to gather insights on jobs, such as jobs that are currently running, jobs that have completed, and the results of those jobs. The schema outlines the various attributes of the Macie2 classification job, including the job ID, job ARN, S3 bucket definition, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_macie2_classification_job` table, you can use the `.inspect aws_macie2_classification_job` command in Steampipe.
+
+### Key columns:
+
+- `job_id`: The unique identifier for the classification job. This column is useful for joining with other tables that reference Macie2 classification jobs.
+- `job_arn`: The Amazon Resource Name (ARN) of the classification job. This column is useful for linking with other AWS resources that require the job's ARN.
+- `bucket_definitions`: The S3 buckets that the job is configured to analyze. This column is useful for correlating results with specific S3 buckets.
 
 ## Examples
 

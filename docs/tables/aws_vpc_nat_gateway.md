@@ -1,6 +1,21 @@
-# Table: aws_vpc_nat_gateway
+---
+title: "Table: aws_vpc_nat_gateway - Query AWS VPC NAT Gateways using SQL"
+description: "Allows users to query NAT Gateways within Amazon Virtual Private Cloud (VPC). The `aws_vpc_nat_gateway` table in Steampipe provides information about each NAT Gateway within a VPC. This table can be used to gather insights on NAT Gateways, such as their state, subnet association, and associated Elastic IP addresses."
+---
 
-NAT Gateway is a highly available AWS managed service that makes it easy to connect to the Internet from instances within a private subnet in an Amazon Virtual Private Cloud (Amazon VPC).
+# Table: aws_vpc_nat_gateway - Query AWS VPC NAT Gateways using SQL
+
+The `aws_vpc_nat_gateway` table in Steampipe provides information about each NAT Gateway within Amazon Virtual Private Cloud (VPC). This table allows DevOps engineers to query NAT Gateway-specific details, including its current state, the subnet it is associated with, and any associated Elastic IP addresses. Users can utilize this table to verify the configuration and status of NAT Gateways, ensuring they are properly connected and functioning within their VPC. The schema outlines the various attributes of the NAT Gateway, including the NAT Gateway ID, creation time, state, subnet ID, and associated IP addresses.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_nat_gateway` table, you can use the `.inspect aws_vpc_nat_gateway` command in Steampipe.
+
+### Key columns:
+
+- `nat_gateway_id`: The ID of the NAT Gateway. This can be used to join with other tables that reference NAT Gateways by their ID.
+- `subnet_id`: The ID of the subnet in which the NAT Gateway is located. This is useful for joining with other tables that reference subnets by their ID.
+- `vpc_id`: The ID of the VPC in which the NAT Gateway is located. This is useful for joining with other tables that reference VPCs by their ID.
 
 ## Examples
 

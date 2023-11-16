@@ -1,6 +1,21 @@
-# Table: aws_dynamodb_global_table
+---
+title: "Table: aws_dynamodb_global_table - Query AWS DynamoDB Global Tables using SQL"
+description: "Allows users to query AWS DynamoDB Global Tables to gather information about the global tables, including the table name, creation time, status, and other related details."
+---
 
-Global tables eliminate the difficult work of replicating data between regions and resolving update conflicts, enabling you to focus on application's business logic. A global table consists of multiple replica tables (one per region that you choose) that DynamoDB treats as a single unit.
+# Table: aws_dynamodb_global_table - Query AWS DynamoDB Global Tables using SQL
+
+The `aws_dynamodb_global_table` table in Steampipe provides information about Global Tables within AWS DynamoDB. This table allows DevOps engineers to query global table-specific details, including the table name, creation time, status, and other related details. Users can utilize this table to gather insights on global tables, such as the tables' replication status, their regions, and more. The schema outlines the various attributes of the DynamoDB Global Table, including the table ARN, creation time, status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_dynamodb_global_table` table, you can use the `.inspect aws_dynamodb_global_table` command in Steampipe.
+
+### Key columns:
+
+- `name`: This is the name of the DynamoDB Global Table. It is a unique identifier and can be used to join this table with other tables that contain DynamoDB Global Table names.
+- `arn`: This is the Amazon Resource Name (ARN) of the DynamoDB Global Table. It can be used to join this table with other tables that contain DynamoDB Global Table ARNs.
+- `region`: This is the AWS region of the DynamoDB Global Table. It can be used to join this table with other tables that contain AWS region information.
 
 ## Examples
 

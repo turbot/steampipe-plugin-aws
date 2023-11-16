@@ -1,8 +1,21 @@
-# Table: aws_ssm_document
+---
+title: "Table: aws_ssm_document - Query AWS SSM Documents using SQL"
+description: "Allows users to query AWS SSM Documents and retrieve detailed information about each document, including its name, version, owner, status, and permissions, among others."
+---
 
-AWS Systems Manager Document defines the actions that SSM performs on managed
-instances. SSM provides more than 100 pre-configured documents that used by
-specifying parameters at runtime.
+# Table: aws_ssm_document - Query AWS SSM Documents using SQL
+
+The `aws_ssm_document` table in Steampipe provides information about SSM documents within AWS Systems Manager (SSM). This table allows DevOps engineers to query document-specific details, including the document name, version, owner, status, and permissions, among others. Users can utilize this table to gather insights on SSM documents, such as their current status, the document format, and the permissions associated with each document. The schema outlines the various attributes of the SSM document, including the document name, document version, owner, permissions, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ssm_document` table, you can use the `.inspect aws_ssm_document` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the SSM document. This can be used to join with other tables that contain information about SSM documents.
+- `document_version`: The version of the SSM document. This is useful for tracking the various versions of a document.
+- `owner`: The AWS user who owns the SSM document. This can be used to join with other tables that contain information about AWS users.
 
 ## Examples
 

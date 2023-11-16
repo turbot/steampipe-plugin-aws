@@ -1,10 +1,21 @@
-# Table: aws_backup_vault
+---
+title: "Table: aws_backup_vault - Query AWS Backup Vaults using SQL"
+description: "Allows users to query AWS Backup Vaults, providing detailed information about each backup vault, including its name, ARN, recovery points, and more."
+---
 
-AWS Backup vault is a container that you organize your backups in. You can use backup vaults to set the AWS Key Management Service (AWS KMS) encryption key that is used to encrypt backups in the backup vault and to control access to the backups in the backup vault.
+# Table: aws_backup_vault - Query AWS Backup Vaults using SQL
 
-If you require different encryption keys or access policies for different groups of backups, you can optionally create multiple backup vaults. Otherwise, you can have all your backups organized in the default backup vault.
+The `aws_backup_vault` table in Steampipe provides information about backup vaults within AWS Backup. This table allows DevOps engineers to query vault-specific details, including the vault name, ARN, number of recovery points, and associated metadata. Users can utilize this table to gather insights on backup vaults, such as the number of recovery points for each vault, the creation date of each vault, and more. The schema outlines the various attributes of the backup vault, including the vault name, ARN, creation date, last resource backup time, and associated tags.
 
-**Note:** If you run a query to get information on a particular vault, e.g., `select * from aws_backup_vault where name = 'myvault'`, and you don't have access to that vault, no rows will be returned instead of an `AccessDeniedException`.
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_backup_vault` table, you can use the `.inspect aws_backup_vault` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the backup vault. This can be used to join with other tables that contain backup vault names.
+- `arn`: The Amazon Resource Name (ARN) of the backup vault. This can be used to join with other tables that contain backup vault ARNs.
+- `recovery_points`: The number of recovery points that are stored in a backup vault. This can be useful for understanding the backup history of a vault.
 
 ## Examples
 

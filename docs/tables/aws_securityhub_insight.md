@@ -1,6 +1,21 @@
-# Table: aws_securityhub_insight
+---
+title: "Table: aws_securityhub_insight - Query AWS Security Hub Insights using SQL"
+description: "Allows users to query AWS Security Hub Insights to retrieve information about the insights in AWS Security Hub. This includes details such as insight ARN, name, filters, group by attributes, and more."
+---
 
-An AWS Security Hub insight is a collection of related findings. It identifies a security area that requires attention and intervention. For example, an insight might point out EC2 instances that are the subject of findings that detect poor security practices. An insight brings together findings from across finding providers.
+# Table: aws_securityhub_insight - Query AWS Security Hub Insights using SQL
+
+The `aws_securityhub_insight` table in Steampipe provides information about insights within AWS Security Hub. This table allows security analysts to query insight-specific details, including the insight ARN, name, filters, and group by attributes. Users can utilize this table to gather insights on the insights, such as insights with specific filters, the grouping of attributes, and more. The schema outlines the various attributes of the insight, including the insight ARN, name, filters, group by attributes, and associated metadata.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_securityhub_insight` table, you can use the `.inspect aws_securityhub_insight` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The ARN of the insight. This is a unique identifier and can be used to join this table with other tables.
+- `name`: The name of the insight. It can be useful to filter insights based on their names.
+- `filters`: The filters of the insight. It can be used to understand the criteria used by the insight to identify findings.
 
 ## Examples
 

@@ -1,8 +1,21 @@
-# Table: aws_route53_record
+---
+title: "Table: aws_route53_record - Query AWS Route 53 Record using SQL"
+description: "Allows users to query Route 53 DNS records within Amazon Web Services. The `aws_route53_record` table in Steampipe provides information about DNS records within AWS Route 53. This table allows DevOps engineers to query record-specific details, including type, name, TTL, and associated metadata. Users can utilize this table to gather insights on DNS records, such as record types, verification of TTL values, and more."
+---
 
-A Route 53 record contains authoritative DNS information for a specified DNS name. DNS records are most commonly used to map a name to an IP Address
+# Table: aws_route53_record - Query AWS Route 53 Record using SQL
 
-We recommend specifying the `name` and `type` columns when querying zones with a large number of records to reduce the query time.
+The `aws_route53_record` table in Steampipe provides information about DNS records within AWS Route 53. This table allows DevOps engineers to query record-specific details, including type, name, TTL (Time to Live), and associated metadata. Users can utilize this table to gather insights on DNS records, such as record types, verification of TTL values, and more. The schema outlines the various attributes of the DNS record, including the record name, type, set identifier, TTL, and associated resource records.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_route53_record` table, you can use the `.inspect aws_route53_record` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the DNS record. This column is useful for joining this table with others that contain DNS record names.
+- `type`: The type of the DNS record (e.g., A, AAAA, CNAME, MX, NS, PTR, SOA, SPF, SRV, TXT). This column is important as it allows users to filter or join with other tables based on the DNS record type.
+- `ttl`: The Time to Live (TTL) of the DNS record. This column is important as it allows users to filter or join with other tables based on the TTL value.
 
 ## Examples
 

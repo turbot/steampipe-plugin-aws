@@ -1,6 +1,21 @@
-# Table: aws_identitystore_group
+---
+title: "Table: aws_identitystore_group - Query AWS Identity Store Groups using SQL"
+description: "Allows users to query AWS Identity Store Groups to obtain information about the identity and attributes of groups in AWS."
+---
 
-Contains a specified group’s metadata and attributes. Queries to this table must include the `identity_store_id` and either the `name` or `id` columns.
+# Table: aws_identitystore_group - Query AWS Identity Store Groups using SQL
+
+The `aws_identitystore_group` table in Steampipe provides information about groups within AWS Identity Store. This table allows DevOps engineers to query group-specific details, including group ID, group name, and associated metadata. Users can utilize this table to gather insights on groups, such as group names, verification of group identities, and more. The schema outlines the various attributes of the AWS Identity Store group, including the group ID, group name, and display name.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_identitystore_group` table, you can use the `.inspect aws_identitystore_group` command in Steampipe.
+
+### Key columns:
+
+- `group_id`: This is the unique identifier for the group. It can be used to join this table with other tables that require a group ID for querying specific group information.
+- `group_name`: This is the name of the group. It is useful for filtering queries based on the group name.
+- `display_name`: This is the display name of the group. It can be used for user-friendly querying and reporting.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_vpc_route_table
+---
+title: "Table: aws_vpc_route_table - Query AWS VPC Route Tables using SQL"
+description: "Allows users to query AWS VPC Route Tables and obtain detailed information about each route table, including its associations, routes, and tags."
+---
 
-A route table contains a set of rules, called routes, that are used to determine where network traffic from your subnet or gateway is directed.
+# Table: aws_vpc_route_table - Query AWS VPC Route Tables using SQL
+
+The `aws_vpc_route_table` table in Steampipe provides information about VPC Route Tables within Amazon Virtual Private Cloud (VPC). This table allows DevOps engineers to query route table-specific details, including its associations, routes, and tags. Users can utilize this table to gather insights on route tables, such as the subnets associated with each route table, the destinations and targets of each route, and the tags associated with each route table. The schema outlines the various attributes of the VPC Route Table, including the route table ID, VPC ID, owner ID, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_route_table` table, you can use the `.inspect aws_vpc_route_table` command in Steampipe.
+
+### Key columns:
+
+- `route_table_id`: The ID of the route table. This column is a unique identifier and can be used to join this table with other tables.
+- `vpc_id`: The ID of the VPC associated with the route table. This column is useful for querying all route tables within a specific VPC.
+- `owner_id`: The AWS account ID of the owner of the route table. This column is useful for querying all route tables owned by a specific AWS account.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_api_gateway_domain_name
+---
+title: "Table: aws_api_gateway_domain_name - Query AWS API Gateway Domain Names using SQL"
+description: "Allows users to query AWS API Gateway Domain Names and retrieve details about each domain's configuration, certificate, and associated API."
+---
 
-In AWS API Gateway, Domain Names allow you to customize the URL for your API endpoints. Instead of using the default API Gateway domain, you can associate your own custom domain name with your API. This provides a more branded and user-friendly URL for your API consumers.
+# Table: aws_api_gateway_domain_name - Query AWS API Gateway Domain Names using SQL
+
+The `aws_api_gateway_domain_name` table in Steampipe provides information about domain names within AWS API Gateway. This table allows DevOps engineers to query domain-specific details, including the domain name, certificate details, and the associated API. Users can utilize this table to gather insights on domains, such as the domain's endpoint configuration, the type of certificate used, and the API it's associated with. The schema outlines the various attributes of the domain name, including the domain name, certificate upload date, certificate ARN, and endpoint configuration.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_api_gateway_domain_name` table, you can use the `.inspect aws_api_gateway_domain_name` command in Steampipe.
+
+### Key columns:
+
+- `domain_name`: The name of the domain. This can be used to join with other tables that contain information about the domain.
+- `certificate_arn`: The Amazon Resource Name (ARN) of an AWS-managed certificate. This can be used to join with other tables that contain certificate information.
+- `api_mapping_selection_expression`: The version of the API Gateway REST API that the stage should point to. This can be used to join with other tables that contain API version information.
 
 ## Examples
 

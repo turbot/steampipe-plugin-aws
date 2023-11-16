@@ -1,6 +1,21 @@
-# Table: aws_rds_db_option_group
+---
+title: "Table: aws_rds_db_option_group - Query AWS RDS DB Option Groups using SQL"
+description: "Allows users to query AWS RDS DB Option Groups and provides information about the option groups within Amazon Relational Database Service (RDS)."
+---
 
-An option group can specify features, called options, that are available for a particular Amazon RDS DB instance. Options can have settings that specify how the option works. When a DB instance associated with an option group, the specified options and option settings are enabled for that DB instance.
+# Table: aws_rds_db_option_group - Query AWS RDS DB Option Groups using SQL
+
+The `aws_rds_db_option_group` table in Steampipe provides information about the option groups within Amazon Relational Database Service (RDS). This table allows database administrators and developers to query option group-specific details, including the options and parameters associated with the group, the engine name, and the major engine version. Users can utilize this table to gather insights on option groups, such as identifying the configurations of specific databases, verifying the parameters of option groups, and more. The schema outlines the various attributes of the RDS DB Option Group, including the name, ARN, description, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_rds_db_option_group` table, you can use the `.inspect aws_rds_db_option_group` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the option group. This is the primary identifier of the option group and can be used to join with other tables where option group name is required.
+- `arn`: The Amazon Resource Name (ARN) of the option group. ARNs are unique identifiers for AWS resources and can be used for more complex queries involving multiple AWS services.
+- `engine_name`: The name of the engine that this option group can be applied to. This can be useful for filtering option groups based on specific database engines.
 
 ## Examples
 

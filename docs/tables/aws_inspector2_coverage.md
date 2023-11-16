@@ -1,6 +1,21 @@
-# Table: aws_inspector2_coverage
+---
+title: "Table: aws_inspector2_coverage - Query AWS Inspector Coverage using SQL"
+description: "Allows users to query AWS Inspector Coverage data that provides details on the assessment targets and the assessment templates that are associated with the AWS Inspector service."
+---
 
-AWS Inspector coverage refers to the extent to which the AWS resources in your environment are assessed for security vulnerabilities and compliance with security best practices by the AWS Inspector service.
+# Table: aws_inspector2_coverage - Query AWS Inspector Coverage using SQL
+
+The `aws_inspector2_coverage` table in Steampipe provides information about the coverage of AWS Inspector within your AWS account. This table allows DevOps engineers to query details about the assessment targets and the assessment templates that are associated with the AWS Inspector service. Users can utilize this table to gather insights on the coverage of the AWS Inspector service, such as the number of assessment targets and templates, the ARN of the assessment targets and templates, and more. The schema outlines the various attributes of the AWS Inspector Coverage, including the ARN, name, duration, rules package ARNs, and user attributes for the assessment target and template.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_inspector2_coverage` table, you can use the `.inspect aws_inspector2_coverage` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The ARN of the assessment target. This is a unique identifier that can be used to join this table with other AWS Inspector tables.
+- `name`: The name of the assessment target. This can be useful for filtering results based on specific assessment targets.
+- `duration`: The duration of the assessment template. This can be useful for understanding the length of time the assessment templates run for.
 
 ## Examples
 
@@ -45,7 +60,7 @@ select
 from
   aws_inspector2_coverage
 where
-  resource_type = 'AWS_EC2_INSTANCE';
+  resource_type = `aws_EC2_INSTANCE';
 ```
 
 ### List coverages by EC2 instance tags
@@ -112,7 +127,7 @@ from
 where
   r.repository_name = c.ecr_repository_name
 and
-  c.resource_type = 'AWS_ECR_REPOSITORY';
+  c.resource_type = `aws_ECR_REPOSITORY';
 ```
 
 ### Get lambda function details of each coverage
@@ -152,5 +167,5 @@ from
 where
   i.instance_id = c.resource_id
 and
-  c.resource_type = 'AWS_EC2_INSTANCE';
+  c.resource_type = `aws_EC2_INSTANCE';
 ```

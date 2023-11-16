@@ -1,9 +1,23 @@
-# Table: aws_ecr_image_scan_finding
+---
+title: "Table: aws_ecr_image_scan_finding - Query Amazon Elastic Container Registry (ECR) Image Scan Findings using SQL"
+description: "Allows users to query Amazon ECR Image Scan Findings to retrieve detailed information about image scan findings, including attributes such as the severity of the finding, description, and package name where the vulnerability was found."
+---
 
-Amazon Elastic Container Registry (Amazon ECR) stores Docker images and allows you to scan them on push, or periodically.
-The corresponding CVE findings are available in this table for an image tag, in a repository.
+# Table: aws_ecr_image_scan_finding - Query Amazon Elastic Container Registry (ECR) Image Scan Findings using SQL
+
+The `aws_ecr_image_scan_finding` table in Steampipe provides information about Image Scan Findings within Amazon Elastic Container Registry (ECR). This table allows DevOps engineers to query specific details about image scan findings, including attributes such as the severity of the finding, description, and package name where the vulnerability was found. Users can utilize this table to gather insights on image scan findings, such as identifying high-risk vulnerabilities, verifying package vulnerabilities, and more. The schema outlines the various attributes of the Image Scan Finding, including the repository name, image digest, finding severity, and associated metadata.
 
 **Note**: Users or roles that have the AWS managed `ReadOnlyAccess` policy attached also need to attach the AWS managed `AmazonInspector2ReadOnlyAccess` policy to query this table.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ecr_image_scan_finding` table, you can use the `.inspect aws_ecr_image_scan_finding` command in Steampipe.
+
+### Key columns:
+
+- `repository_name`: This column is useful as it contains the name of the ECR repository. This can be used to join this table with other tables that contain repository-specific information.
+- `image_digest`: This column is important because it contains the image digest for the scanned image. This can be used to join this table with other tables that contain image-specific information.
+- `finding_severity`: This column is useful as it contains the severity of the finding. This can be used to filter or sort the findings based on their severity.
 
 ## Examples
 

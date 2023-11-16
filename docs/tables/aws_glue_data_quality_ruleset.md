@@ -1,6 +1,21 @@
-# Table: aws_glue_data_quality_ruleset
+---
+title: "Table: aws_glue_data_quality_ruleset - Query AWS Glue Data Quality Ruleset using SQL"
+description: "Allows users to query AWS Glue Data Quality Ruleset to obtain information about the rulesets used for data quality checks in AWS Glue."
+---
 
-AWS Glue Data Quality automatically computes statistics for your datasets. It uses these statistics to recommend a set of quality rules that checks for freshness, accuracy, and integrity. You can adjust recommended rules, discard rules, or add new rules as needed.
+# Table: aws_glue_data_quality_ruleset - Query AWS Glue Data Quality Ruleset using SQL
+
+The `aws_glue_data_quality_ruleset` table in Steampipe provides information about the rulesets used for data quality checks in AWS Glue. This table allows data engineers and developers to query ruleset-specific details, including the ruleset name, status, related applications, and associated metadata. Users can utilize this table to gather insights on rulesets, such as ruleset usage, associated applications, status of rulesets, and more. The schema outlines the various attributes of the data quality ruleset, including the ruleset ARN, creation date, last modified date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_glue_data_quality_ruleset` table, you can use the `.inspect aws_glue_data_quality_ruleset` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the ruleset. This can be used to join this table with others that also contain ruleset names.
+- `arn`: The Amazon Resource Number (ARN) of the ruleset. This is a unique identifier that can be used to join this table with others that contain ARN information.
+- `status`: The status of the ruleset. This can be useful for joining this table with others to get a comprehensive view of active and inactive rulesets.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_eks_cluster
+---
+title: "Table: aws_eks_cluster - Query AWS Elastic Kubernetes Service Cluster using SQL"
+description: "Allows users to query AWS Elastic Kubernetes Service Cluster data, including cluster configurations, statuses, and associated metadata."
+---
 
-Amazon Elastic Kubernetes Service (EKS) is a managed Kubernetes service that makes it easy to run Kubernetes on AWS and on-premises.
+# Table: aws_eks_cluster - Query AWS Elastic Kubernetes Service Cluster using SQL
+
+The `aws_eks_cluster` table in Steampipe provides information about EKS clusters within AWS Elastic Kubernetes Service (EKS). This table allows DevOps engineers to query cluster-specific details, including cluster name, status, endpoint, and associated metadata. Users can utilize this table to gather insights on clusters, such as their current status, role ARN, VPC configurations, and more. The schema outlines the various attributes of the EKS cluster, including the cluster ARN, creation date, attached security groups, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_eks_cluster` table, you can use the `.inspect aws_eks_cluster` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the EKS cluster. This column can be used to join this table with other tables that reference the EKS cluster by name.
+- `arn`: The Amazon Resource Number (ARN) of the EKS cluster. This column is useful for joining with other tables that reference the EKS cluster by ARN.
+- `status`: The status of the EKS cluster. This column is important for understanding the current state of the cluster and can be used to filter or join with other tables based on cluster status.
 
 ## Examples
 

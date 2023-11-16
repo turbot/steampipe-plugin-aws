@@ -1,6 +1,21 @@
-# Table: aws_codebuild_project
+---
+title: "Table: aws_codebuild_build - Query AWS CodeBuild Build using SQL"
+description: "Allows users to query AWS CodeBuild Build to retrieve information about AWS CodeBuild projects' builds."
+---
 
-AWS CodeBuild is a fully managed build service in the cloud. CodeBuild compiles your source code, runs unit tests, and produces artifacts that are ready to deploy. CodeBuild eliminates the need to provision, manage, and scale your own build servers. It provides prepackaged build environments for the most popular programming languages and build tools, such as Apache Maven, Gradle, and more.
+# Table: aws_codebuild_build - Query AWS CodeBuild Build using SQL
+
+The `aws_codebuild_build` table in Steampipe provides information about builds in AWS CodeBuild. This table allows DevOps engineers to query build-specific details, including build statuses, source details, build environment, and associated metadata. Users can utilize this table to gather insights on builds, such as build status, source version, the duration of the build, and more. The schema outlines the various attributes of the CodeBuild build, including the build ID, build status, start and end time, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_codebuild_build` table, you can use the `.inspect aws_codebuild_build` command in Steampipe.
+
+Key columns:
+
+- `id`: The unique identifier for the build. This can be used to join this table with other tables for more detailed information on a specific build.
+- `project_name`: The name of the AWS CodeBuild project. This is useful for querying all builds related to a specific project.
+- `status`: The current status of the build. This can be helpful in tracking the progress of builds and identifying any issues.
 
 ## Examples
 

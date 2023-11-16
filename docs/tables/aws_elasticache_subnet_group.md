@@ -1,6 +1,21 @@
-# Table: aws_elasticache_subnet_group
+---
+title: "Table: aws_elasticache_subnet_group - Query AWS ElastiCache Subnet Groups using SQL"
+description: "Allows users to query AWS ElastiCache Subnet Groups, providing details about each subnet group within their ElastiCache service, including the associated VPC, subnets, and status."
+---
 
-A subnet group is a collection of subnets that you can designate for your clusters running in an Amazon Virtual Private Cloud (VPC) environment.
+# Table: aws_elasticache_subnet_group - Query AWS ElastiCache Subnet Groups using SQL
+
+The `aws_elasticache_subnet_group` table in Steampipe provides information about each subnet group within the AWS ElastiCache service. This table enables DevOps engineers to query subnet group-specific details, such as the associated VPC, subnets, and status. Users can utilize this table to gather insights on subnet groups, such as their availability status, the number of subnets within each group, and the VPC they're associated with. The schema outlines the various attributes of the subnet group, including the subnet group name, description, VPC ID, and subnet IDs.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_elasticache_subnet_group` table, you can use the `.inspect aws_elasticache_subnet_group` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the subnet group. This can be used to join with other tables that reference subnet groups by name.
+- `vpc_id`: The ID of the VPC that the subnet group is associated with. This can be used to join with other tables that reference VPCs by ID.
+- `subnet_ids`: The IDs of the subnets within the subnet group. This can be used to join with other tables that reference subnets by ID.
 
 ## Examples
 

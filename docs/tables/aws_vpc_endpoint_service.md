@@ -1,6 +1,21 @@
-# Table: aws_vpc_endpoint_service
+---
+title: "Table: aws_vpc_endpoint_service - Query AWS VPC Endpoint Services using SQL"
+description: "Allows users to query AWS VPC Endpoint Services to retrieve detailed information about each service, including service name, service type, and whether or not the service is private."
+---
 
-A VPC endpoint enables you to privately connect your VPC to supported AWS services and VPC endpoint services powered by AWS PrivateLink without requiring an internet gateway, NAT device, VPN connection, or AWS Direct Connect connection.
+# Table: aws_vpc_endpoint_service - Query AWS VPC Endpoint Services using SQL
+
+The `aws_vpc_endpoint_service` table in Steampipe provides information about AWS VPC Endpoint Services. This table allows DevOps engineers to query service-specific details, including service type, service name, and whether or not the service is private. Users can utilize this table to gather insights on services, such as identifying private services, understanding the types of services available, and more. The schema outlines the various attributes of the VPC Endpoint Service, including the service id, service name, service type, and whether or not the service is private.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_vpc_endpoint_service` table, you can use the `.inspect aws_vpc_endpoint_service` command in Steampipe.
+
+### Key columns:
+
+- `service_id`: The ID of the service. This can be used to join this table with other tables that contain information about AWS VPC Endpoint Services.
+- `service_name`: The name of the service. This can be used to filter results based on the service name.
+- `service_type`: The type of service. This can be used to categorize services based on their type.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_ec2_application_load_balancer
+---
+title: "Table: aws_ec2_application_load_balancer - Query AWS EC2 Application Load Balancer using SQL"
+description: "Allows users to query AWS EC2 Application Load Balancer, providing detailed information about each load balancer within an AWS account. This includes its current state, availability zones, security groups, and other important attributes."
+---
 
-Application load balancers support content-based routing, and supports applications that run in containers and also provide additional visibility into the health of the target instances and containers.
+# Table: aws_ec2_application_load_balancer - Query AWS EC2 Application Load Balancer using SQL
+
+The `aws_ec2_application_load_balancer` table in Steampipe allows users to gain insights into the Application Load Balancers within their AWS EC2 service. The table provides detailed information about each Application Load Balancer, including its current state, associated security groups, availability zones, type, scheme, and other important attributes. This table can be used by DevOps engineers to query load balancer-specific details, monitor the health of the load balancers, assess load balancing configurations, and much more. The schema outlines various attributes of the Application Load Balancer, such as the ARN, DNS name, canonical hosted zone ID, and creation date, among others.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_application_load_balancer` table, you can use the `.inspect aws_ec2_application_load_balancer` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the load balancer. This provides a unique identifier for the load balancer, and can be used to join with other tables that also contain load balancer ARNs.
+- `availability_zones`: Information about the Availability Zones. This is useful for understanding the geographical distribution and redundancy of your load balancers.
+- `security_groups`: The IDs of the security groups for the load balancer. This is useful for querying and managing the security configurations associated with your load balancers.
 
 ## Examples
 

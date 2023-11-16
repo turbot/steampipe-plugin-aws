@@ -1,6 +1,21 @@
-# Table: aws_guardduty_filter
+---
+title: "Table: aws_guardduty_filter - Query AWS GuardDuty Filter using SQL"
+description: "Allows users to query AWS GuardDuty Filters to retrieve information about existing filters, their conditions, actions, and associated metadata."
+---
 
-A GuardDuty filter allows you to view findings that match the criteria you specify and filter out any unmatched findings. 
+# Table: aws_guardduty_filter - Query AWS GuardDuty Filter using SQL
+
+The `aws_guardduty_filter` table in Steampipe provides information about filters within AWS GuardDuty. This table allows security analysts to query filter-specific details, including filter conditions, actions, and associated metadata. Users can utilize this table to gather insights on filters, such as filter actions, conditions, and the detector ID to which the filter is associated. The schema outlines the various attributes of the GuardDuty filter, including the filter name, detector ID, rank, description, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_guardduty_filter` table, you can use the `.inspect aws_guardduty_filter` command in Steampipe.
+
+### Key columns:
+
+- `name`: The unique name of the filter. This can be used to join this table with other tables that reference GuardDuty filters by their names.
+- `detector_id`: The unique ID of the detector that the filter is associated with. This is useful for joining with tables that contain detector-specific information.
+- `action`: The action that GuardDuty takes when a filter match occurs. This is crucial for understanding the implications of a filter match.
 
 ## Examples
 

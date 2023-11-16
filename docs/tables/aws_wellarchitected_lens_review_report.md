@@ -1,13 +1,21 @@
-# Table: aws_wellarchitected_lens_review_report
+---
+title: "Table: aws_wellarchitected_lens_review_report - Query AWS Well-Architected Tool Lens Review Report using SQL"
+description: "Allows users to query Lens Review Reports in the AWS Well-Architected Tool."
+---
 
-AWS Well-Architected Lens review report.
+# Table: aws_wellarchitected_lens_review_report - Query AWS Well-Architected Tool Lens Review Report using SQL
 
-**Note:**
-- `workload_id`, `lens_alias` and `milstone_number` are optional key column quals for the query parameter to get the improvement plans of the lens review.
-- For AWS official lenses, this is either the lens alias, such as serverless, or the lens ARN, such as arn:aws:wellarchitected:us-east-1::lens/serverless. Note that some operations (such as ExportLens and CreateLensShare) are not permitted on AWS official lenses.
-- For custom lenses, this is the lens ARN, such as arn:aws:wellarchitected:us-west-2:123456789012:lens/0123456789abcdef01234567890abcdef.
-- The `base64_string` column value can be used to get the PDF format of the review report.
-The tool(https://base64.guru/converter/decode/pdf) can be used to decode the `base64_string` value to a PDF format.
+The `aws_wellarchitected_lens_review_report` table in Steampipe provides information about Lens Review Reports within the AWS Well-Architected Tool. This table allows DevOps engineers, architects, and system administrators to query details about the lens review reports, including the lens alias, lens name, lens version, and associated metadata. Users can utilize this table to gather insights on lens review reports, such as identifying the lens version, verifying the lens status, understanding the lens notes, and more. The schema outlines the various attributes of the Lens Review Report, including the lens version, lens status, lens notes, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_lens_review_report` table, you can use the `.inspect aws_wellarchitected_lens_review_report` command in Steampipe.
+
+### Key columns:
+
+- `lens_alias`: The alias of the lens. This can be used to join with other tables that contain lens alias information.
+- `lens_version`: The version of the lens. This is useful for tracking the version history of the lens.
+- `lens_status`: The status of the lens. This can be used to monitor and manage the status of the lens.
 
 ## Examples
 
@@ -52,5 +60,5 @@ from
   aws_wellarchitected_lens_review_report as r,
   aws_wellarchitected_lens as l
 where
-  l.lens_type <> 'AWS_OFFICIAL';
+  l.lens_type <> `aws_OFFICIAL';
 ```

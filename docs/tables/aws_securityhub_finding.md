@@ -1,6 +1,21 @@
-# Table: aws_securityhub_finding
+---
+title: "Table: aws_securityhub_finding - Query AWS Security Hub Findings using SQL"
+description: "Allows users to query AWS Security Hub Findings to gather information about security issues identified within AWS resources. This includes details such as the severity, status, and description of the finding, the resources affected, and any remediation steps recommended."
+---
 
-AWS Security Hub eliminates the complexity of addressing large volumes of findings from multiple providers. It reduces the effort required to manage and improve the security of all of your AWS accounts, resources, and workloads.
+# Table: aws_securityhub_finding - Query AWS Security Hub Findings using SQL
+
+The `aws_securityhub_finding` table in Steampipe provides information about security findings within AWS Security Hub. This table allows security analysts and DevOps engineers to query details about identified security issues, including their severity, status, description, the resources affected, and any recommended remediation steps. Users can utilize this table to gather insights on security vulnerabilities, such as open security groups, exposed access keys, and more. The schema outlines the various attributes of the security finding, including the finding ARN, ID, title, description, severity, and associated resources.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_securityhub_finding` table, you can use the `.inspect aws_securityhub_finding` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The ARN of the finding. This is a unique identifier that can be used to join this table with other tables.
+- `id`: The ID of the finding. This is another unique identifier that provides a way to reference a specific finding.
+- `resource_id`: The ID of the resource affected by the finding. This can be used to join this table with other resource-specific tables in AWS.
 
 ## Examples
 

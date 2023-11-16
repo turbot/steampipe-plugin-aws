@@ -1,6 +1,21 @@
-# Table: aws_ec2_classic_load_balancer
+---
+title: "Table: aws_ec2_classic_load_balancer - Query AWS EC2 Classic Load Balancer using SQL"
+description: "Allows users to query Classic Load Balancers within Amazon EC2."
+---
 
-Classic Load Balancer provides basic load balancing across multiple Amazon EC2 instances and operates at both the request level and connection level. Classic Load Balancer is intended for applications that are built within the EC2-Classic network.
+# Table: aws_ec2_classic_load_balancer - Query AWS EC2 Classic Load Balancer using SQL
+
+The `aws_ec2_classic_load_balancer` table in Steampipe provides information about Classic Load Balancers within Amazon Elastic Compute Cloud (EC2). This table allows cloud engineers, developers, and administrators to query load balancer-specific details, including its availability zones, security groups, backend server descriptions, and listener descriptions. Users can utilize this table to gather insights on load balancers, such as their configurations, attached instances, health checks, and more. The schema outlines the various attributes of the Classic Load Balancer, including the load balancer name, DNS name, created time, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_classic_load_balancer` table, you can use the `.inspect aws_ec2_classic_load_balancer` command in Steampipe.
+
+### Key columns:
+
+- `load_balancer_name`: The name of the load balancer. This can be used to join with other tables where the load balancer name is required.
+- `availability_zones`: The availability zones for the load balancer. This is useful for joining with tables that need to understand the geographical distribution of resources.
+- `security_groups`: The security groups assigned to the load balancer's network interface. It is useful for joining with security group tables to understand the security posture of the load balancer.
 
 ## Examples
 

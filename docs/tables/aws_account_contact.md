@@ -1,14 +1,21 @@
-# Table: aws_account_contact
+---
+title: "Table: aws_account_contact - Query AWS Account Contact using SQL"
+description: "Allows users to query AWS Account Contact details, including email, mobile, and address information associated with an AWS account."
+---
 
-Contains the details of the primary contact information associated with an AWS account.
+# Table: aws_account_contact - Query AWS Account Contact using SQL
 
-This table supports the optional list key column `linked_account_id`, with the following requirements:
-- The caller must be an identity in the [organization's management account](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html#account) or a delegated administrator account.
-- The specified account ID must also be a member account in the same organization.
-- The organization must have [all features enabled](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html).
-- The organization must have [trusted access](https://docs.aws.amazon.com/accounts/latest/reference/using-orgs-trusted-access.html) enabled for the Account Management service.
+The `aws_account_contact` table in Steampipe provides information about contact details associated with an AWS account. This table allows DevOps engineers to query contact-specific details, including email, mobile, and address information. Users can utilize this table to gather insights on AWS account contact details, such as verification of contact information, understanding the geographical distribution of accounts, and more. The schema outlines the various attributes of the AWS account contact, including the account ID, address, email, fax, and phone number.
 
-**Note**: If using AWS' `ReadOnlyAccess` policy, this policy does not include the `account:GetContactInformation` permission, so you will need to add it to use this table.
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_account_contact` table, you can use the `.inspect aws_account_contact` command in Steampipe.
+
+### Key columns:
+
+- `account_id`: This is the AWS account ID. It is a key column for joining with other tables to correlate and gather more detailed information about AWS resources.
+- `email`: This is the email contact associated with the AWS account. It can be used to join with other tables that contain email information for further analysis.
+- `phone_number`: This is the phone number contact associated with the AWS account. It can be used to join with other tables that contain phone number information for further analysis.
 
 ## Examples
 

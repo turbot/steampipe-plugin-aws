@@ -1,8 +1,23 @@
-# Table: aws_iam_policy
+---
+title: "Table: aws_iam_policy - Query AWS IAM Policy using SQL"
+description: "Allows users to query AWS IAM Policies, providing detailed information about each policy, including permissions, attachment, and associated metadata."
+---
 
-An IAM Policy is an AWS Identity and Access Management (IAM) Managed Policy
+# Table: aws_iam_policy - Query AWS IAM Policy using SQL
 
-Note that the `policy` and `policy_std` columns require additional calls - You can greatly decrease your query time by NOT selecting those columns when you don't need them.
+The `aws_iam_policy` table in Steampipe provides information about IAM policies within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query policy-specific details, including permissions, attachments, and associated metadata. Users can utilize this table to gather insights on policies, such as policies with wildcard permissions, verification of policy documents, and more. The schema outlines the various attributes of the IAM policy, including the policy ARN, creation date, update date, attached entities, and policy default version ID.
+
+**Note** that the `policy` and `policy_std` columns require additional calls - You can greatly decrease your query time by NOT selecting those columns when you don't need them.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_iam_policy` table, you can use the `.inspect aws_iam_policy` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the policy. This is a unique identifier that can be used to join this table with other tables.
+- `policy_name`: The name of the policy. This can be used to filter the policies based on specific naming conventions.
+- `default_version_id`: The ID of the policy's default version. This can be useful when joining with a table of policy versions to get the details of the default policy version.
 
 ## Examples
 

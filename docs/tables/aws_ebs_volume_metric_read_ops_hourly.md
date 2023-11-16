@@ -1,7 +1,23 @@
-# Table: aws_ebs_volume_metric_read_ops_hourly
+---
+title: "Table: aws_ebs_volume_metric_read_ops_hourly - Query Amazon EC2 EBS Volume using SQL"
+description: "Allows users to query Amazon EC2 EBS Volume Read Operations metrics on an hourly basis."
+---
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_ebs_volume_metric_read_ops_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
+# Table: aws_ebs_volume_metric_read_ops_hourly - Query Amazon EC2 EBS Volume using SQL
 
+The `aws_ebs_volume_metric_read_ops_hourly` table in Steampipe provides information about the read operations metrics of Amazon Elastic Block Store (EBS) volumes within Amazon Elastic Compute Cloud (EC2). This table allows DevOps engineers to query volume-specific read operations details on an hourly basis, including the number of completed read operations from a volume, average, maximum, and minimum read operations, and the count of data points used for the statistical calculation. Users can utilize this table to gather insights on volume performance, monitor the read activity of EBS volumes, and make data-driven decisions for performance optimization. The schema outlines the various attributes of the EBS volume read operations metrics, including the volume ID, timestamp, average read operations, and more.
+
+The `aws_ebs_volume_metric_read_ops_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ebs_volume_metric_read_ops_hourly` table, you can use the `.inspect aws_ebs_volume_metric_read_ops_hourly` command in Steampipe.
+
+### Key columns:
+
+- `volume_id`: The ID of the EBS volume. This is a key column that can be used to join this table with other tables related to EBS volumes.
+- `timestamp`: The timestamp for the data point in UTC. This column is useful for tracking the read operations of a volume over time.
+- `average`: The average number of completed read operations from the volume per hour. This column is important for understanding the average read performance of the volume.
 
 ## Examples
 

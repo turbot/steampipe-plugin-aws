@@ -1,6 +1,21 @@
-# Table: aws_drs_recovery_snapshot
+---
+title: "Table: aws_drs_recovery_snapshot - Query AWS DRS Recovery Snapshot using SQL"
+description: "Allows users to query DRS Recovery Snapshot data in AWS. It provides information about recovery snapshots within AWS Disaster Recovery Service (DRS). This table can be used to gather insights on recovery snapshots, including their details, associated metadata, and more."
+---
 
-An Elastic Disaster Recovery snapshot is a point-in-time copy of Amazon EBS volume, which is copied to Amazon Simple Storage Service.
+# Table: aws_drs_recovery_snapshot - Query AWS DRS Recovery Snapshot using SQL
+
+The `aws_drs_recovery_snapshot` table in Steampipe provides information about recovery snapshots within AWS Disaster Recovery Service (DRS). This table allows DevOps engineers to query snapshot-specific details, including snapshot ID, associated volume ID, start and end times, and associated metadata. Users can utilize this table to gather insights on recovery snapshots, such as snapshot status, volume size, and more. The schema outlines the various attributes of the recovery snapshot, including the snapshot ID, volume ID, start and end times, snapshot status, and volume size.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_drs_recovery_snapshot` table, you can use the `.inspect aws_drs_recovery_snapshot` command in Steampipe.
+
+Key columns:
+
+- `snapshot_id`: The ID of the snapshot. This is a unique identifier and can be used to join this table with other tables that contain snapshot ID information.
+- `volume_id`: The ID of the volume associated with the snapshot. This can be used to join this table with other tables that contain volume ID information, providing a link between snapshots and their associated volumes.
+- `start_time`: The time the snapshot was started. This can be used to analyze snapshot activity over time.
 
 ## Examples
 

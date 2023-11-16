@@ -1,6 +1,20 @@
-# Table: aws_ssm_inventory
+---
+title: "Table: aws_ssm_inventory - Query AWS Systems Manager Inventory using SQL"
+description: "Allows users to query AWS Systems Manager Inventory, providing information about managed instances in AWS Systems Manager."
+---
 
-AWS Systems Manager Inventory provides visibility into your AWS computing environment. You can use Inventory to collect metadata from your managed nodes.
+# Table: aws_ssm_inventory - Query AWS Systems Manager Inventory using SQL
+
+The `aws_ssm_inventory` table in Steampipe provides information about managed instances within AWS Systems Manager. This table allows DevOps engineers to query instance-specific details, including instance name, type, platform type, and associated metadata. Users can utilize this table to gather insights on instances, such as instances' status, their associated tags, and more. The schema outlines the various attributes of the managed instance, including the instance ID, instance type, platform type, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ssm_inventory` table, you can use the `.inspect aws_ssm_inventory` command in Steampipe.
+
+### Key columns:
+- `instance_id`: This is the unique identifier for the managed instance. It can be used to join with other tables that contain instance-specific information.
+- `instance_type`: This column provides information about the type of the managed instance, which can be used to join with tables that contain instance type-specific information.
+- `platform_type`: This column provides information about the platform of the managed instance, which can be used to join with tables that contain platform-specific information.
 
 ## Examples
 

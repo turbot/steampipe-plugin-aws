@@ -1,6 +1,21 @@
-# Table: aws_api_gatewayv2_domain_name
+---
+title: "Table: aws_api_gatewayv2_domain_name - Query AWS API Gateway Domain Names using SQL"
+description: "Allows users to query AWS API Gateway Domain Names and provides information about each domain name within the AWS API Gateway Service. This table can be used to query domain name details, including associated API mappings, security policy, and associated tags."
+---
 
-In AWS API Gateway, Domain Names allow you to customize the URL for your API endpoints. Instead of using the default API Gateway domain, you can associate your own custom domain name with your API. This provides a more branded and user-friendly URL for your API consumers.
+# Table: aws_api_gatewayv2_domain_name - Query AWS API Gateway Domain Names using SQL
+
+The `aws_api_gatewayv2_domain_name` table in Steampipe provides information about each domain name within the AWS API Gateway Service. This table allows users to query domain name details, including associated API mappings, security policy, and associated tags. The schema outlines the various attributes of the domain name, including the domain name ARN, domain name, endpoint type, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_api_gatewayv2_domain_name` table, you can use the `.inspect aws_api_gatewayv2_domain_name` command in Steampipe.
+
+Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of an API Gateway Domain Name. This can be used to join with other tables that return ARN information.
+- `domain_name`: The name of the domain. This key column can be used to join with other tables that return domain name information.
+- `security_policy`: The security policy of the domain. This column can be used to join with other tables that return security policy information.
 
 ## Examples
 

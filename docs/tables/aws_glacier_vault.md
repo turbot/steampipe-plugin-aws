@@ -1,6 +1,21 @@
-# Table: aws_glacier_vault
+---
+title: "Table: aws_glacier_vault - Query AWS Glacier Vaults using SQL"
+description: "Allows users to query AWS Glacier Vaults for detailed information on each vault, including the vault's name, ARN, creation date, number of archives, size of archives, and more."
+---
 
-A vault is a way to group archives together in Amazon S3 Glacier.
+# Table: aws_glacier_vault - Query AWS Glacier Vaults using SQL
+
+The `aws_glacier_vault` table in Steampipe provides information about Vaults within AWS Glacier. This table allows DevOps engineers to query vault-specific details, including vault names, ARNs, creation dates, number of archives, size of archives, and more. Users can utilize this table to gather insights on vaults, such as the total size of all archives in the vault, the number of archives in the vault, and the date the vault was last accessed. The schema outlines the various attributes of the Glacier Vault, including the vault ARN, creation date, last inventory date, number of archives, size of archives, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_glacier_vault` table, you can use the `.inspect aws_glacier_vault` command in Steampipe.
+
+### Key columns:
+
+- `vault_name`: The name of the vault. This can be used to join with other tables that contain vault names.
+- `vault_arn`: The Amazon Resource Name (ARN) for the vault. This can be used to join with other tables that contain vault ARNs.
+- `account_id`: The AWS account ID associated with the vault. This can be used to join with other tables that contain AWS account IDs.
 
 ## Examples
 

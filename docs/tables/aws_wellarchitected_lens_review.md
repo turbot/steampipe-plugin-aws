@@ -1,6 +1,21 @@
-# Table: aws_wellarchitected_lens_review
+---
+title: "Table: aws_wellarchitected_lens_review - Query AWS Well-Architected Tool Lens Reviews using SQL"
+description: "Allows users to query AWS Well-Architected Tool Lens Reviews to obtain detailed information about each review, including its associated workload, lens, and milestone information."
+---
 
-Review the state of your applications and workloads against architectural best practices, identify opportunities for improvement, and track progress over time.
+# Table: aws_wellarchitected_lens_review - Query AWS Well-Architected Tool Lens Reviews using SQL
+
+The `aws_wellarchitected_lens_review` table in Steampipe provides information about lens reviews within the AWS Well-Architected Tool. This table allows DevOps engineers to query review-specific details, including the associated workload, lens, and milestone information. Users can utilize this table to gather insights on lens reviews, such as the risk level of each review, the number of high-risk issues, and the number of improvement plans. The schema outlines the various attributes of the lens review, including the workload ID, lens alias, milestone number, and other associated metadata.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_lens_review` table, you can use the `.inspect aws_wellarchitected_lens_review` command in Steampipe.
+
+### Key columns:
+
+- `workload_id`: This is the identifier of the workload. It can be used to join this table with other tables that contain workload-related information.
+- `lens_alias`: This is the alias of the lens. It can be used to join this table with other tables that contain lens-related information.
+- `milestone_number`: This is the number of the milestone. It can be used to join this table with other tables that contain milestone-related information.
 
 ## Examples
 

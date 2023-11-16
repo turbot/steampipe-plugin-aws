@@ -1,6 +1,21 @@
-# Table: aws_rds_db_instance
+---
+title: "Table: aws_rds_db_instance - Query AWS RDS DB Instances using SQL"
+description: "Allows users to query AWS RDS DB Instances for detailed information about the configuration, status, and other metadata associated with each database instance."
+---
 
-A DB instance is an isolated database environment running in the cloud.
+# Table: aws_rds_db_instance - Query AWS RDS DB Instances using SQL
+
+The `aws_rds_db_instance` table in Steampipe provides comprehensive information about each database instance within Amazon Relational Database Service (RDS). This table enables DevOps engineers, database administrators, and other technical professionals to query detailed information about each DB instance, including its configuration, status, performance metrics, and other associated metadata. Users can leverage this table to gather insights about DB instances, such as instance specifications, security configurations, backup policies, and more. The schema outlines the various attributes of the DB instance, including the DB instance identifier, instance class, engine version, storage type, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance` table, you can use the `.inspect aws_rds_db_instance` command in Steampipe.
+
+### Key columns:
+
+- `db_instance_identifier`: The identifier for the DB instance. This identifier is unique across all DB instances within an AWS account and can be used to join this table with other tables that contain DB instance identifiers.
+- `arn`: The Amazon Resource Name (ARN) of the DB instance. The ARN is a unique identifier for the DB instance and can be used to join this table with other tables that contain DB instance ARNs.
+- `vpc_id`: The identifier of the VPC that the DB instance is in. This identifier can be used to join this table with other tables that contain VPC identifiers, providing insights into the network configuration of the DB instance.
 
 ## Examples
 

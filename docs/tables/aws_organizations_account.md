@@ -1,10 +1,21 @@
-# Table: aws_organizations_account
+---
+title: "Table: aws_organizations_account - Query AWS Organizations Account using SQL"
+description: "Allows users to query AWS Organizations Account and provides information about each AWS account that is a member of an organization in AWS Organizations."
+---
 
-Contains information about AWS accounts that are members of the current AWS Organizations organization.
+# Table: aws_organizations_account - Query AWS Organizations Account using SQL
 
-This table can only be queried using credentials from an AWS Organizations management account or a member account that is a delegated administrator for an AWS service.
+The `aws_organizations_account` table in Steampipe provides information about each AWS account that is a member of an organization in AWS Organizations. This table allows DevOps engineers to query account-specific details, including account status, joined method, email, and associated metadata. Users can utilize this table to gather insights on accounts, such as accounts with specific statuses, the method used by the accounts to join the organization, and more. The schema outlines the various attributes of the AWS account, including the account ID, ARN, email, joined method, and status.
 
-Note: The `account_id` column in this table is the account ID from which the API calls are being made (often the management account). To get the described member account's ID, query the `id` column.
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_organizations_account` table, you can use the `.inspect aws_organizations_account` command in Steampipe.
+
+### Key columns:
+
+- `account_id` - The unique identifier (ID) of the AWS account that is a member of an organization. This can be used to join with other tables that require account ID.
+- `arn` - The Amazon Resource Number (ARN) of the account. It is useful for joining with other tables that use ARN to reference AWS resources.
+- `email` - The email address associated with the AWS account. This can be useful for identifying the owner of the account or for sending notifications.
 
 ## Examples
 

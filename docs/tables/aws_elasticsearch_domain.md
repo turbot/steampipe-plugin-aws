@@ -1,6 +1,21 @@
-# Table: aws_elasticsearch_domain
+---
+title: "Table: aws_elasticsearch_domain - Query AWS Elasticsearch Service Domain using SQL"
+description: "Allows users to query AWS Elasticsearch Service Domains for detailed information related to the configuration, status, and access policies of the Elasticsearch domains."
+---
 
-Amazon ES is a managed service that helps to deploy, operate, and scale Elasticsearch clusters in the AWS Cloud. Domains are clusters with the settings, instance types, instance counts, and storage resources that you specify.
+# Table: aws_elasticsearch_domain - Query AWS Elasticsearch Service Domain using SQL
+
+The `aws_elasticsearch_domain` table in Steampipe provides information about Elasticsearch domains within AWS Elasticsearch Service. This table enables DevOps engineers to query domain-specific details, including configuration settings, access policies, and associated metadata. Users can utilize this table to gather insights on domains, such as the domain's configuration, access and security settings, and more. The schema outlines the various attributes of the Elasticsearch domain, including the domain name, domain ID, ARN, created and deleted status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_elasticsearch_domain` table, you can use the `.inspect aws_elasticsearch_domain` command in Steampipe.
+
+### Key columns:
+
+- `domain_name`: The name of the Elasticsearch domain. It is a unique key that can be used to join this table with other tables.
+- `domain_id`: The unique identifier for the domain. This is important for tracking the domain across different AWS services.
+- `arn`: The Amazon Resource Name (ARN) of the Elasticsearch domain. This is a globally unique identifier that is important for managing access and security.
 
 ## Example
 

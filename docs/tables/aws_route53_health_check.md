@@ -1,6 +1,21 @@
-# Table: aws_route53_health_check
+---
+title: "Table: aws_route53_health_check - Query AWS Route 53 Health Check using SQL"
+description: "Allows users to query AWS Route 53 Health Check data, providing information about health checks within AWS Route 53. This includes details such as health check configuration, health check status, and associated metadata."
+---
 
-Amazon Route 53 health checks monitor the health and performance of your web applications, web servers, and other resources.
+# Table: aws_route53_health_check - Query AWS Route 53 Health Check using SQL
+
+The `aws_route53_health_check` table in Steampipe provides information about health checks within AWS Route 53. This table allows DevOps engineers to query health check-specific details, including health check configuration, health check status, and associated metadata. Users can utilize this table to gather insights on health checks, such as health check configuration, health check status, and more. The schema outlines the various attributes of the health check, including the health check ID, health check version, type, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_route53_health_check` table, you can use the `.inspect aws_route53_health_check` command in Steampipe.
+
+### Key columns:
+
+- `id`: This is the unique identifier of the health check. It can be used to join this table with other tables.
+- `health_check_version`: This is the version of the health check. It can be useful for version tracking and management.
+- `type`: This column indicates the type of health check, which can be useful for filtering and categorization.
 
 ## Examples
 

@@ -1,9 +1,21 @@
-# Table: aws_globalaccelerator_endpoint_group
+---
+title: "Table: aws_globalaccelerator_endpoint_group - Query AWS Global Accelerator Endpoint Groups using SQL"
+description: "Allows users to query AWS Global Accelerator Endpoint Groups and obtain detailed information about each group's configuration, state, and associated endpoints."
+---
 
-Each endpoint group is associated with a specific AWS Region. Endpoint groups include one or more endpoints in the
-Region. With a standard accelerator, you can increase or reduce the percentage of traffic that would be otherwise
-directed to an endpoint group by adjusting a setting called a traffic dial. The traffic dial lets you easily do
-performance testing or blue/green deployment testing, for example, for new releases across different AWS Regions.
+# Table: aws_globalaccelerator_endpoint_group - Query AWS Global Accelerator Endpoint Groups using SQL
+
+The `aws_globalaccelerator_endpoint_group` table in Steampipe provides information about endpoint groups within AWS Global Accelerator. This table allows DevOps engineers to query group-specific details, including the health state, traffic dial percentage, and associated endpoints. Users can utilize this table to gather insights on endpoint groups, such as endpoint configurations, health check settings, and more. The schema outlines the various attributes of the endpoint group, including the endpoint group ARN, listener ARN, traffic dial percentage, and health check configurations.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_globalaccelerator_endpoint_group` table, you can use the `.inspect aws_globalaccelerator_endpoint_group` command in Steampipe.
+
+### Key columns:
+
+- `endpoint_group_arn`: This is the Amazon Resource Name (ARN) of the endpoint group. It is a unique identifier that can be used to join this table with other tables.
+- `listener_arn`: This column contains the ARN of the listener that the endpoint group is associated with. It is useful for querying information related to the listener.
+- `health_state`: The health state of the endpoint group. This column is important as it provides information about the operational status of the endpoint group.
 
 ## Examples
 

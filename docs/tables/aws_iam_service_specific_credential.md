@@ -1,6 +1,21 @@
-# Table: aws_iam_service_specific_credential
+---
+title: "Table: aws_iam_service_specific_credential - Query AWS IAM Service Specific Credentials using SQL"
+description: "Allows users to query AWS IAM Service Specific Credentials, retrieving detailed information about each credential, such as the username, status, creation date, and service name."
+---
 
-Service-specific credentials are associated with a specific IAM user and can only be used for the service they were created for.
+# Table: aws_iam_service_specific_credential - Query AWS IAM Service Specific Credentials using SQL
+
+The `aws_iam_service_specific_credential` table in Steampipe provides information about service-specific credentials within AWS Identity and Access Management (IAM). This table allows DevOps engineers to query credential-specific details, including the associated user, status, creation date, and service name. Users can utilize this table to gather insights on credentials, such as those associated with a specific user, the status of each credential, and the services for which they are used. The schema outlines the various attributes of service-specific credentials, including the username, status, creation date, and service name.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_iam_service_specific_credential` table, you can use the `.inspect aws_iam_service_specific_credential` command in Steampipe.
+
+### Key columns:
+
+- `user_name`: The name of the IAM user associated with the service-specific credential. This column is useful for joining with other tables that contain user-specific information.
+- `status`: The status of the service-specific credential (Active or Inactive). This column can be used to filter or sort the results based on the status of the credentials.
+- `service_name`: The name of the service that the credentials are associated with. This column can be used to join with other tables that contain service-specific information.
 
 ## Examples
 

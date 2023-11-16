@@ -1,6 +1,21 @@
-# Table: aws_cloudfront_cache_policy
+---
+title: "Table: aws_cloudfront_cache_policy - Query AWS CloudFront Cache Policies using SQL"
+description: "Allows users to query AWS CloudFront Cache Policies for details about their configuration, status, and associated metadata."
+---
 
-CloudFront provides a set of managed cache policies that you can attach to any of your distribution’s cache behaviors. With a managed cache policy, you don’t need to write or maintain your own cache policy. The managed policies use settings that are optimized for specific use cases. However you can write your own cache policy also if required.
+# Table: aws_cloudfront_cache_policy - Query AWS CloudFront Cache Policies using SQL
+
+The `aws_cloudfront_cache_policy` table in Steampipe provides information about Cache Policies within AWS CloudFront. This table allows DevOps engineers to query policy-specific details, including the configuration, status, and associated metadata. Users can utilize this table to gather insights on cache policies, such as their identifiers, comment descriptions, the default time to live (TTL), maximum and minimum TTL, and more. The schema outlines the various attributes of the cache policy, including the policy ARN, creation time, last modified time, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudfront_cache_policy` table, you can use the `.inspect aws_cloudfront_cache_policy` command in Steampipe.
+
+Key columns:
+
+- `id`: The unique identifier of the cache policy. This can be used to join this table with others that reference cache policies by their ID.
+- `arn`: The Amazon Resource Number of the cache policy. It is a globally unique identifier that is useful for joining with other tables that reference cache policies by their ARN.
+- `last_modified_time`: The time when the cache policy was last modified. This is useful for tracking changes to cache policies over time.
 
 ## Examples
 

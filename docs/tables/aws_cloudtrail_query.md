@@ -1,8 +1,21 @@
-# Table: aws_cloudtrail_query
+---
+title: "Table: aws_cloudtrail_query - Query AWS CloudTrail using SQL"
+description: "Allows users to query AWS CloudTrail events for a detailed view of account activity, including actions taken through the AWS Management Console, AWS SDKs, command line tools, and other AWS services."
+---
 
-AWS CloudTrail Lake lets you run SQL-based queries on your events. CloudTrail Lake converts existing events in row-based JSON format to Apache ORC format. ORC is a columnar storage format that is optimized for fast retrieval of data.
+# Table: aws_cloudtrail_query - Query AWS CloudTrail using SQL
 
-Only queries from the past seven days are returned from the API. If you'd like to shorten the list of results, you can specify a specific `creation_time` and/or `query_status` in the query.
+The `aws_cloudtrail_query` table in Steampipe provides information about CloudTrail events within AWS. This table allows DevOps engineers to query event-specific details, including the identity of the API caller, the time of the API call, the source IP address of the API caller, and the request parameters made. Users can utilize this table to gather insights on account activity, such as actions taken through the AWS Management Console, AWS SDKs, command line tools, and other AWS services. The schema outlines the various attributes of the CloudTrail event, including the event name, event time, event source, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_query` table, you can use the `.inspect aws_cloudtrail_query` command in Steampipe.
+
+### Key columns:
+
+- `event_time`: This is the date and time the request was made, in coordinated universal time (UTC). It can be used to filter events based on the time they occurred.
+- `event_name`: This is the name of the event that occurred. It can be used to filter events based on their type.
+- `event_source`: This is the service that the request was made to. It can be used to filter events based on the AWS service they are associated with.
 
 ## Examples
 

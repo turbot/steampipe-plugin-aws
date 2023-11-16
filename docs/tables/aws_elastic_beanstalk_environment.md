@@ -1,6 +1,21 @@
-# Table: aws_elastic_beanstalk_environment
+---
+title: "Table: aws_elastic_beanstalk_environment - Query AWS Elastic Beanstalk Environments using SQL"
+description: "Allows users to query AWS Elastic Beanstalk Environments to gain insights into their configuration, status, health, related applications, and other metadata."
+---
 
-AWS Elastic Beanstalk makes it easy to create new environments for your application. You can create and manage separate environments for development, testing, and production use, and you can deploy any version of your application to any environment. Environments can be long-running or temporary. When you terminate an environment, you can save its configuration to recreate it later.
+# Table: aws_elastic_beanstalk_environment - Query AWS Elastic Beanstalk Environments using SQL
+
+The `aws_elastic_beanstalk_environment` table in Steampipe provides information about environments within AWS Elastic Beanstalk. This table allows DevOps engineers to query environment-specific details, including configuration settings, environment health, related applications, and associated metadata. Users can utilize this table to gather insights on environments, such as environments with specific configurations, health status, associated applications, and more. The schema outlines the various attributes of the Elastic Beanstalk environment, including the environment name, ID, application name, status, health, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_elastic_beanstalk_environment` table, you can use the `.inspect aws_elastic_beanstalk_environment` command in Steampipe.
+
+### Key columns:
+
+- `environment_name`: The name of the environment. This can be used to join this table with other tables that contain environment-specific information.
+- `application_name`: The name of the application associated with the environment. This can be used to join this table with application-specific tables in AWS Elastic Beanstalk.
+- `environment_id`: The ID of the environment. This can be used to join this table with other tables that contain environment-specific information, especially when multiple environments have the same name.
 
 ## Examples
 

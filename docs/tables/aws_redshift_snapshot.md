@@ -1,6 +1,21 @@
-# Table: aws_redshift_snapshot
+---
+title: "Table: aws_redshift_snapshot - Query AWS Redshift Snapshots using SQL"
+description: "Allows users to query Redshift Snapshots, providing details about each snapshot's configuration, status, and associated metadata."
+---
 
-Snapshots are point-in-time backups of a cluster. There are two types of snapshots: automated and manual. Amazon Redshift stores these snapshots internally in Amazon S3 by using an encrypted Secure Sockets Layer (SSL) connection.
+# Table: aws_redshift_snapshot - Query AWS Redshift Snapshots using SQL
+
+The `aws_redshift_snapshot` table in Steampipe provides information about snapshots within AWS Redshift. This table allows DevOps engineers to query snapshot-specific details, including the snapshot status, creation time, source cluster, and associated metadata. Users can utilize this table to gather insights on snapshots, such as snapshot availability, size, and retention period. The schema outlines the various attributes of the Redshift snapshot, including the snapshot identifier, snapshot type, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_redshift_snapshot` table, you can use the `.inspect aws_redshift_snapshot` command in Steampipe.
+
+### Key columns:
+
+- `snapshot_identifier`: The unique identifier for the snapshot. This column is important as it is the primary identifier for each snapshot.
+- `cluster_identifier`: The identifier of the cluster for which the snapshot was taken. This column is useful for joining this table with other tables that contain information about Redshift clusters.
+- `snapshot_type`: The type of the snapshot. This column is useful for filtering snapshots based on whether they are automated or manual.
 
 ## Examples
 

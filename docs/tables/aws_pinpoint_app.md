@@ -1,6 +1,22 @@
-# Table: aws_pinpoint_app
+---
+title: "Table: aws_pinpoint_app - Query AWS Pinpoint Applications using SQL"
+description: "Allows users to query AWS Pinpoint Applications to gather information about the applications, such as application ID, name, and creation date. The table also provides details about the application's settings and limits."
+---
 
-In Amazon Pinpoint, a project is a collection of recipient information, segments, campaigns, and journeys. New Amazon Pinpoint users should start by creating a project. Amazon Pinpoint is an AWS service that you can use to engage with your customers across multiple messaging channels. You can use Amazon Pinpoint to send push notifications, in-app notifications, emails, text messages, voice messages, and messages over custom channels. It includes segmentation, campaign, and journey features that help you send the right message to the right customer at the right time over the right channel.
+# Table: aws_pinpoint_app - Query AWS Pinpoint Applications using SQL
+
+The `aws_pinpoint_app` table in Steampipe provides information about applications within AWS Pinpoint. This table allows DevOps engineers to query application-specific details, including application ID, name, creation date, settings, and limits. Users can utilize this table to gather insights on applications, such as the application's settings, limits, and other associated metadata. The schema outlines the various attributes of the AWS Pinpoint application, including the application ID, name, creation date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_pinpoint_app` table, you can use the `.inspect aws_pinpoint_app` command in Steampipe.
+
+### Key columns:
+
+- `application_id`: The unique identifier for the application. This can be used to join this table with other tables.
+- `name`: The name of the application. This is useful for identifying the application.
+- `creation_date`: The date when the application was created. This information can be crucial for auditing purposes.
+
 ## Examples
 
 ### Basic info

@@ -1,6 +1,21 @@
-# Table: aws_eks_fargate_profile
+---
+title: "Table: aws_eks_fargate_profile - Query AWS EKS Fargate Profiles using SQL"
+description: "Allows users to query AWS EKS Fargate Profiles and retrieve data such as the Fargate profile name, ARN, status, and more."
+---
 
-The Fargate profile allows an administrator to declare which pods run on Fargate. Each profile can have up to five selectors that contain a namespace and optional labels. You must define a namespace for every selector. The label field consists of multiple optional key-value pairs. Pods that match a selector (by matching a namespace for the selector and all of the labels specified in the selector) are scheduled on Fargate.
+# Table: aws_eks_fargate_profile - Query AWS EKS Fargate Profiles using SQL
+
+The `aws_eks_fargate_profile` table in Steampipe provides information about Fargate Profiles within Amazon Elastic Kubernetes Service (EKS). This table allows DevOps engineers to query profile-specific details, including the profile name, ARN, status, and the EKS cluster to which it belongs. Users can utilize this table to gather insights on Fargate profiles, such as profiles associated with a specific EKS cluster, the status of the profiles, and more. The [schema](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_fargate_profile) outlines the various attributes of the EKS Fargate profile, including the profile name, ARN, status, EKS cluster, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_eks_fargate_profile` table, you can use the `.inspect aws_eks_fargate_profile` command in Steampipe.
+
+### Key columns:
+
+* `name`: The name of the Fargate profile. This is a unique identifier and can be used to join with other tables that reference the Fargate profile by name.
+* `arn`: The Amazon Resource Number (ARN) of the Fargate profile. This unique identifier is useful for joining with other tables that reference the Fargate profile by its ARN.
+* `cluster_name`: The name of the EKS cluster to which the Fargate profile belongs. This column is useful for joining with other tables that hold information about EKS clusters.
 
 ## Examples
 

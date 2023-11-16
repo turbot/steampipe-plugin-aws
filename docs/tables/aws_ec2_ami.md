@@ -1,8 +1,21 @@
-# Table: aws_ec2_ami
+---
+title: "Table: aws_ec2_ami - Query AWS EC2 AMI using SQL"
+description: "Allows users to query AWS EC2 AMIs (Amazon Machine Images) to retrieve detailed information about each AMI available in the AWS account."
+---
 
-An Amazon Machine Image is a special type of virtual appliance that is used to create a virtual machine within the Amazon Elastic Compute Cloud.
+# Table: aws_ec2_ami - Query AWS EC2 AMI using SQL
 
-The `aws_ec2_ami` table only lists images in your account. To list other images shared with you, please use the `aws_ec2_ami_shared` table.
+The `aws_ec2_ami` table in Steampipe provides information about AMIs (Amazon Machine Images) within Amazon Elastic Compute Cloud (Amazon EC2). This table allows DevOps engineers, system administrators, and other technical professionals to query AMI-specific details, including its attributes, block device mappings, and associated tags. Users can utilize this table to gather insights on AMIs, such as identifying unused or outdated AMIs, verifying AMI permissions, and more. The schema outlines the various attributes of the AMI, including the AMI ID, creation date, owner, and visibility status.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_ami` table, you can use the `.inspect aws_ec2_ami` command in Steampipe.
+
+Key columns:
+
+- `image_id`: The unique identifier for the AMI. This column can be used to join this table with other tables that contain AMI IDs, such as the `aws_ec2_instance` table.
+- `owner_id`: The AWS account ID of the AMI owner. This column can be used to filter or join the table based on the owner of the AMI.
+- `state`: The current state of the AMI (available, pending, or failed). This column can be useful for filtering the table to only include AMIs in a certain state.
 
 ## Examples
 

@@ -1,6 +1,21 @@
-# Table: aws_kms_alias
+---
+title: "Table: aws_kms_alias - Query AWS Key Management Service (KMS) alias using SQL"
+description: "Allows users to query AWS KMS aliases and retrieve information about their associated keys, including the key ID, alias name, and alias ARN."
+---
 
-The AWS Key Management Service (KMS) Alias resource specifies a display name for a KMS key. You can use an alias to identify a KMS key in the AWS KMS console, in the DescribeKey operation, and in cryptographic operations, such as Decrypt and GenerateDataKey.
+# Table: aws_kms_alias - Query AWS Key Management Service (KMS) alias using SQL
+
+The `aws_kms_alias` table in Steampipe provides information about aliases within AWS Key Management Service (KMS). This table allows DevOps engineers to query alias-specific details, including the alias name, alias ARN, and the key it is associated with. Users can utilize this table to gather insights on aliases, such as the keys they are associated with and the ARNs of the aliases. The schema outlines the various attributes of the KMS alias, including the alias name, alias ARN, and associated key ID.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_kms_alias` table, you can use the `.inspect aws_kms_alias` command in Steampipe.
+
+*Key columns:*
+
+- `alias_name`: This is the alias name. It is a unique identifier for the alias and can be used to join this table with other tables.
+- `alias_arn`: This is the Amazon Resource Name (ARN) of the alias. It provides a unique identifier for the alias across all AWS accounts and can be used for joining with other tables that contain alias ARNs.
+- `target_key_id`: This is the ID of the key associated with the alias. It is useful for joining with other tables that contain key IDs, allowing for queries that return information about the keys associated with aliases.
 
 ## Examples
 

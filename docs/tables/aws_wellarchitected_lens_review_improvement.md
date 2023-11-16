@@ -1,11 +1,21 @@
-# Table: aws_wellarchitected_lens_review_improvement
+---
+title: "Table: aws_wellarchitected_lens_review_improvement - Query AWS Well-Architected Framework Lens Review using SQL"
+description: "Allows users to query Lens Review Improvements in the AWS Well-Architected Framework."
+---
 
-The improvement plan items for your lens review.
+# Table: aws_wellarchitected_lens_review_improvement - Query AWS Well-Architected Framework Lens Review using SQL
 
-**Note:**
--  `workload_id` and `lens_alias` are optional query parameters for filtering out the review improvements with given workload id or lens alias.
-- For AWS official lenses, this is either the lens alias, such as serverless, or the lens ARN, such as arn:aws:wellarchitected:us-east-1::lens/serverless. Note that some operations (such as ExportLens and CreateLensShare) are not permitted on AWS official lenses.
-- For custom lenses, this is the lens ARN, such as arn:aws:wellarchitected:us-west-2:123456789012:lens/0123456789abcdef01234567890abcdef.
+The `aws_wellarchitected_lens_review_improvement` table in Steampipe provides information about Lens Review Improvements within the AWS Well-Architected Framework. This table allows DevOps engineers, architects, and developers to query improvement-specific details, including the improvement status, improvement summary, and associated metadata. Users can utilize this table to gather insights on improvements, such as those associated with a specific lens review, their status, and a brief summary of the improvement. The schema outlines the various attributes of the Lens Review Improvement, including the workload ID, lens alias, improvement ID, and improvement status.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_lens_review_improvement` table, you can use the `.inspect aws_wellarchitected_lens_review_improvement` command in Steampipe.
+
+### Key columns:
+
+- `workload_id`: This is the unique identifier of the workload. It is important as it can be used to join this table with other tables related to workloads.
+- `lens_alias`: This is the alias of the lens in the workload. It is useful as it can be used to join this table with other tables related to lenses.
+- `improvement_id`: This is the unique identifier of the improvement. It is important as it can be used to join this table with other tables related to improvements.
 
 ## Examples
 

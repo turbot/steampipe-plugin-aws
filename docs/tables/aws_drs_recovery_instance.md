@@ -1,6 +1,21 @@
-# Table: aws_drs_recovery_instance
+---
+title: "Table: aws_drs_recovery_instance - Query AWS Disaster Recovery Service Recovery Instances using SQL"
+description: "Allows users to query AWS Disaster Recovery Service Recovery Instances to retrieve information about recovery instances, including instance type, recovery instance ARN, and associated tags."
+---
 
-AWS Elastic Disaster Recovery (AWS DRS) minimizes downtime and data loss with fast, reliable recovery of on-premises and cloud-based applications using affordable storage, minimal compute, and point-in-time recovery. If you need to recover applications, you can launch recovery instances on AWS within minutes, using the most up-to-date server state or a previous point in time.
+# Table: aws_drs_recovery_instance - Query AWS Disaster Recovery Service Recovery Instances using SQL
+
+The `aws_drs_recovery_instance` table in Steampipe provides information about recovery instances within AWS Disaster Recovery Service (DRS). This table allows DevOps engineers to query recovery instance-specific details, including instance type, recovery instance ARN, and associated tags. Users can utilize this table to gather insights on recovery instances, such as instance type, recovery instance ARN, and associated tags. The schema outlines the various attributes of the recovery instance, including the instance type, recovery instance ARN, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_drs_recovery_instance` table, you can use the `.inspect aws_drs_recovery_instance` command in Steampipe.
+
+### Key columns:
+
+- `instance_type`: This is the type of the recovery instance. It is an important column as it helps in understanding the capacity and capability of the recovery instance.
+- `recovery_instance_arn`: This is the Amazon Resource Name (ARN) of the recovery instance. It is a unique identifier for the recovery instance and can be used to join this table with other tables that contain recovery instance ARN.
+- `tags`: These are the metadata tags assigned to the recovery instance. They can be used for filtering and organizing recovery instances within AWS DRS.
 
 ## Examples
 

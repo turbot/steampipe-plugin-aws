@@ -1,6 +1,21 @@
-# Table: aws_backup_legal_hold
+---
+title: "Table: aws_backup_legal_hold - Query AWS Backup Legal Hold using SQL"
+description: "Allows users to query AWS Backup Legal Hold to obtain information about the legal hold settings of AWS backup resources."
+---
 
-A legal hold is an administrative tool that helps prevent backups from being deleted while under a hold. While the hold is in place, backups under a hold cannot be deleted and lifecycle policies that would alter the backup status (such as transition to a Deleted state) are delayed until the legal hold is removed.
+# Table: aws_backup_legal_hold - Query AWS Backup Legal Hold using SQL
+
+The `aws_backup_legal_hold` table in Steampipe provides information about legal hold settings for AWS Backup resources. This table allows DevOps engineers to query legal hold-specific details, including the backup resource ARN, the legal hold status, and the last update time. Users can utilize this table to review and monitor the legal hold status of backup resources, ensuring compliance with data retention policies and legal requirements. The schema outlines the various attributes of the legal hold, including the backup resource ARN, the legal hold status, and the last update time.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_backup_legal_hold` table, you can use the `.inspect aws_backup_legal_hold` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The ARN of the backup resource. This can be used to join with other tables that contain AWS backup resource information.
+- `legal_hold`: The legal hold status. This is crucial for understanding whether a backup resource is under legal hold or not.
+- `last_update_time`: The time when the legal hold status was last updated. This can be useful for tracking changes over time.
 
 ## Examples
 

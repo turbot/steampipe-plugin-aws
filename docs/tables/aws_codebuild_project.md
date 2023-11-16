@@ -1,6 +1,21 @@
-# Table: aws_codebuild_project
+---
+title: "Table: aws_codebuild_project - Query AWS CodeBuild Projects using SQL"
+description: "Allows users to query AWS CodeBuild Projects and retrieve comprehensive information about each project."
+---
 
-An AWS CodeBuild project configures how CodeBuild builds your source code. For example, it tells CodeBuild where to get the source code and which build environment to use.
+# Table: aws_codebuild_project - Query AWS CodeBuild Projects using SQL
+
+The `aws_codebuild_project` table in Steampipe provides information about projects within AWS CodeBuild. This table allows DevOps engineers to query project-specific details, including project ARN, creation date, project name, service role, and other associated metadata. Users can utilize this table to gather insights on projects, such as the status of each project, the source code repository used, the build environment configuration, and more. The schema outlines the various attributes of the CodeBuild project, including the project ARN, creation date, last modified date, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_codebuild_project` table, you can use the `.inspect aws_codebuild_project` command in Steampipe.
+
+### Key columns:
+
+- `name`: The name of the CodeBuild project. This can be used to join with other tables that contain CodeBuild project names.
+- `arn`: The Amazon Resource Number (ARN) of the CodeBuild project. This unique identifier can be used to join with other tables that contain CodeBuild project ARNs.
+- `service_role`: The service role associated with the CodeBuild project. This can be used to join with IAM role tables to get more information about the permissions and policies associated with the project.
 
 ## Examples
 

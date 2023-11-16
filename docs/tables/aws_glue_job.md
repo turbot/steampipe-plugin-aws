@@ -1,6 +1,21 @@
-# Table: aws_glue_job
+---
+title: "Table: aws_glue_job - Query AWS Glue Jobs using SQL"
+description: "Allows users to query AWS Glue Jobs to retrieve detailed information related to job properties, execution, and status."
+---
 
-An AWS Glue job encapsulates a script that connects to your source data, processes it, and then writes it out to your data target. Typically, a job runs extract, transform, and load (ETL) scripts. Jobs can also run general-purpose Python scripts (Python shell jobs.) AWS Glue triggers can start jobs based on a schedule or event, or on demand. You can monitor job runs to understand runtime metrics such as completion status, duration, and start time.
+# Table: aws_glue_job - Query AWS Glue Jobs using SQL
+
+The `aws_glue_job` table in Steampipe provides information about AWS Glue Jobs. This table allows DevOps engineers, data engineers, and other technical professionals to query job-specific details, such as job properties, execution status, and associated metadata. Users can utilize this table to gather insights on jobs, including job run states, job parameters, allocated capacity, and more. The schema outlines the various attributes of the AWS Glue Job, including the job name, role, command, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_glue_job` table, you can use the `.inspect aws_glue_job` command in Steampipe.
+
+### Key columns:
+
+- `name`: The unique name of the job. This column can be used to join this table with other tables that contain job-specific information.
+- `role`: The name or ARN of the IAM role associated with this job. This column is useful for joining with IAM role tables to understand the permissions associated with the job.
+- `command_name`: The name of the job command. This column can be used to join with other tables that contain command-specific information, providing a deeper understanding of what each job does.
 
 ## Examples
 

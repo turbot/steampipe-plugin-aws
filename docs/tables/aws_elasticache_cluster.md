@@ -1,6 +1,21 @@
-# Table: aws_elasticache_cluster
+---
+title: "Table: aws_elasticache_cluster - Query Amazon ElastiCache Cluster using SQL"
+description: "Allows users to query Amazon ElastiCache Cluster data, providing information about each ElastiCache Cluster within the AWS account."
+---
 
-A cluster is a collection of one or more cache nodes, all of which run an instance of the Redis cache engine software.
+# Table: aws_elasticache_cluster - Query Amazon ElastiCache Cluster using SQL
+
+The `aws_elasticache_cluster` table in Steampipe provides information about each ElastiCache Cluster within the AWS account. This table allows DevOps engineers, database administrators, and other IT professionals to query cluster-specific details, including configuration, status, and associated metadata. Users can utilize this table to gather insights on clusters, such as their availability zones, cache node types, engine versions, and more. The schema outlines the various attributes of the ElastiCache Cluster, including the cluster ID, creation date, current status, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_elasticache_cluster` table, you can use the `.inspect aws_elasticache_cluster` command in Steampipe.
+
+Key columns:
+
+- `cache_cluster_id`: The identifier for the cache cluster. This can be used to join this table with other tables to gather more detailed information about the cache cluster.
+- `engine`: The name of the cache engine (`memcached` or `redis`) used by the cluster. This information is crucial when joining with tables related to specific engine configurations or statistics.
+- `arn`: The Amazon Resource Name (ARN) of the cache cluster. This unique identifier is important for joining with other AWS resource tables that reference the cache cluster.
 
 ## Examples
 

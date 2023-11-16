@@ -1,6 +1,21 @@
-# Table: aws_neptune_db_cluster_snapshot
+---
+title: "Table: aws_neptune_db_cluster_snapshot - Query AWS Neptune DB Cluster Snapshots using SQL"
+description: "Allows users to query AWS Neptune DB Cluster Snapshots for comprehensive details about their configurations, status, and associated metadata."
+---
 
-Amazon Neptune creates a storage volume snapshot of your DB cluster, backing up the entire DB cluster and not just individual databases.
+# Table: aws_neptune_db_cluster_snapshot - Query AWS Neptune DB Cluster Snapshots using SQL
+
+The `aws_neptune_db_cluster_snapshot` table in Steampipe provides information about DB Cluster Snapshots within Amazon Neptune. This table allows DevOps engineers, database administrators, and other technical professionals to query snapshot-specific details, including snapshot status, creation time, associated database engine, and more. Users can utilize this table to gather insights on snapshots, such as their availability, encryption status, and associated database clusters. The schema outlines the various attributes of the Neptune DB Cluster Snapshot, including the snapshot ARN, creation time, associated tags, and more.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_neptune_db_cluster_snapshot` table, you can use the `.inspect aws_neptune_db_cluster_snapshot` command in Steampipe.
+
+### Key columns:
+
+- `db_cluster_snapshot_identifier`: The identifier for the DB cluster snapshot. This column can be used to join this table with others that contain information about specific DB cluster snapshots.
+- `db_cluster_identifier`: The identifier of the DB cluster that the snapshot was created from. This column can be used to join this table with others that contain information about specific DB clusters.
+- `snapshot_type`: The type of DB cluster snapshot. This column can be used to distinguish between manual and automated snapshots.
 
 ## Examples
 

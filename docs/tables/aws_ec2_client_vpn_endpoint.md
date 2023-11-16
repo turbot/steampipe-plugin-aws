@@ -1,6 +1,21 @@
-# Table: aws_ec2_client_vpn_endpoint
+---
+title: "Table: aws_ec2_client_vpn_endpoint - Query AWS EC2 Client VPN Endpoints using SQL"
+description: "Allows users to query AWS EC2 Client VPN Endpoints to retrieve detailed information about the configuration, status, and associated network details of each endpoint."
+---
 
-An AWS Client VPN Endpoint is a fully-managed VPN service offered by Amazon Web Services (AWS) that enables secure and private access to resources in a virtual private cloud (VPC) or on-premises network.
+# Table: aws_ec2_client_vpn_endpoint - Query AWS EC2 Client VPN Endpoints using SQL
+
+The `aws_ec2_client_vpn_endpoint` table in Steampipe provides information about the Client VPN endpoints within AWS Elastic Compute Cloud (EC2). This table allows DevOps engineers, security analysts, and other IT professionals to query VPN endpoint-specific details, including the endpoint configuration, associated network details, connection logs, and associated metadata. Users can utilize this table to gather insights on VPN endpoints, such as the associated VPC, Subnets, Security Groups, and more. The schema outlines the various attributes of the VPN endpoint, including the endpoint ID, creation time, DNS server, VPN protocol, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_ec2_client_vpn_endpoint` table, you can use the `.inspect aws_ec2_client_vpn_endpoint` command in Steampipe.
+
+### Key columns:
+
+- `vpn_endpoint_id`: The ID of the VPN endpoint. This is the primary key of the table and can be used to join with other tables to get more detailed information.
+- `vpc_id`: The ID of the VPC associated with the VPN endpoint. This can be used to join with the `aws_vpc` table to get more information about the associated VPC.
+- `security_group_ids`: The IDs of the security groups associated with the VPN endpoint. These can be used to join with the `aws_security_group` table to get more information about the security groups.
 
 ## Examples
 

@@ -1,9 +1,21 @@
-# Table: aws_wellarchitected_consolidated_report
+---
+title: "Table: aws_wellarchitected_consolidated_report - Query AWS Well-Architected Tool Consolidated Reports using SQL"
+description: "Allows users to query consolidated reports from the AWS Well-Architected Tool, providing a comprehensive view of a workload's alignment with AWS architectural best practices."
+---
 
-The AWS Well-Architected Consolidated Report is an enhanced version of the Well-Architected Review report. It consolidates the results of multiple workload reviews into a single comprehensive report. This allows you to gain insights across multiple workloads, identify common patterns or issues, and track improvement progress over time.
+# Table: aws_wellarchitected_consolidated_report - Query AWS Well-Architected Tool Consolidated Reports using SQL
 
-**Note:** The column `base64_string` value is a Base64-encoded string representation of a lens review report. This data can be used to create a PDF file.
-The tool https://base64.guru/converter/decode/pdf can be used for converting the Base64-encoded string to a PDF format.
+The `aws_wellarchitected_consolidated_report` table in Steampipe provides information about consolidated reports within the AWS Well-Architected Tool. This table allows DevOps engineers, architects, and other technical professionals to query report-specific details, including findings, risks, and improvement plans. Users can utilize this table to gather insights on workloads, such as high-risk issues, improvement status, and architectural alignment with AWS best practices. The schema outlines the various attributes of the consolidated report, including the workload ID, risk counts, lens name, and associated metadata.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_consolidated_report` table, you can use the `.inspect aws_wellarchitected_consolidated_report` command in Steampipe.
+
+### Key columns:
+
+- `workload_id`: This is the unique identifier for the workload. It can be used to join this table with other workload-related tables.
+- `lens_name`: This column represents the name of the lens used in the report. It can be useful when joining with other lens-specific tables or filtering reports by lens type.
+- `risk_counts`: This column provides a count of risks identified in the report, categorized by level. It is critical for risk analysis and mitigation planning.
 
 ## Examples
 

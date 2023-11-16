@@ -1,6 +1,21 @@
-# Table: aws_networkfirewall_rule_group
+---
+title: "Table: aws_networkfirewall_rule_group - Query AWS Network Firewall Rule Group using SQL"
+description: "Allows users to query AWS Network Firewall Rule Group details, including rule group ARN, capacity, rule group name, and associated tags."
+---
 
-A rule group to inspect and control network traffic. You define stateless rule groups to inspect individual packets and you define stateful rule groups to inspect packets in the context of their traffic flow.
+# Table: aws_networkfirewall_rule_group - Query AWS Network Firewall Rule Group using SQL
+
+The `aws_networkfirewall_rule_group` table in Steampipe provides information about rule groups within AWS Network Firewall. This table allows DevOps engineers to query rule group-specific details, including the rule group ARN, capacity, rule group name, and associated tags. Users can utilize this table to gather insights on rule groups, such as the rule group's capacity, the rule group's name, and more. The schema outlines the various attributes of the Network Firewall rule group, including the rule group ARN, capacity, rule group name, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_networkfirewall_rule_group` table, you can use the `.inspect aws_networkfirewall_rule_group` command in Steampipe.
+
+Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the rule group. This can be used to join this table with other tables.
+- `capacity`: The capacity setting of the rule group. This can be useful for understanding the scale of the rule group.
+- `rule_group_name`: The name of the rule group. This can be useful for identifying specific rule groups in queries.
 
 ## Examples
 

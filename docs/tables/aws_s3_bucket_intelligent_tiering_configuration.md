@@ -1,9 +1,21 @@
-# Table: aws_s3_bucket_intelligent_tiering_configuration
+---
+title: "Table: aws_s3_bucket_intelligent_tiering_configuration - Query AWS S3 Bucket Intelligent Tiering Configuration using SQL"
+description: "Allows users to query Intelligent Tiering configurations for S3 buckets. It provides information about each configuration, including the bucket name, the ID of the configuration, and the status of the configuration."
+---
 
-AWS S3 Bucket Intelligent Tiering Configuration is a feature of Amazon S3 that enables automatic optimization of storage costs for objects in an S3 bucket. With Intelligent Tiering, Amazon S3 monitors the access patterns of your objects and moves them between two storage tiers: frequent access tier and infrequent access tier.
+# Table: aws_s3_bucket_intelligent_tiering_configuration - Query AWS S3 Bucket Intelligent Tiering Configuration using SQL
 
-The Intelligent Tiering feature analyzes the access patterns and automatically moves objects that have not been accessed for a certain period of time to the infrequent access tier, which has a lower storage cost. If an object in the infrequent access tier is accessed again, it is automatically moved back to the frequent access tier.
+The `aws_s3_bucket_intelligent_tiering_configuration` table in Steampipe provides information about the Intelligent Tiering configurations of AWS S3 buckets. This table allows DevOps engineers to query configuration-specific details, including the bucket name, the ID of the configuration, and the status of the configuration. Users can utilize this table to gather insights on Intelligent Tiering configurations, such as their IDs, statuses, and related bucket names. The schema outlines the various attributes of the Intelligent Tiering configuration, including the bucket name, configuration ID, and status.
 
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_s3_bucket_intelligent_tiering_configuration` table, you can use the `.inspect aws_s3_bucket_intelligent_tiering_configuration` command in Steampipe.
+
+### Key columns:
+
+- `bucket_name`: The name of the bucket. This is a key column because it directly identifies the bucket with which the Intelligent Tiering configuration is associated.  
+- `id`: The ID of the Intelligent Tiering configuration. This is a key column because it directly identifies the specific configuration.  
+- `status`: The status of the Intelligent Tiering configuration. This is a key column because it provides important information about the state of the configuration.
 
 ## Examples
 

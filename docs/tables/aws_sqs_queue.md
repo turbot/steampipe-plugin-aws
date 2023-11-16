@@ -1,6 +1,21 @@
-# Table: aws_sqs_queue
+---
+title: "Table: aws_sqs_queue - Query AWS Simple Queue Service (SQS) using SQL"
+description: "Allows users to query AWS Simple Queue Service (SQS) to retrieve detailed information about each queue."
+---
 
-Amazon Simple Queue Service (SQS) is a fully managed message queuing service that enables to decouple and scale micro services, distributed systems, and serverless applications
+# Table: aws_sqs_queue - Query AWS Simple Queue Service (SQS) using SQL
+
+The `aws_sqs_queue` table in Steampipe provides information about each queue in AWS Simple Queue Service (SQS). This table allows DevOps engineers to query queue-specific details, including ARN, URL, and associated metadata. Users can utilize this table to gather insights on queues, such as their visibility timeout, message retention period, and delivery delay settings. The schema outlines the various attributes of the SQS queue, including the queue ARN, URL, and associated tags.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_sqs_queue` table, you can use the `.inspect aws_sqs_queue` command in Steampipe.
+
+### Key columns:
+
+- `arn`: The Amazon Resource Name (ARN) of the queue. This can be used to join this table with other tables that contain AWS resource ARNs.
+- `url`: The URL of the queue. This is a unique identifier for the queue and can be used to join with any other table that references AWS SQS queues by URL.
+- `name`: The name of the queue. This is a human-readable identifier for the queue and can be useful for joining with tables that reference queues by name.
 
 ## Examples
 

@@ -1,7 +1,23 @@
-# Table: aws_rds_db_instance_metric_read_iops
+---
+title: "Table: aws_rds_db_instance_metric_read_iops - Query AWS RDS DBInstanceMetricReadIops using SQL"
+description: "Allows users to query AWS RDS DBInstanceMetricReadIops to retrieve and monitor the read IOPS (Input/Output Operations Per Second) metrics for Amazon RDS DB instances."
+---
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_rds_db_instance_metric_read_iops` table provides metric statistics at 5 minute intervals for the most recent 5 days.
+# Table: aws_rds_db_instance_metric_read_iops - Query AWS RDS DBInstanceMetricReadIops using SQL
 
+The `aws_rds_db_instance_metric_read_iops` table in Steampipe provides information about the read IOPS metrics of AWS RDS DB instances. This table allows users such as DevOps engineers and database administrators to query and monitor the read IOPS metrics, which can be useful for performance tuning and capacity planning. The read IOPS refers to the number of read input/output operations per second. The schema outlines the various attributes of the DB instance metric, including the DB instance identifier, timestamp, minimum, maximum, sum, sample count, and unit of measurement.
+
+The `aws_rds_db_instance_metric_read_iops` table provides metric statistics at 5 minute intervals for the most recent 5 days.
+
+## Table Usage Guide
+
+To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_metric_read_iops` table, you can use the `.inspect aws_rds_db_instance_metric_read_iops` command in Steampipe.
+
+### Key columns:
+
+- `db_instance_identifier`: The identifier of the DB instance. This can be used to join this table with other tables that contain information about the DB instance.
+- `timestamp`: The timestamp for the data point. This can be used to track the read IOPS over time.
+- `average`: The average of metric values that correspond to the data point. This can be used to monitor the average read IOPS.
 
 ## Examples
 
