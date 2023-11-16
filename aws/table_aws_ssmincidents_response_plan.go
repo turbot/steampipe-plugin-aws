@@ -19,7 +19,7 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"arn", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound"}),
 			},
 			Hydrate: getSSMIncidentsResponsePlan,
 			Tags:    map[string]string{"service": "ssm-incidents", "action": "GetResponsePlan"},
@@ -122,33 +122,32 @@ func listSSMIncidentsResponsePlans(ctx context.Context, d *plugin.QueryData, _ *
 		}
 	}
 
-	pagesLeft := true
-	params := &ssmincidents.ListResponsePlansInput{
-		MaxResults: aws.Int32(maxLimit),
+	input := &ssmincidents.ListResponsePlansInput{
+		MaxResults: &maxLimit,
 	}
 
-	for pagesLeft {
+	paginator := ssmincidents.NewListResponsePlansPaginator(svc, input, func(o *ssmincidents.ListResponsePlansPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
 		// apply rate limiting
-		result, err := svc.ListResponsePlans(ctx, params)
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ssmincidents_response_plan.listSSMIncidentsResponsePlans", "api_error", err)
 			return nil, err
 		}
 
-		for _, plan := range result.ResponsePlanSummaries {
-			d.StreamListItem(ctx, plan)
+		for _, responsePlan := range output.ResponsePlanSummaries {
+			d.StreamListItem(ctx, responsePlan)
 
-			// Context can be cancelled due to manual cancellation or the limit has been hit
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
-		}
-
-		if result.NextToken != nil {
-			pagesLeft = true
-			params.NextToken = result.NextToken
-		} else {
-			pagesLeft = false
 		}
 	}
 
