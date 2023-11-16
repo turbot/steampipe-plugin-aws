@@ -37,7 +37,6 @@ where
   chat_channel is not null;
 ```
 
-
 ### Get incident template details of a partuicular response plan
 
 ```sql
