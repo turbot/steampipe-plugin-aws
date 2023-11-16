@@ -19,7 +19,6 @@ from
   aws_ssmincidents_response_plan;
 ```
 
-
 ### List response plans with chat channel configured
 
 ```sql
