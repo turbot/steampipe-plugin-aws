@@ -37,13 +37,14 @@ func tableAwsCodeArtifactPackage(_ context.Context) *plugin.Table {
 					Name:    "format",
 					Require: plugin.Required,
 				},
-
 			},
 			Hydrate: getCodeArtifactPackage,
+			Tags:    map[string]string{"service": "codeartifact", "action": "DescribePackage"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listCodeArtifactRepositories,
-			Hydrate: listCodeArtifactPackages,
+			Hydrate:       listCodeArtifactPackages,
+			Tags:    map[string]string{"service": "codeartifact", "action": "ListPackages"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "domain",
@@ -78,6 +79,12 @@ func tableAwsCodeArtifactPackage(_ context.Context) *plugin.Table {
 					Require:    plugin.Optional,
 					CacheMatch: "exact",
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCodeArtifactPackage,
+				Tags: map[string]string{"service": "codeartifact", "action": "DescribePackage"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codeartifactv1.EndpointsID),
@@ -146,22 +153,21 @@ func listCodeArtifactPackages(ctx context.Context, d *plugin.QueryData, h *plugi
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-				maxLimit = limit
+			maxLimit = limit
 		}
 	}
 
-  var domain, repository string
+	var domain, repository string
 	if h.Item != nil {
 		domain = *h.Item.(*types.RepositoryDescription).DomainName
 		repository = *h.Item.(*types.RepositoryDescription).Name
 	} else {
-		domain = d.EqualsQuals["domain"].GetStringValue()
-		repository = d.EqualsQuals["repository"].GetStringValue()
+		domain = d.EqualsQualString("domain")
+		repository = d.EqualsQualString("repository")
 	}
 
-
-	input := codeartifact.ListPackagesInput {
-		Domain: &domain,
+	input := codeartifact.ListPackagesInput{
+		Domain:     &domain,
 		Repository: &repository,
 		MaxResults: &maxLimit,
 	}
@@ -179,7 +185,7 @@ func listCodeArtifactPackages(ctx context.Context, d *plugin.QueryData, h *plugi
 		}
 
 		for _, items := range output.Packages {
-					d.StreamListItem(ctx, items)
+			d.StreamListItem(ctx, items)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -205,20 +211,20 @@ func getCodeArtifactPackage(ctx context.Context, d *plugin.QueryData, h *plugin.
 		domain = *h.Item.(*types.RepositoryDescription).DomainName
 		repository = *h.Item.(*types.RepositoryDescription).Name
 	} else {
-		domain = d.EqualsQuals["domain"].GetStringValue()
-		repository = d.EqualsQuals["repository"].GetStringValue()
+		domain = d.EqualsQualString("domain")
+		repository = d.EqualsQualString("repository")
 	}
 
-	if PackageName == "" || format == "" || domain == "" || repository == ""{
+	if PackageName == "" || format == "" || domain == "" || repository == "" {
 		return nil, nil
 	}
 
 	// Build the params
 	params := &codeartifact.DescribePackageInput{
-		Domain: &domain,
+		Domain:     &domain,
 		Repository: &repository,
-		Format: data.Format,
-		Package: data.Name,
+		Format:     data.Format,
+		Package:    data.Name,
 	}
 
 	// Create session
