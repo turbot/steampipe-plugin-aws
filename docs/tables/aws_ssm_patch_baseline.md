@@ -11,7 +11,7 @@ The `aws_ssm_patch_baseline` table in Steampipe allows you to query information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_patch_baseline` table, you can use the `.inspect aws_ssm_patch_baseline` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `baseline_id`: This is the ID of the patch baseline. It can be used to join this table with other tables that contain patch baseline information.
 - `name`: This is the name of the patch baseline. It provides a human-readable identifier that can be useful in queries and reports.

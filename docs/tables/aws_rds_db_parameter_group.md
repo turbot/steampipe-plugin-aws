@@ -11,7 +11,7 @@ The `aws_rds_db_parameter_group` table in Steampipe provides information about D
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_parameter_group` table, you can use the `.inspect aws_rds_db_parameter_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the DB parameter group. This column can be used to join the table with other tables that contain parameter group names.
 - `db_parameter_group_family`: The name of the DB parameter group family that the DB parameter group is compatible with. This column can be used to join the table with other tables that contain parameter group family names.

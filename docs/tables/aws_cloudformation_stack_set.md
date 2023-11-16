@@ -11,7 +11,7 @@ The `aws_cloudformation_stack_set` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudformation_stack_set` table, you can use the `.inspect aws_cloudformation_stack_set` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `stack_set_name`: The name of the AWS CloudFormation StackSet. This can be used to join this table with other tables that also contain StackSet names.
 - `stack_set_id`: The unique identifier for the StackSet. This is useful for joining with other tables that may reference the StackSet by its ID.

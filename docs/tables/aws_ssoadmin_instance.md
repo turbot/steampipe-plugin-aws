@@ -11,7 +11,7 @@ The `aws_ssoadmin_instance` table in Steampipe provides information about each A
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssoadmin_instance` table, you can use the `.inspect aws_ssoadmin_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_arn`: The ARN (Amazon Resource Name) of the SSO instance. This can be used to join this table with other tables that include SSO instance ARNs.
 - `identity_store_id`: The ID of the identity store. This can be useful for joining with other tables that include identity store IDs, allowing for more detailed queries across multiple tables.

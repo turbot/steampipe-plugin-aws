@@ -11,7 +11,7 @@ The `aws_pricing_service_attribute` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_pricing_service_attribute` table, you can use the `.inspect aws_pricing_service_attribute` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `service_code`: This column provides the service code for the AWS product. It is useful for identifying the specific AWS service that the product belongs to.
 - `product_family`: This column provides the product family for the AWS product. It is useful for categorizing AWS products and can be used to join this table with others that also contain product family information.

@@ -11,7 +11,7 @@ The `aws_sagemaker_model` table in Steampipe provides information about models w
 
 To gain a deeper understanding of the structure and metadata of the `aws_sagemaker_model` table, you can use the `.inspect aws_sagemaker_model` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `model_name`: The name of the model. This can be used to join this table with other tables that contain model-specific information.
 - `model_arn`: The Amazon Resource Name (ARN) of the model. This can be used to join this table with other tables that contain resource-specific information.

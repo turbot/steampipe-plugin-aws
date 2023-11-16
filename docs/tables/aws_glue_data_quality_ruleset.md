@@ -11,7 +11,7 @@ The `aws_glue_data_quality_ruleset` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_glue_data_quality_ruleset` table, you can use the `.inspect aws_glue_data_quality_ruleset` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the ruleset. This can be used to join this table with others that also contain ruleset names.
 - `arn`: The Amazon Resource Number (ARN) of the ruleset. This is a unique identifier that can be used to join this table with others that contain ARN information.

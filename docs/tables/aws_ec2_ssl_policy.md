@@ -11,7 +11,7 @@ The `aws_ec2_ssl_policy` table in Steampipe provides information about SSL polic
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_ssl_policy` table, you can use the `.inspect aws_ec2_ssl_policy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the SSL policy. This is the primary key of the table and can be used to join with other tables that reference SSL policies.
 - `ssl_protocols`: The list of SSL protocols enabled for the policy. This can be used to determine the SSL protocol configurations for Load Balancers.

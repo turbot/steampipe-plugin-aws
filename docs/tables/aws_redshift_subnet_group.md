@@ -11,7 +11,7 @@ The `aws_redshift_subnet_group` table in Steampipe provides information about su
 
 To gain a deeper understanding of the structure and metadata of the `aws_redshift_subnet_group` table, you can use the `.inspect aws_redshift_subnet_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `subnet_group_name`: The name of the subnet group. This can be used to join with other tables that contain subnet group names.
 - `vpc_id`: The ID of the VPC the subnet group is associated with. This can be used to join with other tables that contain VPC IDs.

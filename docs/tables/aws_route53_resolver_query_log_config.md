@@ -13,7 +13,7 @@ The `aws_route53_resolver_query_log_config` table in Steampipe provides informat
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_resolver_query_log_config` table, you can use the `.inspect aws_route53_resolver_query_log_config` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The ID of the configuration. This is a unique identifier and can be used to join this table with other tables that reference Resolver Query Log Configurations.
 - `owner_id`: The AWS account ID of the account that created the configuration. This can be used to filter configurations by the account that owns them.

@@ -13,7 +13,7 @@ The `aws_iam_policy_attachment` table in Steampipe allows users to query IAM Pol
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_policy_attachment` table, you can use the `.inspect aws_iam_policy_attachment` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `policy_arn`: The Amazon Resource Name (ARN) of the IAM policy. This can be used to join with the `aws_iam_policy` table to get more details about the policy.
 - `policy_name`: The name of the IAM policy. This provides a human-readable way to identify policies.

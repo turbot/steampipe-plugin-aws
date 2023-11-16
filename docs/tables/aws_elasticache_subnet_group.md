@@ -11,7 +11,7 @@ The `aws_elasticache_subnet_group` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the `aws_elasticache_subnet_group` table, you can use the `.inspect aws_elasticache_subnet_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the subnet group. This can be used to join with other tables that reference subnet groups by name.
 - `vpc_id`: The ID of the VPC that the subnet group is associated with. This can be used to join with other tables that reference VPCs by ID.

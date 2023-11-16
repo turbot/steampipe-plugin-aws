@@ -11,7 +11,7 @@ The `aws_ec2_launch_template` table in Steampipe provides information about EC2 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_launch_template` table, you can use the `.inspect aws_ec2_launch_template` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `launch_template_id`: This is the unique ID of the launch template. It can be used to join with other tables when you need to correlate data based on the launch template.
 

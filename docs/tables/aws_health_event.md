@@ -11,7 +11,7 @@ The `aws_health_event` table in Steampipe provides information about AWS Health 
 
 To gain a deeper understanding of the structure and metadata of the `aws_health_event` table, you can use the `.inspect aws_health_event` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the event. This can be used to join this table with other tables that contain event ARN.
 - `service`: The AWS service that is affected by the event. This can be used to join this table with other tables that contain service information.

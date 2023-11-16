@@ -11,7 +11,7 @@ The `aws_sfn_state_machine_execution` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_sfn_state_machine_execution` table, you can use the `.inspect aws_sfn_state_machine_execution` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `execution_arn`: The ARN that identifies the execution. This can be used to join with other tables that provide more information on the specific execution.
 - `state_machine_arn`: The ARN that identifies the state machine associated with the execution. This can be used to join with other tables that provide more information on the state machine.

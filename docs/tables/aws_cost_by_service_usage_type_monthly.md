@@ -15,7 +15,7 @@ Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-ma
 
 To gain a deeper understanding of the structure and metadata of the `aws_cost_by_service_usage_type_monthly` table, you can use the `.inspect aws_cost_by_service_usage_type_monthly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `service_name`: The name of the AWS service. This column is important as it allows users to filter cost data by specific AWS services.
 - `usage_type`: Describes the specific AWS operation for the usage. This column is useful for understanding the cost distribution across different types of usage within a service.

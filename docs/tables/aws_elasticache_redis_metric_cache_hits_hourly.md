@@ -13,7 +13,7 @@ The `aws_elasticache_redis_metric_cache_hits_hourly` table provides metric stati
 
 To gain a deeper understanding of the structure and metadata of the `aws_elasticache_redis_metric_cache_hits_hourly` table, you can use the `.inspect aws_elasticache_redis_metric_cache_hits_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `timestamp`: This is the timestamp for the cache hits data point. It is useful for tracking the cache hits over time and can be used to join with tables that contain time-based information.
 - `cache_hits`: This is the number of successful lookup of keys in the cache. It is crucial for understanding the efficiency of the cache and can be used to join with tables that contain cache performance data.

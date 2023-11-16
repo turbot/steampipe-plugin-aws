@@ -11,7 +11,7 @@ The `aws_wellarchitected_lens_review_improvement` table in Steampipe provides in
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_lens_review_improvement` table, you can use the `.inspect aws_wellarchitected_lens_review_improvement` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `workload_id`: This is the unique identifier of the workload. It is important as it can be used to join this table with other tables related to workloads.
 - `lens_alias`: This is the alias of the lens in the workload. It is useful as it can be used to join this table with other tables related to lenses.

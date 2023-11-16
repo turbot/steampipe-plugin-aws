@@ -11,7 +11,7 @@ The `aws_ec2_launch_template_version` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_launch_template_version` table, you can use the `.inspect aws_ec2_launch_template_version` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `launch_template_id`: This is the ID of the launch template. It is useful for joining with other tables that reference EC2 launch templates.
 - `version_number`: This is the version number of the launch template. It is essential for tracking changes and differentiating between different versions of the same template.

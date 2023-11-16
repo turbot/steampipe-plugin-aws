@@ -11,7 +11,7 @@ The `aws_wellarchitected_milestone` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_milestone` table, you can use the `.inspect aws_wellarchitected_milestone` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `milestone_number`: This is the milestone number. It can be used to identify a specific milestone of a workload.
 - `workload_id`: This is the ID of the workload that the milestone is associated with. This can be used to join this table with the workload table.

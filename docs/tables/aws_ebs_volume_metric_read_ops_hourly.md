@@ -13,7 +13,7 @@ The `aws_ebs_volume_metric_read_ops_hourly` table provides metric statistics at 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ebs_volume_metric_read_ops_hourly` table, you can use the `.inspect aws_ebs_volume_metric_read_ops_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `volume_id`: The ID of the EBS volume. This is a key column that can be used to join this table with other tables related to EBS volumes.
 - `timestamp`: The timestamp for the data point in UTC. This column is useful for tracking the read operations of a volume over time.

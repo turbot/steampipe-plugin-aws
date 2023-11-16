@@ -11,7 +11,7 @@ The `aws_pricing_product` table in Steampipe provides information about pricing 
 
 To gain a deeper understanding of the structure and metadata of the `aws_pricing_product` table, you can use the `.inspect aws_pricing_product` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `product_family` - This column is important as it allows users to filter or join with other tables based on the product family. For example, you can find all pricing details for a specific product family.
 - `servicecode` - This column is useful for joining with other tables that contain service code information. This allows for more detailed queries related to specific AWS services.

@@ -11,7 +11,7 @@ The `aws_cloudtrail_query` table in Steampipe provides information about CloudTr
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_query` table, you can use the `.inspect aws_cloudtrail_query` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `event_time`: This is the date and time the request was made, in coordinated universal time (UTC). It can be used to filter events based on the time they occurred.
 - `event_name`: This is the name of the event that occurred. It can be used to filter events based on their type.

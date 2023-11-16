@@ -13,7 +13,7 @@ The `aws_rds_db_instance_metric_read_iops` table provides metric statistics at 5
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_metric_read_iops` table, you can use the `.inspect aws_rds_db_instance_metric_read_iops` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_instance_identifier`: The identifier of the DB instance. This can be used to join this table with other tables that contain information about the DB instance.
 - `timestamp`: The timestamp for the data point. This can be used to track the read IOPS over time.

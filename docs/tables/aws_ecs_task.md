@@ -11,7 +11,7 @@ The `aws_ecs_task` table in Steampipe provides information about tasks within Am
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecs_task` table, you can use the `.inspect aws_ecs_task` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `task_arn`: The Amazon Resource Name (ARN) that identifies the task. This is a key column as it uniquely identifies each task and can be used to join this table with other tables that contain task-specific information.
 - `cluster_arn`: The ARN of the cluster that hosts the task. This column is important for identifying which tasks belong to which clusters and can be used to join this table with the `aws_ecs_cluster` table.

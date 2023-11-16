@@ -11,7 +11,7 @@ The `aws_ecrpublic_repository` table in Steampipe provides information about eac
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecrpublic_repository` table, you can use the `.inspect aws_ecrpublic_repository` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `repository_name`: The name of the repository. This can be used to join with other tables that provide additional details about the repository.
 - `repository_arn`: The Amazon Resource Name (ARN) of the repository. This is a unique identifier for the repository and can be used to join with other tables that use ARN for identification.

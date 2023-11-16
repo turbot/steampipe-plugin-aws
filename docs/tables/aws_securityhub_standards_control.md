@@ -11,7 +11,7 @@ The `aws_securityhub_standards_control` table in Steampipe provides information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_securityhub_standards_control` table, you can use the `.inspect aws_securityhub_standards_control` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `standards_control_arn`: The ARN of the standards control. This can be useful for joining with other tables that reference the standards control by ARN.
 - `control_id`: The ID of the control. This is a unique identifier for the control and can be used for specific queries or joins with other tables.

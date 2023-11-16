@@ -11,7 +11,7 @@ The `aws_ec2_reserved_instance` table in Steampipe provides information about Re
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_reserved_instance` table, you can use the `.inspect aws_ec2_reserved_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `reservation_id`: The ID of the Reserved Instance. This can be used to join this table with other tables that contain information about the reserved instance.
 - `instance_type`: The instance type on which the Reserved Instance can be used. This can be used to join this table with other tables that contain information about the instance type.

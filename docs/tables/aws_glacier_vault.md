@@ -11,7 +11,7 @@ The `aws_glacier_vault` table in Steampipe provides information about Vaults wit
 
 To gain a deeper understanding of the structure and metadata of the `aws_glacier_vault` table, you can use the `.inspect aws_glacier_vault` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `vault_name`: The name of the vault. This can be used to join with other tables that contain vault names.
 - `vault_arn`: The Amazon Resource Name (ARN) for the vault. This can be used to join with other tables that contain vault ARNs.

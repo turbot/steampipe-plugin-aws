@@ -11,7 +11,7 @@ The `aws_dynamodb_global_table` table in Steampipe provides information about Gl
 
 To gain a deeper understanding of the structure and metadata of the `aws_dynamodb_global_table` table, you can use the `.inspect aws_dynamodb_global_table` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: This is the name of the DynamoDB Global Table. It is a unique identifier and can be used to join this table with other tables that contain DynamoDB Global Table names.
 - `arn`: This is the Amazon Resource Name (ARN) of the DynamoDB Global Table. It can be used to join this table with other tables that contain DynamoDB Global Table ARNs.

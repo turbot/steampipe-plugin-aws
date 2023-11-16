@@ -11,7 +11,7 @@ The `aws_wellarchitected_lens_review_report` table in Steampipe provides informa
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_lens_review_report` table, you can use the `.inspect aws_wellarchitected_lens_review_report` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `lens_alias`: The alias of the lens. This can be used to join with other tables that contain lens alias information.
 - `lens_version`: The version of the lens. This is useful for tracking the version history of the lens.

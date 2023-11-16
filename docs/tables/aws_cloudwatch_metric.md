@@ -11,7 +11,7 @@ The `aws_cloudwatch_metric` table in Steampipe provides information about CloudW
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_metric` table, you can use the `.inspect aws_cloudwatch_metric` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `metric_name`: The name of the metric. This is a key identifier and can be used to join with other tables that require metric information.
 - `namespace`: The namespace of the metric. This provides context for the metric and can be used to join with tables that require namespace information.

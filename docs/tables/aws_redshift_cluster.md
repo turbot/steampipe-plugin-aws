@@ -11,7 +11,7 @@ The `aws_redshift_cluster` table in Steampipe provides information about Redshif
 
 To gain a deeper understanding of the structure and metadata of the `aws_redshift_cluster` table, you can use the `.inspect aws_redshift_cluster` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cluster_identifier`: This is the unique identifier of the cluster. It can be used to join this table with other tables that also contain Redshift cluster identifiers.
 - `db_name`: This is the name of the initial database that was created when the cluster was created. It can be used to join with tables that contain information about specific databases in Redshift.

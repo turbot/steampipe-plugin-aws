@@ -11,7 +11,7 @@ The `aws_cloudtrail_trail` table in Steampipe provides information about each tr
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_trail` table, you can use the `.inspect aws_cloudtrail_trail` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the trail. This can be used to join this table with other tables that reference the trail name.
 - `trail_arn`: The Amazon Resource Name (ARN) of the trail. This is a unique identifier for the trail and can be used to join this table with other tables that reference the trail ARN.

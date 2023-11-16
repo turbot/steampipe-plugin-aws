@@ -11,7 +11,7 @@ The `aws_guardduty_ipset` table in Steampipe provides information about IPSet wi
 
 To gain a deeper understanding of the structure and metadata of the `aws_guardduty_ipset` table, you can use the `.inspect aws_guardduty_ipset` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `detector_id`: The unique ID of the detector that the IPSet is associated with. This is useful for joining this table with other tables that contain information about the detector.
 - `ip_set_id`: The unique ID of the IPSet. This is useful for joining this table with other tables that contain information about the IPSet.

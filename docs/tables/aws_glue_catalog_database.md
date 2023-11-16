@@ -11,7 +11,7 @@ The `aws_glue_catalog_database` table in Steampipe provides information about da
 
 To gain a deeper understanding of the structure and metadata of the `aws_glue_catalog_database` table, you can use the `.inspect aws_glue_catalog_database` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the database. This can be used to join with other tables that reference the database name.
 - `catalog_id`: The ID of the data catalog in which the database resides. This can be used to join with other tables that reference the catalog ID.

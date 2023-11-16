@@ -11,7 +11,7 @@ The `aws_glue_dev_endpoint` table in Steampipe provides comprehensive informatio
 
 To gain a deeper understanding of the structure and metadata of the `aws_glue_dev_endpoint` table, you can use the `.inspect aws_glue_dev_endpoint` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the development endpoint. This is the unique identifier for the endpoint and can be used to join this table with other tables that reference Glue Development Endpoints.
 - `role_arn`: The ARN of the IAM role used in the creation of the development endpoint. This can be useful for joining with IAM tables to gather more information about the permissions and policies associated with the endpoint.

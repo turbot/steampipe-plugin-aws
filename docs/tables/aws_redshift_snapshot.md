@@ -11,7 +11,7 @@ The `aws_redshift_snapshot` table in Steampipe provides information about snapsh
 
 To gain a deeper understanding of the structure and metadata of the `aws_redshift_snapshot` table, you can use the `.inspect aws_redshift_snapshot` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `snapshot_identifier`: The unique identifier for the snapshot. This column is important as it is the primary identifier for each snapshot.
 - `cluster_identifier`: The identifier of the cluster for which the snapshot was taken. This column is useful for joining this table with other tables that contain information about Redshift clusters.

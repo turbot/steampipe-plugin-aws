@@ -11,7 +11,7 @@ The `aws_sfn_state_machine` table in Steampipe provides information about State 
 
 To gain a deeper understanding of the structure and metadata of the `aws_sfn_state_machine` table, you can use the `.inspect aws_sfn_state_machine` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - **name**: The name of the state machine. This is a unique identifier and can be used to join this table with others that contain state machine information.
 - **arn**: The Amazon Resource Number (ARN) of the state machine. This is a globally unique identifier that can be used to join this table with any other AWS resource table.

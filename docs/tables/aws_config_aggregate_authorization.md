@@ -11,7 +11,7 @@ The `aws_config_aggregate_authorization` table in Steampipe provides information
 
 To gain a deeper understanding of the structure and metadata of the `aws_config_aggregate_authorization` table, you can use the `.inspect aws_config_aggregate_authorization` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id`: This column contains the ID of the AWS account that is allowed to aggregate data. This key column is useful for joining this table with others that contain account-related information.
 - `region`: This column holds the region that is allowed to aggregate data. It can be used to join this table with other tables that contain region-specific information.

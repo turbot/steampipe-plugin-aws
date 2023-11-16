@@ -11,7 +11,7 @@ The `aws_lambda_layer_version` table in Steampipe provides information about eac
 
 To gain a deeper understanding of the structure and metadata of the `aws_lambda_layer_version` table, you can use the `.inspect aws_lambda_layer_version` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `layer_name`: The name of the layer. This is useful for joining with other tables that may reference the layer by name.
 - `layer_version_arn`: The Amazon Resource Name (ARN) of the layer version. This unique identifier is useful for joining with other tables that may reference the layer version by its ARN.

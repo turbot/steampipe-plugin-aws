@@ -11,7 +11,7 @@ The `aws_rds_db_proxy` table in Steampipe provides information about DB Proxies 
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_proxy` table, you can use the `.inspect aws_rds_db_proxy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `proxy_arn`: The Amazon Resource Name (ARN) for the DB Proxy. This can be used to join this table with other tables that also contain proxy ARNs.
 - `name`: The name of the DB Proxy. This can be useful for joining with other tables where the proxy name is known.

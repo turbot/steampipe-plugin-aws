@@ -11,7 +11,7 @@ The `aws_iam_user` table in Steampipe provides information about IAM users withi
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_user` table, you can use the `.inspect aws_iam_user` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `user_name`: The name of the IAM user. This can be used to join with other tables that contain user-specific information.
 - `arn`: The Amazon Resource Name (ARN) of the user. This is a unique identifier that can be used to join with any other table that contains ARN information.

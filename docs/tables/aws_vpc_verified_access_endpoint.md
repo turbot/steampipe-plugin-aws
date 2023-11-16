@@ -11,7 +11,7 @@ The `aws_vpc_verified_access_endpoint` table in Steampipe provides information a
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_verified_access_endpoint` table, you can use the `.inspect aws_vpc_verified_access_endpoint` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `vpc_endpoint_id`: The ID of the VPC endpoint. This can be used to join this table with other tables that contain VPC endpoint information.
 - `vpc_id`: The ID of the VPC where the endpoint is located. This can be used to join this table with other tables that contain VPC information.

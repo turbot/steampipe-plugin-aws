@@ -11,7 +11,7 @@ The `aws_ec2_managed_prefix_list_entry` table in Steampipe provides information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_managed_prefix_list_entry` table, you can use the `.inspect aws_ec2_managed_prefix_list_entry` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cidr`: This column contains the IP address range, or prefix, in CIDR notation. It is important as it provides the IP address range included in a managed prefix list.
 - `description`: This column provides a description of the managed prefix list entry. It is useful for understanding the purpose or use of the IP address range.

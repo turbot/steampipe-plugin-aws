@@ -11,7 +11,7 @@ The `aws_cloudwatch_log_metric_filter` table in Steampipe provides information a
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_log_metric_filter` table, you can use the `.inspect aws_cloudwatch_log_metric_filter` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the metric filter. This can be used to join with other tables that need filter-specific information.
 - `log_group_name`: The name of the log group to which the metric filter is associated. This can be used to join with other tables that need log group-specific information.

@@ -11,7 +11,7 @@ The `aws_auditmanager_control` table in Steampipe provides information about con
 
 To gain a deeper understanding of the structure and metadata of the `aws_auditmanager_control` table, you can use the `.inspect aws_auditmanager_control` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The unique identifier of the control. This can be used to join this table with other tables to get more detailed information about the control.
 - `name`: The name of the control. This provides a human-readable identifier for the control, useful for understanding its purpose.

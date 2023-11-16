@@ -11,7 +11,7 @@ The `aws_codeartifact_domain` table in Steampipe provides information about doma
 
 To gain a deeper understanding of the structure and metadata of the `aws_codeartifact_domain` table, you can use the `.inspect aws_codeartifact_domain` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the domain. It is unique to an AWS account and useful for joining with other tables that reference AWS CodeArtifact domains by name.
 - `arn`: The Amazon Resource Number (ARN) of the domain. This is a unique identifier for the domain and can be used for joining with other tables that reference AWS CodeArtifact domains by ARN.

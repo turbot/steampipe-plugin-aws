@@ -11,7 +11,7 @@ The `aws_securityhub_insight` table in Steampipe provides information about insi
 
 To gain a deeper understanding of the structure and metadata of the `aws_securityhub_insight` table, you can use the `.inspect aws_securityhub_insight` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the insight. This is a unique identifier and can be used to join this table with other tables.
 - `name`: The name of the insight. It can be useful to filter insights based on their names.

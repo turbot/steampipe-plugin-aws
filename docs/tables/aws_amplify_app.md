@@ -11,7 +11,7 @@ The `aws_amplify_app` table in Steampipe provides information about apps within 
 
 To gain a deeper understanding of the structure and metadata of the `aws_amplify_app` table, you can use the `.inspect aws_amplify_app` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `app_id`: The unique identifier for an Amplify app. This can be used to join this table with other tables that reference Amplify apps.
 - `app_arn`: The Amazon Resource Name (ARN) of the Amplify app. This column can be used to join with other tables when ARNs are available.

@@ -11,7 +11,7 @@ The `aws_rds_reserved_db_instance` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_reserved_db_instance` table, you can use the `.inspect aws_rds_reserved_db_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `reserved_db_instance_id`: This is the unique identifier of the reserved DB instance. It is crucial for identifying individual reservations and can be used to join with other tables that reference the reservation.
 - `db_instance_class`: This represents the compute and memory capacity of the reserved DB instance. It is useful for capacity planning and cost management.

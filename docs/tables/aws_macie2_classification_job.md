@@ -11,7 +11,7 @@ The `aws_macie2_classification_job` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_macie2_classification_job` table, you can use the `.inspect aws_macie2_classification_job` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `job_id`: The unique identifier for the classification job. This column is useful for joining with other tables that reference Macie2 classification jobs.
 - `job_arn`: The Amazon Resource Name (ARN) of the classification job. This column is useful for linking with other AWS resources that require the job's ARN.

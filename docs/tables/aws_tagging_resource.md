@@ -11,7 +11,7 @@ The `aws_tagging_resource` table in Steampipe provides information about resourc
 
 To gain a deeper understanding of the structure and metadata of the `aws_tagging_resource` table, you can use the `.inspect aws_tagging_resource` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: This is the Amazon Resource Name (ARN) of the resource. It is a unique identifier for the resource and can be used to join this table with other tables that also contain resource ARNs.
 - `resource_type`: This column specifies the type of the resource (like EC2 instance, S3 bucket, etc.). It is useful for filtering resources by type.

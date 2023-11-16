@@ -13,7 +13,7 @@ The `aws_elasticache_redis_metric_curr_connections_hourly` table provides metric
 
 To gain a deeper understanding of the structure and metadata of the `aws_elasticache_redis_metric_curr_connections_hourly` table, you can use the `.inspect aws_elasticache_redis_metric_curr_connections_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 * `timestamp`: This is the time when the metric data was received. It can be used to track the historical data of connections.
 * `average`: This column represents the average number of client connections for a given hour. It can be used to analyze the average demand for connections over time.

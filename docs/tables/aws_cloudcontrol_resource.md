@@ -11,7 +11,7 @@ The `aws_cloudcontrol_resource` table in Steampipe provides information about re
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudcontrol_resource` table, you can use the `.inspect aws_cloudcontrol_resource` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `resource_name`: This is the unique identifier of the resource. It is important as it can be used to join this table with other tables that also contain resource identifiers.
 - `resource_type`: This column provides information about the type of the resource. It is useful for filtering or grouping resources based on their types.

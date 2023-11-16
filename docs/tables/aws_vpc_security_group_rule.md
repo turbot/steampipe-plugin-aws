@@ -11,7 +11,7 @@ The `aws_vpc_security_group_rule` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_security_group_rule` table, you can use the `.inspect aws_vpc_security_group_rule` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `rule_id`: This is the unique identifier for the security group rule. This column is important as it allows users to uniquely identify and query specific security group rules.
 - `group_id`: This is the ID of the security group that the rule belongs to. This column is useful for joining this table with the `aws_vpc_security_group` table to get more information about the security group.

@@ -11,7 +11,7 @@ The `aws_route53_record` table in Steampipe provides information about DNS recor
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_record` table, you can use the `.inspect aws_route53_record` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the DNS record. This column is useful for joining this table with others that contain DNS record names.
 - `type`: The type of the DNS record (e.g., A, AAAA, CNAME, MX, NS, PTR, SOA, SPF, SRV, TXT). This column is important as it allows users to filter or join with other tables based on the DNS record type.

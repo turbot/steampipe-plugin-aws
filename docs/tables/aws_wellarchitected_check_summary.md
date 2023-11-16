@@ -11,7 +11,7 @@ The `aws_wellarchitected_check_summary` table in Steampipe provides information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_check_summary` table, you can use the `.inspect aws_wellarchitected_check_summary` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `workload_id`: This is the ID of the workload. It can be used to join with the `aws_wellarchitected_workload` table to get more details about the workload.
 - `lens_alias`: This is the alias of the lens. It can be used to join with the `aws_wellarchitected_lens` table to get more information about the lens.

@@ -11,7 +11,7 @@ The `aws_backup_vault` table in Steampipe provides information about backup vaul
 
 To gain a deeper understanding of the structure and metadata of the `aws_backup_vault` table, you can use the `.inspect aws_backup_vault` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the backup vault. This can be used to join with other tables that contain backup vault names.
 - `arn`: The Amazon Resource Name (ARN) of the backup vault. This can be used to join with other tables that contain backup vault ARNs.

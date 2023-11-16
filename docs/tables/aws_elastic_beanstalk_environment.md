@@ -11,7 +11,7 @@ The `aws_elastic_beanstalk_environment` table in Steampipe provides information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_elastic_beanstalk_environment` table, you can use the `.inspect aws_elastic_beanstalk_environment` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `environment_name`: The name of the environment. This can be used to join this table with other tables that contain environment-specific information.
 - `application_name`: The name of the application associated with the environment. This can be used to join this table with application-specific tables in AWS Elastic Beanstalk.

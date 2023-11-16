@@ -11,7 +11,7 @@ The `aws_ecs_task_definition` table in Steampipe provides information about the 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecs_task_definition` table, you can use the `.inspect aws_ecs_task_definition` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `task_definition_arn`: The Amazon Resource Name (ARN) that identifies the task definition. This can be used to join with other tables that reference task definitions.
 - `family`: The family of the task definition. This allows for easy grouping and querying of related task definitions.

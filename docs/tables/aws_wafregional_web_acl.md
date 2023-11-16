@@ -11,7 +11,7 @@ The `aws_wafregional_web_acl` table in Steampipe provides information about Web 
 
 To gain a deeper understanding of the structure and metadata of the `aws_wafregional_web_acl` table, you can use the `.inspect aws_wafregional_web_acl` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `web_acl_id`: The identifier of the WebACL. This can be used to join this table with other tables to get more information about the WebACL.
 - `name`: The name of the WebACL. This can be used to filter the results to get information about a specific WebACL.

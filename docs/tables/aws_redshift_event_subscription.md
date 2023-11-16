@@ -11,7 +11,7 @@ The `aws_redshift_event_subscription` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_redshift_event_subscription` table, you can use the `.inspect aws_redshift_event_subscription` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cust_subscription_id`: This is the unique identifier of the event subscription. It can be used to join this table with other tables that contain information about Redshift event subscriptions.
 - `enabled`: This column indicates whether the event subscription is enabled or not. It's useful in determining the status of the event subscription.

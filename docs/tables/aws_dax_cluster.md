@@ -11,7 +11,7 @@ The `aws_dax_cluster` table in Steampipe provides information about AWS DAX Clus
 
 To gain a deeper understanding of the structure and metadata of the `aws_dax_cluster` table, you can use the `.inspect aws_dax_cluster` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cluster_name` - The name of the DAX cluster. It can be used to join with other tables where the cluster name is needed.
 - `arn` - The Amazon Resource Name (ARN) of the DAX cluster. It can be used to join with other tables where the cluster ARN is required.

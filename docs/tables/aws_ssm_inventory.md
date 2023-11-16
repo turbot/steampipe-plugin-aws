@@ -11,7 +11,7 @@ The `aws_ssm_inventory` table in Steampipe provides information about managed in
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_inventory` table, you can use the `.inspect aws_ssm_inventory` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 - `instance_id`: This is the unique identifier for the managed instance. It can be used to join with other tables that contain instance-specific information.
 - `instance_type`: This column provides information about the type of the managed instance, which can be used to join with tables that contain instance type-specific information.
 - `platform_type`: This column provides information about the platform of the managed instance, which can be used to join with tables that contain platform-specific information.

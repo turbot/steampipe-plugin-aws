@@ -11,7 +11,7 @@ The `aws_waf_rule` table in Steampipe provides information about AWS WAF rules. 
 
 To gain a deeper understanding of the structure and metadata of the `aws_waf_rule` table, you can use the `.inspect aws_waf_rule` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `rule_id`: The identifier for the rule. This can be used to join this table with other tables that reference WAF rules.
 - `name`: The name of the rule. This can be useful for human-readable queries and joins with other tables that reference WAF rules by name.

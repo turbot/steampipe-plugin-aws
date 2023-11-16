@@ -15,7 +15,7 @@ _Please note_: This table requires a valid credential report to exist. To genera
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_credential_report` table, you can use the `.inspect aws_iam_credential_report` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `user`: The name of the IAM user. This column is essential as it can be used to join with other tables that contain user-specific information.
 - `access_key_1_active`: Indicates whether the first access key is active. This column is crucial for understanding the status and usage of access keys.

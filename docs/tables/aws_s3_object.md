@@ -20,7 +20,7 @@ Note: Using this table adds to cost to your monthly bill from AWS. Optimizations
 
 To gain a deeper understanding of the structure and metadata of the `aws_s3_object` table, you can use the `.inspect aws_s3_object` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `bucket_name`: The name of the bucket containing the object. This can be used to join with the `aws_s3_bucket` table.
 - `key`: The key for the object. This is unique for each object within a bucket and can be used to identify specific objects.

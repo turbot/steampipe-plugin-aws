@@ -11,7 +11,7 @@ The `aws_wellarchitected_lens` table in Steampipe provides information about eac
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_lens` table, you can use the `.inspect aws_wellarchitected_lens` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the lens. This can be used to join this table with other tables for more detailed analysis.
 - `version`: The version of the lens. This is useful for tracking changes and updates to the lens over time.

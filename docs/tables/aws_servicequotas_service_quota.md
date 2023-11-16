@@ -11,7 +11,7 @@ The `aws_servicequotas_service_quota` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_servicequotas_service_quota` table, you can use the `.inspect aws_servicequotas_service_quota` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `quota_arn`: The Amazon Resource Name (ARN) of the service quota. This can be used to join this table with other tables that include ARN information.
 - `quota_code`: The code identifier for the service quota. This can be useful for joining with tables that use quota codes, or for filtering specific quotas.

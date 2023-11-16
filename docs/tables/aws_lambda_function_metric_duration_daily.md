@@ -13,7 +13,7 @@ The `aws_lambda_function_metric_duration_daily` table provides metric statistics
 
 To gain a deeper understanding of the structure and metadata of the `aws_lambda_function_metric_duration_daily` table, you can use the `.inspect aws_lambda_function_metric_duration_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `timestamp`: This is the timestamp for the data point. It can be used to track the performance of a function over time.
 - `function_name`: The name of the Lambda function. This can be used to join with other tables that provide more detailed information about the function.

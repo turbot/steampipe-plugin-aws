@@ -11,7 +11,7 @@ The `aws_ec2_instance_availability` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_instance_availability` table, you can use the `.inspect aws_ec2_instance_availability` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_type`: This column provides the type of the EC2 instance. It is useful for querying specific instance types and understanding their availability and pricing.
 - `product_description`: This column describes the product. It can be used to filter instances based on specific product descriptions.

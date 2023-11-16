@@ -11,7 +11,7 @@ The `aws_glue_data_catalog_encryption_settings` table in Steampipe provides info
 
 To gain a deeper understanding of the structure and metadata of the `aws_glue_data_catalog_encryption_settings` table, you can use the `.inspect aws_glue_data_catalog_encryption_settings` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `catalog_id`: The ID of the data catalog. This is a key column that can be used to join this table with other tables to get more detailed information about the data catalog.
 - `create_time`: The time at which the encryption settings were created. This can be useful for auditing and tracking changes over time.

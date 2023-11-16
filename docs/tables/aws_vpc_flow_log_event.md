@@ -29,7 +29,7 @@ The `aws_vpc_flow_log_event` table in Steampipe provides information about the I
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_flow_log_event` table, you can use the `.inspect aws_vpc_flow_log_event` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `vpc_id`: The ID of the VPC for the network interface for which the traffic is recorded. This column is useful for joining with other tables that contain VPC-related information.
 - `interface_id`: The ID of the network interface for which the traffic is recorded. This column is useful for joining with other tables that contain network interface-related information.

@@ -11,7 +11,7 @@ The `aws_ec2_transit_gateway_route_table` table in Steampipe provides informatio
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_transit_gateway_route_table` table, you can use the `.inspect aws_ec2_transit_gateway_route_table` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `transit_gateway_route_table_id`: The ID of the transit gateway route table. This is a unique identifier that can be used to join this table with other tables and retrieve specific information about a route table.
 - `transit_gateway_id`: The ID of the transit gateway associated with the route table. This can be useful when querying for information about a specific transit gateway.

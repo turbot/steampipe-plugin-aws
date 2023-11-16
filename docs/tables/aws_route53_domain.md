@@ -11,7 +11,7 @@ The `aws_route53_domain` table in Steampipe allows users to query detailed infor
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_domain` table, you can use the `.inspect aws_route53_domain` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the domain. This is the primary key of the table and can be used to join this table with other tables that contain domain-specific information.
 - `expiry`: The expiration date of the domain. This is useful for tracking when domains are due for renewal.

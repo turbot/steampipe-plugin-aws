@@ -11,7 +11,7 @@ The `aws_route53_resolver_endpoint` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_resolver_endpoint` table, you can use the `.inspect aws_route53_resolver_endpoint` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The ID of the resolver endpoint. This can be used to join this table with others that reference resolver endpoints by their ID.
 - `arn`: The Amazon Resource Name (ARN) of the resolver endpoint. This can be used to join this table with others that reference resolver endpoints by their ARN.

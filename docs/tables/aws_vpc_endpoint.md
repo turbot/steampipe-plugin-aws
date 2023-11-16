@@ -11,7 +11,7 @@ The `aws_vpc_endpoint` table in Steampipe provides information about VPC Endpoin
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_endpoint` table, you can use the `.inspect aws_vpc_endpoint` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `vpc_endpoint_id`: This is the unique identifier for the VPC endpoint. This can be used to join this table with other tables that contain VPC endpoint information.
 - `vpc_id`: This is the ID of the VPC in which the endpoint is located. This can be used to join this table with other tables that contain VPC information.

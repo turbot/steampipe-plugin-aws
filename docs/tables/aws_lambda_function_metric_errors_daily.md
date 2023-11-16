@@ -13,7 +13,7 @@ The `aws_lambda_function_metric_errors_daily` table provides metric statistics a
 
 To gain a deeper understanding of the structure and metadata of the `aws_lambda_function_metric_errors_daily` table, you can use the `.inspect aws_lambda_function_metric_errors_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `function_name`: The name of the Lambda function. This can be used to join with other tables that contain Lambda function details.
 - `timestamp`: The timestamp of the error metric. This can be used to analyze error patterns over time.

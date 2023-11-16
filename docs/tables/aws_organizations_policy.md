@@ -13,7 +13,7 @@ The `aws_organizations_policy` table in Steampipe provides information about pol
 
 To gain a deeper understanding of the structure and metadata of the `aws_organizations_policy` table, you can use the `.inspect aws_organizations_policy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the policy. This can be used to join this table with other tables that contain policy ARN as a column.
 - `name`: The friendly name of the policy. This can be used to join this table with other tables that contain policy name as a column.

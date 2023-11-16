@@ -11,7 +11,7 @@ The `aws_sagemaker_notebook_instance` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_sagemaker_notebook_instance` table, you can use the `.inspect aws_sagemaker_notebook_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the notebook instance. It can be used to join this table with other tables that contain notebook instance names.
 - `instance_type`: The type of the notebook instance. This column can be used to filter instances based on their types.

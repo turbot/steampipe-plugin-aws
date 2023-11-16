@@ -11,7 +11,7 @@ The `aws_sns_topic_subscription` table in Steampipe provides information about t
 
 To gain a deeper understanding of the structure and metadata of the `aws_sns_topic_subscription` table, you can use the `.inspect aws_sns_topic_subscription` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `subscription_arn`: The ARN of the subscription. This is a unique identifier and can be used to join this table with other tables.
 - `topic_arn`: The ARN of the topic associated with the subscription. This can be used to join with the `aws_sns_topic` table for more detailed topic information.

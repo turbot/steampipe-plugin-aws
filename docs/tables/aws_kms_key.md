@@ -11,7 +11,7 @@ The `aws_kms_key` table in Steampipe provides information about Key Management S
 
 To gain a deeper understanding of the structure and metadata of the `aws_kms_key` table, you can use the `.inspect aws_kms_key` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `key_id`: The unique identifier for the KMS key. It can be used to join this table with other tables.
 - `arn`: The Amazon Resource Name (ARN) for the KMS key. It provides a unique identifier for the key across all of AWS.

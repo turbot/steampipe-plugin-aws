@@ -11,7 +11,7 @@ The `aws_route53_resolver_rule` table in Steampipe provides information about DN
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_resolver_rule` table, you can use the `.inspect aws_route53_resolver_rule` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The ID of the resolver rule. This is a unique identifier that can be used to join this table with other tables.
 - `domain_name`: The domain name that the resolver rule forwards requests for. This can be useful in identifying where DNS queries are being directed.

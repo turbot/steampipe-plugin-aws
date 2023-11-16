@@ -11,7 +11,7 @@ The `aws_drs_recovery_instance` table in Steampipe provides information about re
 
 To gain a deeper understanding of the structure and metadata of the `aws_drs_recovery_instance` table, you can use the `.inspect aws_drs_recovery_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_type`: This is the type of the recovery instance. It is an important column as it helps in understanding the capacity and capability of the recovery instance.
 - `recovery_instance_arn`: This is the Amazon Resource Name (ARN) of the recovery instance. It is a unique identifier for the recovery instance and can be used to join this table with other tables that contain recovery instance ARN.

@@ -21,7 +21,7 @@ Specifying `query` is not required, and if a search query is run without it, the
 
 To gain a deeper understanding of the structure and metadata of the `aws_resource_explorer_search` table, you can use the `.inspect aws_resource_explorer_search` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the resource. This can be used to join with other tables that also contain the resource ARN.
 - `service`: The name of the AWS service that the resource is associated with. This can be used to filter resources by service.

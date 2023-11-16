@@ -13,7 +13,7 @@ The `aws_rds_db_instance_metric_read_iops_daily` table provides metric statistic
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_metric_read_iops_daily` table, you can use the `.inspect aws_rds_db_instance_metric_read_iops_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_instance_identifier`: The identifier of the DBInstance. This column is useful for joining with other tables that also contain DBInstance identifiers to get more detailed information about the DBInstance.
 - `timestamp`: The timestamp for the specific metric data. This column is important for tracking the DBInstance's read IOPS over time.

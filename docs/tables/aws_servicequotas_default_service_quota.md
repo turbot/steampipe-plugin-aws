@@ -11,7 +11,7 @@ The `aws_servicequotas_default_service_quota` table in Steampipe provides inform
 
 To gain a deeper understanding of the structure and metadata of the `aws_servicequotas_default_service_quota` table, you can use the `.inspect aws_servicequotas_default_service_quota` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `quota_arn`: The Amazon Resource Name (ARN) of the service quota. This can be used to join with other tables that use ARN as a unique identifier.
 - `service_name`: The name of the AWS service. This is useful to join with other tables that provide service-specific information.

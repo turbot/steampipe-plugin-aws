@@ -11,7 +11,7 @@ The `aws_api_gatewayv2_stage` table in Steampipe provides information about stag
 
 To gain a deeper understanding of the structure and metadata of the `aws_api_gatewayv2_stage` table, you can use the `.inspect aws_api_gatewayv2_stage` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `api_id`: The API identifier. This can be used to join with other tables that contain information about the API.
 - `stage_name`: The name of the stage. This is useful for identifying the specific stage within the API.

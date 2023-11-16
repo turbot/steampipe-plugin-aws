@@ -15,7 +15,7 @@ Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-ma
 
 To gain a deeper understanding of the structure and metadata of the `aws_cost_by_tag` table, you can use the `.inspect aws_cost_by_tag` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `tag_key`: This is the key of the cost allocation tag. It is important as it allows users to identify which tag the costs are associated with.
 - `cost`: This is the cost associated with the tag. It is useful for tracking and managing costs.

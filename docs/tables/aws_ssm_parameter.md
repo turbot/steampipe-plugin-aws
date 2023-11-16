@@ -11,7 +11,7 @@ The `aws_ssm_parameter` table in Steampipe provides information about parameters
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_parameter` table, you can use the `.inspect aws_ssm_parameter` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the parameter. It can be used to join this table with others that require a parameter name.
 - `type`: The type of the parameter. It can be used to filter parameters based on their types.

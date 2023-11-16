@@ -11,7 +11,7 @@ The `aws_eks_addon_version` table in Steampipe provides information about Add-On
 
 To gain a deeper understanding of the structure and metadata of the `aws_eks_addon_version` table, you can use the `.inspect aws_eks_addon_version` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `addon_name`: The name of the add-on. This can be used to join this table with other tables that contain information about EKS add-ons.
 - `addon_version`: The version of the add-on. This is important when comparing different versions of the same add-on.

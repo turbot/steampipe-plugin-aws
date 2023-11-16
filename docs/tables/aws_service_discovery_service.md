@@ -11,7 +11,7 @@ The `aws_service_discovery_service` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_service_discovery_service` table, you can use the `.inspect aws_service_discovery_service` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The ID of the service. This is a unique identifier and can be used to join this table with other tables.
 - `arn`: The Amazon Resource Name (ARN) of the service. This is a unique identifier for the service across all of AWS and can be used to join this table with other tables.

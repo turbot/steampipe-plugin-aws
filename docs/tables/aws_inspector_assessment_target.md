@@ -11,7 +11,7 @@ The `aws_inspector_assessment_target` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the aws_inspector_assessment_target table, you can use the `.inspect aws_inspector_assessment_target` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the assessment target. It can be used to join this table with other AWS tables.
 - `name`: The name of the assessment target. It provides a human-readable identifier for the target.

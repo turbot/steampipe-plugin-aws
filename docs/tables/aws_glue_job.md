@@ -11,7 +11,7 @@ The `aws_glue_job` table in Steampipe provides information about AWS Glue Jobs. 
 
 To gain a deeper understanding of the structure and metadata of the `aws_glue_job` table, you can use the `.inspect aws_glue_job` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The unique name of the job. This column can be used to join this table with other tables that contain job-specific information.
 - `role`: The name or ARN of the IAM role associated with this job. This column is useful for joining with IAM role tables to understand the permissions associated with the job.

@@ -11,7 +11,7 @@ The `aws_vpc_egress_only_internet_gateway` table in Steampipe provides informati
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_egress_only_internet_gateway` table, you can use the `.inspect aws_vpc_egress_only_internet_gateway` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `gateway_id`: The ID of the egress only internet gateway. This can be useful for joining with other tables to get more information about the gateway.
 - `vpc_id`: The ID of the VPC the gateway is associated with. This is useful for joining with other VPC-related tables to get a full picture of the VPC's configuration.

@@ -11,7 +11,7 @@ The `aws_eks_addon` table in Steampipe provides information about add-ons associ
 
 To gain a deeper understanding of the structure and metadata of the `aws_eks_addon` table, you can use the `.inspect aws_eks_addon` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `addon_name`: The name of the add-on. This column is important as it can be used to join the table with other tables that contain information about specific add-ons.
 - `cluster_name`: The name of the cluster that the add-on is associated with. This column is useful for joining with other tables that contain cluster-specific information.

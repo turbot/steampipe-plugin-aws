@@ -11,7 +11,7 @@ The `aws_cloudwatch_log_subscription_filter` table in Steampipe provides informa
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_log_subscription_filter` table, you can use the `.inspect aws_cloudwatch_log_subscription_filter` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `filter_name`: This is the name of the subscription filter. It is a key column because it is unique for each subscription filter and can be used to join with other tables.
 

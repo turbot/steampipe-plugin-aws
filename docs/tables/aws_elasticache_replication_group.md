@@ -11,7 +11,7 @@ The `aws_elasticache_replication_group` table in Steampipe provides information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_elasticache_replication_group` table, you can use the `.inspect aws_elasticache_replication_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `replication_group_id`: The identifier for the replication group. This column can be used to join this table with other tables that contain information about specific replication groups.
 - `status`: The current state of this replication group - creating, available, modifying, deleting, etc. This column is useful for tracking the status of replication groups and identifying any potential issues.

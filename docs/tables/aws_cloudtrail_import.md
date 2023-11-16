@@ -11,7 +11,7 @@ The `aws_cloudtrail_import` table in Steampipe provides information about import
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_import` table, you can use the `.inspect aws_cloudtrail_import` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `import_id`: This is the unique identifier for each import. It can be used to join this table with other tables to get more detailed information about specific imports.
 - `file_name`: This is the name of the imported trail file. It can be used to filter results based on specific file names.

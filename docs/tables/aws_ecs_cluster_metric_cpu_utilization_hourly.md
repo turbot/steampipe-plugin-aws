@@ -13,7 +13,7 @@ The `aws_ecs_cluster_metric_cpu_utilization_hourly` table provides metric statis
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecs_cluster_metric_cpu_utilization_hourly` table, you can use the `.inspect aws_ecs_cluster_metric_cpu_utilization_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cluster_name`: The name of the ECS cluster. This is a key column because it can be used to join this table with other ECS cluster-specific tables.
 - `timestamp`: The timestamp for the specific hour when the CPU utilization data was collected. This column is crucial for trend analysis and correlating CPU utilization metrics with other events.

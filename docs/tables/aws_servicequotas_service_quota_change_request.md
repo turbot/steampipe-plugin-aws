@@ -11,7 +11,7 @@ The `aws_servicequotas_service_quota_change_request` table in Steampipe provides
 
 To gain a deeper understanding of the structure and metadata of the `aws_servicequotas_service_quota_change_request` table, you can use the `.inspect aws_servicequotas_service_quota_change_request` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `service_code`: The service code corresponds to the service name for which the quota applies. This is a key column as it can be used to join this table with other tables that contain service-specific information.
 - `quota_name`: This column represents the name of the specific quota within the service for which the change request has been made. It is useful in understanding the specific resources for which quota changes are requested.

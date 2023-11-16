@@ -11,7 +11,7 @@ The `aws_vpc_verified_access_instance` table in Steampipe provides information a
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_verified_access_instance` table, you can use the `.inspect aws_vpc_verified_access_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_id`: The unique identifier for the instance. This can be used to join with other tables that contain instance-specific information.
 - `instance_state`: The current state of the instance. This is useful for identifying instances that are inactive or in an error state.    

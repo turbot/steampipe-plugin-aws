@@ -11,7 +11,7 @@ The `aws_ecs_cluster_metric_cpu_utilization_daily` table in Steampipe provides i
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecs_cluster_metric_cpu_utilization_daily` table, you can use the `.inspect aws_ecs_cluster_metric_cpu_utilization_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `timestamp`: This column records the time of each data point. It is crucial for tracking CPU usage over time and identifying usage patterns.
 - `average`: This column shows the average CPU utilization for each day. It is useful for understanding the typical CPU usage.

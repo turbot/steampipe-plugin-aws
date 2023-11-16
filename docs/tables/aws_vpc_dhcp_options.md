@@ -11,7 +11,7 @@ The `aws_vpc_dhcp_options` table in Steampipe provides information about DHCP Op
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_dhcp_options` table, you can use the `.inspect aws_vpc_dhcp_options` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `dhcp_options_id`: The ID of the set of DHCP options. It can be used to join this table with other tables to get more detailed information.
 - `domain_name`: The domain name that instances that are associated with this set of DHCP options are given. It is useful to identify the domain associated with the DHCP options.

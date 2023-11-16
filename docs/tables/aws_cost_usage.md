@@ -17,7 +17,7 @@ Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-ma
 
 To gain a deeper understanding of the structure and metadata of the `aws_cost_usage` table, you can use the `.inspect aws_cost_usage` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `identity_line_item_operation`: This column indicates the operation that the line item covers, such as 'RunInstances' for EC2. It is useful for tracking the specific AWS operation that incurs costs.
 

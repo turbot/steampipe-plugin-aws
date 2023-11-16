@@ -11,7 +11,7 @@ The `aws_sts_caller_identity` table in Steampipe provides information about the 
 
 To gain a deeper understanding of the structure and metadata of the `aws_sts_caller_identity` table, you can use the `.inspect aws_sts_caller_identity` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account`: The AWS account ID number of the account that owns the resource. Useful for correlating with other tables that also use account ID.
 - `arn`: The Amazon Resource Name (ARN) that identifies the caller. This can be used to join with other tables that use ARN.

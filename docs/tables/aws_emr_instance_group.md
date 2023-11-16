@@ -11,7 +11,7 @@ The `aws_emr_instance_group` table in Steampipe provides information about insta
 
 To gain a deeper understanding of the structure and metadata of the `aws_emr_instance_group` table, you can use the `.inspect aws_emr_instance_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cluster_id`: The unique identifier for the cluster. This column can be used to join with other tables that contain information about EMR clusters.
 - `instance_group_id`: The unique identifier for the instance group. This is critical when joining with tables that contain additional details on specific instance groups within an EMR cluster.

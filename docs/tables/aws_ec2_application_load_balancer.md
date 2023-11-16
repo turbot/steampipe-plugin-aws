@@ -11,7 +11,7 @@ The `aws_ec2_application_load_balancer` table in Steampipe allows users to gain 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_application_load_balancer` table, you can use the `.inspect aws_ec2_application_load_balancer` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the load balancer. This provides a unique identifier for the load balancer, and can be used to join with other tables that also contain load balancer ARNs.
 - `availability_zones`: Information about the Availability Zones. This is useful for understanding the geographical distribution and redundancy of your load balancers.

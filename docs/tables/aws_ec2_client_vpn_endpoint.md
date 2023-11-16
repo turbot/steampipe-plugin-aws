@@ -11,7 +11,7 @@ The `aws_ec2_client_vpn_endpoint` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_client_vpn_endpoint` table, you can use the `.inspect aws_ec2_client_vpn_endpoint` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `vpn_endpoint_id`: The ID of the VPN endpoint. This is the primary key of the table and can be used to join with other tables to get more detailed information.
 - `vpc_id`: The ID of the VPC associated with the VPN endpoint. This can be used to join with the `aws_vpc` table to get more information about the associated VPC.

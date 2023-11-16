@@ -11,7 +11,7 @@ The `aws_ssm_managed_instance` table in Steampipe provides information about man
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_managed_instance` table, you can use the `.inspect aws_ssm_managed_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_id`: The ID of the managed instance. This is a key column for joining with other tables because it uniquely identifies each managed instance.
 - `name`: The name of the managed instance. This column is useful for joining with other tables when the instance ID is not known.

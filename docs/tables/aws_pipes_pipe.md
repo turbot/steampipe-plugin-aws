@@ -11,7 +11,7 @@ The `aws_pipes_pipe` table in Steampipe provides information about individual pi
 
 To gain a deeper understanding of the structure and metadata of the `aws_pipes_pipe` table, you can use the `.inspect aws_pipes_pipe` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the pipe. This can be used to join this table with other tables that also contain pipe names.
 - `arn`: The Amazon Resource Number (ARN) of the pipe. This unique identifier can be used to join this table with other tables that also contain pipe ARNs.

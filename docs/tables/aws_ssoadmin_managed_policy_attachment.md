@@ -11,7 +11,7 @@ The `aws_ssoadmin_managed_policy_attachment` table in Steampipe provides informa
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssoadmin_managed_policy_attachment` table, you can use the `.inspect aws_ssoadmin_managed_policy_attachment` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_arn`: This is the ARN of the SSO instance under which the operation will be executed. It is an important column as it uniquely identifies the SSO instance.
 - `permission_set_arn`: This is the ARN of the permission set. It is useful for joining with other tables that contain permission set information.

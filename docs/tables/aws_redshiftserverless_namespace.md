@@ -11,7 +11,7 @@ The `aws_redshiftserverless_namespace` table in Steampipe provides information a
 
 To gain a deeper understanding of the structure and metadata of the `aws_redshiftserverless_namespace` table, you can use the `.inspect aws_redshiftserverless_namespace` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the namespace. This unique identifier is important for joining this table with other AWS tables.
 - `database_name`: The name of the database associated with the namespace. This can be used to join with tables that also contain database information.

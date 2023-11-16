@@ -11,7 +11,7 @@ The `aws_ecs_service` table in Steampipe provides information about the services
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecs_service` table, you can use the `.inspect aws_ecs_service` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `service_arn`: The Amazon Resource Name (ARN) that identifies the service. This column can be used to join with other tables that contain service ARN information.
 - `cluster_arn`: The ARN of the cluster where the service is running. This can be used to join with the `aws_ecs_cluster` table.

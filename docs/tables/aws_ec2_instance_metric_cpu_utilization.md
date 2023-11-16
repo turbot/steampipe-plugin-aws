@@ -11,7 +11,7 @@ The `aws_ec2_instance_metric_cpu_utilization` table in Steampipe provides inform
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_instance_metric_cpu_utilization` table, you can use the `.inspect aws_ec2_instance_metric_cpu_utilization` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_id`: The ID of the instance. This is a key identifier and can be used to join this table with other EC2 instance tables.
 - `namespace`: The namespace of the metric. This is useful for identifying the specific AWS service the metric is associated with.

@@ -13,7 +13,7 @@ The `aws_ec2_network_load_balancer_metric_net_flow_count` table provides metric 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_network_load_balancer_metric_net_flow_count` table, you can use the `.inspect aws_ec2_network_load_balancer_metric_net_flow_count` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the load balancer. This can be used to join with other tables that contain load balancer information.
 - `namespace`: The namespace for the AWS service that the metric data is associated with. This can be used to filter metrics from a specific AWS service.

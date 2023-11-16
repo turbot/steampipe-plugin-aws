@@ -11,7 +11,7 @@ The `aws_kinesis_consumer` table in Steampipe provides information about Kinesis
 
 To gain a deeper understanding of the structure and metadata of the `aws_kinesis_consumer` table, you can use the `.inspect aws_kinesis_consumer` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `consumer_arn`: The Amazon Resource Name (ARN) of the Kinesis Consumer. This can be used to join with other tables that contain Kinesis Consumer ARNs.
 - `consumer_name`: The name of the Kinesis Consumer. This can be used to join with other tables that contain Kinesis Consumer names.

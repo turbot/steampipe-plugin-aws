@@ -11,7 +11,7 @@ The `aws_oam_sink` table in Steampipe provides information about each OAM Sink w
 
 To gain a deeper understanding of the structure and metadata of the `aws_oam_sink` table, you can use the `.inspect aws_oam_sink` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `sink_arn`: The Amazon Resource Name (ARN) of the Sink. This can be used to join this table with other tables as it uniquely identifies the Sink.
 - `sink_name`: The name of the Sink. This is an important identifier and can be used for filtering specific Sinks.

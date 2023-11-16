@@ -11,7 +11,7 @@ The `aws_fsx_file_system` table in Steampipe provides information about FSx File
 
 To gain a deeper understanding of the structure and metadata of the `aws_fsx_file_system` table, you can use the `.inspect aws_fsx_file_system` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `file_system_id`: This is the unique identifier of the FSx File System. It can be used to join this table with other tables that contain information about AWS resources.
 - `owner_id`: This is the AWS account ID of the file system owner. It can be used to filter file systems by owner.

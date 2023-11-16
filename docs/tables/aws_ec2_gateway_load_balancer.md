@@ -11,7 +11,7 @@ The `aws_ec2_gateway_load_balancer` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_gateway_load_balancer` table, you can use the `.inspect aws_ec2_gateway_load_balancer` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the load balancer. This can be used to join with other tables that contain load balancer ARNs.
 - `load_balancer_name`: The name of the load balancer. This is useful for joining with tables that contain load balancer names.

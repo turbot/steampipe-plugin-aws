@@ -13,7 +13,7 @@ The `aws_redshift_cluster_metric_cpu_utilization_daily` table provides metric st
 
 To gain a deeper understanding of the structure and metadata of the `aws_redshift_cluster_metric_cpu_utilization_daily` table, you can use the `.inspect aws_redshift_cluster_metric_cpu_utilization_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cluster_identifier`: The identifier of the cluster for which the CPU utilization metrics are being reported. This column can be used to join this table with other tables that contain cluster-specific information.
 - `region`: The AWS region in which the cluster is located. This column can be used to join this table with other tables that contain region-specific information.

@@ -11,7 +11,7 @@ The `aws_ec2_transit_gateway_route` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_transit_gateway_route` table, you can use the `.inspect aws_ec2_transit_gateway_route` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `transit_gateway_route_id`: This is the ID of the transit gateway route. It is a key column for joining with other tables as it uniquely identifies each route.
 - `destination_cidr_block`: This column is used to specify the range of IP addresses for the destination network. It can be useful when filtering routes based on the destination network.

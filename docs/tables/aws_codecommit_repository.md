@@ -11,7 +11,7 @@ The `aws_codecommit_repository` table in Steampipe provides information about re
 
 To gain a deeper understanding of the structure and metadata of the `aws_codecommit_repository` table, you can use the `.inspect aws_codecommit_repository` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `repository_name`: The name of the repository. This can be used to join with other tables that need repository-specific information.
 - `arn`: The Amazon Resource Name (ARN) of the repository. It is unique across all AWS repositories and can be used to join with any other AWS-specific table.

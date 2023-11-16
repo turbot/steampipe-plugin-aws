@@ -11,7 +11,7 @@ The `aws_route53_health_check` table in Steampipe provides information about hea
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_health_check` table, you can use the `.inspect aws_route53_health_check` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: This is the unique identifier of the health check. It can be used to join this table with other tables.
 - `health_check_version`: This is the version of the health check. It can be useful for version tracking and management.

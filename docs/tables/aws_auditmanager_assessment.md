@@ -11,7 +11,7 @@ The `aws_auditmanager_assessment` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_auditmanager_assessment` table, you can use the `.inspect aws_auditmanager_assessment` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the assessment. This can be used to join this table with other tables that contain AWS resource ARNs.
 - `id`: The unique identifier for the assessment. This can be used to join this table with other tables that contain AWS Audit Manager assessment IDs.

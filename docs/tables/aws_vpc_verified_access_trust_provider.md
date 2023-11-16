@@ -11,7 +11,7 @@ The `aws_vpc_verified_access_trust_provider` table in Steampipe provides informa
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_verified_access_trust_provider` table, you can use the `.inspect aws_vpc_verified_access_trust_provider` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `provider_type`: This column provides the type of the trust provider. It can be useful for understanding the nature of the trust relationship.
 - `owner`: This column provides the owner of the trust provider. It can be useful for identifying the entity responsible for the trust provider.

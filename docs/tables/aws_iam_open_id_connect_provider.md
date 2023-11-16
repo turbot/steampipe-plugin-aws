@@ -11,7 +11,7 @@ The `aws_iam_open_id_connect_provider` table in Steampipe provides information a
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_open_id_connect_provider` table, you can use the `.inspect aws_iam_open_id_connect_provider` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the IAM OIDC provider. This can be used to join with other tables that contain IAM OIDC provider ARNs.
 - `url`: The URL of the IAM OIDC provider. This is useful for joining with other tables that contain IAM OIDC provider URLs.

@@ -11,7 +11,7 @@ The `aws_ec2_transit_gateway_vpc_attachment` table in Steampipe provides informa
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_transit_gateway_vpc_attachment` table, you can use the `.inspect aws_ec2_transit_gateway_vpc_attachment` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `transit_gateway_attachment_id`: This is the unique identifier for the transit gateway attachment. It can be used to join this table with other tables to get more detailed information about the specific attachment.
 - `transit_gateway_id`: This column holds the ID of the transit gateway. It can be useful for joining with other tables that contain information about transit gateways.

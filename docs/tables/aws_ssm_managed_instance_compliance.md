@@ -11,7 +11,7 @@ The `aws_ssm_managed_instance_compliance` table in Steampipe provides informatio
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_managed_instance_compliance` table, you can use the `.inspect aws_ssm_managed_instance_compliance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_id` - This is the unique identifier of the managed instance. It can be used to join this table with other tables that contain instance-specific information.
 - `compliance_type` - This column indicates the type of compliance, such as patch, association, or custom. It is useful for filtering data based on specific compliance types.

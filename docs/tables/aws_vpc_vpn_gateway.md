@@ -11,7 +11,7 @@ The `aws_vpc_vpn_gateway` table in Steampipe provides information about Virtual 
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_vpn_gateway` table, you can use the `.inspect aws_vpc_vpn_gateway` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `vpn_gateway_id`: The ID of the VPN gateway. This is a unique identifier that can be used to join this table with other tables.
 - `state`: The state of the VPN gateway. This provides insight into the operational status of the VPN gateway.

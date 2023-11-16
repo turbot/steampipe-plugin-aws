@@ -11,7 +11,7 @@ The `aws_appstream_image` table in Steampipe provides information about images w
 
 To gain a deeper understanding of the structure and metadata of the `aws_appstream_image` table, you can use the `.inspect aws_appstream_image` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the image. This can be used to join with other tables that reference the image by name.
 - `arn`: The Amazon Resource Number (ARN) of the image. This is a unique identifier that can be used to join with other tables that reference the image by ARN.

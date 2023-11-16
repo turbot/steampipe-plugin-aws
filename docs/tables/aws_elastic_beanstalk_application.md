@@ -11,7 +11,7 @@ The `aws_elastic_beanstalk_application` table in Steampipe provides information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_elastic_beanstalk_application` table, you can use the `.inspect aws_elastic_beanstalk_application` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `application_name`: The name of the application. This can be used to join with other tables that require application name as input.
 - `application_arn`: The Amazon Resource Name (ARN) of the application. This can be used to join with other tables that require the ARN.

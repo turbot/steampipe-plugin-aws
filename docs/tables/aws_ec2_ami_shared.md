@@ -16,7 +16,7 @@ If you want to list all of the images in your account then you can use the `aws_
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_ami_shared` table, you can use the `.inspect aws_ec2_ami_shared` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `image_id`: The unique identifier for the AMI. This can be used to join this table with other tables that contain AMI information.
 - `creation_date`: The date when the AMI was created. This can be useful for tracking the age of the AMI and determining when it may need to be updated or replaced.

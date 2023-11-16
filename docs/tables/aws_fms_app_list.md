@@ -11,7 +11,7 @@ The `aws_fms_app_list` table in Steampipe provides information about application
 
 To gain a deeper understanding of the structure and metadata of the `aws_fms_app_list` table, you can use the `.inspect aws_fms_app_list` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `app_id`: The unique identifier for an application. This can be used to join this table with other tables to get more detailed information about the application.
 - `protocol`: The protocol used by the application. This can provide insights into the type of traffic the application is handling.

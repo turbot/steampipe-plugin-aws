@@ -11,7 +11,7 @@ The `aws_wellarchitected_workload` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_workload` table, you can use the `.inspect aws_wellarchitected_workload` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the workload. This is the unique identifier for the workload and can be used to join this table with others that contain workload ARN data.
 - `workload_name`: The name of the workload. This can be used to filter or sort data by workload name.

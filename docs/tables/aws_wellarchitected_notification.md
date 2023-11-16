@@ -11,7 +11,7 @@ The `aws_wellarchitected_notification` table in Steampipe provides information a
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_notification` table, you can use the `.inspect aws_wellarchitected_notification` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `workload_id`: This is the identifier for the workload associated with the notification. It can be used to join this table with the `aws_wellarchitected_workload` table for more detailed insights on the workload.
 - `notification_type`: This column indicates the type of notification. It can be used to filter notifications based on their type.

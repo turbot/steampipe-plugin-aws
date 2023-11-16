@@ -11,7 +11,7 @@ The `aws_ec2_instance_type` table in Steampipe provides information about EC2 in
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_instance_type` table, you can use the `.inspect aws_ec2_instance_type` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_type`: This column contains the name of the instance type. It can be used to join this table with other tables that contain instance type data.
 - `vcpu`: This column contains information about the number of virtual central processing units (vCPUs) that the instance type supports. It can be used to join this table with other tables that contain vCPU data to analyze compute capabilities.

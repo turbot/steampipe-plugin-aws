@@ -11,7 +11,7 @@ The `aws_api_gateway_rest_api` table in Steampipe provides information about API
 
 To gain a deeper understanding of the structure and metadata of the `aws_api_gateway_rest_api` table, you can use the `.inspect aws_api_gateway_rest_api` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `api_id`: The API's identifier. This can be used to join with other tables that contain information about specific APIs.
 - `name`: The name of the API. This can be used to join with other tables that contain information about the API's name.

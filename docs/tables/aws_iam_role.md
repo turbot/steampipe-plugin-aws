@@ -11,7 +11,7 @@ The `aws_iam_role` table in Steampipe provides information about IAM roles withi
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_role` table, you can use the `.inspect aws_iam_role` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the role. This can be used to join with other tables that also contain IAM role ARNs.
 

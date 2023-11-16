@@ -11,7 +11,7 @@ The `aws_config_rule` table in Steampipe provides information about Config Rules
 
 To gain a deeper understanding of the structure and metadata of the `aws_config_rule` table, you can use the `.inspect aws_config_rule` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the AWS Config rule. This is the primary key of the table and can be used to join with other tables that contain Config rule names.
 - `arn`: The Amazon Resource Number (ARN) of the Config rule. This can be used to join with any other table that contains Config rule ARNs.

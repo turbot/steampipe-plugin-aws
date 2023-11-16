@@ -11,7 +11,7 @@ The `aws_lightsail_instance` table in Steampipe provides information about insta
 
 To gain a deeper understanding of the structure and metadata of the `aws_lightsail_instance` table, you can use the `.inspect aws_lightsail_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the Lightsail instance. This column is useful as it provides a unique identifier for each instance, enabling you to easily join this table with others.
 - `state_name`: The state of the Lightsail instance (running, stopped, etc.). This column is important for monitoring and managing instance states.

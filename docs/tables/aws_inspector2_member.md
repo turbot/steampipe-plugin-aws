@@ -11,7 +11,7 @@ The `aws_inspector2_member` table in Steampipe provides information about AWS In
 
 To gain a deeper understanding of the structure and metadata of the `aws_inspector2_member` table, you can use the `.inspect aws_inspector2_member` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id`: This is the AWS account ID of the member account. This column is useful for joining with other tables that contain AWS account data.
 - `email`: This column contains the email of the member account. It can be used to join with other tables that contain email-related data.

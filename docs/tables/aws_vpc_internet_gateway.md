@@ -11,7 +11,7 @@ The `aws_vpc_internet_gateway` table in Steampipe provides information about Int
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_internet_gateway` table, you can use the `.inspect aws_vpc_internet_gateway` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `internet_gateway_id`: The ID of the internet gateway. This can be used to join this table with other tables that require the ID of the internet gateway.
 - `owner_id`: The AWS account ID of the owner of the internet gateway. This can be used to filter the internet gateways by the owner account.

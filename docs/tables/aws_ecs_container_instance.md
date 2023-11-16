@@ -11,7 +11,7 @@ The `aws_ecs_container_instance` table in Steampipe provides information about t
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecs_container_instance` table, you can use the `.inspect aws_ecs_container_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `container_instance_arn`: The Amazon Resource Name (ARN) that identifies the container instance. This is the primary key of the table and can be used to join with other tables.
 - `cluster_arn`: The ARN of the cluster to which the container instance belongs. This can be used to join with the `aws_ecs_cluster` table.

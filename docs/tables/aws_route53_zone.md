@@ -11,7 +11,7 @@ The `aws_route53_zone` table in Steampipe provides information about hosted zone
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_zone` table, you can use the `.inspect aws_route53_zone` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The hosted zone ID. This unique identifier can be used to join this table with other Route 53 tables.
 - `name`: The name of the hosted zone. This can be useful for users who want to query specific zones by name.

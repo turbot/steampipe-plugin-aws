@@ -13,7 +13,7 @@ The `aws_ebs_volume_metric_write_ops_daily` table provides metric statistics at 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ebs_volume_metric_write_ops_daily` table, you can use the `.inspect aws_ebs_volume_metric_write_ops_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `title`: This column contains the title of the EBS volume. It is a key column because it can be used to join this table with other tables that contain volume-specific information.
 - `average`: This column contains the average number of daily write operations for the EBS volume. It is a key column because it provides insight into the average performance of the volume.

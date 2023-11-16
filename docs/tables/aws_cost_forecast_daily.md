@@ -15,7 +15,7 @@ Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-ma
 
 To gain a deeper understanding of the structure and metadata of the `aws_cost_forecast_daily` table, you can use the `.inspect aws_cost_forecast_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `date`: This is the date for the forecasted cost. It is crucial for tracking cost trends over time and can be used to join this table with others containing date-specific information.
 - `amount`: This column represents the forecasted cost amount for the specified date. It is essential for cost analysis and budgeting purposes.

@@ -11,7 +11,7 @@ The `aws_cloudsearch_domain` table in Steampipe provides information about each 
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudsearch_domain` table, you can use the `.inspect aws_cloudsearch_domain` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the search domain. This is a unique identifier and can be used to join this table with other AWS tables.
 - `domain_id`: The unique identifier for the domain. This can be used to cross-reference with other tables or data sources that track CloudSearch domains.

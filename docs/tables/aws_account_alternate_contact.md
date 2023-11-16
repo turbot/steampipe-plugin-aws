@@ -11,7 +11,7 @@ The `aws_account_alternate_contact` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_account_alternate_contact` table, you can use the `.inspect aws_account_alternate_contact` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id`: The AWS account ID associated with the alternate contact. This column is useful for joining with other tables to fetch account-specific information.
 - `contact_type`: The type of the alternate contact (e.g., BILLING, OPERATIONS, SECURITY). This column is useful for filtering the alternate contacts based on their role in the organization.

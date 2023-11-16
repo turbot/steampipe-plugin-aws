@@ -11,7 +11,7 @@ The `aws_emr_block_public_access_configuration` table in Steampipe provides info
 
 To gain a deeper understanding of the structure and metadata of the `aws_emr_block_public_access_configuration` table, you can use the `.inspect aws_emr_block_public_access_configuration` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `region`: The AWS Region of the resource. This column can be used to join with other tables to get region-specific information.
 - `block_public_access_enabled`: Indicates whether block public access is enabled. This can be useful in understanding the security posture of your EMR clusters.

@@ -11,7 +11,7 @@ The `aws_wafv2_regex_pattern_set` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_wafv2_regex_pattern_set` table, you can use the `.inspect aws_wafv2_regex_pattern_set` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the regex pattern set. This can be used to join with other tables that contain AWS ARN data.
 - `id`: The unique identifier for the regex pattern set. This is useful for joining with tables that require the regex pattern set ID.

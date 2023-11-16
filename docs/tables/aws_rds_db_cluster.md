@@ -11,7 +11,7 @@ The `aws_rds_db_cluster` table in Steampipe provides information about DB cluste
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_cluster` table, you can use the `.inspect aws_rds_db_cluster` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_cluster_identifier`: The identifier for the DB cluster. This identifier is unique in the scope of an AWS account and can be used to join this table with other AWS RDS tables.
 - `status`: The status of the DB cluster, such as 'available', 'modifying', etc. This is important for monitoring the availability and health of the DB cluster.

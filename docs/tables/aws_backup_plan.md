@@ -11,7 +11,7 @@ The `aws_backup_plan` table in Steampipe provides information about each backup 
 
 To gain a deeper understanding of the structure and metadata of the `aws_backup_plan` table, you can use the `.inspect aws_backup_plan` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: This column provides the name of the backup plan. It is a key column for joining with other tables that reference the backup plan by name.
 - `arn`: The Amazon Resource Name (ARN) of the backup plan. This unique identifier is useful for joining data across AWS services.

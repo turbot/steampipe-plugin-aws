@@ -11,7 +11,7 @@ The `aws_rds_db_instance_automated_backup` table in Steampipe allows users to qu
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_automated_backup` table, you can use the `.inspect aws_rds_db_instance_automated_backup` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `dbi_resource_id`: The identifier for the source DB instance, which may not be unique across all instances. This column can be used to join with the `aws_rds_db_instance` table.
 - `db_instance_identifier`: The user-provided name of the source DB instance. This column is useful for identifying the specific DB instance associated with the backup.

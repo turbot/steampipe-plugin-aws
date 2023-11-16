@@ -11,7 +11,7 @@ The `aws_vpc_nat_gateway` table in Steampipe provides information about each NAT
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_nat_gateway` table, you can use the `.inspect aws_vpc_nat_gateway` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `nat_gateway_id`: The ID of the NAT Gateway. This can be used to join with other tables that reference NAT Gateways by their ID.
 - `subnet_id`: The ID of the subnet in which the NAT Gateway is located. This is useful for joining with other tables that reference subnets by their ID.

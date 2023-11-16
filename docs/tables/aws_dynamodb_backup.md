@@ -11,7 +11,7 @@ The `aws_dynamodb_backup` table in Steampipe provides information about backups 
 
 To gain a deeper understanding of the structure and metadata of the `aws_dynamodb_backup` table, you can use the `.inspect aws_dynamodb_backup` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `backup_arn`: The Amazon Resource Name (ARN) associated with the backup. This can be used to join with other tables that use backup ARN.
 - `table_name`: The name of the table associated with the backup. This can be used to join with other tables that use table name.

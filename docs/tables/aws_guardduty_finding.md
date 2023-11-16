@@ -11,7 +11,7 @@ The `aws_guardduty_finding` table in Steampipe provides information about findin
 
 To gain a deeper understanding of the structure and metadata of the `aws_guardduty_finding` table, you can use the `.inspect aws_guardduty_finding` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The unique identifier for the finding. This can be used to join this table with other tables that contain information about specific findings.
 - `detector_id`: The ID of the GuardDuty detector that generated the finding. This can be used to join with the `aws_guardduty_detector` table which contains information about the detectors.

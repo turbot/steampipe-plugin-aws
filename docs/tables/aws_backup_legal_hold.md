@@ -11,7 +11,7 @@ The `aws_backup_legal_hold` table in Steampipe provides information about legal 
 
 To gain a deeper understanding of the structure and metadata of the `aws_backup_legal_hold` table, you can use the `.inspect aws_backup_legal_hold` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the backup resource. This can be used to join with other tables that contain AWS backup resource information.
 - `legal_hold`: The legal hold status. This is crucial for understanding whether a backup resource is under legal hold or not.

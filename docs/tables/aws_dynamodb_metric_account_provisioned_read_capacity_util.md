@@ -11,7 +11,7 @@ The `aws_dynamodb_metric_account_provisioned_read_capacity_util` table in Steamp
 
 To gain a deeper understanding of the structure and metadata of the `aws_dynamodb_metric_account_provisioned_read_capacity_util` table, you can use the `.inspect aws_dynamodb_metric_account_provisioned_read_capacity_util` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `region`: This is the AWS region in which the DynamoDB table resides. It is vital for understanding the geographical distribution of your DynamoDB tables.
 - `account_id`: This column contains the AWS account ID. It's useful for querying metrics across multiple AWS accounts.

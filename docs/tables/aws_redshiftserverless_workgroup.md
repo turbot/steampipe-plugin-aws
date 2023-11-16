@@ -11,7 +11,7 @@ The `aws_redshiftserverless_workgroup` table in Steampipe provides information a
 
 To gain a deeper understanding of the structure and metadata of the `aws_redshiftserverless_workgroup` table, you can use the `.inspect aws_redshiftserverless_workgroup` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the workgroup. This can be used to join this table with others that contain workgroup names.
 - `state`: The state of the workgroup (ENABLED or DISABLED). This column can be useful in understanding the status of the workgroup.

@@ -11,7 +11,7 @@ The `aws_securityhub_action_target` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_securityhub_action_target` table, you can use the `.inspect aws_securityhub_action_target` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN (Amazon Resource Name) of the action target. This is a unique identifier that can be used to join this table with other tables.
 - `name`: The name of the action target. This can be used to filter or sort action targets by name, making it easier to find specific targets.

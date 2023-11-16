@@ -11,7 +11,7 @@ The `aws_eventbridge_rule` table in Steampipe provides information about EventBr
 
 To gain a deeper understanding of the structure and metadata of the `aws_eventbridge_rule` table, you can use the `.inspect aws_eventbridge_rule` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the rule. This can be used to join with other tables that need to reference the rule.
 - `arn`: The Amazon Resource Name (ARN) of the rule. This can be used to join with other tables that use ARNs for identification.

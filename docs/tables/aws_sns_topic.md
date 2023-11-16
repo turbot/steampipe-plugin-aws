@@ -11,7 +11,7 @@ The `aws_sns_topic` table in Steampipe provides information about each topic in 
 
 To gain a deeper understanding of the structure and metadata of the `aws_sns_topic` table, you can use the `.inspect aws_sns_topic` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the SNS Topic. It can be used to join this table with other AWS resource tables that reference the SNS Topic ARN.
 - `owner`: The AWS account ID of the topic's owner. This can be helpful in scenarios where you need to join this table with other tables that contain owner information.

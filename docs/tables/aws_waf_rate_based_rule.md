@@ -11,7 +11,7 @@ The `aws_waf_rate_based_rule` table in Steampipe provides information about the 
 
 To gain a deeper understanding of the structure and metadata of the `aws_waf_rate_based_rule` table, you can use the `.inspect aws_waf_rate_based_rule` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `rule_id`: The identifier for the rate-based rule. This can be used to join this table with other tables that contain information about AWS WAF rules.
 - `name`: The name of the rate-based rule. This provides a human-readable identifier for the rule and can be used to join this table with other tables that contain information about AWS WAF rules.

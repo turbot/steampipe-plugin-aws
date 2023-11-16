@@ -11,7 +11,7 @@ The `aws_eks_fargate_profile` table in Steampipe provides information about Farg
 
 To gain a deeper understanding of the structure and metadata of the `aws_eks_fargate_profile` table, you can use the `.inspect aws_eks_fargate_profile` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 * `name`: The name of the Fargate profile. This is a unique identifier and can be used to join with other tables that reference the Fargate profile by name.
 * `arn`: The Amazon Resource Number (ARN) of the Fargate profile. This unique identifier is useful for joining with other tables that reference the Fargate profile by its ARN.

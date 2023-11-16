@@ -11,7 +11,7 @@ The `aws_ecs_cluster` table in Steampipe provides information about clusters wit
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecs_cluster` table, you can use the `.inspect aws_ecs_cluster` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cluster_name`: The name of the cluster. It can be used to join with other tables that reference the cluster by its name.
 - `cluster_arn`: The Amazon Resource Name (ARN) that identifies the cluster. This can be used to join with other tables that reference the cluster by its ARN.

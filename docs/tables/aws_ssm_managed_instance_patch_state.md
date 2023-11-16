@@ -11,7 +11,7 @@ The `aws_ssm_managed_instance_patch_state` table in Steampipe provides informati
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_managed_instance_patch_state` table, you can use the `.inspect aws_ssm_managed_instance_patch_state` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_id`: This is the ID of the managed instance. It is a key column as it uniquely identifies each instance and can be used to join with other tables that contain instance-specific information.
 - `patch_group`: This column represents the patch group that the instance is part of. It is useful for querying instances based on their patch group.

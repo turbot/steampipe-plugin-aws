@@ -11,7 +11,7 @@ The `aws_iam_access_key` table in Steampipe provides information about IAM Acces
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_access_key` table, you can use the `.inspect aws_iam_access_key` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `access_key_id`: The ID of the access key. This can be used to join with other tables that contain information about access keys.
 - `user_name`: The name of the IAM user that the access key is associated with. This can be used to join with other tables that contain user information.

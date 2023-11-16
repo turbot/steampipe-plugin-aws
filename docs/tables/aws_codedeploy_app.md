@@ -11,7 +11,7 @@ The `aws_codedeploy_app` table in Steampipe provides information about applicati
 
 To gain a deeper understanding of the structure and metadata of the `aws_codedeploy_app` table, you can use the `.inspect aws_codedeploy_app` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `application_name`: The name of the application. This can be used to join with other tables that require the application name.
 - `application_id`: The unique ID of the application. This can be used to join with other tables that require the application ID.

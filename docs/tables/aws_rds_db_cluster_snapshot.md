@@ -11,7 +11,7 @@ The `aws_rds_db_cluster_snapshot` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_cluster_snapshot` table, you can use the `.inspect aws_rds_db_cluster_snapshot` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_cluster_snapshot_identifier`: The identifier for the DB cluster snapshot. This column is important as it is the unique identifier for each snapshot and can be used to join this table with other tables that need snapshot-specific information.
 - `db_cluster_identifier`: The DB cluster identifier. This column is useful for joining with tables that provide information at the DB cluster level.

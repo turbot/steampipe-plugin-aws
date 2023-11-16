@@ -11,7 +11,7 @@ The `aws_cloudfront_origin_access_identity` table in Steampipe provides informat
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudfront_origin_access_identity` table, you can use the `.inspect aws_cloudfront_origin_access_identity` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The ID for the origin access identity. This is a unique identifier that can be used to join this table with other tables.
 - `s3_canonical_user_id`: The Amazon S3 canonical user ID for the origin access identity, which is used in an S3 bucket policy for CloudFront to access an S3 bucket. This can be useful for tracking access and permissions.

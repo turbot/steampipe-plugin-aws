@@ -11,7 +11,7 @@ The `aws_waf_web_acl` table in Steampipe provides information about Web Access C
 
 To gain a deeper understanding of the structure and metadata of the `aws_waf_web_acl` table, you can use the `.inspect aws_waf_web_acl` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `web_acl_id`: The identifier for the WebACL. This can be used to join this table with other tables that contain WebACL IDs.
 - `name`: The name of the WebACL. This can be useful for filtering or ordering results based on the WebACL name.

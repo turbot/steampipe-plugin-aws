@@ -11,7 +11,7 @@ The `aws_cloudwatch_log_resource_policy` table in Steampipe provides information
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_log_resource_policy` table, you can use the `.inspect aws_cloudwatch_log_resource_policy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `policy_name`: The name of the policy. This can be used to join with other tables that reference CloudWatch Logs resource policies by name.
 - `policy_document`: The policy document, which details what actions are allowed or denied, the resources to which the policy applies, and the conditions under which the policy takes effect. This can be useful for analyzing the permissions granted by the policy.

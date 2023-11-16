@@ -11,7 +11,7 @@ The `aws_auditmanager_evidence` table in Steampipe provides information about ev
 
 To gain a deeper understanding of the structure and metadata of the `aws_auditmanager_evidence` table, you can use the `.inspect aws_auditmanager_evidence` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `evidence_id`: The unique identifier for the evidence. This can be used to join this table with other tables to get more detailed information about the evidence.
 - `assessment_id`: The identifier for the assessment that the evidence is associated with. This can be used to join with the assessment table to get more context about the evidence.

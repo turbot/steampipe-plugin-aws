@@ -11,7 +11,7 @@ The `aws_region` table in Steampipe provides information about regions within AW
 
 To gain a deeper understanding of the structure and metadata of the `aws_region` table, you can use the `.inspect aws_region` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the region. This can be used to join with other tables where region name is a foreign key.
 - `description`: The description of the region. This provides context about the region which can be useful when joining with other tables.

@@ -11,7 +11,7 @@ The `aws_cognito_identity_pool` table in Steampipe provides information about id
 
 To gain a deeper understanding of the structure and metadata of the `aws_cognito_identity_pool` table, you can use the `.inspect aws_cognito_identity_pool` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `identity_pool_id`: This is the unique identifier for the identity pool. It can be used to join with other tables that reference an identity pool.
 - `identity_pool_name`: The name of the identity pool. This can be useful for human-readable queries and joins.

@@ -11,7 +11,7 @@ The `aws_vpc_peering_connection` table in Steampipe provides information about V
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_peering_connection` table, you can use the `.inspect aws_vpc_peering_connection` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `pcx_id`: The ID of the VPC peering connection. This is the primary key of the table and can be used to join this table with other tables.
 - `requester_vpc_id`: The ID of the requester VPC. This can be used to join this table with the `aws_vpc` table to get more details about the requester VPC.

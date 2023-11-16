@@ -11,7 +11,7 @@ The `aws_waf_rule_group` table in Steampipe provides information about Web Appli
 
 To gain a deeper understanding of the structure and metadata of the `aws_waf_rule_group` table, you can use the `.inspect aws_waf_rule_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the rule group. This column is useful for joining with other tables that reference rule groups by name.
 - `rule_group_id`: The identifier of the rule group. This column can be used to join with other tables that reference rule groups by their ID.

@@ -11,7 +11,7 @@ The `aws_ecr_image` table in Steampipe provides information about Images within 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecr_image` table, you can use the `.inspect aws_ecr_image` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `repository_name`: The name of the repository that the image resides in. This column is useful for joining with the `aws_ecr_repository` table.
 - `image_digest`: The sha256 digest of the image manifest. This column is important as it uniquely identifies an image within a repository.

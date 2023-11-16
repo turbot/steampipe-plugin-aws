@@ -11,7 +11,7 @@ The `aws_ssm_association` table in Steampipe provides information about the AWS 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_association` table, you can use the `.inspect aws_ssm_association` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `association_id`: The unique identifier for the association. This column can be used to join this table with other tables that require the association ID.
 - `instance_id`: The ID of the instance that the association is associated with. This column can be used to join this table with other tables that require the instance ID.

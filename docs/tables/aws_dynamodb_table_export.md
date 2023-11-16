@@ -11,7 +11,7 @@ The `aws_dynamodb_table_export` table in Steampipe provides information about th
 
 To gain a deeper understanding of the structure and metadata of the `aws_dynamodb_table_export` table, you can use the `.inspect aws_dynamodb_table_export` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `table_arn`: The Amazon Resource Number (ARN) of the DynamoDB table. This is a unique identifier that can be used to join this table with other tables to get more detailed information about the DynamoDB table.
 - `export_arn`: The Amazon Resource Number (ARN) of the export. This unique identifier can be used to join this table with other tables to get more detailed information about the export.

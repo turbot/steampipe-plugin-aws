@@ -11,7 +11,7 @@ The `aws_api_gatewayv2_integration` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_api_gatewayv2_integration` table, you can use the `.inspect aws_api_gatewayv2_integration` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `api_id`: The API identifier. This can be used to join with other tables that contain API-specific information.
 - `integration_id`: The identifier of the integration. This can be used to join with other tables that contain integration-specific information.

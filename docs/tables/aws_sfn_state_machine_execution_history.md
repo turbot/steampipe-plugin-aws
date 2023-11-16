@@ -11,7 +11,7 @@ The `aws_sfn_state_machine_execution_history` table in Steampipe provides inform
 
 To gain a deeper understanding of the structure and metadata of the `aws_sfn_state_machine_execution_history` table, you can use the `.inspect aws_sfn_state_machine_execution_history` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `execution_arn` - The Amazon Resource Name (ARN) that identifies the execution. This can be used to join with other tables that contain execution-specific information.
 - `state_entered_time` - The date and time when the state was entered. This can be useful for tracking the duration of state executions.

@@ -13,7 +13,7 @@ The `aws_ecr_image_scan_finding` table in Steampipe provides information about I
 
 To gain a deeper understanding of the structure and metadata of the `aws_ecr_image_scan_finding` table, you can use the `.inspect aws_ecr_image_scan_finding` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `repository_name`: This column is useful as it contains the name of the ECR repository. This can be used to join this table with other tables that contain repository-specific information.
 - `image_digest`: This column is important because it contains the image digest for the scanned image. This can be used to join this table with other tables that contain image-specific information.

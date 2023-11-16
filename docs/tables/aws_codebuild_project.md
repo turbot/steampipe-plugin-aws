@@ -11,7 +11,7 @@ The `aws_codebuild_project` table in Steampipe provides information about projec
 
 To gain a deeper understanding of the structure and metadata of the `aws_codebuild_project` table, you can use the `.inspect aws_codebuild_project` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the CodeBuild project. This can be used to join with other tables that contain CodeBuild project names.
 - `arn`: The Amazon Resource Number (ARN) of the CodeBuild project. This unique identifier can be used to join with other tables that contain CodeBuild project ARNs.

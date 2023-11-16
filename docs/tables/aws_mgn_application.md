@@ -11,7 +11,7 @@ The `aws_mgn_application` table in Steampipe provides information about applicat
 
 To gain a deeper understanding of the structure and metadata of the `aws_mgn_application` table, you can use the `.inspect aws_mgn_application` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `application_id`: The unique identifier for the application. This can be used to join this table with others that also contain application_id.
 - `lifecycle`: The lifecycle state of the application. This is useful for understanding the current status of the application.

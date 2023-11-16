@@ -11,7 +11,7 @@ The `aws_drs_job` table in Steampipe provides information about jobs within AWS 
 
 To gain a deeper understanding of the structure and metadata of the `aws_drs_job` table, you can use the `.inspect aws_drs_job` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `job_id`: This is the unique identifier for the job. It can be used to join this table with others that contain job-specific information.
 - `creation_time`: This gives the time when the job was created. It is useful for tracking job progress and identifying old or stalled jobs.

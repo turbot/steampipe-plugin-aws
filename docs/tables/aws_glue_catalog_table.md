@@ -11,7 +11,7 @@ The `aws_glue_catalog_table` table in Steampipe provides information about AWS G
 
 To gain a deeper understanding of the structure and metadata of the `aws_glue_catalog_table` table, you can use the `.inspect aws_glue_catalog_table` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: This is the name of the table. It is a crucial column as it can be used to join this table with others that also contain table name information.
 - `database_name`: This column contains the name of the database where the table is located. This is important for joining with other tables that have database name information.

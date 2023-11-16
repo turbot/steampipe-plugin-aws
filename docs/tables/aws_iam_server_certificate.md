@@ -11,7 +11,7 @@ The `aws_iam_server_certificate` table in Steampipe provides information about s
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_server_certificate` table, you can use the `.inspect aws_iam_server_certificate` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 - `server_certificate_name`: The name that identifies the server certificate. This can be used to join this table with other tables that require server certificate name.
 - `server_certificate_id`: The ID for the server certificate. This can be used to join this table with other tables that require server certificate ID.
 - `arn`: The Amazon Resource Name (ARN) specifying the server certificate. This can be used to join this table with other tables that require the ARN of a server certificate.

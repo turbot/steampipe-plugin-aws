@@ -13,7 +13,7 @@ The `aws_neptune_db_cluster` table in Steampipe provides information about DB cl
 
 To gain a deeper understanding of the structure and metadata of the `aws_neptune_db_cluster` table, you can use the `.inspect aws_neptune_db_cluster` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_cluster_identifier`: The identifier for the DB cluster. This identifier is unique across all DB clusters within an AWS account, and can be used to join this table with other tables.
 - `arn`: The Amazon Resource Name (ARN) for the DB cluster. ARN is a globally unique identifier, which can be used to join with other tables where ARN is a common column.

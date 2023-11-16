@@ -11,7 +11,7 @@ The `aws_guardduty_detector` table in Steampipe provides information about detec
 
 To gain a deeper understanding of the structure and metadata of the `aws_guardduty_detector` table, you can use the `.inspect aws_guardduty_detector` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `detector_id`: The unique ID of the detector. This can be used to join this table with other tables that contain GuardDuty detector information.
 - `status`: The status of the detector (e.g., ENABLED or DISABLED). This is important for understanding the operational state of the detector.

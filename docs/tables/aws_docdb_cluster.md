@@ -11,7 +11,7 @@ The `aws_docdb_cluster` table in Steampipe provides information about Amazon Doc
 
 To gain a deeper understanding of the structure and metadata of the `aws_docdb_cluster` table, you can use the `.inspect aws_docdb_cluster` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cluster_identifier`: This is the unique identifier for the Amazon DocumentDB cluster. It is crucial for joining this table with others as it uniquely identifies each cluster.
 - `vpc_security_groups`: This column provides information about the VPC security groups associated with the cluster. It is useful for querying security configurations and joining with other security-related tables.

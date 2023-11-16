@@ -11,7 +11,7 @@ The `aws_wellarchitected_workload_share` table in Steampipe provides information
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_workload_share` table, you can use the `.inspect aws_wellarchitected_workload_share` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `share_arn`: The ARN of the workload share. This is the unique identifier for the workload share and can be used to join this table with others that contain workload share information.
 - `workload_id`: The ID of the workload. This can be used to join this table with others that contain workload-specific information.

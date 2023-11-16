@@ -11,7 +11,7 @@ The `aws_emr_instance` table in Steampipe provides information about instances w
 
 To gain a deeper understanding of the structure and metadata of the `aws_emr_instance` table, you can use the `.inspect aws_emr_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The unique identifier for the instance. This can be used to join with other tables that reference the instance ID.
 - `instance_group_id`: The ID of the instance group to which this instance belongs. This can be useful for querying information about the instance group.

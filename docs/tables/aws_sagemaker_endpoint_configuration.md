@@ -11,7 +11,7 @@ The `aws_sagemaker_endpoint_configuration` table in Steampipe provides informati
 
 To gain a deeper understanding of the structure and metadata of the `aws_sagemaker_endpoint_configuration` table, you can use the `.inspect aws_sagemaker_endpoint_configuration` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `endpoint_config_name`: The name of the endpoint configuration. This column can be used to join with other tables that contain information about SageMaker endpoint configurations.
 - `endpoint_config_arn`: The Amazon Resource Name (ARN) of the endpoint configuration. This is a unique identifier that can be used to join with other tables that require the ARN of the SageMaker endpoint configuration.

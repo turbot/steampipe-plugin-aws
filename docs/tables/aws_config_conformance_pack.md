@@ -11,7 +11,7 @@ The `aws_config_conformance_pack` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_config_conformance_pack` table, you can use the `.inspect aws_config_conformance_pack` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the conformance pack. This column can be used to join with other tables to fetch more detailed information about the conformance pack.
 - `conformance_pack_id`: The ID of the conformance pack. This is a unique identifier for the conformance pack and can be used to join with other tables.

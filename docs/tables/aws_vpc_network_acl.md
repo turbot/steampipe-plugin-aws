@@ -11,7 +11,7 @@ The `aws_vpc_network_acl` table in Steampipe provides information about Network 
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_network_acl` table, you can use the `.inspect aws_vpc_network_acl` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `network_acl_id`: The ID of the network ACL. This is the primary key and can be used to join this table with other tables that contain network ACL information.
 - `vpc_id`: The ID of the VPC for the network ACL. This can be used to join with other tables that contain VPC information, allowing for comprehensive queries across your VPC infrastructure.

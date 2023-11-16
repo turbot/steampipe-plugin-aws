@@ -11,7 +11,7 @@ The `aws_oam_link` table in Steampipe provides information about the links betwe
 
 To gain a deeper understanding of the structure and metadata of the `aws_oam_link` table, you can use the `.inspect aws_oam_link` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `link_id`: This is the unique identifier for the link. It can be used to join this table with other tables that contain link-specific information.
 - `resource_arn`: This is the Amazon Resource Name (ARN) of the AWS resource that is linked. It can be used to join with other tables that contain resource-specific information.

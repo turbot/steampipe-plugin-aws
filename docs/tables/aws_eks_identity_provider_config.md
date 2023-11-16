@@ -11,7 +11,7 @@ The `aws_eks_identity_provider_config` table in Steampipe provides information a
 
 To gain a deeper understanding of the structure and metadata of the `aws_eks_identity_provider_config` table, you can use the `.inspect aws_eks_identity_provider_config` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cluster_name`: The name of the Amazon EKS cluster associated with the identity provider configuration. This can be used to join with other tables that contain information about EKS clusters.
 - `identity_provider_config_name`: The name of the identity provider configuration. This can be used to join with other tables that contain information about identity provider configurations.

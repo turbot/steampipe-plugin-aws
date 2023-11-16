@@ -11,7 +11,7 @@ The `aws_vpc_security_group` table in Steampipe provides information about Secur
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_security_group` table, you can use the `.inspect aws_vpc_security_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `group_id`: This is the unique identifier of the security group. It can be used to join this table with other tables that contain security group information.
 - `vpc_id`: This is the ID of the VPC for the security group. It can be used to join this table with other tables that contain VPC information.

@@ -11,7 +11,7 @@ The `aws_rds_db_cluster_parameter_group` table in Steampipe provides information
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_cluster_parameter_group` table, you can use the `.inspect aws_rds_db_cluster_parameter_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the DB Cluster Parameter Group. This column can be used to join with other tables that contain DB Cluster Parameter Group names.
 - `arn`: The Amazon Resource Number (ARN) of the DB Cluster Parameter Group. This column can be used to join with any table that contains AWS ARNs.

@@ -11,7 +11,7 @@ The `aws_lambda_version` table in Steampipe provides information about each vers
 
 To gain a deeper understanding of the structure and metadata of the `aws_lambda_version` table, you can use the `.inspect aws_lambda_version` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `function_name`: The name of the function. This can be used to join with other tables that contain function-specific information.
 - `function_arn`: The Amazon Resource Name (ARN) of the function. This can be used to join with other tables that require the ARN for specific AWS resources.

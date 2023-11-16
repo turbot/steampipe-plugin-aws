@@ -11,7 +11,7 @@ The `aws_wellarchitected_share_invitation` table in Steampipe provides informati
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_share_invitation` table, you can use the `.inspect aws_wellarchitected_share_invitation` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `invitation_id`: This is the unique identifier of the share invitation. It can be used to join with other tables when detailed analysis of a specific invitation is required.
 - `workload_id`: This is the identifier of the workload that the invitation is associated with. It can be used to join with workload-related tables for a comprehensive view of the workload's sharing status.

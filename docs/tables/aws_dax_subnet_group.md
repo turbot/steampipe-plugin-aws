@@ -11,7 +11,7 @@ The `aws_dax_subnet_group` table in Steampipe provides information about subnet 
 
 To gain a deeper understanding of the structure and metadata of the `aws_dax_subnet_group` table, you can use the `.inspect aws_dax_subnet_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `subnet_group_name`: The name of the subnet group. This can be used to join this table with other tables that contain subnet group names.
 - `vpc_id`: The ID of the VPC associated with the subnet group. This can be used to join this table with other tables that contain VPC IDs.

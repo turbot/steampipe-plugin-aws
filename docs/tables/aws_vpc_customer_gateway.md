@@ -11,7 +11,7 @@ The `aws_vpc_customer_gateway` table in Steampipe provides information about eac
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_customer_gateway` table, you can use the `.inspect aws_vpc_customer_gateway` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `customer_gateway_id`: This is the unique identifier of the Customer Gateway. This can be used to join with other tables that reference the gateway ID.
 - `type`: This column indicates the type of routing (static or dynamic) the gateway supports. This is useful in understanding the routing capabilities of the gateway.

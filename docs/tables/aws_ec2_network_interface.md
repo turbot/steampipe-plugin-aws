@@ -11,7 +11,7 @@ The `aws_ec2_network_interface` table in Steampipe provides information about Ne
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_network_interface` table, you can use the `.inspect aws_ec2_network_interface` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `network_interface_id`: The ID of the network interface. This column can be used to join this table with other tables that contain network interface information.
 - `subnet_id`: The ID of the subnet for the network interface. This column can be used to join this table with other tables that contain subnet information.

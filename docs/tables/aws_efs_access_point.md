@@ -11,7 +11,7 @@ The `aws_efs_access_point` table in Steampipe provides information about Access 
 
 To gain a deeper understanding of the structure and metadata of the `aws_efs_access_point` table, you can use the `.inspect aws_efs_access_point` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `access_point_id`: The unique identifier of the access point. This column can be used to join with other tables when you need to retrieve specific information about a particular access point.
 - `file_system_id`: The ID of the EFS file system that the access point applies to. This column is useful when you need to correlate access points with their associated file systems.

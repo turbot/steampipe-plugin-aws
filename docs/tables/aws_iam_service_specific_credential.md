@@ -11,7 +11,7 @@ The `aws_iam_service_specific_credential` table in Steampipe provides informatio
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_service_specific_credential` table, you can use the `.inspect aws_iam_service_specific_credential` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `user_name`: The name of the IAM user associated with the service-specific credential. This column is useful for joining with other tables that contain user-specific information.
 - `status`: The status of the service-specific credential (Active or Inactive). This column can be used to filter or sort the results based on the status of the credentials.

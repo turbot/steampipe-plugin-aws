@@ -11,7 +11,7 @@ The `aws_neptune_db_cluster_snapshot` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_neptune_db_cluster_snapshot` table, you can use the `.inspect aws_neptune_db_cluster_snapshot` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_cluster_snapshot_identifier`: The identifier for the DB cluster snapshot. This column can be used to join this table with others that contain information about specific DB cluster snapshots.
 - `db_cluster_identifier`: The identifier of the DB cluster that the snapshot was created from. This column can be used to join this table with others that contain information about specific DB clusters.

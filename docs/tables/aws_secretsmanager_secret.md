@@ -11,7 +11,7 @@ The `aws_secretsmanager_secret` table in Steampipe provides information about se
 
 To gain a deeper understanding of the structure and metadata of the `aws_secretsmanager_secret` table, you can use the `.inspect aws_secretsmanager_secret` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the secret. This is a unique identifier that is used to join this table with other tables.
 - `name`: The friendly name of the secret. This can be used to join with other tables that also contain secret names.

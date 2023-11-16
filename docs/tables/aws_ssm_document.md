@@ -11,7 +11,7 @@ The `aws_ssm_document` table in Steampipe provides information about SSM documen
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_document` table, you can use the `.inspect aws_ssm_document` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the SSM document. This can be used to join with other tables that contain information about SSM documents.
 - `document_version`: The version of the SSM document. This is useful for tracking the various versions of a document.

@@ -11,7 +11,7 @@ The `aws_organizations_policy_target` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_organizations_policy_target` table, you can use the `.inspect aws_organizations_policy_target` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `policy_id`: The unique identifier (ID) of the policy that is attached to the target. This is useful for referencing the specific policy in AWS Organizations.
 - `target_id`: The unique identifier (ID) of the root, organizational unit, or account. This is useful for identifying the specific target to which the policy is attached.

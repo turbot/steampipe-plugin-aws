@@ -11,7 +11,7 @@ The `aws_servicecatalog_portfolio` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the aws_servicecatalog_portfolio table, you can use the `.inspect aws_servicecatalog_portfolio` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `portfolio_id`: The unique identifier for the portfolio. This column is important for joining with other tables because it is the primary key that represents each individual portfolio.
 - `arn`: The Amazon Resource Name (ARN) of the portfolio. This column is useful for joining with other tables because it provides a unique identifier for the portfolio in the AWS ecosystem.

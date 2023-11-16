@@ -11,7 +11,7 @@ The `aws_route53_traffic_policy_instance` table in Steampipe provides informatio
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_traffic_policy_instance` table, you can use the `.inspect aws_route53_traffic_policy_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The ID of the traffic policy instance. This can be used to link this table with other tables that require a traffic policy instance ID.
 - `version`: The version number of the traffic policy that is associated with the current instance. This is useful for tracking changes and updates to the traffic policy.

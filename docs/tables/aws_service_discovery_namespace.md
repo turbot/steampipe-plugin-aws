@@ -11,7 +11,7 @@ The `aws_service_discovery_namespace` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_service_discovery_namespace` table, you can use the `.inspect aws_service_discovery_namespace` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The ID of the namespace. This can be used to join this table with other tables.
 - `arn`: The Amazon Resource Name (ARN) of the namespace. This column is useful for joining with other tables that use ARN as a reference.

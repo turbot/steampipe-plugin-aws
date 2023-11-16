@@ -11,7 +11,7 @@ The `aws_s3_access_point` table in Steampipe provides information about Access P
 
 To gain a deeper understanding of the structure and metadata of the `aws_s3_access_point` table, you can use the `.inspect aws_s3_access_point` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the access point. This column can be used to join with other tables that need access point information.
 - `bucket`: The name of the bucket associated with the access point. This column is useful for joining with other tables that need bucket information.

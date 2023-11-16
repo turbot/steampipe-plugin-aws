@@ -11,7 +11,7 @@ The `aws_cloudtrail_trail_event` table in Steampipe provides information about e
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_trail_event` table, you can use the `.inspect aws_cloudtrail_trail_event` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `event_time`: This is the timestamp of the event. It can be used to filter events based on the time of occurrence.
 - `event_name`: This is the name of the event. It can be used to filter events based on specific actions.

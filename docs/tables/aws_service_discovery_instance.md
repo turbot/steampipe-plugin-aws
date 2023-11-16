@@ -11,7 +11,7 @@ The `aws_service_discovery_instance` table in Steampipe provides information abo
 
 To gain a deeper understanding of the structure and metadata of the `aws_service_discovery_instance` table, you can use the `.inspect aws_service_discovery_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_id`: The ID of the instance that you want to get information about. This can be used to join this table with other tables that contain instance-specific information.
 - `service_id`: The ID of the service that the instance is associated with. This can be used to join this table with other tables that contain service-specific information.

@@ -11,7 +11,7 @@ The `aws_eks_node_group` table in Steampipe provides information about each node
 
 To gain a deeper understanding of the structure and metadata of the `aws_eks_node_group` table, you can use the `.inspect aws_eks_node_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `nodegroup_name`: The name of the node group. This can be used to join with other tables that contain node group-specific information.
 - `cluster_name`: The name of the cluster that the node group belongs to. This can be used to join with other tables that contain cluster-specific information.

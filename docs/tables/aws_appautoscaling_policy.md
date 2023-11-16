@@ -11,7 +11,7 @@ The `aws_appautoscaling_policy` table in Steampipe provides information about Ap
 
 To gain a deeper understanding of the structure and metadata of the `aws_appautoscaling_policy` table, you can use the `.inspect aws_appautoscaling_policy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `policy_name`: The name of the scaling policy. This is a key identifier and can be used to join this table with other tables that contain policy name information.
 

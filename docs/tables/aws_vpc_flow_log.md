@@ -11,7 +11,7 @@ The `aws_vpc_flow_log` table in Steampipe provides information about AWS VPC Flo
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_flow_log` table, you can use the `.inspect aws_vpc_flow_log` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `flow_log_id`: This is the unique identifier of the flow log. It can be used to join this table with other tables that contain flow log data.
 - `log_destination`: This is the location where the flow log data is published. It is useful in determining the storage and retrieval of flow log data.

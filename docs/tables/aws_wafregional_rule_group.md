@@ -11,7 +11,7 @@ The `aws_wafregional_rule_group` table in Steampipe provides information about r
 
 To gain a deeper understanding of the structure and metadata of the `aws_wafregional_rule_group` table, you can use the `.inspect aws_wafregional_rule_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `rule_group_id`: The identifier for the rule group. This can be used to join this table with other tables that contain rule group ID information.
 - `name`: The name of the rule group. This is useful for querying specific rule groups by their name.

@@ -11,7 +11,7 @@ The `aws_athena_workgroup` table in Steampipe provides information about workgro
 
 To gain a deeper understanding of the structure and metadata of the `aws_athena_workgroup` table, you can use the `.inspect aws_athena_workgroup` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The unique name of the workgroup. This column can be used to join with other tables that require a workgroup name.
 - `arn`: The Amazon Resource Name (ARN) of the workgroup. This column can be used to join with other tables that require a workgroup ARN.

@@ -11,7 +11,7 @@ The `aws_rds_db_event_subscription` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_event_subscription` table, you can use the `.inspect aws_rds_db_event_subscription` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cust_subscription_id`: This is the customer-defined name of the event subscription. It can be used to join this table with other tables that also contain this identifier.
 - `arn`: The Amazon Resource Name (ARN) of the event subscription. It provides a unique identifier for the subscription and can be used to join this table with other tables that reference the same ARN.

@@ -11,7 +11,7 @@ The `aws_dynamodb_table` table in Steampipe provides information about tables wi
 
 To gain a deeper understanding of the structure and metadata of the `aws_dynamodb_table` table, you can use the `.inspect aws_dynamodb_table` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `table_name`: This is the name of the DynamoDB table. It is a critical column as it uniquely identifies each table and can be used to join with other tables that require table-specific information.
 - `arn`: This is the Amazon Resource Name (ARN) of the DynamoDB table. It is important because it provides a universally unique identifier for the table across all of AWS.

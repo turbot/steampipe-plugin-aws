@@ -11,7 +11,7 @@ The `aws_ram_principal_association` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_ram_principal_association` table, you can use the `.inspect aws_ram_principal_association` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `resource_share_arn`: The Amazon Resource Name (ARN) of the resource share. This can be used to join with other tables that contain resource share ARNs.
 - `principal_arn`: The ARN of the principal. This can be used to join with other tables that contain principal ARNs.

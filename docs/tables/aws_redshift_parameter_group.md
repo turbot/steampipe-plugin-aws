@@ -11,7 +11,7 @@ The `aws_redshift_parameter_group` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the `aws_redshift_parameter_group` table, you can use the `.inspect aws_redshift_parameter_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the parameter group. This is the primary key for the table and can be used to join with other tables that also contain Redshift parameter group names.
 - `tags`: The metadata tags assigned to the parameter group. These can be used to filter and categorize parameter groups based on user-defined criteria.

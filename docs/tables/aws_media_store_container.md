@@ -11,7 +11,7 @@ The `aws_media_store_container` table in Steampipe provides information about co
 
 To gain a deeper understanding of the structure and metadata of the `aws_media_store_container` table, you can use the `.inspect aws_media_store_container` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the container. This can be used to join with other tables that contain MediaStore container ARNs.
 - `name`: The name of the container. This can be used to join with other tables that contain MediaStore container names.

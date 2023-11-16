@@ -11,7 +11,7 @@ The `aws_vpc_eip_address_transfer` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_eip_address_transfer` table, you can use the `.inspect aws_vpc_eip_address_transfer` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `transfer_id`: This is the unique identifier for the transfer. It is useful for tracking specific transfers and can be used to join with other tables that track transfer events.
 - `public_ip`: This column contains the Elastic IP that is being transferred. This is essential for identifying which IPs are involved in transfers.

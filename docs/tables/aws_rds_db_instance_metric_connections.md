@@ -13,7 +13,7 @@ The `aws_rds_db_instance_metric_connections` table provides metric statistics at
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_metric_connections` table, you can use the `.inspect aws_rds_db_instance_metric_connections` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_instance_identifier`: The identifier of the DB instance. This column is useful for joining with other tables that contain DB instance information.
 - `timestamp`: The timestamp for the data point in UTC format. This column is important for tracking the historical trend of database connections.

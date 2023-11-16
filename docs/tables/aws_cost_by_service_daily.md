@@ -15,7 +15,7 @@ Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-ma
 
 To gain a deeper understanding of the structure and metadata of the `aws_cost_by_service_daily` table, you can use the `.inspect aws_cost_by_service_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `linked_account`: This is the ID of the AWS account. This column is useful for identifying which AWS account the costs are associated with, especially in multi-account AWS environments.
 - `service`: This column contains the name of the AWS service. It is useful for identifying which AWS service the costs are associated with.

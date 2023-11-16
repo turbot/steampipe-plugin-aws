@@ -11,7 +11,7 @@ The `aws_organizations_account` table in Steampipe provides information about ea
 
 To gain a deeper understanding of the structure and metadata of the `aws_organizations_account` table, you can use the `.inspect aws_organizations_account` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id` - The unique identifier (ID) of the AWS account that is a member of an organization. This can be used to join with other tables that require account ID.
 - `arn` - The Amazon Resource Number (ARN) of the account. It is useful for joining with other tables that use ARN to reference AWS resources.

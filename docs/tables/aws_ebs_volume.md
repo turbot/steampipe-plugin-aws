@@ -11,7 +11,7 @@ The `aws_ebs_volume` table in Steampipe provides information about volumes withi
 
 To gain a deeper understanding of the structure and metadata of the `aws_ebs_volume` table, you can use the `.inspect aws_ebs_volume` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `volume_id`: This is the unique identifier for the EBS volume. It is a key column for joining with other tables that reference EBS volumes.
 - `state`: This column provides the current state of the EBS volume (e.g., creating, available, in-use, deleting, deleted, error). This information can be useful for monitoring and managing EBS volumes.

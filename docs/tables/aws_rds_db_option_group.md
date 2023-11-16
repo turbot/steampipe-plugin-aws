@@ -11,7 +11,7 @@ The `aws_rds_db_option_group` table in Steampipe provides information about the 
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_option_group` table, you can use the `.inspect aws_rds_db_option_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the option group. This is the primary identifier of the option group and can be used to join with other tables where option group name is required.
 - `arn`: The Amazon Resource Name (ARN) of the option group. ARNs are unique identifiers for AWS resources and can be used for more complex queries involving multiple AWS services.

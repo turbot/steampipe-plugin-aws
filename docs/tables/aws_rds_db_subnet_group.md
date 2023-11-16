@@ -11,7 +11,7 @@ The `aws_rds_db_subnet_group` table in Steampipe provides information about DB s
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_subnet_group` table, you can use the `.inspect aws_rds_db_subnet_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_subnet_group_name`: The name of the DB subnet group. This is a unique key and can be used to join with other tables that reference DB subnet groups.
 - `vpc_id`: The ID of the VPC that the DB subnet group belongs to. This can be used to join with other tables that reference VPCs.

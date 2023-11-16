@@ -11,7 +11,7 @@ The `aws_ec2_classic_load_balancer` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_classic_load_balancer` table, you can use the `.inspect aws_ec2_classic_load_balancer` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `load_balancer_name`: The name of the load balancer. This can be used to join with other tables where the load balancer name is required.
 - `availability_zones`: The availability zones for the load balancer. This is useful for joining with tables that need to understand the geographical distribution of resources.

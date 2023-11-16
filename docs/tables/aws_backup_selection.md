@@ -11,7 +11,7 @@ The `aws_backup_selection` table in Steampipe provides comprehensive information
 
 To gain a deeper understanding of the structure and metadata of the `aws_backup_selection` table, you can use the `.inspect aws_backup_selection` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the backup selection. This can be used to join with other tables that contain AWS resource ARNs.
 - `backup_plan_id`: The ID of the backup plan that is associated with the backup selection. This can be used to join with the `aws_backup_plan` table.

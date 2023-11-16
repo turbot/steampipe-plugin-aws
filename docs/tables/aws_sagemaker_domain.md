@@ -11,7 +11,7 @@ The `aws_sagemaker_domain` table in Steampipe provides information about domains
 
 To gain a deeper understanding of the structure and metadata of the `aws_sagemaker_domain` table, you can use the `.inspect aws_sagemaker_domain` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `domain_id`: The ID of the domain. This is a unique identifier and can be used to join this table with other tables that contain domain-specific information.
 - `domain_arn`: The Amazon Resource Name (ARN) of the domain. This can be used to join this table with other tables that require the domain's ARN.

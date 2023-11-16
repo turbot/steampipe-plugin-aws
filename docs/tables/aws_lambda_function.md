@@ -11,7 +11,7 @@ The `aws_lambda_function` table in Steampipe provides information about AWS Lamb
 
 To gain a deeper understanding of the structure and metadata of the `aws_lambda_function` table, you can use the `.inspect aws_lambda_function` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `function_name`: The name of the function. This can be used to join with other tables that reference the function by name.
 - `arn`: The Amazon Resource Name (ARN) of the function. This can be used to join with other tables that reference the function by ARN.

@@ -11,7 +11,7 @@ The `aws_kinesis_video_stream` table in Steampipe provides information about the
 
 To gain a deeper understanding of the structure and metadata of the `aws_kinesis_video_stream` table, you can use the `.inspect aws_kinesis_video_stream` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `stream_name`: The name of the stream. This column can be used to join with other tables that require stream name.
 - `stream_arn`: The Amazon Resource Name (ARN) of the stream. This column can be used to join with other tables that require stream ARN.

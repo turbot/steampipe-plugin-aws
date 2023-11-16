@@ -11,7 +11,7 @@ The `aws_inspector_exclusion` table in Steampipe provides information about excl
 
 To gain a deeper understanding of the structure and metadata of the `aws_inspector_exclusion` table, you can use the `.inspect aws_inspector_exclusion` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the exclusion. This is a unique identifier for the exclusion and can be used to join this table with other tables.
 - `description`: The description of the exclusion. This provides context about the exclusion and can be useful when analyzing the data.

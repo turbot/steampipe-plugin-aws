@@ -11,7 +11,7 @@ The `aws_inspector_assessment_template` table in Steampipe provides information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_inspector_assessment_template` table, you can use the `.inspect aws_inspector_assessment_template` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the assessment template. This is the unique identifier of the template and can be used to join this table with other AWS Inspector tables.
 - `duration_in_seconds`: The duration of the assessment run. This information can be useful in planning and scheduling assessment runs.

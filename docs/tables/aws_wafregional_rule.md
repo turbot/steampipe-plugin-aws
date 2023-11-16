@@ -11,7 +11,7 @@ The `aws_wafregional_rule` table in Steampipe provides information about AWS WAF
 
 To gain a deeper understanding of the structure and metadata of the `aws_wafregional_rule` table, you can use the `.inspect aws_wafregional_rule` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `rule_id`: The identifier for the rule. This can be used to join this table with other tables that contain rule-specific information.
 - `name`: The name of the rule. This can be useful for joining with tables that reference rules by name.

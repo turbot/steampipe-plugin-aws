@@ -11,7 +11,7 @@ The `aws_account_contact` table in Steampipe provides information about contact 
 
 To gain a deeper understanding of the structure and metadata of the `aws_account_contact` table, you can use the `.inspect aws_account_contact` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id`: This is the AWS account ID. It is a key column for joining with other tables to correlate and gather more detailed information about AWS resources.
 - `email`: This is the email contact associated with the AWS account. It can be used to join with other tables that contain email information for further analysis.

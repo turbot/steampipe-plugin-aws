@@ -13,7 +13,7 @@ The `aws_identitystore_group_membership` table in Steampipe provides information
 
 To gain a deeper understanding of the structure and metadata of the `aws_identitystore_group_membership` table, you can use the `.inspect aws_identitystore_group_membership` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `group_id`: This is the unique ID of the group. It can be used to join this table with other tables that contain information about groups.
 - `user_id`: This is the unique ID of the user. It can be used to join this table with other tables that contain information about users.

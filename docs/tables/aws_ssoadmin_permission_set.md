@@ -11,7 +11,7 @@ The `aws_ssoadmin_permission_set` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssoadmin_permission_set` table, you can use the `.inspect aws_ssoadmin_permission_set` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `permission_set_arn`: The ARN of the permission set. This can be used to join with other tables that reference permission sets.
 - `created_date`: The date and time when the permission set was created. This can be used for tracking and auditing purposes.

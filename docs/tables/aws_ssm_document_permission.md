@@ -11,7 +11,7 @@ The `aws_ssm_document_permission` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_document_permission` table, you can use the `.inspect aws_ssm_document_permission` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the Systems Manager document. This column is useful for joining with other tables that contain document-specific information.
 - `permission_type`: The type of permission associated with the document. This column is important as it helps in identifying the level of access granted to the accounts.

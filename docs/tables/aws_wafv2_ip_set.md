@@ -11,7 +11,7 @@ The `aws_wafv2_ip_set` table in Steampipe provides information about IPSet withi
 
 To gain a deeper understanding of the structure and metadata of the `aws_wafv2_ip_set` table, you can use the `.inspect aws_wafv2_ip_set` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The unique identifier for the IPSet. This can be used to join this table with other tables.
 - `name`: The name of the IPSet. This can be useful for querying specific IPSet.

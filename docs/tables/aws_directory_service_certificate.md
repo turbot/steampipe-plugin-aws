@@ -11,7 +11,7 @@ The `aws_directory_service_certificate` table in Steampipe provides information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_directory_service_certificate` table, you can use the `.inspect aws_directory_service_certificate` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `certificate_id`: The identifier of the AWS Managed Microsoft AD directory certificate. It can be used to join with other tables to gather more specific information about a particular certificate.
 - `directory_id`: The identifier of the AWS Directory Service. This can be used to join with other AWS Directory Service tables to gather more information about the directory associated with the certificate.

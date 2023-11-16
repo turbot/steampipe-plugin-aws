@@ -13,7 +13,7 @@ The `aws_ebs_volume_metric_read_ops_daily` table provides metric statistics at 2
 
 To gain a deeper understanding of the structure and metadata of the `aws_ebs_volume_metric_read_ops_daily` table, you can use the `.inspect aws_ebs_volume_metric_read_ops_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `title_id`: The ID of the EBS volume. It is a key column for joining with other tables to get more information about the EBS volume.
 - `timestamp`: The timestamp for the metric data point. It is essential for tracking the volume's performance over time.

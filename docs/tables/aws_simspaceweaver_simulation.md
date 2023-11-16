@@ -11,7 +11,7 @@ The `aws_simspaceweaver_simulation` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_simspaceweaver_simulation` table, you can use the `.inspect aws_simspaceweaver_simulation` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `simulation_id`: This is the unique identifier for each simulation. It can be used to join this table with other tables to gather more detailed information about each simulation.
 - `status`: This column provides the current status of the simulation. It is useful for monitoring the progress and state of simulations.

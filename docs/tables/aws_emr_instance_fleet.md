@@ -11,7 +11,7 @@ The `aws_emr_instance_fleet` table in Steampipe provides information about insta
 
 To gain a deeper understanding of the structure and metadata of the `aws_emr_instance_fleet` table, you can use the `.inspect aws_emr_instance_fleet` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `fleet_id`: The unique identifier of the instance fleet. This column is important as it can be used to join this table with other tables to fetch more specific data related to each instance fleet.
 - `cluster_id`: The unique identifier of the cluster. This column is useful to join with other tables to obtain detailed information about the cluster associated with each instance fleet.

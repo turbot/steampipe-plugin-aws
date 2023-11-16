@@ -13,7 +13,7 @@ The `aws_elasticache_redis_metric_list_based_cmds_hourly` table provides metric 
 
 To gain a deeper understanding of the structure and metadata of the `aws_elasticache_redis_metric_list_based_cmds_hourly` table, you can use the `.inspect aws_elasticache_redis_metric_list_based_cmds_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cache_cluster_id`: This is the identifier for the cache cluster. This column is important as it can be used to join this table with other ElastiCache tables to get more detailed information about the specific cache cluster.
 

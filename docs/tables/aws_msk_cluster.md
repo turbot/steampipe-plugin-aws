@@ -11,7 +11,7 @@ The `aws_msk_cluster` table in Steampipe provides information about Managed Stre
 
 To gain a deeper understanding of the structure and metadata of the `aws_msk_cluster` table, you can use the `.inspect aws_msk_cluster` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Number (ARN) of the MSK cluster. It can be used to join with other tables that contain ARN references.
 - `cluster_name`: The name of the MSK cluster. This can be used to join with other tables that reference the cluster by name.

@@ -11,7 +11,7 @@ The `aws_cloudtrail_event_data_store` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_event_data_store` table, you can use the `.inspect aws_cloudtrail_event_data_store` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `event_id`: The unique identifier for the event. This can be used to join this table with other tables to get detailed information about specific events.
 - `event_name`: The name of the event. This can be useful for filtering events of a specific type.

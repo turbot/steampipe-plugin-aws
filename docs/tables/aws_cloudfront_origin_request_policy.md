@@ -11,7 +11,7 @@ The `aws_cloudfront_origin_request_policy` table in Steampipe provides informati
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudfront_origin_request_policy` table, you can use the `.inspect aws_cloudfront_origin_request_policy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The ID of the origin request policy. This can be used to join this table with other tables that reference CloudFront origin request policies.
 - `name`: The name of the origin request policy. This can provide a more human-readable reference when joining with other tables.

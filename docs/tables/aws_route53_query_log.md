@@ -11,7 +11,7 @@ The `aws_route53_query_log` table in Steampipe provides information about DNS qu
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_query_log` table, you can use the `.inspect aws_route53_query_log` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `hosted_zone_id`: The ID of the Amazon Route 53 hosted zone. This key column can be used to join this table with other tables that contain information about Route 53 hosted zones.
 - `query_name`: The domain name that was specified in the DNS query. This key column can be used to filter the DNS queries made for a specific domain.

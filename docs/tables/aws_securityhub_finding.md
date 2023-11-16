@@ -11,7 +11,7 @@ The `aws_securityhub_finding` table in Steampipe provides information about secu
 
 To gain a deeper understanding of the structure and metadata of the `aws_securityhub_finding` table, you can use the `.inspect aws_securityhub_finding` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the finding. This is a unique identifier that can be used to join this table with other tables.
 - `id`: The ID of the finding. This is another unique identifier that provides a way to reference a specific finding.

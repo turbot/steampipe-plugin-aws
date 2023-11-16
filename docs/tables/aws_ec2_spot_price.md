@@ -11,7 +11,7 @@ The `aws_ec2_spot_price` table in Steampipe provides information about the spot 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_spot_price` table, you can use the `.inspect aws_ec2_spot_price` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `availability_zone`: The availability zone in which the request is launched. It's important for understanding the geographical distribution of your spot instances.
 - `instance_type`: The type of instance (for example, `m3.medium`). This column is useful for understanding the distribution of instance types and their associated costs.

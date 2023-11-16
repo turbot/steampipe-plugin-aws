@@ -11,7 +11,7 @@ The `aws_s3_bucket` table in Steampipe provides information about S3 buckets wit
 
 To gain a deeper understanding of the structure and metadata of the `aws_s3_bucket` table, you can use the `.inspect aws_s3_bucket` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the bucket. This is the primary key of the table and can be used to join with other tables.
 - `region`: The region where the bucket is located. This can be useful for joining with tables that are also region-specific.

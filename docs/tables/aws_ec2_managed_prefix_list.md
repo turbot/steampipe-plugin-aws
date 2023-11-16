@@ -11,7 +11,7 @@ The `aws_ec2_managed_prefix_list` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_managed_prefix_list` table, you can use the `.inspect aws_ec2_managed_prefix_list` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `prefix_list_id`: The ID of the managed prefix list. This can be used to join with other tables that reference prefix lists.
 - `owner_id`: The AWS account ID of the owner of the managed prefix list. This can be used to join with other tables that reference AWS account ownership.

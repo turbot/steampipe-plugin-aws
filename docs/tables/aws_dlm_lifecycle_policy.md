@@ -11,7 +11,7 @@ The `aws_dlm_lifecycle_policy` table in Steampipe provides information about DLM
 
 To gain a deeper understanding of the structure and metadata of the `aws_dlm_lifecycle_policy` table, you can use the `.inspect aws_dlm_lifecycle_policy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `policy_id`: The unique identifier for the lifecycle policy. This key column can be used to join this table with other tables to retrieve specific policy details.
 - `policy_arn`: The Amazon Resource Name (ARN) of the lifecycle policy. This key column can be used to join this table with other tables to get detailed information about the policy's resource.

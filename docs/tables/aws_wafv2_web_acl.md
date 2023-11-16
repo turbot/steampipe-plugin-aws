@@ -11,7 +11,7 @@ The `aws_wafv2_web_acl` table in Steampipe provides information about WebACL res
 
 To gain a deeper understanding of the structure and metadata of the `aws_wafv2_web_acl` table, you can use the `.inspect aws_wafv2_web_acl` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the WebACL. This can be used to join with other tables that provide WebACL-specific information.
 - `id`: The unique identifier of the WebACL. This can be used to join with other tables that provide WebACL-specific information.

@@ -11,7 +11,7 @@ The `aws_account` table in Steampipe provides information about the AWS Account.
 
 To gain a deeper understanding of the structure and metadata of the `aws_account` table, you can use the `.inspect aws_account` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id`: This column contains the AWS account ID. It is a unique identifier for the AWS account and can be used to join this table with others that contain AWS account information.
 - `account_alias`: This column contains the AWS account alias. It provides a human-readable identifier for the account and can be used for easier identification and querying.

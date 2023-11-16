@@ -11,7 +11,7 @@ The `aws_api_gatewayv2_route` table in Steampipe provides information about rout
 
 To gain a deeper understanding of the structure and metadata of the `aws_api_gatewayv2_route` table, you can use the `.inspect aws_api_gatewayv2_route` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `api_id`: The API identifier. This column is important as it uniquely identifies the API and can be used to join with other tables related to the API.
 - `route_id`: The route ID. This column is useful because it uniquely identifies the route within the API and can be used to join with other tables related to the route.

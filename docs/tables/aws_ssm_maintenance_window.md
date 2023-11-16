@@ -11,7 +11,7 @@ The `aws_ssm_maintenance_window` table in Steampipe provides information about M
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_maintenance_window` table, you can use the `.inspect aws_ssm_maintenance_window` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `window_id`: The ID of the maintenance window. This can be used to join with other tables that reference the maintenance window ID.
 - `name`: The name of the maintenance window. This can be useful for identifying specific maintenance windows.

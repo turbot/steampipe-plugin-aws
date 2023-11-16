@@ -11,7 +11,7 @@ The `aws_vpc_endpoint_service` table in Steampipe provides information about AWS
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_endpoint_service` table, you can use the `.inspect aws_vpc_endpoint_service` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `service_id`: The ID of the service. This can be used to join this table with other tables that contain information about AWS VPC Endpoint Services.
 - `service_name`: The name of the service. This can be used to filter results based on the service name.

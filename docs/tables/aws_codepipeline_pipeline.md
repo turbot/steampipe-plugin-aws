@@ -11,7 +11,7 @@ The `aws_codepipeline_pipeline` table in Steampipe provides information about pi
 
 To gain a deeper understanding of the structure and metadata of the `aws_codepipeline_pipeline` table, you can use the `.inspect aws_codepipeline_pipeline` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: This is the name of the pipeline. It is a unique identifier and can be used to join this table with other tables that contain pipeline information.
 - `arn`: This is the Amazon Resource Name (ARN) of the pipeline. It is a unique identifier across all AWS resources and can be used to join this table with other tables that contain AWS resource information.

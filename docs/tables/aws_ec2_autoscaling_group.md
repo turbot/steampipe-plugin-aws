@@ -11,7 +11,7 @@ The `aws_ec2_autoscaling_group` table in Steampipe provides information about Au
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_autoscaling_group` table, you can use the `.inspect aws_ec2_autoscaling_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `auto_scaling_group_arn`: The Amazon Resource Name (ARN) of the Auto Scaling group. This can be used to join with other tables that store ARN information.
 - `auto_scaling_group_name`: The name of the Auto Scaling group. This is a unique identifier and can be used to join with other tables that store Auto Scaling group names.

@@ -11,7 +11,7 @@ The `aws_cloudwatch_log_stream` table in Steampipe provides information about ea
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_log_stream` table, you can use the `.inspect aws_cloudwatch_log_stream` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `log_group_name`: The name of the log group. This column is useful for joining with other tables that contain log group information.
 - `log_stream_name`: The name of the log stream. This column is useful for joining with other tables that contain log stream information.

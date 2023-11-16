@@ -11,7 +11,7 @@ The `aws_guardduty_member` table in Steampipe provides information about member 
 
 To gain a deeper understanding of the structure and metadata of the `aws_guardduty_member` table, you can use the `.inspect aws_guardduty_member` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id`: This is the AWS Account ID of the GuardDuty member account. It is a key column that can be used to join this table with other AWS tables to gather more comprehensive data about the member account.
 - `detector_id`: This is the detector ID of the GuardDuty member account. It can be used to join this table with other GuardDuty tables to gather detailed information about the specific detector associated with the member account.

@@ -13,7 +13,7 @@ The `aws_rds_db_instance_metric_read_iops_hourly` table provides metric statisti
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_metric_read_iops_hourly` table, you can use the `.inspect aws_rds_db_instance_metric_read_iops_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_instance_identifier`: The identifier for the DB instance. This column is important as it uniquely identifies the DB instance for which the read IOPS metrics are being retrieved. It can be used to join this table with other tables that contain information about the DB instance.
 

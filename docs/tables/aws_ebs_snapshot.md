@@ -11,7 +11,7 @@ The `aws_ebs_snapshot` table in Steampipe provides information about EBS snapsho
 
 To gain a deeper understanding of the structure and metadata of the `aws_ebs_snapshot` table, you can use the `.inspect aws_ebs_snapshot` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `snapshot_id`: This is the unique identifier of the snapshot. It is useful for joining with other tables that reference snapshots by their ID.
 - `volume_id`: This is the identifier of the volume from which the snapshot was created. It is useful for joining with tables that reference volumes by their ID.

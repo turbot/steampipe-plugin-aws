@@ -11,7 +11,7 @@ The `aws_lambda_alias` table in Steampipe provides information about alias resou
 
 To gain a deeper understanding of the structure and metadata of the `aws_lambda_alias` table, you can use the `.inspect aws_lambda_alias` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: This column contains the name of the alias. It can be used to join with other tables that contain Lambda alias names.
 - `function_name`: This column contains the name of the Lambda function associated with the alias. It is useful for joining with other tables that contain Lambda function names.

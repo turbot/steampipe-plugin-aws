@@ -11,7 +11,7 @@ The `aws_workspaces_directory` table in Steampipe provides information about dir
 
 To gain a deeper understanding of the structure and metadata of the `aws_workspaces_directory` table, you can use the `.inspect aws_workspaces_directory` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `directory_id`: The identifier of the directory. This column can be used to join with other tables that require the directory ID.
 - `state`: The state of the directory. This column can be useful for filtering directories based on their current state (e.g., available, unavailable).

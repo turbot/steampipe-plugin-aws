@@ -13,7 +13,7 @@ For more information about using a password policy, go to [Managing an IAM Passw
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_account_password_policy` table, you can use the `.inspect aws_iam_account_password_policy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `title`: The title of the password policy. This is useful for identifying the specific password policy.
 - `minimum_password_length`: This column is important as it gives information about the minimum password length required by the policy.

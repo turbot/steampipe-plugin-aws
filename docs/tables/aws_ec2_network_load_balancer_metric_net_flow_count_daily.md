@@ -13,7 +13,7 @@ The `aws_ec2_network_load_balancer_metric_net_flow_count_daily` table provides m
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_network_load_balancer_metric_net_flow_count_daily` table, you can use the `.inspect aws_ec2_network_load_balancer_metric_net_flow_count_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `load_balancer_name`: This is the name of the load balancer. It is crucial for identifying the specific load balancer for which the metrics are being queried.
 - `timestamp`: This column records the time at which the metrics were collected. It is useful for tracking network traffic patterns over time.

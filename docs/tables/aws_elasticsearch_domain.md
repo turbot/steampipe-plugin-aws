@@ -11,7 +11,7 @@ The `aws_elasticsearch_domain` table in Steampipe provides information about Ela
 
 To gain a deeper understanding of the structure and metadata of the `aws_elasticsearch_domain` table, you can use the `.inspect aws_elasticsearch_domain` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `domain_name`: The name of the Elasticsearch domain. It is a unique key that can be used to join this table with other tables.
 - `domain_id`: The unique identifier for the domain. This is important for tracking the domain across different AWS services.

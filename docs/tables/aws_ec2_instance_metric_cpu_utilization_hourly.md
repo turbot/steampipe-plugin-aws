@@ -13,7 +13,7 @@ The `aws_ec2_instance_metric_cpu_utilization_hourly` table provides metric stati
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_instance_metric_cpu_utilization_hourly` table, you can use the `.inspect aws_ec2_instance_metric_cpu_utilization_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_id`: This is the unique identifier of the EC2 instance. It is crucial for joining this table with other EC2-related tables.
 - `timestamp`: This column represents the time when the CPU utilization metrics were recorded. It is useful for tracking CPU utilization over time.

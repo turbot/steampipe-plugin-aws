@@ -11,7 +11,7 @@ The `aws_inspector_finding` table in Steampipe provides information about AWS In
 
 To gain a deeper understanding of the structure and metadata of the `aws_inspector_finding` table, you can use the `.inspect aws_inspector_finding` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the finding. This can be used to join with other tables that contain AWS Inspector findings.
 - `severity`: The severity of the finding. This is important as it allows users to prioritize findings based on their impact.

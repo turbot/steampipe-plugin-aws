@@ -11,7 +11,7 @@ The `aws_sagemaker_app` table in Steampipe provides information about AWS SageMa
 
 To gain a deeper understanding of the structure and metadata of the `aws_sagemaker_app` table, you can use the `.inspect aws_sagemaker_app` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `app_name`: The name of the app. This can be used to join with other tables that contain app-specific details.
 - `app_arn`: The Amazon Resource Name (ARN) of the app. ARNs are unique identifiers for AWS resources and can be used to join tables that contain resource-specific details.

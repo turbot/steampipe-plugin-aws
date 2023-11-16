@@ -11,7 +11,7 @@ The `aws_ses_domain_identity` table in Steampipe provides information about doma
 
 To gain a deeper understanding of the structure and metadata of the aws_ses_domain_identity table, you can use the `.inspect aws_ses_domain_identity` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `identity_name`: The name of the identity. This is a key column that can be used to join this table with other tables to gather more specific information about a particular identity.
 - `verification_status`: The verification status of the domain. This column is important as it helps to understand whether the domain identity is successfully verified or not.

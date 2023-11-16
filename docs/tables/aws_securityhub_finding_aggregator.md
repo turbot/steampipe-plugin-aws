@@ -11,7 +11,7 @@ The `aws_securityhub_finding_aggregator` table in Steampipe provides information
 
 To gain a deeper understanding of the structure and metadata of the `aws_securityhub_finding_aggregator` table, you can use the `.inspect aws_securityhub_finding_aggregator` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the finding. This can be used to uniquely identify each finding.
 - `product_arn`: The ARN of the product that generated the finding. This can be used to filter findings by product.

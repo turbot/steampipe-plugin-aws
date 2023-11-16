@@ -11,7 +11,7 @@ The `aws_wellarchitected_lens_share` table in Steampipe provides information abo
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_lens_share` table, you can use the `.inspect aws_wellarchitected_lens_share` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `share_arn`: The Amazon Resource Name (ARN) of the shared lens. It is a unique identifier and can be used to join this table with other tables.
 - `share_status`: The status of the shared lens. It provides information about the current state of the lens share and can be useful to filter or sort the data based on the share status.

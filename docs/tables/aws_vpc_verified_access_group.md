@@ -11,7 +11,7 @@ The `aws_vpc_verified_access_group` table in Steampipe provides information abou
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_verified_access_group` table, you can use the `.inspect aws_vpc_verified_access_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `group_id`: This is the unique identifier of the verified access group. It can be used to join with other tables that reference the group ID.
 - `group_name`: This is the name of the verified access group. It can be useful for filtering or sorting results based on the group name.

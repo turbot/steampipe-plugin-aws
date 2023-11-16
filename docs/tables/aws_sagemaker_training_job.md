@@ -11,7 +11,7 @@ The `aws_sagemaker_training_job` table in Steampipe provides information about t
 
 To gain a deeper understanding of the structure and metadata of the `aws_sagemaker_training_job` table, you can use the `.inspect aws_sagemaker_training_job` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `training_job_name`: The name of the training job. This is the primary identifier of the training job and can be used to join with other tables that reference AWS SageMaker training jobs.
 - `training_job_arn`: The AWS Resource Name (ARN) of the training job. This unique identifier is important for joining with other AWS tables that use ARN as a reference.

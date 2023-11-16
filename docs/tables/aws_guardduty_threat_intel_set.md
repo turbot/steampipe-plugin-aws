@@ -11,7 +11,7 @@ The `aws_guardduty_threat_intel_set` table in Steampipe provides information abo
 
 To gain a deeper understanding of the structure and metadata of the `aws_guardduty_threat_intel_set` table, you can use the `.inspect aws_guardduty_threat_intel_set` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `threat_intel_set_id`: This is the unique identifier for the threat intelligence set. It can be used to join this table with other tables that contain information about specific threat intelligence sets.
 - `detector_id`: This is the unique identifier for the GuardDuty detector associated with the threat intelligence set. It can be used to join this table with other tables that contain information about specific detectors.

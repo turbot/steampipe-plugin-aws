@@ -11,7 +11,7 @@ The `aws_wellarchitected_consolidated_report` table in Steampipe provides inform
 
 To gain a deeper understanding of the structure and metadata of the `aws_wellarchitected_consolidated_report` table, you can use the `.inspect aws_wellarchitected_consolidated_report` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `workload_id`: This is the unique identifier for the workload. It can be used to join this table with other workload-related tables.
 - `lens_name`: This column represents the name of the lens used in the report. It can be useful when joining with other lens-specific tables or filtering reports by lens type.

@@ -11,7 +11,7 @@ The `aws_cognito_user_pool` table in Steampipe provides information about User P
 
 To gain a deeper understanding of the structure and metadata of the `aws_cognito_user_pool` table, you can use the `.inspect aws_cognito_user_pool` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The ID of the user pool. This can be used to join this table with other tables that contain user pool-specific information.
 - `arn`: The Amazon Resource Name (ARN) of the user pool. This can be used to join with any other AWS resource table using the ARN.

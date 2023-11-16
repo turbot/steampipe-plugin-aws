@@ -11,7 +11,7 @@ The `aws_eventbridge_bus` table in Steampipe provides information about buses wi
 
 To gain a deeper understanding of the structure and metadata of the `aws_eventbridge_bus` table, you can use the `.inspect aws_eventbridge_bus` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the EventBridge bus. This can be used to join this table with others that contain EventBridge bus names.
 - `arn`: The Amazon Resource Name (ARN) of the EventBridge bus. This is a unique identifier for the bus and can be used to join this table with others that contain EventBridge bus ARNs.

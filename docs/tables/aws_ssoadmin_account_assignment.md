@@ -11,7 +11,7 @@ The `aws_ssoadmin_account_assignment` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssoadmin_account_assignment` table, you can use the `.inspect aws_ssoadmin_account_assignment` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_arn`: The ARN of the SSO instance under which the assignment was made. This can be useful for joining with other tables that also contain SSO instance ARNs.
 - `principal_id`: The identifier of the principal (user or group) that the assignment applies to. This can be used to join with other tables that contain principal identifiers.

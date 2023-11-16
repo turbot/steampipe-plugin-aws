@@ -11,7 +11,7 @@ The `aws_backup_framework` table in Steampipe provides information about each ba
 
 To gain a deeper understanding of the structure and metadata of the `aws_backup_framework` table, you can use the `.inspect aws_backup_framework` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `backup_plan_arn`: The Amazon Resource Name (ARN) for the backup plan. This column is important as it uniquely identifies each backup plan and can be used to join this table with other tables that contain backup plan ARN data.
 - `creation_date`: The date and time a backup plan is created. This column is useful for tracking the lifespan of backup plans and identifying those that might need updating or retiring.

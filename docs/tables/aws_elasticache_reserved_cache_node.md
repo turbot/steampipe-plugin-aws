@@ -11,7 +11,7 @@ The `aws_elasticache_reserved_cache_node` table in Steampipe provides informatio
 
 To gain a deeper understanding of the structure and metadata of the `aws_elasticache_reserved_cache_node` table, you can use the `.inspect aws_elasticache_reserved_cache_node` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `reserved_cache_node_id`: The unique identifier for the reservation. This can be used to join with other tables that contain information about the reserved cache node.
 

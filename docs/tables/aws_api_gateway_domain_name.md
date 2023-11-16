@@ -11,7 +11,7 @@ The `aws_api_gateway_domain_name` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_api_gateway_domain_name` table, you can use the `.inspect aws_api_gateway_domain_name` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `domain_name`: The name of the domain. This can be used to join with other tables that contain information about the domain.
 - `certificate_arn`: The Amazon Resource Name (ARN) of an AWS-managed certificate. This can be used to join with other tables that contain certificate information.

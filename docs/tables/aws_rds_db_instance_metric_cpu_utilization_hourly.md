@@ -13,7 +13,7 @@ The `aws_rds_db_instance_metric_cpu_utilization_hourly` table provides metric st
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_metric_cpu_utilization_hourly` table, you can use the `.inspect aws_rds_db_instance_metric_cpu_utilization_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_instance_identifier`: This is the identifier for the DB instance. It is a key column because it uniquely identifies the DB instance and can be used to join with other tables that contain DB instance information.
 - `timestamp`: This column represents the time at which the CPU utilization data was recorded. It is important as it allows for tracking of CPU utilization over time.

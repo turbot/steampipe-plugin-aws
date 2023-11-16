@@ -11,7 +11,7 @@ The `aws_drs_source_server` table in Steampipe provides information about source
 
 To gain a deeper understanding of the structure and metadata of the `aws_drs_source_server` table, you can use the `.inspect aws_drs_source_server` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `server_id`: This is the unique identifier of the source server. This column can be used to join this table with other tables to get more specific details about a particular source server.
 - `status`: This column provides the current status of the source server. It can be used to filter out servers based on their current status.

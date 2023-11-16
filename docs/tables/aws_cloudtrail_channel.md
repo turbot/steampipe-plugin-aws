@@ -11,7 +11,7 @@ The `aws_cloudtrail_channel` table in Steampipe provides information about Cloud
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudtrail_channel` table, you can use the `.inspect aws_cloudtrail_channel` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `title`: The name of the CloudTrail trail. This is a unique identifier and can be used to join this table with other tables that contain trail-specific information.
 - `home_region`: The AWS region in which the trail was created. This can be used to filter results based on region.

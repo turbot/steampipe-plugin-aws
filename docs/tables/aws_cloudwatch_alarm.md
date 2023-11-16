@@ -11,7 +11,7 @@ The `aws_cloudwatch_alarm` table in Steampipe provides information about alarms 
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_alarm` table, you can use the `.inspect aws_cloudwatch_alarm` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `alarm_name`: The name of the alarm. This is the primary key column and can be used to join with other tables.
 - `state_value`: The state value for the alarm. This can be useful for filtering alarms based on their current state.

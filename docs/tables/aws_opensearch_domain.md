@@ -11,7 +11,7 @@ The `aws_opensearch_domain` table in Steampipe provides information about domain
 
 To gain a deeper understanding of the structure and metadata of the `aws_opensearch_domain` table, you can use the `.inspect aws_opensearch_domain` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `domain_name`: This is the name of the OpenSearch domain. It is a key column because it is a unique identifier for each domain and can be used to join this table with other tables.
 - `arn`: This is the Amazon Resource Name (ARN) of the OpenSearch domain. It is a key column because it provides a consistent way to identify AWS resources across all AWS services.

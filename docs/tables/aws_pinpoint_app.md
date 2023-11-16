@@ -11,7 +11,7 @@ The `aws_pinpoint_app` table in Steampipe provides information about application
 
 To gain a deeper understanding of the structure and metadata of the `aws_pinpoint_app` table, you can use the `.inspect aws_pinpoint_app` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `application_id`: The unique identifier for the application. This can be used to join this table with other tables.
 - `name`: The name of the application. This is useful for identifying the application.

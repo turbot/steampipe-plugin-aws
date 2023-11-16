@@ -11,7 +11,7 @@ The `aws_globalaccelerator_listener` table in Steampipe provides information abo
 
 To gain a deeper understanding of the structure and metadata of the `aws_globalaccelerator_listener` table, you can use the `.inspect aws_globalaccelerator_listener` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `accelerator_arn`: The Amazon Resource Name (ARN) of the accelerator. This column is important as it is the unique identifier of the accelerator and can be used to join this table with the `aws_globalaccelerator_accelerator` table.
 - `listener_arn`: The ARN of the listener. This column is useful because it uniquely identifies the listener and can be used to join this table with other tables that contain listener-specific information.

@@ -11,7 +11,7 @@ The `aws_glue_security_configuration` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_glue_security_configuration` table, you can use the `.inspect aws_glue_security_configuration` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the security configuration. It can be used as a unique identifier for the security configuration and can be used to join with other tables that reference the security configuration by name.
 - `encryption_configuration_s3_encryption_s3_encryption_mode`: The encryption mode used for S3 data. This can be used to understand the level of data protection applied to S3 data.

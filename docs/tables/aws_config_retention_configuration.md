@@ -11,7 +11,7 @@ The `aws_config_retention_configuration` table in Steampipe provides information
 
 To gain a deeper understanding of the structure and metadata of the `aws_config_retention_configuration` table, you can use the `.inspect aws_config_retention_configuration` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the retention configuration. This is useful for identifying the specific configuration.
 - `retention_period_in_days`: The number of days AWS Config retains the configuration items. This is important for understanding how long the configuration items are retained.

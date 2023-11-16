@@ -13,7 +13,7 @@ The `aws_rds_db_instance_metric_write_iops` table provides metric statistics at 
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance_metric_write_iops` table, you can use the `.inspect aws_rds_db_instance_metric_write_iops` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 * `db_instance_identifier`: The identifier of the DBInstance. This column can be used to join with the `aws_rds_db_instance` table to get more information about the DBInstance.
 

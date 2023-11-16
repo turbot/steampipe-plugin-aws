@@ -11,7 +11,7 @@ The `aws_vpc_subnet` table in Steampipe provides information about subnets withi
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_subnet` table, you can use the `.inspect aws_vpc_subnet` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `subnet_id`: This is the unique identifier for the subnet. It is useful for joining with other tables that reference subnets.
 - `vpc_id`: This column contains the ID of the VPC the subnet is a part of. It can be used to join with the `aws_vpc` table to get more information about the VPC.

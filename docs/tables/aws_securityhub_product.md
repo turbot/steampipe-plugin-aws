@@ -11,7 +11,7 @@ The `aws_securityhub_product` table in Steampipe provides information about secu
 
 To gain a deeper understanding of the structure and metadata of the `aws_securityhub_product` table, you can use the `.inspect aws_securityhub_product` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `product_arn`: This is the AWS Resource Name (ARN) of the security product. It is a unique identifier and can be used to join this table with other tables that reference security products.
 - `name`: The name of the security product. This can be useful for filtering or sorting the data based on the product name.

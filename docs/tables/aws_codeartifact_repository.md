@@ -11,7 +11,7 @@ The `aws_codeartifact_repository` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_codeartifact_repository` table, you can use the `.inspect aws_codeartifact_repository` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Number (ARN) of the CodeArtifact repository. This is a unique identifier and can be used to join this table with other AWS service tables.
 - `domain_owner`: The AWS account ID that owns the domain containing the repository. This can be used to filter repositories by domain ownership.

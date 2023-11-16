@@ -11,7 +11,7 @@ The `aws_dax_parameter_group` table in Steampipe provides information about Para
 
 To gain a deeper understanding of the structure and metadata of the `aws_dax_parameter_group` table, you can use the `.inspect aws_dax_parameter_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the DAX Parameter Group. It is a unique identifier and can be used to join this table with other tables that contain DAX Parameter Group information.
 - `arn`: The Amazon Resource Name (ARN) of the DAX Parameter Group. This unique identifier can be used to join this table with other AWS resource tables.

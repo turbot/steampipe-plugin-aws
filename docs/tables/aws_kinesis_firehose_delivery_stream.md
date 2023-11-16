@@ -11,7 +11,7 @@ The `aws_kinesis_firehose_delivery_stream` table in Steampipe provides informati
 
 To gain a deeper understanding of the structure and metadata of the `aws_kinesis_firehose_delivery_stream` table, you can use the `.inspect aws_kinesis_firehose_delivery_stream` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the delivery stream. This can be used to join this table with other tables that rely on ARN for identification.
 - `name`: The name of the delivery stream. This is a unique identifier for the delivery stream and can be used to join with other tables that require the stream name.

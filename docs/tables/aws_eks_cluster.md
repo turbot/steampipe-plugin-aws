@@ -11,7 +11,7 @@ The `aws_eks_cluster` table in Steampipe provides information about EKS clusters
 
 To gain a deeper understanding of the structure and metadata of the `aws_eks_cluster` table, you can use the `.inspect aws_eks_cluster` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the EKS cluster. This column can be used to join this table with other tables that reference the EKS cluster by name.
 - `arn`: The Amazon Resource Number (ARN) of the EKS cluster. This column is useful for joining with other tables that reference the EKS cluster by ARN.

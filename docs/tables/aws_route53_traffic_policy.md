@@ -11,7 +11,7 @@ The `aws_route53_traffic_policy` table in Steampipe uses the data from AWS Route
 
 To gain a deeper understanding of the structure and metadata of the `aws_route53_traffic_policy` table, you can use the `.inspect aws_route53_traffic_policy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: This is the identifier of the traffic policy. It is a crucial column as it uniquely identifies each traffic policy and can be used to join this table with others.
 - `name`: This column represents the name of the traffic policy. It is important as it aids in the identification of specific policies when querying or joining tables.

@@ -11,7 +11,7 @@ The `aws_ec2_key_pair` table in Steampipe provides information about Key Pairs w
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_key_pair` table, you can use the `.inspect aws_ec2_key_pair` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `key_pair_id`: The ID of the key pair. This column can be used to join this table with other tables that contain key pair ID information.
 - `key_name`: The name of the key pair. This is an important column as it is commonly used to identify key pairs in AWS.

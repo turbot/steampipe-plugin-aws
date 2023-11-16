@@ -11,7 +11,7 @@ The `aws_networkfirewall_firewall` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the `aws_networkfirewall_firewall` table, you can use the `.inspect aws_networkfirewall_firewall` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `firewall_arn`: The Amazon Resource Number (ARN) of the firewall. This is a unique identifier and can be used to join this table with other tables that contain firewall ARNs.
 - `firewall_name`: The name of the firewall. This can be useful for joining with other tables that reference firewalls by name.

@@ -11,7 +11,7 @@ The `aws_securityhub_member` table in Steampipe provides information about each 
 
 To gain a deeper understanding of the structure and metadata of the `aws_securityhub_member` table, you can use the `.inspect aws_securityhub_member` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id`: This is the AWS account ID of the member account. It can be used to join this table with others that contain information about AWS accounts.
 - `email`: This is the email of the member account. It can be used to join this table with others that contain information about the email addresses associated with AWS accounts.

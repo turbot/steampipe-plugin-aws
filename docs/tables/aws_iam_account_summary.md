@@ -13,7 +13,7 @@ The number and size of IAM resources in an AWS account are limited. For more inf
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_account_summary` table, you can use the `.inspect aws_iam_account_summary` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id`: This is the AWS account ID. This is a key column as it uniquely identifies the AWS account.
 - `summary_map`: This is a map of IAM resource types (users, groups, roles, policies) to the count of each resource. This is a key column as it provides a summary of the IAM usage.

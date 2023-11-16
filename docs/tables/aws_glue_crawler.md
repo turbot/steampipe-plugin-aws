@@ -11,7 +11,7 @@ The `aws_glue_crawler` table in Steampipe provides information about crawlers wi
 
 To gain a deeper understanding of the structure and metadata of the `aws_glue_crawler` table, you can use the `.inspect aws_glue_crawler` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `crawler_name`: The name of the crawler. This is a unique identifier for the crawler and can be used to join with other tables.
 - `role`: The IAM role (or Amazon Resource Name - ARN) associated with the crawler. This provides information about the permissions assigned to the crawler.

@@ -11,7 +11,7 @@ The `aws_emr_cluster` table in Steampipe provides information about clusters wit
 
 To gain a deeper understanding of the structure and metadata of the `aws_emr_cluster` table, you can use the `.inspect aws_emr_cluster` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The unique identifier of the cluster. This can be used to join this table with other tables that contain cluster information.
 - `name`: The name of the cluster. This can be used to join with tables that contain cluster names for more human-readable queries.

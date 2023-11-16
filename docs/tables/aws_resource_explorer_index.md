@@ -11,7 +11,7 @@ The `aws_resource_explorer_index` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_resource_explorer_index` table, you can use the `.inspect aws_resource_explorer_index` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: This is the unique identifier of the resource. It can be used to join this table with other tables to fetch detailed information about specific resources.
 - `service`: This column represents the AWS service that the resource belongs to. It can be used to filter resources based on the service.

@@ -13,7 +13,7 @@ The `aws_elasticache_redis_metric_new_connections_hourly` table provides metric 
 
 To gain a deeper understanding of the structure and metadata of the `aws_elasticache_redis_metric_new_connections_hourly` table, you can use the `.inspect aws_elasticache_redis_metric_new_connections_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `cache_node_id`: This is the identifier of the cache node. It can be used to join this table with other tables that contain information about the cache node.
 - `timestamp`: This is the timestamp for the data point. It allows users to query data based on specific timeframes.

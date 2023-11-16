@@ -11,7 +11,7 @@ The `aws_inspector2_coverage` table in Steampipe provides information about the 
 
 To gain a deeper understanding of the structure and metadata of the `aws_inspector2_coverage` table, you can use the `.inspect aws_inspector2_coverage` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the assessment target. This is a unique identifier that can be used to join this table with other AWS Inspector tables.
 - `name`: The name of the assessment target. This can be useful for filtering results based on specific assessment targets.

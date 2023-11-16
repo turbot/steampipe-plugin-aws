@@ -11,7 +11,7 @@ The `aws_globalaccelerator_endpoint_group` table in Steampipe provides informati
 
 To gain a deeper understanding of the structure and metadata of the `aws_globalaccelerator_endpoint_group` table, you can use the `.inspect aws_globalaccelerator_endpoint_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `endpoint_group_arn`: This is the Amazon Resource Name (ARN) of the endpoint group. It is a unique identifier that can be used to join this table with other tables.
 - `listener_arn`: This column contains the ARN of the listener that the endpoint group is associated with. It is useful for querying information related to the listener.

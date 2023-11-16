@@ -11,7 +11,7 @@ The `aws_iam_virtual_mfa_device` table in Steampipe provides information about V
 
 To gain a deeper understanding of the structure and metadata of the `aws_iam_virtual_mfa_device` table, you can use the `.inspect aws_iam_virtual_mfa_device` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the virtual MFA device. This column can be used to join this table with other tables that contain IAM resource information.
 

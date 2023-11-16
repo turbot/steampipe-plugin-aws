@@ -11,7 +11,7 @@ The `aws_directory_servicelog_subscription` table in Steampipe provides informat
 
 To gain a deeper understanding of the structure and metadata of the `aws_directory_servicelog_subscription` table, you can use the `.inspect aws_directory_servicelog_subscription` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `directory_id`: The identifier of the directory. This column can be used to join with other tables that contain directory details.
 - `log_group_name`: The name of the log group. This column can be used to join with other tables that contain log group details.

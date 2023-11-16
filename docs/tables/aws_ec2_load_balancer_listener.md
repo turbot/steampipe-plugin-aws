@@ -11,7 +11,7 @@ The `aws_ec2_load_balancer_listener` table in Steampipe provides information abo
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_load_balancer_listener` table, you can use the `.inspect aws_ec2_load_balancer_listener` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `listener_arn`: The Amazon Resource Name (ARN) of the listener. This can be used to join this table with other tables.
 - `load_balancer_arn`: The ARN of the load balancer. This can be used to join this table with the `aws_ec2_load_balancer` table.

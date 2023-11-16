@@ -11,7 +11,7 @@ The `aws_glue_connection` table in Steampipe provides information about connecti
 
 To gain a deeper understanding of the structure and metadata of the `aws_glue_connection` table, you can use the `.inspect aws_glue_connection` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the connection. This can be used to join this table with other tables that require connection name.
 - `connection_type`: The type of the connection (JDBC, SFTP, etc.). This can provide insights into the type of connections used.

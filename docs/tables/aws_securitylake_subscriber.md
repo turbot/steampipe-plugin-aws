@@ -11,7 +11,7 @@ The `aws_securitylake_subscriber` table in Steampipe provides information about 
 
 To gain a deeper understanding of the structure and metadata of the `aws_securitylake_subscriber` table, you can use the `.inspect aws_securitylake_subscriber` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `account_id`: The AWS Account ID in which the Security Lake Subscriber resides. This is useful for correlating with other tables that contain account-level data.
 - `subscriber_arn`: The ARN of the Security Lake Subscriber. This is a unique identifier and can be used to join with other tables that reference the subscriber.

@@ -15,7 +15,7 @@ You must grant the s3:ListAllMyBuckets permission to the user, role, or an IAM e
 
 To gain a deeper understanding of the structure and metadata of the `aws_s3_multi_region_access_point` table, you can use the `.inspect aws_s3_multi_region_access_point` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the Multi-Region Access Point. This can be used to join this table with other tables that contain information about specific Multi-Region Access Points.
 - `arn`: The Amazon Resource Name (ARN) of the Multi-Region Access Point. This can be used to join this table with other tables that contain ARN-specific information.

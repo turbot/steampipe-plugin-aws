@@ -11,7 +11,7 @@ The `aws_api_gateway_api_key` table in Steampipe provides information about API 
 
 To gain a deeper understanding of the structure and metadata of the `aws_api_gateway_api_key` table, you can use the `.inspect aws_api_gateway_api_key` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The identifier of the API Key. This can be used to join this table with other tables to get more detailed information about the API Key.
 - `value`: The value of the API Key. This is important as it is the unique value used to authenticate requests to your APIs.

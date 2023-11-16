@@ -11,7 +11,7 @@ The `aws_securityhub_standards_subscription` table in Steampipe provides informa
 
 To gain a deeper understanding of the structure and metadata of the `aws_securityhub_standards_subscription` table, you can use the `.inspect aws_securityhub_standards_subscription` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `standards_arn`: The ARN of a standard. This can be used to join with other tables that reference AWS Security Hub standards.
 - `standards_subscription_arn`: The ARN of a standards subscription. This can be used to join with other tables that reference AWS Security Hub standards subscriptions.

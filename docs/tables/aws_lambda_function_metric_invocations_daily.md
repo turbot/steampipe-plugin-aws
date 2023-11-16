@@ -13,7 +13,7 @@ The `aws_lambda_function_metric_invocations_daily` table provides metric statist
 
 To gain a deeper understanding of the structure and metadata of the `aws_lambda_function_metric_invocations_daily` table, you can use the `.inspect aws_lambda_function_metric_invocations_daily` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `function_name`: The name of the Lambda function. This is useful for joining with other tables that contain Lambda function details.
 - `namespace`: The namespace of the function. This can be used to join with other tables that contain AWS namespace information.

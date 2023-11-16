@@ -11,7 +11,7 @@ The `aws_identitystore_user` table in Steampipe provides information about users
 
 To gain a deeper understanding of the structure and metadata of the `aws_identitystore_user` table, you can use the `.inspect aws_identitystore_user` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `user_id`: This is the unique identifier for the user. It can be used to join with other tables that require a user ID for specific queries.
 - `username`: This is the name associated with the user. This can be useful when joining with tables that use username for identification.

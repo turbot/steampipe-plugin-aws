@@ -11,7 +11,7 @@ The `aws_inspector2_coverage_statistics` table in Steampipe provides information
 
 To gain a deeper understanding of the structure and metadata of the `aws_inspector2_coverage_statistics` table, you can use the `.inspect aws_inspector2_coverage_statistics` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `assessment_target_arn`: The Amazon Resource Name (ARN) of the assessment target. This column is useful for joining with other tables that contain assessment target information.
 - `instance_count`: The number of instances that the assessment target covers. This column is useful for understanding the extent of the coverage of each assessment target.

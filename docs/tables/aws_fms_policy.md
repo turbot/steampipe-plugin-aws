@@ -11,7 +11,7 @@ The `aws_fms_policy` table in Steampipe provides information about each AWS Fire
 
 To gain a deeper understanding of the structure and metadata of the `aws_fms_policy` table, you can use the `.inspect aws_fms_policy` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `policy_id`: The ID of the AWS FMS policy. This is a unique identifier for each policy and can be used to join this table with other tables that contain policy information.
 - `policy_name`: The name of the AWS FMS policy. This provides a human-readable identifier for each policy and can be useful for identifying policies in queries and reports.

@@ -11,7 +11,7 @@ The `aws_ssm_inventory_entry` table in Steampipe provides information about the 
 
 To gain a deeper understanding of the structure and metadata of the `aws_ssm_inventory_entry` table, you can use the `.inspect aws_ssm_inventory_entry` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `instance_id`: This is the ID of the managed instance. It is useful for linking inventory entries to their respective instances.
 - `type_name`: This represents the type of inventory item. It helps in categorizing and filtering inventory entries.

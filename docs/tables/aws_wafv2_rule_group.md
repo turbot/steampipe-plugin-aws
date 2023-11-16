@@ -11,7 +11,7 @@ The `aws_wafv2_rule_group` table in Steampipe allows users to query details rela
 
 To gain a deeper understanding of the structure and metadata of the `aws_wafv2_rule_group` table, you can use the `.inspect aws_wafv2_rule_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the rule group. This can be used to join this table with other tables that also have AWS ARN information.
 - `capacity`: The capacity of the rule group. This is important to monitor and manage the capacity of your rule groups.

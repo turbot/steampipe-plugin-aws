@@ -11,7 +11,7 @@ The `aws_acm_certificate` table in Steampipe provides information about certific
 
 To gain a deeper understanding of the structure and metadata of the `aws_acm_certificate` table, you can use the `.inspect aws_acm_certificate` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `certificate_arn`: The Amazon Resource Name (ARN) of the certificate. This is a unique identifier and can be used to join this table with other tables.
 - `domain_name`: The fully qualified domain name (FQDN), such as www.example.com, for which ACM issued the certificate. This can be used to filter certificates by domain.

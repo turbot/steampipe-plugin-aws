@@ -11,7 +11,7 @@ The `aws_securitylake_data_lake` table in Steampipe provides information about D
 
 To gain a deeper understanding of the structure and metadata of the `aws_securitylake_data_lake` table, you can use the `.inspect aws_securitylake_data_lake` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the Data Lake. This is a key identifier and can be used to join this table with other tables that also contain Data Lake names.
 - `created_time`: The time when the Data Lake was created. This can be useful for tracking the age of Data Lakes and identifying any that may be outdated or unused.

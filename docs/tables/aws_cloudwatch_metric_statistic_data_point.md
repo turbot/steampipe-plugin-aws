@@ -28,7 +28,7 @@ If you need to fetch more than 1440 data points then please use the `aws_cloudwa
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_metric_statistic_data_point` table, you can use the `.inspect aws_cloudwatch_metric_statistic_data_point` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `namespace`: This is the namespace of the metric. It can be used to join with other tables that also contain metric namespace information.
 - `metric_name`: This is the name of the metric. It can be used to join with other tables that also contain metric name information.

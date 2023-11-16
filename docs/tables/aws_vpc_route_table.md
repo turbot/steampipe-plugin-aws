@@ -11,7 +11,7 @@ The `aws_vpc_route_table` table in Steampipe provides information about VPC Rout
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_route_table` table, you can use the `.inspect aws_vpc_route_table` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `route_table_id`: The ID of the route table. This column is a unique identifier and can be used to join this table with other tables.
 - `vpc_id`: The ID of the VPC associated with the route table. This column is useful for querying all route tables within a specific VPC.

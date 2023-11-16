@@ -11,7 +11,7 @@ The `aws_config_configuration_recorder` table in Steampipe provides information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_config_configuration_recorder` table, you can use the `.inspect aws_config_configuration_recorder` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the configuration recorder. It can be used to join with other tables that contain information about the configuration recorder.
 - `role_arn`: The Amazon Resource Name (ARN) of the role used to make read or write requests to the delivery channel. This is useful for joining with tables that contain IAM role information.

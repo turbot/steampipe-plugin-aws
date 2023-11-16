@@ -13,7 +13,7 @@ The `aws_elasticache_redis_metric_engine_cpu_utilization_hourly` table provides 
 
 To gain a deeper understanding of the structure and metadata of the `aws_elasticache_redis_metric_engine_cpu_utilization_hourly` table, you can use the `.inspect aws_elasticache_redis_metric_engine_cpu_utilization_hourly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `title_id`: This is the unique identifier for the metric, which can be used to join this table with other tables that contain metric-specific information.
 - `average`: This column holds the average CPU utilization for the hour. It is crucial for understanding the typical load on the CPU over time.

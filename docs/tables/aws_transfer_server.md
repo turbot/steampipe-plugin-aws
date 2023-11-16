@@ -11,7 +11,7 @@ The `aws_transfer_server` table in Steampipe provides information about SFTP ser
 
 To gain a deeper understanding of the structure and metadata of the `aws_transfer_server` table, you can use the `.inspect aws_transfer_server` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `server_id`: The unique ID of the SFTP server. This is a primary identifier that can be used to join this table with other tables.
 - `arn`: The Amazon Resource Number (ARN) of the SFTP server. This is a globally unique identifier that can be used for joining with other AWS resource tables.

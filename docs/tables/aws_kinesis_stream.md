@@ -11,7 +11,7 @@ The `aws_kinesis_stream` table in Steampipe provides information about Kinesis s
 
 To gain a deeper understanding of the structure and metadata of the `aws_kinesis_stream` table, you can use the `.inspect aws_kinesis_stream` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `stream_name`: This is the name of the Kinesis stream. It is a key column because it is the unique identifier for each stream and can be used to join this table with other tables.
 - `stream_arn`: This is the Amazon Resource Name (ARN) of the Kinesis stream. It is a key column because it provides a unique identifier across all of AWS, which can be used for joining with other tables.

@@ -11,7 +11,7 @@ The `aws_directory_service_directory` table in Steampipe provides information ab
 
 To gain a deeper understanding of the structure and metadata of the `aws_directory_service_directory` table, you can use the `.inspect aws_directory_service_directory` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `directory_id`: This is the identifier of the directory. It can be used to join this table with other tables that reference the directory ID.
 - `arn`: The Amazon Resource Name (ARN) of the directory. This can be used in joining with any table that utilizes ARNs.

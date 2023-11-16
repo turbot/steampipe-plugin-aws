@@ -11,7 +11,7 @@ The `aws_vpc_eip` table in Steampipe provides information about Elastic IP Addre
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_eip` table, you can use the `.inspect aws_vpc_eip` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `public_ip`: This column stores the public IP address of the Elastic IP Address. This is an important column because it can be used to join with other tables that also contain public IP addresses.
 - `allocation_id`: This column stores the allocation ID of the Elastic IP Address. This is useful because it can be used to join with other tables that also contain allocation IDs.

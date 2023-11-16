@@ -13,7 +13,7 @@ The `aws_vpc_nat_gateway_metric_bytes_out_to_destination` table provides metric 
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_nat_gateway_metric_bytes_out_to_destination` table, you can use the `.inspect aws_vpc_nat_gateway_metric_bytes_out_to_destination` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `nat_gateway_id`: The ID of the NAT gateway. This can be used to join this table with others that contain NAT gateway-specific information.
 - `timestamp`: The timestamp of the data point. This can be used to join this table with others that provide time-specific information.

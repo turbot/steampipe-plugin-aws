@@ -11,7 +11,7 @@ The `aws_cloudformation_stack` table in Steampipe provides information about sta
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudformation_stack` table, you can use the `.inspect aws_cloudformation_stack` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `stack_name`: The name associated with the stack. This can be used to join this table with other tables that contain stack information.
 - `stack_id`: The unique identifier for the stack. This can be used to join this table with other tables that contain stack-specific details.

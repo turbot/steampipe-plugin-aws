@@ -11,7 +11,7 @@ The `aws_ec2_target_group` table in Steampipe provides information about each Ta
 
 To gain a deeper understanding of the structure and metadata of the `aws_ec2_target_group` table, you can use the `.inspect aws_ec2_target_group` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the target group. This can be used to join with other tables where a target group ARN is referenced.
 - `load_balancer_arns`: The ARNs of the load balancers that route traffic to this target group. This can be used to correlate with other tables that reference Load Balancer ARNs.

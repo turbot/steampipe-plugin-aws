@@ -11,7 +11,7 @@ The `aws_rds_db_instance` table in Steampipe provides comprehensive information 
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_instance` table, you can use the `.inspect aws_rds_db_instance` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_instance_identifier`: The identifier for the DB instance. This identifier is unique across all DB instances within an AWS account and can be used to join this table with other tables that contain DB instance identifiers.
 - `arn`: The Amazon Resource Name (ARN) of the DB instance. The ARN is a unique identifier for the DB instance and can be used to join this table with other tables that contain DB instance ARNs.

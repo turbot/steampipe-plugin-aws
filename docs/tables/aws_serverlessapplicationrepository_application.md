@@ -11,7 +11,7 @@ The `aws_serverlessapplicationrepository_application` table in Steampipe provide
 
 To gain a deeper understanding of the structure and metadata of the `aws_serverlessapplicationrepository_application` table, you can use the `.inspect aws_serverlessapplicationrepository_application` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `application_id`: The Amazon Resource Name (ARN) of the application. It is a unique identifier and can be used to join this table with other tables.
 - `author`: The name of the author publishing the app. It can be used to filter applications by a specific author.

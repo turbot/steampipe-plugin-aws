@@ -11,7 +11,7 @@ The `aws_cloudfront_function` table in Steampipe provides information about func
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudfront_function` table, you can use the `.inspect aws_cloudfront_function` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The name of the function. This column can be used to join this table with other tables for more detailed insights.
 - `arn`: The Amazon Resource Name (ARN) of the function. It is a unique identifier for the function and can be used to join this table with other tables.

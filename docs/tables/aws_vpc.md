@@ -11,7 +11,7 @@ The `aws_vpc` table in Steampipe provides information about Virtual Private Clou
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc` table, you can use the `.inspect aws_vpc` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `vpc_id`: The unique identifier for the VPC. This can be used to join with other tables that reference the VPC ID, such as the `aws_subnet` table.
 - `state`: The current state of the VPC (pending or available). This can be useful to filter VPCs based on their availability for use.

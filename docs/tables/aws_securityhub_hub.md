@@ -11,7 +11,7 @@ The `aws_securityhub_hub` table in Steampipe provides information about Hub reso
 
 To gain a deeper understanding of the structure and metadata of the `aws_securityhub_hub` table, you can use the `.inspect aws_securityhub_hub` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the Hub. This is a key column as it uniquely identifies each Hub resource and can be used to join this table with other tables.
 - `auto_enable_controls`: Indicates whether the Hub automatically enables new controls when they are added to standards that are enabled. This is useful for understanding the configuration of the Hub.

@@ -15,7 +15,7 @@ Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-ma
 
 To gain a deeper understanding of the structure and metadata of the `aws_cost_by_service_monthly` table, you can use the `.inspect aws_cost_by_service_monthly` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `service_name`: This is the name of the AWS service. It can be used to join with other tables that contain service-specific information.
 - `cost`: This column shows the cost associated with the specific AWS service. It is useful for cost analysis and budgeting.

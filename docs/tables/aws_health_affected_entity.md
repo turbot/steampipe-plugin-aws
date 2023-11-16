@@ -11,7 +11,7 @@ The `aws_health_affected_entity` table in Steampipe provides detailed informatio
 
 To gain a deeper understanding of the structure and metadata of the `aws_health_affected_entity` table, you can use the `.inspect aws_health_affected_entity` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `entity_arn`: The unique identifier for the affected entity. This can be used to join this table with other tables that contain entity ARN information.
 - `event_arn`: The unique identifier for the event affecting the entity. This can be used to join this table with other tables that contain event ARN information.

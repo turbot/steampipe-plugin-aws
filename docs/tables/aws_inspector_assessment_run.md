@@ -11,7 +11,7 @@ The `aws_inspector_assessment_run` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the `aws_inspector_assessment_run` table, you can use the `.inspect aws_inspector_assessment_run` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The ARN of the assessment run. This is the unique identifier of the run and can be used to join this table with other tables that also contain AWS Inspector Assessment Run ARNs.
 - `state`: The state of the assessment run. This can be used to filter runs based on their state (e.g., COMPLETED, STARTED, STOPPED, etc.).

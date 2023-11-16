@@ -11,7 +11,7 @@ The `aws_vpc_route` table in Steampipe provides information about each route in 
 
 To gain a deeper understanding of the structure and metadata of the `aws_vpc_route` table, you can use the `.inspect aws_vpc_route` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `destination_cidr_block`: This is the IPv4 network range for the destination of the route. It is a key column as it is used to identify the network range that the route applies to.
 - `route_table_id`: This is the ID of the route table which contains the route. It is important as it can be used to join this table with the aws_vpc_route_table.

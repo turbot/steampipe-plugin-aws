@@ -11,7 +11,7 @@ The `aws_ram_resource_association` table in Steampipe provides information about
 
 To gain a deeper understanding of the structure and metadata of the `aws_ram_resource_association` table, you can use the `.inspect aws_ram_resource_association` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `resource_arn`: The Amazon Resource Name (ARN) of the resource. It can be used to join with other tables to get more information about the resource.
 - `resource_share_arn`: The ARN of the resource share. This can be used to join with the `aws_ram_resource_share` table to get more details about the resource share.

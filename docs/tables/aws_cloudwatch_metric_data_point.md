@@ -26,7 +26,7 @@ Note: Using this table adds to cost to your monthly bill from AWS. Optimizations
 
 To gain a deeper understanding of the structure and metadata of the `aws_cloudwatch_metric_data_point` table, you can use the `.inspect aws_cloudwatch_metric_data_point` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `timestamp`: This column is crucial as it indicates the time when the metric data point was recorded. It can be used to join this table with others that contain time-series data.
 - `average`: This column holds the average of metric values that correspond to the specified time period. It can be useful for understanding the overall trend of a particular metric.

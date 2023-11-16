@@ -11,7 +11,7 @@ The `aws_sqs_queue` table in Steampipe provides information about each queue in 
 
 To gain a deeper understanding of the structure and metadata of the `aws_sqs_queue` table, you can use the `.inspect aws_sqs_queue` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) of the queue. This can be used to join this table with other tables that contain AWS resource ARNs.
 - `url`: The URL of the queue. This is a unique identifier for the queue and can be used to join with any other table that references AWS SQS queues by URL.

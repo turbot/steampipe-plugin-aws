@@ -11,7 +11,7 @@ The `aws_s3_bucket_intelligent_tiering_configuration` table in Steampipe provide
 
 To gain a deeper understanding of the structure and metadata of the `aws_s3_bucket_intelligent_tiering_configuration` table, you can use the `.inspect aws_s3_bucket_intelligent_tiering_configuration` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `bucket_name`: The name of the bucket. This is a key column because it directly identifies the bucket with which the Intelligent Tiering configuration is associated.  
 - `id`: The ID of the Intelligent Tiering configuration. This is a key column because it directly identifies the specific configuration.  

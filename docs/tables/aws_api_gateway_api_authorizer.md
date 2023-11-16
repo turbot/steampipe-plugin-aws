@@ -11,7 +11,7 @@ The `aws_api_gateway_api_authorizer` table in Steampipe provides information abo
 
 To gain a deeper understanding of the structure and metadata of the `aws_api_gateway_api_authorizer` table, you can use the `.inspect aws_api_gateway_api_authorizer` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `api_id`: The API identifier. This can be used to join with other tables that contain API Gateway information.
 - `authorizer_id`: The identifier of the authorizer. This can be used to join with other tables that contain authorizer information.

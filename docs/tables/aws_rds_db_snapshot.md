@@ -11,7 +11,7 @@ The `aws_rds_db_snapshot` table in Steampipe provides information about manual a
 
 To gain a deeper understanding of the structure and metadata of the `aws_rds_db_snapshot` table, you can use the `.inspect aws_rds_db_snapshot` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `db_snapshot_identifier`: The identifier for the DB snapshot. This column can be used to join this table with other tables as it uniquely identifies each snapshot.
 - `db_instance_identifier`: The identifier for the DB instance that was used to create the snapshot. This is useful for joining with the `aws_rds_db_instance` table to get more information about the DB instance.

@@ -11,7 +11,7 @@ The `aws_auditmanager_evidence_folder` table in Steampipe provides information a
 
 To gain a deeper understanding of the structure and metadata of the `aws_auditmanager_evidence_folder` table, you can use the `.inspect aws_auditmanager_evidence_folder` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `id`: The unique identifier for the evidence folder. This column can be used to join this table with other tables that contain evidence folder IDs.
 - `arn`: The Amazon Resource Name (ARN) specifying the evidence folder. This column is useful for joining with other tables that use ARNs.

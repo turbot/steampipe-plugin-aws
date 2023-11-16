@@ -11,7 +11,7 @@ The `aws_guardduty_filter` table in Steampipe provides information about filters
 
 To gain a deeper understanding of the structure and metadata of the `aws_guardduty_filter` table, you can use the `.inspect aws_guardduty_filter` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `name`: The unique name of the filter. This can be used to join this table with other tables that reference GuardDuty filters by their names.
 - `detector_id`: The unique ID of the detector that the filter is associated with. This is useful for joining with tables that contain detector-specific information.

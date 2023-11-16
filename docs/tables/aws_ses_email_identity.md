@@ -11,7 +11,7 @@ The `aws_ses_email_identity` table in Steampipe provides information about email
 
 To gain a deeper understanding of the structure and metadata of the `aws_ses_email_identity` table, you can use the `.inspect aws_ses_email_identity` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `identity`: The identity's name. This is the primary key of the table and can be used to join with other tables.
 - `dkim_enabled`: Indicates whether or not Easy DKIM signing is enabled for this identity. This can be useful when analyzing the DKIM attributes of the email identities.

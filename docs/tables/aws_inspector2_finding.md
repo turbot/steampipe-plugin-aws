@@ -13,7 +13,7 @@ When you run an assessment with AWS Inspector, it analyzes the target resources 
 
 To gain a deeper understanding of the structure and metadata of the `aws_inspector2_finding` table, you can use the `.inspect aws_inspector2_finding` command in Steampipe.
 
-### Key columns:
+**Key columns**:
 
 - `arn`: The Amazon Resource Name (ARN) specifying the finding. This can be used to uniquely identify each finding.
 - `severity`: The severity of the finding. This can be used to prioritize findings based on their potential impact.
