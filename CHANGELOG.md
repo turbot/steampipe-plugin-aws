@@ -1,3 +1,14 @@
+## v0.123.0 [2023-11-16]
+
+_What's new?_
+
+- New tables added
+  - [aws_lambda_event_source_mapping](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_event_source_mapping) ([#1874](https://github.com/turbot/steampipe-plugin-aws/issues/1874)) (Thanks [@nickman](https://github.com/nickman) for the contribution!)
+
+_Enhancements_
+
+- Added the `resource_record_set_limit` column to `aws_route53_zone` table. ([#1969](https://github.com/turbot/steampipe-plugin-aws/pull/1969)) (Thanks [@keyolk](https://github.com/keyolk) for the contribution!)
+
 ## v0.122.0 [2023-11-10]
 
 _What's new?_
