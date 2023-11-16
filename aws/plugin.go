@@ -7,6 +7,7 @@ package aws
 
 import (
 	"context"
+
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
@@ -308,6 +309,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_kms_alias":                                                tableAwsKmsAlias(ctx),
 			"aws_kms_key":                                                  tableAwsKmsKey(ctx),
 			"aws_lambda_alias":                                             tableAwsLambdaAlias(ctx),
+			"aws_lambda_event_source_mapping":                              tableAwsLambdaEventSourceMapping(ctx),
 			"aws_lambda_function":                                          tableAwsLambdaFunction(ctx),
 			"aws_lambda_function_metric_duration_daily":                    tableAwsLambdaFunctionMetricDurationDaily(ctx),
 			"aws_lambda_function_metric_errors_daily":                      tableAwsLambdaFunctionMetricErrorsDaily(ctx),
