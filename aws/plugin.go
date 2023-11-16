@@ -417,8 +417,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_service_discovery_instance":                               tableAwsServiceDiscoveryInstance(ctx),
 			"aws_service_discovery_namespace":                              tableAwsServiceDiscoveryNamespace(ctx),
 			"aws_service_discovery_service":                                tableAwsServiceDiscoveryService(ctx),
-			"aws_servicecatalog_portfolio":                                 tableAwsServicecatalogPortfolio(ctx),
-			"aws_servicecatalog_product":                                   tableAwsServicecatalogProduct(ctx),
 			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
 			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
 			"aws_servicequotas_service_quota_change_request":               tableAwsServiceQuotasServiceQuotaChangeRequest(ctx),
