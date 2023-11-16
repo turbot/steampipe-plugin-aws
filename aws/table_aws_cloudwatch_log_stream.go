@@ -203,7 +203,7 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 		}
 	} else if _, exists := equalQuals["log_stream_name_prefix"]; exists {
 		// If ordered by LastEventTime and log_stream_name_prefix is specified, use it.
-		input.LogStreamNamePrefix = aws.String(equalQuals["log_stream_name_prefix"].GetStringValue())
+		input.LogStreamNamePrefix = aws.String(d.EqualsQualString("log_stream_name_prefix"))
 	}
 
 	for paginator.HasMorePages() {
