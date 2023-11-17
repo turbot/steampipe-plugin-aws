@@ -20,13 +20,20 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudwatch_log_group",
 		Description: "AWS CloudWatch Log Group",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
+			// Log groups with the same name can exist in different regions for an account, we should filter the results by region in such cases to resolve the error: "Error: get call returned 2 results - the key column is not globally unique".
+			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
 			Hydrate:    getCloudwatchLogGroup,
 			Tags:       map[string]string{"service": "logs", "action": "DescribeLogGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogGroups,
 			Tags:    map[string]string{"service": "logs", "action": "DescribeLogGroups"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
@@ -127,6 +134,8 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	name := d.EqualsQualString("name")
+
 	maxItems := int32(50)
 
 	// Reduce the basic request limit down if the user has only requested a small number
@@ -143,6 +152,10 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	input := &cloudwatchlogs.DescribeLogGroupsInput{
 		Limit: &maxItems,
+	}
+
+	if name != "" {
+		input.LogGroupNamePrefix = aws.String(name)
 	}
 
 	paginator := cloudwatchlogs.NewDescribeLogGroupsPaginator(svc, input, func(o *cloudwatchlogs.DescribeLogGroupsPaginatorOptions) {
@@ -176,6 +189,8 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	name := d.EqualsQualString("name")
+
 	// Get client
 	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
@@ -184,7 +199,6 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	// check if name is empty
-	name := d.EqualsQuals["name"].GetStringValue()
 	if strings.TrimSpace(name) == "" {
 		return nil, nil
 	}
