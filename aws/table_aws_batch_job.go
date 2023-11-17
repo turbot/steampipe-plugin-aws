@@ -19,14 +19,6 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_batch_job",
 		Description: "AWS Batch Job",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("job_name"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
-			},
-			Hydrate: getBatchJob,
-			Tags:    map[string]string{"service": "batch", "action": "DescribeJobs"},
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBatchJobs,
 			Tags:    map[string]string{"service": "batch", "action": "ListJobs"},
@@ -47,7 +39,7 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getBatchJob,
+				Func: describeBatchJobs,
 				Tags: map[string]string{"service": "batch", "action": "DescribeJobs"},
 			},
 		},
@@ -104,43 +96,43 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				Name:        "job_queue",
 				Description: "The Amazon Resource Name (ARN) of the job queue that the job is associated with.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "is_cancelled",
 				Description: "Indicates whether the job is canceled.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "is_terminated",
 				Description: "Indicates whether the job is terminated.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "platform_capabilities",
 				Description: "The platform capabilities required by the job definition. If no value is specified, it defaults to EC2.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "propagate_tags",
 				Description: "Specifies whether to propagate the tags from the job or job definition to the corresponding Amazon ECS task. If no value is specified, the tags aren't propagated.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "scheduling_priority",
 				Description: "The scheduling policy of the job definition. This only affects jobs in job queues with a fair share policy. Jobs with a higher scheduling priority are scheduled before jobs with a lower scheduling priority.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "share_identifier",
 				Description: "The share identifier for the job.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 
 			//JSON columns
@@ -164,56 +156,56 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				Name:        "attempts",
 				Description: "A list of job attempts that are associated with this job.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "depends_on",
 				Description: "A list of job IDs that this job depends on.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "eks_attempts",
 				Description: "A list of job attempts that are associated with this job.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "eks_properties",
 				Description: "An object with various properties that are specific to Amazon EKS based jobs.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "node_details",
 				Description: "An object that represents the details of a node that's associated with a multi-node parallel job.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "multi_node_properties",
-				Description: "An object that represents the details of a node that's associated with a multi-node parallel job.",
+				Description: "An object that represents the node properties of a multi-node parallel job.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 				Transform:   transform.FromField("NodeProperties"),
 			},
 			{
 				Name:        "parameters",
 				Description: "Additional parameters that are passed to the job that replace parameter substitution placeholders or override any corresponding parameter defaults from the job definition.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "retry_strategy",
 				Description: "The retry strategy to use for this job if an attempt fails.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 			{
 				Name:        "timeout",
 				Description: "The timeout configuration for the job.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 			},
 
 			// Steampipe standard columns
@@ -227,7 +219,7 @@ func tableAwsBatchJob(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getBatchJob,
+				Hydrate:     describeBatchJobs,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -297,7 +289,7 @@ func listAwsBatchJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func getBatchJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func describeBatchJobs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	jobId := d.EqualsQualString("id")
 	if jobId == "" {
@@ -307,7 +299,7 @@ func getBatchJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	// Create Session
 	svc, err := BatchClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_batch_job.getBatchJob", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_batch_job.describeBatchJobs", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -323,7 +315,7 @@ func getBatchJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	// Get call
 	data, err := svc.DescribeJobs(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_batch_job.getBatchJob", "api_error", err)
+		plugin.Logger(ctx).Error("aws_batch_job.describeBatchJobs", "api_error", err)
 		return nil, err
 	}
 
