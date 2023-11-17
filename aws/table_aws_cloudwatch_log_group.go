@@ -191,16 +191,16 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	name := d.EqualsQualString("name")
 
+	// check if name is empty
+	if strings.TrimSpace(name) == "" {
+		return nil, nil
+	}
+
 	// Get client
 	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getCloudwatchLogGroup", "client_error", err)
 		return nil, err
-	}
-
-	// check if name is empty
-	if strings.TrimSpace(name) == "" {
-		return nil, nil
 	}
 
 	params := &cloudwatchlogs.DescribeLogGroupsInput{
