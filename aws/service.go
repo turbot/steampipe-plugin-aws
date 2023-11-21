@@ -120,6 +120,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/support"
 	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
@@ -1405,6 +1406,17 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 		return nil, nil
 	}
 	return ssoadmin.NewFromConfig(*cfg), nil
+}
+
+func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return support.NewFromConfig(*cfg), nil
 }
 
 func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {
