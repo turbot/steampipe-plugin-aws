@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
 
@@ -21,7 +22,7 @@ func tableAwsSSMInventoryEntry(_ context.Context) *plugin.Table {
 			Tags:          map[string]string{"service": "ssm", "action": "ListInventoryEntries"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "instance_id", Require: plugin.Optional},
-				{Name: "type_name", Require: plugin.Optional},
+				{Name: "type_name", Require: plugin.Required},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
@@ -92,11 +93,11 @@ func listAwsSSMInventoryEntries(ctx context.Context, d *plugin.QueryData, h *plu
 			return nil, nil
 		}
 	}
-	if d.EqualsQualString("type_name") != "" {
-		if d.EqualsQualString("type_name") != *inventory.TypeName {
-			return nil, nil
-		}
-	}
+	// if d.EqualsQualString("entry_type_name") != "" {
+	// 	if d.EqualsQualString("entry_type_name") != *inventory.TypeName {
+	// 		return nil, nil
+	// 	}
+	// }
 
 	maxItems := int32(50)
 
@@ -110,7 +111,7 @@ func listAwsSSMInventoryEntries(ctx context.Context, d *plugin.QueryData, h *plu
 
 	input := &ssm.ListInventoryEntriesInput{
 		InstanceId: inventory.Id,
-		TypeName:   inventory.TypeName,
+		TypeName:   aws.String(d.EqualsQualString("type_name")),
 		MaxResults: &maxItems,
 	}
 
