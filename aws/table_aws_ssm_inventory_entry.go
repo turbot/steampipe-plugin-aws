@@ -22,7 +22,7 @@ func tableAwsSSMInventoryEntry(_ context.Context) *plugin.Table {
 			Tags:          map[string]string{"service": "ssm", "action": "ListInventoryEntries"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "instance_id", Require: plugin.Optional},
-				{Name: "type_name", Require: plugin.Required},
+				{Name: "type_name", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
@@ -93,11 +93,13 @@ func listAwsSSMInventoryEntries(ctx context.Context, d *plugin.QueryData, h *plu
 			return nil, nil
 		}
 	}
-	// if d.EqualsQualString("entry_type_name") != "" {
-	// 	if d.EqualsQualString("entry_type_name") != *inventory.TypeName {
-	// 		return nil, nil
-	// 	}
-	// }
+
+	typeName := ""
+	if d.EqualsQualString("type_name") != "" {
+		typeName = d.EqualsQualString("type_name")
+	} else {
+		typeName = *inventory.TypeName
+	}
 
 	maxItems := int32(50)
 
@@ -111,7 +113,7 @@ func listAwsSSMInventoryEntries(ctx context.Context, d *plugin.QueryData, h *plu
 
 	input := &ssm.ListInventoryEntriesInput{
 		InstanceId: inventory.Id,
-		TypeName:   aws.String(d.EqualsQualString("type_name")),
+		TypeName:   aws.String(typeName),
 		MaxResults: &maxItems,
 	}
 
