@@ -1409,6 +1409,9 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 }
 
 func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, error) {
+// 	AWS Support is a global service. This means that any endpoint that you use will update your support cases in the Support Center Console.
+// For example, if you use the US East (N. Virginia) endpoint to create a case, you can use the US West (Oregon) or Europe (Ireland) endpoint to add a correspondence to the same case.
+// https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html#endpoint
 	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err

@@ -24,7 +24,7 @@ func tableAwsTrustedAdvisorCheckSummary(_ context.Context) *plugin.Table {
 			Tags:       map[string]string{"service": "support", "action": "DescribeTrustedAdvisorCheckSummaries"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: ListTrustedAdvisorCheckSummaries,
+			Hydrate: listTrustedAdvisorCheckSummaries,
 			Tags:    map[string]string{"service": "support", "action": "DescribeTrustedAdvisorChecks"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
@@ -33,7 +33,7 @@ func tableAwsTrustedAdvisorCheckSummary(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "support", "action": "DescribeTrustedAdvisorCheckSummaries"},
 			},
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The display name for the Trusted Advisor check.",
@@ -120,11 +120,11 @@ func tableAwsTrustedAdvisorCheckSummary(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func ListTrustedAdvisorCheckSummaries(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listTrustedAdvisorCheckSummaries(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := SupportClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.ListTrustedAdvisorCheckSummaries", "client_error", err)
+		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.listTrustedAdvisorCheckSummaries", "client_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -138,7 +138,7 @@ func ListTrustedAdvisorCheckSummaries(ctx context.Context, d *plugin.QueryData, 
 	// List call
 	result, err := svc.DescribeTrustedAdvisorChecks(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.ListTrustedAdvisorCheckSummaries", "client_error", err)
+		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.listTrustedAdvisorCheckSummaries", "client_error", err)
 		return nil, err
 	}
 
@@ -175,7 +175,7 @@ func getTrustedAdvisorCheckSummary(ctx context.Context, d *plugin.QueryData, h *
 	// Create session
 	svc, err := SupportClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.ListTrustedAdvisorCheckSummaries", "client_error", err)
+		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.getTrustedAdvisorCheckSummary", "client_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -189,7 +189,7 @@ func getTrustedAdvisorCheckSummary(ctx context.Context, d *plugin.QueryData, h *
 	// List call
 	result, err := svc.DescribeTrustedAdvisorCheckSummaries(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.ListTrustedAdvisorCheckSummaries", "client_error", err)
+		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.getTrustedAdvisorCheckSummary", "api_error", err)
 		return nil, err
 	}
 
