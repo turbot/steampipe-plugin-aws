@@ -2,7 +2,6 @@
 
 A Trusted Advisor check is a specific evaluation or assessment performed by Trusted Advisor in different categories. These checks cover various areas, including cost optimization, security, performance, and fault tolerance. Each check examines a specific aspect of your AWS resources and provides recommendations for improvement.
 
-
 ## Examples
 
 ### Basi info
