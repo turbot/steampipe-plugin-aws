@@ -19,7 +19,6 @@ from
   aws_trusted_advisor_check_summary;
 ```
 
-
 ### Get error check summaries
 
 ```sql
