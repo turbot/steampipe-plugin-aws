@@ -138,7 +138,7 @@ func listTrustedAdvisorCheckSummaries(ctx context.Context, d *plugin.QueryData, 
 	// List call
 	result, err := svc.DescribeTrustedAdvisorChecks(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.listTrustedAdvisorCheckSummaries", "client_error", err)
+		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.listTrustedAdvisorCheckSummaries", "api_error", err)
 		return nil, err
 	}
 
