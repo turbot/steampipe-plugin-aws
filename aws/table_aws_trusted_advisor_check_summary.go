@@ -186,7 +186,7 @@ func getTrustedAdvisorCheckSummary(ctx context.Context, d *plugin.QueryData, h *
 		CheckIds: []*string{aws.String(checkId)},
 	}
 
-	// List call
+	// Get call
 	result, err := svc.DescribeTrustedAdvisorCheckSummaries(ctx, input)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_trusted_advisor_check_summary.getTrustedAdvisorCheckSummary", "api_error", err)
