@@ -33,7 +33,7 @@ where
   status = 'error';
 ```
 
-### Get last 5days check summaries
+### Get check summaries for the last 5 days
 
 ```sql
 select
