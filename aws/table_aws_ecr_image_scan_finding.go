@@ -2,14 +2,17 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	"github.com/aws/smithy-go"
 
 	ecrv1 "github.com/aws/aws-sdk-go/service/ecr"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -22,8 +25,9 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 		Name:        "aws_ecr_image_scan_finding",
 		Description: "AWS ECR Image Scan Finding",
 		List: &plugin.ListConfig{
-			Hydrate: listAwsEcrImageScanFindings,
-			Tags:    map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
+			ParentHydrate: listAwsEcrRepositories,
+			Hydrate:       listAwsEcrImageScanFindings,
+			Tags:          map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
 			},
@@ -32,8 +36,10 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 			// columns when there are multiple. We chose image_tag instead of
 			// image_digest as it's more common/friendly to use.
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "repository_name", Require: plugin.Required},
+				{Name: "repository_name", Require: plugin.Optional},
 				{Name: "image_tag", Require: plugin.Required},
+				// {Name: "account_id", Require: plugin.Required},
+				// {Name: "region", Require: plugin.Required},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
@@ -117,7 +123,37 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 }
 
 // // LIST FUNCTION
-func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	repository := h.Item.(types.Repository)
+
+	repoName := d.EqualsQuals["repository_name"].GetStringValue()
+	plugin.Logger(ctx).Error("Repositoy Name =====>> ", repoName)
+	if repoName != "" {
+		if repoName != *repository.RepositoryName {
+			return nil, nil
+		}
+	}
+
+	// In the case of an aggregator connection, the API is called multiple times with given repository names, regardless of the account IDs where the repository is available. This behavior is by design, as Steampipe iterates the API call per connection, irrespective of the given repository name. However, this approach consumes time when returning the results. To prevent unnecessary API calls for aggregator connections, we need to implement this check.
+
+	// For example, let's consider an aggregator connection 'aws_all' that aggregates two connections, 'acc_a' and 'acc_b'.
+	// Suppose a repository named 'test_repo' is available in 'acc_a' but not in 'acc_b'.
+	// In this scenario, the API call should not occur for the connection 'acc_b'.
+	// // plugin.Logger(ctx).Error("Account ID =====>> ", d.EqualsQualString("account_id"))
+	// if d.EqualsQualString("account_id") != "" {
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "common_data_error", err)
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+	plugin.Logger(ctx).Info("Okkk  =====>> Account ID: ", commonColumnData.AccountId, "Registry ID: ", *repository.RegistryId)
+	if commonColumnData.AccountId != *repository.RegistryId {
+		return nil, nil
+	}
+	// }
+
 	// Create Session
 	svc, err := ECRClient(ctx, d)
 	if err != nil {
@@ -125,8 +161,7 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	imageTag := d.EqualsQuals["image_tag"]
-	repositoryName := d.EqualsQuals["repository_name"]
-	plugin.Logger(ctx).Trace("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "repositoryName", repositoryName, "imageTag", imageTag)
+	plugin.Logger(ctx).Trace("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "repositoryName", d.EqualsQualString("repository_name"), "imageTag", imageTag)
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -139,7 +174,7 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	input := &ecr.DescribeImageScanFindingsInput{
 		MaxResults:     aws.Int32(maxLimit),
-		RepositoryName: aws.String(repositoryName.GetStringValue()),
+		RepositoryName: repository.RepositoryName,
 		ImageId: &types.ImageIdentifier{
 			ImageTag: aws.String(imageTag.GetStringValue()),
 		},
@@ -167,6 +202,12 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "api_error", err)
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if helpers.StringSliceContains([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}, ae.ErrorCode()) {
+					return nil, nil
+				}
+			}
 			return nil, err
 		}
 
