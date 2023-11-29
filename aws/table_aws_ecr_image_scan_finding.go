@@ -26,8 +26,8 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 		Description: "AWS ECR Image Scan Finding",
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsEcrRepositories,
-			Hydrate:       listAwsEcrImageScanFindings,
-			Tags:          map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
+			Hydrate: listAwsEcrImageScanFindings,
+			Tags:    map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
 			},
@@ -48,7 +48,7 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 				Name:        "repository_name",
 				Description: "The name of the repository.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("repository_name"),
+				// Transform:   transform.FromQual("repository_name"),
 			},
 			{
 				Name:        "image_tag",
@@ -186,6 +186,7 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *pl
 	})
 
 	type ImageScanFindingsOutput struct {
+		RepositoryName               *string
 		ImageDigest                  *string
 		ImageScanCompletedAt         *time.Time
 		ImageScanFinding             types.ImageScanFinding
@@ -218,6 +219,7 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *pl
 
 		for _, finding := range output.ImageScanFindings.Findings {
 			result := &ImageScanFindingsOutput{
+				RepositoryName:   repository.RepositoryName,
 				ImageDigest:      output.ImageId.ImageDigest,
 				ImageScanFinding: finding,
 				ImageScanStatus:  *output.ImageScanStatus,
