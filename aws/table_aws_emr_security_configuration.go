@@ -171,26 +171,3 @@ func getEmrSecurityConfiguration(ctx context.Context, d *plugin.QueryData, h *pl
 
 	return nil, nil
 }
-
-
-{
-   "AtRestEncryptionConfiguration": {
-    "LocalDiskEncryptionConfiguration": {
-     "AwsKmsKey": "arn:aws:kms:us-east-1:632902152528:alias/my-key-alias_turbottest69288",
-     "EnableEbsEncryption": true,
-     "EncryptionKeyProviderType": "AwsKms"
-    },
-    "S3EncryptionConfiguration": {
-     "AwsKmsKey": "arn:aws:kms:us-east-1:632902152528:alias/my-key-alias_turbottest69288",
-     "EncryptionMode": "SSE-KMS"
-    }
-   },
-   "EnableAtRestEncryption": true,
-   "EnableInTransitEncryption": true,
-   "InTransitEncryptionConfiguration": {
-    "TLSCertificateConfiguration": {
-     "CertificateProviderType": "PEM",
-     "S3Object": "s3://emr-test-1111/azure_thrifty_ss.zip"
-    }
-   }
-  }
