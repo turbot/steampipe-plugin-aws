@@ -245,6 +245,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_emr_instance":                                             tableAwsEmrInstance(ctx),
 			"aws_emr_instance_fleet":                                       tableAwsEmrInstanceFleet(ctx),
 			"aws_emr_instance_group":                                       tableAwsEmrInstanceGroup(ctx),
+			"aws_emr_security_configuration":                               tableAwsEmrSecurityConfiguration(ctx),
 			"aws_eventbridge_bus":                                          tableAwsEventBridgeBus(ctx),
 			"aws_eventbridge_rule":                                         tableAwsEventBridgeRule(ctx),
 			"aws_fms_app_list":                                             tableAwsFMSAppList(ctx),
