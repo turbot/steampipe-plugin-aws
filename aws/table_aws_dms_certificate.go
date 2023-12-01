@@ -22,7 +22,7 @@ func tableAwsDmsCertificate(_ context.Context) *plugin.Table {
 		Description: "AWS DMS Certificate",
 		List: &plugin.ListConfig{
 			Hydrate: listDmsCertificates,
-			// If the ARN provided as an input parameter refers to a resource that is unavailable in the specified region, the API will throw an InvalidParameterValueException exception.
+			// If the ARN provided as an input parameter refers to a resource that is unavailable in the specified region, the API throws an InvalidParameterValueException exception.
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException", "ResourceNotFoundFault"}),
 			},
@@ -73,7 +73,7 @@ func tableAwsDmsCertificate(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "certificate_identifier",
+				Name:        "certificate_wallet",
 				Description: "The location of an imported Oracle Wallet certificate for use with SSL.",
 				Type:        proto.ColumnType_STRING,
 			},
