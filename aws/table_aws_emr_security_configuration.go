@@ -34,6 +34,12 @@ func tableAwsEmrSecurityConfiguration(_ context.Context) *plugin.Table {
 			Hydrate: listEmrSecurityConfigurations,
 			Tags:    map[string]string{"service": "elasticmapreduce", "action": "ListSecurityConfigurations"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEmrSecurityConfiguration,
+				Tags:    map[string]string{"service": "elasticmapreduce", "action": "DescribeSecurityConfiguration"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
