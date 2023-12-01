@@ -146,6 +146,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_directory_service_directory":                              tableAwsDirectoryServiceDirectory(ctx),
 			"aws_directory_service_log_subscription":                       tableAwsDirectoryServiceLogSubscription(ctx),
 			"aws_dlm_lifecycle_policy":                                     tableAwsDLMLifecyclePolicy(ctx),
+			"aws_dms_certificate":                                          tableAwsDmsCertificate(ctx),
 			"aws_dms_replication_instance":                                 tableAwsDmsReplicationInstance(ctx),
 			"aws_docdb_cluster":                                            tableAwsDocDBCluster(ctx),
 			"aws_docdb_cluster_instance":                                   tableAwsDocDBClusterInstance(ctx),
