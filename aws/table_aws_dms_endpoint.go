@@ -48,7 +48,7 @@ func tableAwsDmsEndpoint(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getDmsReplicationInstanceTags,
+				Func: getDmsEndpointTags,
 				Tags: map[string]string{"service": "dms", "action": "ListTagsForResource"},
 			},
 		},
