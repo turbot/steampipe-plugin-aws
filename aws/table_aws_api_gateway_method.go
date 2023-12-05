@@ -47,7 +47,6 @@ func tableAwsAPIGatewayMethod(_ context.Context) *plugin.Table {
 				Name:        "rest_api_id",
 				Description: "The string identifier of the associated RestApi.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("RestApiId"),
 			},
 			{
 				Name:        "resource_id",
