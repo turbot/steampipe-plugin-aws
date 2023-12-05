@@ -75,6 +75,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
+	"github.com/aws/aws-sdk-go-v2/service/iot"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
@@ -154,6 +155,7 @@ import (
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
+	iotEndpoint "github.com/aws/aws-sdk-go/service/iot"
 	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
 	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
@@ -830,6 +832,17 @@ func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Cli
 		return nil, nil
 	}
 	return inspector2.NewFromConfig(*cfg), nil
+}
+
+func IOTClient(ctx context.Context, d *plugin.QueryData) (*iot.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, iotEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return iot.NewFromConfig(*cfg), nil
 }
 
 func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {

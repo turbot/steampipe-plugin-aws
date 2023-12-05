@@ -1,0 +1,7 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "default_client_id": "{{ output.default_client_id.value }}",
+    "thing_name": "{{ resourceName }}"
+  }
+]
