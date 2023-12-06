@@ -19,7 +19,7 @@ import (
 func tableAwsIotThingType(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iot_thing_type",
-		Description: "AWS Iot Thing Type",
+		Description: "AWS IoT Thing Type",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("thing_type_name"),
 			Hydrate:    getIotThingType,
@@ -66,7 +66,7 @@ func tableAwsIotThingType(_ context.Context) *plugin.Table {
 			{
 				Name:        "deprecated",
 				Description: "Whether the thing type is deprecated. If true, no new things could be associated with this type.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("ThingTypeMetadata.Deprecated"),
 			},
 			{
