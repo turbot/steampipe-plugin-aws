@@ -15,7 +15,6 @@ from
   aws_vpc_endpoint;
 ```
 
-
 ### Subnet Id count for each VPC endpoints
 
 ```sql
@@ -25,7 +24,6 @@ select
 from
   aws_vpc_endpoint;
 ```
-
 
 ### Network details for each VPC endpoint
 
@@ -42,7 +40,6 @@ from
   cross join jsonb_array_elements(groups) as sg;
 ```
 
-
 ### DNS information for the VPC endpoints
 
 ```sql
@@ -56,7 +53,6 @@ from
   cross join jsonb_array_elements(dns_entries) as dns;
 ```
 
-
 ### VPC endpoint count by VPC ID
 
 ```sql
@@ -67,4 +63,30 @@ from
   aws_vpc_endpoint
 group by
   vpc_id;
+```
+
+### Count endpoints by endpoint type
+
+```sql
+select
+  vpc_endpoint_type,
+  count(vpc_endpoint_id)
+from
+  aws_vpc_endpoint
+group by
+  vpc_endpoint_type;
+```
+
+### List VPC network interface endpoint type
+
+```sql
+select
+  vpc_endpoint_id,
+  service_name,
+  vpc_id,
+  vpc_endpoint_type
+from
+  aws_vpc_endpoint
+where
+  vpc_endpoint_type = 'Interface';
 ```
