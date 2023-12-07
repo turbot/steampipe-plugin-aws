@@ -77,7 +77,7 @@ group by
   vpc_endpoint_type;
 ```
 
-### List VPC network interface endpoint type
+### List 'interface' type VPC Endpoints
 
 ```sql
 select
