@@ -123,7 +123,7 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.3
 	github.com/turbot/go-kit v0.9.0-rc.1
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.8.0-rc.2
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.8.0
 	golang.org/x/text v0.13.0
 )
 
