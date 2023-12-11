@@ -8,6 +8,7 @@ short_name: "aws"
 description: "Steampipe plugin for querying instances, buckets, databases and more from AWS."
 og_description: "Query AWS with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/aws-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # AWS + Steampipe
