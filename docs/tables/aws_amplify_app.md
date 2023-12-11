@@ -191,7 +191,7 @@ from
   aws_amplify_app,
   json_each(custom_rules) as redirects_array
 where
-  json_extract(redirects_array, '$.Status') = '200'
+  json_extract(redirects_array.value, '$.Status') = '200'
   and name = 'amplify_app_name';
 ```
 
