@@ -105,12 +105,12 @@ from
   jsonb_array_elements_text(s -> 'DataIdentifier') as i
 where
   s ->> 'Sid' = 'audit-policy'
-  and name = 'log-group-name'
+  and name = 'log-group-name';
 ```
 
 ```sql+sqlite
-select
-  json_extract(i.value, '
+Error: The corresponding SQLite query is unavailable.
+```
 
 ### List log groups with no data protection policy
 Determine the areas in which data protection policies are not applied to AWS Cloudwatch log groups. This can be useful for identifying potential security vulnerabilities and ensuring all log data is adequately protected.
@@ -123,7 +123,7 @@ select
 from
   aws_cloudwatch_log_group
 where
-  data_protection_policy is null
+  data_protection_policy is null;
 ```
 
 ```sql+sqlite
@@ -134,31 +134,5 @@ select
 from
   aws_cloudwatch_log_group
 where
-  data_protection_policy is null
-```
-) as data_identifier,
-  json_extract(s.value, '$.Operation.Audit.FindingsDestination.S3.Bucket') as destination_bucket,
-  json_extract(s.value, '$.Operation.Audit.FindingsDestination.CloudWatchLogs.LogGroup') as destination_log_group,
-  json_extract(s.value, '$.Operation.Audit.FindingsDestination.Firehose.DeliveryStream') as destination_delivery_stream
-from
-  aws_cloudwatch_log_group,
-  json_each(data_protection_policy, 'Statement') as s,
-  json_each(s.value, 'DataIdentifier') as i
-where
-  json_extract(s.value, '$.Sid') = 'audit-policy'
-  and name = 'log-group-name'
-```
-
-### List log groups with no data protection policy
-Determine the areas in which data protection policies are missing in AWS CloudWatch log groups. This query is useful for identifying potential security risks and ensuring compliance with data protection standards.
-
-```sql
-select
-  arn,
-  name,
-  creation_time
-from
-  aws_cloudwatch_log_group
-where
-  data_protection_policy is null
+  data_protection_policy is null;
 ```
