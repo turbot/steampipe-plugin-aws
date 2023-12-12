@@ -34,7 +34,6 @@ from
   aws_vpc_endpoint;
 ```
 
-
 ### Subnet Id count for each VPC endpoints
 Explore the number of subnets associated with each VPC endpoint to better manage and organize your network infrastructure. This can aid in optimizing network performance and planning future network development.
 
@@ -111,7 +110,6 @@ from
   json_each(dns_entries) as dns;
 ```
 
-
 ### VPC endpoint count by VPC ID
 Explore the number of VPC endpoints associated with each VPC ID to manage network traffic and enhance security within your AWS environment. This can be useful in identifying potential areas of congestion or security vulnerabilities.
 
@@ -133,4 +131,30 @@ from
   aws_vpc_endpoint
 group by
   vpc_id;
+```
+
+### Count endpoints by endpoint type
+
+```sql
+select
+  vpc_endpoint_type,
+  count(vpc_endpoint_id)
+from
+  aws_vpc_endpoint
+group by
+  vpc_endpoint_type;
+```
+
+### List 'interface' type VPC Endpoints
+
+```sql
+select
+  vpc_endpoint_id,
+  service_name,
+  vpc_id,
+  vpc_endpoint_type
+from
+  aws_vpc_endpoint
+where
+  vpc_endpoint_type = 'Interface';
 ```
