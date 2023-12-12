@@ -8,13 +8,14 @@ short_name: "aws"
 description: "Steampipe plugin for querying instances, buckets, databases and more from AWS."
 og_description: "Query AWS with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/aws-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # AWS + Steampipe
 
-[AWS](https://aws.amazon.com/) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis.
+[Steampipe](https://steampipe.io) is an open-source zero-ETL engine to instantly query cloud APIs using SQL.
 
-[Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
+[AWS](https://aws.amazon.com/) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis.
 
 For example:
 
@@ -223,7 +224,7 @@ Each connection is implemented as a distinct [Postgres schema](https://www.postg
 select * from aws_qa.aws_account
 ```
 
-You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators). Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection. 
+You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators). Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection.
 
 ```hcl
 connection "aws_all" {
@@ -525,7 +526,4 @@ connection "aws" {
 }
 ```
 
-## Get involved
 
-* Open source: https://github.com/turbot/steampipe-plugin-aws
-* Community: [Join #steampipe on Slack →](https://turbot.com/community/join)
