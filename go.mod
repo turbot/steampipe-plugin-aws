@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/aws/aws-sdk-go v1.44.189
-	github.com/aws/aws-sdk-go-v2 v1.21.0
+	github.com/aws/aws-sdk-go-v2 v1.24.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.10
 	github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.19.1
@@ -102,7 +102,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/securitylake v1.2.0
 	github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository v1.12.0
-	github.com/aws/aws-sdk-go-v2/service/servicecatalog v1.16.5
+	github.com/aws/aws-sdk-go-v2/service/servicecatalog v1.25.5
 	github.com/aws/aws-sdk-go-v2/service/servicediscovery v1.21.4
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/ses v1.15.0
@@ -119,7 +119,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.24.2
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0
-	github.com/aws/smithy-go v1.14.2
+	github.com/aws/smithy-go v1.19.0
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.3
 	github.com/turbot/go-kit v0.9.0-rc.1
@@ -139,8 +139,8 @@ require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.21 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.41 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.35 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.9 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.9 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.18 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.11 // indirect
