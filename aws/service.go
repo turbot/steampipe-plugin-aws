@@ -1877,7 +1877,7 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	// Low level method to log retries since we don't have context etc here.
 	// Logging is helpful for visibility into retries and choke points in using
 	// the API.
-	log.Printf("[WARN] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
+	log.Printf("[INFO] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
 
 	return retryTime, nil
 }
