@@ -78,6 +78,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/macie2 v1.26.0
 	github.com/aws/aws-sdk-go-v2/service/mediastore v1.13.0
 	github.com/aws/aws-sdk-go-v2/service/mgn v1.17.0
+	github.com/aws/aws-sdk-go-v2/service/mq v1.16.5
 	github.com/aws/aws-sdk-go-v2/service/neptune v1.19.1
 	github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.24.0
 	github.com/aws/aws-sdk-go-v2/service/oam v1.1.1
@@ -119,7 +120,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.24.2
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0
-	github.com/aws/smithy-go v1.14.2
+	github.com/aws/smithy-go v1.19.0
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.3
 	github.com/turbot/go-kit v0.9.0-rc.1
