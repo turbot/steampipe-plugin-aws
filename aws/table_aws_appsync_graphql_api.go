@@ -219,12 +219,7 @@ func listAppsyncGraphqlApis(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 func getAppsyncGraphqlApi(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	var id string
-	if h.Item != nil {
-		id = *h.Item.(types.GraphqlApi).ApiId
-	} else {
-		id = d.EqualsQualString("api_id")
-	}
+	id := d.EqualsQualString("api_id")
 
 	// Empty input check
 	if id == "" {
