@@ -20,6 +20,7 @@ func tableAwsEc2NetworkLoadBalancerMetricNetFlowCount(_ context.Context) *plugin
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2NetworkLoadBalancers,
 			Hydrate:       listEc2NetworkLoadBalancerMetricNetFlowCount,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(

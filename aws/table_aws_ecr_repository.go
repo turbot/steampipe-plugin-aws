@@ -30,11 +30,43 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
 			},
 			Hydrate: getAwsEcrRepositories,
+			Tags:    map[string]string{"service": "ecr", "action": "DescribeRepositories"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrRepositories,
+			Tags:    map[string]string{"service": "ecr", "action": "DescribeRepositories"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "registry_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEcrRepositories,
+				Tags: map[string]string{"service": "ecr", "action": "DescribeRepositories"},
+			},
+			{
+				Func: listAwsEcrRepositoryTags,
+				Tags: map[string]string{"service": "ecr", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getAwsEcrRepositoryPolicy,
+				Tags: map[string]string{"service": "ecr", "action": "GetRepositoryPolicy"},
+			},
+			{
+				Func: getAwsEcrDescribeImages,
+				Tags: map[string]string{"service": "ecr", "action": "DescribeImages"},
+			},
+			{
+				Func: getAwsEcrDescribeImageScanningFindings,
+				Tags: map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
+			},
+			{
+				Func: getAwsEcrRepositoryLifecyclePolicy,
+				Tags: map[string]string{"service": "ecr", "action": "GetLifecyclePolicy"},
+			},
+			{
+				Func: getAwsEcrRepositoryScanningConfiguration,
+				Tags: map[string]string{"service": "ecr", "action": "BatchGetRepositoryScanningConfiguration"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
@@ -92,6 +124,13 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Name:        "image_details",
 				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use the aws_ecr_image table instead. A list of ImageDetail objects that contain data about the image.",
 				Hydrate:     getAwsEcrDescribeImages,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "repository_scanning_configuration",
+				Description: "Gets the scanning configuration for one or more repositories.",
+				Hydrate:     getAwsEcrRepositoryScanningConfiguration,
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromValue(),
 			},
@@ -199,6 +238,9 @@ func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecr_repository.listAwsEcrRepositories", "api_error", err)
@@ -372,6 +414,9 @@ func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.Query
 
 		// List call
 		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
+
 			scan, err := paginator.NextPage(ctx)
 			if err != nil {
 				if strings.Contains(err.Error(), "ScanNotFoundException") {
@@ -427,6 +472,29 @@ func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData
 			}
 		}
 		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryLifecyclePolicy", "api_error", err)
+		return nil, err
+	}
+	return op, nil
+}
+
+func getAwsEcrRepositoryScanningConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	repositoryName := h.Item.(types.Repository).RepositoryName
+
+	// Create Session
+	svc, err := ECRClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryScanningConfiguration", "connection_error", err)
+		return nil, err
+	}
+	// Build the params
+	params := &ecr.BatchGetRepositoryScanningConfigurationInput{
+		RepositoryNames: []string{*repositoryName},
+	}
+	// Get call
+	op, err := svc.BatchGetRepositoryScanningConfiguration(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryScanningConfiguration", "api_error", err)
 		return nil, err
 	}
 	return op, nil

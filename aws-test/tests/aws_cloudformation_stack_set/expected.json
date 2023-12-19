@@ -1,0 +1,7 @@
+[
+  {
+    "arn": "{{output.resource_aka.value}}",
+    "stack_set_id": "{{output.resource_id.value}}",
+    "stack_set_name": "{{resourceName}}"
+  }
+]

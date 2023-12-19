@@ -27,11 +27,27 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
 			},
 			Hydrate: getAwsEcrpublicRepository,
+			Tags:    map[string]string{"service": "ecr-public", "action": "DescribeRepositories"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrpublicRepositories,
+			Tags:    map[string]string{"service": "ecr-public", "action": "DescribeRepositories"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "registry_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listAwsEcrpublicRepositoryTags,
+				Tags: map[string]string{"service": "ecr-public", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getAwsEcrpublicRepositoryPolicy,
+				Tags: map[string]string{"service": "ecr-public", "action": "GetRepositoryPolicy"},
+			},
+			{
+				Func: getAwsEcrpublicDescribeImages,
+				Tags: map[string]string{"service": "ecr-public", "action": "DescribeImages"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecrpublicv1.EndpointsID),
@@ -161,6 +177,9 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecrpublic_repository.listAwsEcrpublicRepositories", "api_error", err)

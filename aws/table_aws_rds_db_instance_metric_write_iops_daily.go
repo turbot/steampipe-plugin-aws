@@ -18,6 +18,7 @@ func tableAwsRdsInstanceMetricWriteIopsDaily(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listRDSDBInstances,
 			Hydrate:       listRdsInstanceMetricWriteIopsDaily,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(

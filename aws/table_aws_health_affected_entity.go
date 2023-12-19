@@ -21,6 +21,7 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listHealthEvents,
 			Hydrate:       listHealthAffectedEntities,
+			Tags:          map[string]string{"service": "health", "action": "DescribeAffectedEntities"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionRequiredException"}),
 			},
@@ -126,6 +127,9 @@ func listHealthAffectedEntities(ctx context.Context, d *plugin.QueryData, h *plu
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_health_affected_entity.listHealthAffectedEntities", "api_error", err)

@@ -12,6 +12,9 @@
           "numNoDelayRetries": 0,
           "numRetries": 3
         },
+        "defaultRequestPolicy": {
+          "headerContentType": "text/plain; charset=UTF-8"
+        },
         "disableSubscriptionOverrides": false
       }
     },

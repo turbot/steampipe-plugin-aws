@@ -28,15 +28,23 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ResourceNotFoundException"}),
 			},
 			Hydrate: getFunctionVersion,
+			Tags:    map[string]string{"service": "lambda", "action": "ListVersionsByFunction"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaVersions,
+			Tags:          map[string]string{"service": "lambda", "action": "ListVersionsByFunction"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "function_name", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getFunctionVersionPolicy,
+				Tags: map[string]string{"service": "lambda", "action": "GetPolicy"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "version",
@@ -230,6 +238,9 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_lambda_function.listAwsLambdaFunctions", "api_error", err)
@@ -283,6 +294,9 @@ func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_lambda_function.getFunctionVersion", "api_error", err)

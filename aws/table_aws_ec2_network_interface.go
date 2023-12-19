@@ -28,9 +28,11 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidNetworkInterfaceID.NotFound", "InvalidNetworkInterfaceID.Unavailable", "InvalidNetworkInterfaceID.Malformed"}),
 			},
 			Hydrate: getEc2NetworkInterface,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNetworkInterfaces"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2NetworkInterfaces,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNetworkInterfaces"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "association_id", Require: plugin.Optional},
 				{Name: "association_allocation_id", Require: plugin.Optional},
@@ -304,6 +306,9 @@ func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_network_interface.listEc2NetworkInterfaces", "api_error", err)

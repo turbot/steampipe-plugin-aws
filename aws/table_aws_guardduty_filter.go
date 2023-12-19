@@ -29,12 +29,20 @@ func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
 			},
 			Hydrate: getAwsGuardDutyFilter,
+			Tags:    map[string]string{"service": "guardduty", "action": "GetFilter"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listAwsGuardDutyFilters,
+			Tags:          map[string]string{"service": "guardduty", "action": "ListFilters"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "detector_id", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsGuardDutyFilter,
+				Tags: map[string]string{"service": "guardduty", "action": "GetFilter"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
@@ -139,6 +147,9 @@ func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_guardduty_filter.listAwsGuardDutyFilters", "api_error", err)

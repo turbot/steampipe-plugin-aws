@@ -18,6 +18,7 @@ func tableAwsEmrClusterMetricIsIdle(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrClusterMetricIsIdle,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(

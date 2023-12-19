@@ -23,9 +23,11 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidCustomerGatewayID.NotFound", "InvalidCustomerGatewayID.Malformed"}),
 			},
 			Hydrate: getVpcCustomerGateway,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeCustomerGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcCustomerGateways,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeCustomerGateways"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "ip_address", Require: plugin.Optional},
 				{Name: "bgp_asn", Require: plugin.Optional},
@@ -123,6 +125,9 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if len(filters) > 0 {
 		input.Filters = filters
 	}
+
+	// apply rate limiting
+	d.WaitForListRateLimit(ctx)
 
 	// List call
 	resp, err := svc.DescribeCustomerGateways(ctx, input)

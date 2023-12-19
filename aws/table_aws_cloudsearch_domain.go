@@ -23,9 +23,17 @@ func tableAwsCloudSearchDomain(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("domain_name"),
 			Hydrate:    getCloudSearchDomain,
+			Tags:       map[string]string{"service": "cloudsearch", "action": "DescribeDomains"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudSearchDomains,
+			Tags:    map[string]string{"service": "cloudsearch", "action": "ListDomainNames"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudSearchDomain,
+				Tags: map[string]string{"service": "cloudsearch", "action": "DescribeDomains"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudsearchv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{

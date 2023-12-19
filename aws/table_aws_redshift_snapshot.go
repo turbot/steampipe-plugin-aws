@@ -26,9 +26,11 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterSnapshotNotFound"}),
 			},
 			Hydrate: getRedshiftSnapshot,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSnapshots"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftSnapshots,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSnapshots"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cluster_identifier", Require: plugin.Optional},
 				{Name: "owner_account", Require: plugin.Optional},
@@ -285,6 +287,9 @@ func listRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_redshift_snapshot.listRedshiftSnapshots", "api_error", err)

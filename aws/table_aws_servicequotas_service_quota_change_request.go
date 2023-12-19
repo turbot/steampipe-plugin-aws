@@ -26,6 +26,7 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getServiceQuotaChangeRequest,
+			Tags:       map[string]string{"service": "servicequotas", "action": "GetRequestedServiceQuotaChange"},
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
@@ -33,6 +34,7 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceQuotaChangeRequests,
+			Tags:    map[string]string{"service": "servicequotas", "action": "ListRequestedServiceQuotaChangeHistory"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 			},
@@ -189,6 +191,9 @@ func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_servicequotas_service_quota_change_request.listServiceQuotaChangeRequests", "api_error", err)

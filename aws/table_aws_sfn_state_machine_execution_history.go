@@ -23,7 +23,8 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 		Description: "AWS Step Functions State Machine Execution History",
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutionHistories,
-			ParentHydrate: listStepFunctionsStateManchines,
+			Tags:          map[string]string{"service": "states", "action": "ListExecutions"},
+			ParentHydrate: listStepFunctionsStateMachines,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -271,6 +272,9 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	})
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)

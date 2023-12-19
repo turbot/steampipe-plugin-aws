@@ -26,13 +26,21 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
 			},
 			Hydrate: describeSecretsManagerSecret,
+			Tags:    map[string]string{"service": "secretsmanager", "action": "DescribeSecret"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecretsManagerSecrets,
+			Tags:    map[string]string{"service": "secretsmanager", "action": "ListSecrets"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "name", Require: plugin.Optional},
 				{Name: "description", Require: plugin.Optional},
 				{Name: "primary_region", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: describeSecretsManagerSecret,
+				Tags: map[string]string{"service": "sagemaker", "action": "DescribeSecret"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(secretsmanagerv1.EndpointsID),
@@ -209,6 +217,9 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_secretsmanager_secret.listSecretsManagerSecrets", "api_error", err)

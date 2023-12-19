@@ -25,6 +25,7 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 				{Name: "resource_model", Require: plugin.Optional},
 			},
 			Hydrate: listCloudControlResources,
+			Tags:    map[string]string{"service": "cloudformation", "action": "ListResources"},
 		},
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
@@ -32,6 +33,13 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 				{Name: "identifier"},
 			},
 			Hydrate: getCloudControlResource,
+			Tags:    map[string]string{"service": "cloudformation", "action": "GetResource"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudControlResource,
+				Tags: map[string]string{"service": "cloudformation", "action": "GetResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudcontrolapiv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -112,6 +120,9 @@ func listCloudControlResources(ctx context.Context, d *plugin.QueryData, _ *plug
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudcontrol_resource.listCloudControlResources", "api_error", err)

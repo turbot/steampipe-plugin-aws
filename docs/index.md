@@ -8,13 +8,14 @@ short_name: "aws"
 description: "Steampipe plugin for querying instances, buckets, databases and more from AWS."
 og_description: "Query AWS with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/aws-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # AWS + Steampipe
 
-[AWS](https://aws.amazon.com/) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis.
+[Steampipe](https://steampipe.io) is an open-source zero-ETL engine to instantly query cloud APIs using SQL.
 
-[Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
+[AWS](https://aws.amazon.com/) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis.
 
 For example:
 
@@ -108,6 +109,7 @@ connection "aws" {
   #min_error_retry_delay = 25
 
   # List of additional AWS error codes to ignore for all queries.
+  # When encountering these errors, the API call will not be retried and empty results will be returned.
   # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
   #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
 
@@ -222,7 +224,7 @@ Each connection is implemented as a distinct [Postgres schema](https://www.postg
 select * from aws_qa.aws_account
 ```
 
-You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators). Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection. 
+You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators). Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection.
 
 ```hcl
 connection "aws_all" {
@@ -398,6 +400,61 @@ connection "aws_account_b" {
 }
 ```
 
+### AssumeRole Credentials (in ECS)
+
+If you are using Steampipe on AWS ECS then you need to ensure that have separated your [Task Role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html) and [Execution Role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html) within the Task Definition. You will also need to create a separate service role that your `Task Role` can assume.
+
+The Task Role should have permissions to assume your service role. Additionally your service role needs a trust relationship set up, and have permissions to assume your other roles.
+
+#### Task Role IAM Assume Role
+```json
+{
+    "Version": "2012-10-17"
+    "Statement": [
+        {
+            "Action": [
+                "sts:AssumeRole"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:iam::111111111111:role/steampipe-service"
+            ]
+        }
+    ]
+}
+```
+
+#### Service Role
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::111111111111:role/steampipe-ecs-task-role"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+```
+
+This will allow you to configure steampipe now to assume the service role.
+
+#### aws credential file:
+
+```ini
+[default]
+role_arn = arn:aws:iam::111111111111:role/steampipe-service
+credential_source = EcsContainer
+
+[account_b]
+role_arn = arn:aws:iam::222222222222:role/steampipe_ro_role
+source_profile = default
+```
+
 ### AWS-Vault Credentials
 
 Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`. aws-vault can even be used when using AssumeRole Credentials with MFA (you must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA).
@@ -469,7 +526,4 @@ connection "aws" {
 }
 ```
 
-## Get involved
 
-* Open source: https://github.com/turbot/steampipe-plugin-aws
-* Community: [Slack Channel](https://steampipe.io/community/join)

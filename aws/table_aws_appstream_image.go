@@ -23,6 +23,7 @@ func tableAwsAppStreamImage(_ context.Context) *plugin.Table {
 		Description: "AWS AppStream Image",
 		List: &plugin.ListConfig{
 			Hydrate: listAppStreamImages,
+			Tags:    map[string]string{"service": "appstream", "action": "DescribeImages"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
@@ -32,6 +33,12 @@ func tableAwsAppStreamImage(_ context.Context) *plugin.Table {
 					Name:    "arn",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAppStreamTags,
+				Tags: map[string]string{"service": "appstream", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(appstreamv1.EndpointsID),
@@ -198,6 +205,9 @@ func listAppStreamImages(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_appstream_image.listAppStreamImages", "api_error", err)

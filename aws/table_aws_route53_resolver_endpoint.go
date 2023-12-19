@@ -28,9 +28,11 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsRoute53ResolverEndpoint,
+			Tags:    map[string]string{"service": "route53resolver", "action": "GetResolverEndpoint"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRoute53ResolverEndpoint,
+			Tags:    map[string]string{"service": "route53resolver", "action": "ListResolverEndpoints"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "creator_request_id", Require: plugin.Optional},
 				{Name: "direction", Require: plugin.Optional},
@@ -38,6 +40,16 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				{Name: "ip_address_count", Require: plugin.Optional},
 				{Name: "status", Require: plugin.Optional},
 				{Name: "name", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listResolverEndpointIPAddresses,
+				Tags: map[string]string{"service": "route53resolver", "action": "ListResolverEndpointIpAddresses"},
+			},
+			{
+				Func: getAwsRoute53ResolverEndpointTags,
+				Tags: map[string]string{"service": "route53resolver", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(route53resolverv1.EndpointsID),
@@ -182,6 +194,9 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listAwsRoute53ResolverEndpoint", "api_error", err)

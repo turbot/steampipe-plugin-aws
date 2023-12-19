@@ -27,9 +27,11 @@ func tableAwsRDSDBEventSubscription(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionNotFound"}),
 			},
 			Hydrate: getRDSDBEventSubscription,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeEventSubscriptions"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBEventSubscriptions,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeEventSubscriptions"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -137,6 +139,9 @@ func listRDSDBEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_event_subscription.listRDSDBEventSubscriptions", "api_error", err)

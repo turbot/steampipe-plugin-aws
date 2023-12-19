@@ -1,0 +1,7 @@
+[
+	{
+		"destination_arn": "{{ output.log_group_arn.value }}",
+		"id": "{{ output.resource_id.value }}",
+		"name": "{{ resourceName }}"
+	}
+]

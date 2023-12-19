@@ -29,9 +29,11 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
 			},
 			Hydrate: getEc2Ami,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeImages"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Amis,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeImages"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "architecture", Require: plugin.Optional},
 				{Name: "description", Require: plugin.Optional},
@@ -234,6 +236,9 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	if len(filters) != 0 {
 		input.Filters = filters
 	}
+
+	// apply rate limiting
+	d.WaitForListRateLimit(ctx)
 
 	resp, err := svc.DescribeImages(ctx, input)
 	if err != nil {

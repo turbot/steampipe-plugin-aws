@@ -23,6 +23,7 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"service_namespace", "resource_id"}),
 			Hydrate:    getAwsApplicationAutoScalingTarget,
+			Tags:       map[string]string{"service": "application-autoscaling", "action": "DescribeScalableTargets"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsApplicationAutoScalingTargets,
@@ -141,9 +142,12 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_neptune_db_cluster.listNeptuneDBClusters", "api_error", err)
+			plugin.Logger(ctx).Error("aws_appautoscaling_target.listAwsApplicationAutoScalingTargets", "api_error", err)
 			return nil, err
 		}
 

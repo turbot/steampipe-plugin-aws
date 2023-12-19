@@ -26,13 +26,25 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBInstanceNotFound"}),
 			},
 			Hydrate: getRDSDBInstance,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstances,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "resource_id", Require: plugin.Optional},
 				{Name: "engine", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRDSDBInstancePendingMaintenanceAction,
+				Tags: map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
+			},
+			{
+				Func: getRDSDBInstanceCertificate,
+				Tags: map[string]string{"service": "rds", "action": "DescribeCertificates"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
@@ -480,6 +492,9 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_rds_db_instance.listRDSDBInstances", "api_error", err)
@@ -487,7 +502,9 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, items := range output.DBInstances {
-			d.StreamListItem(ctx, items)
+			if isSuppportedRDSEngine(*items.Engine) {
+				d.StreamListItem(ctx, items)
+			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -522,7 +539,10 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	}
 
 	if op.DBInstances != nil && len(op.DBInstances) > 0 {
-		return op.DBInstances[0], nil
+		instance := op.DBInstances[0]
+		if isSuppportedRDSEngine(*instance.Engine) {
+			return instance, nil
+		}
 	}
 	return nil, nil
 }

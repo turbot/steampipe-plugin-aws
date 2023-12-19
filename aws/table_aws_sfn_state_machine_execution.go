@@ -25,13 +25,21 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ExecutionDoesNotExist", "InvalidArn"}),
 			},
 			Hydrate: getStepFunctionsStateMachineExecution,
+			Tags:    map[string]string{"service": "states", "action": "DescribeExecution"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutions,
-			ParentHydrate: listStepFunctionsStateManchines,
+			Tags:          map[string]string{"service": "states", "action": "ListExecutions"},
+			ParentHydrate: listStepFunctionsStateMachines,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "status", Require: plugin.Optional},
 				{Name: "state_machine_arn", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getStepFunctionsStateMachineExecution,
+				Tags: map[string]string{"service": "states", "action": "DescribeExecution"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
@@ -129,17 +137,17 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		return nil, nil
 	}
 
-	arn := h.Item.(types.StateMachineListItem).StateMachineArn
+	stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
 
 	equalQuals := d.EqualsQuals
-	// Minimize the API call with the given layer name
+	// Minimize the API call with the given state machine ARN
 	if equalQuals["state_machine_arn"] != nil {
 		if equalQuals["state_machine_arn"].GetStringValue() != "" {
-			if equalQuals["state_machine_arn"].GetStringValue() != "" && equalQuals["state_machine_arn"].GetStringValue() != *arn {
+			if equalQuals["state_machine_arn"].GetStringValue() != "" && equalQuals["state_machine_arn"].GetStringValue() != *stateMachineArn {
 				return nil, nil
 			}
 		} else if len(getListValues(equalQuals["state_machine_arn"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["state_machine_arn"].GetListValue())), *arn) {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["state_machine_arn"].GetListValue())), *stateMachineArn) {
 				return nil, nil
 			}
 		}
@@ -155,7 +163,7 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		}
 	}
 	input := &sfn.ListExecutionsInput{
-		StateMachineArn: arn,
+		StateMachineArn: stateMachineArn,
 		MaxResults:      int32(maxLimit),
 	}
 	if equalQuals["status"] != nil {
@@ -167,6 +175,9 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution.listStepFunctionsStateMachineExecutions", "api_error", err)

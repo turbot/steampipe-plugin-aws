@@ -26,14 +26,34 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
 			},
 			Hydrate: getDirectoryServiceDirectory,
+			Tags:    map[string]string{"service": "ds", "action": "DescribeDirectories"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDirectoryServiceDirectories,
+			Tags:    map[string]string{"service": "ds", "action": "DescribeDirectories"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "directory_id",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDirectoryServiceEventTopics,
+				Tags: map[string]string{"service": "ds", "action": "DescribeEventTopics"},
+			},
+			{
+				Func: getDirectoryServiceSnapshotLimit,
+				Tags: map[string]string{"service": "ds", "action": "GetSnapshotLimits"},
+			},
+			{
+				Func: getDirectoryServiceSharedDirectory,
+				Tags: map[string]string{"service": "ds", "action": "DescribeSharedDirectories"},
+			},
+			{
+				Func: getDirectoryServiceDirectoryTags,
+				Tags: map[string]string{"service": "ds", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(directoryservicev1.EndpointsID),
@@ -147,8 +167,22 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "dns_ip_addrs",
-				Description: "he IP addresses of the DNS servers for the directory.",
+				Description: "The IP addresses of the DNS servers for the directory.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "event_topics",
+				Description: "Amazon SNS topic names that receive status messages from the specified Directory ID.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDirectoryServiceEventTopics,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "snapshot_limit",
+				Description: "Obtains the manual snapshot limits for a directory.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDirectoryServiceSnapshotLimit,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "owner_directory_description",
@@ -252,6 +286,9 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 
 	// List call
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.DescribeDirectories(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_directory_service_directory.listDirectoryServiceDirectories", "api_error", err)
@@ -309,6 +346,68 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 	if op.DirectoryDescriptions != nil && len(op.DirectoryDescriptions) > 0 {
 		return op.DirectoryDescriptions[0], nil
 	}
+	return nil, nil
+}
+
+func getDirectoryServiceEventTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	directory := h.Item.(types.DirectoryDescription)
+
+	// Create service
+	svc, err := DirectoryServiceClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceEventTopics", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	params := &directoryservice.DescribeEventTopicsInput{
+		DirectoryId: directory.DirectoryId,
+	}
+
+	op, err := svc.DescribeEventTopics(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceEventTopics", "api_error", err)
+		return nil, err
+	}
+
+	if op != nil {
+		return op.EventTopics, nil
+	}
+
+	return nil, nil
+}
+
+func getDirectoryServiceSnapshotLimit(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	directory := h.Item.(types.DirectoryDescription)
+
+	// Create service
+	svc, err := DirectoryServiceClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSnapshotLimit", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	params := &directoryservice.GetSnapshotLimitsInput{
+		DirectoryId: directory.DirectoryId,
+	}
+
+	op, err := svc.GetSnapshotLimits(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSnapshotLimit", "api_error", err)
+		return nil, err
+	}
+
+	if op != nil {
+		return op.SnapshotLimits, nil
+	}
+
 	return nil, nil
 }
 

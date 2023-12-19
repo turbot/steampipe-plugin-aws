@@ -24,6 +24,7 @@ func tableAwsMGNApplication(_ context.Context) *plugin.Table {
 		Description: "AWS MGN Application",
 		List: &plugin.ListConfig{
 			Hydrate: ListAwsMGNApplications,
+			Tags:    map[string]string{"service": "mgn", "action": "ListApplications"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				// UninitializedAccountException - This error comes up when the service is not enabled for the account.
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UninitializedAccountException"}),
@@ -144,6 +145,9 @@ func ListAwsMGNApplications(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_mgn_application.ListAwsMGNApplications", "api_error", err)

@@ -19,6 +19,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		Description: "AWS S3 Bucket",
 		List: &plugin.ListConfig{
 			Hydrate: listS3Buckets,
+			Tags:    map[string]string{"service": "s3", "action": "ListBucket"},
 		},
 		// Note: No Get for S3 buckets, since it must list all the buckets
 		// anyway just to get the creation_date which is only available via the
@@ -27,58 +28,72 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			{
 				Func:    getBucketIsPublic,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketPolicyStatus"},
 			},
 			{
 				Func:    getBucketVersioning,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketVersioning"},
 			},
 			{
 				Func:    getBucketEncryption,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketEncryption"},
 			},
 			{
 				Func:    getBucketPublicAccessBlock,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetPublicAccessBlock"},
 			},
 			{
 				Func:    getBucketACL,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketAcl"},
 			},
 			{
 				Func:    getBucketLifecycle,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetLifecycleConfiguration"},
 			},
 			{
 				Func:    getBucketLogging,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketLogging"},
 			},
 			{
 				Func:    getBucketPolicy,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketPolicy"},
 			},
 			{
 				Func:    getBucketReplication,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketReplication"},
 			},
 			{
 				Func:    getBucketTagging,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketTagging"},
 			},
 			{
 				Func:    getObjectLockConfiguration,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetObjectLockConfiguration"},
 			},
 			{
 				Func:    getS3BucketEventNotificationConfigurations,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketNotificationConfiguration"},
 			},
 			{
 				Func:    getS3BucketObjectOwnershipControl,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketOwnershipControls"},
 			},
 			{
 				Func:    getBucketWebsite,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Tags:    map[string]string{"service": "s3", "action": "GetBucketWebsite"},
 			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{

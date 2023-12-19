@@ -67,14 +67,6 @@ resource "aws_wafv2_web_acl" "named_test_resource" {
       managed_rule_group_statement {
         name        = "AWSManagedRulesCommonRuleSet"
         vendor_name = "AWS"
-
-        excluded_rule {
-          name = "SizeRestrictions_QUERYSTRING"
-        }
-
-        excluded_rule {
-          name = "NoUserAgent_HEADER"
-        }
       }
     }
 
@@ -122,9 +114,9 @@ EOF
 
 resource "aws_kinesis_firehose_delivery_stream" "named_test_resource" {
   name        = "aws-waf-logs-${var.resource_name}"
-  destination = "s3"
+  destination = "extended_s3"
 
-  s3_configuration {
+  extended_s3_configuration {
     role_arn   = aws_iam_role.firehose_role.arn
     bucket_arn = aws_s3_bucket.firehose_bucket.arn
   }

@@ -25,9 +25,11 @@ func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CacheSubnetGroupNotFoundFault"}),
 			},
 			Hydrate: getElastiCacheSubnetGroup,
+			Tags:    map[string]string{"service": "elasticache", "action": "DescribeCacheSubnetGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheSubnetGroups,
+			Tags:    map[string]string{"service": "elasticache", "action": "DescribeCacheSubnetGroups"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -106,6 +108,9 @@ func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_elasticache_subnet_group.listElastiCacheSubnetGroups", "api_error", err)

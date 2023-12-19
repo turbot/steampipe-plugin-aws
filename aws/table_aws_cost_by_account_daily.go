@@ -14,6 +14,7 @@ func tableAwsCostByLinkedAccountDaily(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Linked Account (Daily)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByLinkedAccountDaily,
+			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{

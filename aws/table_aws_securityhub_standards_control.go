@@ -27,6 +27,7 @@ func tableAwsSecurityHubStandardsControl(_ context.Context) *plugin.Table {
 			},
 			ParentHydrate: listSecurityHubStandardsSubcriptions,
 			Hydrate:       listSecurityHubStandardsControls,
+			Tags:          map[string]string{"service": "securityhub", "action": "DescribeStandardsControls"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -155,6 +156,9 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			if strings.Contains(err.Error(), "ResourceNotFoundException") || strings.Contains(err.Error(), "not subscribed") {

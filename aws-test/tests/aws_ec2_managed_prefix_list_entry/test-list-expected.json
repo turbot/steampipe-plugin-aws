@@ -1,0 +1,7 @@
+[
+  {
+    "cidr": "{{ output.cidr_block.value }}",
+    "description": "Primary",
+    "prefix_list_id": "{{ output.prefix_list_id.value }}"
+  }
+]

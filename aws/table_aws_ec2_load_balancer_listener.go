@@ -27,10 +27,12 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ListenerNotFound", "LoadBalancerNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2LoadBalancerListener,
+			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancers"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2LoadBalancers,
 			Hydrate:       listEc2LoadBalancerListeners,
+			Tags:          map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancers"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elbv2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -126,6 +128,9 @@ func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.listEc2LoadBalancers", "api_error", err)
@@ -178,6 +183,9 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.listEc2LoadBalancerListeners", "api_error", err)

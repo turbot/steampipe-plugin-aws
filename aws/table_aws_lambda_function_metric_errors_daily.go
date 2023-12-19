@@ -18,6 +18,7 @@ func tableAwsLambdaFunctionMetricErrorsDaily(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaFunctionMetricErrorsDaily,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
 		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(

@@ -22,6 +22,7 @@ func tableAwsPricingProduct(_ context.Context) *plugin.Table {
 		Description: "AWS Pricing Product",
 		List: &plugin.ListConfig{
 			Hydrate: listPricingProduct,
+			Tags:    map[string]string{"service": "pricing", "action": "GetProducts"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Required},
 				{Name: "filters", Require: plugin.Optional, CacheMatch: "exact"},
@@ -33,6 +34,7 @@ func tableAwsPricingProduct(_ context.Context) *plugin.Table {
 			{Name: "term", Description: "Whether your AWS usage is Reserved or On-Demand.", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.Term")},
 			{Name: "purchase_option", Description: "How you chose to pay for this line item (All Upfront, Partial Upfront, No Upfront).", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.TermAttributes.PurchaseOption")},
 			{Name: "lease_contract_length", Description: "The length of time that your RI is reserved for.", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.TermAttributes.LeaseContractLength")},
+			{Name: "offering_class", Description: "The type of RI (Standard or Convertible).", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.TermAttributes.OfferingClass")},
 			{Name: "description", Description: "Description for a product / offer / pricing-tier combination.", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.PriceDimension.Description")},
 			{Name: "begin_range", Description: "Start of billing range, by unit", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.PriceDimension.BeginRange")},
 			{Name: "end_range", Description: "Enf of billing range, by unit", Type: proto.ColumnType_STRING, Transform: transform.FromField("Offer.PriceDimension.EndRange")},
@@ -73,6 +75,7 @@ type TermAttributes struct {
 	_                   struct{} `type:"structure"`
 	PurchaseOption      *string
 	LeaseContractLength *string
+	OfferingClass       *string
 }
 
 type Offer struct {
@@ -158,6 +161,9 @@ func listPricingProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_pricing_product.listPricingProduct", "api_error", err)
