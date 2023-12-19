@@ -22,6 +22,7 @@ func tableAwsIamUserSshKey(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			},
 			Hydrate: getIamSshPublicKey,
+			Tags: map[string]string{"service": "iam", "action": "GetSSHPublicKey"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamUsers,
@@ -29,6 +30,7 @@ func tableAwsIamUserSshKey(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "user_name", Require: plugin.Optional},
 			},
+			Tags: map[string]string{"service": "iam", "action": "ListSSHPublicKeys"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
