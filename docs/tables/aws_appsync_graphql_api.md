@@ -58,7 +58,9 @@ select
 from
   aws_appsync_graphql_api
 where
-  visibility = 'GLOBAL';
+  visibility = 'GLOBAL'
+and
+  owner = account_id;
 ```
 
 ```sql+sqlite
@@ -70,7 +72,9 @@ select
 from
   aws_appsync_graphql_api
 where
-  visibility = 'GLOBAL';
+  visibility = 'GLOBAL'
+and
+  owner = account_id;
 ```
 
 ### Get the log configuration details of APIs
