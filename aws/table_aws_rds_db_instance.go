@@ -632,7 +632,7 @@ func getRDSDBInstanceprocessFeatures(ctx context.Context, d *plugin.QueryData, h
 
 	op, err := svc.DescribeOrderableDBInstanceOptions(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceCertificate", "api_error", err)
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceprocessFeatures", "api_error", err)
 		return nil, err
 	}
 
