@@ -1,3 +1,9 @@
+## v0.125.0 [2023-12-20]
+
+_Enhancements_
+
+- Updated the `.goreleaser` file to build the netgo package only for Darwin systems. ([#2029](https://github.com/turbot/steampipe-plugin-aws/pull/2029))
+
 ## v0.124.0 [2023-12-12]
 
 _What's new?_
