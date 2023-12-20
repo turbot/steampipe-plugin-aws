@@ -394,6 +394,8 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "processor_features",
 				Description: "The number of CPU cores and the number of threads per core for the DB instance class of the DB instance.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRDSDBInstanceprocessFeatures,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "read_replica_db_cluster_identifiers",
@@ -601,6 +603,57 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 		return op.Certificates[0], nil
 	}
 	return nil, nil
+}
+
+// DescribeDBInstances API returns the non-default ProcessorFeature value.
+// For populating the default ProcessorFeature value we need to make DescribeOrderableDBInstanceOptions API call.
+func getRDSDBInstanceprocessFeatures(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var processFeatures []types.ProcessorFeature
+	dbInstance := h.Item.(types.DBInstance)
+
+	// Return the ProcessFeature details if the
+	if dbInstance.ProcessorFeatures != nil {
+		return dbInstance.ProcessorFeatures, nil
+	}
+
+	// Create service
+	svc, err := RDSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceprocessFeatures", "connection_error", err)
+		return nil, err
+	}
+
+	params := &rds.DescribeOrderableDBInstanceOptionsInput{
+		Engine:                dbInstance.Engine,
+		EngineVersion:         dbInstance.EngineVersion,
+		DBInstanceClass:       dbInstance.DBInstanceClass,
+		AvailabilityZoneGroup: aws.String(d.EqualsQualString(matrixKeyRegion)),
+	}
+
+	op, err := svc.DescribeOrderableDBInstanceOptions(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceCertificate", "api_error", err)
+		return nil, err
+	}
+
+	for _, p := range op.OrderableDBInstanceOptions {
+		if *p.StorageType == *dbInstance.StorageType {
+			// Match the RDS insance Availability Zone
+			for _, a := range p.AvailabilityZones {
+				if *a.Name == *dbInstance.AvailabilityZone {
+					for _, f := range p.AvailableProcessorFeatures {
+						processFeature := &types.ProcessorFeature{
+							Name:  f.Name,
+							Value: f.DefaultValue,
+						}
+						processFeatures = append(processFeatures, *processFeature)
+					}
+				}
+			}
+		}
+	}
+
+	return processFeatures, nil
 }
 
 //// TRANSFORM FUNCTIONS
