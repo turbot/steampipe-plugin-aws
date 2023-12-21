@@ -286,11 +286,6 @@ func getAwsBackupVaultTags(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, nil
 	}
 
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
 	arn := vaultArn(h.Item)
 
 	params := &backup.ListTagsInput{
