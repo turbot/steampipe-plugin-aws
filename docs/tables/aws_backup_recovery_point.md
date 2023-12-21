@@ -109,7 +109,7 @@ select
       select tags from aws_ec2_ami where image_id = substr(r.recovery_point_arn, instr(r.recovery_point_arn, '::image/') + 8)
     )
     when r.resource_type in ('S3', 'EFS') then r.tags
-  end as target_resource_tags,
+  end as tags,
   r.region,
   r.account_id
 from

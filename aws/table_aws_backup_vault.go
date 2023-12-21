@@ -257,7 +257,6 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 
 	op, err := svc.GetBackupVaultNotifications(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("Error ====>>>>>", err.Error())
 		if strings.Contains(err.Error(), "Failed reading notifications from database for Backup vault") {
 			return &backup.GetBackupVaultNotificationsOutput{}, nil
 		}
