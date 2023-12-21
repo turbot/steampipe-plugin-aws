@@ -46,6 +46,10 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Func: getAwsBackupVaultAccessPolicy,
 				Tags: map[string]string{"service": "backup", "action": "GetBackupVaultAccessPolicy"},
 			},
+			{
+				Func: getAwsBackupVaultTags,
+				Tags: map[string]string{"service": "backup", "action": "ListTags"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -114,6 +118,12 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("BackupVaultName"),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsBackupVaultTags,
 			},
 			{
 				Name:        "akas",
@@ -264,6 +274,44 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 	return op, nil
 }
 
+func getAwsBackupVaultTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create Session
+	svc, err := BackupClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultTags", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	arn := vaultArn(h.Item)
+
+	params := &backup.ListTagsInput{
+		ResourceArn: aws.String(arn),
+	}
+
+	op, err := svc.ListTags(ctx, params)
+	if err != nil {
+
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return &backup.GetBackupVaultNotificationsOutput{}, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultTags", "api_error", err)
+		return nil, err
+	}
+	return op, nil
+}
+
 func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := BackupClient(ctx, d)
@@ -302,6 +350,16 @@ func vaultID(item interface{}) string {
 		return *item.BackupVaultName
 	case *backup.DescribeBackupVaultOutput:
 		return *item.BackupVaultName
+	}
+	return ""
+}
+
+func vaultArn(item interface{}) string {
+	switch item := item.(type) {
+	case types.BackupVaultListMember:
+		return *item.BackupVaultArn
+	case *backup.DescribeBackupVaultOutput:
+		return *item.BackupVaultArn
 	}
 	return ""
 }
