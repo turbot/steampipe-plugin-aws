@@ -298,7 +298,7 @@ func getAwsBackupVaultTags(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
 			if ae.ErrorCode() == "ResourceNotFoundException" {
-				return &backup.GetBackupVaultNotificationsOutput{}, nil
+				return &backup.ListTagsOutput{}, nil
 			}
 		}
 		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultTags", "api_error", err)
@@ -330,7 +330,7 @@ func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
 			if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "InvalidParameter" {
-				return backup.GetBackupVaultNotificationsOutput{}, nil
+				return backup.GetBackupVaultAccessPolicyOutput{}, nil
 			}
 		}
 		return nil, err

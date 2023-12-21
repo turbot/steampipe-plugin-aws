@@ -11,10 +11,7 @@ The AWS Backup Recovery Point is a component of AWS Backup, a fully managed back
 
 The `aws_backup_recovery_point` table in Steampipe provides you with information about each recovery point within an AWS Backup vault. This table allows you, as a DevOps engineer or system administrator, to query recovery point-specific details, including the backup vault where the recovery point is stored, the source of the backup, the state of the recovery point, and associated metadata. You can utilize this table to gather insights on recovery points, such as identifying unencrypted recovery points, verifying backup completion status, and more. The schema outlines the various attributes of the recovery point for you, including the recovery point ARN, creation date, backup size, and associated tags.
 
-Note: The value in the `tags` column will be populated under the following conditions:
-- The resource ARN corresponds to a Recovery Point resource ARN.
-- The resource ARN matches the specified pattern: `arn:aws:backup:[a-z0-9\-]+:[0-9]{12}:recovery-point:*`.
-- Tags are associated with the Recovery Point.
+Note: The value in the `tags` column will be populated only if its resource type has a checkmark for [Full AWS Backup management](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html#full-management) as per AWS Backup docs. This means the recovery point ARN must match the pattern `arn:aws:backup:[a-z0-9\-]+:[0-9]{12}:recovery-point:.*`
 
 ## Examples
 
@@ -91,10 +88,8 @@ case
     when r.resource_type = 'EC2' then (
       select tags from aws_ec2_ami where image_id = (string_to_array(r.recovery_point_arn, '::image/'))[2]
     )
-    when r.resource_type = 'S3' then (
-      select tags from aws_s3_bucket where arn = r.recovery_point_arn
-    )
-end as target_resource_tags,
+    when r.resource_type in ('S3', 'EFS') then r.tags
+end as tags,
   r.region,
   r.account_id
 from
@@ -113,9 +108,7 @@ select
     when r.resource_type = 'EC2' then (
       select tags from aws_ec2_ami where image_id = substr(r.recovery_point_arn, instr(r.recovery_point_arn, '::image/') + 8)
     )
-    when r.resource_type = 'S3' then (
-      select tags from aws_s3_bucket where arn = r.recovery_point_arn
-    )
+    when r.resource_type in ('S3', 'EFS') then r.tags
   end as target_resource_tags,
   r.region,
   r.account_id

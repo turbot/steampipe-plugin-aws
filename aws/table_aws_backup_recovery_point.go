@@ -302,7 +302,7 @@ func getAwsBackupRecoveryPointTags(ctx context.Context, d *plugin.QueryData, h *
 	arn := recoveryPointArn(h.Item)
 
 	// Define the regex pattern for the recovery point ARN
-	pattern := `arn:aws:backup:[a-z0-9\-]+:[0-9]{12}:recovery-point:*`
+	pattern := `arn:aws:backup:[a-z0-9\-]+:[0-9]{12}:recovery-point:.*`
 
 	// Create a regular expression object
 	re := regexp.MustCompile(pattern)
@@ -343,7 +343,7 @@ func getAwsBackupRecoveryPointTags(ctx context.Context, d *plugin.QueryData, h *
 	if op.Tags == nil {
 		return nil, nil
 	}
-	
+
 	return op, nil
 }
 
