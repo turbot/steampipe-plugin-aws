@@ -257,8 +257,8 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 
 	op, err := svc.GetBackupVaultNotifications(ctx, params)
 	if err != nil {
-
-		if strings.Contains(err.Error(), "Failed reading notifications from database for Backup vault ") {
+		plugin.Logger(ctx).Error("Error ====>>>>>", err.Error())
+		if strings.Contains(err.Error(), "Failed reading notifications from database for Backup vault") {
 			return &backup.GetBackupVaultNotificationsOutput{}, nil
 		}
 
@@ -326,13 +326,13 @@ func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *
 
 	op, err := svc.GetBackupVaultAccessPolicy(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultAccessPolicy", "api_error", err)
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
 			if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "InvalidParameter" {
 				return backup.GetBackupVaultAccessPolicyOutput{}, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultAccessPolicy", "api_error", err)
 		return nil, err
 	}
 
