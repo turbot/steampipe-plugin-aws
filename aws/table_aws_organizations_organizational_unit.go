@@ -13,6 +13,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
+// The table will return the Organizational Units for the root account if parent_id is not specifiecd in the query parameter.
+// If parent_id is specified in the query parameter then it will return the Organizational Units for the given parent.
 func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_organizations_organizational_unit",
@@ -25,10 +27,17 @@ func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate:    listOrganizationsOrganizationalUnits,
-			KeyColumns: plugin.SingleColumn("parent_id"),
+			ParentHydrate: listOrganizationsRoots,
+			Hydrate:       listOrganizationsOrganizationalUnits,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ParentNotFoundException", "InvalidInputException"}),
+			},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:    "parent_id",
+					Require: plugin.Optional,
+					Operators: []string{"="},
+				},
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -51,7 +60,6 @@ func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 				Name:        "parent_id",
 				Description: "The unique identifier (ID) of the root or OU whose child OUs you want to list.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getOrganizationsOrganizationalUnit,
 				Transform:   transform.From(getParentId),
 			},
 
@@ -74,19 +82,23 @@ func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	parentId := d.EqualsQualString("parent_id")
+
+	if parentId == "" && h.Item != nil {
+		parentId = *h.Item.(types.Root).Id
+	}
+
+	// Empty Check
+	if parentId == "" {
+		return nil, nil
+	}
+
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.listOrganizationsOrganizationalUnits", "client_error", err)
 		return nil, err
-	}
-
-	parentId := d.EqualsQualString("parent_id")
-
-	// Empty Check
-	if parentId == "" {
-		return nil, nil
 	}
 
 	// Limiting the result
@@ -163,11 +175,12 @@ func getOrganizationsOrganizationalUnit(ctx context.Context, d *plugin.QueryData
 
 //// TRANSFORM FUNCTION
 
+// This function will be useful if user query the table with 'NOT' operator for the optionsl qual 'parent_id'. Like: "select * from aws_organizations_organizational_unit where parent_id <> 'ou-skjaa-siiewfhgw'"
 func getParentId(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	quals := d.KeyColumnQuals["parent_id"]
 	for _, data := range quals {
 		parentId := data.Value.GetStringValue()
-		if parentId != "" {
+		if parentId != "" && data.Operator == "="{
 			return parentId, nil
 		}
 	}
