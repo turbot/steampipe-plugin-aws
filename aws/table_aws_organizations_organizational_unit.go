@@ -2,18 +2,20 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
-// The table will return the Organizational Units for the root account if parent_id is not specifiecd in the query parameter.
+// The table will return the Organizational Units for the root account if parent_id is not specified in the query parameter.
 // If parent_id is specified in the query parameter then it will return the Organizational Units for the given parent.
 func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -34,8 +36,8 @@ func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:    "parent_id",
-					Require: plugin.Optional,
+					Name:      "parent_id",
+					Require:   plugin.Optional,
 					Operators: []string{"="},
 				},
 			},
@@ -125,6 +127,12 @@ func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryDa
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "ParentNotFoundException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_organizations_organizational_unit.listOrganizationsOrganizationalUnits", "api_error", err)
 			return nil, err
 		}
@@ -180,7 +188,7 @@ func getParentId(_ context.Context, d *transform.TransformData) (interface{}, er
 	quals := d.KeyColumnQuals["parent_id"]
 	for _, data := range quals {
 		parentId := data.Value.GetStringValue()
-		if parentId != "" && data.Operator == "="{
+		if parentId != "" && data.Operator == "=" {
 			return parentId, nil
 		}
 	}
