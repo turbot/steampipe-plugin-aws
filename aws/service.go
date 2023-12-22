@@ -6,12 +6,15 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
@@ -126,6 +129,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
+
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -1734,6 +1738,159 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 	return tmp.(*aws.Config), nil
 }
 
+/*
+// dnsCache stores the DNS lookup results.
+type dnsCache struct {
+	mu      sync.Mutex
+	entries map[string]string
+}
+
+// newDNSCache creates a new DNS cache.
+func newDNSCache() *dnsCache {
+	return &dnsCache{
+		entries: make(map[string]string),
+	}
+}
+
+// Resolve performs a DNS lookup and caches the result.
+func (c *dnsCache) Resolve(ctx context.Context, d *plugin.QueryData, host string) (string, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	plugin.Logger(ctx).Info("getHTTPClientForAccountUncached2", "connection_name", d.Connection.Name, "status", "lookup", "host", host)
+
+	// Check if the result is in the cache.
+	if ip, ok := c.entries[host]; ok {
+		plugin.Logger(ctx).Info("getHTTPClientForAccountUncached2", "connection_name", d.Connection.Name, "status", "lookup_cached", "host", host, "ip", ip)
+		return ip, nil
+	}
+
+	// Perform DNS lookup.
+	ips, err := net.LookupHost(host)
+	if err != nil {
+		return "", err
+	}
+	if len(ips) == 0 {
+		return "", fmt.Errorf("host not found: %s", host)
+	}
+
+	// Cache the result.
+	c.entries[host] = ips[0]
+
+	plugin.Logger(ctx).Info("getHTTPClientForAccountUncached2", "connection_name", d.Connection.Name, "status", "lookup_complete", "host", host, "ips", ips)
+
+	return ips[0], nil
+}
+*/
+
+var resolveHostCached = plugin.HydrateFunc(resolveHostUncached).Memoize(memoize.WithCacheKeyFunction(resolveHostCacheKey))
+
+func resolveHostCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Extract the region from the hydrate data. This is not per-row data,
+	// but a clever pass through of context for our case.
+	host := h.Item.(string)
+	key := fmt.Sprintf("resolveHost-%s", host)
+	return key, nil
+}
+
+var resolveHostSemaphore = make(chan struct{}, 10)
+
+//var resolveHostWaitGroup sync.WaitGroup
+
+func resolveHostUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	host := h.Item.(string)
+
+	plugin.Logger(ctx).Info("resolveHostUncached", "connection_name", d.Connection.Name, "status", "starting", "host", host)
+
+	// Perform DNS lookup.
+	var ips []string
+	var err error
+	for i := 0; i < 3; i++ {
+		plugin.Logger(ctx).Info("resolveHostUncached", "connection_name", d.Connection.Name, "status", "lookup_attempt", "host", host, "i", i)
+
+		//resolveHostWaitGroup.Add(1)
+		resolveHostSemaphore <- struct{}{}
+
+		ips, err = net.LookupHost(host)
+
+		<-resolveHostSemaphore
+		//resolveHostWaitGroup.Done()
+
+		if err != nil {
+			plugin.Logger(ctx).Info("resolveHostUncached", "connection_name", d.Connection.Name, "status", "lookup_attempt_error", "host", host, "i", i, "err", err)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		if len(ips) == 0 {
+			err = fmt.Errorf("host not found: %s", host)
+		}
+		break
+	}
+	if err != nil {
+		plugin.Logger(ctx).Info("resolveHostUncached", "connection_name", d.Connection.Name, "status", "lookup_error", "host", host, "err", err)
+		return "", err
+	}
+
+	plugin.Logger(ctx).Info("resolveHostUncached", "connection_name", d.Connection.Name, "status", "done", "host", host, "ips", ips)
+
+	return ips[len(ips)-1], nil
+
+}
+
+var getHTTPClientForAccountCached = plugin.HydrateFunc(getHTTPClientForAccountUncached).Memoize()
+
+func getHTTPClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	plugin.Logger(ctx).Info("getHTTPClientForAccountUncached2", "connection_name", d.Connection.Name, "status", "starting")
+
+	defaultAwsClient := awshttp.NewBuildableClient()
+
+	transport := defaultAwsClient.GetTransport()
+
+	transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+
+		plugin.Logger(ctx).Info("getHTTPClientForAccountUncached2", "connection_name", d.Connection.Name, "status", "resolving", "addr", addr)
+
+		// Split the address into host and port.
+		host, port, err := net.SplitHostPort(addr)
+		if err != nil {
+			return nil, err
+		}
+
+		dnsItem := &plugin.HydrateData{Item: host}
+
+		// Resolve the host using the DNS cache.
+		//resolvedHost, err := cache.Resolve(ctx, d, dnsItem)
+		iResolvedHost, err := resolveHostCached(ctx, d, dnsItem)
+		if err != nil {
+			return nil, err
+		}
+		resolvedHost := iResolvedHost.(string)
+
+		// Join the resolved host with the original port.
+		resolvedAddr := net.JoinHostPort(resolvedHost, port)
+
+		plugin.Logger(ctx).Info("getHTTPClientForAccountUncached2", "connection_name", d.Connection.Name, "status", "resolved", "addr", addr, "resolvedAddr", resolvedAddr)
+
+		dialer := defaultAwsClient.GetDialer()
+		return dialer.DialContext(ctx, network, resolvedAddr)
+	}
+
+	awsSpcConfig := GetConfig(d.Connection)
+	if awsSpcConfig.MaxConnectionsPerHost != nil {
+		transport.MaxConnsPerHost = *awsSpcConfig.MaxConnectionsPerHost
+	}
+
+	client := &http.Client{
+		Transport: transport,
+	}
+
+	plugin.Logger(ctx).Info("getHTTPClientForAccountUncached2", "connection_name", d.Connection.Name, "status", "done")
+
+	return client, nil
+}
+
 // Cached form of the base client.
 // This cache HAS A 30 DAY EXPIRATION! This is because the AWS SDK will
 // automatically refresh credentials as needed from this cached object.
@@ -1745,7 +1902,7 @@ var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUn
 // Do the actual work of creating an AWS config object for reuse across many
 // regions. This client has the minimal reusable configuration on it, so it
 // can be modified in the higher level client functions.
-func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
 
@@ -1810,6 +1967,14 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	//   // debugHTTPClient per https://github.com/aws/aws-sdk-go-v2/issues/1296
 	//   opts.Client = imds.New(imds.Options{Retryer: retryer, ClientLogMode: aws.LogRetries | aws.LogRequest}, withDebugHTTPClient())
 	// }))
+
+	iTransport, err := getHTTPClientForAccountCached(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "get_http_client_error", err)
+		return nil, err
+	}
+
+	configOptions = append(configOptions, config.WithHTTPClient(iTransport.(*http.Client)))
 
 	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
 	if err != nil {

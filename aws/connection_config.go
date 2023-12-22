@@ -19,6 +19,7 @@ type awsConfig struct {
 	IgnoreErrorCodes      []string `hcl:"ignore_error_codes,optional"`
 	EndpointUrl           *string  `hcl:"endpoint_url"`
 	S3ForcePathStyle      *bool    `hcl:"s3_force_path_style"`
+	MaxConnectionsPerHost *int     `hcl:"max_connections_per_host"`
 }
 
 func ConfigInstance() interface{} {
@@ -43,6 +44,13 @@ func GetConfig(connection *plugin.Connection) awsConfig {
 			config.Regions[i] = NormalizeRegion(r)
 		}
 	}
+
+	/*
+		if config.MaxConnectionsPerHost == nil {
+			defaultMaxConnectionsPerHost := 5
+			config.MaxConnectionsPerHost = &defaultMaxConnectionsPerHost
+		}
+	*/
 
 	return config
 }
