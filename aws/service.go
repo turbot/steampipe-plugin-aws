@@ -1783,6 +1783,7 @@ func (c *dnsCache) Resolve(ctx context.Context, d *plugin.QueryData, host string
 }
 */
 
+// TODO - set TTL
 var resolveHostCached = plugin.HydrateFunc(resolveHostUncached).Memoize(memoize.WithCacheKeyFunction(resolveHostCacheKey))
 
 func resolveHostCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -1838,6 +1839,7 @@ func resolveHostUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 }
 
+// TODO - set TTL
 var getHTTPClientForAccountCached = plugin.HydrateFunc(getHTTPClientForAccountUncached).Memoize()
 
 func getHTTPClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -1890,6 +1892,28 @@ func getHTTPClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 
 	return client, nil
 }
+
+func initializeHTTPClient() *http.Client {
+
+	defaultAwsClient := awshttp.NewBuildableClient()
+
+	transport := defaultAwsClient.GetTransport()
+
+	dialer := defaultAwsClient.GetDialer()
+
+	transport.DialContext = dialer.DialContext
+
+	// TODO - plugin level option
+	//transport.MaxConnsPerHost = 10
+
+	client := &http.Client{
+		Transport: transport,
+	}
+
+	return client
+}
+
+var sharedHTTPClient = initializeHTTPClient()
 
 // Cached form of the base client.
 // This cache HAS A 30 DAY EXPIRATION! This is because the AWS SDK will
@@ -1968,13 +1992,16 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 	//   opts.Client = imds.New(imds.Options{Retryer: retryer, ClientLogMode: aws.LogRetries | aws.LogRequest}, withDebugHTTPClient())
 	// }))
 
-	iTransport, err := getHTTPClientForAccountCached(ctx, d, h)
-	if err != nil {
-		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "get_http_client_error", err)
-		return nil, err
-	}
+	/*
+		iTransport, err := getHTTPClientForAccountCached(ctx, d, h)
+		if err != nil {
+			plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "get_http_client_error", err)
+			return nil, err
+		}
+	*/
 
-	configOptions = append(configOptions, config.WithHTTPClient(iTransport.(*http.Client)))
+	//configOptions = append(configOptions, config.WithHTTPClient(iTransport.(*http.Client)))
+	configOptions = append(configOptions, config.WithHTTPClient(sharedHTTPClient))
 
 	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
 	if err != nil {
