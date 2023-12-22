@@ -65,7 +65,7 @@ resource "aws_subnet" "demosubnet" {
   }
 }
 
-# Creating Internet Gateway 
+# Creating Internet Gateway
 resource "aws_internet_gateway" "demogateway" {
   vpc_id = aws_vpc.main.id
 }
@@ -86,7 +86,7 @@ resource "aws_route_table_association" "rt_associate_public" {
   route_table_id = aws_route_table.rt.id
 }
 
-# Creating Security Group 
+# Creating Security Group
 resource "aws_security_group" "demosg" {
   vpc_id      = "${aws_vpc.main.id}"
   # Outbound Rules
@@ -103,7 +103,7 @@ data "aws_ami" "linux" {
   most_recent = true
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-2.0.20210427.0-x86_64-gp2"]
+    values = ["amzn2-ami-hvm-2.0.20220606.1-x86_64-gp2"]
   }
   filter {
     name   = "virtualization-type"
@@ -169,10 +169,10 @@ resource "null_resource" "create_association" {
   depends_on = [null_resource.delay]
   provisioner "local-exec" {
     command = <<EOF
-      aws ssm create-association --name "AWS-UpdateSSMAgent" --targets "Key=instanceids,Values=${aws_instance.named_test_resource.id}" --region ${data.aws_region.primary.name}
+      aws ssm create-association --name "AWS-UpdateSSMAgent" --targets "Key=instanceids,Values=${aws_instance.named_test_resource.id}" --region ${data.aws_region.primary.name} --profile ${var.aws_profile}
     EOF
   }
-} 
+}
 
 resource "null_resource" "delay_create_association" {
   depends_on = [

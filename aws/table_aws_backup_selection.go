@@ -27,10 +27,18 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "InvalidParameterValueException"}),
 			},
 			Hydrate: getBackupSelection,
+			Tags:    map[string]string{"service": "backup", "action": "GetBackupSelection"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate:       listBackupSelections,
 			ParentHydrate: listAwsBackupPlans,
+			Tags:          map[string]string{"service": "backup", "action": "ListBackupSelections"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getBackupSelection,
+				Tags: map[string]string{"service": "backup", "action": "GetBackupSelection"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -149,6 +157,9 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_backup_selection.listBackupSelections", "api_error", err)

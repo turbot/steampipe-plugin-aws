@@ -26,9 +26,21 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsSimSpaceWeaverSimulation,
+			Tags:    map[string]string{"service": "simspaceweaver", "action": "DescribeSimulation"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSimSpaceWeaverSimulations,
+			Tags:    map[string]string{"service": "simspaceweaver", "action": "ListSimulations"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSimSpaceWeaverSimulation,
+				Tags: map[string]string{"service": "simspaceweaver", "action": "DescribeSimulation"},
+			},
+			{
+				Func: listAwsSimSpaceWeaverSimulationTags,
+				Tags: map[string]string{"service": "simspaceweaver", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(simspaceweaverv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -110,7 +122,7 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSimSpaceWeaverSimulationTags,
 			},
 			{
@@ -156,6 +168,9 @@ func listAwsSimSpaceWeaverSimulations(ctx context.Context, d *plugin.QueryData, 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_simspaceweaver_simulation.listAwsSimSpaceWeaverSimulations", "api_error", err)

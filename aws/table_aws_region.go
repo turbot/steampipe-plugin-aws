@@ -15,6 +15,7 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 		Description: "AWS Region",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRegions,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeRegions"},
 		},
 		// Get is not implemented because the API is not paged anyway, so
 		// the List has the same cost but better caching benefit.

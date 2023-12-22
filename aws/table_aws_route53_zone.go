@@ -22,12 +22,32 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getHostedZone,
+			Tags:       map[string]string{"service": "route53", "action": "GetHostedZone"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHostedZone"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listHostedZones,
+			Tags:    map[string]string{"service": "route53", "action": "ListHostedZones"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getHostedZone,
+				Tags: map[string]string{"service": "route53", "action": "GetHostedZone"},
+			},
+			{
+				Func: getHostedZoneTags,
+				Tags: map[string]string{"service": "route53", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getHostedZoneQueryLoggingConfigs,
+				Tags: map[string]string{"service": "route53", "action": "ListQueryLoggingConfigs"},
+			},
+			{
+				Func: getHostedZoneDNSSEC,
+				Tags: map[string]string{"service": "route53", "action": "GetDNSSEC"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -132,6 +152,13 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Hydrate:     getRoute53HostedZoneTurbotAkas,
 				Transform:   transform.FromValue(),
 			},
+			{
+				Name:        "resource_record_set_limit",
+				Description: "The maximum number of resource record sets allowed in the hosted zone.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53HostedZoneLimit,
+				Transform:   transform.FromField("Limit.Value"),
+			},
 		}),
 	}
 }
@@ -176,6 +203,9 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_zone.listHostedZones", "api_error", err)
@@ -336,6 +366,29 @@ func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h 
 	akas := []string{"arn:" + commonColumnData.Partition + ":route53:::" + "hostedzone/" + id[2]}
 
 	return akas, nil
+}
+
+func getRoute53HostedZoneLimit(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	hostedZone := h.Item.(HostedZoneResult)
+
+	svc, err := Route53Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.getRoute53HostedZoneLimit", "client_error", err)
+		return nil, err
+	}
+
+	params := &route53.GetHostedZoneLimitInput{
+		HostedZoneId: hostedZone.Id,
+		Type:         types.HostedZoneLimitTypeMaxRrsetsByZone,
+	}
+
+	resp, err := svc.GetHostedZoneLimit(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.getRoute53HostedZoneLimit", "api_error", err)
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 //// TRANSFORM FUNCTIONS

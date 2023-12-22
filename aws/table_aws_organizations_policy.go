@@ -22,12 +22,20 @@ func tableAwsOrganizationsPolicy(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"PolicyNotFoundException", "InvalidInputException"}),
 			},
 			Hydrate: getOrganizationsPolicy,
+			Tags:    map[string]string{"service": "organizations", "action": "DescribePolicy"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate:    listOrganizationsPolicies,
+			Tags:       map[string]string{"service": "organizations", "action": "ListPolicies"},
 			KeyColumns: plugin.SingleColumn("type"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getOrganizationsPolicy,
+				Tags: map[string]string{"service": "organizations", "action": "DescribePolicy"},
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -131,6 +139,9 @@ func listOrganizationsPolicies(ctx context.Context, d *plugin.QueryData, _ *plug
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_organizations_policy.listOrganizationsPolicies", "api_error", err)
@@ -138,8 +149,15 @@ func listOrganizationsPolicies(ctx context.Context, d *plugin.QueryData, _ *plug
 		}
 
 		for _, policy := range output.Policies {
-			d.StreamListItem(ctx, &types.Policy{
-				PolicySummary: &policy,
+			d.StreamListItem(ctx, types.Policy{
+				PolicySummary: &types.PolicySummary{
+					Arn:         policy.Arn,
+					AwsManaged:  policy.AwsManaged,
+					Description: policy.Description,
+					Id:          policy.Id,
+					Name:        policy.Name,
+					Type:        policy.Type,
+				},
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
@@ -158,7 +176,7 @@ func getOrganizationsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 	var policyId string
 
 	if h.Item != nil {
-		policyId = *h.Item.(*types.Policy).PolicySummary.Id
+		policyId = *h.Item.(types.Policy).PolicySummary.Id
 	} else {
 		policyId = d.EqualsQuals["id"].GetStringValue()
 	}

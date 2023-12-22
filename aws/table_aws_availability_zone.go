@@ -24,10 +24,12 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 			Hydrate: getAwsAvailabilityZone,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeAvailabilityZones"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsRegions,
 			Hydrate:       listAwsAvailabilityZones,
+			Tags:          map[string]string{"service": "ec2", "action": "DescribeAvailabilityZones"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
@@ -176,7 +178,7 @@ func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		ZoneNames:            []string{name},
 	}
 
-	// execute list call
+	// execute get call
 	op, err := svc.DescribeAvailabilityZones(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_availability_zone.getAwsAvailabilityZone", "api_error", err)

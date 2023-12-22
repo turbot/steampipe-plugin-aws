@@ -24,9 +24,11 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidVpcEndpointId.NotFound", "InvalidVpcEndpointId.Malformed"}),
 			},
 			Hydrate: getVpcEndpoint,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcEndpoints"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpoints,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcEndpoints"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_name", Require: plugin.Optional},
 				{Name: "vpc_id", Require: plugin.Optional},
@@ -53,6 +55,11 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 			{
 				Name:        "vpc_id",
 				Description: "The ID of the VPC to which the endpoint is associated.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "vpc_endpoint_type",
+				Description: "The type of endpoint.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -187,6 +194,9 @@ func listVpcEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_endpoint.listVpcEndpoints", "api_error", err)

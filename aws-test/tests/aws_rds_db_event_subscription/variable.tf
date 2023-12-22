@@ -100,11 +100,12 @@ resource "aws_sns_topic" "named_test_resource" {
 }
 
 resource "aws_db_event_subscription" "named_test_resource" {
+  depends_on = [aws_db_instance.named_test_resource]
   name      = var.resource_name
   sns_topic = aws_sns_topic.named_test_resource.arn
 
   source_type = "db-instance"
-  source_ids  = [aws_db_instance.named_test_resource.id]
+  source_ids  = [aws_db_instance.named_test_resource.identifier]
 
   event_categories = [
     "availability",

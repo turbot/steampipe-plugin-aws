@@ -25,6 +25,7 @@ func tableAwsEmrInstanceFleet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstanceFleets,
+			Tags:          map[string]string{"service": "elasticmapreduce", "action": "ListInstanceFleets"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequestException"}),
 			},
@@ -157,6 +158,9 @@ func listEmrInstanceFleets(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			var ae smithy.APIError

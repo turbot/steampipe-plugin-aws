@@ -30,11 +30,31 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidTrailNameException", "TrailNotFoundException", "CloudTrailARNInvalidException"}),
 			},
 			Hydrate: getCloudtrailTrail,
+			Tags:    map[string]string{"service": "cloudtrail", "action": "DescribeTrails"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudtrailTrails,
+			Tags:    map[string]string{"service": "cloudtrail", "action": "DescribeTrails"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidTrailNameException", "TrailNotFoundException", "CloudTrailARNInvalidException"}),
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudtrailTrailStatus,
+				Tags: map[string]string{"service": "cloudtrail", "action": "GetTrailStatus"},
+			},
+			{
+				Func: getCloudtrailTrailEventSelector,
+				Tags: map[string]string{"service": "cloudtrail", "action": "GetEventSelectors"},
+			},
+			{
+				Func: getCloudtrailTrailInsightSelector,
+				Tags: map[string]string{"service": "cloudtrail", "action": "GetInsightSelectors"},
+			},
+			{
+				Func: getCloudtrailTrailTags,
+				Tags: map[string]string{"service": "cloudtrail", "action": "ListTags"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),

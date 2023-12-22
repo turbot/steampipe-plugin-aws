@@ -25,9 +25,11 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionNotFound"}),
 			},
 			Hydrate: getRedshiftEventSubscription,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeEventSubscriptions"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftEventSubscriptions,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeEventSubscriptions"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -144,6 +146,9 @@ func listRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ 
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_redshift_event_subscription.listRedshiftEventSubscriptions", "api_error", err)

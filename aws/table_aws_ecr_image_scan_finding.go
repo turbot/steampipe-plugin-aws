@@ -23,6 +23,7 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 		Description: "AWS ECR Image Scan Finding",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrImageScanFindings,
+			Tags:    map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
 			},
@@ -160,10 +161,18 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "api_error", err)
 			return nil, err
+		}
+
+		// If the scan is in progress and no findings are available yet, ImageScanFindings is nil
+		if output.ImageScanFindings == nil {
+			return nil, nil
 		}
 
 		for _, finding := range output.ImageScanFindings.Findings {

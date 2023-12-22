@@ -19,12 +19,14 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id"}),
 			Hydrate:    getTrafficPolicyInstance,
+			Tags:       map[string]string{"service": "route53", "action": "GetTrafficPolicyInstance"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchTrafficPolicyInstance"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listTrafficPolicyInstances,
+			Tags:    map[string]string{"service": "route53", "action": "ListTrafficPolicyInstances"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -122,6 +124,9 @@ func listTrafficPolicyInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 	// List call
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListTrafficPolicyInstances(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.listTrafficPolicyInstances", "api_err", err)

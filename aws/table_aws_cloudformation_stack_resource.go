@@ -26,15 +26,23 @@ func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "ResourceNotFoundException"}),
 			},
 			Hydrate: getCloudFormationStackResource,
+			Tags:    map[string]string{"service": "cloudformation", "action": "DescribeStackResource"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listCloudFormationStacks,
 			Hydrate:       listCloudFormationStackResources,
+			Tags:          map[string]string{"service": "cloudformation", "action": "ListStackResources"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "stack_name",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudFormationStackResource,
+				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationv1.EndpointsID),
@@ -119,7 +127,7 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 	stackName := d.EqualsQualString("stack_name")
 
 	// If a stack name is specified in optional quals, the user is not allowed to perform API calls for other stacks.
-	if stackName == "" || stackName != *stack.StackName {
+	if d.EqualsQuals["stack_name"] != nil && stackName != *stack.StackName {
 		return nil, nil
 	}
 
@@ -140,15 +148,13 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 		StackName: stack.StackName,
 	}
 
-	// Additonal Filter
-	equalQuals := d.EqualsQuals
-	if equalQuals["stack_name"] != nil {
-		input.StackName = aws.String(equalQuals["stack_name"].GetStringValue())
-	}
 	paginator := cloudformation.NewListStackResourcesPaginator(svc, input, func(o *cloudformation.ListStackResourcesPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.listCloudFormationStackResources", "api_error", err)

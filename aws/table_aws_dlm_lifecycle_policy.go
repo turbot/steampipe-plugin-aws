@@ -23,12 +23,20 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("policy_id"),
 			Hydrate:    getDLMLifecyclePolicy,
+			Tags:       map[string]string{"service": "dlm", "action": "GetLifecyclePolicy"},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDLMLifecyclePolicies,
+			Tags:    map[string]string{"service": "dlm", "action": "GetLifecyclePolicies"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDLMLifecyclePolicy,
+				Tags: map[string]string{"service": "dlm", "action": "GetLifecyclePolicy"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(dlmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -117,6 +125,8 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 
 func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
+	// apply rate limiting
+	d.WaitForListRateLimit(ctx)
 
 	// Create Session
 	svc, err := DLMClient(ctx, d)

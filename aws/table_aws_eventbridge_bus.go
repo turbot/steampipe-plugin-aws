@@ -23,11 +23,19 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getAwsEventBridgeBus,
+			Tags:    map[string]string{"service": "events", "action": "DescribeEventBus"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEventBridgeBuses,
+			Tags:    map[string]string{"service": "events", "action": "ListEventBuses"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "name", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEventBridgeBusTags,
+				Tags: map[string]string{"service": "events", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(eventbridgev1.EndpointsID),
@@ -131,6 +139,9 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	// API doesn't support aws-go-sdk-v2 paginator as of date
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := svc.ListEventBuses(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_eventbridge_bus.listAwsEventBridgeBuses", "api_error", err)

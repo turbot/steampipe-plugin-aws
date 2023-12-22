@@ -23,9 +23,17 @@ func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchTrafficPolicy"}),
 			},
 			Hydrate: getTrafficPolicy,
+			Tags:    map[string]string{"service": "route53", "action": "GetTrafficPolicy"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listTrafficPolicies,
+			Tags:    map[string]string{"service": "route53", "action": "ListTrafficPolicies"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getTrafficPolicy,
+				Tags: map[string]string{"service": "route53", "action": "GetTrafficPolicy"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -109,6 +117,10 @@ func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	// List call
 	pagesLeft := true
 	for pagesLeft {
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListTrafficPolicies(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_traffic_policy.listTrafficPolicies", "api_error", err)
@@ -167,6 +179,9 @@ func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, sv
 	// List call
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListTrafficPolicyVersions(ctx, input)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_route53_traffic_policy.listTrafficPolicyVersionsAsync", "ListTrafficPolicyVersions_api_error", err)
@@ -239,7 +254,7 @@ func getRoute53TrafficPolicyTurbotAkas(ctx context.Context, d *plugin.QueryData,
 
 	// Get data for turbot defined properties
 	//arn:aws:route53::<account-id>:trafficpolicy/<id>/<version>
-	arn := fmt.Sprintf("arn:%s:route53::%s:trafficpolicy/%s/%s", commonColumnData.Partition, commonColumnData.AccountId, *trafficPolicy.Id, string(*trafficPolicy.Version))
+	arn := fmt.Sprintf("arn:%s:route53::%s:trafficpolicy/%s/%s", commonColumnData.Partition, commonColumnData.AccountId, *trafficPolicy.Id, fmt.Sprint(*trafficPolicy.Version))
 
 	return []string{arn}, nil
 }

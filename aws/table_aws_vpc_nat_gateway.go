@@ -24,9 +24,11 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NatGatewayMalformed", "NatGatewayNotFound"}),
 			},
 			Hydrate: getVpcNatGateway,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNatGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcNatGateways,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNatGateways"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "state", Require: plugin.Optional},
 				{Name: "subnet_id", Require: plugin.Optional},
@@ -168,6 +170,9 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_nat_gateway.listVpcNatGateways", "api_error", err)

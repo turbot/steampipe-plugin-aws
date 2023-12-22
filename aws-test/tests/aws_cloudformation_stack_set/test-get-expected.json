@@ -1,0 +1,8 @@
+[
+  {
+    "stack_set_id": "{{ output.resource_id.value }}",
+    "stack_set_name": "{{resourceName}}",
+    "status": "ACTIVE",
+    "title": "{{resourceName}}"
+  }
+]

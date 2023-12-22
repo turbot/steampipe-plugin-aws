@@ -27,9 +27,17 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 			},
 			Hydrate: getSubscriptionAttributes,
+			Tags:    map[string]string{"service": "sns", "action": "GetSubscriptionAttributes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopicSubscriptions,
+			Tags:    map[string]string{"service": "sns", "action": "ListSubscriptions"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSubscriptionAttributes,
+				Tags: map[string]string{"service": "sns", "action": "GetSubscriptionAttributes"},
+			},
 		},
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
@@ -148,6 +156,9 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sns_topic_subscription.listAwsSnsTopicSubscriptions", "api_error", err)

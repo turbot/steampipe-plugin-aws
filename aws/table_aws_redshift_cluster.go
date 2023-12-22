@@ -26,9 +26,21 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFound"}),
 			},
 			Hydrate: getRedshiftCluster,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftClusters,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusters"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRedshiftLoggingDetails,
+				Tags: map[string]string{"service": "redshift", "action": "DescribeLoggingStatus"},
+			},
+			{
+				Func: getClusterScheduledActions,
+				Tags: map[string]string{"service": "redshift", "action": "DescribeScheduledActions"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -357,6 +369,9 @@ func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_redshift_cluster.listRedshiftClusters", "api_error", err)

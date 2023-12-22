@@ -21,6 +21,13 @@ func tableAwsAccount(ctx context.Context) *plugin.Table {
 		Description: "AWS Account",
 		List: &plugin.ListConfig{
 			Hydrate: listAccountAlias,
+			Tags:    map[string]string{"service": "iam", "action": "ListAccountAliases"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getOrganizationDetails,
+				Tags: map[string]string{"service": "organizations", "action": "DescribeOrganization"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

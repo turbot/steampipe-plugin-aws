@@ -4,9 +4,6 @@
       "{{ output.resource_aka.value }}"
     ],
     "service_name": "{{ output.service_name.value }}",
-    "tags": {
-      "Name": "{{resourceName}}"
-    },
     "title": "{{ output.service_name.value }}"
   }
 ]

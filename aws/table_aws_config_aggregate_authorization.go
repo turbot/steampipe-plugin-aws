@@ -19,6 +19,13 @@ func tableAwsConfigAggregateAuthorization(_ context.Context) *plugin.Table {
 		Description: "AWS Config Aggregate Authorization",
 		List: &plugin.ListConfig{
 			Hydrate: listConfigAggregateAuthorizations,
+			Tags:    map[string]string{"service": "config", "action": "DescribeAggregationAuthorizations"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getConfigAggregateAuthorizationsTags,
+				Tags: map[string]string{"service": "config", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -106,6 +113,9 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 	plugin.Logger(ctx).Info("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "HAS MORE PAGES", err)
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "api_error", err)

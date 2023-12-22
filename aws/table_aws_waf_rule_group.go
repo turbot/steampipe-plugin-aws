@@ -24,9 +24,25 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NonexistentItemException", "WAFNonexistentItemException"}),
 			},
 			Hydrate: getWafRuleGroup,
+			Tags:    map[string]string{"service": "waf", "action": "GetRuleGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWafRuleGroups,
+			Tags:    map[string]string{"service": "waf", "action": "ListRuleGroups"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getWafRuleGroup,
+				Tags: map[string]string{"service": "waf", "action": "GetRuleGroup"},
+			},
+			{
+				Func: getWafRuleGroupActivatedRules,
+				Tags: map[string]string{"service": "sso", "action": "ListActivatedRulesInRuleGroup"},
+			},
+			{
+				Func: listTagsForWafRuleGroup,
+				Tags: map[string]string{"service": "waf", "action": "ListTagsForResource"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -116,6 +132,9 @@ func listWafRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_waf_rule_group.listWafRuleGroups", "api_error", err)

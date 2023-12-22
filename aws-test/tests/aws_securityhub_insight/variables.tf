@@ -52,7 +52,7 @@ resource "aws_securityhub_account" "named_test_resource" {}
 // Get the securityhub insights
 resource "null_resource" "list_insights" {
   provisioner "local-exec" {
-    command = "aws securityhub create-insight --region ${data.aws_region.primary.name} --filters '{\"ResourceType\": [{\"Comparison\": \"EQUALS\", \"Value\": \"AwsIamRole\"}], \"SeverityLabel\": [{\"Comparison\": \"EQUALS\", \"Value\": \"CRITICAL\"}]}' --group-by-attribute \"ResourceId\" --name ${var.resource_name}"
+    command = "aws securityhub create-insight --region ${data.aws_region.primary.name} --filters '{\"ResourceType\": [{\"Comparison\": \"EQUALS\", \"Value\": \"AwsIamRole\"}], \"SeverityLabel\": [{\"Comparison\": \"EQUALS\", \"Value\": \"CRITICAL\"}]}' --group-by-attribute \"ResourceId\" --name ${var.resource_name} --profile ${var.aws_profile}"
   }
   provisioner "local-exec" {
     command = "aws securityhub get-insights --output json --profile ${var.aws_profile} --region ${data.aws_region.primary.name} > ${path.cwd}/list-insights.json"

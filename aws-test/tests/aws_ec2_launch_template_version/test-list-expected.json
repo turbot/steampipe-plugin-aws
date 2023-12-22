@@ -1,0 +1,6 @@
+[
+  {
+    "launch_template_name": "{{ resourceName }}",
+    "version_number": 1
+  }
+]

@@ -27,9 +27,21 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 			},
 			Hydrate: getTopicAttributes,
+			Tags:    map[string]string{"service": "sns", "action": "GetTopicAttributes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopics,
+			Tags:    map[string]string{"service": "sns", "action": "ListTopics"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listTagsForSnsTopic,
+				Tags: map[string]string{"service": "sns", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getTopicAttributes,
+				Tags: map[string]string{"service": "sns", "action": "GetTopicAttributes"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(snsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -262,6 +274,9 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_sns_topic.listAwsSnsTopics", "api_error", err)

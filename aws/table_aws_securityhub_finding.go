@@ -24,12 +24,14 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getSecurityHubFinding,
+			Tags:       map[string]string{"service": "securityhub", "action": "GetFindings"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubFindings,
+			Tags:    map[string]string{"service": "securityhub", "action": "GetFindings"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "company_name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "compliance_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
@@ -43,6 +45,7 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				{Name: "verification_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "workflow_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "workflow_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "source_account_id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
@@ -244,7 +247,12 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				Description: "Provides a list of vulnerabilities associated with the findings.",
 				Type:        proto.ColumnType_JSON,
 			},
-
+			{
+				Name:        "source_account_id",
+				Description: "The account id where the affected resource lives.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AwsAccountId"),
+			},
 			/// Steampipe standard columns
 			{
 				Name:        "title",
@@ -299,6 +307,9 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Handle error for accounts that are not subscribed to AWS Security Hub
@@ -377,7 +388,7 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFin
 	securityFindingsFilter := &types.AwsSecurityFindingFilters{}
 	strFilter := types.StringFilter{}
 
-	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state", "workflow_status"}
+	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state", "workflow_status", "source_account_id"}
 
 	for _, s := range strColumns {
 		if quals[s] == nil {
@@ -427,6 +438,9 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFin
 			case "workflow_status":
 				strFilter.Value = aws.String(value)
 				securityFindingsFilter.WorkflowStatus = append(securityFindingsFilter.WorkflowStatus, strFilter)
+			case "source_account_id":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.AwsAccountId = append(securityFindingsFilter.AwsAccountId, strFilter)
 			}
 
 		}

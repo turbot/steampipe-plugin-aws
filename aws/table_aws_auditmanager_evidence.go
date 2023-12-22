@@ -34,10 +34,12 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: getAuditManagerEvidence,
+			Tags:    map[string]string{"service": "auditmanager", "action": "GetEvidence"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAuditManagerAssessments,
 			Hydrate:       listAuditManagerEvidences,
+			Tags:          map[string]string{"service": "auditmanager", "action": "GetEvidenceByEvidenceFolder"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -215,6 +217,9 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’

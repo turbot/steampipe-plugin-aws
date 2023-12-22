@@ -23,14 +23,21 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getAwsElasticsearchDomain,
+			Tags:    map[string]string{"service": "es", "action": "DescribeElasticsearchDomain"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsElasticsearchDomains,
+			Tags:    map[string]string{"service": "es", "action": "ListDomainNames"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    listAwsElasticsearchDomainTags,
 				Depends: []plugin.HydrateFunc{getAwsElasticsearchDomain},
+				Tags:    map[string]string{"service": "es", "action": "ListTags"},
+			},
+			{
+				Func: getAwsElasticsearchDomain,
+				Tags: map[string]string{"service": "es", "action": "DescribeElasticsearchDomain"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticsearchservicev1.EndpointsID),
@@ -38,6 +45,11 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 			{
 				Name:        "domain_name",
 				Description: "The name of the domain.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "engine_type",
+				Description: "Specifies the EngineType of the domain.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -63,6 +75,12 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Name:        "endpoint",
 				Description: "The Elasticsearch domain endpoint that use to submit index and search requests.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsElasticsearchDomain,
+			},
+			{
+				Name:        "endpoints",
+				Description: "Map containing the Elasticsearch domain endpoints used to submit index and search requests.",
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsElasticsearchDomain,
 			},
 			{
@@ -237,9 +255,7 @@ func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	for _, domainname := range op.DomainNames {
-		d.StreamListItem(ctx, types.ElasticsearchDomainStatus{
-			DomainName: domainname.DomainName,
-		})
+		d.StreamListItem(ctx, domainname)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.RowsRemaining(ctx) == 0 {
@@ -255,7 +271,7 @@ func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *pl
 func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var domainname string
 	if h.Item != nil {
-		domainname = *h.Item.(types.ElasticsearchDomainStatus).DomainName
+		domainname = *h.Item.(types.DomainInfo).DomainName
 	} else {
 		domainname = d.EqualsQuals["domain_name"].GetStringValue()
 	}

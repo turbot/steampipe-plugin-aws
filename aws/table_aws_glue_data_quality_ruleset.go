@@ -27,9 +27,11 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException", "UnknownOperationException"}),
 			},
 			Hydrate: getGlueDataQualityRuleset,
+			Tags:    map[string]string{"service": "glue", "action": "GetDataQualityRuleset"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlueDataQualityRulesets,
+			Tags:    map[string]string{"service": "glue", "action": "ListDataQualityRulesets"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnknownOperationException"}),
 			},
@@ -39,6 +41,12 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 				// api error ValidationException: 1 validation error detected: Value null at 'filter.targetTable.name' failed to satisfy constraint: Member must not be null
 				{Name: "created_on", Require: plugin.Optional, Operators: []string{"<=", "<", ">=", ">"}},
 				{Name: "last_modified_on", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGlueDataQualityRuleset,
+				Tags: map[string]string{"service": "glue", "action": "GetDataQualityRuleset"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
@@ -146,6 +154,9 @@ func listGlueDataQualityRulesets(ctx context.Context, d *plugin.QueryData, _ *pl
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glue_data_quality_ruleset.listGlueDataQualityRulesets", "api_error", err)

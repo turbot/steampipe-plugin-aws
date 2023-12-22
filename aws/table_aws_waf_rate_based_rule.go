@@ -23,9 +23,21 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "ValidationException"}),
 			},
 			Hydrate: getAwsWafRateBasedRule,
+			Tags:    map[string]string{"service": "waf", "action": "GetRateBasedRule"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafRateBasedRules,
+			Tags:    map[string]string{"service": "waf", "action": "ListRateBasedRules"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafRateBasedRule,
+				Tags: map[string]string{"service": "waf", "action": "GetRateBasedRule"},
+			},
+			{
+				Func: listAwsWafRateBasedRuleTags,
+				Tags: map[string]string{"service": "waf", "action": "ListTagsForResource"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -123,6 +135,9 @@ func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	pagesLeft := true
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListRateBasedRules(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_waf_rate_based_rule.listAwsWafRateBasedRules", "api_error", err)

@@ -21,6 +21,7 @@ func tableAwsInstanceAvailability(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsRegions,
 			Hydrate:       listAwsAvailableInstanceTypes,
+			Tags:          map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "instance_type",
@@ -112,6 +113,9 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ec2_instance_availability.listAwsAvailableInstanceTypes", "api_error", err)

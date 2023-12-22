@@ -20,6 +20,7 @@ func tableAwsSecurityLakeDataLake(_ context.Context) *plugin.Table {
 		Description: "AWS Security Lake Data Lake",
 		List: &plugin.ListConfig{
 			Hydrate: getSecurityLakeDataLake,
+			Tags:    map[string]string{"service": "securitylake", "action": "ListDataLakes"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(securitylakev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -58,7 +59,7 @@ func tableAwsSecurityLakeDataLake(_ context.Context) *plugin.Table {
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("TagsMap"),
 			},
 		}),

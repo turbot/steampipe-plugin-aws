@@ -24,11 +24,23 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAwsWafv2RuleGroup,
+			Tags:    map[string]string{"service": "wafv2", "action": "GetRuleGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RuleGroups,
+			Tags:    map[string]string{"service": "wafv2", "action": "ListRuleGroups"},
 		},
 		GetMatrixItemFunc: WAFRegionMatrix,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafv2RuleGroup,
+				Tags: map[string]string{"service": "wafv2", "action": "GetRuleGroup"},
+			},
+			{
+				Func: listTagsForAwsWafv2RuleGroup,
+				Tags: map[string]string{"service": "wafv2", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -134,7 +146,6 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	scope := types.ScopeRegional
 
 	if region == "global" {
-		region = "us-east-1"
 		scope = types.ScopeCloudfront
 	}
 
@@ -170,6 +181,9 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// ListRuleGroups API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafv2_rule_group.listAwsWafv2RuleGroups", "api_error", err)
@@ -235,10 +249,6 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, nil
 	}
 
-	if region == "global" {
-		region = "us-east-1"
-	}
-
 	// Create Session
 	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
@@ -272,16 +282,7 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.EqualsQualString(matrixKeyRegion)
 
-	if region == "global" {
-		region = "us-east-1"
-	}
 	data := ruleGroupData(h.Item)
-	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if locationType == "global" && region != "us-east-1" {
-		return nil, nil
-	}
 
 	// Create session
 	svc, err := WAFV2Client(ctx, d, region)

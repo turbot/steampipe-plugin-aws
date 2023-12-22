@@ -30,9 +30,29 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: getGlacierVault,
+			Tags:    map[string]string{"service": "glacier", "action": "DescribeVault"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlacierVault,
+			Tags:    map[string]string{"service": "glacier", "action": "ListVaults"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGlacierVaultAccessPolicy,
+				Tags: map[string]string{"service": "glacier", "action": "GetVaultAccessPolicy"},
+			},
+			{
+				Func: getGlacierVaultLockPolicy,
+				Tags: map[string]string{"service": "glacier", "action": "GetVaultLock"},
+			},
+			{
+				Func: getGlacierVaultNotifications,
+				Tags: map[string]string{"service": "glacier", "action": "GetVaultNotifications"},
+			},
+			{
+				Func: listTagsForGlacierVault,
+				Tags: map[string]string{"service": "glacier", "action": "ListTagsForVault"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(glacierv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -176,6 +196,9 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	})
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glacier_vault.listGlacierVault", "api_error", err)

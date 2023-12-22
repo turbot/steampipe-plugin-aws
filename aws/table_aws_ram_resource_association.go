@@ -21,6 +21,13 @@ func tableAwsRAMResourceAssociation(_ context.Context) *plugin.Table {
 		Description: "AWS RAM Resource Association",
 		List: &plugin.ListConfig{
 			Hydrate: listResourceShareAssociations(associationType),
+			Tags:    map[string]string{"service": "ram", "action": "GetResourceShareAssociations"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getResourceSharePermissions,
+				Tags: map[string]string{"service": "ram", "action": "ListResourceSharePermissions"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ramv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -130,6 +137,9 @@ func listResourceShareAssociations(associationType string) func(ctx context.Cont
 
 		// List call
 		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
+
 			output, err := paginator.NextPage(ctx)
 			if err != nil {
 				plugin.Logger(ctx).Error("aws_ram_resource_association.listResourceShareAssociations", "api_error", err)
@@ -175,6 +185,9 @@ func getResourceSharePermissions(ctx context.Context, d *plugin.QueryData, h *pl
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ram_resource_association.getResourceSharePermissions", "api_error", err)

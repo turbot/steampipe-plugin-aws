@@ -31,14 +31,34 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getDynamoDBTable,
+			Tags:    map[string]string{"service": "dynamodb", "action": "DescribeTable"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamoDBTables,
+			Tags:    map[string]string{"service": "dynamodb", "action": "ListTables"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
 					Require: plugin.Optional,
 				},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDynamoDBTable,
+				Tags: map[string]string{"service": "dynamodb", "action": "DescribeTable"},
+			},
+			{
+				Func: getTableTagging,
+				Tags: map[string]string{"service": "dynamodb", "action": "ListTagsOfResource"},
+			},
+			{
+				Func: getDescribeContinuousBackups,
+				Tags: map[string]string{"service": "dynamodb", "action": "DescribeContinuousBackups"},
+			},
+			{
+				Func: getTableStreamingDestination,
+				Tags: map[string]string{"service": "dynamodb", "action": "DescribeKinesisStreamingDestination"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbv1.EndpointsID),
@@ -267,6 +287,9 @@ func listDynamoDBTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// List call
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_dynamodb_table.listDynamoDBTables", "api_error", err)
@@ -388,6 +411,9 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	pagesLeft := true
 	tags := []types.Tag{}
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		result, err := svc.ListTagsOfResource(ctx, params)
 		if err != nil {
 			var ae smithy.APIError

@@ -24,11 +24,23 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
 			},
 			Hydrate: getAwsWafv2IpSet,
+			Tags:    map[string]string{"service": "wafv2", "action": "GetIPSet"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2IpSets,
+			Tags:    map[string]string{"service": "wafv2", "action": "ListIPSets"},
 		},
 		GetMatrixItemFunc: WAFRegionMatrix,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafv2IpSet,
+				Tags: map[string]string{"service": "wafv2", "action": "GetIPSet"},
+			},
+			{
+				Func: listTagsForAwsWafv2IpSet,
+				Tags: map[string]string{"service": "wafv2", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -122,7 +134,6 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	scope := types.ScopeRegional
 
 	if region == "global" {
-		region = "us-east-1"
 		scope = types.ScopeCloudfront
 	}
 
@@ -159,6 +170,9 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// ListIPSets API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		response, err := svc.ListIPSets(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafv2_ip_set.listAwsWafv2IpSets", "api_error", err)
@@ -222,10 +236,6 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, nil
 	}
 
-	if region == "global" {
-		region = "us-east-1"
-	}
-
 	// Create Session
 	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
@@ -258,15 +268,7 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.EqualsQualString(matrixKeyRegion)
 
-	if region == "global" {
-		region = "us-east-1"
-	}
 	data := ipSetData(h.Item)
-	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if locationType == "global" && region != "us-east-1" {
-		return nil, nil
-	}
 
 	// Create session
 	svc, err := WAFV2Client(ctx, d, region)

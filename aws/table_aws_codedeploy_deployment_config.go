@@ -26,9 +26,17 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DeploymentConfigDoesNotExistException"}),
 			},
 			Hydrate: getCodeDeployDeploymentConfig,
+			Tags:    map[string]string{"service": "codedeploy", "action": "GetDeploymentConfig"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodeDeployDeploymentConfigs,
+			Tags:    map[string]string{"service": "codedeploy", "action": "ListDeploymentConfigs"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCodeDeployDeploymentConfig,
+				Tags: map[string]string{"service": "codedeploy", "action": "GetDeploymentConfig"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(codedeployv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -117,6 +125,9 @@ func listCodeDeployDeploymentConfigs(ctx context.Context, d *plugin.QueryData, h
 	})
 
 	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_codedeploy_deployment_config.listCodeDeployDeploymentConfigs", "api_error", err)

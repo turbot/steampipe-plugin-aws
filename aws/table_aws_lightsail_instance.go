@@ -23,12 +23,20 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getLightsailInstance,
+			Tags:       map[string]string{"service": "lightsail", "action": "GetInstance"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidResourceName", "DoesNotExist"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listLightsailInstances,
+			Tags:    map[string]string{"service": "lightsail", "action": "GetInstances"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getLightsailInstance,
+				Tags: map[string]string{"service": "lightsail", "action": "GetInstance"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(lightsailv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -190,6 +198,9 @@ func listLightsailInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	// List call
 	for {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
 		resp, err := svc.GetInstances(ctx, input)
 
 		if err != nil {
