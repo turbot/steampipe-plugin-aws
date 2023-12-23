@@ -1822,7 +1822,7 @@ func initializeHTTPClient() *http.Client {
 
 	// Use a DNS cache if it's set, otherwise we just avoid changing the dialer behavior
 	// of the AWS HTTP client.
-	if dnsCacheRefreshIntervalSecs < 0 {
+	if dnsCacheRefreshIntervalSecs >= 0 {
 
 		// A semaphore is used to control the number of parallel DNS lookups.
 		var sem = semaphore.NewWeighted(int64(dnsLookupMaxParallel))
