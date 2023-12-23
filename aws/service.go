@@ -1740,19 +1740,6 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 	return tmp.(*aws.Config), nil
 }
 
-// Helper function for initializeHTTPClient.
-func readEnvVarToInt(name string, defaultVal int) int {
-	val := defaultVal
-	envValue := os.Getenv(name)
-	if envValue != "" {
-		i, err := strconv.Atoi(envValue)
-		if err == nil {
-			val = i
-		}
-	}
-	return val
-}
-
 // Initialize a single HTTP client that is optimized for Steampipe and shared
 // across all AWS SDK clients. We have hundreds of AWS SDK clients (one per
 // account region) that are all sharing this same HTTP client - creating shared
