@@ -1,3 +1,9 @@
+## v0.126.0 [2023-12-29]
+
+_Enhancements_
+
+- Updated the plugin to use a shared, optimized HTTP client that enhances DNS management and reduces connection floods for more stable and efficient queries. ([#2036](https://github.com/turbot/steampipe-plugin-aws/pull/2036))
+
 ## v0.125.0 [2023-12-20]
 
 _Enhancements_
