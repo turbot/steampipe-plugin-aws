@@ -11,7 +11,7 @@ The AWS CloudFront Response Headers Policy is a feature within AWS CloudFront th
 
 The `aws_cloudfront_response_headers_policy` table in Steampipe provides you with information about the Response Headers Policies within AWS CloudFront. This table allows you, as a DevOps engineer, to query policy-specific details, including policy ID, name, header behavior, and associated custom headers. You can utilize this table to gather insights on policies, such as custom header configurations, header behavior settings, and more. The schema outlines the various attributes of the Response Headers Policy for you, including the policy ARN, creation time, last modified time, and associated tags.
 
-**Important notes:**
+**Important Notes**
 - This table supports the optional quals `type`.
 - Queries with optional quals are optimised to use additional filtering provided by the AWS API function.
 
