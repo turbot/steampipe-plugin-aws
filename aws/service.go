@@ -6,12 +6,15 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
@@ -64,6 +67,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/firehose"
+	"github.com/aws/aws-sdk-go-v2/service/fms"
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/glacier"
 	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
@@ -119,11 +123,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
+	"github.com/rs/dnscache"
+	"golang.org/x/sync/semaphore"
+
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -179,6 +187,7 @@ import (
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
+	transferEndpoint "github.com/aws/aws-sdk-go/service/transfer"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
 	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
@@ -717,6 +726,14 @@ func FirehoseClient(ctx context.Context, d *plugin.QueryData) (*firehose.Client,
 		return nil, err
 	}
 	return firehose.NewFromConfig(*cfg), nil
+}
+
+func FMSClient(ctx context.Context, d *plugin.QueryData) (*fms.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return fms.NewFromConfig(*cfg), nil
 }
 
 func FSxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
@@ -1396,6 +1413,18 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 	return ssoadmin.NewFromConfig(*cfg), nil
 }
 
+func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {
+	// AWS Transfer Family
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, transferEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return transfer.NewFromConfig(*cfg), nil
+}
+
 func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
 	// WAF Classic a global service with a single DNS endpoint
 	// (waf.amazonaws.com).
@@ -1674,7 +1703,14 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 					SigningRegion: region,
 				}, nil
 			})
-			cfg.EndpointResolverWithOptions = customResolver
+			newCfg, err := config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver))
+			if err != nil {
+				plugin.Logger(ctx).Error("service.getClientWithMaxRetries", "connection_error", err)
+				return nil, err
+			}
+			newCfg.Retryer = cfg.Retryer
+			newCfg.Region = cfg.Region
+			cfg = newCfg
 		}
 	}
 
@@ -1704,6 +1740,140 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 	return tmp.(*aws.Config), nil
 }
 
+// Initialize a single HTTP client that is optimized for Steampipe and shared
+// across all AWS SDK clients. We have hundreds of AWS SDK clients (one per
+// account region) that are all sharing this same HTTP client - creating shared
+// caching and controls over parallelism.
+//
+// The AWS SDK defaults are good, but not great for our highly parallel use in
+// Steampipe. Specific problems this client aims to solve:
+// 1. DNS floods - performing thousands of simultaneous API calls creates a DNS
+// lookup for each one (even if the same domain). This can overwhelm the DNS
+// server and cause "no such host" errors.
+// 2. HTTP connection floods - the AWS SDK defaults to no limit on the number of
+// HTTP connections per host. Thousands of connections created simultaneously to
+// the same host is hard on both the client and the target server.
+// 3. DNS caching - Golang does not cache DNS lookups by default. We end up
+// looking up the same host thousands of times both within a query and across
+// queries.
+func initializeHTTPClient() *http.Client {
+
+	// DNS lookup floods are a real problem with highly parallel AWS SDK calls. Every
+	// API request leads to a DNS lookup by default (since Go doesn't cache them). We
+	// employ a DNS lookup cache, but we also need to limit the number of parallel DNS
+	// requests to avoid overwhelming the underlying DNS server. For example, listing
+	// S3 buckets will create 2 DNS lookup requests per bucket which is a lot of
+	// pressure on the DNS layer of your network.
+	// This setting will limit the number of parallel DNS lookups. An appropriate setting
+	// depends on the capabilities of your DNS server. The default is 25, which is low
+	// enough for a Macbook M1 to work without "no such host" errors when using the cgo
+	// network stack. It's high enough to work great in most cases, except maybe massive
+	// S3 bucket listing (which is rare). Notably on the same Macbook M1, when the plugin
+	// is compiled using netgo (our default on Mac) DNS lookups will succeed with virtually
+	// no upper limit on this setting. So, bottom line, 25 is a guess to try and ensure
+	// it works reliably and optimally enough.
+	dnsLookupMaxParallel := readEnvVarToInt("STEAMPIPE_AWS_DNS_LOOKUP_MAX_PARALLEL", 25)
+
+	// The DNS cache will be refreshed at this interval. A refresh means that
+	// any unused entries are removed and any entries that were used since the
+	// last refresh will be re-looked up to ensure they are current.
+	// This setting should be large enough to get the benefit of caching and short
+	// enough to prevent stale entries from being used for too long.
+	// Set to 0 to disable the refresh completely (not a good idea).
+	// Set to -1 to disable the DNS cache completely (the AWS default).
+	dnsCacheRefreshIntervalSecs := readEnvVarToInt("STEAMPIPE_AWS_DNS_CACHE_REFRESH_INTERVAL_SECS", 300)
+
+	// This is the maximum number of HTTPS API connections used for each host
+	// (e.g.  iam.amazonaws.com). We want a number that is high enough to do a
+	// lot of parallel work, but not so high that we have an excess number of
+	// sockets open.
+	// There is a trade off here. Tables like S3 have a lot of hosts - i.e. two
+	// per bucket (one for the central region to get the creation time and one
+	// for the actual bucket region), while services like IAM use a single host
+	// for all queries.
+	// Set to 0 to remove the limit (which is the AWS SDK default).
+	httpTransportMaxConnsPerHost := readEnvVarToInt("STEAMPIPE_AWS_HTTP_TRANSPORT_MAX_CONNS_PER_HOST", 5000)
+
+	// Our DNS resolver should automatically refresh itself on this schedule.
+	var resolver = &dnscache.Resolver{}
+	if dnsCacheRefreshIntervalSecs > 0 {
+		go func() {
+			t := time.NewTicker(time.Duration(dnsCacheRefreshIntervalSecs) * time.Second)
+			defer t.Stop()
+			for range t.C {
+				resolver.Refresh(true)
+			}
+		}()
+	}
+
+	// Use the AWS defaults as much as possible for both the HTTP transport and
+	// dialer layers. They have carefully crafted default settings for timeouts
+	// etc that we don't want to change. Our goal here is to just change behavior
+	// of parallelism for DNS lookups and HTTP requests.
+	defaultAwsClient := awshttp.NewBuildableClient()
+	transport := defaultAwsClient.GetTransport()
+	dialer := defaultAwsClient.GetDialer()
+
+	// Limit the max connections per host, but only if set. The AWS SDK default
+	// is no limit.
+	if httpTransportMaxConnsPerHost > 0 {
+		transport.MaxConnsPerHost = httpTransportMaxConnsPerHost
+	}
+
+	// Use a DNS cache if it's set, otherwise we just avoid changing the dialer behavior
+	// of the AWS HTTP client.
+	if dnsCacheRefreshIntervalSecs >= 0 {
+
+		// A semaphore is used to control the number of parallel DNS lookups.
+		var sem = semaphore.NewWeighted(int64(dnsLookupMaxParallel))
+
+		transport.DialContext = func(ctx context.Context, network string, addr string) (conn net.Conn, err error) {
+
+			host, port, err := net.SplitHostPort(addr)
+			if err != nil {
+				return nil, err
+			}
+
+			// Acquire a semaphore slot, blocking until one is available.
+			if err := sem.Acquire(ctx, 1); err != nil {
+				return nil, err
+			}
+
+			// Actually resolve the host, using a cached result if possible.
+			// Returns an array of IPs for the host.
+			ips, err := resolver.LookupHost(ctx, host)
+
+			// Release the semaphore, even if there was an error.
+			sem.Release(1)
+
+			// If there was an error during lookup, we give up immediately.
+			if err != nil {
+				return nil, err
+			}
+
+			// Now, look through the IP addresses until we manage to create a good connection.
+			// This is less optimal than the parallelized native golang approach, but good
+			// enough and much simpler. Comparison - https://cs.opensource.google/go/go/+/refs/tags/go1.21.5:src/net/dial.go;l=454-507
+			for _, ip := range ips {
+				conn, err = dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
+				if err == nil {
+					break
+				}
+			}
+
+			return
+		}
+	}
+
+	client := &http.Client{
+		Transport: transport,
+	}
+
+	return client
+}
+
+var sharedHTTPClient = initializeHTTPClient()
+
 // Cached form of the base client.
 // This cache HAS A 30 DAY EXPIRATION! This is because the AWS SDK will
 // automatically refresh credentials as needed from this cached object.
@@ -1715,7 +1885,7 @@ var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUn
 // Do the actual work of creating an AWS config object for reuse across many
 // regions. This client has the minimal reusable configuration on it, so it
 // can be modified in the higher level client functions.
-func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
 
@@ -1780,6 +1950,8 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, _
 	//   // debugHTTPClient per https://github.com/aws/aws-sdk-go-v2/issues/1296
 	//   opts.Client = imds.New(imds.Options{Retryer: retryer, ClientLogMode: aws.LogRetries | aws.LogRequest}, withDebugHTTPClient())
 	// }))
+
+	configOptions = append(configOptions, config.WithHTTPClient(sharedHTTPClient))
 
 	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
 	if err != nil {
@@ -1847,7 +2019,7 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	// Low level method to log retries since we don't have context etc here.
 	// Logging is helpful for visibility into retries and choke points in using
 	// the API.
-	log.Printf("[WARN] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
+	log.Printf("[INFO] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
 
 	return retryTime, nil
 }

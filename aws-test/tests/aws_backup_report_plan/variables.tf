@@ -64,7 +64,7 @@ resource "aws_subnet" "named_test_resource" {
 }
 
 resource "aws_backup_report_plan" "named_test_resource" {
-  report_plan_name = var.resource_name
+  name = var.resource_name
 
   report_delivery_channel {
     formats = [

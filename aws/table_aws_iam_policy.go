@@ -165,7 +165,7 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	params := buildIamPolicyFilter(d.EqualsQuals, d.Quals)
-	maxItems := int32(100)
+	maxItems := int32(1000)
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead

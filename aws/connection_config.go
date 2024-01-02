@@ -5,59 +5,20 @@ import (
 	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/schema"
 )
 
 type awsConfig struct {
-	Regions               []string `cty:"regions"`
-	DefaultRegion         *string  `cty:"default_region"`
-	Profile               *string  `cty:"profile"`
-	AccessKey             *string  `cty:"access_key"`
-	SecretKey             *string  `cty:"secret_key"`
-	SessionToken          *string  `cty:"session_token"`
-	MaxErrorRetryAttempts *int     `cty:"max_error_retry_attempts"`
-	MinErrorRetryDelay    *int     `cty:"min_error_retry_delay"`
-	IgnoreErrorCodes      []string `cty:"ignore_error_codes"`
-	EndpointUrl           *string  `cty:"endpoint_url"`
-	S3ForcePathStyle      *bool    `cty:"s3_force_path_style"`
-}
-
-var ConfigSchema = map[string]*schema.Attribute{
-	"regions": {
-		Type: schema.TypeList,
-		Elem: &schema.Attribute{Type: schema.TypeString},
-	},
-	"default_region": {
-		Type: schema.TypeString,
-	},
-	"profile": {
-		Type: schema.TypeString,
-	},
-	"access_key": {
-		Type: schema.TypeString,
-	},
-	"secret_key": {
-		Type: schema.TypeString,
-	},
-	"session_token": {
-		Type: schema.TypeString,
-	},
-	"ignore_error_codes": {
-		Type: schema.TypeList,
-		Elem: &schema.Attribute{Type: schema.TypeString},
-	},
-	"max_error_retry_attempts": {
-		Type: schema.TypeInt,
-	},
-	"min_error_retry_delay": {
-		Type: schema.TypeInt,
-	},
-	"endpoint_url": {
-		Type: schema.TypeString,
-	},
-	"s3_force_path_style": {
-		Type: schema.TypeBool,
-	},
+	Regions               []string `hcl:"regions,optional"`
+	DefaultRegion         *string  `hcl:"default_region"`
+	Profile               *string  `hcl:"profile"`
+	AccessKey             *string  `hcl:"access_key"`
+	SecretKey             *string  `hcl:"secret_key"`
+	SessionToken          *string  `hcl:"session_token"`
+	MaxErrorRetryAttempts *int     `hcl:"max_error_retry_attempts"`
+	MinErrorRetryDelay    *int     `hcl:"min_error_retry_delay"`
+	IgnoreErrorCodes      []string `hcl:"ignore_error_codes,optional"`
+	EndpointUrl           *string  `hcl:"endpoint_url"`
+	S3ForcePathStyle      *bool    `hcl:"s3_force_path_style"`
 }
 
 func ConfigInstance() interface{} {
