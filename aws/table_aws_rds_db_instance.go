@@ -326,7 +326,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "storage_throughput",
-				Description: "Specifies the Provisioned Storage Throughput value.",
+				Description: "Specifies the storage throughput for the DB instance. This setting applies only to the gp3 storage type.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
