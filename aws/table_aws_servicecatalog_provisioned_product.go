@@ -37,14 +37,10 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 					Name:    "accept_language",
 					Require: plugin.Optional,
 				},
-				{
-					Name:    "search_query",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "arn",
-					Require: plugin.Optional,
-				},
+				// {
+				// 	Name:    "arn",
+				// 	Require: plugin.Optional,
+				// },  // We cannot add arn as an optional parameter currenty as there is some issue with the filter pattern
 				{
 					Name:    "created_time",
 					Require: plugin.Optional,
@@ -131,12 +127,12 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("accept_language"),
 			},
-			{
-				Name:        "search_query",
-				Description: "The search query for the provisioned product.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("search_query"),
-			},
+			// {
+			// 	Name:        "search_query",
+			// 	Description: "The search query for the provisioned product.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Transform:   transform.FromQual("search_query"),
+			// },
 			{
 				Name:        "last_record_id",
 				Description: "The record identifier of the last request performed on this provisioned product.",
@@ -248,7 +244,9 @@ func listServiceCatalogProvisionedProducts(ctx context.Context, d *plugin.QueryD
 	}
 
 	filters := buildServiceCatalogProvisionedProductFilter(ctx, d.Quals)
-	input.Filters = filters
+	if filters != nil {
+		input.Filters = filters
+	}
 
 	paginator := servicecatalog.NewSearchProvisionedProductsPaginator(svc, input, func(o *servicecatalog.SearchProvisionedProductsPaginatorOptions) {
 		o.Limit = maxLimit
@@ -339,7 +337,6 @@ func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryDat
 
 func buildServiceCatalogProvisionedProductFilter(ctx context.Context, quals plugin.KeyColumnQualMap) map[string][]string {
 	filterQuals := map[string]string{
-		"search_query":                           "SearchQuery",
 		"arn":                                    "arn",
 		"created_time":                           "createdTime",
 		"id":                                     "id",
@@ -353,17 +350,20 @@ func buildServiceCatalogProvisionedProductFilter(ctx context.Context, quals plug
 		"last_successful_provisioning_record_id": "lastSuccessfulProvisioningRecordId",
 	}
 
-	filter := make(map[string][]string)
-	for columnName, filterName := range filterQuals {
+	// filter := make(map[string][]string)
+	filters := []string{}
+	for columnName := range filterQuals {
 		if quals[columnName] != nil {
 
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter[filterName] = []string{val}
+				filters = append(filters, fmt.Sprintf("%s:%s", filterQuals[columnName], val))
 			}
 		}
 	}
-
-	return filter
+	if len(filters) > 0 {
+		return map[string][]string{"SearchQuery": filters}
+	}
+	return nil
 }
