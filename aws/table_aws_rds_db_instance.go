@@ -325,6 +325,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Default:     false,
 			},
 			{
+				Name:        "storage_throughput",
+				Description: "Specifies the Provisioned Storage Throughput value.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "storage_type",
 				Description: "Specifies the storage type associated with DB instance.",
 				Type:        proto.ColumnType_STRING,
