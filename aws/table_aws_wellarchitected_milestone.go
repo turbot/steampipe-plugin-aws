@@ -93,7 +93,7 @@ func listWellArchitectedMilestones(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	input := &wellarchitected.ListMilestonesInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	// Validate - User input must match the hydrated WorkloadId
@@ -154,7 +154,7 @@ func getWellArchitectedMilestone(ctx context.Context, d *plugin.QueryData, h *pl
 	var milestoneNumber int32
 	if h.Item != nil {
 		workloadId = *h.Item.(types.MilestoneSummary).WorkloadSummary.WorkloadId
-		milestoneNumber = h.Item.(types.MilestoneSummary).MilestoneNumber
+		milestoneNumber = *h.Item.(types.MilestoneSummary).MilestoneNumber
 	} else {
 		quals := d.EqualsQuals
 		workloadId = quals["workload_id"].GetStringValue()
@@ -182,7 +182,7 @@ func getWellArchitectedMilestone(ctx context.Context, d *plugin.QueryData, h *pl
 
 	params := &wellarchitected.GetMilestoneInput{
 		WorkloadId:      aws.String(workloadId),
-		MilestoneNumber: *aws.Int32(milestoneNumber),
+		MilestoneNumber: aws.Int32(milestoneNumber),
 	}
 
 	op, err := svc.GetMilestone(ctx, params)

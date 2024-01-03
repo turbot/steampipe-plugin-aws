@@ -120,12 +120,13 @@ func listWellArchitectedConsolidatedReports(ctx context.Context, d *plugin.Query
 
 	input := &wellarchitected.GetConsolidatedReportInput{
 		Format:     types.ReportFormatJson,
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	// The default value for IncludeSharedResources in input param is false.
+	include := d.EqualsQuals["include_shared_resources"].GetBoolValue()
 	if d.EqualsQuals["include_shared_resources"] != nil {
-		input.IncludeSharedResources = d.EqualsQuals["include_shared_resources"].GetBoolValue()
+		input.IncludeSharedResources = &include
 	}
 
 	paginator := wellarchitected.NewGetConsolidatedReportPaginator(svc, input, func(o *wellarchitected.GetConsolidatedReportPaginatorOptions) {
@@ -169,14 +170,16 @@ func listWellArchitectedConsolidatedReportBase64(ctx context.Context, d *plugin.
 		return nil, nil
 	}
 
+	maxResults := int32(15)
 	input := &wellarchitected.GetConsolidatedReportInput{
 		Format:     types.ReportFormatPdf,
-		MaxResults: int32(15),
+		MaxResults: &maxResults,
 	}
 
 	// The default value for IncludeSharedResources in input param is false.
+	include := d.EqualsQuals["include_shared_resources"].GetBoolValue()
 	if d.EqualsQuals["include_shared_resources"] != nil {
-		input.IncludeSharedResources = d.EqualsQuals["include_shared_resources"].GetBoolValue()
+		input.IncludeSharedResources = &include
 	}
 
 	paginator := wellarchitected.NewGetConsolidatedReportPaginator(svc, input, func(o *wellarchitected.GetConsolidatedReportPaginatorOptions) {

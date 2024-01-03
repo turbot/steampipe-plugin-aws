@@ -218,7 +218,7 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	input := &wellarchitected.ListWorkloadsInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	equalQuals := d.EqualsQuals

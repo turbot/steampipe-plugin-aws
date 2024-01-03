@@ -415,10 +415,11 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		}
 	}
 
+	t := true
 	input := &s3.ListObjectsV2Input{
 		Bucket:     aws.String(bucketName),
-		MaxKeys:    maxItems,
-		FetchOwner: true,
+		MaxKeys:    &maxItems,
+		FetchOwner: &t,
 	}
 
 	equalQuals := d.EqualsQuals
