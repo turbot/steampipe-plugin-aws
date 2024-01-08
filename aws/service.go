@@ -89,6 +89,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore"
 	"github.com/aws/aws-sdk-go-v2/service/mgn"
+	"github.com/aws/aws-sdk-go-v2/service/mq"
 	"github.com/aws/aws-sdk-go-v2/service/neptune"
 	"github.com/aws/aws-sdk-go-v2/service/networkfirewall"
 	"github.com/aws/aws-sdk-go-v2/service/oam"
@@ -171,6 +172,7 @@ import (
 	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
 	mediastoreEndpoint "github.com/aws/aws-sdk-go/service/mediastore"
 	mgnEndpoint "github.com/aws/aws-sdk-go/service/mgn"
+	mqEndpoint "github.com/aws/aws-sdk-go/service/mq"
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
 	oamEndpoint "github.com/aws/aws-sdk-go/service/oam"
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
@@ -956,6 +958,17 @@ func MGNClient(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
 		return nil, nil
 	}
 	return mgn.NewFromConfig(*cfg), nil
+}
+
+func MQClient(ctx context.Context, d *plugin.QueryData) (*mq.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, mqEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return mq.NewFromConfig(*cfg), nil
 }
 
 func NeptuneClient(ctx context.Context, d *plugin.QueryData) (*neptune.Client, error) {

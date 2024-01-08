@@ -405,6 +405,8 @@ github.com/aws/aws-sdk-go-v2/service/mediastore v1.13.0 h1:rxJYsWs815NAgRTzWe//9
 github.com/aws/aws-sdk-go-v2/service/mediastore v1.13.0/go.mod h1:W3pI4V/pFD8Nttvxa9vSwifjgdOxa+EgwNUOVDYjB0c=
 github.com/aws/aws-sdk-go-v2/service/mgn v1.17.0 h1:q6YOP0qCkyT1F2nbCYLc2oykdturUutgfGdFOVlxRbI=
 github.com/aws/aws-sdk-go-v2/service/mgn v1.17.0/go.mod h1:up+ZyvBjd1NjSYXErQqLUMYbrZsqt1e6uIl5Kx3qrwQ=
+github.com/aws/aws-sdk-go-v2/service/mq v1.16.5 h1:xlziZnBjo10pGC+Uol5j8JNSzQksYOgHzAmF5sKnE/s=
+github.com/aws/aws-sdk-go-v2/service/mq v1.16.5/go.mod h1:kxETQ9R0dWsvWyL+5Vp/pNsEYejv76B+RvHr3S0jjhI=
 github.com/aws/aws-sdk-go-v2/service/neptune v1.19.1 h1:0ssNLA0sY0usb/mOM1mESth84upUZejPwo47rP12yj0=
 github.com/aws/aws-sdk-go-v2/service/neptune v1.19.1/go.mod h1:kBudc/ZVbpqaZmWaZiQgyujuCgsPqh6kYlzGeW65wh4=
 github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.24.0 h1:BHc8oItUVd0/RfgQLeRenPcNUWNi6o7g/9bLQK5kLns=
@@ -492,7 +494,6 @@ github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.20.1/go.mod h1:Hb9paYQ+u
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0 h1:sjfoG4ahd0yE77sKiBokTlZHd9pk1k+vPGNJo6ct2QQ=
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0/go.mod h1:oudvE1/KOdqMDrq9PG1QjLpvQb8S5R3y2Fci+Vuc6To=
 github.com/aws/smithy-go v1.13.5/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
-github.com/aws/smithy-go v1.14.2 h1:MJU9hqBGbvWZdApzpvoF2WAIJDbtjK2NDJSiJP7HblQ=
 github.com/aws/smithy-go v1.14.2/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
 github.com/aws/smithy-go v1.19.0 h1:KWFKQV80DpP3vJrrA9sVAHQ5gc2z8i4EzrLhLlWXcBM=
 github.com/aws/smithy-go v1.19.0/go.mod h1:NukqUGpCZIILqqiV0NIjeFh24kd/FAa4beRb6nbIUPE=

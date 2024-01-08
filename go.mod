@@ -78,6 +78,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/macie2 v1.26.0
 	github.com/aws/aws-sdk-go-v2/service/mediastore v1.13.0
 	github.com/aws/aws-sdk-go-v2/service/mgn v1.17.0
+	github.com/aws/aws-sdk-go-v2/service/mq v1.16.5
 	github.com/aws/aws-sdk-go-v2/service/neptune v1.19.1
 	github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.24.0
 	github.com/aws/aws-sdk-go-v2/service/oam v1.1.1
