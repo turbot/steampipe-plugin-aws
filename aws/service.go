@@ -1782,7 +1782,7 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 // 3. DNS caching - Golang does not cache DNS lookups by default. We end up
 // looking up the same host thousands of times both within a query and across
 // queries.
-func initializeHTTPClient() *http.Client {
+func initializeHTTPClient() aws.HTTPClient {
 
 	// DNS lookup floods are a real problem with highly parallel AWS SDK calls. Every
 	// API request leads to a DNS lookup by default (since Go doesn't cache them). We
@@ -1832,18 +1832,20 @@ func initializeHTTPClient() *http.Client {
 		}()
 	}
 
-	// Use the AWS defaults as much as possible for both the HTTP transport and
-	// dialer layers. They have carefully crafted default settings for timeouts
-	// etc that we don't want to change. Our goal here is to just change behavior
-	// of parallelism for DNS lookups and HTTP requests.
-	defaultAwsClient := awshttp.NewBuildableClient()
-	transport := defaultAwsClient.GetTransport()
-	dialer := defaultAwsClient.GetDialer()
+	// The AWS SDK has a special "buildable" HTTP client so it can be combined
+	// with specific options such as custom certificate bundles. It matches the
+	// interface of a HTTPClient, but has specific approaches for setting
+	// transport options etc. Our goal is to use the default AWS settings (e.g.
+	// timeouts, etc) as much as possible and just override the specific
+	// behavior of parallelism for DNS lookups and HTTP requests.
+	client := awshttp.NewBuildableClient()
 
 	// Limit the max connections per host, but only if set. The AWS SDK default
 	// is no limit.
 	if httpTransportMaxConnsPerHost > 0 {
-		transport.MaxConnsPerHost = httpTransportMaxConnsPerHost
+		client = client.WithTransportOptions(func(tr *http.Transport) {
+			tr.MaxConnsPerHost = httpTransportMaxConnsPerHost
+		})
 	}
 
 	// Use a DNS cache if it's set, otherwise we just avoid changing the dialer behavior
@@ -1851,48 +1853,49 @@ func initializeHTTPClient() *http.Client {
 	if dnsCacheRefreshIntervalSecs >= 0 {
 
 		// A semaphore is used to control the number of parallel DNS lookups.
-		var sem = semaphore.NewWeighted(int64(dnsLookupMaxParallel))
+		sem := semaphore.NewWeighted(int64(dnsLookupMaxParallel))
 
-		transport.DialContext = func(ctx context.Context, network string, addr string) (conn net.Conn, err error) {
+		// A dialer for testing connections
+		dialer := client.GetDialer()
 
-			host, port, err := net.SplitHostPort(addr)
-			if err != nil {
-				return nil, err
-			}
+		client = client.WithTransportOptions(func(tr *http.Transport) {
+			tr.DialContext = func(ctx context.Context, network string, addr string) (conn net.Conn, err error) {
 
-			// Acquire a semaphore slot, blocking until one is available.
-			if err := sem.Acquire(ctx, 1); err != nil {
-				return nil, err
-			}
-
-			// Actually resolve the host, using a cached result if possible.
-			// Returns an array of IPs for the host.
-			ips, err := resolver.LookupHost(ctx, host)
-
-			// Release the semaphore, even if there was an error.
-			sem.Release(1)
-
-			// If there was an error during lookup, we give up immediately.
-			if err != nil {
-				return nil, err
-			}
-
-			// Now, look through the IP addresses until we manage to create a good connection.
-			// This is less optimal than the parallelized native golang approach, but good
-			// enough and much simpler. Comparison - https://cs.opensource.google/go/go/+/refs/tags/go1.21.5:src/net/dial.go;l=454-507
-			for _, ip := range ips {
-				conn, err = dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
-				if err == nil {
-					break
+				host, port, err := net.SplitHostPort(addr)
+				if err != nil {
+					return nil, err
 				}
+
+				// Acquire a semaphore slot, blocking until one is available.
+				if err := sem.Acquire(ctx, 1); err != nil {
+					return nil, err
+				}
+
+				// Actually resolve the host, using a cached result if possible.
+				// Returns an array of IPs for the host.
+				ips, err := resolver.LookupHost(ctx, host)
+
+				// Release the semaphore, even if there was an error.
+				sem.Release(1)
+
+				// If there was an error during lookup, we give up immediately.
+				if err != nil {
+					return nil, err
+				}
+
+				// Now, look through the IP addresses until we manage to create a good connection.
+				// This is less optimal than the parallelized native golang approach, but good
+				// enough and much simpler. Comparison - https://cs.opensource.google/go/go/+/refs/tags/go1.21.5:src/net/dial.go;l=454-507
+				for _, ip := range ips {
+					conn, err = dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
+					if err == nil {
+						break
+					}
+				}
+
+				return
 			}
-
-			return
-		}
-	}
-
-	client := &http.Client{
-		Transport: transport,
+		})
 	}
 
 	return client

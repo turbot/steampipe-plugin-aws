@@ -1,3 +1,9 @@
+## v0.126.1 [TBD]
+
+_Bug fixes_
+
+- Custom HTTP client should allow buildable settings through env var options such as AWS_CA_BUNDLE.
+
 ## v0.126.0 [2023-12-29]
 
 _Enhancements_
