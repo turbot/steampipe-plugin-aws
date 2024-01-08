@@ -59,8 +59,7 @@ from
   aws_appsync_graphql_api
 where
   visibility = 'GLOBAL'
-and
-  owner = account_id;
+  and owner = account_id;
 ```
 
 ```sql+sqlite
