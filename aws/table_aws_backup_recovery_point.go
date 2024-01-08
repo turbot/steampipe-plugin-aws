@@ -52,6 +52,12 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 				},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsBackupRecoveryPoint,
+				Tags: map[string]string{"service": "backup", "action": "DescribeRecoveryPoint"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
