@@ -116,7 +116,7 @@ select
 from
   aws_mq_broker
 where
-  encryption_options ->> 'UseAwsOwnedKey' is false;
+  encryption_options ->> 'UseAwsOwnedKey' = 'false';
 ```
 
 ```sql+sqlite
@@ -128,7 +128,7 @@ select
 from
   aws_mq_broker
 where
-  json_extract(encryption_options, '$.UseAwsOwnedKey') is false;
+  json_extract(encryption_options, '$.UseAwsOwnedKey') = 'false';
 ```
 
 ### Get maintenance window details of brokers

@@ -92,7 +92,6 @@ func tableAwsMQBroker(_ context.Context) *plugin.Table {
 				Name:        "engine_type",
 				Description: "The type of broker engine. Currently, Amazon MQ supports ACTIVEMQ and RABBITMQ.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getMQBroker,
 			},
 			{
 				Name:        "engine_version",
@@ -323,7 +322,7 @@ func getMQBroker(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 		broker := h.Item.(types.BrokerSummary)
 		brokerId = *broker.BrokerId
 	} else {
-		brokerId = d.EqualsQuals["broker_id"].GetStringValue()
+		brokerId = d.EqualsQualString("broker_id")
 	}
 	if brokerId == "" {
 		return nil, nil
