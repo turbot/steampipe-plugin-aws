@@ -232,7 +232,7 @@ func tableAwsMQBroker(_ context.Context) *plugin.Table {
 			// Steampipe standard columns
 			{
 				Name:        "tags",
-				Description: "A list of tags attached to the Cluster.",
+				Description: "A list of tags attached to the broker.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getMQBroker,
 			},
