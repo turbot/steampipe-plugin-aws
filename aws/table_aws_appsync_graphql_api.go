@@ -86,7 +86,7 @@ func tableAwsAppsyncGraphQLApi(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "waf_web_acl_arn",
-				Description: "The ARN of the WAF access control list (ACL) associated with this GraphqlApi.",
+				Description: "The ARN of the WAF access control list (ACL) associated with this GraphqlApi, if one exists.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
