@@ -1,8 +1,21 @@
-## v0.126.1 [TBD]
+## v0.127.0 [2024-01-10]
+
+_What's new?_
+
+- New tables added
+  - [aws_appsync_graphql_api](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_appsync_graphql_api) ([#2027](https://github.com/turbot/steampipe-plugin-aws/pull/2027))
+  - [aws_mq_broker](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_mq_broker) ([#2020](https://github.com/turbot/steampipe-plugin-aws/pull/2020))
+
+_Enhancements_
+
+- Added `storage_throughput` column to `aws_rds_db_instance` table. ([#2010](https://github.com/turbot/steampipe-plugin-aws/pull/2010)) (Thanks [@toddwh50](https://github.com/toddwh50) for the contribution!)
+- Added `layers`` column to `aws_lambda_function` table. ([#2008](https://github.com/turbot/steampipe-plugin-aws/pull/2008)) (Thanks [@icaliskanoglu](https://github.com/icaliskanoglu) for the contribution!)
+- Added `tags` column to `aws_backup_recovery_point` and `aws_backup_vault` tables.  ([#2033](https://github.com/turbot/steampipe-plugin-aws/pull/2033))
 
 _Bug fixes_
 
-- Custom HTTP client should allow buildable settings through env var options such as AWS_CA_BUNDLE.
+- Custom HTTP client should allow buildable settings through env var options such as AWS_CA_BUNDLE. ([#2044](https://github.com/turbot/steampipe-plugin-aws/pull/2044))
+- Fixed `MaxItems` in `aws_iam_policy` and `aws_iam_policy_attachment` tables to use `1000` instead of `100` to avoid unnecessary API calls. ([#2025](https://github.com/turbot/steampipe-plugin-aws/pull/2025)) ([#2026](https://github.com/turbot/steampipe-plugin-aws/pull/2026))
 
 ## v0.126.0 [2023-12-29]
 
