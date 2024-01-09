@@ -17,7 +17,6 @@ _Bug fixes_
 - Custom HTTP client should allow buildable settings through env var options such as AWS_CA_BUNDLE. ([#2044](https://github.com/turbot/steampipe-plugin-aws/pull/2044))
 - Fixed `MaxItems` in `aws_iam_policy` and `aws_iam_policy_attachment` tables to use `1000` instead of `100` to avoid unnecessary API calls. ([#2025](https://github.com/turbot/steampipe-plugin-aws/pull/2025)) ([#2026](https://github.com/turbot/steampipe-plugin-aws/pull/2026))
 
-
 ## v0.126.0 [2023-12-29]
 
 _Enhancements_
