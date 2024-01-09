@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"errors"
-	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -90,7 +89,13 @@ func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	parentId := d.EqualsQualString("parent_id")
+	parentId := *h.Item.(types.Root).Id
+
+	// Check if the parentId is provided
+	// The unique identifier (ID) of the root or OU whose child OUs you want to list.
+	if d.EqualsQualString("parent_id") != "" {
+		parentId = d.EqualsQualString("parent_id")
+	}
 
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)
@@ -101,57 +106,6 @@ func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryDa
 
 	// Limiting the result
 	maxItems := int32(20)
-
-	// If parent_id is a account ID then we should get the organizational units for the given Account ID
-	pattern := `[0-9]{12}`
-	re := regexp.MustCompile(pattern)
-	if parentId != "" && re.MatchString(parentId) {
-		params := &organizations.ListParentsInput{
-			ChildId:   aws.String(parentId),
-			MaxResults: &maxItems,
-		}
-
-		paginator := organizations.NewListParentsPaginator(svc, params, func(o *organizations.ListParentsPaginatorOptions) {
-			o.Limit = maxItems
-			o.StopOnDuplicateToken = true
-		})
-
-		for paginator.HasMorePages() {
-			output, err := paginator.NextPage(ctx)
-			if err != nil {
-				var ae smithy.APIError
-				if errors.As(err, &ae) {
-					if ae.ErrorCode() == "ParentNotFoundException" {
-						return nil, nil
-					}
-				}
-				plugin.Logger(ctx).Error("aws_organizations_organizational_unit.listOrganizationsOrganizationalUnits.ListParents", "api_error", err)
-				return nil, err
-			}
-
-			for _, ou := range output.Parents {
-				d.StreamListItem(ctx, types.OrganizationalUnit{
-					Id: ou.Id,
-				})
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.RowsRemaining(ctx) == 0 {
-					return nil, nil
-				}
-			}
-		}
-
-		return nil, nil
-	}
-
-	if parentId == "" && h.Item != nil {
-		parentId = *h.Item.(types.Root).Id
-	}
-
-	// Empty Check
-	if parentId == "" {
-		return nil, nil
-	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
