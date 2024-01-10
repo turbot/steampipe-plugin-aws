@@ -427,6 +427,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_sfn_state_machine_execution_history":                      tableAwsStepFunctionsStateMachineExecutionHistory(ctx),
 			"aws_simspaceweaver_simulation":                                tableAwsSimSpaceWeaverSimulation(ctx),
 			"aws_sns_topic":                                                tableAwsSnsTopic(ctx),
+			"aws_sns_subscription":                                         tableAwsSnsSubscription(ctx),
 			"aws_sns_topic_subscription":                                   tableAwsSnsTopicSubscription(ctx),
 			"aws_sqs_queue":                                                tableAwsSqsQueue(ctx),
 			"aws_ssm_association":                                          tableAwsSSMAssociation(ctx),

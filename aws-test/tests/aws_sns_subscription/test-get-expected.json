@@ -1,0 +1,7 @@
+[
+  {
+    "endpoint": "{{ output.endpoint.value }}",
+    "protocol": "sqs",
+    "topic_arn": "{{ output.topic_arn.value }}"
+  }
+]
