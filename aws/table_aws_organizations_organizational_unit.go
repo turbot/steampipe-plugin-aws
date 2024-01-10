@@ -19,13 +19,6 @@ func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_organizations_organizational_unit",
 		Description: "AWS Organizations Organizational Unit",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("id"),
-			Hydrate:    getOrganizationsOrganizationalUnit,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
-			},
-		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listOrganizationsRoots,
 			Hydrate:       listOrganizationsOrganizationalUnits,
@@ -178,13 +171,7 @@ func listAllNestedOUs(ctx context.Context, d *plugin.QueryData, svc *organizatio
 //// HYDRATE FUNCTIONS
 
 func getOrganizationsOrganizationalUnit(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var orgUnitId string
-
-	if h.Item != nil {
-		orgUnitId = *h.Item.(OrganizationalUnit).Id
-	} else {
-		orgUnitId = d.EqualsQuals["id"].GetStringValue()
-	}
+	orgUnitId := *h.Item.(OrganizationalUnit).Id
 
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)
