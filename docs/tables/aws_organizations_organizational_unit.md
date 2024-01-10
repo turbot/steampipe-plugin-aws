@@ -9,8 +9,21 @@ By default, querying the table without any specific filters will return all OUs 
 ## Examples
 
 ### Basic info
+This query helps AWS administrators and cloud architects to efficiently manage, audit, and report on the structure and composition of their AWS Organizations.
 
-```sql
+```sql+postgres
+select
+  name,
+  id,
+  arn,
+  parent_id,
+  title,
+  akas
+from
+  aws_organizations_organizational_unit;
+```
+
+```sql+sqlite
 select
   name,
   id,
@@ -23,8 +36,9 @@ from
 ```
 
 ### Find a specific organizational unit and all its descendants
+By filtering OUs based on their path, the query efficiently retrieves information about a specific subset of your organization's structure, which is particularly useful for large organizations with complex hierarchies.
 
-```sql
+```sql+postgres
 select
   name,
   id,
@@ -36,9 +50,22 @@ where
   path <@ 'r_wxnb.ou_wxnb_m8l8t123';
 ```
 
-### Select all organizational units at a certain level in the hierarchy
+```sql+sqlite
+select
+  name,
+  id,
+  parent_id,
+  path
+from
+  aws_organizations_organizational_unit
+where
+  path like 'r_wxnb.ou_wxnb_m8l8t123%'
+```
 
-```sql
+### Select all organizational units at a certain level in the hierarchy
+Retrieving a list of organizational units (OUs) from a structured hierarchy, specifically those that exist at a particular level. In the context of a database or a management system like AWS Organizations, this involves using a query to filter and display only the OUs that are positioned at the same depth or stage in the hierarchical structure.
+
+```sql+postgres
 select
   name,
   id,
@@ -50,9 +77,23 @@ where
   nlevel(path) = 3;
 ```
 
-### Get all ancestors of a given organizational unit
+```sql+sqlite
+select
+  name,
+  id,
+  parent_id,
+  path
+from
+  aws_organizations_organizational_unit
+where
+  (length(path) - length(replace(path, '.', ''))) = 2;
 
-```sql
+```
+
+### Get all ancestors of a given organizational unit
+Ancestors are the units in the hierarchy that precede the given OU. An ancestor can be a direct parent (the immediate higher-level unit), or it can be any higher-level unit up to the root of the hierarchy.
+
+```sql+postgres
 select
   name,
   id,
@@ -64,9 +105,42 @@ where
   'r_wxnb.ou_wxnb_m8l123aq.ou_wxnb_5gri123b' @> path;
 ```
 
-### Retrieve all siblings of a specific organizational unit
+```sql+sqlite
+select
+  name,
+  id,
+  parent_id,
+  path
+from
+  aws_organizations_organizational_unit
+where
+  path like 'r_wxnb.ou_wxnb_m8l123aq.ou_wxnb_5gri123b%';
+```
 
-```sql
+### Retrieve all siblings of a specific organizational unit
+The query is useful for retrieving information about sibling organizational units corresponding to a specified organizational unit.
+
+```sql+postgres
+select
+  name,
+  id,
+  parent_id,
+  path
+from
+  aws_organizations_organizational_unit
+where
+  parent_id =
+  (
+    select
+      parent_id
+    from
+      aws_organizations_organizational_unit
+    where
+      name = 'Punisher'
+  );
+```
+
+```sql+sqlite
 select
   name,
   id,
