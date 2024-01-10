@@ -2,13 +2,11 @@ package aws
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
-	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -64,7 +62,11 @@ func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 				Name:        "parent_id",
 				Description: "The unique identifier (ID) of the root or OU whose child OUs you want to list.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(getParentId),
+			},
+			{
+				Name:        "path",
+				Description: "The OU path is a string representation that uniquely identifies the hierarchical location of an Organizational Unit within the AWS Organizations structure.",
+				Type:        proto.ColumnType_LTREE,
 			},
 
 			// Steampipe standard columns
@@ -86,6 +88,12 @@ func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
 	}
 }
 
+type OrganizationalUnit struct {
+	types.OrganizationalUnit
+	Path     string
+	ParentId string
+}
+
 //// LIST FUNCTION
 
 func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -95,6 +103,11 @@ func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryDa
 	// The unique identifier (ID) of the root or OU whose child OUs you want to list.
 	if d.EqualsQualString("parent_id") != "" {
 		parentId = d.EqualsQualString("parent_id")
+	}
+
+	// empty check
+	if parentId == "" {
+		return nil, nil
 	}
 
 	// Get Client
@@ -115,6 +128,18 @@ func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryDa
 		}
 	}
 
+	// Call the recursive function to list all nested OUs
+	rootPath := parentId
+	err = listAllNestedOUs(ctx, d, svc, parentId, maxItems, rootPath)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.listOrganizationsOrganizationalUnits", "recursive_call_error", err)
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func listAllNestedOUs(ctx context.Context, d *plugin.QueryData, svc *organizations.Client, parentId string, maxItems int32, currentPath string) error {
 	params := &organizations.ListOrganizationalUnitsForParentInput{
 		ParentId:   aws.String(parentId),
 		MaxResults: &maxItems,
@@ -128,27 +153,26 @@ func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryDa
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			var ae smithy.APIError
-			if errors.As(err, &ae) {
-				if ae.ErrorCode() == "ParentNotFoundException" {
-					return nil, nil
-				}
-			}
-			plugin.Logger(ctx).Error("aws_organizations_organizational_unit.listOrganizationsOrganizationalUnits", "api_error", err)
-			return nil, err
+			return err
 		}
 
 		for _, unit := range output.OrganizationalUnits {
-			d.StreamListItem(ctx, unit)
+			ouPath := strings.Replace(currentPath, "-", "_", -1) + "." + strings.Replace(*unit.Id, "-", "_", -1)
+			d.StreamListItem(ctx, OrganizationalUnit{unit, ouPath, parentId})
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			// Recursively list units for this child
+			err := listAllNestedOUs(ctx, d, svc, *unit.Id, maxItems, ouPath)
+			if err != nil {
+				return err
+			}
+
 			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
+				return nil
 			}
 		}
 	}
 
-	return nil, nil
+	return nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -157,7 +181,7 @@ func getOrganizationsOrganizationalUnit(ctx context.Context, d *plugin.QueryData
 	var orgUnitId string
 
 	if h.Item != nil {
-		orgUnitId = *h.Item.(types.OrganizationalUnit).Id
+		orgUnitId = *h.Item.(OrganizationalUnit).Id
 	} else {
 		orgUnitId = d.EqualsQuals["id"].GetStringValue()
 	}
@@ -180,24 +204,4 @@ func getOrganizationsOrganizationalUnit(ctx context.Context, d *plugin.QueryData
 	}
 
 	return *op.OrganizationalUnit, nil
-}
-
-//// TRANSFORM FUNCTION
-
-// This function will be useful if user query the table with 'NOT' operator for the optionsl qual 'parent_id'. Like: "select * from aws_organizations_organizational_unit where parent_id <> 'ou-skjaa-siiewfhgw'"
-func getParentId(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	quals := d.KeyColumnQuals["parent_id"]
-	for _, data := range quals {
-		parentId := data.Value.GetStringValue()
-		if parentId != "" && data.Operator == "=" {
-			return parentId, nil
-		}
-	}
-
-	if d.HydrateItem != nil {
-		data := d.HydrateItem.(types.OrganizationalUnit)
-		return strings.Split(*data.Arn, "/")[2], nil
-	}
-
-	return nil, nil
 }
