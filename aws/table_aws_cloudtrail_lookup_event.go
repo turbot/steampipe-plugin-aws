@@ -168,7 +168,6 @@ func listCloudtrailLookupEvents(ctx context.Context, d *plugin.QueryData, _ *plu
 			input.NextToken = resp.NextToken
 		} else {
 			pageLeft = false
-			break
 		}
 	}
 
