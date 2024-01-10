@@ -33,7 +33,7 @@ select
 from
   aws_organizations_organizational_unit
 where
-  path <@ 'r_wxnb.ou_wxnb_m8l8tpaq';
+  path <@ 'r_wxnb.ou_wxnb_m8l8t123';
 ```
 
 ### Select all organizational units at a certain level in the hierarchy
@@ -61,7 +61,7 @@ select
 from
   aws_organizations_organizational_unit
 where
-  'r_wxnb.ou_wxnb_m8l8tpaq.ou_wxnb_5grilgkb' @> path;
+  'r_wxnb.ou_wxnb_m8l123aq.ou_wxnb_5gri123b' @> path;
 ```
 
 ### Retrieve all siblings of a specific organizational unit
@@ -97,5 +97,5 @@ select
 from
   aws_organizations_organizational_unit
 where
-  path ~ 'r_wxnb.*.ou_wxnb_m8l8tpaq.*';
+  path ~ 'r_wxnb.*.ou_wxnb_m81234aq.*';
 ```
