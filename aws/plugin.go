@@ -40,7 +40,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
-			Schema:      ConfigSchema,
 		},
 		TableMap: map[string]*plugin.Table{
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
@@ -65,6 +64,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_appconfig_application":                                    tableAwsAppConfigApplication(ctx),
 			"aws_appstream_fleet":                                          tableAwsAppStreamFleet(ctx),
 			"aws_appstream_image":                                          tableAwsAppStreamImage(ctx),
+			"aws_appsync_graphql_api":                                      tableAwsAppsyncGraphQLApi(ctx),
 			"aws_athena_query_execution":                                   tableAwsAthenaQueryExecution(ctx),
 			"aws_athena_workgroup":                                         tableAwsAthenaWorkGroup(ctx),
 			"aws_auditmanager_assessment":                                  tableAwsAuditManagerAssessment(ctx),
@@ -321,6 +321,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
 			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
 			"aws_mgn_application":                                          tableAwsMGNApplication(ctx),
+			"aws_mq_broker":                                                tableAwsMQBroker(ctx),
 			"aws_msk_cluster":                                              tableAwsMSKCluster(ctx),
 			"aws_msk_serverless_cluster":                                   tableAwsMSKServerlessCluster(ctx),
 			"aws_neptune_db_cluster":                                       tableAwsNeptuneDBCluster(ctx),
