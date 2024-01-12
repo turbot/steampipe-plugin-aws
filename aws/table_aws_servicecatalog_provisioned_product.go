@@ -31,22 +31,14 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServiceCatalogProvisionedProducts,
-			Tags:    map[string]string{"service": "servicecatalog", "action": "DescribeProvisionedProduct"},
+			Tags:    map[string]string{"service": "servicecatalog", "action": "SearchProvisionedProducts"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "accept_language",
 					Require: plugin.Optional,
 				},
-				// {
-				// 	Name:    "arn",
-				// 	Require: plugin.Optional,
-				// },  // We cannot add arn as an optional parameter currenty as there is some issue with the filter pattern
 				{
 					Name:    "created_time",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "id",
 					Require: plugin.Optional,
 				},
 				{
@@ -55,10 +47,6 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 				},
 				{
 					Name:    "idempotency_token",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "name",
 					Require: plugin.Optional,
 				},
 				{
@@ -127,12 +115,6 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("accept_language"),
 			},
-			// {
-			// 	Name:        "search_query",
-			// 	Description: "The search query for the provisioned product.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromQual("search_query"),
-			// },
 			{
 				Name:        "last_record_id",
 				Description: "The record identifier of the last request performed on this provisioned product.",
@@ -301,7 +283,7 @@ func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryDat
 	}
 
 	if id != "" && name != "" {
-		return nil, fmt.Errorf("Both ProvisionedProductName and ProvisionedProductId cannot be passed in the where clause simultaneously.")
+		return nil, fmt.Errorf("Both ProvisionedProductName and ProvisionedProductId cannot be passed in the where clause simultaneously")
 	}
 
 	// Create client
@@ -337,12 +319,9 @@ func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryDat
 
 func buildServiceCatalogProvisionedProductFilter(ctx context.Context, quals plugin.KeyColumnQualMap) map[string][]string {
 	filterQuals := map[string]string{
-		"arn":                                    "arn",
 		"created_time":                           "createdTime",
-		"id":                                     "id",
 		"last_record_id":                         "lastRecordId",
 		"idempotency_token":                      "idempotencyToken",
-		"name":                                   "name",
 		"product_id":                             "productId",
 		"type":                                   "type",
 		"status":                                 "status",
@@ -350,11 +329,9 @@ func buildServiceCatalogProvisionedProductFilter(ctx context.Context, quals plug
 		"last_successful_provisioning_record_id": "lastSuccessfulProvisioningRecordId",
 	}
 
-	// filter := make(map[string][]string)
 	filters := []string{}
 	for columnName := range filterQuals {
 		if quals[columnName] != nil {
-
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
