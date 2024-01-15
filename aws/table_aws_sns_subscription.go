@@ -147,7 +147,7 @@ func listAwsSnsSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin
 	// Get  Client
 	svc, err := SNSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_sns_subscription.listAwsSnsSubscriptions", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_sns_subscription.listAwsSnsSubscriptions", "connection_error", err)
 		return nil, err
 	}
 
