@@ -607,7 +607,7 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 
 // DescribeDBInstances API returns the non-default ProcessorFeature value.
 // For populating the default ProcessorFeature value we need to make DescribeOrderableDBInstanceOptions API call.
-func getRDSDBInstanceprocessFeatures(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var processFeatures []types.ProcessorFeature
 	dbInstance := h.Item.(types.DBInstance)
 
