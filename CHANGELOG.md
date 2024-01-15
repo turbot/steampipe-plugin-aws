@@ -8,7 +8,7 @@ _What's new?_
   - [aws_organizations_root](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_root) ([#1677](https://github.com/turbot/steampipe-plugin-aws/pull/1677))
   - [aws_sns_subscription](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sns_subscription) ([#2046](https://github.com/turbot/steampipe-plugin-aws/pull/2046))
 
-**Note :** Table `aws_sns_topic_subscription` will be changing behaviours in a future release to return results from `ListSubscriptionsByTopic` instead of  `ListSubscriptions`.
+**Note :** Table `aws_sns_topic_subscription` will be changing behaviours in a future release to return results from `ListSubscriptionsByTopic` instead of `ListSubscriptions`.
 
 ## v0.127.0 [2024-01-10]
 
