@@ -160,6 +160,7 @@ where
 ```
 
 ### Select organizational units with a path that matches a specific pattern
+This query is designed to retrieve organizational units that have a specific hierarchical path pattern within an AWS (Amazon Web Services) organization's structure.
 
 ```sql+postgres
 select
