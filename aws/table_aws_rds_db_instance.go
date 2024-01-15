@@ -632,7 +632,7 @@ func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData,
 
 	op, err := svc.DescribeOrderableDBInstanceOptions(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceprocessFeatures", "api_error", err)
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceProcessorFeatures", "api_error", err)
 		return nil, err
 	}
 
