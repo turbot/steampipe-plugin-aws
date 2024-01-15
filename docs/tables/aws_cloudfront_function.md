@@ -1,15 +1,32 @@
-# Table: aws_cloudfront_function
+---
+title: "Steampipe Table: aws_cloudfront_function - Query AWS CloudFront Functions using SQL"
+description: "Allows users to query AWS CloudFront Functions to retrieve detailed information about each function, including its ARN, stage, status, and more."
+---
 
-CloudFront Functions is ideal for lightweight, short-running functions for use cases like the following:
+# Table: aws_cloudfront_function - Query AWS CloudFront Functions using SQL
 
-- Cache key normalization – You can transform HTTP request attributes (headers, query strings, cookies, even the URL path) to create an optimal cache key, which can improve your cache hit ratio.
-- Header manipulation – You can insert, modify, or delete HTTP headers in the request or response. For example, you can add a True-Client-IP header to every request.
-- URL redirects or rewrites – You can redirect viewers to other pages based on information in the request, or rewrite all requests from one path to another.
-- Request authorization – You can validate hashed authorization tokens, such as JSON web tokens (JWT), by inspecting authorization headers or other request metadata.
+The AWS CloudFront Function is a feature of Amazon CloudFront that allows you to write lightweight functions in JavaScript for high-scale, latency-sensitive CDN customizations. These functions execute at the edge locations, closer to the viewer, allowing you to manipulate HTTP request and response headers, URL, and methods. This feature helps in delivering a highly personalized content with low latency to your viewers.
+
+## Table Usage Guide
+
+The `aws_cloudfront_function` table in Steampipe provides you with information about functions within AWS CloudFront. This table allows you, as a DevOps engineer, to query function-specific details, including the function's ARN, stage, status, and associated metadata. You can utilize this table to gather insights on functions, such as their status, the events they are associated with, and more. The schema outlines the various attributes of the CloudFront function for you, including the function ARN, creation timestamp, last modified timestamp, and associated tags.
+
+## Examples
 
 ### Basic info
 
-```sql
+```sql+postgres
+select
+  name,
+  status,
+  arn,
+  e_tag,
+  function_config
+from
+  aws_cloudfront_function;
+```
+
+```sql+sqlite
 select
   name,
   status,
@@ -22,7 +39,7 @@ from
 
 ### List details of all functions deployed to the live stage
 
-```sql
+```sql+postgres
 select
   name,
   function_config ->> 'Comment' as comment,
@@ -35,9 +52,22 @@ where
   function_metadata ->> 'Stage' = 'LIVE';
 ```
 
+```sql+sqlite
+select
+  name,
+  json_extract(function_config, '$.Comment') as comment,
+  arn,
+  status,
+  e_tag
+from
+  aws_cloudfront_function
+where
+  json_extract(function_metadata, '$.Stage') = 'LIVE';
+```
+
 ### List functions ordered by its creation time starting with latest first
 
-```sql
+```sql+postgres
 select
   name,
   arn,
@@ -51,9 +81,23 @@ order by
   function_metadata ->> 'CreatedTime' DESC;
 ```
 
+```sql+sqlite
+select
+  name,
+  arn,
+  json_extract(function_metadata, '$.Stage') as stage,
+  status,
+  json_extract(function_metadata, '$.CreatedTime') as created_time,
+  json_extract(function_metadata, '$.LastModifiedTime') as last_modified_time
+from
+  aws_cloudfront_function
+order by
+  json_extract(function_metadata, '$.CreatedTime') DESC;
+```
+
 ### List functions updated in the last hour with latest first
 
-```sql
+```sql+postgres
 select
   name,
   arn,
@@ -66,4 +110,19 @@ where
   (function_metadata ->> 'LastModifiedTime')::timestamp >= (now() - interval '1' hour)
 order by
   function_metadata ->> 'LastModifiedTime' DESC;
+```
+
+```sql+sqlite
+select
+  name,
+  arn,
+  json_extract(function_metadata, '$.Stage') as stage,
+  status,
+  json_extract(function_metadata, '$.LastModifiedTime') as last_modified_time
+from
+  aws_cloudfront_function
+where
+  datetime(json_extract(function_metadata, '$.LastModifiedTime')) >= datetime('now', '-1 hour')
+order by
+  json_extract(function_metadata, '$.LastModifiedTime') DESC;
 ```

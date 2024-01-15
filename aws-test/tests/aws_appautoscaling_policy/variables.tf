@@ -98,11 +98,11 @@ output "aws_partition" {
   value = data.aws_partition.current.partition
 }
 
-output "resource_id" {
+output "resource_name" {
   value = aws_appautoscaling_policy.named_test_resource.id
 }
 
-output "resource_name" {
-  value = var.resource_name
+output "resource_id" {
+  value = "table/${var.resource_name}"
 }
 
