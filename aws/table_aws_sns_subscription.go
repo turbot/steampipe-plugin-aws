@@ -194,7 +194,7 @@ func getSnsSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *p
 		data := h.Item.(*sns.GetSubscriptionAttributesOutput)
 		arn = types.SafeString(data.Attributes["SubscriptionArn"])
 	} else {
-		arn = d.EqualsQuals["subscription_arn"].GetStringValue()
+		arn = d.EqualsQualString("subscription_arn")
 	}
 
 	if arn == "" {
