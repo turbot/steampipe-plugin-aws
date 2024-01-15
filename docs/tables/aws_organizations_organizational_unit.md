@@ -87,7 +87,6 @@ from
   aws_organizations_organizational_unit
 where
   (length(path) - length(replace(path, '.', ''))) = 2;
-
 ```
 
 ### Get all ancestors of a given organizational unit
