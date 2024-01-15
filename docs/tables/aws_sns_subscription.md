@@ -59,7 +59,6 @@ where
   filter_policy is null;
 ```
 
-
 ### Subscription count by topic arn
 Determine the areas in which your AWS SNS topics are gaining the most traction by analyzing the number of subscriptions each topic has. This can help prioritize content creation and resource allocation for popular topics.
 
