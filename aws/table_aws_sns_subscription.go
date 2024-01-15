@@ -123,6 +123,8 @@ func tableAwsSnsSubscription(_ context.Context) *plugin.Table {
 				Hydrate:     getSubscriptionAttributes,
 				Transform:   transform.FromField("Attributes.FilterPolicy").Transform(transform.UnmarshalYAML),
 			},
+// Steampipe standard columns
+
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
