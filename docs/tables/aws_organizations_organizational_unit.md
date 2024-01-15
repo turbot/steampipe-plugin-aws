@@ -161,7 +161,7 @@ where
 
 ### Select organizational units with a path that matches a specific pattern
 
-```sql
+```sql+postgres
 select
   name,
   id,
@@ -171,4 +171,16 @@ from
   aws_organizations_organizational_unit
 where
   path ~ 'r_wxnb.*.ou_wxnb_m81234aq.*';
+```
+
+```sql+sqlite
+select
+  name,
+  id,
+  parent_id,
+  path
+from
+  aws_organizations_organizational_unit
+where
+  path like 'r_wxnb%ou_wxnb_m81234aq%';
 ```
