@@ -4,9 +4,15 @@ on:
   push:
     tags:
       - 'v*'
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version to release (must be prefixed with 'v')"
+        required: true
         
 
 jobs:
   anywhere_publish_workflow:
-    uses: turbot/steampipe-workflows/.github/workflows/steampipe-anywhere.yml@main
+    uses: turbot/steampipe-workflows/.github/workflows/steampipe-anywhere.yml@update-pg-location
     secrets: inherit
