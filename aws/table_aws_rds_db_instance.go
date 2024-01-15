@@ -619,7 +619,7 @@ func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData,
 	// Create service
 	svc, err := RDSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceprocessFeatures", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceProcessorFeatures", "connection_error", err)
 		return nil, err
 	}
 
