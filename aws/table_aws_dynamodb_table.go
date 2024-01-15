@@ -196,7 +196,6 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Description: "Indicates whether deletion protection is enabled (true) or disabled (false) on the table.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getDynamoDBTable,
-				Transform:   transform.FromField("DeletionProtectionEnabled"),
 			},
 			{
 				Name:        "continuous_backups_status",
