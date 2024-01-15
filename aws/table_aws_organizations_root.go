@@ -94,6 +94,7 @@ func listOrganizationsRoots(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	})
 
 	for paginator.HasMorePages() {
+	// apply rate limiting
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_organizations_root.listOrganizationsRoots", "api_error", err)
