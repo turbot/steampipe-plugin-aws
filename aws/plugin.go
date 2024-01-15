@@ -95,6 +95,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudtrail_channel":                                       tableAwsCloudtrailChannel(ctx),
 			"aws_cloudtrail_event_data_store":                              tableAwsCloudtrailEventDataStore(ctx),
 			"aws_cloudtrail_import":                                        tableAwsCloudtrailImport(ctx),
+			"aws_cloudtrail_lookup_event":                                  tableAwsCloudtrailLookupEvent(ctx),
 			"aws_cloudtrail_query":                                         tableAwsCloudTrailQuery(ctx),
 			"aws_cloudtrail_trail":                                         tableAwsCloudtrailTrail(ctx),
 			"aws_cloudtrail_trail_event":                                   tableAwsCloudtrailTrailEvent(ctx),
