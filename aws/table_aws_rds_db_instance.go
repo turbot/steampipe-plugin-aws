@@ -394,7 +394,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "processor_features",
 				Description: "The number of CPU cores and the number of threads per core for the DB instance class of the DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getRDSDBInstanceprocessFeatures,
+				Hydrate:     getRDSDBInstanceProcessorFeatures,
 				Transform:   transform.FromValue(),
 			},
 			{
