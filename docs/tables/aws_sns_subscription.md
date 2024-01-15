@@ -36,7 +36,6 @@ where
   redrive_policy is null;
 ```
 
-
 ### List of subscriptions which are not configured to filter messages
 Determine the areas in which subscriptions are not set up to filter messages. This is beneficial for identifying potential inefficiencies or areas of improvement within your notification system.
 
