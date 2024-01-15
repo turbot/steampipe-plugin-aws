@@ -144,6 +144,7 @@ func listAllNestedOUs(ctx context.Context, d *plugin.QueryData, svc *organizatio
 	})
 
 	for paginator.HasMorePages() {
+	// apply rate limiting
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			return err
