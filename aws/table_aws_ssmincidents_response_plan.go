@@ -23,7 +23,7 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 			// Therefore, omitting the 'region' column as a requirement leads to a 'Key column is not globally unique' error, despite the Get config functioning correctly.
 			KeyColumns: plugin.AllColumns([]string{"arn", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getSSMIncidentsResponsePlan,
 			Tags:    map[string]string{"service": "ssm-incidents", "action": "GetResponsePlan"},
