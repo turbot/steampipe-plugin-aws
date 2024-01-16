@@ -103,169 +103,169 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "application_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:Application.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "application_attribute_key"),
 			},
 			{
 				Name:        "application_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:Application.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "application_attribute_value"),
 			},
 			{
 				Name:        "compliance_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:ComplianceItem.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "compliance_attribute_key"),
 			},
 			{
 				Name:        "compliance_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:ComplianceItem.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "compliance_attribute_value"),
 			},
 			{
 				Name:        "file_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:File.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "file_attribute_key"),
 			},
 			{
 				Name:        "file_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:File.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "file_attribute_value"),
 			},
 			{
 				Name:        "instance_detailed_information_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:InstanceDetailedInformation.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "instance_detailed_information_attribute_key"),
 			},
 			{
 				Name:        "instance_detailed_information_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:InstanceDetailedInformation.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "instance_detailed_information_attribute_value"),
 			},
 			{
 				Name:        "instance_information_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:InstanceInformation.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "instance_information_attribute_key"),
 			},
 			{
 				Name:        "instance_information_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:InstanceInformation.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "instance_information_attribute_value"),
 			},
 			{
 				Name:        "network_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:Network.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "network_attribute_key"),
 			},
 			{
 				Name:        "network_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:Network.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "network_attribute_value"),
 			},
 			{
 				Name:        "windows_registry_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:WindowsRegistry.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "windows_registry_attribute_key"),
 			},
 			{
 				Name:        "windows_registry_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:WindowsRegistry.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "windows_registry_attribute_value"),
 			},
 			{
 				Name:        "patch_compliance_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:PatchCompliance.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "patch_compliance_attribute_key"),
 			},
 			{
 				Name:        "patch_compliance_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:PatchCompliance.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "patch_compliance_attribute_value"),
 			},
 			{
 				Name:        "patch_summary_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:PatchSummary.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "patch_summary_attribute_key"),
 			},
 			{
 				Name:        "patch_summary_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:PatchSummary.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "patch_summary_attribute_value"),
 			},
 			{
 				Name:        "resource_group_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:ResourceGroup.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "resource_group_attribute_key"),
 			},
 			{
 				Name:        "resource_group_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:ResourceGroup.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "resource_group_attribute_value"),
 			},
 			{
 				Name:        "service_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:Service.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "service_attribute_key"),
 			},
 			{
 				Name:        "service_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:Service.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "service_attribute_value"),
 			},
 			{
 				Name:        "tag_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:Tag.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "tag_attribute_key"),
 			},
 			{
 				Name:        "tag_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:Tag.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "tag_attribute_value"),
 			},
 			{
 				Name:        "windows_role_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:WindowsRole.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "windows_role_attribute_key"),
 			},
 			{
 				Name:        "windows_role_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:WindowsRole.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "windows_role_attribute_value"),
 			},
 			{
 				Name:        "windows_update_attribute_key",
-				Description: "",
+				Description: "The attribute key of the type name AWS:WindowsUpdate.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "windows_update_attribute_key"),
 			},
 			{
 				Name:        "windows_update_attribute_value",
-				Description: "",
+				Description: "The value for the attribute key of the type name AWS:WindowsUpdate.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "windows_update_attribute_value"),
 			},
@@ -328,16 +328,7 @@ func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	maxItems := int32(50)
 	input := buildSSMInventoryFilter(ctx, d)
-	// filter := types.InventoryFilter{
-	// 	Key:    aws.String("Custom:InspectorThirdPartyPackage.Message"),
-	// 	Values: []string{"SUCCESS"},
-	// 	Type:   types.InventoryQueryOperatorTypeEqual,
-	// }
-	// input.Filters = []types.InventoryFilter{
-	// 	filter,
-	// }
 
-	plugin.Logger(ctx).Error("Input filters ===>> ", input.Filters)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -603,9 +594,6 @@ func getFilterKeyWithOperator(ctx context.Context, d *transform.TransformData) (
 	param := d.Param.(string)
 	data := d.KeyColumnQuals[param]
 	for _, q := range data {
-		plugin.Logger(ctx).Error("Operator ======>> ", q.Operator)
-		plugin.Logger(ctx).Error("Value String ======>> ", q.Value.GetStringValue())
-		plugin.Logger(ctx).Error("Value List ======>> ", q.Value.GetListValue())
 		if q.Operator == "=" {
 			return q.Value.GetStringValue(), nil
 		}
