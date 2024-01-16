@@ -86,18 +86,18 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 				Hydrate:     getSSMIncidentsResponsePlan,
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("name"),
+				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("arn").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
