@@ -79,7 +79,7 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "filter_key",
-				Description: "The name of the filter key. Example: inventory filter key where managed node ID 'AWS:InstanceInformation.InstanceId'",
+				Description: "The name of the filter key. Example: inventory filter key where managed node ID 'AWS:InstanceInformation.InstanceId'.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(getFilterKeyWithOperator, "filter_key"),
 			},
