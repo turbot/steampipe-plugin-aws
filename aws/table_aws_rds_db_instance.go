@@ -46,6 +46,10 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Func: getRDSDBInstanceCertificate,
 				Tags: map[string]string{"service": "rds", "action": "DescribeCertificates"},
 			},
+			{
+				Func: getRDSDBInstanceprocessFeatures,
+				Tags: map[string]string{"service": "rds", "action": "DescribeOrderableDBInstanceOptions"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
