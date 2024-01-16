@@ -398,7 +398,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "processor_features",
 				Description: "The number of CPU cores and the number of threads per core for the DB instance class of the DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getRDSDBInstanceprocessFeatures,
+				Hydrate:     getRDSDBInstanceProcessorFeatures,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -611,7 +611,7 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 
 // DescribeDBInstances API returns the non-default ProcessorFeature value.
 // For populating the default ProcessorFeature value we need to make DescribeOrderableDBInstanceOptions API call.
-func getRDSDBInstanceprocessFeatures(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var processFeatures []types.ProcessorFeature
 	dbInstance := h.Item.(types.DBInstance)
 
@@ -623,7 +623,7 @@ func getRDSDBInstanceprocessFeatures(ctx context.Context, d *plugin.QueryData, h
 	// Create service
 	svc, err := RDSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceprocessFeatures", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceProcessorFeatures", "connection_error", err)
 		return nil, err
 	}
 
@@ -636,7 +636,7 @@ func getRDSDBInstanceprocessFeatures(ctx context.Context, d *plugin.QueryData, h
 
 	op, err := svc.DescribeOrderableDBInstanceOptions(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceprocessFeatures", "api_error", err)
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceProcessorFeatures", "api_error", err)
 		return nil, err
 	}
 
