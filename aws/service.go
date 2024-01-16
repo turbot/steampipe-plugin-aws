@@ -191,6 +191,7 @@ import (
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
+	ssmIncidentsEndpoint "github.com/aws/aws-sdk-go/service/ssmincidents"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
 	transferEndpoint "github.com/aws/aws-sdk-go/service/transfer"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
@@ -1412,7 +1413,7 @@ func SSMClient(ctx context.Context, d *plugin.QueryData) (*ssm.Client, error) {
 }
 
 func SSMIncidentsClient(ctx context.Context, d *plugin.QueryData) (*ssmincidents.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmincidents.ServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmIncidentsEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

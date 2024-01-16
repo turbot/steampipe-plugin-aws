@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	ssmincidents "github.com/aws/aws-sdk-go-v2/service/ssmincidents"
+	"github.com/aws/aws-sdk-go-v2/service/ssmincidents"
 	"github.com/aws/aws-sdk-go-v2/service/ssmincidents/types"
+
+	ssmincidentsv1 "github.com/aws/aws-sdk-go/service/ssmincidents"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -17,6 +19,8 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 		Name:        "aws_ssmincidents_response_plan",
 		Description: "AWS SSMIncidents Response Plan",
 		Get: &plugin.GetConfig{
+			// The resource's ARN is 'arn:aws:ssm-incidents::333333333333:response-plan/test53', which lacks the region specification.
+			// Therefore, omitting the 'region' column as a requirement leads to a 'Key column is not globally unique' error, despite the Get config functioning correctly.
 			KeyColumns: plugin.AllColumns([]string{"arn", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound"}),
@@ -34,7 +38,7 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ssm-incidents", "action": "GetResponsePlan"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmincidents.ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmincidentsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -157,7 +161,6 @@ func listSSMIncidentsResponsePlans(ctx context.Context, d *plugin.QueryData, _ *
 //// HYDRATE FUNCTIONS
 
 func getSSMIncidentsResponsePlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	matrixRegion := d.EqualsQualString(matrixKeyRegion)
 
 	// Create session
 	svc, err := SSMIncidentsClient(ctx, d)
@@ -170,21 +173,22 @@ func getSSMIncidentsResponsePlan(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, nil
 	}
 
-	var reportPlanArn, region string
+	var responsePlanArn string
 	if h.Item != nil {
-		reportPlanArn = *h.Item.(types.ResponsePlanSummary).Arn
-		region = matrixRegion
+		responsePlanArn = *h.Item.(types.ResponsePlanSummary).Arn
 	} else {
-		reportPlanArn = d.EqualsQualString("arn")
-		region = d.EqualsQualString("region")
+		responsePlanArn = d.EqualsQualString("arn")
 	}
 
-	if (reportPlanArn == "" || region == "") || region != matrixRegion {
+	// We don't need region check here.
+	// The function 'GetMatrixItemFunc' eliminates the need for a region check by retrieving results specific to the region defined in the query parameter.
+
+	if responsePlanArn == "" {
 		return nil, nil
 	}
 
 	params := &ssmincidents.GetResponsePlanInput{
-		Arn: aws.String(reportPlanArn),
+		Arn: aws.String(responsePlanArn),
 	}
 
 	op, err := svc.GetResponsePlan(ctx, params)
