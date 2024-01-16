@@ -47,7 +47,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "rds", "action": "DescribeCertificates"},
 			},
 			{
-				Func: getRDSDBInstanceprocessFeatures,
+				Func: getRDSDBInstanceProcessorFeatures,
 				Tags: map[string]string{"service": "rds", "action": "DescribeOrderableDBInstanceOptions"},
 			},
 		},
