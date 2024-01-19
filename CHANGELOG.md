@@ -1,3 +1,20 @@
+## v0.129.0 [2024-01-19]
+
+_What's new?_
+
+- New tables added
+  - [aws_servicecatalog_provisioned_product](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicecatalog_provisioned_product) ([#1917](https://github.com/turbot/steampipe-plugin-aws/pull/1917))
+
+_Enhancements_
+
+- Added `deletion_protection_enabled` column to `aws_dynamodb_table` table. ([#2049](https://github.com/turbot/steampipe-plugin-aws/pull/2049))
+
+_Bug fixes_
+
+- Fixed default page size in `aws_organizations_account` table. ([#2058](https://github.com/turbot/steampipe-plugin-aws/pull/2058))
+- Fixed `processor_features` column in `aws_rds_db_instance` not returning data when default value is set. ([#2028](https://github.com/turbot/steampipe-plugin-aws/pull/2028))
+- Temporarily removed `aws_organizations_organizational_unit` table due to LTREE column issue. ([#2058](https://github.com/turbot/steampipe-plugin-aws/pull/2058))
+
 ## v0.128.0 [2024-01-15]
 
 _What's new?_
