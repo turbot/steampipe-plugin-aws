@@ -1,80 +1,74 @@
 package aws
 
-import (
-	"context"
-
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-)
-
 // Commenting out the table for the time being because, we need to hove the column type LTREE first then we can add it back.
 
 // The table will return the Organizational Units for the root account if parent_id is not specified in the query parameter.
 // If parent_id is specified in the query parameter then it will return the Organizational Units for the given parent.
-func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
-	return &plugin.Table{
-		Name:        "aws_organizations_organizational_unit",
-		Description: "AWS Organizations Organizational Unit",
-		// List: &plugin.ListConfig{
-		// 	ParentHydrate: listOrganizationsRoots,
-		// 	Hydrate:       listOrganizationsOrganizationalUnits,
-		// 	IgnoreConfig: &plugin.IgnoreConfig{
-		// 		ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ParentNotFoundException", "InvalidInputException"}),
-		// 	},
-		// 	KeyColumns: plugin.KeyColumnSlice{
-		// 		{
-		// 			Name:      "parent_id",
-		// 			Require:   plugin.Optional,
-		// 			Operators: []string{"="},
-		// 		},
-		// 	},
-		// },
-		// Columns: awsGlobalRegionColumns([]*plugin.Column{
-		// 	{
-		// 		Name:        "name",
-		// 		Description: "The friendly name of this OU.",
-		// 		Hydrate:     getOrganizationsOrganizationalUnit,
-		// 		Type:        proto.ColumnType_STRING,
-		// 	},
-		// 	{
-		// 		Name:        "id",
-		// 		Description: "The unique identifier (ID) associated with this OU.",
-		// 		Type:        proto.ColumnType_STRING,
-		// 	},
-		// 	{
-		// 		Name:        "arn",
-		// 		Description: "The Amazon Resource Name (ARN) of this OU.",
-		// 		Hydrate:     getOrganizationsOrganizationalUnit,
-		// 		Type:        proto.ColumnType_STRING,
-		// 	},
-		// 	{
-		// 		Name:        "parent_id",
-		// 		Description: "The unique identifier (ID) of the root or OU whose child OUs you want to list.",
-		// 		Type:        proto.ColumnType_STRING,
-		// 	},
-		// 	{
-		// 		Name:        "path",
-		// 		Description: "The OU path is a string representation that uniquely identifies the hierarchical location of an Organizational Unit within the AWS Organizations structure.",
-		// 		Type:        proto.ColumnType_LTREE,
-		// 	},
+// func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
+// 	return &plugin.Table{
+// 		Name:        "aws_organizations_organizational_unit",
+// 		Description: "AWS Organizations Organizational Unit",
+// List: &plugin.ListConfig{
+// 	ParentHydrate: listOrganizationsRoots,
+// 	Hydrate:       listOrganizationsOrganizationalUnits,
+// 	IgnoreConfig: &plugin.IgnoreConfig{
+// 		ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ParentNotFoundException", "InvalidInputException"}),
+// 	},
+// 	KeyColumns: plugin.KeyColumnSlice{
+// 		{
+// 			Name:      "parent_id",
+// 			Require:   plugin.Optional,
+// 			Operators: []string{"="},
+// 		},
+// 	},
+// },
+// Columns: awsGlobalRegionColumns([]*plugin.Column{
+// 	{
+// 		Name:        "name",
+// 		Description: "The friendly name of this OU.",
+// 		Hydrate:     getOrganizationsOrganizationalUnit,
+// 		Type:        proto.ColumnType_STRING,
+// 	},
+// 	{
+// 		Name:        "id",
+// 		Description: "The unique identifier (ID) associated with this OU.",
+// 		Type:        proto.ColumnType_STRING,
+// 	},
+// 	{
+// 		Name:        "arn",
+// 		Description: "The Amazon Resource Name (ARN) of this OU.",
+// 		Hydrate:     getOrganizationsOrganizationalUnit,
+// 		Type:        proto.ColumnType_STRING,
+// 	},
+// 	{
+// 		Name:        "parent_id",
+// 		Description: "The unique identifier (ID) of the root or OU whose child OUs you want to list.",
+// 		Type:        proto.ColumnType_STRING,
+// 	},
+// 	{
+// 		Name:        "path",
+// 		Description: "The OU path is a string representation that uniquely identifies the hierarchical location of an Organizational Unit within the AWS Organizations structure.",
+// 		Type:        proto.ColumnType_LTREE,
+// 	},
 
-		// 	// Steampipe standard columns
-		// 	{
-		// 		Name:        "title",
-		// 		Description: resourceInterfaceDescription("title"),
-		// 		Type:        proto.ColumnType_STRING,
-		// 		Hydrate:     getOrganizationsOrganizationalUnit,
-		// 		Transform:   transform.FromField("Name"),
-		// 	},
-		// 	{
-		// 		Name:        "akas",
-		// 		Description: resourceInterfaceDescription("akas"),
-		// 		Type:        proto.ColumnType_JSON,
-		// 		Hydrate:     getOrganizationsOrganizationalUnit,
-		// 		Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
-		// 	},
-		// }),
-	}
-}
+// 	// Steampipe standard columns
+// 	{
+// 		Name:        "title",
+// 		Description: resourceInterfaceDescription("title"),
+// 		Type:        proto.ColumnType_STRING,
+// 		Hydrate:     getOrganizationsOrganizationalUnit,
+// 		Transform:   transform.FromField("Name"),
+// 	},
+// 	{
+// 		Name:        "akas",
+// 		Description: resourceInterfaceDescription("akas"),
+// 		Type:        proto.ColumnType_JSON,
+// 		Hydrate:     getOrganizationsOrganizationalUnit,
+// 		Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
+// 	},
+// }),
+// 	}
+// }
 
 // type OrganizationalUnit struct {
 // 	types.OrganizationalUnit
