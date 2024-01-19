@@ -122,9 +122,8 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	// The maximum number for MaxResults parameter is not defined by the API
-	// We have set the MaxResults to 1000 based on our test
-	maxItems := int32(1000)
+	// Limit the result
+	maxItems := int32(20)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
@@ -142,8 +141,7 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 	// If you specify the root, you get a list of all the accounts that aren't in any OU.
 	// If you specify an OU, you get a list of all the accounts in only that OU and not in any child OUs.
 	if parentId != "" {
-		maxItem := int32(20) // TODO for limit value in where clause
-		op, err := listOrganizationsAccountsForParent(ctx, d, svc, maxItem, &organizations.ListAccountsForParentInput{
+		op, err := listOrganizationsAccountsForParent(ctx, d, svc, maxItems, &organizations.ListAccountsForParentInput{
 			ParentId:   &parentId,
 			MaxResults: &maxItems,
 		})
