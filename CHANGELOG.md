@@ -1,3 +1,61 @@
+## v0.126.0 [2023-12-29]
+
+_Enhancements_
+
+- Updated the plugin to use a shared, optimized HTTP client that enhances DNS management and reduces connection floods for more stable and efficient queries. ([#2036](https://github.com/turbot/steampipe-plugin-aws/pull/2036))
+
+## v0.125.0 [2023-12-20]
+
+_Enhancements_
+
+- Updated the `.goreleaser` file to build the netgo package only for Darwin systems. ([#2029](https://github.com/turbot/steampipe-plugin-aws/pull/2029))
+
+## v0.124.0 [2023-12-12]
+
+_What's new?_
+
+- The plugin can now be downloaded and used with the [Steampipe CLI](https://steampipe.io/docs), as a [Postgres FDW](https://steampipe.io/docs/steampipe_postgres/overview), as a [SQLite extension](https://steampipe.io/docs//steampipe_sqlite/overview) and as a standalone [exporter](https://steampipe.io/docs/steampipe_export/overview).
+- The table docs have been updated to provide corresponding example queries for Postgres FDW and SQLite extension.
+- Docs license updated to match Steampipe [CC BY-NC-ND license](https://github.com/turbot/steampipe-plugin-aws/blob/main/docs/LICENSE).
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.8.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v580-2023-12-11) that includes plugin server enacapsulation for in-process and GRPC usage, adding Steampipe Plugin SDK version to `_ctx` column, and fixing connection and potential divide-by-zero bugs. ([#2011](https://github.com/turbot/steampipe-plugin-aws/pull/2011))
+
+## v0.123.0 [2023-11-16]
+
+_What's new?_
+
+- New tables added
+  - [aws_lambda_event_source_mapping](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_event_source_mapping) ([#1874](https://github.com/turbot/steampipe-plugin-aws/issues/1874)) (Thanks [@nickman](https://github.com/nickman) for the contribution!)
+
+_Enhancements_
+
+- Added the `resource_record_set_limit` column to `aws_route53_zone` table. ([#1969](https://github.com/turbot/steampipe-plugin-aws/pull/1969)) (Thanks [@keyolk](https://github.com/keyolk) for the contribution!)
+
+## v0.122.0 [2023-11-10]
+
+_What's new?_
+
+- New tables added
+  - [aws_fms_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_fms_policy) ([#1851](https://github.com/turbot/steampipe-plugin-aws/pull/1851))
+  - [aws_fms_app_list](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_fms_app_list) ([#1851](https://github.com/turbot/steampipe-plugin-aws/pull/1851))
+  - [aws_transfer_server](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_transfer_server) ([#1909](https://github.com/turbot/steampipe-plugin-aws/pull/1909)) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
+
+_Enhancements_
+
+- Added the `features` column to `aws_guardduty_detector` table. ([#1958](https://github.com/turbot/steampipe-plugin-aws/pull/1958))
+
+## v0.121.1 [2023-11-06]
+
+_Bug fixes_
+
+- Fixed the description of the `name` column in `aws_organizations_account` table. ([#1947](https://github.com/turbot/steampipe-plugin-aws/pull/1947)) (Thanks [@badideasforsale](https://github.com/badideasforsale) for the contribution!)
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.6.3](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v563-2023-11-06) which addresses the issue of expired credentials being intermittently retained in the connection cache. ([#1956](https://github.com/turbot/steampipe-plugin-aws/pull/1956))
+
 ## v0.121.0 [2023-10-13]
 
 _Enhancements_
@@ -65,7 +123,7 @@ _Enhancements_
 _Bug fixes_
 
 - Fixed the data type of the `sms_configuration_failure` column in the `aws_cognito_user_pool` table to be of `STRING` type instead of `JSON`. ([#1890](https://github.com/turbot/steampipe-plugin-aws/pull/1890)) (Thanks [@KTamas](https://github.com/KTamas) for the contribution!)
-- Fixed typo in the `listQueryRegionsForConnection` function in the `multi_regio,.go` file. ([#1887](https://github.com/turbot/steampipe-plugin-aws/pull/1887)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Fixed typo in the `listQueryRegionsForConnection` function in the `multi_region.go` file. ([#1887](https://github.com/turbot/steampipe-plugin-aws/pull/1887)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
 
 _Dependencies_
 
