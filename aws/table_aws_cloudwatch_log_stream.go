@@ -40,6 +40,10 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 				{
+					Name:    "log_group_name",
+					Require: plugin.Optional,
+				},
+				{
 					Name:    "log_stream_name_prefix",
 					Require: plugin.Optional,
 				},
@@ -144,6 +148,15 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get logGroup details
 	logGroup := h.Item.(types.LogGroup)
+
+	logGroupName := d.EqualsQualString("log_group_name")
+
+	// Minimize API call
+	if logGroupName != "" {
+		if logGroupName != *logGroup.LogGroupName {
+			return nil, nil
+		}
+	}
 
 	// Get client
 	svc, err := CloudWatchLogsClient(ctx, d)
