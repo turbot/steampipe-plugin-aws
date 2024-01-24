@@ -11,7 +11,7 @@ The AWS Well-Architected Tool Answer is a feature within the AWS Well-Architecte
 
 The `aws_wellarchitected_answer` table in Steampipe provides you with information about the answers within AWS Well-Architected Tool. This table allows you, as a DevOps engineer, to query answer-specific details, including the workload, lens, and question associated with each answer. You can utilize this table to gather insights on answers, such as the workload and lens associated with a specific answer, the question that the answer corresponds to, and more. The schema outlines the various attributes of the Well-Architected Tool answer for you, including the answer ID, workload ID, lens alias, and associated metadata.
 
-**Important Notes:**
+**Important Notes**
 - For improved performance, it is advisable that you use the optional qual `workload_id`, `pillar_id`, and `lens_alias` to limit the result set to a specific workload, pillar, or lens.
 
 ## Examples
