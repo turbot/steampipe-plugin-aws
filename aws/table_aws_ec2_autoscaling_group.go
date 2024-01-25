@@ -268,6 +268,13 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("AutoScalingGroupARN").Transform(arnToAkas),
 			},
+			{
+				Name:        "scheduled_actions",
+				Description: "A set of scheduled actions for the specified Auto Scaling group.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsEc2AutoScalingGroupScheduledAction,
+				Transform:   transform.FromValue(),
+			},
 		}),
 	}
 }
@@ -423,6 +430,62 @@ func getAwsEc2AutoScalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	return policies, nil
+}
+
+func getAwsEc2AutoScalingGroupScheduledAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	asg := h.Item.(types.AutoScalingGroup)
+
+	// Create Session
+	svc, err := AutoScalingClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoScalingGroupScheduledAction", "connection_error", err)
+		return nil, err
+	}
+
+	var scheduledActions = make([]map[string]interface{}, 0)
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
+	input := &autoscaling.DescribeScheduledActionsInput{
+		AutoScalingGroupName: asg.AutoScalingGroupName,
+		MaxRecords:           aws.Int32(maxLimit),
+	}
+
+	paginator := autoscaling.NewDescribeScheduledActionsPaginator(svc, input, func(o *autoscaling.DescribeScheduledActionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoScalingGroupScheduledAction", "api_error", err)
+			return nil, err
+		}
+
+		for _, scheduledAction := range output.ScheduledUpdateGroupActions {
+			data, _ := json.Marshal(scheduledAction)
+			var result map[string]interface{}
+			err = json.Unmarshal(data, &result)
+			if err != nil {
+				continue
+			}
+			scheduledActions = append(scheduledActions, result)
+		}
+	}
+
+	return scheduledActions, nil
 }
 
 //// TRANSFORM FUNCTIONS
