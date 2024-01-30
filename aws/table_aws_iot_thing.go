@@ -40,12 +40,18 @@ func tableAwsIotThing(_ context.Context) *plugin.Table {
 				{Name: "thing_type_name", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIotThing,
+				Tags: map[string]string{"service": "iot", "action": "DescribeThing"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(iotv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "thing_name",
-				Type:        proto.ColumnType_STRING,
 				Description: "The name of the thing.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "thing_id",
@@ -147,8 +153,10 @@ func listIotThings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	if d.EqualsQualString("attribute_name") != "" {
 		input.AttributeName = aws.String(d.EqualsQualString("attribute_name"))
 	}
-	if d.EqualsQualString("attribute_value") != "" && d.EqualsQualString("thing_type_name") != "" {
+	if d.EqualsQualString("attribute_value") != "" && d.EqualsQualString("attribute_name") != ""{
 		input.AttributeValue = aws.String(d.EqualsQualString("attribute_value"))
+	}
+	if d.EqualsQualString("thing_type_name") != "" {
 		input.ThingTypeName = aws.String(d.EqualsQualString("thing_type_name"))
 	}
 
