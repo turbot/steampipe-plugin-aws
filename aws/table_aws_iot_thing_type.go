@@ -30,7 +30,13 @@ func tableAwsIotThingType(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIotThingTypes,
-			Tags: map[string]string{"service": "iot", "action": "ListThingTypes"},
+			Tags:    map[string]string{"service": "iot", "action": "ListThingTypes"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIotThingType,
+				Tags: map[string]string{"service": "iot", "action": "DescribeThingType"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(iotv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
