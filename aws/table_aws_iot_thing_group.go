@@ -38,6 +38,12 @@ func tableAwsIotThingGroup(_ context.Context) *plugin.Table {
 				{Name: "parent_group_name", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIotThingGroup,
+				Tags: map[string]string{"service": "iot", "action": "DescribeThingGroup"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(iotv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -182,7 +188,7 @@ func listIotThingGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		MaxResults: aws.Int32(maxLimit),
 		Recursive:  aws.Bool(true),
 	}
-	
+
 	if d.EqualsQualString("parent_group_name") != "" {
 		input.ParentGroup = aws.String(d.EqualsQualString("parent_group_name"))
 	}
