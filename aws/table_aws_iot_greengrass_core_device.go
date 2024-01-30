@@ -35,6 +35,12 @@ func tableAwsIotGreengrassCoreDevice(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIotGreengrassCoreDevice,
+				Tags: map[string]string{"service": "greengrassv2", "action": "GetCoreDevice"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(greengrassv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
