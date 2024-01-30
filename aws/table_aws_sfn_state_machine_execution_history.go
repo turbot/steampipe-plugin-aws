@@ -373,6 +373,7 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 		plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_call GetExecutionHistory", arn)
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Note: IgnoreConfig doesn't work when a ParentHydrate is used https://github.com/turbot/steampipe-plugin-sdk/issues/544
 			var apiErr smithy.APIError
 			if errors.As(err, &apiErr) {
 				switch apiErr.(type) {
