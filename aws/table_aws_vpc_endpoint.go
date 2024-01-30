@@ -58,6 +58,11 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "vpc_endpoint_type",
+				Description: "The type of endpoint.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "state",
 				Description: "The state of the VPC endpoint.",
 				Type:        proto.ColumnType_STRING,

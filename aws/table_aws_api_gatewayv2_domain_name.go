@@ -201,7 +201,7 @@ func getapiGatewayV2DomainNameAkas(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/domainname/" + domainName}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/domainnames/" + domainName}
 
 	return akas, nil
 }

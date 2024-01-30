@@ -1,0 +1,10 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "attributes": {
+      "Name": "{{ resourceName }}"
+    },
+    "thing_name": "{{ resourceName }}",
+    "version": "{{ output.version.value }}"
+  }
+]
