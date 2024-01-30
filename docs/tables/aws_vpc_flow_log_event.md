@@ -11,7 +11,7 @@ The AWS VPC Flow Logs is a feature that enables you to capture information about
 
 The `aws_vpc_flow_log_event` table in Steampipe gives you information about the IP traffic going to and from network interfaces in your Virtual Private Cloud (VPC). With this table, you as a network administrator, security analyst, or DevOps engineer can query details about each traffic flow, including source and destination IP addresses, ports, protocol numbers, packet and byte counts, actions, and more. You can use this table to monitor traffic patterns, troubleshoot connectivity issues, and analyze security incidents. The schema outlines the various attributes of the VPC flow log event, including the event time, log status, and associated metadata.
 
-**Important notes:**
+**Important Notes**
 - You must specify `log_group_name` in a `where` clause in order to use this table.
 - For improved performance, it is suggested that you use the optional qual `timestamp` to limit the result set to a specific time period.
 - This table supports optional quals. Queries with optional quals are optimized to use CloudWatch filters. Optional quals are supported for the following columns:

@@ -11,7 +11,7 @@ The AWS Well-Architected Tool Lens Review Report is a feature of the AWS Well-Ar
 
 The `aws_wellarchitected_lens_review_report` table in Steampipe provides you with information about Lens Review Reports within the AWS Well-Architected Tool. This table allows you, as a DevOps engineer, architect, or system administrator, to query details about the lens review reports, including the lens alias, lens name, lens version, and associated metadata. You can utilize this table to gather insights on lens review reports, such as identifying the lens version, verifying the lens status, understanding the lens notes, and more. The schema outlines the various attributes of the Lens Review Report for you, including the lens version, lens status, lens notes, and associated tags.
 
-**Important Notes:**
+**Important Notes**
 - `workload_id`, `lens_alias` and `milstone_number` are optional key column quals for the query parameter to get the improvement plans of the lens review.
 - For AWS official lenses, this is either the lens alias, such as serverless, or the lens ARN, such as arn:aws:wellarchitected:us-east-1::lens/serverless. Note that some operations (such as ExportLens and CreateLensShare) are not permitted on AWS official lenses.
 - For custom lenses, this is the lens ARN, such as arn:aws:wellarchitected:us-west-2:123456789012:lens/0123456789abcdef01234567890abcdef.
