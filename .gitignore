@@ -35,3 +35,6 @@ node_modules
 
 # Ignore file types
 .vscode/
+
+# Ignore dist folders
+dist/

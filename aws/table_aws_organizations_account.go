@@ -25,7 +25,10 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOrganizationsAccounts,
-			Tags:    map[string]string{"service": "organizations", "action": "ListAccounts"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "parent_id", Require: plugin.Optional},
+			},
+			Tags: map[string]string{"service": "organizations", "action": "ListAccounts"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
@@ -44,6 +47,12 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 				Name:        "id",
 				Description: "The unique identifier (account ID) of the member account.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "parent_id",
+				Description: "The unique identifier (ID) for the parent root or organization unit (OU) whose accounts you want to list.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("parent_id"),
 			},
 			{
 				Name:        "arn",
@@ -104,6 +113,8 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	parentId := d.EqualsQualString("parent_id")
+
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)
 	if err != nil {
@@ -111,10 +122,8 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	// The maximum number for MaxResults parameter is not defined by the API
-	// We have set the MaxResults to 1000 based on our test
+	// Limit the result
 	maxItems := int32(20)
-	params := &organizations.ListAccountsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
@@ -127,6 +136,33 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 			}
 		}
 	}
+
+	// Lists the accounts in an organization that are contained by the specified target root or organizational unit (OU).
+	// If you specify the root, you get a list of all the accounts that aren't in any OU.
+	// If you specify an OU, you get a list of all the accounts in only that OU and not in any child OUs.
+	if parentId != "" {
+		op, err := listOrganizationsAccountsForParent(ctx, d, svc, maxItems, &organizations.ListAccountsForParentInput{
+			ParentId:   &parentId,
+			MaxResults: &maxItems,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		accounts := op.([]types.Account)
+		for _, account := range accounts {
+			d.StreamListItem(ctx, account)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
+		return nil, nil
+	}
+
+	params := &organizations.ListAccountsInput{}
 
 	params.MaxResults = &maxItems
 	paginator := organizations.NewListAccountsPaginator(svc, params, func(o *organizations.ListAccountsPaginatorOptions) {
@@ -155,6 +191,28 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 	}
 
 	return nil, nil
+}
+
+func listOrganizationsAccountsForParent(ctx context.Context, d *plugin.QueryData, svc *organizations.Client, maxItems int32, params *organizations.ListAccountsForParentInput) (interface{}, error) {
+	paginator := organizations.NewListAccountsForParentPaginator(svc, params, func(o *organizations.ListAccountsForParentPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	var accounts []types.Account
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_organizations_account.listOrganizationsAccountsForParent", "api_error", err)
+			return nil, err
+		}
+
+		accounts = append(accounts, output.Accounts...)
+	}
+	return accounts, nil
 }
 
 //// HYDRATE FUNCTIONS

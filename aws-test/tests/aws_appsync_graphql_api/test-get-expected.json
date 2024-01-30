@@ -1,0 +1,8 @@
+[
+  {
+    "api_id": "{{output.resource_id.value}}",
+    "api_type": "GRAPHQL",
+    "arn": "{{output.resource_aka.value}}",
+    "name": "{{resourceName}}"
+  }
+]
