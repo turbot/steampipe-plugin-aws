@@ -334,7 +334,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_oam_sink":                                                 tableAwsOAMSink(ctx),
 			"aws_opensearch_domain":                                        tableAwsOpenSearchDomain(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
-			// "aws_organizations_organizational_unit":                        tableAwsOrganizationsOrganizationalUnit(ctx),
+			"aws_organizations_organizational_unit":                        tableAwsOrganizationsOrganizationalUnit(ctx),
 			"aws_organizations_policy":                                     tableAwsOrganizationsPolicy(ctx),
 			"aws_organizations_policy_target":                              tableAwsOrganizationsPolicyTarget(ctx),
 			"aws_organizations_root":                                       tableAwsOrganizationsRoot(ctx),
