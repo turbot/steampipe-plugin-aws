@@ -32,6 +32,12 @@ func tableAwsIotFleetMetric(_ context.Context) *plugin.Table {
 			Hydrate: listIotFleetMetrics,
 			Tags:    map[string]string{"service": "iot", "action": "ListFleetMetrics"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIotFleetMetric,
+				Tags: map[string]string{"service": "iot", "action": "DescribeFleetMetric"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(iotv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
