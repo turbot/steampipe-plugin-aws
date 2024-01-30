@@ -288,11 +288,17 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Configuration.FunctionArn", "FunctionArn").Transform(arnToAkas),
 			},
+			{
+				Name:        "layers",
+				Description: resourceInterfaceDescription("layers"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.Layers", "Layers"),
+			},
 		}),
 	}
 }
 
-//// LIST FUNCTION
+// // LIST FUNCTION
 
 func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
@@ -351,7 +357,7 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	return nil, nil
 }
 
-//// HYDRATE FUNCTIONS
+// // HYDRATE FUNCTIONS
 
 func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
