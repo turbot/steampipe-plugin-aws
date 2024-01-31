@@ -335,7 +335,7 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 	return stackResources, nil
 }
 
-//// TRANSFORM FUNCTIONS
+// // TRANSFORM FUNCTIONS
 func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	stack := d.HydrateItem.(types.Stack)
 	var turbotTagsMap map[string]string
@@ -387,7 +387,10 @@ func formatJsonBody(ctx context.Context, d *transform.TransformData) (interface{
 
 		// Check if the template body return by API is in JSON/YAML format
 		if isJSON(inputStr) {
-			json.Unmarshal([]byte(inputStr), &result)
+			err := json.Unmarshal([]byte(inputStr), &result)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			// Occasionally, the API response includes the template body with carriage return characters (`\r`).
 			// This leads to an "Unmarshal error [2:4] unexpected key name" when attempting to parse the YAML string to JSON.
