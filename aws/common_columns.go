@@ -16,17 +16,17 @@ import (
 func commonColumnsForAccountResource() []*plugin.Column {
 	return []*plugin.Column{
 		{
-			Name:        "partition",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
-			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
+			Name:         "partition",
+			Type:         proto.ColumnType_STRING,
+			NamedHydrate: getCommonColumnsMemoized,
+			Description:  "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
-			Name:        "account_id",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
-			Transform:   transform.FromCamel(),
-			Description: "The AWS Account ID in which the resource is located.",
+			Name:         "account_id",
+			Type:         proto.ColumnType_STRING,
+			NamedHydrate: getCommonColumnsMemoized,
+			Transform:    transform.FromCamel(),
+			Description:  "The AWS Account ID in which the resource is located.",
 		},
 	}
 }
@@ -35,23 +35,23 @@ func commonColumnsForAccountResource() []*plugin.Column {
 func commonColumnsForRegionalResource() []*plugin.Column {
 	return []*plugin.Column{
 		{
-			Name:        "partition",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
-			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
+			Name:         "partition",
+			Type:         proto.ColumnType_STRING,
+			NamedHydrate: getCommonColumnsMemoized,
+			Description:  "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
-			Name:        "region",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
-			Description: "The AWS Region in which the resource is located.",
+			Name:         "region",
+			Type:         proto.ColumnType_STRING,
+			NamedHydrate: getCommonColumnsMemoized,
+			Description:  "The AWS Region in which the resource is located.",
 		},
 		{
-			Name:        "account_id",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
-			Description: "The AWS Account ID in which the resource is located.",
-			Transform:   transform.FromCamel(),
+			Name:         "account_id",
+			Type:         proto.ColumnType_STRING,
+			NamedHydrate: getCommonColumnsMemoized,
+			Description:  "The AWS Account ID in which the resource is located.",
+			Transform:    transform.FromCamel(),
 		},
 	}
 }
@@ -60,10 +60,10 @@ func commonColumnsForRegionalResource() []*plugin.Column {
 func commonColumnsForGlobalRegionResource() []*plugin.Column {
 	return []*plugin.Column{
 		{
-			Name:        "partition",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
-			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
+			Name:         "partition",
+			Type:         proto.ColumnType_STRING,
+			NamedHydrate: getCommonColumnsMemoized,
+			Description:  "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
 		},
 		{
 			Name: "region",
@@ -73,11 +73,11 @@ func commonColumnsForGlobalRegionResource() []*plugin.Column {
 			Description: "The AWS Region in which the resource is located.",
 		},
 		{
-			Name:        "account_id",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     getCommonColumns,
-			Description: "The AWS Account ID in which the resource is located.",
-			Transform:   transform.FromCamel(),
+			Name:         "account_id",
+			Type:         proto.ColumnType_STRING,
+			NamedHydrate: getCommonColumnsMemoized,
+			Description:  "The AWS Account ID in which the resource is located.",
+			Transform:    transform.FromCamel(),
 		},
 	}
 }
@@ -101,6 +101,8 @@ func awsAccountColumns(columns []*plugin.Column) []*plugin.Column {
 type awsCommonColumnData struct {
 	Partition, Region, AccountId string
 }
+
+var getCommonColumnsMemoized = plugin.MemoizeHydrate(getCommonColumnsUncached, memoize.WithCacheKeyFunction(getCommonColumnsCacheKey))
 
 // if the caching is required other than per connection, build a cache key for the call and use it in Memoize
 // since getCommonColumns is a multi-region call, caching should be per connection per region
