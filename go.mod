@@ -123,13 +123,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0
 	github.com/aws/smithy-go v1.19.0
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
+	github.com/goccy/go-yaml v1.11.3
 	github.com/golang/protobuf v1.5.3
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
 	github.com/turbot/go-kit v0.9.0-rc.1
 	github.com/turbot/steampipe-plugin-sdk/v5 v5.8.0
 	golang.org/x/sync v0.5.0
 	golang.org/x/text v0.13.0
-	k8s.io/apimachinery v0.28.3
 )
 
 require (
@@ -238,6 +238,4 @@ require (
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )

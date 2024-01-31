@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 	"net/url"
 	"regexp"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	go_kit "github.com/turbot/go-kit/types"
 
 	cloudformationv1 "github.com/aws/aws-sdk-go/service/cloudformation"
-	"k8s.io/apimachinery/pkg/util/yaml"
+	"github.com/goccy/go-yaml"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -349,9 +350,13 @@ func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (in
 	return turbotTagsMap, nil
 }
 
-// The Steampipe SDK's defined transform function (transform.UnmarshalYAML) throws an error while parsing the YAML template to JSON.
-// Internally, the Steampipe SDK uses the gopkg.in/yaml.v3 Go package for converting YAML data to JSON. However, it encounters issues when parsing the template body received from the API response, likely due to the presence of code blocks, conditions, functions, etc.
-// The following function can handle all these scenarios and properly render the JSON data format of the template body returned by the API.
+/*
+* The Steampipe SDK's `transform.UnmarshalYAML` function faces errors in parsing YAML to JSON due to the use of the `url.QueryUnescape()` function.
+* For YAML to JSON conversion, the SDK internally relies on the `gopkg.in/yaml.v3` Go package.
+* The template body may be in different formats, such as JSON or YAML, making value transformation not always necessary.
+* A specialized function is available to manage these scenarios, ensuring accurate JSON formatting of the template body as provided by the API, and modifying the transformation as needed.
+* This method offers precise and effective handling tailored specifically for this table, aligning with the responses from the API.
+ */
 func formatJsonBody(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	if d.Value == nil {
 		return nil, nil
@@ -361,17 +366,18 @@ func formatJsonBody(ctx context.Context, d *transform.TransformData) (interface{
 	var result interface{}
 	if inputStr != "" {
 
-		// Escape only URLs instead of checking if any % is not followed by two hexadecimal digits.
+		// Unescape only URLs instead of checking if any % is not followed by two hexadecimal digits in the template body.
 		// QueryUnescape does the inverse transformation of QueryEscape, converting each 3-byte encoded substring of the form "%AB" into the hex-decoded byte 0xAB. It returns an error if any % is not followed by two hexadecimal digits.
 		regex := regexp.MustCompile(`(https?://[^\s]+)`)
 
-		// Find all matches in the input string
+		// Find all URLs in the input string
 		matches := regex.FindAllString(inputStr, -1)
 
-		// Iterate the matched URLs
+		// Iterate the URLs present in the template body.
 		for _, match := range matches {
 			// The `QueryUnescape()` function returns an error if any '%' character is not followed by two hexadecimal digits while unescaping the URL.
-			// The template body may contain instances where '%' is not followed by two hexadecimal digits, so we need to handle such cases carefully.
+			// The template body may contain instances where '%' is not followed by two hexadecimal digits.
+			// We should Unescape only the URLs not all the template body.
 			decoded, err := url.QueryUnescape(match)
 			if err != nil {
 				return nil, err
@@ -379,10 +385,25 @@ func formatJsonBody(ctx context.Context, d *transform.TransformData) (interface{
 			inputStr = strings.ReplaceAll(inputStr, match, decoded)
 		}
 
-		err := yaml.Unmarshal([]byte(inputStr), &result)
-		if err != nil {
-			return nil, err
+		// Check if the template body return by API is in JSON/YAML format
+		if isJSON(inputStr) {
+			json.Unmarshal([]byte(inputStr), &result)
+		} else {
+			// Occasionally, the API response includes the template body with carriage return characters (`\r`).
+			// This leads to an "Unmarshal error [2:4] unexpected key name" when attempting to parse the YAML string to JSON.
+			// Therefore, it's necessary to substitute the carriage return character `\r` with `\n` to resolve this issue.
+			inputStr = strings.ReplaceAll(inputStr, "\r", "\n")
+			err := yaml.Unmarshal([]byte(inputStr), &result)
+			if err != nil {
+				return nil, err
+			}
 		}
+
 	}
 	return result, nil
+}
+
+func isJSON(str string) bool {
+	var js json.RawMessage
+	return json.Unmarshal([]byte(str), &js) == nil
 }
