@@ -16,20 +16,20 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsIotThing(_ context.Context) *plugin.Table {
+func tableAwsIoTThing(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iot_thing",
-		Description: "AWS Iot Thing",
+		Description: "AWS IoT Thing",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("thing_name"),
-			Hydrate:    getIotThing,
+			Hydrate:    getIoTThing,
 			Tags:       map[string]string{"service": "iot", "action": "DescribeThing"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listIotThings,
+			Hydrate: listIoTThings,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -42,7 +42,7 @@ func tableAwsIotThing(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getIotThing,
+				Func: getIoTThing,
 				Tags: map[string]string{"service": "iot", "action": "DescribeThing"},
 			},
 		},
@@ -57,7 +57,7 @@ func tableAwsIotThing(_ context.Context) *plugin.Table {
 				Name:        "thing_id",
 				Description: "The ID of the thing to describe.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotThing,
+				Hydrate:     getIoTThing,
 			},
 			{
 				Name:        "arn",
@@ -86,13 +86,13 @@ func tableAwsIotThing(_ context.Context) *plugin.Table {
 				Name:        "billing_group_name",
 				Description: "The name of the billing group the thing belongs to.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotThing,
+				Hydrate:     getIoTThing,
 			},
 			{
 				Name:        "default_client_id",
 				Description: "The default MQTT client ID. For a typical device, the thing name is also used as the default MQTT client ID.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotThing,
+				Hydrate:     getIoTThing,
 			},
 			{
 				Name:        "version",
@@ -124,11 +124,11 @@ func tableAwsIotThing(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listIotThings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listIoTThings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IOTClient(ctx, d)
+	svc, err := IoTClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_thing.listIotThings", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_thing.listIoTThings", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -172,7 +172,7 @@ func listIotThings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_iot_thing.listIotThings", "api_error", err)
+			plugin.Logger(ctx).Error("aws_iot_thing.listIoTThings", "api_error", err)
 			return nil, err
 		}
 
@@ -191,7 +191,7 @@ func listIotThings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 //// HYDRATE FUNCTIONS
 
-func getIotThing(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIoTThing(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	thingName := ""
 	if h.Item != nil {
 		thing := h.Item.(types.ThingAttribute)
@@ -205,9 +205,9 @@ func getIotThing(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	}
 
 	// Create service
-	svc, err := IOTClient(ctx, d)
+	svc, err := IoTClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_thing.getIotThing", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_thing.getIoTThing", "connection_error", err)
 		return nil, err
 	}
 
@@ -217,7 +217,7 @@ func getIotThing(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 	thing, err := svc.DescribeThing(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_thing.getIotThing", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iot_thing.getIoTThing", "api_error", err)
 		return nil, err
 	}
 
