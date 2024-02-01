@@ -302,7 +302,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_inspector_assessment_template":                            tableAwsInspectorAssessmentTemplate(ctx),
 			"aws_inspector_exclusion":                                      tableAwsInspectorExclusion(ctx),
 			"aws_inspector_finding":                                        tableAwsInspectorFinding(ctx),
-			"aws_iot_thing":                                                tableAwsIotThing(ctx),
+			"aws_iot_thing":                                                tableAwsIoTThing(ctx),
       "aws_iot_thing_type":                                           tableAwsIotThingType(ctx),
 			"aws_kinesis_consumer":                                         tableAwsKinesisConsumer(ctx),
 			"aws_kinesis_firehose_delivery_stream":                         tableAwsKinesisFirehoseDeliveryStream(ctx),
