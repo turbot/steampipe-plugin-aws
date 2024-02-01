@@ -1,12 +1,22 @@
-# Table: aws_ec2_instance_type
+---
+title: "Steampipe Table: aws_ec2_instance_type - Query AWS EC2 Instance Type using SQL"
+description: "Allows users to query AWS EC2 Instance Type data, including details about instance type name, current generation, vCPU, memory, storage, and network performance."
+---
 
-Amazon EC2 provides a wide selection of instance types optimized to fit different use cases. Instance types comprise varying combinations of CPU, memory, storage, and networking capacity and give you the flexibility to choose the appropriate mix of resources for your applications.
+# Table: aws_ec2_instance_type - Query AWS EC2 Instance Type using SQL
+
+The AWS EC2 Instance Type is a component of Amazon's Elastic Compute Cloud (EC2), which provides scalable computing capacity in the Amazon Web Services (AWS) cloud. It defines the hardware of the host computer used for the instance. Different instance types offer varying combinations of CPU, memory, storage, and networking capacity, giving you the flexibility to choose the appropriate mix of resources for your applications.
+
+## Table Usage Guide
+
+The `aws_ec2_instance_type` table in Steampipe provides you with information about EC2 instance types within AWS Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query instance type-specific details, including its name, current generation, vCPU, memory, storage, and network performance. You can utilize this table to gather insights on instance types, such as their capabilities, performance, and associated metadata. The schema outlines the various attributes of the EC2 instance type for you, including the instance type, current generation, vCPU, memory, storage, and network performance.
 
 ## Examples
 
 ### List of instance types which supports dedicated host
+Explore which AWS EC2 instance types support a dedicated host. This is useful for identifying the types of instances that can be used for tasks requiring dedicated resources, enhancing performance and security.
 
-```sql
+```sql+postgres
 select
   instance_type,
   dedicated_hosts_supported
@@ -16,10 +26,20 @@ where
   dedicated_hosts_supported;
 ```
 
+```sql+sqlite
+select
+  instance_type,
+  dedicated_hosts_supported
+from
+  aws_ec2_instance_type
+where
+  dedicated_hosts_supported = 1;
+```
 
 ### List of instance types which does not support auto recovery
+Discover the segments of AWS EC2 instances that do not support auto-recovery. This is useful to identify potential risk areas in your infrastructure that may require manual intervention in case of system failures.
 
-```sql
+```sql+postgres
 select
   instance_type,
   auto_recovery_supported
@@ -29,10 +49,20 @@ where
   not auto_recovery_supported;
 ```
 
+```sql+sqlite
+select
+  instance_type,
+  auto_recovery_supported
+from
+  aws_ec2_instance_type
+where
+  auto_recovery_supported = 0;
+```
 
 ### List of instance types which have more than 24 cores
+Determine the areas in which AWS EC2 instance types support dedicated hosts and have more than 24 default cores. This can be useful for identifying high-performance instances suitable for resource-intensive applications.
 
-```sql
+```sql+postgres
 select
   instance_type,
   dedicated_hosts_supported,
@@ -47,10 +77,26 @@ where
   v_cpu_info ->> 'DefaultCores' > '24';
 ```
 
+```sql+sqlite
+select
+  instance_type,
+  dedicated_hosts_supported,
+  json_extract(v_cpu_info, '$.DefaultCores') as default_cores,
+  json_extract(v_cpu_info, '$.DefaultThreadsPerCore') as default_threads_per_core,
+  json_extract(v_cpu_info, '$.DefaultVCpus') as default_vcpus,
+  json_extract(v_cpu_info, '$.ValidCores') as valid_cores,
+  json_extract(v_cpu_info, '$.ValidThreadsPerCore') as valid_threads_per_core
+from
+  aws_ec2_instance_type
+where
+  CAST(json_extract(v_cpu_info, '$.DefaultCores') AS INTEGER) > 24;
+```
+
 
 ### List of instance types which does not support encryption to root volume
+Identify instances where the type of Amazon EC2 instance does not support encryption for the root volume. This is beneficial for maintaining security standards and ensuring sensitive data is adequately protected.
 
-```sql
+```sql+postgres
 select
   instance_type,
   ebs_info ->> 'EncryptionSupport' as encryption_support
@@ -60,10 +106,20 @@ where
   ebs_info ->> 'EncryptionSupport' = 'unsupported';
 ```
 
+```sql+sqlite
+select
+  instance_type,
+  json_extract(ebs_info, '$.EncryptionSupport') as encryption_support
+from
+  aws_ec2_instance_type
+where
+  json_extract(ebs_info, '$.EncryptionSupport') = 'unsupported';
+```
 
 ### List of instance types eligible for free tier
+Determine the types of instances that are eligible for the free tier in AWS EC2, aiding in cost-efficient resource allocation.
 
-```sql
+```sql+postgres
 select
   instance_type,
   free_tier_eligible
@@ -71,4 +127,14 @@ from
   aws_ec2_instance_type
 where
   free_tier_eligible;
+```
+
+```sql+sqlite
+select
+  instance_type,
+  free_tier_eligible
+from
+  aws_ec2_instance_type
+where
+  free_tier_eligible = 1;
 ```
