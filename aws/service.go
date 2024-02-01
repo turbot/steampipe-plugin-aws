@@ -855,7 +855,7 @@ func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Cli
 	return inspector2.NewFromConfig(*cfg), nil
 }
 
-func IOTClient(ctx context.Context, d *plugin.QueryData) (*iot.Client, error) {
+func IoTClient(ctx context.Context, d *plugin.QueryData) (*iot.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, iotEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
