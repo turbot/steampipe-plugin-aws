@@ -94,7 +94,7 @@ func tableAwsDmsCertificate(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "valid_to_date",
-				Description: "The beginning date that the certificate is valid.",
+				Description: "The final date that the certificate is valid.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
