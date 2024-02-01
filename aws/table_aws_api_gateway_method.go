@@ -21,7 +21,7 @@ import (
 func tableAwsAPIGatewayMethod(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_api_gateway_method",
-		Description: "AWS API Gateway Method ",
+		Description: "AWS API Gateway Method",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"resource_id", "rest_api_id", "http_method"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -158,7 +158,7 @@ func listApiGatewayMethods(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Create service
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_api_gateway_rest_api.listApiGatewayMethods", "connection_error", err)
+		logger.Error("aws_api_gateway_method.listApiGatewayMethods", "connection_error", err)
 		return nil, err
 	}
 
@@ -196,7 +196,7 @@ func listApiGatewayMethods(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listApiGatewayMethods", "api_error", err)
+			plugin.Logger(ctx).Error("aws_api_gateway_method.listApiGatewayMethods", "api_error", err)
 			return nil, err
 		}
 
@@ -229,7 +229,7 @@ func getApiGatewayMethod(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Create session
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getRestAPI", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_api_gateway_method.getApiGatewayMethod", "connection_error", err)
 		return nil, err
 	}
 
@@ -244,7 +244,7 @@ func getApiGatewayMethod(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		if strings.Contains(err.Error(), "NotFoundException") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getRestAPI", "api_error", err)
+		plugin.Logger(ctx).Error("aws_api_gateway_method.getApiGatewayMethod", "api_error", err)
 		return nil, err
 	}
 
