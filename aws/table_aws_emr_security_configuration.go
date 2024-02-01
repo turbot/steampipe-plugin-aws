@@ -44,7 +44,7 @@ func tableAwsEmrSecurityConfiguration(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "TThe name of the security configuration.",
+				Description: "The name of the security configuration.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
