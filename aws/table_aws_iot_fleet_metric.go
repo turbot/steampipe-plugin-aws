@@ -16,26 +16,30 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsIotFleetMetric(_ context.Context) *plugin.Table {
+func tableAwsIoTFleetMetric(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iot_fleet_metric",
 		Description: "AWS IoT Fleet Metric",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("metric_name"),
-			Hydrate:    getIotFleetMetric,
+			Hydrate:    getIoTFleetMetric,
 			Tags:       map[string]string{"service": "iot", "action": "DescribeFleetMetric"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listIotFleetMetrics,
+			Hydrate: listIoTFleetMetrics,
 			Tags:    map[string]string{"service": "iot", "action": "ListFleetMetrics"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getIotFleetMetric,
+				Func: getIoTFleetMetric,
 				Tags: map[string]string{"service": "iot", "action": "DescribeFleetMetric"},
+			},
+			{
+				Func: getIoTFleetMetricTags,
+				Tags: map[string]string{"service": "iot", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(iotv1.EndpointsID),
@@ -55,82 +59,82 @@ func tableAwsIotFleetMetric(_ context.Context) *plugin.Table {
 				Name:        "index_name",
 				Description: "The name of the index to search.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 			},
 			{
 				Name:        "description",
 				Description: "The fleet metric description.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 			},
 			{
 				Name:        "creation_date",
 				Description: "The date when the fleet metric is created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 				Transform:   transform.FromField("CreationDate"),
 			},
 			{
 				Name:        "last_modified_date",
 				Description: "The date when the fleet metric is last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 			},
 			{
 				Name:        "aggregation_field",
 				Description: "The field to aggregate.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 			},
 			{
 				Name:        "aggregation_type_name",
 				Description: "The name of the aggregation type.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 				Transform:   transform.FromField("AggregationType.Name"),
 			},
 			{
 				Name:        "period",
 				Description: "The time in seconds between fleet metric emissions. Range [60(1 min), 86400(1 day)] and must be multiple of 60.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 			},
 			{
 				Name:        "query_string",
 				Description: "The search query string.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 			},
 			{
 				Name:        "query_version",
 				Description: "The search query version.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 			},
 			{
 				Name:        "unit",
 				Description: "Used to support unit transformation such as milliseconds to seconds. The unit must be supported by CW metric (https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_MetricDatum.html)",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 			},
 			{
 				Name:        "version",
 				Description: "The version of the fleet metric.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 			},
 			{
 				Name:        "aggregation_type_values",
 				Description: "A list of the values of aggregation types.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotFleetMetric,
+				Hydrate:     getIoTFleetMetric,
 				Transform:   transform.FromField("AggregationType.Values"),
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags currently associated with the thing type.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotFleetMetricTags,
+				Hydrate:     getIoTFleetMetricTags,
 				Transform:   transform.FromField("Tags"),
 			},
 
@@ -145,7 +149,7 @@ func tableAwsIotFleetMetric(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotFleetMetricTags,
+				Hydrate:     getIoTFleetMetricTags,
 				Transform:   transform.From(iotFleetMetricTagListToTagsMap),
 			},
 			{
@@ -160,11 +164,11 @@ func tableAwsIotFleetMetric(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listIotFleetMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listIoTFleetMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IOTClient(ctx, d)
+	svc, err := IoTClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_fleet_metric.listIotFleetMetrics", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_fleet_metric.listIoTFleetMetrics", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -197,7 +201,7 @@ func listIotFleetMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_iot_fleet_metric.listIotFleetMetrics", "api_error", err)
+			plugin.Logger(ctx).Error("aws_iot_fleet_metric.listIoTFleetMetrics", "api_error", err)
 			return nil, err
 		}
 
@@ -216,7 +220,7 @@ func listIotFleetMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getIotFleetMetric(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIoTFleetMetric(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	metricName := ""
 	if h.Item != nil {
 		t := h.Item.(types.FleetMetricNameAndArn)
@@ -230,9 +234,9 @@ func getIotFleetMetric(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create service
-	svc, err := IOTClient(ctx, d)
+	svc, err := IoTClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_fleet_metric.getIotFleetMetric", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_fleet_metric.getIoTFleetMetric", "connection_error", err)
 		return nil, err
 	}
 
@@ -242,14 +246,14 @@ func getIotFleetMetric(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	resp, err := svc.DescribeFleetMetric(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_fleet_metric.getIotFleetMetric", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iot_fleet_metric.getIoTFleetMetric", "api_error", err)
 		return nil, err
 	}
 
 	return resp, nil
 }
 
-func getIotFleetMetricTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIoTFleetMetricTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	typeArn := ""
 	switch item := h.Item.(type) {
 	case *iot.DescribeThingTypeOutput:
@@ -259,9 +263,9 @@ func getIotFleetMetricTags(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create service
-	svc, err := IOTClient(ctx, d)
+	svc, err := IoTClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_fleet_metric.getIotFleetMetricTags", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_fleet_metric.getIoTFleetMetricTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -271,7 +275,7 @@ func getIotFleetMetricTags(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	endpointTags, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_fleet_metric.getIotFleetMetricTags", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iot_fleet_metric.getIoTFleetMetricTags", "api_error", err)
 		return nil, err
 	}
 
