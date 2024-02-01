@@ -40,7 +40,7 @@ from
   aws_dms_certificate;
 ```
 
-### List certificates that expire in the next 10 days
+### List certificates expiring in next 10 days
 Identify AWS DMS Certificates that are set to expire within the next 10 days. This query helps you proactively manage certificate renewals.
 
 ```sql+postgres
