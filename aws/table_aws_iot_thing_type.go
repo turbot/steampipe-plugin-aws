@@ -16,26 +16,30 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsIotThingType(_ context.Context) *plugin.Table {
+func tableAwsIoTThingType(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iot_thing_type",
 		Description: "AWS IoT Thing Type",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("thing_type_name"),
-			Hydrate:    getIotThingType,
+			Hydrate:    getIoTThingType,
 			Tags:       map[string]string{"service": "iot", "action": "DescribeThingType"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listIotThingTypes,
+			Hydrate: listIoTThingTypes,
 			Tags:    map[string]string{"service": "iot", "action": "ListThingTypes"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getIotThingType,
+				Func: getIoTThingType,
 				Tags: map[string]string{"service": "iot", "action": "DescribeThingType"},
+			},
+			{
+				Func: getIoTThingTypeTags,
+				Tags: map[string]string{"service": "iot", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(iotv1.EndpointsID),
@@ -55,7 +59,7 @@ func tableAwsIotThingType(_ context.Context) *plugin.Table {
 				Name:        "thing_type_id",
 				Description: "The thing type ID.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotThingType,
+				Hydrate:     getIoTThingType,
 			},
 			{
 				Name:        "thing_type_description",
@@ -85,14 +89,14 @@ func tableAwsIotThingType(_ context.Context) *plugin.Table {
 				Name:        "searchable_attributes",
 				Description: "A list of searchable thing attribute names.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotThingType,
+				Hydrate:     getIoTThingType,
 				Transform:   transform.FromField("ThingTypeProperties.SearchableAttributes"),
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags currently associated with the thing type.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotThingTypeTags,
+				Hydrate:     getIoTThingTypeTags,
 				Transform:   transform.FromField("Tags"),
 			},
 
@@ -107,7 +111,7 @@ func tableAwsIotThingType(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotThingTypeTags,
+				Hydrate:     getIoTThingTypeTags,
 				Transform:   transform.From(iotThingTypeTagListToTagsMap),
 			},
 			{
@@ -122,11 +126,11 @@ func tableAwsIotThingType(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listIotThingTypes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listIoTThingTypes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IOTClient(ctx, d)
+	svc, err := IoTClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_thing_type.listIotThingTypes", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_thing_type.listIoTThingTypes", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -159,7 +163,7 @@ func listIotThingTypes(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_iot_thing_type.listIotThingTypes", "api_error", err)
+			plugin.Logger(ctx).Error("aws_iot_thing_type.listIoTThingTypes", "api_error", err)
 			return nil, err
 		}
 
@@ -178,7 +182,7 @@ func listIotThingTypes(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 //// HYDRATE FUNCTIONS
 
-func getIotThingType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIoTThingType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	typeName := ""
 	if h.Item != nil {
 		t := h.Item.(types.ThingTypeDefinition)
@@ -192,9 +196,9 @@ func getIotThingType(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := IOTClient(ctx, d)
+	svc, err := IoTClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_thing_type.getIotThingType", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_thing_type.getIoTThingType", "connection_error", err)
 		return nil, err
 	}
 
@@ -204,14 +208,14 @@ func getIotThingType(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	resp, err := svc.DescribeThingType(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_thing_type.getIotThingType", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iot_thing_type.getIoTThingType", "api_error", err)
 		return nil, err
 	}
 
 	return resp, nil
 }
 
-func getIotThingTypeTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIoTThingTypeTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	typeArn := ""
 	switch item := h.Item.(type) {
 	case *iot.DescribeThingTypeOutput:
@@ -221,9 +225,9 @@ func getIotThingTypeTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// Create service
-	svc, err := IOTClient(ctx, d)
+	svc, err := IoTClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_thing_type.getIotThingTypeTags", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_thing_type.getIoTThingTypeTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -233,7 +237,7 @@ func getIotThingTypeTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	endpointTags, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_thing_type.getIotThingTypeTags", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iot_thing_type.getIoTThingTypeTags", "api_error", err)
 		return nil, err
 	}
 
