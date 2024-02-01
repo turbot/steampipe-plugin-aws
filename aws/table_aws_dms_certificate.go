@@ -123,7 +123,7 @@ func tableAwsDmsCertificate(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("CertificateArn").Transform(arnToAkas),
+				Transform:   transform.FromField("CertificateArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
