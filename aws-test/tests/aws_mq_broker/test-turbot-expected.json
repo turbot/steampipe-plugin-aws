@@ -1,0 +1,13 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_arn.value }}"
+    ],
+    "broker_name": "{{ resourceName }}",
+    "region": "{{ output.aws_region.value }}",
+    "tags": {
+      "Name": "{{ resourceName }}"
+    },
+    "title": "{{ resourceName }}"
+  }
+]
