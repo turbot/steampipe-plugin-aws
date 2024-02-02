@@ -2,14 +2,15 @@
 
 _Enhancements_
 
-- Improved key columns and added new cloumns `log_stream_name_prefix`, `descending` and `order_by` in `aws_cloudwatch_log_stream` table. ([#1951](https://github.com/turbot/steampipe-plugin-aws/pull/1951))
-- Improved filter param of the table `aws_ssm_inventory`. ([#1980](https://github.com/turbot/steampipe-plugin-aws/pull/1980))
-- Added limiter tags for `aws_s3_bucket` GetBucketLocation hydrate function. ([#2066](https://github.com/turbot/steampipe-plugin-aws/pull/2066))
+- Improved filter param by adding new key columns `descending`, `log_group_name`, `log_stream_name_prefix` and `order_by` and added new columns `log_stream_name_prefix`, `descending` and `order_by` in table `aws_cloudwatch_log_stream`. ([#1951](https://github.com/turbot/steampipe-plugin-aws/pull/1951))
+- Improved filter param of the table `aws_ssm_inventory` by adding new key columns. ([#1980](https://github.com/turbot/steampipe-plugin-aws/pull/1980))
+- Added limiter tags for table `aws_s3_bucket` GetBucketLocation hydrate function. ([#2066](https://github.com/turbot/steampipe-plugin-aws/pull/2066))
 
 _Bug fixes_
 
-- Fixed `aws_cloudwatch_log_group` table key column to be globally unique. ([#1976](https://github.com/turbot/steampipe-plugin-aws/pull/1976))
-- Removed duplicate memoizing of getCommonColumns function.([#2065](https://github.com/turbot/steampipe-plugin-aws/pull/2065))
+- Fixed `aws_cloudwatch_log_group` table key column to be globally unique by filtering the results by region. ([#1976](https://github.com/turbot/steampipe-plugin-aws/pull/1976))
+- Removed duplicate memoizing of getCommonColumns function from `aws_s3_multi_region_access_point` and `aws_ec2_launch_template` tables.([#2065](https://github.com/turbot/steampipe-plugin-aws/pull/2065))
+- Fixed error for column `type_name` in table `aws_ssm_inventory_entry`. ([#1980](https://github.com/turbot/steampipe-plugin-aws/pull/1980))
 
 ## v0.129.0 [2024-01-19]
 
