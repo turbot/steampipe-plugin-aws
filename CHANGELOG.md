@@ -2,7 +2,7 @@
 
 _Enhancements_
 
-- Improved filter param by adding new key columns `descending`, `log_group_name`, `log_stream_name_prefix` and `order_by` and added new columns `log_stream_name_prefix`, `descending` and `order_by` in table `aws_cloudwatch_log_stream`. ([#1951](https://github.com/turbot/steampipe-plugin-aws/pull/1951))
+- Optimized `aws_cloudwatch_log_stream` table's query performance by adding `descending`, `log_group_name`, `log_stream_name_prefix` and `order_by` new optional key qual columns. ([#1951](https://github.com/turbot/steampipe-plugin-aws/pull/1951))
 - Improved filter param of the table `aws_ssm_inventory` by adding new key columns. ([#1980](https://github.com/turbot/steampipe-plugin-aws/pull/1980))
 - Added limiter tags for table `aws_s3_bucket` GetBucketLocation hydrate function. ([#2066](https://github.com/turbot/steampipe-plugin-aws/pull/2066))
 
