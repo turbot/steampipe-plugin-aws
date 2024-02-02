@@ -1,3 +1,16 @@
+## v0.130.0 [2024-02-02]
+
+_Enhancements_
+
+- Improved key columns and added new cloumns `log_stream_name_prefix`, `descending` and `order_by` in `aws_cloudwatch_log_stream` table. ([#1951](https://github.com/turbot/steampipe-plugin-aws/pull/1951))
+- Improved filter param of the table `aws_ssm_inventory`. ([#1980](https://github.com/turbot/steampipe-plugin-aws/pull/1980))
+- Added limiter tags for `aws_s3_bucket` GetBucketLocation hydrate function. ([#2066](https://github.com/turbot/steampipe-plugin-aws/pull/2066))
+
+_Bug fixes_
+
+- Fixed `aws_cloudwatch_log_group` table key column to be globally unique. ([#1976](https://github.com/turbot/steampipe-plugin-aws/pull/1976))
+- Removed duplicate memoizing of getCommonColumns function.([#2065](https://github.com/turbot/steampipe-plugin-aws/pull/2065))
+
 ## v0.129.0 [2024-01-19]
 
 _What's new?_
