@@ -2,8 +2,6 @@ module github.com/turbot/steampipe-plugin-aws
 
 go 1.21
 
-replace github.com/turbot/steampipe-plugin-sdk/v5 => /Users/kai/Dev/github/turbot/steampipe-plugin-sdk
-
 require (
 	github.com/aws/aws-sdk-go v1.44.189
 	github.com/aws/aws-sdk-go-v2 v1.21.0
@@ -130,7 +128,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
 	github.com/turbot/go-kit v0.9.0
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.9.0-rc.0
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.9.0-rc.1
 	golang.org/x/sync v0.6.0
 	golang.org/x/text v0.14.0
 )
@@ -216,7 +214,7 @@ require (
 	github.com/stevenle/topsort v0.2.0 // indirect
 	github.com/tkrajina/go-reflector v0.5.6 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
-	github.com/zclconf/go-cty v1.14.1 // indirect
+	github.com/zclconf/go-cty v1.14.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.22.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.44.0 // indirect
