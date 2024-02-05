@@ -2,6 +2,8 @@ module github.com/turbot/steampipe-plugin-aws
 
 go 1.21
 
+replace github.com/turbot/steampipe-plugin-sdk/v5 => /Users/kai/Dev/github/turbot/steampipe-plugin-sdk
+
 require (
 	github.com/aws/aws-sdk-go v1.44.189
 	github.com/aws/aws-sdk-go-v2 v1.21.0
