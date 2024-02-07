@@ -63,6 +63,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/glacier v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/globalaccelerator v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/glue v1.40.0
+	github.com/aws/aws-sdk-go-v2/service/greengrassv2 v1.24.0
 	github.com/aws/aws-sdk-go-v2/service/guardduty v1.18.0
 	github.com/aws/aws-sdk-go-v2/service/health v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.19.0
