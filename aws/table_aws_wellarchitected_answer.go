@@ -202,7 +202,7 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	input := &wellarchitected.ListAnswersInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	// Create session
@@ -225,7 +225,8 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 			input.PillarId = aws.String(d.EqualsQualString("pillar_id"))
 		}
 		if d.EqualsQuals["milestone_number"] != nil {
-			input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+			inputMilestoneNumber := int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+			input.MilestoneNumber = &inputMilestoneNumber
 		}
 		input.LensAlias = aws.String(lensAlias)
 		input.WorkloadId = aws.String(*workload.WorkloadId)
@@ -265,7 +266,7 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 					Risk:          item.Risk,
 				}
 
-				d.StreamListItem(ctx, &AnswerInfo{answer, output.LensAlias, output.LensArn, &output.MilestoneNumber, output.WorkloadId})
+				d.StreamListItem(ctx, &AnswerInfo{answer, output.LensAlias, output.LensArn, output.MilestoneNumber, output.WorkloadId})
 
 				// Context can be cancelled due to manual cancellation or the limit has been hit
 				if d.RowsRemaining(ctx) == 0 {
@@ -309,7 +310,7 @@ func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugi
 		WorkloadId: aws.String(workloadId),
 	}
 	if milestoneNumber != 0 {
-		params.MilestoneNumber = milestoneNumber
+		params.MilestoneNumber = &milestoneNumber
 	}
 
 	// Create Session
@@ -330,5 +331,5 @@ func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	return &AnswerInfo{*op.Answer, op.LensAlias, op.LensArn, &op.MilestoneNumber, op.WorkloadId}, nil
+	return &AnswerInfo{*op.Answer, op.LensAlias, op.LensArn, op.MilestoneNumber, op.WorkloadId}, nil
 }

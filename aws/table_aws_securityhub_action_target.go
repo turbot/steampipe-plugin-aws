@@ -100,7 +100,7 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 
 	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &securityhub.DescribeActionTargetsInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	// List call

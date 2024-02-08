@@ -108,7 +108,7 @@ func listWellArchitectedWorkloadShares(ctx context.Context, d *plugin.QueryData,
 	}
 
 	input := &wellarchitected.ListWorkloadSharesInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	// Validate - User input must match the parent hydrate WorkloadId

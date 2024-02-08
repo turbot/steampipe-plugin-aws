@@ -155,7 +155,7 @@ func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			input.MaxResults = limit
+			input.MaxResults = &limit
 		}
 	}
 

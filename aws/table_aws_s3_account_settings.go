@@ -110,11 +110,12 @@ func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData,
 		AccountId: &s3Account.AccountId,
 	}
 
+	f := false
 	defaultAccessBlock := &types.PublicAccessBlockConfiguration{
-		BlockPublicAcls:       false,
-		BlockPublicPolicy:     false,
-		IgnorePublicAcls:      false,
-		RestrictPublicBuckets: false,
+		BlockPublicAcls:       &f,
+		BlockPublicPolicy:     &f,
+		IgnorePublicAcls:      &f,
+		RestrictPublicBuckets: &f,
 	}
 
 	accessBlock, err := svc.GetPublicAccessBlock(ctx, params)

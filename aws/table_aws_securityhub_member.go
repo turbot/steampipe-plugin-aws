@@ -97,8 +97,9 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, nil
 	}
 
+	f := false
 	params := &securityhub.ListMembersInput{
-		OnlyAssociated: false,
+		OnlyAssociated: &f,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
