@@ -184,7 +184,7 @@ func listDmsCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_dms_replication_instance.listDmsReplicationInstances", "api_error", err)
+			plugin.Logger(ctx).Error("aws_dms_certificate.listDmsCertificates", "api_error", err)
 			return nil, err
 		}
 
