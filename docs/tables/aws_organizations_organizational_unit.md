@@ -1,6 +1,6 @@
 ---
 title: "Steampipe Table: aws_organizations_organizational_unit - Query AWS Organizations Organizational Units using SQL"
-description: "Allows users to query AWS Organizations Organizational Units and provides information about each OUs."
+description: "Allows users to query AWS Organizations Organizational Units and provides information about each OU."
 ---
 
 # Table: aws_organizations_organizational_unit
@@ -9,7 +9,7 @@ A container for accounts within a root. An OU also can contain other OUs, enabli
 
 ## Table Usage Guide
 
-The `aws_organizations_organizational_unit` table in Steampipe provides you with information about  the hierarchical structure, the table includes a `path` column. This column is crucial for understanding the relationship between different OUs in the hierarchy. Due to compatibility issues with the ltree type, which is typically used for representing tree-like structures in PostgreSQL, the standard hyphen (-) in the path values has been replaced with an underscore (\_). This modification ensures proper functionality of the ltree operations and queries.
+The `aws_organizations_organizational_unit` table in Steampipe provides you with information about  the hierarchical structure, the table includes a `path` column. This column is crucial for understanding the relationship between different OUs in the hierarchy. Due to compatibility issues with the `ltree` type, which is typically used for representing tree-like structures in PostgreSQL, the standard hyphen (-) in the path values has been replaced with an underscore (\_). This modification ensures proper functionality of the `ltree` operations and queries.
 
 By default, querying the table without any specific filters will return all OUs from the root of the hierarchy. Users have the option to query the table using a specific `parent_id`. This allows for the retrieval of all direct child OUs under the specified parent.
 
