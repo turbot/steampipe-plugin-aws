@@ -163,7 +163,7 @@ func getTrustedAdvisorCheckSummary(ctx context.Context, d *plugin.QueryData, h *
 	if h.Item != nil {
 		checkSummary := h.Item.(types.TrustedAdvisorCheckDescription)
 		checkId = *checkSummary.Id
-	} else if d.EqualsQualString("check_id") != "" {
+	} else {
 		checkId = d.EqualsQualString("check_id")
 	}
 
