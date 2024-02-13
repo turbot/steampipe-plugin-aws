@@ -8,8 +8,9 @@ _What's new?_
   - [aws_dms_certificate](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_organizational_unit) ([#1985](https://github.com/turbot/steampipe-plugin-aws/pull/1985))
   - [aws_emr_security_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_security_configuration) ([#1984](https://github.com/turbot/steampipe-plugin-aws/pull/1984))
   - [aws_iot_thing](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_thing) ([#1997](https://github.com/turbot/steampipe-plugin-aws/pull/1997))
-  - [aws_ssmincidents_response_plan](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssmincidents_response_plan) ([#1885](https://github.com/turbot/steampipe-plugin-aws/pull/1885))
   - [aws_organizations_organizational_unit](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_organizational_unit) ([#2063](https://github.com/turbot/steampipe-plugin-aws/pull/2063))
+  - [aws_ssmincidents_response_plan](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssmincidents_response_plan) ([#1885](https://github.com/turbot/steampipe-plugin-aws/pull/1885))
+  - [aws_trusted_advisor_check_summary](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_trusted_advisor_check_summary) ([#1978](https://github.com/turbot/steampipe-plugin-aws/pull/1978))
 
 _Bug fixes_
 
