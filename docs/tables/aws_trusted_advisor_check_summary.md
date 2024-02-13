@@ -41,7 +41,9 @@ select
   timestamp,
   resources_flagged
 from
-  aws_trusted_advisor_check_summary;
+  aws_trusted_advisor_check_summary
+where
+  language = 'en';
 ```
 
 ```sql+sqlite
@@ -54,7 +56,9 @@ select
   timestamp,
   resources_flagged
 from
-  aws_trusted_advisor_check_summary;
+  aws_trusted_advisor_check_summary
+where
+  language = 'en';
 ```
 
 ### Get error check summaries
@@ -69,6 +73,8 @@ select
 from
   aws_trusted_advisor_check_summary
 where
+  language = 'en'
+and
   status = 'error';
 ```
 
@@ -81,6 +87,8 @@ select
 from
   aws_trusted_advisor_check_summary
 where
+  language = 'en'
+and
   status = 'error';
 ```
 
@@ -97,6 +105,8 @@ select
 from
   aws_trusted_advisor_check_summary
 where
+  language = 'en'
+and
   timestamp >= now() - interval '5 day';
 ```
 
@@ -110,6 +120,8 @@ select
 from
   aws_trusted_advisor_check_summary
 where
+  language = 'en'
+and
   timestamp >= datetime('now', '-5 day');
 ```
 
@@ -125,7 +137,9 @@ select
   resources_processed,
   resources_suppressed
 from
-  aws_trusted_advisor_check_summary;
+  aws_trusted_advisor_check_summary
+where
+  language = 'en';
 ```
 
 ```sql+sqlite
@@ -137,5 +151,7 @@ select
   resources_processed,
   resources_suppressed
 from
-  aws_trusted_advisor_check_summary;
+  aws_trusted_advisor_check_summary
+where
+  language = 'en';
 ```
