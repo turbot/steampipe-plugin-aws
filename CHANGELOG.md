@@ -1,3 +1,20 @@
+## v0.131.0 [2024-02-13]
+
+_What's new?_
+
+- New tables added
+  - [aws_api_gateway_method](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_api_gateway_method) ([#1995](https://github.com/turbot/steampipe-plugin-aws/pull/1995))
+  - [aws_dms_certificate](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_organizational_unit) ([#1985](https://github.com/turbot/steampipe-plugin-aws/pull/1985))
+  - [aws_emr_security_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_security_configuration) ([#1984](https://github.com/turbot/steampipe-plugin-aws/pull/1984))
+  - [aws_iot_thing](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_thing) ([#1997](https://github.com/turbot/steampipe-plugin-aws/pull/1997))
+  - [aws_ssmincidents_response_plan](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssmincidents_response_plan) ([#1885](https://github.com/turbot/steampipe-plugin-aws/pull/1885))
+  - [aws_organizations_organizational_unit](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_organizational_unit) ([#2063](https://github.com/turbot/steampipe-plugin-aws/pull/2063))
+
+_Bug fixes_
+
+- Fixed `aws_sfn_state_machine_execution_history` table to handle pagination and ignore errors for expired executions
+. ([#1934](https://github.com/turbot/steampipe-plugin-aws/pull/1934)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
 ## v0.130.0 [2024-02-02]
 
 _Enhancements_
