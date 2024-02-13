@@ -12,8 +12,7 @@ _What's new?_
 
 _Bug fixes_
 
-- Fixed `aws_sfn_state_machine_execution_history` table to handle pagination and ignore errors for expired executions
-. ([#1934](https://github.com/turbot/steampipe-plugin-aws/pull/1934)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Fixed `aws_sfn_state_machine_execution_history` table to handle pagination and ignore errors for expired executions history. ([#1934](https://github.com/turbot/steampipe-plugin-aws/pull/1934)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
 
 ## v0.130.0 [2024-02-02]
 
