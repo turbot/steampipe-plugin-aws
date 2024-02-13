@@ -26,6 +26,12 @@ func tableAwsTrustedAdvisorCheckSummary(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listTrustedAdvisorCheckSummaries,
 			Tags:    map[string]string{"service": "support", "action": "DescribeTrustedAdvisorChecks"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:    "language",
+					Require: plugin.Required,
+				},
+			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
@@ -49,6 +55,12 @@ func tableAwsTrustedAdvisorCheckSummary(_ context.Context) *plugin.Table {
 				Name:        "category",
 				Description: "The category of the Trusted Advisor check.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "language",
+				Description: "The ISO 639-1 code for the language that you want your checks to appear in.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("language"),
 			},
 			{
 				Name:        "description",
@@ -131,8 +143,15 @@ func listTrustedAdvisorCheckSummaries(ctx context.Context, d *plugin.QueryData, 
 		return nil, nil
 	}
 
+	language := d.EqualsQualString("language")
+
+	// Empty check
+	if language == "" {
+		return nil, nil
+	}
+
 	input := &support.DescribeTrustedAdvisorChecksInput{
-		Language: aws.String("en"),
+		Language: aws.String(language),
 	}
 
 	// List call
