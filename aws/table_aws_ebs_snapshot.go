@@ -212,7 +212,9 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// Build filter for ebs snapshot
 	filters := buildEbsSnapshotFilter(ctx, d, h, d.EqualsQuals, input)
-	input.Filters = filters
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
 
 	paginator := ec2.NewDescribeSnapshotsPaginator(svc, input, func(o *ec2.DescribeSnapshotsPaginatorOptions) {
 		o.Limit = maxLimit
