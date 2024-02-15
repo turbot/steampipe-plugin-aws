@@ -51,6 +51,13 @@ func tableAwsEc2RegionalSettings(_ context.Context) *plugin.Table {
 				Hydrate:     getDefaultEBSVolumeEncryptionKey,
 				Transform:   transform.FromValue(),
 			},
+			{
+				Name:        "snapshot_block_public_access_state",
+				Description: "Gets the current state of block public access for snapshots setting for the account and Region.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getSnapshotPublicSharingStatus,
+				Transform:   transform.FromValue(),
+			},
 
 			// Steampipe standard columns
 			{
@@ -117,6 +124,23 @@ func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 	return defaultEncryptionKey.KmsKeyId, nil
+}
+
+func getSnapshotPublicSharingStatus(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	// Create session
+	svc, err := EC2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_regional_settings.getSnapshotPublicSharingStatus", "connection_error", err)
+		return nil, err
+	}
+	params := &ec2.GetSnapshotBlockPublicAccessStateInput{}
+	result, err := svc.GetSnapshotBlockPublicAccessState(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_regional_settings.getSnapshotPublicSharingStatus", "api_error", err)
+		return nil, err
+	}
+	return result.State, nil
 }
 
 //// TRANSFORM FUNCTIONS
