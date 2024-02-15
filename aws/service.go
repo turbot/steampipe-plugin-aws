@@ -127,6 +127,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssmincidents"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/support"
 	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
@@ -1463,6 +1464,20 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 		return nil, nil
 	}
 	return ssoadmin.NewFromConfig(*cfg), nil
+}
+
+func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, error) {
+// AWS Support is a global service. This means that any endpoint that you use will update your support cases in the Support Center Console.
+// For example, if you use the US East (N. Virginia) endpoint to create a case, you can use the US West (Oregon) or Europe (Ireland) endpoint to add a correspondence to the same case.
+// https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html#endpoint
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return support.NewFromConfig(*cfg), nil
 }
 
 func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {

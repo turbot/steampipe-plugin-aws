@@ -477,6 +477,8 @@ github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.0 h1:Jfly6mRxk2ZOSlbCvZfKNS7T
 github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.0/go.mod h1:TZSH7xLO7+phDtViY/KUp9WGCJMQkLJ/VpgkTFd5gh8=
 github.com/aws/aws-sdk-go-v2/service/sts v1.18.2 h1:J/4wIaGInCEYCGhTSruxCxeoA5cy91a+JT7cHFKFSHQ=
 github.com/aws/aws-sdk-go-v2/service/sts v1.18.2/go.mod h1:+lGbb3+1ugwKrNTWcf2RT05Xmp543B06zDFTwiTLp7I=
+github.com/aws/aws-sdk-go-v2/service/support v1.16.5 h1:JctSnGvysaiNv6gDtXilv4Ojyh3fJpCQFZHR0JAd/O4=
+github.com/aws/aws-sdk-go-v2/service/support v1.16.5/go.mod h1:4YUnctd5L64X2XftCT/f8VflYCslNMiSbbpy+6dH94w=
 github.com/aws/aws-sdk-go-v2/service/transfer v1.33.7 h1:iwYY0GGCnCvNlJKGMCtSXh0GXswpb8PmBEspYA/WPj0=
 github.com/aws/aws-sdk-go-v2/service/transfer v1.33.7/go.mod h1:cNjXfReEhbaKtjZMVLplqrZleWl8Kdjvofc2BAeto6M=
 github.com/aws/aws-sdk-go-v2/service/waf v1.12.0 h1:motSjIEk+muJFUq+jbamHME5bTc1kTNm3EgAVTp7rcQ=
