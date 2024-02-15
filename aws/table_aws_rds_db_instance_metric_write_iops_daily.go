@@ -35,5 +35,5 @@ func tableAwsRdsInstanceMetricWriteIopsDaily(_ context.Context) *plugin.Table {
 
 func listRdsInstanceMetricWriteIopsDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instance := h.Item.(types.DBInstance)
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/RDS", "ReadIOPS", "DBInstanceIdentifier", *instance.DBInstanceIdentifier)
+	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/RDS", "WriteIOPS", "DBInstanceIdentifier", *instance.DBInstanceIdentifier)
 }
