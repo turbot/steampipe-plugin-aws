@@ -15,7 +15,7 @@ import (
 func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_s3_object_version",
-		Description: "List AWS S3 Object versions in S3 buckets by bucket name.",
+		Description: "AWS S3 Object Version",
 		List: &plugin.ListConfig{
 			Hydrate: listS3ObjectVersions,
 			Tags:    map[string]string{"service": "s3", "action": "ListObjectVersions"},

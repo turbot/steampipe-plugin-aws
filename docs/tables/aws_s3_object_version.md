@@ -1,4 +1,3 @@
-```markdown
 ---
 title: "Steampipe Table: aws_s3_object_version - Query AWS S3 Object Versions"
 description: "Allows querying information about versions of objects stored in Amazon S3 buckets. This table provides details such as bucket name, delimiter, encoding type, version ID marker, prefix, whether the results are truncated, common prefixes, delete markers, and version information."
@@ -13,6 +12,7 @@ The `aws_s3_object_version` table in Steampipe allows you to query information a
 The `aws_s3_object_version` table in Steampipe provides you with information about object versions within AWS Simple Storage Service (S3). This table enables you, as a DevOps engineer, to query object version specific details.
 
 **Important Notes**
+
 - You must specify a `bucket_name` in a where or join clause in order to use this table.
 - It's recommended that you specify the `prefix` column when querying buckets with a large number of object versions to reduce the query time.
 - Optionally, you can specify the column values `encoding_type`, `delimeter`, or `version_id_marker` in where clause to reduce the query time.
@@ -147,7 +147,7 @@ select
   v.encoding_type,
   v.version_id_marker,
   v.is_truncated,
-  JSON_EXTRACT(v.version, '$.VersionId') as version_id
+  json_extract(v.version, '$.VersionId') as version_id
 from
   aws_s3_object_version as v
 join
@@ -157,5 +157,5 @@ where
 and
   o.bucket_name = 'test-delete90'
 and
-  JSON_EXTRACT(v.version, '$.VersionId') = o.version_id;
+  json_extract(v.version, '$.VersionId') = o.version_id;
 ```
