@@ -14,6 +14,7 @@ _What's new?_
 _Bug fixes_
 
 - Fixed `aws_sfn_state_machine_execution_history` table to handle pagination and ignore errors for expired executions history. ([#1934](https://github.com/turbot/steampipe-plugin-aws/pull/1934)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Fixed the `aws_health_affected_entity` table to correctly return data instead of an interface conversion error. ([#2072](https://github.com/turbot/steampipe-plugin-aws/pull/2072))
 
 ## v0.130.0 [2024-02-02]
 
