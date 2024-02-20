@@ -84,7 +84,7 @@ func listBucketIntelligentTieringConfigurations(ctx context.Context, d *plugin.Q
 		return nil, nil
 	}
 
-	bucketRegion, err := doGetBucketRegion(ctx, d, *bucket.Name)
+	bucketRegion, err := doGetBucketRegion(ctx, d, h, *bucket.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func getBucketIntelligentTieringConfiguration(ctx context.Context, d *plugin.Que
 		return nil, nil
 	}
 
-	bucketRegion, err := doGetBucketRegion(ctx, d, bucketName)
+	bucketRegion, err := doGetBucketRegion(ctx, d, h, bucketName)
 	if err != nil {
 		return nil, err
 	}

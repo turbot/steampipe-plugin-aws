@@ -321,12 +321,15 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	return nil, nil
 }
 
-func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, bucket string) (string, error) {
+func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, bucket string) (string, error) {
 	// Have we already resolved and cached the bucket name?
-	// FIXME: include the partition name as:
-	// > Bucket names must be unique across all AWS accounts in all the AWS Regions within a partition
-	// See https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html#general-purpose-bucket-names
-	cacheKey := "getBucketRegion" + bucket
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "get_common_columns_error", err)
+		return "", err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+	cacheKey := "getBucketRegion/" + commonColumnData.Partition + "/" + bucket
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.(string), nil
 	}
@@ -339,19 +342,19 @@ func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, bucket string) 
 	// it may be better to define a default Steampipe limiter once actual AWS limits are discovered.
 	resp, err := http.Head(fmt.Sprintf("https://s3.amazonaws.com/%s", bucket))
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketRegion", "http_head_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "http_head_error", err)
 		return "", err
 	}
 
 	// We only care about the 400 and 404 HTTP status codes which respectively mean the request is invalid or the bucket does not exist at all.
 	// FIXME: do 429 responses happen and also include the header?
 	if resp.StatusCode == 400 || resp.StatusCode == 404 {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketRegion", "http_head_status_code", resp.StatusCode)
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "http_head_status_code", resp.StatusCode)
 	}
 
 	// In the other situations (i.e. 200, 301 and 403, the x-amz-bucket-region header is always present
 	bucketRegion := resp.Header.Get("x-amz-bucket-region")
-	plugin.Logger(ctx).Debug("aws_s3_bucket.getBucketRegion", "bucket", bucket, "region", bucketRegion, "status_code", resp.StatusCode)
+	plugin.Logger(ctx).Debug("aws_s3_bucket.doGetBucketRegion", "bucket", bucket, "region", bucketRegion, "status_code", resp.StatusCode)
 
 	d.ConnectionManager.Cache.Set(cacheKey, bucketRegion)
 	return bucketRegion, nil
@@ -360,7 +363,7 @@ func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, bucket string) 
 func getBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := h.Item.(types.Bucket).Name
 
-	return doGetBucketRegion(ctx, d, *bucketName)
+	return doGetBucketRegion(ctx, d, h, *bucketName)
 }
 
 func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

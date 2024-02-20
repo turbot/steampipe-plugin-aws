@@ -391,7 +391,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 func getBucketRegionForObjects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
 
-	return doGetBucketRegion(ctx, d, bucketName)
+	return doGetBucketRegion(ctx, d, h, bucketName)
 }
 
 func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
