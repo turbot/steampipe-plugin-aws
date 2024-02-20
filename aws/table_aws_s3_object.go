@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"strings"
 	"unicode/utf8"
@@ -30,24 +29,28 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getS3Object,
-				Tags: map[string]string{"service": "s3", "action": "GetObject"},
+				Func: getBucketRegionForObjects,
+				Tags: map[string]string{"service": "s3", "action": "HTTPHeadBucket"},
 			},
 			{
-				Func: getS3ObjectAttributes,
-				Tags: map[string]string{"service": "s3", "action": "GetObjectAttributes"},
+				Func:    getS3Object,
+				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
+				Tags:    map[string]string{"service": "s3", "action": "GetObject"},
 			},
 			{
-				Func: getS3ObjectACL,
-				Tags: map[string]string{"service": "s3", "action": "GetObjectAcl"},
+				Func:    getS3ObjectAttributes,
+				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
+				Tags:    map[string]string{"service": "s3", "action": "GetObjectAttributes"},
 			},
 			{
-				Func: getS3ObjectTagging,
-				Tags: map[string]string{"service": "s3", "action": "GetObjectTagging"},
+				Func:    getS3ObjectACL,
+				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
+				Tags:    map[string]string{"service": "s3", "action": "GetObjectAcl"},
 			},
 			{
-				Func: getBucketLocationForObjects,
-				Tags: map[string]string{"service": "s3", "action": "GetBucketLocation"},
+				Func:    getS3ObjectTagging,
+				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
+				Tags:    map[string]string{"service": "s3", "action": "GetObjectTagging"},
 			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
@@ -378,30 +381,28 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Name:        "region",
 				Description: "The AWS Region in which the object is located.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBucketLocationForObjects,
+				Hydrate:     getBucketRegionForObjects,
 				Transform:   transform.FromValue(),
 			},
 		}),
 	}
 }
 
-func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocationForObjects returned an error but
-	// was ignored through ignore_error_codes config arg
-	location, err := getBucketLocationForObjects(ctx, d, h)
-	if err != nil {
-		return nil, err
-	} else if location == "" {
-		return nil, nil
-	}
+func getBucketRegionForObjects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
 
-	svc, err := S3Client(ctx, d, fmt.Sprint(location))
+	return doGetBucketRegion(ctx, d, bucketName)
+}
+
+func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	bucketRegion := h.HydrateResults["getBucketRegionForObjects"].(string)
+
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_object.listS3Objects", "get_client_error", err)
 		return nil, err
 	}
-
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
 
 	// default supported max value is 1000 by ListObjectsV2
 	maxItems := int32(1000)
@@ -457,23 +458,16 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 }
 
 func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocationForObjects returned an error but
-	// was ignored through ignore_error_codes config arg
-	location, err := getBucketLocationForObjects(ctx, d, h)
-	if err != nil {
-		return nil, err
-	} else if location == "" {
-		return nil, nil
-	}
+	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, fmt.Sprint(location))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_object.getS3Object", "client_error", err)
 		return nil, err
 	}
 
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
 	key := h.Item.(types.Object).Key
 
 	params := &s3.GetObjectInput{
@@ -495,23 +489,16 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 }
 
 func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocationForObjects returned an error but
-	// was ignored through ignore_error_codes config arg
-	location, err := getBucketLocationForObjects(ctx, d, h)
-	if err != nil {
-		return nil, err
-	} else if location == "" {
-		return nil, nil
-	}
+	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, fmt.Sprint(location))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_object.getS3ObjectAttributes", "client_error", err)
 		return nil, err
 	}
 
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
 	key := h.Item.(types.Object).Key
 
 	params := &s3.GetObjectAttributesInput{
@@ -530,16 +517,9 @@ func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocationForObjects returned an error but
-	// was ignored through ignore_error_codes config arg
-	location, err := getBucketLocationForObjects(ctx, d, h)
-	if err != nil {
-		return nil, err
-	} else if location == "" {
-		return nil, nil
-	}
-
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+
 	object := h.Item.(types.Object)
 
 	// GetObjectAcl is not supported by Amazon S3 on Outposts.
@@ -549,7 +529,7 @@ func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	// Create client
-	svc, err := S3Client(ctx, d, fmt.Sprint(location))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_object.getS3ObjectACL", "client_error", err)
 		return nil, err
@@ -570,20 +550,13 @@ func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 }
 
 func getS3ObjectTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocationForObjects returned an error but
-	// was ignored through ignore_error_codes config arg
-	location, err := getBucketLocationForObjects(ctx, d, h)
-	if err != nil {
-		return nil, err
-	} else if location == "" {
-		return nil, nil
-	}
-
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+
 	object := h.Item.(types.Object)
 
 	// Create client
-	svc, err := S3Client(ctx, d, fmt.Sprint(location))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_object.getS3ObjectTagging", "client_error", err)
 		return nil, err
@@ -601,64 +574,6 @@ func getS3ObjectTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	return tags, nil
-}
-
-func getBucketLocationForObjects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	c, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_object.getBucketLocationForObjects", "get_common_columns_error", err)
-		return nil, err
-	}
-	commonColumnData := c.(*awsCommonColumnData)
-
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-
-	// have we already created and cached the session?
-	cacheKey := "getBucketLocationForObjects" + bucketName + commonColumnData.AccountId
-
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.(string), nil
-	}
-
-	// Unlike most services, S3 buckets are a global list. They can be retrieved
-	// from any single region. It's best to use the client region of the user
-	// (e.g. closest to them).
-	clientRegion, err := getDefaultRegion(ctx, d, h)
-	if err != nil {
-		return "", err
-	}
-	svc, err := S3Client(ctx, d, clientRegion)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_object.getBucketLocationForObjects", "get_client_error", err, "clientRegion", clientRegion)
-		return "", err
-	}
-
-	params := &s3.GetBucketLocationInput{Bucket: aws.String(bucketName), ExpectedBucketOwner: aws.String(commonColumnData.AccountId)}
-
-	// Specifies the Region where the bucket resides. For a list of all the Amazon
-	// S3 supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region).
-	location, err := svc.GetBucketLocation(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_object.getBucketLocationForObjects", "bucket_name", bucketName, "clientRegion", clientRegion, "api_error", err)
-		return "", err
-	}
-	var locationConstraint string
-	if location != nil && location.LocationConstraint != "" {
-		// Buckets in eu-west-1 created through the AWS CLI or other API driven methods can return a location of "EU",
-		// so we need to convert back
-		if location.LocationConstraint == "EU" {
-			locationConstraint = "eu-west-1"
-			d.ConnectionManager.Cache.Set(cacheKey, locationConstraint)
-			return locationConstraint, nil
-		}
-		d.ConnectionManager.Cache.Set(cacheKey, string(location.LocationConstraint))
-		return string(location.LocationConstraint), nil
-	}
-
-	// Buckets in us-east-1 have a LocationConstraint of null
-	locationConstraint = "us-east-1"
-	d.ConnectionManager.Cache.Set(cacheKey, locationConstraint)
-	return locationConstraint, nil
 }
 
 func getObjectARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

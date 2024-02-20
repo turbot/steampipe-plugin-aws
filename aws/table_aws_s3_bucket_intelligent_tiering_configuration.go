@@ -2,9 +2,7 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 
@@ -81,23 +79,18 @@ type IntelligentTieringConfigurationInfo struct {
 //// LIST FUNCTION
 
 func listBucketIntelligentTieringConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
 	bucket := h.Item.(types.Bucket)
-	location, err := getIntelligentTieringBucketLocation(ctx, d, h)
-	if err != nil {
-		return nil, nil
-	} else if location == nil {
-		return nil, nil
-	}
-
 	if d.EqualsQualString("bucket_name") != "" && d.EqualsQualString("bucket_name") != *bucket.Name {
 		return nil, nil
 	}
 
+	bucketRegion, err := doGetBucketRegion(ctx, d, *bucket.Name)
+	if err != nil {
+		return nil, err
+	}
+
 	// Create client
-	svc, err := S3Client(ctx, d, fmt.Sprint(location))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket_intelligent_tiering_configuration.listBucketIntelligentTieringConfigurations", "client_error", err)
 		return nil, err
@@ -147,17 +140,13 @@ func getBucketIntelligentTieringConfiguration(ctx context.Context, d *plugin.Que
 		return nil, nil
 	}
 
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	location, err := getIntelligentTieringBucketLocation(ctx, d, h)
+	bucketRegion, err := doGetBucketRegion(ctx, d, bucketName)
 	if err != nil {
-		return nil, nil
-	} else if location == nil {
-		return nil, nil
+		return nil, err
 	}
 
 	// Create client
-	svc, err := S3Client(ctx, d, fmt.Sprint(location))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket_intelligent_tiering_configuration.getBucketIntelligentTieringConfiguration", "client_error", err)
 		return nil, err
@@ -179,72 +168,4 @@ func getBucketIntelligentTieringConfiguration(ctx context.Context, d *plugin.Que
 	}
 
 	return nil, nil
-}
-
-func getIntelligentTieringBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var bucketName string
-	if h.Item != nil {
-		bucketName = *h.Item.(types.Bucket).Name
-	} else {
-		bucketName = d.EqualsQuals["bucket_name"].GetStringValue()
-	}
-
-	if bucketName == "" {
-		return nil, nil
-	}
-
-	c, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket_intelligent_tiering_configuration.getIntelligentTieringBucketLocation", "get_common_columns_error", err)
-		return nil, err
-	}
-	commonColumnData := c.(*awsCommonColumnData)
-
-	// have we already created and cached the session?
-	cacheKey := "getIntelligentTieringBucketLocation" + bucketName + commonColumnData.AccountId
-
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.(string), nil
-	}
-
-	// Unlike most services, S3 buckets are a global list. They can be retrieved
-	// from any single region. It's best to use the client region of the user
-	// (e.g. closest to them).
-	clientRegion, err := getDefaultRegion(ctx, d, h)
-	if err != nil {
-		return "", err
-	}
-
-	svc, err := S3Client(ctx, d, clientRegion)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket_intelligent_tiering_configuration.getIntelligentTieringBucketLocation", "get_client_error", err, "clientRegion", clientRegion)
-		return "", err
-	}
-
-	params := &s3.GetBucketLocationInput{Bucket: aws.String(bucketName), ExpectedBucketOwner: aws.String(commonColumnData.AccountId)}
-
-	// Specifies the Region where the bucket resides. For a list of all the Amazon
-	// S3 supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region).
-	location, err := svc.GetBucketLocation(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket_intelligent_tiering_configuration.getIntelligentTieringBucketLocation", "bucket_name", bucketName, "clientRegion", clientRegion, "api_error", err)
-		return "", err
-	}
-	var locationConstraint string
-	if location != nil && location.LocationConstraint != "" {
-		// Buckets in eu-west-1 created through the AWS CLI or other API driven methods can return a location of "EU",
-		// so we need to convert back
-		if location.LocationConstraint == "EU" {
-			locationConstraint = "eu-west-1"
-			d.ConnectionManager.Cache.Set(cacheKey, locationConstraint)
-			return locationConstraint, nil
-		}
-		d.ConnectionManager.Cache.Set(cacheKey, string(location.LocationConstraint))
-		return string(location.LocationConstraint), nil
-	}
-
-	// Buckets in us-east-1 have a LocationConstraint of null
-	locationConstraint = "us-east-1"
-	d.ConnectionManager.Cache.Set(cacheKey, locationConstraint)
-	return locationConstraint, nil
 }
