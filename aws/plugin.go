@@ -208,6 +208,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway_vpc_attachment":                       tableAwsEc2TransitGatewayVpcAttachment(ctx),
 			"aws_ecr_image":                                                tableAwsEcrImage(ctx),
 			"aws_ecr_image_scan_finding":                                   tableAwsEcrImageScanFinding(ctx),
+			"aws_ecr_registry_scanning_configuration":                      tableAwsEcrRegistryScanningConfiguration(ctx),
 			"aws_ecr_repository":                                           tableAwsEcrRepository(ctx),
 			"aws_ecrpublic_repository":                                     tableAwsEcrpublicRepository(ctx),
 			"aws_ecs_cluster":                                              tableAwsEcsCluster(ctx),
@@ -511,7 +512,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wellarchitected_workload_share":                           tableAwsWellArchitectedWorkloadShare(ctx),
 			"aws_workspaces_directory":                                     tableAwsWorkspacesDirectory(ctx),
 			"aws_workspaces_workspace":                                     tableAwsWorkspace(ctx),
-			"aws_ecr_registry_scanning_configuration":                      tableAwsEcrRegistryScanningConfiguration(ctx),
 		},
 	}
 
