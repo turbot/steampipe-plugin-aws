@@ -652,10 +652,10 @@ func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData,
 	}
 
 	for _, p := range op.OrderableDBInstanceOptions {
-		if *p.StorageType == *dbInstance.StorageType {
+		if *p.StorageType == *dbInstance.StorageType && *p.EngineVersion == *dbInstance.EngineVersion {
 			// Match the RDS insance Availability Zone
 			for _, a := range p.AvailabilityZones {
-				if *a.Name == *dbInstance.AvailabilityZone && p.EngineVersion == dbInstance.EngineVersion {
+				if *a.Name == *dbInstance.AvailabilityZone {
 					for _, f := range p.AvailableProcessorFeatures {
 						processFeature := &types.ProcessorFeature{
 							Name:  f.Name,
