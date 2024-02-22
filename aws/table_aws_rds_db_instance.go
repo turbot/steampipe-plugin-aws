@@ -639,9 +639,6 @@ func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData,
 		return nil, nil
 	}
 
-	if err != nil {
-		return nil, err
-	}
 	params := &rds.DescribeOrderableDBInstanceOptionsInput{
 		Engine:                dbInstance.Engine,
 		DBInstanceClass:       dbInstance.DBInstanceClass,
