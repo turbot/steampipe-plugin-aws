@@ -1,3 +1,9 @@
+## v0.132.0 [2024-02-22]
+
+_Bug fixes_
+
+- Fixed `aws_rds_db_instance_metric_write_iops_daily` table to correctly display column `WriteIOPS` instead of `ReadIOPS`. ([#2079](https://github.com/turbot/steampipe-plugin-aws/pull/2079))
+
 ## v0.131.0 [2024-02-15]
 
 _What's new?_
