@@ -9,6 +9,7 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -632,9 +633,17 @@ func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
+	// https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeOrderableDBInstanceOptions.html
+	// Return nil if unsupported engine type
+	if !helpers.StringSliceContains([]string{"aurora-mysql", "aurora-postgresql", "custom-oracle-ee", "db2-ae", "db2-se", "mariadb", "mysql", "oracle-ee", "oracle-ee-cdb", "oracle-se2", "oracle-se2-cdb", "postgres", "sqlserver-ee", "sqlserver-se", "sqlserver-ex", "sqlserver-web"}, *dbInstance.Engine) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
 	params := &rds.DescribeOrderableDBInstanceOptionsInput{
 		Engine:                dbInstance.Engine,
-		EngineVersion:         dbInstance.EngineVersion,
 		DBInstanceClass:       dbInstance.DBInstanceClass,
 		AvailabilityZoneGroup: aws.String(d.EqualsQualString(matrixKeyRegion)),
 	}
@@ -649,7 +658,7 @@ func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData,
 		if *p.StorageType == *dbInstance.StorageType {
 			// Match the RDS insance Availability Zone
 			for _, a := range p.AvailabilityZones {
-				if *a.Name == *dbInstance.AvailabilityZone {
+				if *a.Name == *dbInstance.AvailabilityZone && p.EngineVersion == dbInstance.EngineVersion {
 					for _, f := range p.AvailableProcessorFeatures {
 						processFeature := &types.ProcessorFeature{
 							Name:  f.Name,
