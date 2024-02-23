@@ -30,7 +30,7 @@ func tableAwsEcrRegistryScanningConfiguration(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "scanning_configuration",
-				Description: "he scanning configuration for the registry.",
+				Description: "The scanning configuration for the registry.",
 				Type:        proto.ColumnType_JSON,
 			},
 			// Steampipe standard columns
