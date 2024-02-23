@@ -1,11 +1,11 @@
 ---
 title: "Steampipe Table: aws_ecr_registry_scanning_configuration - Query AWS ECR Registry Scanning Configuration using SQL"
-description: "Allows users to query AWS ECR Registry Scanning Configuration at the private registry level on a per-Region basis."
+description: "Allows users to query AWS ECR Registry Scanning Configuration at the private registry level on a per-region basis."
 ---
 
 # Table: aws_ecr_registry_scanning_configuration - Query AWS ECR Registry Scanning Configuration using SQL
 
-The AWS ECR Registry Scanning Configurations are defined at the private registry level on a per-Region basis. These refers to the settings and policies that govern how Amazon ECR scans your container images for vulnerabilities. Amazon ECR integrates with the Amazon ECR image scanning feature, which automatically scans your Docker and OCI images for software vulnerabilities.
+The AWS ECR Registry Scanning Configurations are defined at the private registry level on a per-region basis. These refer to the settings and policies that govern how Amazon ECR scans your container images for vulnerabilities. Amazon ECR integrates with the Amazon ECR image scanning feature, which automatically scans your Docker and OCI images for software vulnerabilities.
 
 ## Table Usage Guide
 
@@ -34,9 +34,8 @@ from
   aws_ecr_registry_scanning_configuration;
 ```
 
-
 ### Configuration info for a particular region
-Determine scanning configuration of container images for a specific region. This query is beneficial for understanding the scanning configuration of your container images in that particular region.
+Determine the scanning configuration of container images for a specific region. This query is beneficial for understanding the scanning configuration of your container images in that particular region.
 
 ```sql+postgres
 select
@@ -62,7 +61,7 @@ where
 
 
 ### List the regions where enhanced scanning is enabled
-Identify regions where the enhanced scanning is enabled for container image. This is helpful for determining whether enhanced vulnerability scanning features are available through integrations with AWS services or third-party tools.
+Identify regions where the enhanced scanning is enabled for container images. This helps determine whether enhanced vulnerability scanning features are available through integrations with AWS services or third-party tools.
 
 ```sql+postgres
 select
