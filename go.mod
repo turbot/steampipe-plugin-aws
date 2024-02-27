@@ -128,7 +128,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
 	github.com/turbot/go-kit v0.9.0
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.9.0-rc.5
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.9.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/text v0.14.0
 )
@@ -201,7 +201,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
