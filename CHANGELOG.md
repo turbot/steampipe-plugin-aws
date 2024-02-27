@@ -1,3 +1,19 @@
+## v0.132.0 [2024-02-27]
+
+_What's new?_
+
+- New tables added
+  - [aws_ecr_registry_scanning_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecr_registry_scanning_configuration) ([#2084](https://github.com/turbot/steampipe-plugin-aws/pull/2084))
+
+_Bug fixes_
+
+- Fixed the `InvalidParameterCombination` error when querying the `aws_rds_db_instance` table. ([#2085](https://github.com/turbot/steampipe-plugin-aws/pull/2085))
+- Fixed `aws_rds_db_instance_metric_write_iops_daily` table to correctly display `WriteIOPS` instead of `ReadIOPS`. ([#2079](https://github.com/turbot/steampipe-plugin-aws/pull/2079))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.9.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v590-2024-02-26) that fixes critical caching issues. ([#2067](https://github.com/turbot/steampipe-plugin-aws/pull/2067))
+
 ## v0.131.0 [2024-02-15]
 
 _What's new?_
