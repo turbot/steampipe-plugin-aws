@@ -296,7 +296,7 @@ func listRDSDBEngineVersions(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_rds_db_engine_version.listRDSDBEventSubscriptions", "api_error", err)
+			plugin.Logger(ctx).Error("aws_rds_db_engine_version.listRDSDBEngineVersions", "api_error", err)
 			return nil, err
 		}
 
@@ -337,6 +337,8 @@ func getRDSDBEngineVersionAka(ctx context.Context, d *transform.TransformData) (
 		return transform.EnsureStringArray(ctx, d)
 	}
 }
+
+//// UTILITY FUNCTION
 
 func buildEngineVersionInputFilter(equalQuals plugin.KeyColumnEqualsQualMap) []types.Filter {
 	filters := []types.Filter{}
