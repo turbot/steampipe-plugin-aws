@@ -79,6 +79,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
+	"github.com/aws/aws-sdk-go-v2/service/iot"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
@@ -123,8 +124,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssmincidents"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/support"
 	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
@@ -163,6 +166,7 @@ import (
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
+	iotEndpoint "github.com/aws/aws-sdk-go/service/iot"
 	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
 	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
@@ -190,6 +194,7 @@ import (
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
+	ssmIncidentsEndpoint "github.com/aws/aws-sdk-go/service/ssmincidents"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
 	transferEndpoint "github.com/aws/aws-sdk-go/service/transfer"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
@@ -853,6 +858,17 @@ func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Cli
 	return inspector2.NewFromConfig(*cfg), nil
 }
 
+func IoTClient(ctx context.Context, d *plugin.QueryData) (*iot.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, iotEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return iot.NewFromConfig(*cfg), nil
+}
+
 func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, kafkaEndpoint.EndpointsID)
 	if err != nil {
@@ -1410,6 +1426,17 @@ func SSMClient(ctx context.Context, d *plugin.QueryData) (*ssm.Client, error) {
 	return ssm.NewFromConfig(*cfg), nil
 }
 
+func SSMIncidentsClient(ctx context.Context, d *plugin.QueryData) (*ssmincidents.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmIncidentsEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return ssmincidents.NewFromConfig(*cfg), nil
+}
+
 func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -1437,6 +1464,20 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 		return nil, nil
 	}
 	return ssoadmin.NewFromConfig(*cfg), nil
+}
+
+func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, error) {
+// AWS Support is a global service. This means that any endpoint that you use will update your support cases in the Support Center Console.
+// For example, if you use the US East (N. Virginia) endpoint to create a case, you can use the US West (Oregon) or Europe (Ireland) endpoint to add a correspondence to the same case.
+// https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html#endpoint
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return support.NewFromConfig(*cfg), nil
 }
 
 func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {

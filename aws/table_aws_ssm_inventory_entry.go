@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
 
@@ -92,10 +93,12 @@ func listAwsSSMInventoryEntries(ctx context.Context, d *plugin.QueryData, h *plu
 			return nil, nil
 		}
 	}
+
+	typeName := ""
 	if d.EqualsQualString("type_name") != "" {
-		if d.EqualsQualString("type_name") != *inventory.TypeName {
-			return nil, nil
-		}
+		typeName = d.EqualsQualString("type_name")
+	} else {
+		typeName = *inventory.TypeName
 	}
 
 	maxItems := int32(50)
@@ -110,7 +113,7 @@ func listAwsSSMInventoryEntries(ctx context.Context, d *plugin.QueryData, h *plu
 
 	input := &ssm.ListInventoryEntriesInput{
 		InstanceId: inventory.Id,
-		TypeName:   inventory.TypeName,
+		TypeName:   aws.String(typeName),
 		MaxResults: &maxItems,
 	}
 

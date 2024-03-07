@@ -358,3 +358,34 @@ from
 where
   julianday('now') - julianday(json_extract(certificate, '$.ValidTill')) >= 90;
 ```
+
+### Listing RDS DB Instances with Existing Processor Features
+Supports Infrastructure as Code (IaC) and Automation For organizations using IaC practices or automation in their cloud environments, such queries can help in generating reports, monitoring configurations, or triggering workflows based on the state of RDS instances.
+
+```sql+postgres
+select
+  db_instance_identifier,
+  class,
+  engine,
+  engine_version,
+  kms_key_id,
+  processor_features
+from
+  aws_rds_db_instance
+where
+  processor_features not null;
+```
+
+```sql+sqlite
+select
+  db_instance_identifier,
+  class,
+  engine,
+  engine_version,
+  kms_key_id,
+  processor_features
+from
+  aws_rds_db_instance
+where
+  processor_features not null;
+```

@@ -9,6 +9,7 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -45,6 +46,10 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			{
 				Func: getRDSDBInstanceCertificate,
 				Tags: map[string]string{"service": "rds", "action": "DescribeCertificates"},
+			},
+			{
+				Func: getRDSDBInstanceProcessorFeatures,
+				Tags: map[string]string{"service": "rds", "action": "DescribeOrderableDBInstanceOptions"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
@@ -399,6 +404,8 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "processor_features",
 				Description: "The number of CPU cores and the number of threads per core for the DB instance class of the DB instance.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRDSDBInstanceProcessorFeatures,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "read_replica_db_cluster_identifiers",
@@ -606,6 +613,62 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 		return op.Certificates[0], nil
 	}
 	return nil, nil
+}
+
+// DescribeDBInstances API returns the non-default ProcessorFeature value.
+// For populating the default ProcessorFeature value we need to make DescribeOrderableDBInstanceOptions API call.
+func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var processFeatures []types.ProcessorFeature
+	dbInstance := h.Item.(types.DBInstance)
+
+	// Return the ProcessFeature details if the
+	if dbInstance.ProcessorFeatures != nil {
+		return dbInstance.ProcessorFeatures, nil
+	}
+
+	// Create service
+	svc, err := RDSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceProcessorFeatures", "connection_error", err)
+		return nil, err
+	}
+
+	// https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeOrderableDBInstanceOptions.html
+	// Return nil if unsupported engine type
+	if !helpers.StringSliceContains([]string{"aurora-mysql", "aurora-postgresql", "custom-oracle-ee", "db2-ae", "db2-se", "mariadb", "mysql", "oracle-ee", "oracle-ee-cdb", "oracle-se2", "oracle-se2-cdb", "postgres", "sqlserver-ee", "sqlserver-se", "sqlserver-ex", "sqlserver-web"}, *dbInstance.Engine) {
+		return nil, nil
+	}
+
+	params := &rds.DescribeOrderableDBInstanceOptionsInput{
+		Engine:                dbInstance.Engine,
+		DBInstanceClass:       dbInstance.DBInstanceClass,
+		AvailabilityZoneGroup: aws.String(d.EqualsQualString(matrixKeyRegion)),
+	}
+
+	op, err := svc.DescribeOrderableDBInstanceOptions(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceProcessorFeatures", "api_error", err)
+		return nil, err
+	}
+
+	for _, p := range op.OrderableDBInstanceOptions {
+		if *p.StorageType == *dbInstance.StorageType && *p.EngineVersion == *dbInstance.EngineVersion {
+			// Match the RDS insance Availability Zone
+			for _, a := range p.AvailabilityZones {
+				if *a.Name == *dbInstance.AvailabilityZone {
+					for _, f := range p.AvailableProcessorFeatures {
+						processFeature := &types.ProcessorFeature{
+							Name:  f.Name,
+							Value: f.DefaultValue,
+						}
+						processFeatures = append(processFeatures, *processFeature)
+					}
+				}
+			}
+		}
+	}
+
+	return processFeatures, nil
 }
 
 //// TRANSFORM FUNCTIONS
