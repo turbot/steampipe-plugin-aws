@@ -128,11 +128,13 @@ require (
 	github.com/goccy/go-yaml v1.11.3
 	github.com/golang/protobuf v1.5.3
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
-	github.com/turbot/go-kit v0.9.0-rc.1
+	github.com/turbot/go-kit v0.9.0
 	github.com/turbot/steampipe-plugin-sdk/v5 v5.9.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/text v0.14.0
 )
+
+require golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 
 require (
 	cloud.google.com/go v0.111.0 // indirect
