@@ -7,6 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/glue/types"
 
+	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
+	lakeformationTypes "github.com/aws/aws-sdk-go-v2/service/lakeformation/types"
+
 	gluev1 "github.com/aws/aws-sdk-go/service/glue"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -133,6 +136,13 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 				Name:        "target_table",
 				Description: "A TableIdentifier structure that describes a target table for resource linking.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "lake_formation_tags",
+				Description: "Tags assigned to the table by AWS Lake Formation.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getLakeFormationTags,
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -279,4 +289,37 @@ func getGlueCatalogTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 	aka := "arn:" + commonColumnData.Partition + ":glue:" + region + ":" + commonColumnData.AccountId + ":table/" + *data.DatabaseName + "/" + *data.Name
 
 	return []string{aka}, nil
+}
+
+func getLakeFormationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	table := h.Item.(types.Table)
+
+	// Create session
+	svc, err := LakeFormationClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_table.getLakeFormationTags", "connection_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &lakeformation.GetResourceLFTagsInput{
+		CatalogId:          table.CatalogId,
+		ShowAssignedLFTags: aws.Bool(true),
+		Resource: &lakeformationTypes.Resource{
+			Table: &lakeformationTypes.TableResource{
+				CatalogId:    table.CatalogId,
+				DatabaseName: table.DatabaseName,
+				Name:         table.Name,
+			},
+		},
+	}
+
+	// Get call
+	lfTags, err := svc.GetResourceLFTags(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_table.getLakeFormationTags", "api_error", err)
+		return nil, err
+	}
+
+	return lfTags, nil
 }
