@@ -34,6 +34,8 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "repository_name", Require: plugin.Required},
 				{Name: "image_tag", Require: plugin.Required},
+				{Name: "region", Require: plugin.Optional},
+				{Name: "account_id", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
@@ -117,7 +119,25 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 }
 
 // // LIST FUNCTION
-func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	if d.EqualsQualString("region") != "" {
+		if d.EqualsQualString("region") != commonColumnData.Region {
+			return nil, nil
+		}
+	}
+
+	if d.EqualsQualString("account_id") != "" {
+		if d.EqualsQualString("account_id") != commonColumnData.AccountId {
+			return nil, nil
+		}
+	}
+
 	// Create Session
 	svc, err := ECRClient(ctx, d)
 	if err != nil {
