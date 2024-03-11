@@ -41,6 +41,10 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				Func: getNetworkFirewallFirewall,
 				Tags: map[string]string{"service": "network-firewall", "action": "DescribeFirewall"},
 			},
+			{
+				Func: getNetworkFirewallFirewallLoggingConfiguration,
+				Tags: map[string]string{"service": "network-firewall", "action": "DescribeLoggingConfiguration"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
