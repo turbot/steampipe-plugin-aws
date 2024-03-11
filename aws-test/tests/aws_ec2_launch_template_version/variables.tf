@@ -58,6 +58,32 @@ resource "aws_licensemanager_license_configuration" "named_test_resource" {
   ]
 }
 
+resource "aws_iam_instance_profile" "instance_profile" {
+  name = var.resource_name
+  role = aws_iam_role.role.name
+}
+
+resource "aws_iam_role" "role" {
+  name = var.resource_name
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
 resource "aws_launch_template" "named_test_resource" {
   name = var.resource_name
 
@@ -76,6 +102,10 @@ resource "aws_launch_template" "named_test_resource" {
   cpu_options {
     core_count       = 4
     threads_per_core = 2
+  }
+
+  iam_instance_profile {
+    name = aws_iam_instance_profile.instance_profile.name
   }
 
   credit_specification {

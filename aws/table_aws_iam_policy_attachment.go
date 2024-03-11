@@ -75,7 +75,7 @@ func listIamPolicyAttachments(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 	policy := h.Item.(types.Policy)
-	maxItems := int32(100)
+	maxItems := int32(1000)
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead

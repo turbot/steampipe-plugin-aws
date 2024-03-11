@@ -10,14 +10,25 @@ builds:
       - GOPRIVATE=github.com/turbot
     goos:
       - linux
-      - darwin
-
     goarch:
       - amd64
       - arm64
-
-    id: "steampipe"
+    id: "steampipe-linux"
     binary: "{{ .ProjectName }}.plugin"
+
+  - env:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+      - GOPRIVATE=github.com/turbot
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    id: "steampipe-darwin"
+    binary: "{{ .ProjectName }}.plugin"
+    flags:
+      - -tags=netgo
 
 archives:
   - format: gz

@@ -136,7 +136,7 @@ resource "aws_elastic_beanstalk_application" "application_test" {
 resource "aws_elastic_beanstalk_environment" "named_test_resource" {
   name                   = var.resource_name
   application            = aws_elastic_beanstalk_application.application_test.name
-  solution_stack_name    = "64bit Amazon Linux 2 v3.6.4 running Go 1"
+  solution_stack_name    = "64bit Amazon Linux 2015.03 v2.0.3 running Go 1.4"
   wait_for_ready_timeout = "45m"
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
