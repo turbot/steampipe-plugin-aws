@@ -351,12 +351,18 @@ func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (in
 }
 
 /*
-* The Steampipe SDK's `transform.UnmarshalYAML` function faces errors in parsing YAML to JSON due to the use of the `url.QueryUnescape()` function.
-* For YAML to JSON conversion, the SDK internally relies on the `gopkg.in/yaml.v3` Go package.
-* The template body may be in different formats, such as JSON or YAML, making value transformation not always necessary.
-* A specialized function is available to manage these scenarios, ensuring accurate JSON formatting of the template body as provided by the API, and modifying the transformation as needed.
-* This method offers precise and effective handling tailored specifically for this table, aligning with the responses from the API.
- */
+* Encountering errors when parsing YAML to JSON with `transform.UnmarshalYAML` in the Steampipe SDK, primarily due to `url.QueryUnescape()` usage.
+* The API may return the template body in various formats like JSON or YAML, based on configuration made by user. Consequently, converting YAML to JSON isn't always required.
+* To address this, a dedicated function has been implemented. It ensures the template body is correctly formatted to JSON as per the API's output, adapting the transformation process accordingly.
+* This approach is specifically designed for this table, providing a tailored and accurate response handling as per the API specifications.
+*/
+
+// Functionality Overview
+// # Identifies and decodes URLs within the template body. (URLs are decoded selectively to avoid issues with '%' characters not part of a valid escaped sequence.)
+// # Integrates the decoded URLs back into the original template body.
+// # Determines if the template body is in JSON or YAML format.
+// # Directly unmarshal the content if it's a JSON string.
+// # Converts YAML format to JSON if the template body is in YAML.
 func formatJsonBody(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	if d.Value == nil {
 		return nil, nil
@@ -366,8 +372,9 @@ func formatJsonBody(ctx context.Context, d *transform.TransformData) (interface{
 	var result interface{}
 	if inputStr != "" {
 
-		// Unescape only URLs instead of checking if any % is not followed by two hexadecimal digits in the template body.
+		// Unescape only URLs instead of checking if any '%' character is not followed by two hexadecimal digits in the template body.
 		// QueryUnescape does the inverse transformation of QueryEscape, converting each 3-byte encoded substring of the form "%AB" into the hex-decoded byte 0xAB. It returns an error if any % is not followed by two hexadecimal digits.
+		// Regex to match URLs
 		regex := regexp.MustCompile(`(https?://[^\s]+)`)
 
 		// Find all URLs in the input string
