@@ -1,7 +1,0 @@
-[
-  {
-    "arn": "{{ output.resource_aka.value }}",
-    "endpoint_identifier": "{{ resourceName }}",
-    "endpoint_type": "SOURCE"
-  }
-]
