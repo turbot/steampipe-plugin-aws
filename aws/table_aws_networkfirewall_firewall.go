@@ -129,6 +129,13 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Firewall.SubnetMappings"),
 			},
 			{
+				Name:        "logging_configuration",
+				Description: "Defines how Network Firewall performs logging for a Firewall.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getNetworkFirewallFirewallLoggingConfiguration,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with the firewall",
 				Type:        proto.ColumnType_JSON,
@@ -271,6 +278,62 @@ func getNetworkFirewallFirewall(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	return data, nil
+}
+
+func getNetworkFirewallFirewallLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
+	var firewallArn *string
+	if h.Item != nil {
+		arn, err := getNetworkfirewallFireWallArn(ctx, d, h)
+		if err != nil {
+			return nil, err
+		}
+		firewallArn = arn
+	}
+
+	// Build the params
+	// Can pass in ARN, name, or both
+	params := &networkfirewall.DescribeLoggingConfigurationInput{
+		FirewallArn: firewallArn,
+	}
+
+	// Create session
+	svc, err := NetworkFirewallClient(ctx, d)
+	if err != nil {
+		logger.Error("aws_networkfirewall_firewall.getNetworkFirewallFirewallLoggingConfiguration", "connection_error", err)
+		return nil, err
+	}
+
+	// Unsupported region check
+	if svc == nil {
+		return nil, nil
+	}
+
+	// Get call
+	data, err := svc.DescribeLoggingConfiguration(ctx, params)
+	if err != nil {
+		logger.Error("aws_networkfirewall_firewall.getNetworkFirewallFirewallLoggingConfiguration", "api_error", err)
+		return nil, err
+	}
+
+	if data != nil && data.LoggingConfiguration != nil && data.LoggingConfiguration.LogDestinationConfigs != nil {
+		return data.LoggingConfiguration.LogDestinationConfigs, nil
+	}
+
+	return nil, nil
+}
+
+func getNetworkfirewallFireWallArn(_ context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*string, error) {
+	if h.Item != nil {
+		switch item := h.Item.(type) {
+		case types.FirewallMetadata:
+			return item.FirewallArn, nil
+		case *networkfirewall.DescribeFirewallOutput:
+			return item.Firewall.FirewallArn, nil
+		}
+	}
+	return nil, nil
 }
 
 //// TRANSFORM FUNCTIONS
