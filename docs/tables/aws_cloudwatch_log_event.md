@@ -11,7 +11,7 @@ The AWS CloudWatch Log Events is a feature of Amazon CloudWatch that enables you
 
 The `aws_cloudwatch_log_event` table in Steampipe provides you with information about Log Events within AWS CloudWatch. This table allows you, as a DevOps engineer, system administrator, or developer, to query event-specific details, including the event message, event timestamp, and associated metadata. You can utilize this table to gather insights on log events, such as event patterns, event frequency, event sources, and more. The schema outlines the various attributes of the Log Event for you, including the event ID, log group name, log stream name, and ingestion time.
 
-**Important notes:**
+**Important Notes**
 - You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
 - For improved performance, it is advised that you use the optional qual `timestamp` to limit the result set to a specific time period.
 - This table supports optional quals. Queries with optional quals are optimised to use CloudWatch filters. Optional quals are supported for the following columns:

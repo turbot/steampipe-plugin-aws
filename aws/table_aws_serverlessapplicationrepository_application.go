@@ -169,7 +169,7 @@ func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plu
 
 	// Set MaxItems to the maximum number allowed
 	input := &serverlessapplicationrepository.ListApplicationsInput{
-		MaxItems: maxLimit,
+		MaxItems: &maxLimit,
 	}
 
 	paginator := serverlessapplicationrepository.NewListApplicationsPaginator(svc, input, func(o *serverlessapplicationrepository.ListApplicationsPaginatorOptions) {

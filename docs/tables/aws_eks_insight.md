@@ -5,106 +5,94 @@ description: "Allows users to query AWS EKS Insight data, providing information 
 
 # Table: aws_eks_insight - Query AWS EKS Insights using SQL
 
-The AWS EKS Node Group is a resource within Amazon Elastic Kubernetes Service (EKS). It represents a group of nodes within a cluster that all share the same configuration, making it easier to manage and scale your applications. Node groups are associated with a specific Amazon EKS cluster and can be customized according to your workload requirements.
+The AWS EKS Insight is a resource within Amazon Elastic Kubernetes Service (EKS). 
 
 ## Table Usage Guide
 
-The `aws_eks_node_group` table in Steampipe provides you with information about each node group within an AWS Elastic Kubernetes Service (EKS) cluster. This table allows you, as a DevOps engineer, system administrator, or other technical professional, to query node-group-specific details, including the node group ARN, creation timestamp, health status, and associated metadata. You can utilize this table to gather insights on node groups, such as the status of each node, the instance types used, and more. The schema outlines the various attributes of the EKS node group for you, including the node role, subnets, scaling configuration, and associated tags.
+The `aws_eks_insight` table in Steampipe provides you with information about each insight within an AWS Elastic Kubernetes Service (EKS) cluster. This table allows you, as a DevOps engineer, system administrator, or other technical professional, to gather insights into your EKS clusters and potential problems during an upgrade to next Kubernetes version. The schema outlines the various attributes of the EKS Cluster Insight for you, including the Kubernetes version, description, status and potential recommendations on how to remediate the insight.
 
 ## Examples
 
 ### Basic info
-Explore the status and creation details of node groups within your Amazon EKS clusters. This allows you to track the health and longevity of your Kubernetes resources, aiding in efficient resource management.
+Explore the insights available for all your Amazon EKS clsuters. 
 
 ```sql+postgres
 select
-  nodegroup_name,
-  arn,
-  created_at,
-  cluster_name,
-  status
+  id,
+  name,
+  cluster_name
+  description,
+  insight_status,
+  recommendation
 from
-  aws_eks_node_group;
+  aws_eks_insight;
 ```
 
 ```sql+sqlite
 select
-  nodegroup_name,
-  arn,
-  created_at,
-  cluster_name,
-  status
+  id,
+  name,
+  cluster_name
+  description,
+  insight_status
 from
-  aws_eks_node_group;
+  aws_eks_insight;
 ```
 
-### List node groups that are not active
-Identify instances where certain node groups within your AWS EKS service are not active. This can help in managing resources effectively by pinpointing potential areas of concern or underutilization.
+### List insights for specific Kubernetes version
+Identify only the insights that are relevant to specific Kubernetes version.
 
 ```sql+postgres
 select
-  nodegroup_name,
-  arn,
-  created_at,
-  cluster_name,
-  status
+  id,
+  name,
+  cluster_name
+  description,
+  insight_status
 from
-  aws_eks_node_group
+  aws_eks_insight
 where
-  status <> 'ACTIVE';
+  kubernetes_version = '1.25';
 ```
 
 ```sql+sqlite
 select
-  nodegroup_name,
-  arn,
-  created_at,
-  cluster_name,
-  status
+  id,
+  name,
+  cluster_name
+  description,
+  insight_status
 from
-  aws_eks_node_group
+  aws_eks_insight
 where
-  status != 'ACTIVE';
+  kubernetes_version = '1.25';
 ```
 
-### Get health status of the node groups
-Assess the health status of various node groups within your AWS EKS clusters. This can help identify any potential issues or anomalies, ensuring optimal performance and stability of your Kubernetes workloads.
+### Get insights for specific cluster
+Get all insights for specific cluster.
 
 ```sql+postgres
 select
-  nodegroup_name,
-  cluster_name,
-  jsonb_pretty(health) as health
+  id,
+  name,
+  cluster_name
+  description,
+  insight_status
 from
-  aws_eks_node_group;
+  aws_eks_insight
+where
+  cluster_name = 'eks.cluster.name';
 ```
 
 ```sql+sqlite
 select
-  nodegroup_name,
-  cluster_name,
-  health
+  id,
+  name,
+  cluster_name
+  description,
+  insight_status
 from
-  aws_eks_node_group;
-```
-
-### Get launch template details of the node groups
-Determine the configuration details of node groups within a cluster to understand the settings and specifications of each node group.
-
-```sql+postgres
-select
-  nodegroup_name,
-  cluster_name,
-  jsonb_pretty(launch_template) as launch_template
-from
-  aws_eks_node_group;
-```
-
-```sql+sqlite
-select
-  nodegroup_name,
-  cluster_name,
-  launch_template
-from
-  aws_eks_node_group;
+  aws_eks_insight
+where
+  cluster_name = 'eks.cluster.name';
 ```

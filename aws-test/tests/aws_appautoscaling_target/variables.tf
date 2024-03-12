@@ -83,10 +83,10 @@ output "aws_partition" {
 }
 
 output "resource_id" {
-  value = aws_appautoscaling_target.named_test_resource.id
+  value = "table/${var.resource_name}"
 }
 
 output "resource_name" {
-  value = var.resource_name
+  value = aws_appautoscaling_target.named_test_resource.id
 }
 

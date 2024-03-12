@@ -26,6 +26,10 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		// list call.
 		HydrateConfig: []plugin.HydrateConfig{
 			{
+				Func: getBucketLocation,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketLocation"},
+			},
+			{
 				Func:    getBucketIsPublic,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketPolicyStatus"},
@@ -546,12 +550,13 @@ func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
+	f := false
 	params := &s3.GetPublicAccessBlockInput{Bucket: bucket.Name}
 	defaultAccessBlock := &types.PublicAccessBlockConfiguration{
-		BlockPublicAcls:       false,
-		BlockPublicPolicy:     false,
-		IgnorePublicAcls:      false,
-		RestrictPublicBuckets: false,
+		BlockPublicAcls:       &f,
+		BlockPublicPolicy:     &f,
+		IgnorePublicAcls:      &f,
+		RestrictPublicBuckets: &f,
 	}
 
 	accessBlock, err := svc.GetPublicAccessBlock(ctx, params)

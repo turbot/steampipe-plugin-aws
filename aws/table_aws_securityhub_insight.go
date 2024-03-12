@@ -104,7 +104,7 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	input := &securityhub.GetInsightsInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	paginator := securityhub.NewGetInsightsPaginator(svc, input, func(o *securityhub.GetInsightsPaginatorOptions) {

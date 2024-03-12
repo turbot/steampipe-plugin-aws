@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -230,4 +231,17 @@ func isSuppportedRDSEngine(engine string) bool {
 	}
 
 	return helpers.StringSliceContains(supportedEngines, engine)
+}
+
+// Helper function for integer based environment variables.
+func readEnvVarToInt(name string, defaultVal int) int {
+	val := defaultVal
+	envValue := os.Getenv(name)
+	if envValue != "" {
+		i, err := strconv.Atoi(envValue)
+		if err == nil {
+			val = i
+		}
+	}
+	return val
 }

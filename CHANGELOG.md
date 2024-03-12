@@ -1,3 +1,71 @@
+## v0.130.0 [2024-02-02]
+
+_Enhancements_
+
+- Optimized `aws_cloudwatch_log_stream` table's query performance by adding `descending`, `log_group_name`, `log_stream_name_prefix` and `order_by` new optional key qual columns. ([#1951](https://github.com/turbot/steampipe-plugin-aws/pull/1951))
+- Optimized `aws_ssm_inventory` table's query performance by adding new optional key qual columns such as `filter_key`, `filter_value`, `network_attribute_key`, `network_attribute_value`, etc. ([#1980](https://github.com/turbot/steampipe-plugin-aws/pull/1980))
+
+_Bug fixes_
+
+- Fixed `aws_cloudwatch_log_group` table key column to be globally unique by filtering the results by region. ([#1976](https://github.com/turbot/steampipe-plugin-aws/pull/1976))
+- Removed duplicate memoizing of getCommonColumns function from `aws_s3_multi_region_access_point` and `aws_ec2_launch_template` tables.([#2065](https://github.com/turbot/steampipe-plugin-aws/pull/2065))
+- Fixed error for column `type_name` in table `aws_ssm_inventory_entry`. ([#1980](https://github.com/turbot/steampipe-plugin-aws/pull/1980))
+- Added the missing rate-limiter tags for `aws_s3_bucket` table's `GetBucketLocation` hydrate function to optimize query performance. ([#2066](https://github.com/turbot/steampipe-plugin-aws/pull/2066))
+
+## v0.129.0 [2024-01-19]
+
+_What's new?_
+
+- New tables added
+  - [aws_servicecatalog_provisioned_product](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicecatalog_provisioned_product) ([#1917](https://github.com/turbot/steampipe-plugin-aws/pull/1917))
+
+_Enhancements_
+
+- Added `deletion_protection_enabled` column to `aws_dynamodb_table` table. ([#2049](https://github.com/turbot/steampipe-plugin-aws/pull/2049))
+
+_Bug fixes_
+
+- Fixed default page size in `aws_organizations_account` table. ([#2058](https://github.com/turbot/steampipe-plugin-aws/pull/2058))
+- Fixed `processor_features` column in `aws_rds_db_instance` not returning data when default value is set. ([#2028](https://github.com/turbot/steampipe-plugin-aws/pull/2028))
+- Temporarily removed `aws_organizations_organizational_unit` table due to LTREE column issue. ([#2058](https://github.com/turbot/steampipe-plugin-aws/pull/2058))
+
+## v0.128.0 [2024-01-15]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudtrail_lookup_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudtrail_lookup_event) ([#2047](https://github.com/turbot/steampipe-plugin-aws/pull/2047))
+  - [aws_organizations_organizational_unit](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_organizational_unit) ([#1677](https://github.com/turbot/steampipe-plugin-aws/pull/1677))
+  - [aws_organizations_root](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_root) ([#1677](https://github.com/turbot/steampipe-plugin-aws/pull/1677))
+  - [aws_sns_subscription](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sns_subscription) ([#2046](https://github.com/turbot/steampipe-plugin-aws/pull/2046))
+
+**Note :** Table `aws_sns_topic_subscription` will be changing behaviours in a future release to return results from `ListSubscriptionsByTopic` instead of `ListSubscriptions`.
+
+## v0.127.0 [2024-01-10]
+
+_What's new?_
+
+- New tables added
+  - [aws_appsync_graphql_api](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_appsync_graphql_api) ([#2027](https://github.com/turbot/steampipe-plugin-aws/pull/2027))
+  - [aws_mq_broker](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_mq_broker) ([#2020](https://github.com/turbot/steampipe-plugin-aws/pull/2020))
+
+_Enhancements_
+
+- Added `storage_throughput` column to `aws_rds_db_instance` table. ([#2010](https://github.com/turbot/steampipe-plugin-aws/pull/2010)) (Thanks [@toddwh50](https://github.com/toddwh50) for the contribution!)
+- Added `layers` column to `aws_lambda_function` table. ([#2008](https://github.com/turbot/steampipe-plugin-aws/pull/2008)) (Thanks [@icaliskanoglu](https://github.com/icaliskanoglu) for the contribution!)
+- Added `tags` column to `aws_backup_recovery_point` and `aws_backup_vault` tables.  ([#2033](https://github.com/turbot/steampipe-plugin-aws/pull/2033))
+
+_Bug fixes_
+
+- Custom HTTP client should allow buildable settings through env var options such as AWS_CA_BUNDLE. ([#2044](https://github.com/turbot/steampipe-plugin-aws/pull/2044))
+- Fixed `MaxItems` in `aws_iam_policy` and `aws_iam_policy_attachment` tables to use `1000` instead of `100` to avoid unnecessary API calls. ([#2025](https://github.com/turbot/steampipe-plugin-aws/pull/2025)) ([#2026](https://github.com/turbot/steampipe-plugin-aws/pull/2026))
+
+## v0.126.0 [2023-12-29]
+
+_Enhancements_
+
+- Updated the plugin to use a shared, optimized HTTP client that enhances DNS management and reduces connection floods for more stable and efficient queries. ([#2036](https://github.com/turbot/steampipe-plugin-aws/pull/2036))
+
 ## v0.125.0 [2023-12-20]
 
 _Enhancements_
