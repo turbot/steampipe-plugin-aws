@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
@@ -15,17 +19,21 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_internet_gateway",
 		Description: "AWS VPC Internet Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("internet_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInternetGatewayID.NotFound", "InvalidInternetGatewayID.Malformed"}),
-			Hydrate:           getVpcInternetGateway,
+			KeyColumns: plugin.SingleColumn("internet_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInternetGatewayID.NotFound", "InvalidInternetGatewayID.Malformed"}),
+			},
+			Hydrate: getVpcInternetGateway,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInternetGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcInternetGateways,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeInternetGateways"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "owner_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "internet_gateway_id",
@@ -74,17 +82,29 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcInternetGateways", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_internet_gateway.listVpcInternetGateways", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = int32(5)
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeInternetGatewaysInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -96,33 +116,29 @@ func listVpcInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 		input.Filters = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeInternetGatewaysPaginator(svc, input, func(o *ec2.DescribeInternetGatewaysPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_internet_gateway.listVpcInternetGateways", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.InternetGateways {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeInternetGatewaysPages(
-		input,
-		func(page *ec2.DescribeInternetGatewaysOutput, isLast bool) bool {
-			for _, internetGateway := range page.InternetGateways {
-				d.StreamListItem(ctx, internetGateway)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 
 	return nil, err
 }
@@ -130,26 +146,25 @@ func listVpcInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcInternetGateway")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	internetGatewayID := d.KeyColumnQuals["internet_gateway_id"].GetStringValue()
+	internetGatewayID := d.EqualsQuals["internet_gateway_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_internet_gateway.getVpcInternetGateway", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeInternetGatewaysInput{
-		InternetGatewayIds: []*string{aws.String(internetGatewayID)},
+		InternetGatewayIds: []string{internetGatewayID},
 	}
 
 	// Get call
-	op, err := svc.DescribeInternetGateways(params)
+	op, err := svc.DescribeInternetGateways(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("[getVpcInternetGateway__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_internet_gateway.getVpcInternetGateway", "api_error", err)
 		return nil, err
 	}
 
@@ -161,12 +176,12 @@ func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getVpcInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcInternetGatewayTurbotAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	internetGateway := h.Item.(*ec2.InternetGateway)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+	internetGateway := h.Item.(types.InternetGateway)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_internet_gateway.getVpcInternetGatewayTurbotAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -180,7 +195,7 @@ func getVpcInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 //// TRANSFORM FUNCTIONS
 
 func getVpcInternetGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	internetGateway := d.HydrateItem.(*ec2.InternetGateway)
+	internetGateway := d.HydrateItem.(types.InternetGateway)
 	param := d.Param.(string)
 
 	// Get resource title

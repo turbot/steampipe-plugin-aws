@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/inspector"
-	pb "github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
+
+	inspectorv1 "github.com/aws/aws-sdk-go/service/inspector"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,39 +23,41 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getInspectorAssessmentTarget,
+			Tags:       map[string]string{"service": "inspector", "action": "ListAssessmentTargets"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentTargets,
+			Tags:    map[string]string{"service": "inspector", "action": "ListAssessmentTargets"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(inspectorv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Amazon Inspector assessment target.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "arn",
 				Description: "The ARN that specifies the Amazon Inspector assessment target.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "resource_group_arn",
 				Description: "The ARN that specifies the resource group that is associated with the assessment target.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "created_at",
 				Description: "The time at which the assessment target is created.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "updated_at",
 				Description: "The time at which UpdateAssessmentTarget is called.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 
@@ -59,14 +65,14 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTarget,
 				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Arn").Transform(arnToAkas),
 			},
 		}),
@@ -76,51 +82,67 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := InspectorService(ctx, d)
+
+	// Create Session
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_target.listInspectorAssessmentTargets", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	input := &inspector.ListAssessmentTargetsInput{
-		MaxResults: aws.Int64(500),
+		MaxResults: aws.Int32(maxLimit),
 	}
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["name"] != nil {
 		if equalQuals["name"].GetStringValue() != "" {
-			input.Filter = &inspector.AssessmentTargetFilter{AssessmentTargetNamePattern: aws.String(equalQuals["name"].GetStringValue())}
+			input.Filter = &types.AssessmentTargetFilter{AssessmentTargetNamePattern: aws.String(equalQuals["name"].GetStringValue())}
 		}
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	paginator := inspector.NewListAssessmentTargetsPaginator(svc, input, func(o *inspector.ListAssessmentTargetsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.ListAssessmentTargetsPages(
-		input,
-		func(page *inspector.ListAssessmentTargetsOutput, isLast bool) bool {
-			for _, assessmentTarget := range page.AssessmentTargetArns {
-				d.StreamListItem(ctx, &inspector.AssessmentTarget{
-					Arn: assessmentTarget,
-				})
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_assessment_target.listInspectorAssessmentTargets", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.AssessmentTargetArns {
+			d.StreamListItem(ctx, &types.AssessmentTarget{
+				Arn: aws.String(item),
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -128,32 +150,34 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorAssessmentTarget")
-
 	var assessmentTargetArn string
 	if h.Item != nil {
-		assessmentTargetArn = *h.Item.(*inspector.AssessmentTarget).Arn
+		assessmentTargetArn = *h.Item.(*types.AssessmentTarget).Arn
 	} else {
-		quals := d.KeyColumnQuals
+		quals := d.EqualsQuals
 		assessmentTargetArn = quals["arn"].GetStringValue()
 	}
 
-	// get service
-	svc, err := InspectorService(ctx, d)
+	// Create Session
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_target.getInspectorAssessmentTarget", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
 	params := &inspector.DescribeAssessmentTargetsInput{
-		AssessmentTargetArns: []*string{aws.String(assessmentTargetArn)},
+		AssessmentTargetArns: []string{assessmentTargetArn},
 	}
 
 	// Get call
-	data, err := svc.DescribeAssessmentTargets(params)
+	data, err := svc.DescribeAssessmentTargets(ctx, params)
 	if err != nil {
-		logger.Debug("describeAssessmentTarget__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_inspector_assessment_target.getInspectorAssessmentTarget", "api_error", err)
 		return nil, err
 	}
 	if data.AssessmentTargets != nil && len(data.AssessmentTargets) > 0 {

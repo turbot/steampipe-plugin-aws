@@ -1,0 +1,19 @@
+[
+	{
+		"cloud_watch_encryption": {
+			"CloudWatchEncryptionMode": "DISABLED",
+			"KmsKeyArn": null
+		},
+		"job_bookmarks_encryption": {
+			"JobBookmarksEncryptionMode": "DISABLED",
+			"KmsKeyArn": null
+		},
+		"name": "{{ resourceName }}",
+		"s3_encryption": [
+			{
+				"KmsKeyArn": null,
+				"S3EncryptionMode": "SSE-S3"
+			}
+		]
+	}
+]

@@ -4,13 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsEc2NetworkLoadBalancerMetricNetFlowCount(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_network_load_balancer_metric_net_flow_count",
@@ -18,8 +20,9 @@ func tableAwsEc2NetworkLoadBalancerMetricNetFlowCount(_ context.Context) *plugin
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2NetworkLoadBalancers,
 			Hydrate:       listEc2NetworkLoadBalancerMetricNetFlowCount,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{
@@ -33,7 +36,7 @@ func tableAwsEc2NetworkLoadBalancerMetricNetFlowCount(_ context.Context) *plugin
 }
 
 func listEc2NetworkLoadBalancerMetricNetFlowCount(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	loadBalancer := h.Item.(*elbv2.LoadBalancer)
+	loadBalancer := h.Item.(types.LoadBalancer)
 	arn := strings.SplitN(*loadBalancer.LoadBalancerArn, "/", 2)[1]
 	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/NetworkELB", "NewFlowCount", "LoadBalancer", arn)
 }

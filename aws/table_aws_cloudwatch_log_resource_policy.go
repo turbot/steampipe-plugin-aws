@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+
+	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCloudwatchLogResourcePolicy(_ context.Context) *plugin.Table {
@@ -16,8 +18,9 @@ func tableAwsCloudwatchLogResourcePolicy(_ context.Context) *plugin.Table {
 		Description: "AWS CloudWatch Log Resource Policy",
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogResourcePolicies,
+			Tags:    map[string]string{"service": "logs", "action": "DescribeResourcePolicies"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "policy_name",
@@ -57,33 +60,41 @@ func tableAwsCloudwatchLogResourcePolicy(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudwatchLogResourcePolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listCloudwatchLogResourcePolicies")
 
-	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	// Get client
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
-		logger.Error("listCloudwatchLogResourcePolicies", "error_CloudWatchLogsService", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_resource_policy.listCloudwatchLogResourcePolicies", "client_error", err)
 		return nil, err
 	}
 
-	// Set MaxItems to the maximum number allowed
-	input := cloudwatchlogs.DescribeResourcePoliciesInput{
-		Limit: aws.Int64(50),
-	}
+	maxItems := int32(50)
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			input.Limit = limit
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
 		}
 	}
 
+	// Set MaxItems to the maximum number allowed
+	input := &cloudwatchlogs.DescribeResourcePoliciesInput{
+		Limit: &maxItems,
+	}
+
+	// This API doesn't have Paginator available
 	for {
-		resp, err := svc.DescribeResourcePolicies(&input)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		resp, err := svc.DescribeResourcePolicies(ctx, input)
 		if err != nil {
-			logger.Error("listCloudwatchLogResourcePolicies", "error_DescribeResourcePolicies", err)
+			plugin.Logger(ctx).Error("aws_cloudwatch_log_resource_policy.listCloudwatchLogResourcePolicies", "api_error", err)
 			return nil, err
 		}
 
@@ -92,7 +103,7 @@ func listCloudwatchLogResourcePolicies(ctx context.Context, d *plugin.QueryData,
 			d.StreamListItem(ctx, policy)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

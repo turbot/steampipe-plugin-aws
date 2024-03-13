@@ -2,1921 +2,1676 @@ package aws
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
+	"net"
+	"net/http"
 	"os"
-	"path"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/accessanalyzer"
-	"github.com/aws/aws-sdk-go/service/acm"
-	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
-	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/aws/aws-sdk-go/service/backup"
-	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/aws/aws-sdk-go/service/codebuild"
-	"github.com/aws/aws-sdk-go/service/codecommit"
-	"github.com/aws/aws-sdk-go/service/codepipeline"
-	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/aws/aws-sdk-go/service/costexplorer"
-	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
-	"github.com/aws/aws-sdk-go/service/dax"
-	"github.com/aws/aws-sdk-go/service/directoryservice"
-	"github.com/aws/aws-sdk-go/service/docdb"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/ecrpublic"
-	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
-	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
-	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/aws/aws-sdk-go/service/eventbridge"
-	"github.com/aws/aws-sdk-go/service/firehose"
-	"github.com/aws/aws-sdk-go/service/fsx"
-	"github.com/aws/aws-sdk-go/service/glacier"
-	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/identitystore"
-	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
-	"github.com/aws/aws-sdk-go/service/kinesisvideo"
-	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/aws/aws-sdk-go/service/macie2"
-	"github.com/aws/aws-sdk-go/service/mediastore"
-	"github.com/aws/aws-sdk-go/service/neptune"
-	"github.com/aws/aws-sdk-go/service/networkfirewall"
-	"github.com/aws/aws-sdk-go/service/opensearchservice"
-	"github.com/aws/aws-sdk-go/service/organizations"
-	"github.com/aws/aws-sdk-go/service/pinpoint"
-	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
-	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/aws/aws-sdk-go/service/route53domains"
-	"github.com/aws/aws-sdk-go/service/route53resolver"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3control"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
-	"github.com/aws/aws-sdk-go/service/servicequotas"
-	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/aws/aws-sdk-go/service/sns"
-	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssoadmin"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/aws/aws-sdk-go/service/wafregional"
-	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/aws/aws-sdk-go/service/wellarchitected"
-	"github.com/aws/aws-sdk-go/service/workspaces"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/retry"
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
+	"github.com/aws/aws-sdk-go-v2/service/account"
+	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/amplify"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/appconfig"
+	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/appstream"
+	"github.com/aws/aws-sdk-go-v2/service/appsync"
+	"github.com/aws/aws-sdk-go-v2/service/athena"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudsearch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codecommit"
+	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
+	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentity"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/aws/aws-sdk-go-v2/service/configservice"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
+	"github.com/aws/aws-sdk-go-v2/service/dax"
+	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
+	"github.com/aws/aws-sdk-go-v2/service/dlm"
+	"github.com/aws/aws-sdk-go-v2/service/docdb"
+	"github.com/aws/aws-sdk-go-v2/service/drs"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	"github.com/aws/aws-sdk-go-v2/service/efs"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache"
+	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticsearchservice"
+	"github.com/aws/aws-sdk-go-v2/service/emr"
+	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
+	"github.com/aws/aws-sdk-go-v2/service/firehose"
+	"github.com/aws/aws-sdk-go-v2/service/fms"
+	"github.com/aws/aws-sdk-go-v2/service/fsx"
+	"github.com/aws/aws-sdk-go-v2/service/glacier"
+	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
+	"github.com/aws/aws-sdk-go-v2/service/glue"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty"
+	"github.com/aws/aws-sdk-go-v2/service/health"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/identitystore"
+	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector2"
+	"github.com/aws/aws-sdk-go-v2/service/iot"
+	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/kinesis"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lightsail"
+	"github.com/aws/aws-sdk-go-v2/service/macie2"
+	"github.com/aws/aws-sdk-go-v2/service/mediastore"
+	"github.com/aws/aws-sdk-go-v2/service/mgn"
+	"github.com/aws/aws-sdk-go-v2/service/mq"
+	"github.com/aws/aws-sdk-go-v2/service/neptune"
+	"github.com/aws/aws-sdk-go-v2/service/networkfirewall"
+	"github.com/aws/aws-sdk-go-v2/service/oam"
+	"github.com/aws/aws-sdk-go-v2/service/opensearch"
+	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
+	"github.com/aws/aws-sdk-go-v2/service/pipes"
+	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/service/ram"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/redshift"
+	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
+	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
+	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
+	"github.com/aws/aws-sdk-go-v2/service/route53"
+	"github.com/aws/aws-sdk-go-v2/service/route53domains"
+	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securitylake"
+	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
+	"github.com/aws/aws-sdk-go-v2/service/servicecatalog"
+	"github.com/aws/aws-sdk-go-v2/service/servicediscovery"
+	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
+	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
+	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssmincidents"
+	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/support"
+	"github.com/aws/aws-sdk-go-v2/service/transfer"
+	"github.com/aws/aws-sdk-go-v2/service/waf"
+	"github.com/aws/aws-sdk-go-v2/service/wafregional"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
+	"github.com/aws/aws-sdk-go-v2/service/workspaces"
+	"github.com/rs/dnscache"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+
+	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
+	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
+	appsyncv2Endpoint "github.com/aws/aws-sdk-go/service/appsync"
+	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
+	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
+	cloudsearchEndpoint "github.com/aws/aws-sdk-go/service/cloudsearch"
+	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
+	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
+	codecommitEndpoint "github.com/aws/aws-sdk-go/service/codecommit"
+	codepipelineEndpoint "github.com/aws/aws-sdk-go/service/codepipeline"
+	cognitoidentityEndpoint "github.com/aws/aws-sdk-go/service/cognitoidentity"
+	cognitoidentityproviderEndpoint "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	daxEndpoint "github.com/aws/aws-sdk-go/service/dax"
+	directoryserviceEndpoint "github.com/aws/aws-sdk-go/service/directoryservice"
+	dlmEndpoint "github.com/aws/aws-sdk-go/service/dlm"
+	drsEndpoint "github.com/aws/aws-sdk-go/service/drs"
+	dynamodbEndpoint "github.com/aws/aws-sdk-go/service/dynamodb"
+	eksEndpoint "github.com/aws/aws-sdk-go/service/eks"
+	elasticbeanstalkEndpoint "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	emrEndpoint "github.com/aws/aws-sdk-go/service/emr"
+	eventbridgeEndpoint "github.com/aws/aws-sdk-go/service/eventbridge"
+	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
+	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
+	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
+	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
+	iotEndpoint "github.com/aws/aws-sdk-go/service/iot"
+	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
+	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
+	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
+	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
+	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
+	lightsailEndpoint "github.com/aws/aws-sdk-go/service/lightsail"
+	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
+	mediastoreEndpoint "github.com/aws/aws-sdk-go/service/mediastore"
+	mgnEndpoint "github.com/aws/aws-sdk-go/service/mgn"
+	mqEndpoint "github.com/aws/aws-sdk-go/service/mq"
+	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
+	oamEndpoint "github.com/aws/aws-sdk-go/service/oam"
+	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
+	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
+	pricingEndpoint "github.com/aws/aws-sdk-go/service/pricing"
+	rdsEndpoint "github.com/aws/aws-sdk-go/service/rds"
+	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
+	resourceexplorer2Endpoint "github.com/aws/aws-sdk-go/service/resourceexplorer2"
+	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
+	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
+	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
+	securitylakeEndpoint "github.com/aws/aws-sdk-go/service/securitylake"
+	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
+	servicequotasEndpoint "github.com/aws/aws-sdk-go/service/servicequotas"
+	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
+	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
+	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
+	ssmIncidentsEndpoint "github.com/aws/aws-sdk-go/service/ssmincidents"
+	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
+	transferEndpoint "github.com/aws/aws-sdk-go/service/transfer"
+	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
+	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
+	wellarchitectedEndpoint "github.com/aws/aws-sdk-go/service/wellarchitected"
+	workspacesEndpoint "github.com/aws/aws-sdk-go/service/workspaces"
 )
 
-// AccessAnalyzerService returns the service connection for AWS IAM Access Analyzer service
-func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.AccessAnalyzer, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed AccessAnalyzerService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("accessanalyzer-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*accessanalyzer.AccessAnalyzer), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+// https://github.com/aws/aws-sdk-go-v2/issues/543
+type NoOpRateLimit struct{}
+
+func (NoOpRateLimit) AddTokens(uint) error { return nil }
+func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
+	return noOpToken, nil
+}
+func noOpToken() error { return nil }
+
+// AccessAnalyzerClient returns the service connection for AWS IAM Access Analyzer service
+func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := accessanalyzer.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return accessanalyzer.NewFromConfig(*cfg), nil
 }
 
-// ACMService returns the service connection for AWS ACM service
-func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ACMService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("acm-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*acm.ACM), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+// AccountClient is used to query general information about an AWS account.
+func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
+	// Use the client region - service is global but available in all regions.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := acm.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return account.NewFromConfig(*cfg), nil
 }
 
-// APIGatewayService returns the service connection for AWS API Gateway service
-func APIGatewayService(ctx context.Context, d *plugin.QueryData) (*apigateway.APIGateway, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed APIGateway")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("apigateway-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*apigateway.APIGateway), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := apigateway.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return acm.NewFromConfig(*cfg), nil
 }
 
-// APIGatewayV2Service returns the service connection for AWS API Gateway V2 service
-func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.ApiGatewayV2, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed APIGatewayV2Service")
+func AmplifyClient(ctx context.Context, d *plugin.QueryData) (*amplify.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, amplifyEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("apigatewayv2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*apigatewayv2.ApiGatewayV2), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return amplify.NewFromConfig(*cfg), nil
+}
+
+func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := apigatewayv2.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return apigateway.NewFromConfig(*cfg), nil
 }
 
-// ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
-func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData) (*applicationautoscaling.ApplicationAutoScaling, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ApplicationAutoScalingService")
+func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
+	// API Gateway V2 has the same endpoint information in the SDK as API Gateway, but
+	// is actually available in less regions. We have to manually remove them
+	// here.
+	// Source - https://www.aws-services.info/apigatewayv2.html
+	excludeRegions := []string{
+		"ap-south-2",     // Hyderabad
+		"ap-southeast-3", // Jakarta
+		"ap-southeast-4", // Melbourne
+		"eu-central-2",   // Zurich
+		"eu-south-2",     // Spain
+		"me-central-1",   // UAE
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("applicationautoscaling-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*applicationautoscaling.ApplicationAutoScaling), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, apigatewayv2Endpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
 	}
-	svc := applicationautoscaling.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
-// AuditManagerService returns the service connection for AWS Audit Manager service
-func AuditManagerService(ctx context.Context, d *plugin.QueryData, region string) (*auditmanager.AuditManager, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed AuditManagerService")
+func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("auditmanager-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*auditmanager.AuditManager), nil
+	return appconfig.NewFromConfig(*cfg), nil
+}
+
+func ApplicationAutoScalingClient(ctx context.Context, d *plugin.QueryData) (*applicationautoscaling.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return applicationautoscaling.NewFromConfig(*cfg), nil
+}
+
+func AppStreamClient(ctx context.Context, d *plugin.QueryData) (*appstream.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := auditmanager.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return appstream.NewFromConfig(*cfg), nil
 }
 
-// AutoScalingService returns the service connection for AWS AutoScaling service
-func AutoScalingService(ctx context.Context, d *plugin.QueryData) (*autoscaling.AutoScaling, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed AutoScalingService")
+func AppSyncClient(ctx context.Context, d *plugin.QueryData) (*appsync.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, appsyncv2Endpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("autoscaling-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*autoscaling.AutoScaling), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return appsync.NewFromConfig(*cfg), nil
+}
+
+func AthenaClient(ctx context.Context, d *plugin.QueryData) (*athena.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := autoscaling.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return athena.NewFromConfig(*cfg), nil
 }
 
-// BackupService returns the service connection for AWS Backup service
-func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed BackupService")
+func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, auditmanagerEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("backup-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*backup.Backup), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return auditmanager.NewFromConfig(*cfg), nil
+}
+
+func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := backup.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return autoscaling.NewFromConfig(*cfg), nil
 }
-
-// CloudControlService returns the service connection for AWS Cloud Control API service
-func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontrolapi.CloudControlApi, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed CloudControlService")
+func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, backupEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("cloudcontrolapi-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*cloudcontrolapi.CloudControlApi), nil
+	if cfg == nil {
+		return nil, nil
 	}
+	return backup.NewFromConfig(*cfg), nil
+}
 
-	// CloudControl returns GeneralServiceException, which appears to be retryable
-	// We deliberately reduce the number of retries to avoid long delays
-	sess, err := getSessionWithMaxRetries(ctx, d, region, 8, 25*time.Millisecond)
+func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {
+	// CloudControl returns GeneralServiceException in a lot of situations, which
+	// AWS SDK treats as retryable. This is frustrating because we end up retrying
+	// many times for things that will never work.
+	// So, we use a specific client configuration for CloudControl with a smaller
+	// number of retries to avoid hangs. In effect, this service IGNORES the retry
+	// configuration in aws.spc - but, good enough for something that is rarely used
+	// anyway.
+	region := d.EqualsQualString(matrixKeyRegion)
+	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
-
-	svc := cloudcontrolapi.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return cloudcontrol.NewFromConfig(*cfg), nil
 }
 
-// CodeBuildService returns the service connection for AWS CodeBuild service
-func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed CodeBuildService")
+func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codecommitEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("codebuild-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*codebuild.CodeBuild), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return codecommit.NewFromConfig(*cfg), nil
+}
+
+func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudformation.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := codebuild.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return cloudformation.NewFromConfig(*cfg), nil
 }
 
-// CodeCommitService returns the service connection for AWS CodeCommit service
-func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed CodeCommitService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("codecommit-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*codecommit.CodeCommit), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Client, error) {
+	// CloudFront a global service with a single DNS endpoint
+	// (cloudfront.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/cf_region.html
+	// So, while requests will go to the global endpoint, we can still prefer /
+	// reuse the client region.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := codecommit.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return cloudfront.NewFromConfig(*cfg), nil
 }
 
-// CodePipelineService returns the service connection for AWS Codepipeline service
-func CodePipelineService(ctx context.Context, d *plugin.QueryData) (*codepipeline.CodePipeline, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed CodePipelineService")
+func CloudSearchClient(ctx context.Context, d *plugin.QueryData) (*cloudsearch.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cloudsearchEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("codepipeline-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*codepipeline.CodePipeline), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return cloudsearch.NewFromConfig(*cfg), nil
+}
+
+func CloudTrailClient(ctx context.Context, d *plugin.QueryData) (*cloudtrail.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := codepipeline.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return cloudtrail.NewFromConfig(*cfg), nil
 }
 
-// CloudFrontService returns the service connection for AWS CloudFront service
-func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := "cloudfront"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*cloudfront.CloudFront), nil
+func CloudTrailRegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.Client, error) {
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	return cloudtrail.NewFromConfig(*cfg), nil
+}
+
+func CloudWatchClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := cloudfront.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return cloudwatch.NewFromConfig(*cfg), nil
 }
 
-// CloudFormationService returns the service connection for AWS CloudFormation service
-func CloudFormationService(ctx context.Context, d *plugin.QueryData) (*cloudformation.CloudFormation, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed CloudFormationService")
+func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("cloudformation-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*cloudformation.CloudFormation), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return cloudwatchlogs.NewFromConfig(*cfg), nil
+}
+
+func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codeartifactEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := cloudformation.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return codeartifact.NewFromConfig(*cfg), nil
 }
 
-// CloudWatchService returns the service connection for AWS Cloud Watch service
-func CloudWatchService(ctx context.Context, d *plugin.QueryData) (*cloudwatch.CloudWatch, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed CloudWatchService")
+func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codebuildEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("cloudwatch-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*cloudwatch.CloudWatch), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return codebuild.NewFromConfig(*cfg), nil
+}
+
+func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := cloudwatch.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return codedeploy.NewFromConfig(*cfg), nil
 }
 
-// CloudWatchLogsService returns the service connection for AWS Cloud Watch Logs service
-func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.CloudWatchLogs, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed CloudWatchLogsService")
+func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codepipelineEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("cloudwatchlogs-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*cloudwatchlogs.CloudWatchLogs), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return codepipeline.NewFromConfig(*cfg), nil
+}
+
+func CognitoIdentityClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentity.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := cloudwatchlogs.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return cognitoidentity.NewFromConfig(*cfg), nil
 }
 
-// CloudTrailService returns the service connection for AWS CloudTrail service
-func CloudTrailService(ctx context.Context, d *plugin.QueryData) (*cloudtrail.CloudTrail, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed CloudTrailService")
+func CognitoIdentityProviderClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentityprovider.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityproviderEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("cloudtrail-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*cloudtrail.CloudTrail), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return cognitoidentityprovider.NewFromConfig(*cfg), nil
+}
+
+func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := cloudtrail.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return configservice.NewFromConfig(*cfg), nil
 }
 
-// CostExplorerService returns the service connection for AWS Cost Explorer service
-func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplorer.CostExplorer, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := "costexplorer"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*costexplorer.CostExplorer), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
+	// Cost Explorer is a global service that operates from a single
+	// region (ce.us-east-1.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/billing.html
+	// Testing shows it works with either the default or client region object,
+	// so use client region for higher reuse.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := costexplorer.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return costexplorer.NewFromConfig(*cfg), nil
 }
 
-// DaxService returns the service connection for AWS DAX service
-func DaxService(ctx context.Context, d *plugin.QueryData) (*dax.DAX, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed DaxService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("dax-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*dax.DAX), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := dax.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return databasemigrationservice.NewFromConfig(*cfg), nil
 }
 
-// DatabaseMigrationService returns the service connection for AWS Database Migration service
-func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.DatabaseMigrationService, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed DatabaseMigrationService")
+func DAXClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, daxEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("databasemigrationservice-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*databasemigrationservice.DatabaseMigrationService), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return dax.NewFromConfig(*cfg), nil
+}
+
+func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*directoryservice.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, directoryserviceEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := databasemigrationservice.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return directoryservice.NewFromConfig(*cfg), nil
 }
 
-// DirectoryService returns the service connection for AWS Directory service
-func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservice.DirectoryService, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed DirectoryService")
+func DLMClient(ctx context.Context, d *plugin.QueryData) (*dlm.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, dlmEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("directoryservice-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*directoryservice.DirectoryService), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return dlm.NewFromConfig(*cfg), nil
+}
+
+func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := directoryservice.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return docdb.NewFromConfig(*cfg), nil
 }
 
-// DynamoDbService returns the service connection for AWS DynamoDb service
-func DynamoDbService(ctx context.Context, d *plugin.QueryData) (*dynamodb.DynamoDB, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed DynamoDbService")
+func DRSClient(ctx context.Context, d *plugin.QueryData) (*drs.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, drsEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("dynamodb-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*dynamodb.DynamoDB), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return drs.NewFromConfig(*cfg), nil
+}
+
+func DynamoDBClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, dynamodbEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := dynamodb.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return dynamodb.NewFromConfig(*cfg), nil
 }
 
-// DocDBService returns the service connection for AWS DocDB Service
-func DocDBService(ctx context.Context, d *plugin.QueryData) (*docdb.DocDB, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed DocDBService")
+func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
+	return ec2.NewFromConfig(*cfg), nil
+}
 
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("docdb-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*docdb.DocDB), nil
+// Get an EC2 client for a specific region. Used by various hydrate functions
+// pulling data from regions other than the query region.
+func EC2ClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
 	}
+	return ec2.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+// Get an EC2 client with a small number of retries. Used in very specific
+// situations like listing regions where fast failure is preferred over a long
+// retry/backoff loop. Do not use for general tables.
+func EC2LowRetryClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
+	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
-	svc := docdb.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return ec2.NewFromConfig(*cfg), nil
 }
 
-// Ec2Service returns the service connection for AWS EC2 service
-func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.EC2, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed Ec2Service")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("ec2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*ec2.EC2), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func ECRClient(ctx context.Context, d *plugin.QueryData) (*ecr.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := ec2.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return ecr.NewFromConfig(*cfg), nil
 }
 
-// EcrService returns the service connection for AWS ECR service
-func EcrService(ctx context.Context, d *plugin.QueryData) (*ecr.ECR, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed EcrService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("ecr-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*ecr.ECR), nil
+func ECRPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
+	return ecrpublic.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func ECSClient(ctx context.Context, d *plugin.QueryData) (*ecs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := ecr.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return ecs.NewFromConfig(*cfg), nil
+}
 
-	return svc, nil
+func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return efs.NewFromConfig(*cfg), nil
 }
 
-// EcrPublicService returns the service connection for AWS ECRPublic service
-func EcrPublicService(ctx context.Context, d *plugin.QueryData) (*ecrpublic.ECRPublic, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed EcrPublicService")
+func EKSClient(ctx context.Context, d *plugin.QueryData) (*eks.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, eksEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("ecrpublic-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*ecrpublic.ECRPublic), nil
+	if cfg == nil {
+		return nil, nil
 	}
+	return eks.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func ElastiCacheClient(ctx context.Context, d *plugin.QueryData) (*elasticache.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := ecrpublic.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return elasticache.NewFromConfig(*cfg), nil
 }
 
-// EcsService returns the service connection for AWS ECS service
-func EcsService(ctx context.Context, d *plugin.QueryData) (*ecs.ECS, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed EcsService")
+func ElasticBeanstalkClient(ctx context.Context, d *plugin.QueryData) (*elasticbeanstalk.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, elasticbeanstalkEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("ecs-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*ecs.ECS), nil
+	if cfg == nil {
+		return nil, nil
 	}
+	return elasticbeanstalk.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func ELBClient(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancing.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := ecs.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return elasticloadbalancing.NewFromConfig(*cfg), nil
 }
-
-// EfsService returns the service connection for AWS Elastic File System service
-func EfsService(ctx context.Context, d *plugin.QueryData) (*efs.EFS, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed EfsService")
-	}
 
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("efs-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*efs.EFS), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancingv2.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := efs.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return elasticloadbalancingv2.NewFromConfig(*cfg), nil
 }
 
-// FsxService returns the service connection for AWS FSx File System service
-func FsxService(ctx context.Context, d *plugin.QueryData) (*fsx.FSx, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed FsxService")
+func ElasticsearchClient(ctx context.Context, d *plugin.QueryData) (*elasticsearchservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
+	return elasticsearchservice.NewFromConfig(*cfg), nil
+}
 
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("fsx-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*fsx.FSx), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func EMRClient(ctx context.Context, d *plugin.QueryData) (*emr.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, emrEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := fsx.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return emr.NewFromConfig(*cfg), nil
 }
 
-// EksService returns the service connection for AWS EKS service
-func EksService(ctx context.Context, d *plugin.QueryData) (*eks.EKS, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed EksService")
+func EventBridgeClient(ctx context.Context, d *plugin.QueryData) (*eventbridge.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, eventbridgeEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("eks-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*eks.EKS), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return eventbridge.NewFromConfig(*cfg), nil
+}
+
+func FirehoseClient(ctx context.Context, d *plugin.QueryData) (*firehose.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := eks.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return firehose.NewFromConfig(*cfg), nil
 }
 
-// ElasticBeanstalkService returns the service connection for AWS ElasticBeanstalk service
-func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData) (*elasticbeanstalk.ElasticBeanstalk, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ElasticBeanstalkService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("elasticbeanstalk-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*elasticbeanstalk.ElasticBeanstalk), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func FMSClient(ctx context.Context, d *plugin.QueryData) (*fms.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := elasticbeanstalk.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return fms.NewFromConfig(*cfg), nil
 }
 
-// ElastiCacheService returns the service connection for AWS ElastiCache service
-func ElastiCacheService(ctx context.Context, d *plugin.QueryData) (*elasticache.ElastiCache, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ElastiCache")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("elasticache-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*elasticache.ElastiCache), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func FSxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, fsxEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := elasticache.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return fsx.NewFromConfig(*cfg), nil
 }
 
-// ElasticsearchService returns the service connection for AWS Elasticsearch service
-func ElasticsearchService(ctx context.Context, d *plugin.QueryData) (*elasticsearchservice.ElasticsearchService, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ElasticsearchService")
+func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, glacierEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("elasticsearch-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*elasticsearchservice.ElasticsearchService), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return glacier.NewFromConfig(*cfg), nil
+}
+
+func GlobalAcceleratorClient(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.Client, error) {
+	// Global Accelerator is a global service with a single DNS endpoint
+	// (globalaccelerator.amazonaws.com). As of 2023-01-18, it's only
+	// available in the us-west-2 region. It doesn't resolve if we use
+	// client region, and it's not using the default region, so we have no
+	// choice but to hard code it here.
+	// https://docs.aws.amazon.com/general/latest/gr/global_accelerator.html
+	cfg, err := getClient(ctx, d, "us-west-2")
 	if err != nil {
 		return nil, err
 	}
-	svc := elasticsearchservice.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return globalaccelerator.NewFromConfig(*cfg), nil
 }
 
-// ELBv2Service returns the service connection for AWS EC2 service
-func ELBv2Service(ctx context.Context, d *plugin.QueryData) (*elbv2.ELBV2, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ELBv2Service")
+func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
+	return glue.NewFromConfig(*cfg), nil
+}
 
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("elbv2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*elbv2.ELBV2), nil
+func GuardDutyClient(ctx context.Context, d *plugin.QueryData) (*guardduty.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
+	return guardduty.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func HealthClient(ctx context.Context, d *plugin.QueryData) (*health.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := elbv2.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return health.NewFromConfig(*cfg), nil
 }
 
-// ELBService returns the service connection for AWS ELB Classic service
-func ELBService(ctx context.Context, d *plugin.QueryData) (*elb.ELB, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ELBv2Service")
+func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
+	// IAM a global service with a single DNS endpoint (iam.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/iam-service.html
+	// So, while requests will go to the global endpoint, we can still prefer /
+	// reuse the client region.
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
+	return iam.NewFromConfig(*cfg), nil
+}
 
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("elb-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*elb.ELB), nil
+func IdentityStoreClient(ctx context.Context, d *plugin.QueryData) (*identitystore.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
+	return identitystore.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspectorEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := elb.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return inspector.NewFromConfig(*cfg), nil
 }
 
-// EventBridgeService returns the service connection for AWS EventBridge service
-func EventBridgeService(ctx context.Context, d *plugin.QueryData) (*eventbridge.EventBridge, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed EventBridgeService")
+func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspector2Endpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("eventbridge-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*eventbridge.EventBridge), nil
+	if cfg == nil {
+		return nil, nil
 	}
+	return inspector2.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func IoTClient(ctx context.Context, d *plugin.QueryData) (*iot.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, iotEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := eventbridge.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return iot.NewFromConfig(*cfg), nil
 }
 
-// EmrService returns the service connection for AWS EMR service
-func EmrService(ctx context.Context, d *plugin.QueryData) (*emr.EMR, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed EmrService")
+func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kafkaEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("emr-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*emr.EMR), nil
+	if cfg == nil {
+		return nil, nil
 	}
+	return kafka.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func KinesisClient(ctx context.Context, d *plugin.QueryData) (*kinesis.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := emr.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return kinesis.NewFromConfig(*cfg), nil
 }
 
-// FirehoseService returns the service connection for AWS Kinesis Firehose service
-func FirehoseService(ctx context.Context, d *plugin.QueryData) (*firehose.Firehose, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed FirehoseService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("firehose-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*firehose.Firehose), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func KinesisAnalyticsV2Client(ctx context.Context, d *plugin.QueryData) (*kinesisanalyticsv2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kinesisanalyticsv2Endpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := firehose.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return kinesisanalyticsv2.NewFromConfig(*cfg), nil
 }
 
-// GlacierService returns the service connection for AWS Glacier service
-func GlacierService(ctx context.Context, d *plugin.QueryData) (*glacier.Glacier, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed GlacierService")
+func KinesisVideoClient(ctx context.Context, d *plugin.QueryData) (*kinesisvideo.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kinesisvideoEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("glacier-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*glacier.Glacier), nil
+	if cfg == nil {
+		return nil, nil
 	}
+	return kinesisvideo.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kmsEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := glacier.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return kms.NewFromConfig(*cfg), nil
 }
 
-// GlueService returns the service connection for AWS Glue service
-func GlueService(ctx context.Context, d *plugin.QueryData) (*glue.Glue, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed GlueService")
+func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, lambdaEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("glue-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*glue.Glue), nil
+	if cfg == nil {
+		return nil, nil
 	}
+	return lambda.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func LightsailClient(ctx context.Context, d *plugin.QueryData) (*lightsail.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, lightsailEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := glue.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return lightsail.NewFromConfig(*cfg), nil
 }
 
-// GuardDutyService returns the service connection for AWS GuardDuty service
-func GuardDutyService(ctx context.Context, d *plugin.QueryData) (*guardduty.GuardDuty, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed GuardDutyService")
+func Macie2Client(ctx context.Context, d *plugin.QueryData) (*macie2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, macie2Endpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("guardduty-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*guardduty.GuardDuty), nil
+	if cfg == nil {
+		return nil, nil
 	}
+	return macie2.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func MediaStoreClient(ctx context.Context, d *plugin.QueryData) (*mediastore.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, mediastoreEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := guardduty.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return mediastore.NewFromConfig(*cfg), nil
 }
 
-// IAMService returns the service connection for AWS IAM service
-func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := "iam"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*iam.IAM), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+func MGNClient(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, mgnEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-
-	svc := iam.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return mgn.NewFromConfig(*cfg), nil
 }
 
-// IdentityStoreService returns the service connection for AWS IdentityStore service
-func IdentityStoreService(ctx context.Context, d *plugin.QueryData) (*identitystore.IdentityStore, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed IdentityStoreService")
+func MQClient(ctx context.Context, d *plugin.QueryData) (*mq.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, mqEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("identitystore-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*identitystore.IdentityStore), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return mq.NewFromConfig(*cfg), nil
+}
+
+func NeptuneClient(ctx context.Context, d *plugin.QueryData) (*neptune.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := identitystore.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return neptune.NewFromConfig(*cfg), nil
 }
 
-// InspectorService returns the service connection for AWS Inspector service
-func InspectorService(ctx context.Context, d *plugin.QueryData) (*inspector.Inspector, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed InspectorService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("inspector-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*inspector.Inspector), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func NetworkFirewallClient(ctx context.Context, d *plugin.QueryData) (*networkfirewall.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, networkfirewallEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := inspector.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return networkfirewall.NewFromConfig(*cfg), nil
 }
 
-// KinesisService returns the service connection for AWS Kinesis service
-func KinesisService(ctx context.Context, d *plugin.QueryData) (*kinesis.Kinesis, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed KinesisService")
+func OAMClient(ctx context.Context, d *plugin.QueryData) (*oam.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, oamEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("kinesis-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*kinesis.Kinesis), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return oam.NewFromConfig(*cfg), nil
+}
+
+func OpenSearchClient(ctx context.Context, d *plugin.QueryData) (*opensearch.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := kinesis.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return opensearch.NewFromConfig(*cfg), nil
 }
 
-// KinesisAnalyticsV2Service returns the service connection for AWS Kinesis AnalyticsV2 service
-func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData) (*kinesisanalyticsv2.KinesisAnalyticsV2, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed KinesisAnalyticsV2Service")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("kinesisanalyticsv2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*kinesisanalyticsv2.KinesisAnalyticsV2), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {
+	// Organizations is a global service that operates from a single
+	// region (organizations.us-east-1.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/ao.html
+	// So, we must specify the default region rather than the client region.
+	// Testing shows it works with either the default or client region object,
+	// so use client region for higher reuse.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := kinesisanalyticsv2.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return organizations.NewFromConfig(*cfg), nil
 }
 
-// KinesisVideoService returns the service connection for AWS Kinesis Video service
-func KinesisVideoService(ctx context.Context, d *plugin.QueryData) (*kinesisvideo.KinesisVideo, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed Kinesis Video")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("kinesisvideo-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*kinesisvideo.KinesisVideo), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, pinpointEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := kinesisvideo.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return pinpoint.NewFromConfig(*cfg), nil
 }
 
-// KMSService returns the service connection for AWS KMS service
-func KMSService(ctx context.Context, d *plugin.QueryData) (*kms.KMS, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed KMSService")
+func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, pipesEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("kms-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*kms.KMS), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return pipes.NewFromConfig(*cfg), nil
+}
+
+func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
+
+	// The Pricing API is different from other services. It's a global service,
+	// but only available from two regions:
+	// - us-east-1
+	// - ap-south-1
+	// There is a big latency difference between these regions, so we do our
+	// best here to use the region you've chosen.  This could be smarter (e.g.
+	// choose closest), but for now it just tries to use your client region if
+	// it can and otherwise falls back to the default region us-east-1.
+
+	// Get Pricing API supported regions
+	pricingAPISupportedRegions, err := listRegionsForService(ctx, d, pricingEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := kms.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
-	return svc, nil
-}
-
-// LambdaService returns the service connection for AWS Lambda service
-func LambdaService(ctx context.Context, d *plugin.QueryData) (*lambda.Lambda, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed LambdaService")
+	// Get the client region for AWS API calls
+	// Typically this should be the region closest to the user
+	clientRegion, err := getDefaultRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("lambda-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*lambda.Lambda), nil
+
+	// Pricing API is a global API that supports only us-east-1 and ap-south-1 regions.
+	// If a preferred region is set using default_region, or in the AWS config files,
+	// and the API supports that region, use that as the endpoint.
+	// As of Dec 13, 2022, AWS Pricing API only works in AWS Commercial Cloud.
+	queryRegion := clientRegion
+	if !helpers.StringSliceContains(pricingAPISupportedRegions, queryRegion) {
+		queryRegion, err = getLastResortRegion(ctx, d, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+
+	cfg, err := getClient(ctx, d, queryRegion)
 	if err != nil {
 		return nil, err
 	}
-	svc := lambda.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
-	return svc, nil
+	return pricing.NewFromConfig(*cfg), nil
 }
 
-// Macie2Service returns the service connection for AWS Macie2 service
-func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed Macie2Service")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("macie2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*macie2.Macie2), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func RAMClient(ctx context.Context, d *plugin.QueryData) (*ram.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := macie2.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return ram.NewFromConfig(*cfg), nil
 }
 
-// MediaStoreService returns the service connection for AWS Media Store Service
-func MediaStoreService(ctx context.Context, d *plugin.QueryData) (*mediastore.MediaStore, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed MediaStoreService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("mediastore-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*mediastore.MediaStore), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := mediastore.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return rds.NewFromConfig(*cfg), nil
 }
 
-// NeptuneService returns the service connection for AWS Neptune service
-func NeptuneService(ctx context.Context, d *plugin.QueryData) (*neptune.Neptune, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed NeptuneService")
+func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
+	// RDS DB Proxy has the same endpoint information in the SDK as RDS, but
+	// is actually available in less regions. We have to manually remove them
+	// here.
+	// Source - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RDS_Fea_Regions_DB-eng.Feature.RDSProxy.html
+	excludeRegions := []string{
+		"ap-south-2",     // Hyderabad
+		"ap-southeast-3", // Jakarta
+		"ap-southeast-4", // Melbourne
+		"eu-central-2",   // Zurich
+		"eu-south-2",     // Spain
+		"me-central-1",   // UAE
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("neptune-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*neptune.Neptune), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	excludeRegions = append(excludeRegions, awsChinaRegions()...)
+	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
-
 	}
-	svc := neptune.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return rds.NewFromConfig(*cfg), nil
 }
 
-// NetworkFirewallService returns the service connection for AWS Network Firewall service
-func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkfirewall.NetworkFirewall, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed NetworkFirewallService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("networkfirewall-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*networkfirewall.NetworkFirewall), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func RedshiftClient(ctx context.Context, d *plugin.QueryData) (*redshift.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
-
 	}
-	svc := networkfirewall.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return redshift.NewFromConfig(*cfg), nil
 }
 
-// PinpointService returns the service connection for AWS Pinpoint service
-func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoint, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed PinpointService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("pinpoint-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*pinpoint.Pinpoint), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, redshiftserverlessEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
-
 	}
-	svc := pinpoint.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return redshiftserverless.NewFromConfig(*cfg), nil
 }
+
+func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region string) (*resourceexplorer2.Client, error) {
 
-// OpenSearchService returns the service connection for AWS OpenSearch service
-func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchservice.OpenSearchService, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	// Resource Explorer can be called in any specific region. It's normally
+	// used from the client region, but the region can be optionally provided
+	// as a qual in the query. So, in this function we take the desired region
+	// and check that a valid endpoint for the service before using it.
+
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed OpenSearchService")
+		return nil, fmt.Errorf("ResourceExplorerClient requires a region")
+	}
+
+	// Get the list of supported regions for the service
+	resourceExplorerRegions, err := listRegionsForService(ctx, d, resourceexplorer2Endpoint.EndpointsID)
+	if err != nil {
+		return nil, fmt.Errorf("ResourceExplorerClient: failed to get supported regions")
 	}
 
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("opensearch-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*opensearchservice.OpenSearchService), nil
+	// Verify the requested region is supported, otherwise return nil which
+	// will mean zero results are returned for the query.
+	if !helpers.StringSliceContains(resourceExplorerRegions, region) {
+		return nil, nil
 	}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	cfg, err := getClient(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
-	svc := opensearchservice.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
-	return svc, nil
+	return resourceexplorer2.NewFromConfig(*cfg), nil
 }
 
-// OrganizationService returns the service connection for AWS Organization service
-func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizations.Organizations, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := "Organization"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*organizations.Organizations), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+func ResourceGroupsTaggingClient(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := organizations.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return resourcegroupstaggingapi.NewFromConfig(*cfg), nil
 }
 
-// ConfigService returns the service connection for AWS Config  service
-func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.ConfigService, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ConfigService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("config-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*configservice.ConfigService), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, error) {
+	// Route53 is a global service with a single DNS endpoint
+	// (route53.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/r53.html
+	// So, while requests will go to the global endpoint, but we can still
+	// prefer / reuse the client region.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := configservice.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return route53.NewFromConfig(*cfg), nil
 }
 
-// RDSService returns the service connection for AWS RDS service
-func RDSService(ctx context.Context, d *plugin.QueryData) (*rds.RDS, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed RDSService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("rds-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*rds.RDS), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func Route53DomainsClient(ctx context.Context, d *plugin.QueryData) (*route53domains.Client, error) {
+	// Route53 Domains is a global service that operates from a single
+	// region (route53domains.us-east-1.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/r53.html
+	// So, we must specify the default region rather than the client region.
+	cfg, err := getClientForLastResortRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := rds.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return route53domains.NewFromConfig(*cfg), nil
 }
 
-// RedshiftService returns the service connection for AWS Redshift service
-func RedshiftService(ctx context.Context, d *plugin.QueryData) (*redshift.Redshift, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed Redshift")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("redshift-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*redshift.Redshift), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func Route53ResolverClient(ctx context.Context, d *plugin.QueryData) (*route53resolver.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, route53resolverEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := redshift.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return route53resolver.NewFromConfig(*cfg), nil
 }
 
-// Route53DomainsService returns the service connection for AWS route53 domains service
-func Route53DomainsService(ctx context.Context, d *plugin.QueryData) (*route53domains.Route53Domains, error) {
-	region := "us-east-1"
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed Route53Domains")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("route53domain-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*route53domains.Route53Domains), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
+	cfg, err := getClientForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
 
+	var svc *s3.Client
+
+	// Depending on their configuration, the S3 client may need to be configured
+	// to use path-style addressing.
+	awsSpcConfig := GetConfig(d.Connection)
+	if awsSpcConfig.S3ForcePathStyle != nil {
+		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
+			o.UsePathStyle = *awsSpcConfig.S3ForcePathStyle
+		})
+	} else {
+		svc = s3.NewFromConfig(*cfg)
 	}
-	svc := route53domains.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
 	return svc, nil
 }
 
-// Route53ResolverService returns the service connection for AWS route53resolver service
-func Route53ResolverService(ctx context.Context, d *plugin.QueryData) (*route53resolver.Route53Resolver, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed Route53Resolver")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("route53resolver-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*route53resolver.Route53Resolver), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
+	cfg, err := getClientForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
-	svc := route53resolver.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return s3control.NewFromConfig(*cfg), nil
 }
 
-// Route53Service returns the service connection for AWS route53 service
-func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := "route53"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*route53.Route53), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+// All requests to create or maintain Multi-Region Access Points are routed to the US West (Oregon) Region. so we have no choice but to hard code it here.
+// This is true regardless of which Region you are in when making the request, or what Regions the Multi-Region Access Point supports.
+// https://docs.aws.amazon.com/AmazonS3/latest/userguide/ManagingMultiRegionAccessPoints.html
+// S3 multi-region access point supports in China but not in US Gov or US ISO
+func S3ControlMultiRegionAccessClient(ctx context.Context, d *plugin.QueryData) (*s3control.Client, error) {
+	cfg, err := getClient(ctx, d, "us-west-2")
 	if err != nil {
 		return nil, err
 	}
-	svc := route53.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return s3control.NewFromConfig(*cfg), nil
 }
 
-// SecretsManagerService returns the service connection for AWS secretsManager service
-func SecretsManagerService(ctx context.Context, d *plugin.QueryData) (*secretsmanager.SecretsManager,
-	error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed SecretsManagerService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("secretsmanager-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*secretsmanager.SecretsManager), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, sagemakerEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := secretsmanager.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return sagemaker.NewFromConfig(*cfg), nil
 }
 
-// SecurityHubService returns the service connection for AWS securityHub service
-func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.SecurityHub, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed SecurityHubService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("securityhub-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*securityhub.SecurityHub), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func SecretsManagerClient(ctx context.Context, d *plugin.QueryData) (*secretsmanager.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := securityhub.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return secretsmanager.NewFromConfig(*cfg), nil
 }
-
-// S3ControlService returns the service connection for AWS s3control service
-func S3ControlService(ctx context.Context, d *plugin.QueryData, region string) (*s3control.S3Control, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed S3ControlService")
-	}
 
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("s3control-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*s3control.S3Control), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func SecurityHubClient(ctx context.Context, d *plugin.QueryData) (*securityhub.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := s3control.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return securityhub.NewFromConfig(*cfg), nil
 }
 
-// S3Service returns the service connection for AWS S3 service
-func S3Service(ctx context.Context, d *plugin.QueryData, region string) (*s3.S3, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed S3Service")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("s3-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*s3.S3), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+// Added for using middleware for migrating table "aws_securityhub_member"
+// See https://github.com/aws/aws-sdk-go-v2/issues/1884#issuecomment-1278567756 for more info
+func SecurityHubClientConfig(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := s3.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return cfg, nil
 }
 
-// SageMakerService returns the service connection for AWS SageMaker service
-func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.SageMaker, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed SageMakerService")
+func SecurityLakeClient(ctx context.Context, d *plugin.QueryData) (*securitylake.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securitylakeEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("sagemaker-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*sagemaker.SageMaker), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return securitylake.NewFromConfig(*cfg), nil
+}
+
+func SESClient(ctx context.Context, d *plugin.QueryData) (*ses.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, sesEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := sagemaker.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return ses.NewFromConfig(*cfg), nil
 }
 
-// ServerlessApplicationRepositoryService returns the service connection for AWS Serverless Application Repository service
-func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ServerlessApplicationRepositoryService")
+func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, serverlessrepoEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("serverlessapplicationrepository-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*serverlessapplicationrepository.ServerlessApplicationRepository), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return serverlessapplicationrepository.NewFromConfig(*cfg), nil
+}
+
+func ServiceCatalogClient(ctx context.Context, d *plugin.QueryData) (*servicecatalog.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := serverlessapplicationrepository.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-	return svc, nil
+	return servicecatalog.NewFromConfig(*cfg), nil
 }
-
-// SESService returns the service connection for AWS SES service
-func SESService(ctx context.Context, d *plugin.QueryData, region string) (*ses.SES, error) {
 
-	// have we already created and cached the service?
-	serviceCacheKey := "ses" + region
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*ses.SES), nil
+func ServiceDiscoveryClient(ctx context.Context, d *plugin.QueryData) (*servicediscovery.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return servicediscovery.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, servicequotasEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := ses.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return servicequotas.NewFromConfig(*cfg), nil
 }
 
-// SNSService returns the service connection for AWS SNS service
-func SNSService(ctx context.Context, d *plugin.QueryData) (*sns.SNS, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed SNSService")
+func SimSpaceWeaverClient(ctx context.Context, d *plugin.QueryData) (*simspaceweaver.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, simspaceWeaverEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("sns-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*sns.SNS), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return simspaceweaver.NewFromConfig(*cfg), nil
+}
+
+func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := sns.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return sfn.NewFromConfig(*cfg), nil
 }
 
-// ServiceQuotasService returns the service connection for AWS ServiceQuotas service
-func ServiceQuotasService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("servicequotas-%s", "region")
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*servicequotas.ServiceQuotas), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, "")
+func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := servicequotas.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return sns.NewFromConfig(*cfg), nil
 }
 
-// ServiceQuotasRegionalService returns the service connection for AWS ServiceQuotas regional service
-func ServiceQuotasRegionalService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed ServiceQuotasRegionalService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("servicequotas-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*servicequotas.ServiceQuotas), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func SSMClient(ctx context.Context, d *plugin.QueryData) (*ssm.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := servicequotas.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return ssm.NewFromConfig(*cfg), nil
 }
 
-// SQSService returns the service connection for AWS SQS service
-func SQSService(ctx context.Context, d *plugin.QueryData) (*sqs.SQS, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed SQSService")
+func SSMIncidentsClient(ctx context.Context, d *plugin.QueryData) (*ssmincidents.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmIncidentsEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("sqs-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*sqs.SQS), nil
+	if cfg == nil {
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return ssmincidents.NewFromConfig(*cfg), nil
+}
+
+func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := sqs.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return sqs.NewFromConfig(*cfg), nil
 }
 
-// SsmService returns the service connection for AWS SSM service
-func SsmService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed SsmService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("ssm-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*ssm.SSM), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
+	// STS is available in each region, so we can use the client_region
+	// closest to the user.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := ssm.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return sts.NewFromConfig(*cfg), nil
 }
 
-// SSOAdminService returns the service connection for AWS SSM service
-func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdmin, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed SSOAdminService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("ssoadmin-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*ssoadmin.SSOAdmin), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssoEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := ssoadmin.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return ssoadmin.NewFromConfig(*cfg), nil
 }
 
-// StepFunctionsService returns the service connection for AWS Step Functions service
-func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed StepFunctionsService")
+func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, error) {
+// AWS Support is a global service. This means that any endpoint that you use will update your support cases in the Support Center Console.
+// For example, if you use the US East (N. Virginia) endpoint to create a case, you can use the US West (Oregon) or Europe (Ireland) endpoint to add a correspondence to the same case.
+// https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html#endpoint
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("stepfunctions-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*sfn.SFN), nil
+	if cfg == nil {
+		return nil, nil
 	}
+	return support.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {
+	// AWS Transfer Family
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, transferEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := sfn.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return transfer.NewFromConfig(*cfg), nil
 }
 
-// StsService returns the service connection for AWS STS service
-func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := "sts"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*sts.STS), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
+	// WAF Classic a global service with a single DNS endpoint
+	// (waf.amazonaws.com).
+	// https://docs.aws.amazon.com/general/latest/gr/waf-classic.html
+	// So, while requests will go to the global endpoint, we can still prefer /
+	// reuse the client region.
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	svc := sts.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return waf.NewFromConfig(*cfg), nil
 }
 
-// TaggignResourceService returns the service connection for AWS ResourceTaggingAPI service
-func TaggignResourceService(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.ResourceGroupsTaggingAPI, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed TaggignResourceService")
+func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafregionalEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("resourcetaggingapi-%s", region)
+	if cfg == nil {
+		return nil, nil
+	}
+	return wafregional.NewFromConfig(*cfg), nil
+}
 
-	if cacheData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cacheData.(*resourcegroupstaggingapi.ResourceGroupsTaggingAPI), nil
+func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
+	var cfg *aws.Config
+	var err error
+	// For WAFv2 resources of type CloudFront, we are building the region metrix including a region value 'global'.
+	// We need to pass the the region value 'us-east-1' to get the cloudfront resource types.
+	// getClientForQuerySupportedRegion function removes the invalid region(global) while building the client for which we need the below check
+	if region == "global" {
+		cfg, err = getClient(ctx, d, "us-east-1")
+	} else {
+		cfg, err = getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.EndpointsID)
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
-	svc := resourcegroupstaggingapi.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return wafv2.NewFromConfig(*cfg), nil
 }
-
-// WAFService returns the service connection for AWS WAF service
-func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 
-	// have we already created and cached the service?
-	serviceCacheKey := "waf"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*waf.WAF), nil
+func WellArchitectedClient(ctx context.Context, d *plugin.QueryData) (*wellarchitected.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wellarchitectedEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
 	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return wellarchitected.NewFromConfig(*cfg), nil
+}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, workspacesEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	svc := waf.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	if cfg == nil {
+		return nil, nil
+	}
+	return workspaces.NewFromConfig(*cfg), nil
+}
 
-	return svc, nil
+// Get a session for the region defined in query data, but only after checking
+// it's a supported region for the given serviceID.
+func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
+	return getClientForQuerySupportedRegionWithExclusions(ctx, d, serviceID, []string{})
 }
 
-// WAFRegionalService returns the service connection for AWS WAF Regional service
-func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
-	// have we already created and cached the service?
-	region := d.KeyColumnQualString(matrixKeyRegion)
+// Get a session for the region defined in query data, but only after checking
+// it's a supported region for the given serviceID and that it's not in the
+// list of excluded regions. This is useful for cases where the service regions
+// in the AWS SDK are actually wrong (e.g. APIGatewayV2 has less regions than
+// APIGateway but uses the same service definition.)
+func getClientForQuerySupportedRegionWithExclusions(ctx context.Context, d *plugin.QueryData, serviceID string, excludeRegions []string) (*aws.Config, error) {
 
+	// Verify we have good region data
+	region := d.EqualsQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed WAF Regional")
-	}
-	serviceCacheKey := "wafregional"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*wafregional.WAFRegional), nil
+		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
 
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	// Work out which regions are valid for this service
+	validRegions, err := listRegionsForService(ctx, d, serviceID)
 	if err != nil {
 		return nil, err
 	}
-	svc := wafregional.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
-	return svc, nil
-}
+	// Remove the excluded regions from the valid list
+	validRegions = helpers.RemoveFromStringSlice(validRegions, excludeRegions...)
 
-// WAFv2Service returns the service connection for AWS WAFv2 service
-func WAFv2Service(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.WAFV2, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed WAFv2")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("wafv2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*wafv2.WAFV2), nil
+	if !helpers.StringSliceContains(validRegions, region) {
+		// We choose to ignore unsupported regions rather than returning an error
+		// for them - it's a better user experience. So, return a nil session rather
+		// than an error. The caller must handle this case.
+		return nil, nil
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+
+	// Supported region, so get and return the session
+	return getClient(ctx, d, region)
+}
+
+// Helper function to get the session for the preferred region in this partition
+func getClientForDefaultRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	r, err := getDefaultRegion(ctx, d, nil)
 	if err != nil {
 		return nil, err
 	}
-	svc := wafv2.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return getClient(ctx, d, r)
 }
 
-// WellArchitectedService returns the service connection for AWS Well-Architected service
-func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarchitected.WellArchitected, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed WellArchitectedService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("wellarchitected-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*wellarchitected.WellArchitected), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+// Helper function to get the session for the last resort region in this partition
+func getClientForLastResortRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	r, err := getLastResortRegion(ctx, d, nil)
 	if err != nil {
 		return nil, err
 	}
-	svc := wellarchitected.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return getClient(ctx, d, r)
 }
 
-// WorkspacesService returns the service connection for AWS Workspaces service
-func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.WorkSpaces, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+// Helper function to get the session for a region set in query data
+func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed WorkspacesService")
+		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("workspaces-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*workspaces.WorkSpaces), nil
+	return getClient(ctx, d, region)
+}
+
+// Helper function to get the session for a specific region
+func getClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
+	if region == "" {
+		return nil, fmt.Errorf("getSessionForRegion called with an empty region")
 	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	return getClient(ctx, d, region)
+}
+
+// Get the AWS client for a given region. This is cached on a per-connection-region
+// basis internally.
+func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
+	// Create custom hydrate data to pass through the region. Hydrate data
+	// is normally per-column, but we can hijack it for this case to pass
+	// through the context we need.
+	h := &plugin.HydrateData{Item: region}
+	i, err := getClientCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-	svc := workspaces.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return i.(*aws.Config), nil
+}
 
-	return svc, nil
+// Cached form of getClient, using the per-connection and parallel safe
+// Memoize() method.
+var getClientCached = plugin.HydrateFunc(getClientUncached).Memoize(memoize.WithCacheKeyFunction(getClientCacheKey))
+
+// getClient is per-region, but Memoize() is per-connection, so a setup
+// a custom cache key with region information in it.
+func getClientCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Extract the region from the hydrate data. This is not per-row data,
+	// but a clever pass through of context for our case.
+	region := h.Item.(string)
+	key := fmt.Sprintf("getClient-%s", region)
+	return key, nil
 }
+
+// getClientUncached is the actual implementation of getClient, which should
+// be run only once per region per connection. Do not call this directly, use
+// getClient instead.
+func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	// Extract the region from the hydrate data. This is not per-row data,
+	// but a clever pass through of context for our case.
+	region := h.Item.(string)
+
+	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
-func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
-	awsConfig := GetConfig(d.Connection)
+	awsSpcConfig := GetConfig(d.Connection)
 
 	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
 	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
@@ -1925,8 +1680,8 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
 
 	// Set max retry count from config file or env variable (config file has precedence)
-	if awsConfig.MaxErrorRetryAttempts != nil {
-		maxRetries = *awsConfig.MaxErrorRetryAttempts
+	if awsSpcConfig.MaxErrorRetryAttempts != nil {
+		maxRetries = *awsSpcConfig.MaxErrorRetryAttempts
 	} else if os.Getenv("AWS_MAX_ATTEMPTS") != "" {
 		maxRetriesEnvVar, err := strconv.Atoi(os.Getenv("AWS_MAX_ATTEMPTS"))
 		if err != nil || maxRetriesEnvVar < 1 {
@@ -1936,210 +1691,405 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 	}
 
 	// Set min delay time from config file
-	if awsConfig.MinErrorRetryDelay != nil {
-		minRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
+	if awsSpcConfig.MinErrorRetryDelay != nil {
+		minRetryDelay = time.Duration(*awsSpcConfig.MinErrorRetryDelay) * time.Millisecond
 	}
 
 	if maxRetries < 1 {
-		panic("\nconnection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+		panic("connection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1")
 	}
 	if minRetryDelay < 1 {
-		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+		panic("connection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1")
 	}
 
-	return getSessionWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
-}
-
-func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*session.Session, error) {
-	sessionCacheKey := fmt.Sprintf("session-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
-		return cachedData.(*session.Session), nil
-	}
-
-	// If session was not in cache - create a session and save to cache
-
-	// get aws config info
-	awsConfig := GetConfig(d.Connection)
-
-	// session default configuration
-	sessionOptions := session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-		Config: aws.Config{
-			Region:     &region,
-			MaxRetries: aws.Int(maxRetries),
-			Retryer:    NewConnectionErrRetryer(maxRetries, minRetryDelay, ctx),
-		},
-	}
-
-	if awsConfig.Profile != nil {
-		sessionOptions.Profile = *awsConfig.Profile
-	}
-
-	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
-	} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
-		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
-	} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
-		sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
-			*awsConfig.AccessKey, *awsConfig.SecretKey, "",
-		)
-
-		if awsConfig.SessionToken != nil {
-			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
-				*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
-			)
-		}
-	}
-
-	sess, err := session.NewSessionWithOptions(sessionOptions)
+	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
 	if err != nil {
-		plugin.Logger(ctx).Error("getSessionWithMaxRetries", "new_session_with_options", err)
+		plugin.Logger(ctx).Error("getClientUncached", "region", region, "err", err)
 		return nil, err
 	}
 
-	// save session in cache
-	d.ConnectionManager.Cache.Set(sessionCacheKey, sess)
-
-	return sess, nil
+	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	return sess, err
 }
 
-// GetDefaultAwsRegion returns the default region for AWS partiton
-// if not set by Env variable or in aws profile
-func GetDefaultAwsRegion(d *plugin.QueryData) string {
-	allAwsRegions := []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1"}
+func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 
-	// have we already created and cached the service?
-	serviceCacheKey := "GetDefaultAwsRegion"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(string)
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+
+	if region == "" {
+		return nil, fmt.Errorf("getClientWithMaxRetries called with an empty region")
 	}
 
-	// get aws config info
-	awsConfig := GetConfig(d.Connection)
+	// Start with the shared config for the account, and then customize
+	// for this specific region etc.
+	baseCfg, err := getBaseClientForAccount(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	cfg := baseCfg.Copy()
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "copy_base_config")
 
-	var regions []string
-	var region string
+	// Set the region for this client
+	// Note: The region set directly in cfg.Region will not be used by the AWS
+	// SDK when making background sts:AssumeRole API calls for IAM role
+	// authentication. So even if we set a region here but the AWS SDK could not
+	// resolve a region and no region was passed into the base config's options,
+	// a signing error will be thrown for API calls with this client, e.g.,
+	// Error: operation error CloudFront: ListDistributions, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, failed to resolve service endpoint, an AWS region is required, but was not found
+	cfg.Region = region
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "set_client_region")
 
-	if awsConfig.Regions != nil {
-		regions = awsConfig.Regions
-		region = regions[0]
-	} else {
-		session, err := session.NewSessionWithOptions(session.Options{
-			SharedConfigState: session.SharedConfigEnable,
+	// Add the retryer definition
+	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
+		// reseting state of rand to generate different random values
+		rand.New(rand.NewSource(time.Now().UnixNano()))
+		o.MaxAttempts = maxRetries
+		o.MaxBackoff = 5 * time.Minute
+		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
+		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
+	})
+	cfg.Retryer = func() aws.Retryer {
+		// UnknownError is the code returned for a 408 from the aws go sdk, these can be frequent on large accounts especially around SNS Topics, etc.
+		additionalErrors := []string{"UnknownError"}
+		return retry.AddWithErrorCodes(retryer, additionalErrors...)
+	}
+
+	// Plugin level config
+	awsSpcConfig := GetConfig(d.Connection)
+
+	// If there is a custom endpoint, use it
+	var awsEndpointUrl string
+	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
+	if awsSpcConfig.EndpointUrl != nil {
+		awsEndpointUrl = *awsSpcConfig.EndpointUrl
+		if awsEndpointUrl != "" {
+			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					PartitionID:   "aws",
+					URL:           awsEndpointUrl,
+					SigningRegion: region,
+				}, nil
+			})
+			newCfg, err := config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver))
+			if err != nil {
+				plugin.Logger(ctx).Error("service.getClientWithMaxRetries", "connection_error", err)
+				return nil, err
+			}
+			newCfg.Retryer = cfg.Retryer
+			newCfg.Region = cfg.Region
+			cfg = newCfg
+		}
+	}
+
+	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
+
+	return &cfg, err
+}
+
+// Helper function to get an AWS config object for each connection. This object
+// is then copied and shared across regions. This approach avoids unnecssary
+// creation work for sessions, particularly when using a shared service like IDMS.
+// The client is actually cached indefinitely which is desirable since the AWS
+// SDK will automatically refresh as needed. We used to time this cache out
+// (every 5 mins), but that caused a lof of session resets and termination of
+// things like SSO sessions before they expired.
+// Previously we'd create a new session for each region, but this leads to
+// throttling on the IDMS service - consider 10 connections with 10 regions, that's
+// 100 sessions which leads to 300 IDMS calls in very quick succession. It was
+// even worse when the cache was not safe against parallel runs, causing many to
+// be recreated. Using a base client creation and combining with the safety of
+// Memoize() is a much better approach.
+func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	tmp, err := getBaseClientForAccountCached(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+	return tmp.(*aws.Config), nil
+}
+
+// Initialize a single HTTP client that is optimized for Steampipe and shared
+// across all AWS SDK clients. We have hundreds of AWS SDK clients (one per
+// account region) that are all sharing this same HTTP client - creating shared
+// caching and controls over parallelism.
+//
+// The AWS SDK defaults are good, but not great for our highly parallel use in
+// Steampipe. Specific problems this client aims to solve:
+// 1. DNS floods - performing thousands of simultaneous API calls creates a DNS
+// lookup for each one (even if the same domain). This can overwhelm the DNS
+// server and cause "no such host" errors.
+// 2. HTTP connection floods - the AWS SDK defaults to no limit on the number of
+// HTTP connections per host. Thousands of connections created simultaneously to
+// the same host is hard on both the client and the target server.
+// 3. DNS caching - Golang does not cache DNS lookups by default. We end up
+// looking up the same host thousands of times both within a query and across
+// queries.
+func initializeHTTPClient() aws.HTTPClient {
+
+	// DNS lookup floods are a real problem with highly parallel AWS SDK calls. Every
+	// API request leads to a DNS lookup by default (since Go doesn't cache them). We
+	// employ a DNS lookup cache, but we also need to limit the number of parallel DNS
+	// requests to avoid overwhelming the underlying DNS server. For example, listing
+	// S3 buckets will create 2 DNS lookup requests per bucket which is a lot of
+	// pressure on the DNS layer of your network.
+	// This setting will limit the number of parallel DNS lookups. An appropriate setting
+	// depends on the capabilities of your DNS server. The default is 25, which is low
+	// enough for a Macbook M1 to work without "no such host" errors when using the cgo
+	// network stack. It's high enough to work great in most cases, except maybe massive
+	// S3 bucket listing (which is rare). Notably on the same Macbook M1, when the plugin
+	// is compiled using netgo (our default on Mac) DNS lookups will succeed with virtually
+	// no upper limit on this setting. So, bottom line, 25 is a guess to try and ensure
+	// it works reliably and optimally enough.
+	dnsLookupMaxParallel := readEnvVarToInt("STEAMPIPE_AWS_DNS_LOOKUP_MAX_PARALLEL", 25)
+
+	// The DNS cache will be refreshed at this interval. A refresh means that
+	// any unused entries are removed and any entries that were used since the
+	// last refresh will be re-looked up to ensure they are current.
+	// This setting should be large enough to get the benefit of caching and short
+	// enough to prevent stale entries from being used for too long.
+	// Set to 0 to disable the refresh completely (not a good idea).
+	// Set to -1 to disable the DNS cache completely (the AWS default).
+	dnsCacheRefreshIntervalSecs := readEnvVarToInt("STEAMPIPE_AWS_DNS_CACHE_REFRESH_INTERVAL_SECS", 300)
+
+	// This is the maximum number of HTTPS API connections used for each host
+	// (e.g.  iam.amazonaws.com). We want a number that is high enough to do a
+	// lot of parallel work, but not so high that we have an excess number of
+	// sockets open.
+	// There is a trade off here. Tables like S3 have a lot of hosts - i.e. two
+	// per bucket (one for the central region to get the creation time and one
+	// for the actual bucket region), while services like IAM use a single host
+	// for all queries.
+	// Set to 0 to remove the limit (which is the AWS SDK default).
+	httpTransportMaxConnsPerHost := readEnvVarToInt("STEAMPIPE_AWS_HTTP_TRANSPORT_MAX_CONNS_PER_HOST", 5000)
+
+	// Our DNS resolver should automatically refresh itself on this schedule.
+	var resolver = &dnscache.Resolver{}
+	if dnsCacheRefreshIntervalSecs > 0 {
+		go func() {
+			t := time.NewTicker(time.Duration(dnsCacheRefreshIntervalSecs) * time.Second)
+			defer t.Stop()
+			for range t.C {
+				resolver.Refresh(true)
+			}
+		}()
+	}
+
+	// The AWS SDK has a special "buildable" HTTP client so it can be combined
+	// with specific options such as custom certificate bundles. It matches the
+	// interface of a HTTPClient, but has specific approaches for setting
+	// transport options etc. Our goal is to use the default AWS settings (e.g.
+	// timeouts, etc) as much as possible and just override the specific
+	// behavior of parallelism for DNS lookups and HTTP requests.
+	client := awshttp.NewBuildableClient()
+
+	// Limit the max connections per host, but only if set. The AWS SDK default
+	// is no limit.
+	if httpTransportMaxConnsPerHost > 0 {
+		client = client.WithTransportOptions(func(tr *http.Transport) {
+			tr.MaxConnsPerHost = httpTransportMaxConnsPerHost
 		})
-		if err != nil {
-			panic(err)
-		}
-		if session != nil && session.Config != nil {
-			region = *session.Config.Region
-		}
-
-		if region != "" {
-			regions = []string{region}
-		}
 	}
 
-	invalidPatterns := []string{}
-	for _, namePattern := range regions {
-		validRegions := []string{}
-		for _, validRegion := range allAwsRegions {
-			if ok, _ := path.Match(namePattern, validRegion); ok {
-				validRegions = append(validRegions, validRegion)
-			}
-		}
-		if len(validRegions) == 0 {
-			invalidPatterns = append(invalidPatterns, namePattern)
-		}
-	}
+	// Use a DNS cache if it's set, otherwise we just avoid changing the dialer behavior
+	// of the AWS HTTP client.
+	if dnsCacheRefreshIntervalSecs >= 0 {
 
-	if len(invalidPatterns) > 0 {
-		panic("\nconnection config has invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe.")
-	}
+		// A semaphore is used to control the number of parallel DNS lookups.
+		sem := semaphore.NewWeighted(int64(dnsLookupMaxParallel))
 
-	// most of the global services like IAM, S3, Route 53, etc. in all cloud types target these regions
-	if strings.HasPrefix(region, "us-gov") && !helpers.StringSliceContains(allAwsRegions, region) {
-		region = "us-gov-west-1"
-	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
-		region = "cn-northwest-1"
-	} else if !helpers.StringSliceContains(allAwsRegions, region) {
-		region = "us-east-1"
-	}
+		// A dialer for testing connections
+		dialer := client.GetDialer()
 
-	d.ConnectionManager.Cache.Set(serviceCacheKey, region)
-	return region
-}
+		client = client.WithTransportOptions(func(tr *http.Transport) {
+			tr.DialContext = func(ctx context.Context, network string, addr string) (conn net.Conn, err error) {
 
-// Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
-func NewConnectionErrRetryer(maxRetries int, minRetryDelay time.Duration, ctx context.Context) *ConnectionErrRetryer {
-	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
-	return &ConnectionErrRetryer{
-		ctx: ctx,
-		DefaultRetryer: client.DefaultRetryer{
-			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
-			MinRetryDelay: minRetryDelay, // Set minimum retry delay
-		},
-	}
-}
-
-// ConnectionErrRetryer wraps the SDK's built in DefaultRetryer adding customization
-// to retry `connection reset by peer` errors.
-// Note: This retryer should be used for either idempotent operations or for operations
-// where performing duplicate requests to AWS is acceptable.
-// See also: https://github.com/aws/aws-sdk-go/issues/3027#issuecomment-567269161
-type ConnectionErrRetryer struct {
-	client.DefaultRetryer
-	ctx context.Context
-}
-
-func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
-	if req.Error != nil {
-		if strings.Contains(req.Error.Error(), "connection reset by peer") {
-			return true
-		}
-
-		var awsErr awserr.Error
-		if errors.As(req.Error, &awsErr) {
-			/*
-				If no credentials are set or an invalid profile is provided, the AWS SDK
-				will attempt to authenticate using all known methods. This takes a while
-				since it will attempt to reach the EC2 metadata service and will continue
-				to retry on connection errors, e.g.,
-				awsErr.OrigErr()="Put "http://169.254.169.254/latest/api/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
-				awsErr.OrigErr()="Get "http://169.254.169.254/latest/meta-data/iam/security-credentials/": dial tcp 169.254.169.254:80: connect: no route to host"
-				To reduce the time to fail, limit the number of retries for these errors specifically.
-			*/
-			if awsErr.OrigErr() != nil {
-				if strings.Contains(awsErr.OrigErr().Error(), "http://169.254.169.254/latest") && req.RetryCount > 3 {
-					return false
+				host, port, err := net.SplitHostPort(addr)
+				if err != nil {
+					return nil, err
 				}
+
+				// Acquire a semaphore slot, blocking until one is available.
+				if err := sem.Acquire(ctx, 1); err != nil {
+					return nil, err
+				}
+
+				// Actually resolve the host, using a cached result if possible.
+				// Returns an array of IPs for the host.
+				ips, err := resolver.LookupHost(ctx, host)
+
+				// Release the semaphore, even if there was an error.
+				sem.Release(1)
+
+				// If there was an error during lookup, we give up immediately.
+				if err != nil {
+					return nil, err
+				}
+
+				// Now, look through the IP addresses until we manage to create a good connection.
+				// This is less optimal than the parallelized native golang approach, but good
+				// enough and much simpler. Comparison - https://cs.opensource.google/go/go/+/refs/tags/go1.21.5:src/net/dial.go;l=454-507
+				for _, ip := range ips {
+					conn, err = dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
+					if err == nil {
+						break
+					}
+				}
+
+				return
 			}
+		})
+	}
+
+	return client
+}
+
+var sharedHTTPClient = initializeHTTPClient()
+
+// Cached form of the base client.
+// This cache HAS A 30 DAY EXPIRATION! This is because the AWS SDK will
+// automatically refresh credentials as needed from this cached object.
+// If we expire the cache regularly we are causing SSO sessions to end
+// prematurely, and causing the AWS SDK to refresh credentials more often
+// using the IDMS service etc.
+var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUncached).Memoize(memoize.WithTtl(time.Hour * 24 * 30))
+
+// Do the actual work of creating an AWS config object for reuse across many
+// regions. This client has the minimal reusable configuration on it, so it
+// can be modified in the higher level client functions.
+func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
+
+	awsSpcConfig := GetConfig(d.Connection)
+
+	var configOptions []func(*config.LoadOptions) error
+
+	// Note about region config: We deliberately do not set a region when
+	// creating the config. It will load the best region for this account
+	// (profile) from the ~/.aws shared config / env vars / etc. This is
+	// important, as this base client is even used when trying to guess the
+	// default region for the user based on these settings.
+
+	if awsSpcConfig.Profile != nil {
+		profile := aws.ToString(awsSpcConfig.Profile)
+		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
+		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
+	}
+
+	if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey == nil {
+		return nil, fmt.Errorf("partial credentials found in connection config, missing: secret_key")
+	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
+		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
+	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
+		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
+		sessionToken := ""
+		if awsSpcConfig.SessionToken != nil {
+			plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
+			sessionToken = *awsSpcConfig.SessionToken
+		}
+		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
+		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
+	}
+
+	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+
+	// NOTE: EC2 metadata service IMDS throttling and retries
+	//
+	// With a large number of connections all being setup on a single machine using
+	// IMDS credentials, we can hit the IMDS throttling limits. We only query IMDS
+	// once per connection (3 API calls under the hood), but it still throttles once
+	// over 200 connections or so (estimate, rate limits vary).
+	//
+	// I was unable to find a way to setup automatic retries and the information
+	// available online as of 2023-01-26 is limited. Best links I could find:
+	// * IDMS service - https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/feature/ec2/imds#pkg-overview
+	// * (Broken) example with ec2rolecreds - https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds#Provider
+	// * (Fixed) issue that it didn't work - https://github.com/aws/aws-sdk-go-v2/issues/1296
+	//
+	// // This code ran, but didn't seem to respect the idms.Options{...}
+	// // The debugHTTPClient did work to show requests / throttling.
+	// retryer := retry.NewStandard(func(o *retry.StandardOptions) {
+	//   // reseting state of rand to generate different random values
+	//   rand.Seed(time.Now().UnixNano())
+	//   o.MaxAttempts = 50
+	//   o.MaxBackoff = 5 * time.Minute
+	//   o.RateLimiter = NoOpRateLimit{} // With no rate limiter
+	//   o.Backoff = NewExponentialJitterBackoff(100*time.Millisecond, 5)
+	//   log.Printf("[WARN] retryer!")
+	// })
+	// configOptions = append(configOptions, config.WithEC2RoleCredentialOptions(func(opts *ec2rolecreds.Options) {
+	//   // debugHTTPClient per https://github.com/aws/aws-sdk-go-v2/issues/1296
+	//   opts.Client = imds.New(imds.Options{Retryer: retryer, ClientLogMode: aws.LogRetries | aws.LogRequest}, withDebugHTTPClient())
+	// }))
+
+	configOptions = append(configOptions, config.WithHTTPClient(sharedHTTPClient))
+
+	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
+	if err != nil {
+		plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
+		return nil, err
+	}
+
+	// Even though we create a client per region and set the region during that
+	// step, we need to pass a region in the config options if the AWS SDK could
+	// not resolve a region from environment variables or the AWS config.
+	// This region is used by the AWS SDK when making background sts:AssumeRole
+	// API calls for IAM role authentication; if it's not set here, a signing
+	// error is thrown for API calls with this client, e.g.,
+	// Error: operation error CloudFront: ListDistributions, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, failed to resolve service endpoint, an AWS region is required, but was not found
+	if cfg.Region == "" {
+		defaultRegion, err := getDefaultRegionFromConfig(ctx, d, nil)
+		if err != nil {
+			plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "get_default_region_error", err)
+			return nil, err
+		}
+
+		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "region", defaultRegion, "status", "set_default_region")
+		configOptions = append(configOptions, config.WithRegion(defaultRegion))
+		cfg, err = config.LoadDefaultConfig(ctx, configOptions...)
+		if err != nil {
+			plugin.Logger(ctx).Error("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "load_default_config_error", err)
+			return nil, err
 		}
 	}
 
-	// Fallback to SDK's built in retry rules
-	return r.DefaultRetryer.ShouldRetry(req)
+	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
+
+	return &cfg, err
+
 }
 
-// Customize the RetryRules to implement exponential backoff retry
-func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
-	retryCount := r.RetryCount
-	minDelay := d.MinRetryDelay
+// ExponentialJitterBackoff provides backoff delays with jitter based on the
+// number of attempts.
+type ExponentialJitterBackoff struct {
+	minDelay           time.Duration
+	maxBackoffAttempts int
+}
 
-	// If errors are caused by load, retries can be ineffective if all API request retry at the same time.
-	// To avoid this problem added a jitter of "+/-20%" with delay time.
-	// For example, if the delay is 25ms, the final delay could be between 20 and 30ms.
+// NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
+// for the max backoff.
+func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int) *ExponentialJitterBackoff {
+	return &ExponentialJitterBackoff{minDelay, maxAttempts}
+}
+
+// BackoffDelay returns the duration to wait before the next attempt should be
+// made. Returns an error if unable get a duration.
+func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
+	minDelay := j.minDelay
+
+	// The calculatted jitter will be between [0.8, 1.2)
 	var jitter = float64(rand.Intn(120-80)+80) / 100
 
-	// Creates a new exponential backoff using the starting value of
-	// minDelay and (minDelay * 3^retrycount) * jitter on each failure
-	// For example, with a min delay time of 25ms: 23.25ms, 63ms, 238.5ms, 607.4ms, 2s, 5.22s, 20.31s..., up to max.
-	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * jitter))
+	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(attempt)))) * jitter))
 
-	// Cap retry time at 5 minuets to avoid too long a wait
+	// Cap retry time at 5 minutes to avoid too long a wait
 	if retryTime > time.Duration(5*time.Minute) {
 		retryTime = time.Duration(5 * time.Minute)
 	}
 
-	return retryTime
+	// Low level method to log retries since we don't have context etc here.
+	// Logging is helpful for visibility into retries and choke points in using
+	// the API.
+	log.Printf("[INFO] BackoffDelay: attempt=%d, retryTime=%s, err=%v", attempt, retryTime.String(), err)
+
+	return retryTime, nil
 }

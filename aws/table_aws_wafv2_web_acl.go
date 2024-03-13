@@ -2,14 +2,18 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2/types"
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,15 +23,37 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_web_acl",
 		Description: "AWS WAFv2 Web ACL",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
-			Hydrate:           getAwsWafv2WebAcl,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
+			},
+			Hydrate: getAwsWafv2WebAcl,
+			Tags:    map[string]string{"service": "wafv2", "action": "GetWebACL"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2WebAcls,
+			Tags:    map[string]string{"service": "wafv2", "action": "ListWebACLs"},
 		},
-		GetMatrixItem: BuildWafRegionList,
-		Columns: []*plugin.Column{
+		GetMatrixItemFunc: WAFRegionMatrix,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafv2WebAcl,
+				Tags: map[string]string{"service": "wafv2", "action": "GetWebACL"},
+			},
+			{
+				Func: listAssociatedResources,
+				Tags: map[string]string{"service": "wafv2", "action": "ListResourcesForWebACL"},
+			},
+			{
+				Func: getLoggingConfiguration,
+				Tags: map[string]string{"service": "wafv2", "action": "GetLoggingConfiguration"},
+			},
+			{
+				Func: listTagsForAwsWafv2WebAcl,
+				Tags: map[string]string{"service": "wafv2", "action": "ListTagsForResource"},
+			},
+		},
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Web ACL. You cannot change the name of a Web ACL after you create it.",
@@ -71,6 +97,13 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				Description: "Indicates whether this web ACL is managed by AWS Firewall Manager.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsWafv2WebAcl,
+			},
+			{
+				Name:        "associated_resources",
+				Description: "The array of Amazon Resource Names (ARNs) of the associated resources.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listAssociatedResources,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "default_action",
@@ -139,66 +172,61 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 
 			// AWS standard columns
 			{
-				Name:        "partition",
-				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-			{
 				Name:        "region",
 				Description: "The AWS Region in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(webAclRegion),
 			},
-			{
-				Name:        "account_id",
-				Description: "The AWS Account ID in which the resource is located.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-		},
+		}),
 	}
 }
 
 //// LIST FUNCTION
 
 func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	scope := aws.String("REGIONAL")
+	region := d.EqualsQualString(matrixKeyRegion)
+	scope := types.ScopeRegional
 
 	if region == "global" {
-		region = "us-east-1"
-		scope = aws.String("CLOUDFRONT")
+		scope = types.ScopeCloudfront
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2WebAcls", "AWS_REGION", region)
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAwsWafv2WebAcls", "connection_error", err)
 		return nil, err
 	}
-
-	pagesLeft := true
-	params := &wafv2.ListWebACLsInput{
-		Scope: scope,
-		Limit: aws.Int64(100),
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
-
+	pagesLeft := true
+	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				params.Limit = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				params.Limit = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
+	params := &wafv2.ListWebACLsInput{
+		Scope: scope,
+		Limit: aws.Int32(maxLimit),
+	}
 
+	// ListWebACLs API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
-		response, err := svc.ListWebACLs(params)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAwsWafv2WebAcls", "api_error", err)
 			return nil, err
 		}
 
@@ -206,7 +234,7 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			d.StreamListItem(ctx, webAcl)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -225,9 +253,8 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWafv2WebAcl")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	var id, name, scope string
 	if h.Item != nil {
@@ -242,9 +269,9 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			scope = "CLOUDFRONT"
 		}
 	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		scope = d.KeyColumnQuals["scope"].GetStringValue()
+		id = d.EqualsQuals["id"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		scope = d.EqualsQuals["scope"].GetStringValue()
 	}
 
 	/*
@@ -262,25 +289,25 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, nil
 	}
 
-	if region == "global" {
-		region = "us-east-1"
-	}
-
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.getAwsWafv2WebAcl", "connection_error", err)
 		return nil, err
 	}
-
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
 	params := &wafv2.GetWebACLInput{
 		Id:    aws.String(id),
 		Name:  aws.String(name),
-		Scope: aws.String(scope),
+		Scope: types.Scope(scope),
 	}
 
-	op, err := svc.GetWebACL(params)
+	op, err := svc.GetWebACL(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("GetWebACL", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.getAwsWafv2WebAcl", "api_error", err)
 		return nil, err
 	}
 
@@ -291,77 +318,168 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTagsForAwsWafv2WebAcl")
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	if region == "global" {
-		region = "us-east-1"
-	}
 	data := webAclData(h.Item)
-	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if locationType == "global" && region != "us-east-1" {
-		return nil, nil
-	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listTagsForAwsWafv2WebAcl", "connection_error", err)
 		return nil, err
 	}
-
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
 	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
-		Limit:       aws.Int64(100),
+		Limit:       aws.Int32(100),
 	}
 
-	webAclTags, err := svc.ListTagsForResource(param)
+	webAclTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listTagsForAwsWafv2WebAcl", "api_error", err)
 		return nil, err
 	}
 	return webAclTags, nil
 }
 
 func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getLoggingConfiguration")
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	if region == "global" {
-		region = "us-east-1"
-	}
 	data := webAclData(h.Item)
-	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if locationType == "global" && region != "us-east-1" {
-		return nil, nil
-	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.getLoggingConfiguration", "connection_error", err)
 		return nil, err
 	}
-
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
 	// Build param
 	param := &wafv2.GetLoggingConfigurationInput{
 		ResourceArn: aws.String(data["Arn"]),
 	}
 
-	op, err := svc.GetLoggingConfiguration(param)
+	op, err := svc.GetLoggingConfiguration(ctx, param)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "WAFNonexistentItemException" {
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.getLoggingConfiguration", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "WAFNonexistentItemException" {
 				return nil, nil
 			}
 		}
 		return nil, err
 	}
 	return op, nil
+}
+
+func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region := d.EqualsQualString(matrixKeyRegion)
+
+	data := webAclData(h.Item)
+	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
+
+	// Create session
+	if locationType == "global" {
+
+		svc, err := CloudFrontClient(ctx, d)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "connection_error", err)
+			return nil, err
+		}
+		if svc == nil {
+			// unsupported region check
+			return nil, nil
+		}
+
+		// Doc(https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_ListDistributionsByWebACLId.html) says
+		// We need to pass the Web ACL ID to get the associated distrubutions with it but it doesn't.
+		// By passing the Web ACL ARN we are getting the associated disctributions with it.
+		// The AWS CLI behaves the same way as the API is behaving.
+		// Build param
+		param := &cloudfront.ListDistributionsByWebACLIdInput{
+			WebACLId: aws.String(data["Arn"]),
+		}
+
+		op, err := svc.ListDistributionsByWebACLId(ctx, param)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "api_error", err)
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "WAFNonexistentItemException" {
+					return nil, nil
+				}
+			}
+			return nil, err
+		}
+
+		var ARNs []string
+		if op.DistributionList != nil {
+			if len(op.DistributionList.Items) > 0 {
+				for _, item := range op.DistributionList.Items {
+					ARNs = append(ARNs, *item.ARN)
+				}
+			}
+		}
+		return ARNs, nil
+	} else {
+		svc, err := WAFV2Client(ctx, d, region)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "connection_error", err)
+			return nil, err
+		}
+		if svc == nil {
+			// unsupported region check
+			return nil, nil
+		}
+
+		// Build param
+		param := &wafv2.ListResourcesForWebACLInput{
+			WebACLArn: aws.String(data["Arn"]),
+		}
+
+		var resourceArns []string
+
+		resourceTypes := []types.ResourceType{types.ResourceTypeApplicationLoadBalancer, types.ResourceTypeApiGateway, types.ResourceTypeAppsync, types.ResourceTypeCognitioUserPool}
+
+		for _, resourceType := range resourceTypes {
+			param.ResourceType = resourceType
+			res, err := listAssociatedResourcesByResourceType(ctx, svc, param)
+
+			if err != nil {
+				return nil, err
+			}
+
+			resourceArns = append(resourceArns, res...)
+		}
+		return resourceArns, nil
+	}
+}
+
+func listAssociatedResourcesByResourceType(ctx context.Context, svc *wafv2.Client, input *wafv2.ListResourcesForWebACLInput) ([]string, error) {
+	op, err := svc.ListResourcesForWebACL(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResourcesByResourceType", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "WAFNonexistentItemException" {
+				return nil, nil
+			}
+		}
+		return nil, err
+	}
+	if len(op.ResourceArns) == 0 {
+		return []string{}, nil
+	}
+	return op.ResourceArns, nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -376,7 +494,6 @@ func webAclLocation(_ context.Context, d *transform.TransformData) (interface{},
 }
 
 func webAclTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("webAclTagListToTurbotTags")
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
 	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
@@ -410,11 +527,11 @@ func webAclRegion(ctx context.Context, d *transform.TransformData) (interface{},
 func webAclData(item interface{}) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *wafv2.WebACL:
+	case *types.WebACL:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name
-	case *wafv2.WebACLSummary:
+	case types.WebACLSummary:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name

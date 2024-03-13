@@ -4,11 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,15 +19,29 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_ip_set",
 		Description: "AWS WAFv2 IP Set",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
-			Hydrate:           getAwsWafv2IpSet,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
+			},
+			Hydrate: getAwsWafv2IpSet,
+			Tags:    map[string]string{"service": "wafv2", "action": "GetIPSet"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2IpSets,
+			Tags:    map[string]string{"service": "wafv2", "action": "ListIPSets"},
 		},
-		GetMatrixItem: BuildWafRegionList,
-		Columns: []*plugin.Column{
+		GetMatrixItemFunc: WAFRegionMatrix,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafv2IpSet,
+				Tags: map[string]string{"service": "wafv2", "action": "GetIPSet"},
+			},
+			{
+				Func: listTagsForAwsWafv2IpSet,
+				Tags: map[string]string{"service": "wafv2", "action": "ListTagsForResource"},
+			},
+		},
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the IP set.",
@@ -103,67 +118,64 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 
 			// AWS standard columns
 			{
-				Name:        "partition",
-				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-			{
 				Name:        "region",
 				Description: "The AWS Region in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(ipSetRegion),
 			},
-			{
-				Name:        "account_id",
-				Description: "The AWS Account ID in which the resource is located.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-		},
+		}),
 	}
 }
 
 //// LIST FUNCTION
 
 func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	scope := aws.String("REGIONAL")
+	region := d.EqualsQualString(matrixKeyRegion)
+	scope := types.ScopeRegional
 
 	if region == "global" {
-		region = "us-east-1"
-		scope = aws.String("CLOUDFRONT")
+		scope = types.ScopeCloudfront
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2IpSets", "AWS_REGION", region)
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.listAwsWafv2IpSets", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// List all IP sets
 	pagesLeft := true
-	params := &wafv2.ListIPSetsInput{
-		Scope: scope,
-		Limit: aws.Int64(100),
-	}
+	maxLimit := int32(100)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
+		limit := d.QueryContext.Limit
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				params.Limit = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				params.Limit = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
+	params := &wafv2.ListIPSetsInput{
+		Scope: scope,
+		Limit: aws.Int32(maxLimit),
+	}
 
+	// ListIPSets API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
-		response, err := svc.ListIPSets(params)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		response, err := svc.ListIPSets(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_ip_set.listAwsWafv2IpSets", "api_error", err)
 			return nil, err
 		}
 
@@ -171,7 +183,7 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 			d.StreamListItem(ctx, ipSets)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -190,10 +202,7 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWafv2IpSet")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
+	region := d.EqualsQualString(matrixKeyRegion)
 	var id, name, scope string
 	if h.Item != nil {
 		data := ipSetData(h.Item)
@@ -207,9 +216,9 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 			scope = "CLOUDFRONT"
 		}
 	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		scope = d.KeyColumnQuals["scope"].GetStringValue()
+		id = d.EqualsQuals["id"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		scope = d.EqualsQuals["scope"].GetStringValue()
 	}
 
 	/*
@@ -227,25 +236,26 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, nil
 	}
 
-	if region == "global" {
-		region = "us-east-1"
-	}
-
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.getAwsWafv2IpSet", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &wafv2.GetIPSetInput{
 		Id:    aws.String(id),
 		Name:  aws.String(name),
-		Scope: aws.String(scope),
+		Scope: types.Scope(scope),
 	}
 
-	op, err := svc.GetIPSet(params)
+	op, err := svc.GetIPSet(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("GetIPSet", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.getAwsWafv2IpSet", "api_error", err)
 		return nil, err
 	}
 
@@ -256,35 +266,30 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTagsForAwsWafv2IpSet")
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	if region == "global" {
-		region = "us-east-1"
-	}
 	data := ipSetData(h.Item)
-	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if locationType == "global" && region != "us-east-1" {
-		return nil, nil
-	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.listTagsForAwsWafv2IpSet", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
-		Limit:       aws.Int64(100),
+		Limit:       aws.Int32(100),
 	}
 
-	ipSetTags, err := svc.ListTagsForResource(param)
+	ipSetTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.listTagsForAwsWafv2IpSet", "api_error", err)
 		return nil, err
 	}
 	return ipSetTags, nil
@@ -302,7 +307,6 @@ func ipSetLocation(_ context.Context, d *transform.TransformData) (interface{}, 
 }
 
 func ipSetTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ipSetTagListToTurbotTags")
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
 	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
@@ -336,12 +340,12 @@ func ipSetRegion(ctx context.Context, d *transform.TransformData) (interface{}, 
 func ipSetData(item interface{}) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *wafv2.IPSet:
+	case *types.IPSet:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name
 		data["Description"] = *item.Description
-	case *wafv2.IPSetSummary:
+	case types.IPSetSummary:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name

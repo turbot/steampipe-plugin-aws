@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,12 +23,16 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 		Name:        "aws_ebs_volume",
 		Description: "AWS EBS Volume",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("volume_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
-			Hydrate:           getEBSVolume,
+			KeyColumns: plugin.SingleColumn("volume_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
+			},
+			Hydrate: getEBSVolume,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVolumes"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEBSVolume,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVolumes"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "availability_zone", Require: plugin.Optional},
 				{Name: "encrypted", Require: plugin.Optional, Operators: []string{"=", "<>"}},
@@ -38,7 +45,17 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				{Name: "volume_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getVolumeAutoEnableIOData,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeVolumeAttribute"},
+			},
+			{
+				Func: getVolumeProductCodes,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeVolumeAttribute"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "volume_id",
@@ -164,17 +181,28 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEBSVolume", "AWS_REGION", region)
-
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ebs_volume.listEBSVolume", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeVolumesInput{
-		MaxResults: aws.Int64(500),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filters := buildEbsVolumeFilter(d.Quals)
@@ -183,34 +211,31 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		input.Filters = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeVolumesPaginator(svc, input, func(o *ec2.DescribeVolumesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ebs_volume.listEBSVolume", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Volumes {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeVolumesPages(
-		input,
-		func(page *ec2.DescribeVolumesOutput, isLast bool) bool {
-			for _, volume := range page.Volumes {
-				d.StreamListItem(ctx, volume)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-
-			return !isLast
-		},
-	)
 
 	return nil, err
 }
@@ -218,26 +243,24 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 //// HYDRATE FUNCTIONS
 
 func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEBSVolume")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	volumeID := d.KeyColumnQuals["volume_id"].GetStringValue()
+	volumeID := d.EqualsQuals["volume_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ebs_volume.getEBSVolume", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeVolumesInput{
-		VolumeIds: []*string{aws.String(volumeID)},
+		VolumeIds: []string{volumeID},
 	}
 
 	// Get call
-	op, err := svc.DescribeVolumes(params)
+	op, err := svc.DescribeVolumes(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getEBSVolume__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ebs_volume.getEBSVolume", "api_error", err)
 		return nil, err
 	}
 
@@ -249,27 +272,24 @@ func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 }
 
 func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVolumeAutoEnableIOData")
-	volume := h.Item.(*ec2.Volume)
-
-	// Table is currently failing with error `Error: region must be passed Ec2Service`
-	// While `LIST` and `GET` function are working
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	volume := h.Item.(types.Volume)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ebs_volume.getVolumeAutoEnableIOData", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeVolumeAttributeInput{
 		VolumeId:  volume.VolumeId,
-		Attribute: aws.String("autoEnableIO"),
+		Attribute: types.VolumeAttributeNameAutoEnableIO,
 	}
 
-	volumeAttributes, err := svc.DescribeVolumeAttribute(params)
+	volumeAttributes, err := svc.DescribeVolumeAttribute(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ebs_volume.getVolumeAutoEnableIOData", "api_error", err)
 		return nil, err
 	}
 
@@ -277,23 +297,23 @@ func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVolumeProductCodes")
-	volume := h.Item.(*ec2.Volume)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	volume := h.Item.(types.Volume)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ebs_volume.getVolumeProductCodes", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeVolumeAttributeInput{
 		VolumeId:  volume.VolumeId,
-		Attribute: aws.String("productCodes"),
+		Attribute: types.VolumeAttributeNameProductCodes,
 	}
 
-	volumeAttributes, err := svc.DescribeVolumeAttribute(params)
+	volumeAttributes, err := svc.DescribeVolumeAttribute(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ebs_volume.getVolumeProductCodes", "api_error", err)
 		return nil, err
 	}
 
@@ -301,12 +321,10 @@ func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getEBSVolumeARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEBSVolumeARN")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	volume := h.Item.(*ec2.Volume)
+	region := d.EqualsQualString(matrixKeyRegion)
+	volume := h.Item.(types.Volume)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -320,12 +338,22 @@ func getEBSVolumeARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 //// TRANSFORM FUNCTIONS
 
 func getEBSVolumeTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	volume := d.HydrateItem.(*ec2.Volume)
-	return ec2TagsToMap(volume.Tags)
+	volume := d.HydrateItem.(types.Volume)
+	var turbotTagsMap map[string]string
+	if volume.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range volume.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
 
 func getEBSVolumeTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	volume := d.HydrateItem.(*ec2.Volume)
+	volume := d.HydrateItem.(types.Volume)
 
 	title := volume.VolumeId
 	if volume.Tags != nil {
@@ -340,9 +368,10 @@ func getEBSVolumeTitle(_ context.Context, d *transform.TransformData) (interface
 }
 
 //// UTILITY FUNCTION
+
 // Build ebs volume list call input filter
-func buildEbsVolumeFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEbsVolumeFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"availability_zone":    "availability-zone",
@@ -361,28 +390,25 @@ func buildEbsVolumeFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ec2.Filter{
-				Name: types.String(filterName),
+			filter := types.Filter{
+				Name: aws.String(filterName),
 			}
 			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
 				value := getQualsValueByColumn(quals, columnName, "boolean")
-				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+				filter.Values = []string{fmt.Sprint(value)}
 			} else if strings.Contains(fmt.Sprint(columnsInt), columnName) { //check Int columns
 				value := getQualsValueByColumn(quals, columnName, "int64")
-				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+				filter.Values = []string{fmt.Sprint(value)}
 			} else {
 				value := getQualsValueByColumn(quals, columnName, "string")
 				if value != nil {
 					val, ok := value.(string)
 					if ok {
-						filter.Values = []*string{aws.String(val)}
-					} else {
-						valSlice := value.([]*string)
-						filter.Values = valSlice
+						filter.Values = []string{val}
 					}
 				}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

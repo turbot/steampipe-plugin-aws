@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,6 +20,7 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 		Description: "AWS IAM Server Certificate",
 		List: &plugin.ListConfig{
 			Hydrate: listIamServerCertificates,
+			Tags:    map[string]string{"service": "iam", "action": "ListServerCertificates"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
 			},
@@ -26,8 +28,15 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			Hydrate:    getIamServerCertificate,
 			KeyColumns: plugin.AllColumns([]string{"name"}),
+			Tags:       map[string]string{"service": "iam", "action": "GetServerCertificate"},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIamServerCertificate,
+				Tags: map[string]string{"service": "iam", "action": "GetServerCertificate"},
+			},
+		},
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name that identifies the server certificate.",
@@ -96,6 +105,7 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamServerCertificate,
+				Transform:   transform.From(getIamServerCertificateTags),
 			},
 			{
 				Name:        "akas",
@@ -111,54 +121,59 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 
 func listIamServerCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_server_certificate.listIamServerCertificates", "client_error", err)
 		return nil, err
 	}
 
-	input := &iam.ListServerCertificatesInput{
-		MaxItems: aws.Int64(1000),
-	}
+	maxItems := int32(100)
 
-	equalQual := d.KeyColumnQuals
-	if equalQual["path"] != nil {
-		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
-			} else {
-				input.MaxItems = limit
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			maxItems = limit
+		}
+	}
+
+	params := &iam.ListServerCertificatesInput{MaxItems: &maxItems}
+
+	equalQual := d.EqualsQuals
+	if equalQual["path"] != nil {
+		params.PathPrefix = aws.String(equalQual["path"].GetStringValue())
+	}
+
+	paginator := iam.NewListServerCertificatesPaginator(svc, params, func(o *iam.ListServerCertificatesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_server_certificate.listIamServerCertificates", "api_error", err)
+			return nil, err
+		}
+
+		for _, certificate := range output.ServerCertificateMetadataList {
+			d.StreamListItem(ctx, ServerCertificate{
+				ServerCertificateMetadata: certificate,
+			})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	err = svc.ListServerCertificatesPages(
-		input,
-		func(page *iam.ListServerCertificatesOutput, lastPage bool) bool {
-			for _, certificate := range page.ServerCertificateMetadataList {
-				d.StreamListItem(ctx, &iam.ServerCertificate{
-					ServerCertificateMetadata: certificate,
-				})
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !lastPage
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -166,27 +181,51 @@ func listIamServerCertificates(ctx context.Context, d *plugin.QueryData, _ *plug
 func getIamServerCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIamServerCertificate")
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_server_certificate.getIamServerCertificate", "client_error", err)
 		return nil, err
 	}
 
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*iam.ServerCertificate).ServerCertificateMetadata.ServerCertificateName
+		name = *h.Item.(ServerCertificate).ServerCertificateMetadata.ServerCertificateName
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
-	param := &iam.GetServerCertificateInput{
-		ServerCertificateName: aws.String(name),
-	}
+	param := &iam.GetServerCertificateInput{ServerCertificateName: aws.String(name)}
 
-	op, err := svc.GetServerCertificate(param)
+	op, err := svc.GetServerCertificate(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_server_certificate.getIamServerCertificate", "api_error", err)
 		return nil, err
 	}
 
 	return op.ServerCertificate, nil
+}
+
+type ServerCertificate struct {
+	CertificateBody           *string
+	ServerCertificateMetadata types.ServerCertificateMetadata
+	CertificateChain          *string
+	Tags                      []types.Tag
+}
+
+//// TRANSFORM FUNCTIONS
+
+func getIamServerCertificateTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	cert, ok := d.HydrateItem.(*types.ServerCertificate)
+
+	if !ok || len(cert.Tags) == 0 {
+		return nil, nil
+	}
+
+	turbotTagsMap := map[string]string{}
+	for _, i := range cert.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return turbotTagsMap, nil
 }

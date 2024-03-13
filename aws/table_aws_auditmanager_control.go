@@ -2,12 +2,16 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
+
+	auditmanagerv1 "github.com/aws/aws-sdk-go/service/auditmanager"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,14 +21,24 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_control",
 		Description: "AWS Audit Manager Control",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			Hydrate:           getAuditManagerControl,
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+			KeyColumns: plugin.SingleColumn("id"),
+			Hydrate:    getAuditManagerControl,
+			Tags:       map[string]string{"service": "auditmanager", "action": "GetControl"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerControls,
+			Tags:    map[string]string{"service": "auditmanager", "action": "ListControls"},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAuditManagerControl,
+				Tags: map[string]string{"service": "auditmanager", "action": "GetControl"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -131,80 +145,141 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listAuditManagerControls", "AWS_REGION", region)
 
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
+	// Get client
+	svc, err := AuditManagerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_auditmanager_control.listAuditManagerControls", "client_error", err)
 		return nil, err
 	}
-
-	// List all standard controls
-	err = svc.ListControlsPages(
-		&auditmanager.ListControlsInput{
-			ControlType: aws.String("Standard"),
-		},
-		func(page *auditmanager.ListControlsOutput, lastPage bool) bool {
-			for _, items := range page.ControlMetadataList {
-				d.StreamListItem(ctx, items)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		return nil, err
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
-	// List all custom controls
-	err = svc.ListControlsPages(
-		&auditmanager.ListControlsInput{
-			ControlType: aws.String("Custom"),
-		},
-		func(page *auditmanager.ListControlsOutput, lastPage bool) bool {
-			for _, items := range page.ControlMetadataList {
-				d.StreamListItem(ctx, items)
-			}
-			return !lastPage
-		},
-	)
+	maxItems := int32(100)
+	params := &auditmanager.ListControlsInput{
+		ControlType: types.ControlTypeStandard,
+	}
 
-	return nil, err
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
+	}
+
+	params.MaxResults = &maxItems
+
+	paginator := auditmanager.NewListControlsPaginator(svc, params, func(o *auditmanager.ListControlsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	// List standard controls
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+			// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+			if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+				return nil, nil
+			}
+			plugin.Logger(ctx).Error("aws_auditmanager_control.listAuditManagerControls", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.ControlMetadataList {
+			d.StreamListItem(ctx, items)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	// List custom controls
+	params.ControlType = types.ControlTypeCustom
+	paginatorCustom := auditmanager.NewListControlsPaginator(svc, params, func(o *auditmanager.ListControlsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	// List standard controls
+	for paginatorCustom.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginatorCustom.NextPage(ctx)
+		if err != nil {
+			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+			// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+			if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+				return nil, nil
+			}
+			plugin.Logger(ctx).Error("aws_auditmanager_control.listAuditManagerControls", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.ControlMetadataList {
+			d.StreamListItem(ctx, items)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAuditManagerControl")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
+	// Get client
+	svc, err := AuditManagerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_auditmanager_control.listAuditManagerControls", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var id string
 	if h.Item != nil {
-		id = *h.Item.(*auditmanager.ControlMetadata).Id
+		id = *h.Item.(types.ControlMetadata).Id
 	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
+		id = d.EqualsQuals["id"].GetStringValue()
 	}
 
-	params := &auditmanager.GetControlInput{
-		ControlId: aws.String(id),
+	// Handle empty input id
+	if strings.TrimSpace(id) == "" {
+		return nil, nil
 	}
 
-	op, err := svc.GetControl(params)
+	params := &auditmanager.GetControlInput{ControlId: &id}
+
+	op, err := svc.GetControl(ctx, params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAuditManagerControl", "ERROR", err)
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("aws_auditmanager_control.getAuditManagerControl", "api_error", err)
 		return nil, err
 	}
 

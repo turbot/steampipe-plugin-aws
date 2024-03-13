@@ -1,0 +1,7 @@
+[
+  {
+    "logical_resource_id": "myVpc",
+    "stack_id": "{{ output.resource_id.value }}",
+    "stack_name": "{{resourceName}}"
+  }
+]

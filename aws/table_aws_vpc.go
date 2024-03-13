@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpc(_ context.Context) *plugin.Table {
@@ -17,12 +21,16 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc",
 		Description: "AWS VPC",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vpc_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "InvalidVpcID.NotFound"}),
-			Hydrate:           getVpc,
+			KeyColumns: plugin.SingleColumn("vpc_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException", "InvalidVpcID.NotFound"}),
+			},
+			Hydrate: getVpc,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcs"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcs,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cidr_block", Require: plugin.Optional},
 				{Name: "dhcp_options_id", Require: plugin.Optional},
@@ -31,7 +39,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpc_id",
@@ -119,17 +127,16 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcs", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc.listVpcs", "connection error", err)
 		return nil, err
 	}
 
 	input := &ec2.DescribeVpcsInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(1000),
 	}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -145,33 +152,42 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 		input.Filters = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				input.MaxResults = aws.Int32(5)
 			} else {
-				input.MaxResults = limit
+				input.MaxResults = aws.Int32(limit)
 			}
 		}
 	}
+	paginator := ec2.NewDescribeVpcsPaginator(svc, input, func(o *ec2.DescribeVpcsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-	// List call
-	err = svc.DescribeVpcsPages(
-		input,
-		func(page *ec2.DescribeVpcsOutput, isLast bool) bool {
-			for _, vpc := range page.Vpcs {
-				d.StreamListItem(ctx, vpc)
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc.listVpcs", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Vpcs {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -179,28 +195,25 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 //// HYDRATE FUNCTIONS
 
 func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpc")
 
-	vpcID := d.KeyColumnQuals["vpc_id"].GetStringValue()
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace(" getVpc", "AWS_REGION", region)
+	vpcID := d.EqualsQuals["vpc_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc.getVpc", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeVpcsInput{
-		VpcIds: []*string{&vpcID},
+		VpcIds: []string{vpcID},
 	}
 
 	// Get call
-	op, err := svc.DescribeVpcs(params)
+	op, err := svc.DescribeVpcs(ctx, params)
 	if err != nil {
-		logger.Debug("getVpc__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc.getVpc", "api_error", err)
 		return nil, err
 	}
 
@@ -211,13 +224,12 @@ func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (in
 }
 
 func getVpcARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcARN")
-	vpc := h.Item.(*ec2.Vpc)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	vpc := h.Item.(types.Vpc)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc.getVpcARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -230,7 +242,7 @@ func getVpcARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 //// TRANSFORM FUNCTIONS
 
 func getVpcTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	vpc := d.HydrateItem.(*ec2.Vpc)
+	vpc := d.HydrateItem.(types.Vpc)
 
 	var turbotTagsMap map[string]string
 	if vpc.Tags != nil {
@@ -244,7 +256,7 @@ func getVpcTurbotTags(_ context.Context, d *transform.TransformData) (interface{
 }
 
 func getVpcTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	vpc := d.HydrateItem.(*ec2.Vpc)
+	vpc := d.HydrateItem.(types.Vpc)
 
 	if vpc.Tags != nil {
 		for _, i := range vpc.Tags {
@@ -259,7 +271,7 @@ func getVpcTurbotTitle(_ context.Context, d *transform.TransformData) (interface
 
 //// UTILITY FUNCTION
 
-//Build vpc resources filter parameter
+// Build vpc resources filter parameter
 
 type VpcFilterKeyMap struct {
 	ColumnName string
@@ -267,11 +279,11 @@ type VpcFilterKeyMap struct {
 	ColumnType string
 }
 
-func buildVpcResourcesFilterParameter(keyMap []VpcFilterKeyMap, quals plugin.KeyColumnQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildVpcResourcesFilterParameter(keyMap []VpcFilterKeyMap, quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 	for _, keyDetail := range keyMap {
 		if quals[keyDetail.ColumnName] != nil {
-			filter := &ec2.Filter{
+			filter := &types.Filter{
 				Name: aws.String(keyDetail.FilterName),
 			}
 
@@ -280,51 +292,39 @@ func buildVpcResourcesFilterParameter(keyMap []VpcFilterKeyMap, quals plugin.Key
 			case "string":
 				val, ok := value.(string)
 				if ok {
-					filter.Values = []*string{&val}
-				} else {
-					filter.Values = value.([]*string)
+					filter.Values = []string{val}
 				}
 			case "int64":
 				val, ok := value.(int64)
 				if ok {
-					filter.Values = []*string{aws.String(fmt.Sprint(val))}
-				} else {
-					filter.Values = value.([]*string)
+					filter.Values = []string{fmt.Sprint(val)}
 				}
 			case "double":
 				val, ok := value.(float64)
 				if ok {
-					filter.Values = []*string{aws.String(fmt.Sprint(val))}
-				} else {
-					filter.Values = value.([]*string)
+					filter.Values = []string{fmt.Sprint(val)}
 				}
 			case "ipaddr":
 				val, ok := value.(string)
 				if ok {
-					filter.Values = []*string{&val}
-				} else {
-					filter.Values = value.([]*string)
+					filter.Values = []string{fmt.Sprint(val)}
 				}
 			case "cidr": // Ip address with mask
 				val, ok := value.(string)
 				if ok {
-					filter.Values = []*string{&val}
-				} else {
-					filter.Values = value.([]*string)
+					filter.Values = []string{fmt.Sprint(val)}
 				}
 			case "time":
 				val, ok := value.(time.Time)
 				if ok {
 					v := val.Format(time.RFC3339)
-					filter.Values = []*string{&v}
-				} else {
-					filter.Values = value.([]*string)
+					filter.Values = []string{fmt.Sprint(v)}
 				}
 			case "boolean":
-				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+				filter.Values = []string{fmt.Sprint(value)}
 			}
 
-			filters = append(filters, filter)
+			filters = append(filters, *filter)
 		}
 	}
 

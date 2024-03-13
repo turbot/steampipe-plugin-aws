@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+
+	ecsv1 "github.com/aws/aws-sdk-go/service/ecs"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
@@ -17,9 +21,10 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEcsClusters,
 			Hydrate:       listEcsContainerInstances,
+			Tags:          map[string]string{"service": "ecs", "action": "ListContainerInstances"},
 		},
-		GetMatrixItem: BuildRegionList,
-		Columns: awsColumns([]*plugin.Column{
+		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The namespace Amazon Resource Name (ARN) of the container instance.",
@@ -29,6 +34,11 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 			{
 				Name:        "ec2_instance_id",
 				Description: "The EC2 instance ID of the container instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "cluster_arn",
+				Description: "The ARN of the cluster.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -123,6 +133,11 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 	}
 }
 
+type containerInstanceData = struct {
+	types.ContainerInstance
+	ClusterArn string
+}
+
 //// LIST FUNCTION
 
 // listEcsContainerInstances handles both listing and describing of the instances.
@@ -136,7 +151,7 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 	plugin.Logger(ctx).Trace("listEcsContainerInstances")
 
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -144,63 +159,71 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 	// EcsContainerInstance is a sub resource of an EcsCluster, we need the cluster ARN to list these.
 	var clusterArn string
 	if h.Item != nil {
-		clusterArn = *h.Item.(*ecs.Cluster).ClusterArn
+		clusterArn = *h.Item.(types.Cluster).ClusterArn
 	} else {
-		clusterArn = d.KeyColumnQuals["cluster_arn"].GetStringValue()
+		clusterArn = d.EqualsQuals["cluster_arn"].GetStringValue()
 	}
 
 	// DescribeContainerInstances can accept up to 100 ARNs at a time, so make sure
 	// ListContainerInstances returns the same and append to this in chunks not more then 100.
-	var containerInstanceArns [][]*string
+	var containerInstanceArns [][]string
 
-	input := &ecs.ListContainerInstancesInput{
-		Cluster:    aws.String(clusterArn),
-		MaxResults: aws.Int64(100),
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// execute list call
-	err = svc.ListContainerInstancesPages(
-		input,
-		func(page *ecs.ListContainerInstancesOutput, isLast bool) bool {
-			if len(page.ContainerInstanceArns) != 0 {
-				containerInstanceArns = append(containerInstanceArns, page.ContainerInstanceArns)
-			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		return nil, err
+	input := &ecs.ListContainerInstancesInput{
+		Cluster:    aws.String(clusterArn),
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	paginator := ecs.NewListContainerInstancesPaginator(svc, input, func(o *ecs.ListContainerInstancesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecs_cluster.listEcsClusters", "api_error", err)
+			return nil, err
+		}
+		if len(output.ContainerInstanceArns) != 0 {
+			containerInstanceArns = append(containerInstanceArns, output.ContainerInstanceArns)
+		}
 	}
 
 	for _, arns := range containerInstanceArns {
 		input := &ecs.DescribeContainerInstancesInput{
 			Cluster:            aws.String(clusterArn),
 			ContainerInstances: arns,
-			Include:            []*string{aws.String("TAGS")},
+			Include: []types.ContainerInstanceField{
+				"TAGS",
+			},
 		}
-		result, err := svc.DescribeContainerInstances(input)
+		result, err := svc.DescribeContainerInstances(ctx, input)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, inst := range result.ContainerInstances {
-			d.StreamListItem(ctx, inst)
+			d.StreamListItem(ctx, containerInstanceData{inst, clusterArn})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -213,7 +236,7 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 
 func containerInstanceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("containerInstanceTagsToTurbotTags")
-	tags := d.HydrateItem.(*ecs.ContainerInstance).Tags
+	tags := d.HydrateItem.(containerInstanceData).Tags
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string

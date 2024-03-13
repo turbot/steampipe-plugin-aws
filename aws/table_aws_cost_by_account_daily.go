@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsCostByLinkedAccountDaily(_ context.Context) *plugin.Table {
@@ -14,8 +14,9 @@ func tableAwsCostByLinkedAccountDaily(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Linked Account (Daily)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByLinkedAccountDaily,
+			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
-		Columns: awsColumns(
+		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
 
 				{

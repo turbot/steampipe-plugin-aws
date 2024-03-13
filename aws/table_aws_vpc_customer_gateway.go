@@ -3,11 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
@@ -15,12 +18,16 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_customer_gateway",
 		Description: "AWS VPC Customer Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("customer_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidCustomerGatewayID.NotFound", "InvalidCustomerGatewayID.Malformed"}),
-			Hydrate:           getVpcCustomerGateway,
+			KeyColumns: plugin.SingleColumn("customer_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidCustomerGatewayID.NotFound", "InvalidCustomerGatewayID.Malformed"}),
+			},
+			Hydrate: getVpcCustomerGateway,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeCustomerGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcCustomerGateways,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeCustomerGateways"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "ip_address", Require: plugin.Optional},
 				{Name: "bgp_asn", Require: plugin.Optional},
@@ -28,7 +35,7 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 				{Name: "type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "customer_gateway_id",
@@ -97,11 +104,11 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_customer_gateway.listVpcCustomerGateways", "connection error", err)
 		return nil, err
 	}
 
@@ -119,13 +126,19 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 		input.Filters = filters
 	}
 
+	// apply rate limiting
+	d.WaitForListRateLimit(ctx)
+
 	// List call
-	resp, err := svc.DescribeCustomerGateways(input)
+	resp, err := svc.DescribeCustomerGateways(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_customer_gateway.listVpcCustomerGateways", "api_error", err)
+	}
 	for _, customerGateway := range resp.CustomerGateways {
 		d.StreamListItem(ctx, customerGateway)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -136,26 +149,24 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcCustomerGateway")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	customerGatewayID := d.KeyColumnQuals["customer_gateway_id"].GetStringValue()
+	customerGatewayID := d.EqualsQuals["customer_gateway_id"].GetStringValue()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_customer_gateway.getVpcCustomerGateway", "connection error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeCustomerGatewaysInput{
-		CustomerGatewayIds: []*string{aws.String(customerGatewayID)},
+		CustomerGatewayIds: []string{customerGatewayID},
 	}
 
 	// Get call
-	op, err := svc.DescribeCustomerGateways(params)
+	op, err := svc.DescribeCustomerGateways(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcCustomerGateway__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_customer_gateway.getVpcCustomerGateway", "api_error", err)
 		return nil, err
 	}
 
@@ -166,12 +177,12 @@ func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 }
 
 func getVpcCustomerGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcCustomerGatewayTurbotAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	customerGateway := h.Item.(*ec2.CustomerGateway)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+	customerGateway := h.Item.(types.CustomerGateway)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_customer_gateway.getVpcCustomerGatewayTurbotAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -185,7 +196,7 @@ func getVpcCustomerGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 //// TRANSFORM FUNCTIONS
 
 func getVpcCustomerGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	customerGateway := d.HydrateItem.(*ec2.CustomerGateway)
+	customerGateway := d.HydrateItem.(types.CustomerGateway)
 	param := d.Param.(string)
 
 	// Get resource title

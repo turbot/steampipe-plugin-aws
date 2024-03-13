@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	ecsv1 "github.com/aws/aws-sdk-go/service/ecs"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +21,28 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_cluster",
 		Description: "AWS ECS Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cluster_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException"}),
-			Hydrate:           getEcsCluster,
+			KeyColumns: plugin.SingleColumn("cluster_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterException"}),
+			},
+			Hydrate: getEcsCluster,
+			Tags:    map[string]string{"service": "ecs", "action": "DescribeClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsClusters,
+			Tags:    map[string]string{"service": "ecs", "action": "ListClusters"},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEcsCluster,
+				Tags: map[string]string{"service": "ecs", "action": "DescribeClusters"},
+			},
+			{
+				Func: getAwsEcsClusterTags,
+				Tags: map[string]string{"service": "ecs", "action": "ListTagsForResource"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_arn",
@@ -140,43 +157,56 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 
 func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_cluster.listEcsClusters", "connection_error", err)
 		return nil, err
 	}
 
-	input := &ecs.ListClustersInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListClustersPages(
-		input,
-		func(page *ecs.ListClustersOutput, isLast bool) bool {
-			for _, results := range page.ClusterArns {
-				d.StreamListItem(ctx, &ecs.Cluster{
-					ClusterArn: results,
-				})
+	input := &ecs.ListClustersInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := ecs.NewListClustersPaginator(svc, input, func(o *ecs.ListClustersPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecs_cluster.listEcsClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.ClusterArns {
+			d.StreamListItem(ctx, types.Cluster{
+				ClusterArn: aws.String(items),
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -184,30 +214,34 @@ func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEcsCluster")
 
 	var clusterArn string
 	if h.Item != nil {
-		clusterArn = *h.Item.(*ecs.Cluster).ClusterArn
+		clusterArn = *h.Item.(types.Cluster).ClusterArn
 	} else {
-		quals := d.KeyColumnQuals
+		quals := d.EqualsQuals
 		clusterArn = quals["cluster_arn"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getEcsCluster", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ecs.DescribeClustersInput{
-		Clusters: []*string{aws.String(clusterArn)},
+		Clusters: []string{clusterArn},
+		Include: []types.ClusterField{
+			types.ClusterFieldAttachments,
+			types.ClusterFieldSettings,
+			types.ClusterFieldStatistics,
+		},
 	}
 
-	op, err := svc.DescribeClusters(params)
+	op, err := svc.DescribeClusters(ctx, params)
 	if err != nil {
-		logger.Debug("getEcsCluster", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getEcsCluster", "api_error", err)
 		return nil, err
 	}
 
@@ -219,13 +253,13 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 }
 
 func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEcsClusterTags")
 
-	clusterArn := *h.Item.(*ecs.Cluster).ClusterArn
+	clusterArn := *h.Item.(types.Cluster).ClusterArn
 
 	// Create service
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getAwsEcsClusterTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -233,8 +267,9 @@ func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		ResourceArn: &clusterArn,
 	}
 
-	clusterdata, err := svc.ListTagsForResource(params)
+	clusterdata, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getAwsEcsClusterTags", "api_error", err)
 		return nil, err
 	}
 

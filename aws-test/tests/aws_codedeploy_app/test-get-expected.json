@@ -1,0 +1,12 @@
+[
+  {
+    "application_id": "{{ output.resource_id.value }}",
+    "application_name": "{{ resourceName }}",
+    "arn": "{{ output.resource_aka.value }}",
+    "compute_platform": "{{ output.compute_platform.value }}",
+    "linked_to_github": false,
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]

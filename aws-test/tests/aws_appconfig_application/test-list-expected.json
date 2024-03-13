@@ -1,0 +1,11 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "description": "{{ output.description.value }}",
+    "id": "{{ output.id.value }}",
+    "name": "{{ resourceName }}",
+    "tags": {
+      "Type": "AppConfig Application"
+    }
+  }
+]

@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,18 +21,28 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_option_group",
 		Description: "AWS RDS DB Option Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"OptionGroupNotFoundFault"}),
-			Hydrate:           getRDSDBOptionGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"OptionGroupNotFoundFault"}),
+			},
+			Hydrate: getRDSDBOptionGroup,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeOptionGroups"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBOptionGroups,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeOptionGroups"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "engine_name", Require: plugin.Optional},
 				{Name: "major_engine_version", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsRDSOptionGroupTags,
+				Tags: map[string]string{"service": "rds", "action": "ListTagsForResource"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -109,31 +122,32 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBOptionGroups")
-
+	logger := plugin.Logger(ctx)
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		logger.Error("aws_rds_db_option_group.listRDSDBOptionGroups", "connection_error", err)
 		return nil, err
 	}
 
-	input := &rds.DescribeOptionGroupsInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	equalQuals := d.KeyColumnQuals
+	input := &rds.DescribeOptionGroupsInput{
+		MaxRecords: &maxLimit,
+	}
+
+	equalQuals := d.EqualsQuals
 	if equalQuals["engine_name"] != nil {
 		input.EngineName = aws.String(equalQuals["engine_name"].GetStringValue())
 	}
@@ -143,33 +157,44 @@ func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input.MajorEngineVersion = aws.String(equalQuals["major_engine_version"].GetStringValue())
 	}
 
-	// List call
-	err = svc.DescribeOptionGroupsPages(
-		input,
-		func(page *rds.DescribeOptionGroupsOutput, isLast bool) bool {
-			for _, optionGroup := range page.OptionGroupsList {
-				d.StreamListItem(ctx, optionGroup)
+	paginator := rds.NewDescribeOptionGroupsPaginator(svc, input, func(o *rds.DescribeOptionGroupsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Check if context has been cancelled or if the limit has been reached (if specified)
-				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			logger.Error("aws_rds_db_option_group.listRDSDBOptionGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.OptionGroupsList {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.KeyColumnQuals["name"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_option_group.getRDSDBOptionGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -177,8 +202,9 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		OptionGroupName: aws.String(name),
 	}
 
-	op, err := svc.DescribeOptionGroups(params)
+	op, err := svc.DescribeOptionGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_option_group.getRDSDBOptionGroup", "api_error", err)
 		return nil, err
 	}
 
@@ -191,11 +217,12 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 func getAwsRDSOptionGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRDSOptionGroupTags")
 
-	optionGroup := h.Item.(*rds.OptionGroup)
+	optionGroup := h.Item.(types.OptionGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_option_group.getAwsRDSOptionGroupTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -203,8 +230,9 @@ func getAwsRDSOptionGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 		ResourceName: optionGroup.OptionGroupArn,
 	}
 
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_option_group.getAwsRDSOptionGroupTags", "api_error", err)
 		return nil, err
 	}
 

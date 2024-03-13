@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -53,7 +53,6 @@ resource "tls_private_key" "example" {
 }
 
 resource "tls_self_signed_cert" "example" {
-  key_algorithm   = "RSA"
   private_key_pem = tls_private_key.example.private_key_pem
 
   subject {

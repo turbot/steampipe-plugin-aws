@@ -1,0 +1,36 @@
+[
+	{
+		"app_id": "{{ output.id.value }}",
+		"arn": "{{ output.resource_aka.value }}",
+		"build_spec": {
+			"backend": {
+				"phases": {
+					"build": {
+						"commands": ["build command"]
+					}
+				}
+			},
+			"version": 1
+		},
+		"custom_rules": [
+			{
+				"Condition": null,
+				"Source": "/<*>",
+				"Status": "404",
+				"Target": "/index.html"
+			}
+		],
+		"description": "Description field",
+		"enable_basic_auth": true,
+		"enable_branch_auto_build": false,
+		"enable_branch_auto_deletion": true,
+		"environment_variables": {
+			"PURPOSE": "testing",
+			"TOOL": "steampipe"
+		},
+		"tags": {
+			"Application": "Steampipe",
+			"Purpose": "Testing"
+		}
+	}
+]

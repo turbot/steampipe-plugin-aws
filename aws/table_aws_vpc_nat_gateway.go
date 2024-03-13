@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
@@ -15,19 +19,23 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_nat_gateway",
 		Description: "AWS VPC Network Address Translation Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("nat_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NatGatewayMalformed", "NatGatewayNotFound"}),
-			Hydrate:           getVpcNatGateway,
+			KeyColumns: plugin.SingleColumn("nat_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NatGatewayMalformed", "NatGatewayNotFound"}),
+			},
+			Hydrate: getVpcNatGateway,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNatGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcNatGateways,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeNatGateways"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "state", Require: plugin.Optional},
 				{Name: "subnet_id", Require: plugin.Optional},
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "nat_gateway_id",
@@ -119,17 +127,29 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcNatGateways", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.listVpcNatGateways", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = int32(5)
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeNatGatewaysInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -143,33 +163,31 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		input.Filter = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeNatGatewaysPaginator(svc, input, func(o *ec2.DescribeNatGatewaysPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_nat_gateway.listVpcNatGateways", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.NatGateways {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeNatGatewaysPages(
-		input,
-		func(page *ec2.DescribeNatGatewaysOutput, isLast bool) bool {
-			for _, securityGroup := range page.NatGateways {
-				d.StreamListItem(ctx, securityGroup)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 
 	return nil, err
 }
@@ -177,26 +195,25 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcNatGateway")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	natGatewayID := d.KeyColumnQuals["nat_gateway_id"].GetStringValue()
+	natGatewayID := d.EqualsQuals["nat_gateway_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.getVpcNatGateway", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeNatGatewaysInput{
-		NatGatewayIds: []*string{aws.String(natGatewayID)},
+		NatGatewayIds: []string{natGatewayID},
 	}
 
 	// Get call
-	op, err := svc.DescribeNatGateways(params)
+	op, err := svc.DescribeNatGateways(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcNatGateway__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.getVpcNatGateway", "api_error", err)
 		return nil, err
 	}
 
@@ -207,12 +224,12 @@ func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 }
 
 func getVpcNatGatewayARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcNatGatewayARN")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	natGateway := h.Item.(*ec2.NatGateway)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+	natGateway := h.Item.(types.NatGateway)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.getVpcNatGatewayARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -226,7 +243,7 @@ func getVpcNatGatewayARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// TRANSFORM FUNCTIONS
 
 func getVpcNatGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	natGateway := d.HydrateItem.(*ec2.NatGateway)
+	natGateway := d.HydrateItem.(types.NatGateway)
 	param := d.Param.(string)
 
 	// Get resource title

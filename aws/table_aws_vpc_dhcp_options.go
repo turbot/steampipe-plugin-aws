@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
@@ -15,17 +19,21 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_dhcp_options",
 		Description: "AWS VPC DHCP Options",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("dhcp_options_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidDhcpOptionID.NotFound"}),
-			Hydrate:           getVpcDhcpOption,
+			KeyColumns: plugin.SingleColumn("dhcp_options_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidDhcpOptionID.NotFound"}),
+			},
+			Hydrate: getVpcDhcpOption,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeDhcpOptions"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcDhcpOptions,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeDhcpOptions"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "owner_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "dhcp_options_id",
@@ -100,17 +108,29 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcDhcpOptions", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_dhcp_options.listVpcDhcpOptions", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = int32(5)
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeDhcpOptionsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -122,59 +142,55 @@ func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		input.Filters = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeDhcpOptionsPaginator(svc, input, func(o *ec2.DescribeDhcpOptionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_dhcp_options.listVpcDhcpOptions", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.DhcpOptions {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	err = svc.DescribeDhcpOptionsPages(
-		input,
-		func(page *ec2.DescribeDhcpOptionsOutput, lastPage bool) bool {
-			for _, item := range page.DhcpOptions {
-				plugin.Logger(ctx).Trace("listVpcDhcpOptions", "Data", item)
-				d.StreamListItem(ctx, item)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !lastPage
-		},
-	)
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcDhcpOption")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	dhcpOptionsID := d.KeyColumnQuals["dhcp_options_id"].GetStringValue()
+	dhcpOptionsID := d.EqualsQuals["dhcp_options_id"].GetStringValue()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_dhcp_options.getVpcDhcpOption", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeDhcpOptionsInput{
-		DhcpOptionsIds: []*string{aws.String(dhcpOptionsID)},
+		DhcpOptionsIds: []string{dhcpOptionsID},
 	}
 
 	// get call
-	items, err := svc.DescribeDhcpOptions(params)
+	items, err := svc.DescribeDhcpOptions(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcDhcpOption__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_dhcp_options.getVpcDhcpOption", "api_error", err)
 		return nil, err
 	}
 
@@ -187,12 +203,12 @@ func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 }
 
 func getVpcDhcpOptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcDhcpOptionAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	dhcpOption := h.Item.(*ec2.DhcpOptions)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+	dhcpOption := h.Item.(types.DhcpOptions)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_dhcp_options.getVpcDhcpOptionAkas", "common_data_error", err)
 		return nil, err
 	}
 
@@ -209,7 +225,7 @@ func dhcpConfigurationToStringSlice(_ context.Context, d *transform.TransformDat
 	if d.Value == nil {
 		return nil, nil
 	}
-	dhcpConfigurations := d.Value.([]*ec2.DhcpConfiguration)
+	dhcpConfigurations := d.Value.([]types.DhcpConfiguration)
 
 	var values []*string
 	for _, configuration := range dhcpConfigurations {
@@ -221,7 +237,7 @@ func dhcpConfigurationToStringSlice(_ context.Context, d *transform.TransformDat
 }
 
 func vpcDhcpOptionsAPIDataToTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	vpcDhcpOptions := d.HydrateItem.(*ec2.DhcpOptions)
+	vpcDhcpOptions := d.HydrateItem.(types.DhcpOptions)
 	param := d.Param.(string)
 
 	// Get resource title
@@ -246,7 +262,7 @@ func vpcDhcpOptionsAPIDataToTurbotData(_ context.Context, d *transform.Transform
 	return title, nil
 }
 
-func mapString(l []*ec2.AttributeValue) []*string {
+func mapString(l []types.AttributeValue) []*string {
 	var values []*string
 	for _, v := range l {
 		values = append(values, v.Value)

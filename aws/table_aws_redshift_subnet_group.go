@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/redshift"
+	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +21,18 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_subnet_group",
 		Description: "AWS Redshift Subnet Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cluster_subnet_group_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterSubnetGroupNotFoundFault"}),
-			Hydrate:           getRedshiftSubnetGroup,
+			KeyColumns: plugin.SingleColumn("cluster_subnet_group_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterSubnetGroupNotFoundFault"}),
+			},
+			Hydrate: getRedshiftSubnetGroup,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSubnetGroups"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listRedshiftSubnetGroup,
+			Hydrate: listRedshiftSubnetGroups,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSubnetGroups"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_subnet_group_name",
@@ -56,7 +63,6 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags attached to the subnet group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getRedshiftSubnetGroup,
 				Transform:   transform.FromField("Tags"),
 			},
 
@@ -86,57 +92,73 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRedshiftSubnetGroup")
-
+func listRedshiftSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_subnet_group.listRedshiftSubnetGroups", "connection_error", err)
 		return nil, err
 	}
 
 	input := &redshift.DescribeClusterSubnetGroupsInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
 	// List call
-	err = svc.DescribeClusterSubnetGroupsPages(
-		input,
-		func(page *redshift.DescribeClusterSubnetGroupsOutput, isLast bool) bool {
-			for _, subnetGroup := range page.ClusterSubnetGroups {
-				d.StreamListItem(ctx, subnetGroup)
+	paginator := redshift.NewDescribeClusterSubnetGroupsPaginator(svc, input, func(o *redshift.DescribeClusterSubnetGroupsPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_redshift_subnet_group.listRedshiftSubnetGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.ClusterSubnetGroups {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	clusterSubnetGroupName := d.KeyColumnQuals["cluster_subnet_group_name"].GetStringValue()
+	clusterSubnetGroupName := d.EqualsQuals["cluster_subnet_group_name"].GetStringValue()
+
+	// Return nil, if no input provided
+	if clusterSubnetGroupName == "" {
+		return nil, nil
+	}
 
 	// Create service
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_subnet_group.getRedshiftSubnetGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -144,24 +166,26 @@ func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		ClusterSubnetGroupName: aws.String(clusterSubnetGroupName),
 	}
 
-	op, err := svc.DescribeClusterSubnetGroups(params)
+	op, err := svc.DescribeClusterSubnetGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_subnet_group.getRedshiftSubnetGroup", "api_error", err)
 		return nil, err
 	}
 
-	if op.ClusterSubnetGroups != nil && len(op.ClusterSubnetGroups) > 0 {
+	if len(op.ClusterSubnetGroups) > 0 {
 		return op.ClusterSubnetGroups[0], nil
 	}
+
 	return nil, nil
 }
 
 func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRedshiftSubnetGroupAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	data := h.Item.(*redshift.ClusterSubnetGroup)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+	data := h.Item.(types.ClusterSubnetGroup)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_subnet_group.getRedshiftSubnetGroupAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -177,16 +201,13 @@ func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plu
 //// TRANSFORM FUNCTIONS
 
 func redshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*redshift.ClusterSubnetGroup)
-	if data.Tags == nil {
-		return nil, nil
-	}
+	clusterSubnetGroup := d.HydrateItem.(types.ClusterSubnetGroup)
 
 	// Get the resource tags
 	var turbotTagsMap map[string]string
-	if data.Tags != nil {
+	if len(clusterSubnetGroup.Tags) > 0 {
 		turbotTagsMap = map[string]string{}
-		for _, i := range data.Tags {
+		for _, i := range clusterSubnetGroup.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}

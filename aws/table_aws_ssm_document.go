@@ -4,12 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSSMDocument(_ context.Context) *plugin.Table {
@@ -17,18 +20,33 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_document",
 		Description: "AWS SSM Document",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidDocument"}),
-			Hydrate:           getAwsSSMDocument,
+			// To avoid the error: get call returned 23 results - the key column is not globally unique, it is recommended to use the "arn" column instead of the "name" column in the "get config" function.
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidDocument"}),
+			},
+			Hydrate: getAwsSSMDocument,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeDocument"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMDocuments,
+			Tags:    map[string]string{"service": "ssm", "action": "ListDocuments"},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "owner", Require: plugin.Optional},
 				{Name: "document_type", Require: plugin.Optional},
+				{Name: "owner_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSSMDocumentPermissionDetail,
+				Tags: map[string]string{"service": "ssm", "action": "DescribeDocumentPermission"},
+			},
+			{
+				Func: getAwsSSMDocument,
+				Tags: map[string]string{"service": "ssm", "action": "DescribeDocument"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -37,15 +55,22 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "account_ids",
-				Description: "The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
+				Description: "[DEPRECATED] The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocumentPermissionDetail,
 			},
 			{
 				Name:        "account_sharing_info_list",
-				Description: "A list of AWS accounts where the current document is shared and the version shared with each account.",
+				Description: "[DEPRECATED] A list of AWS accounts where the current document is shared and the version shared with each account.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocumentPermissionDetail,
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the document.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocumentArn,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "approved_version",
@@ -114,6 +139,12 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Description: "The latest version of the document.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "owner_type",
+				Description: "The AWS user account type to filter the documents. Possible values: Self, Amazon, Public, Private, ThirdParty, All, Default.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("owner_type"),
 			},
 			{
 				Name:        "owner",
@@ -220,71 +251,112 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSSMDocuments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsSSMDocuments")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.listAwsSSMDocuments", "connection_error", err)
 		return nil, err
 	}
-
-	input := &ssm.ListDocumentsInput{
-		MaxResults: aws.Int64(50),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
-	filters := buildSsmDocumentFilter(d.Quals)
-	if len(filters) > 0 {
-		input.Filters = filters
-	}
+	maxItems := int32(50)
+	input := &ssm.ListDocumentsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListDocumentsPages(
-		input,
-		func(page *ssm.ListDocumentsOutput, isLast bool) bool {
-			for _, documentIdentifier := range page.DocumentIdentifiers {
-				d.StreamListItem(ctx, documentIdentifier)
+	filters := buildSSMDocumentFilter(d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := ssm.NewListDocumentsPaginator(svc, input, func(o *ssm.ListDocumentsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssm_document.listAwsSSMDocuments", "api_error", err)
+			return nil, err
+		}
+
+		for _, documentIdentifier := range output.DocumentIdentifiers {
+			d.StreamListItem(ctx, documentIdentifier)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsSSMDocument")
 
-	var name string
+	var arn string
 	if h.Item != nil {
-		name = documentName(h.Item)
+		data, err := getAwsSSMDocumentArn(ctx, d, h)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocument", "arn_formatting_error", err)
+			return nil, err
+		}
+		arn = data.(string)
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
+	matrixRegion := d.EqualsQualString(matrixKeyRegion)
+	arnSplit := strings.Split(arn, ":") // Split ARN to get the region
+
+	// Invalid ARN check
+	if len(arnSplit) < 3 {
+		return nil, nil
+	}
+
+	// Skip ARNs in other regions
+	if matrixRegion != arnSplit[3] {
+		return nil, nil
+	}
+
+	name := strings.Split(arn, "/")[1] // Split ARN to get the document name
+
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocument", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	// Empty name input check
+	if strings.TrimSpace(name) == "" {
+		return nil, nil
 	}
 
 	// Build the params
@@ -293,9 +365,9 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Get call
-	data, err := svc.DescribeDocument(params)
+	data, err := svc.DescribeDocument(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsSSMDocument", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocument", "api_error", err)
 		return nil, err
 	}
 
@@ -303,32 +375,34 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsSSMDocumentPermissionDetail")
-
 	var name string
 	if h.Item != nil {
 		name = documentName(h.Item)
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentPermissionDetail", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
 	params := &ssm.DescribeDocumentPermissionInput{
 		Name:           &name,
-		PermissionType: aws.String("Share"),
+		PermissionType: types.DocumentPermissionType("Share"),
 	}
 
 	// Get call
-	data, err := svc.DescribeDocumentPermission(params)
+	data, err := svc.DescribeDocumentPermission(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsSSMDocumentPermissionDetail", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentPermissionDetail", "api_error", err)
 		return nil, err
 	}
 
@@ -336,12 +410,12 @@ func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData,
 }
 
 func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsSSMDocumentAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	name := documentName(h.Item)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
@@ -356,18 +430,45 @@ func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	return []string{aka}, nil
 }
 
-func ssmDocumentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ssmDocumentTagListToTurbotTags")
-	data := resourceTags(d.HydrateItem)
+func getAwsSSMDocumentArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
+	name := documentName(h.Item)
 
-	if data == nil {
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_document.getAwsSSMDocumentArn", "common_data_error", err)
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":document"
+
+	if strings.HasPrefix(name, "/") {
+		arn = arn + name
+	} else {
+		arn = arn + "/" + name
+	}
+
+	return arn, nil
+}
+
+func ssmDocumentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	if d.HydrateItem == nil {
 		return nil, nil
 	}
+
+	var tags []types.Tag
+	switch item := d.HydrateItem.(type) {
+	case *types.DocumentDescription:
+		tags = item.Tags
+	case types.DocumentIdentifier:
+		tags = item.Tags
+	}
+
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if data != nil {
+	if len(tags) > 0 {
 		turbotTagsMap = map[string]string{}
-		for _, i := range data {
+		for _, i := range tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}
@@ -377,49 +478,39 @@ func ssmDocumentTagListToTurbotTags(ctx context.Context, d *transform.TransformD
 
 func documentName(item interface{}) string {
 	switch item := item.(type) {
-	case *ssm.DocumentDescription:
+	case *types.DocumentDescription:
 		return *item.Name
-	case *ssm.DocumentIdentifier:
+	case types.DocumentIdentifier:
 		return *item.Name
 	}
 	return ""
 }
 
-func resourceTags(item interface{}) []*ssm.Tag {
-	switch item := item.(type) {
-	case *ssm.DocumentDescription:
-		return item.Tags
-	case *ssm.DocumentIdentifier:
-		return item.Tags
-	}
-	return nil
-}
-
 //// UTILITY FUNCTION
 
 // Build ssm documant list call input filter
-func buildSsmDocumentFilter(quals plugin.KeyColumnQualMap) []*ssm.DocumentKeyValuesFilter {
-	filters := make([]*ssm.DocumentKeyValuesFilter, 0)
+func buildSSMDocumentFilter(quals plugin.KeyColumnQualMap) []types.DocumentKeyValuesFilter {
+	filters := make([]types.DocumentKeyValuesFilter, 0)
 
 	filterQuals := map[string]string{
-		"owner":         "Owner",
+		"owner_type":    "Owner",
 		"document_type": "DocumentType",
 	}
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ssm.DocumentKeyValuesFilter{
+			filter := types.DocumentKeyValuesFilter{
 				Key: aws.String(filterName),
 			}
 
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{&val}
+				filter.Values = []string{val}
 			} else {
-				filter.Values = value.([]*string)
+				filter.Values = value.([]string)
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

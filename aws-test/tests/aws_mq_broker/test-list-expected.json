@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_arn.value }}",
+    "broker_name": "{{ resourceName }}",
+    "engine_type": "{{ output.engine_type.value }}",
+    "engine_version": "{{ output.engine_version.value }}"
+  }
+]

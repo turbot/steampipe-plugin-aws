@@ -4,11 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,15 +19,29 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_rule_group",
 		Description: "AWS WAFv2 Rule Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAwsWafv2RuleGroup,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getAwsWafv2RuleGroup,
+			Tags:    map[string]string{"service": "wafv2", "action": "GetRuleGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RuleGroups,
+			Tags:    map[string]string{"service": "wafv2", "action": "ListRuleGroups"},
 		},
-		GetMatrixItem: BuildWafRegionList,
-		Columns: []*plugin.Column{
+		GetMatrixItemFunc: WAFRegionMatrix,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsWafv2RuleGroup,
+				Tags: map[string]string{"service": "wafv2", "action": "GetRuleGroup"},
+			},
+			{
+				Func: listTagsForAwsWafv2RuleGroup,
+				Tags: map[string]string{"service": "wafv2", "action": "ListTagsForResource"},
+			},
+		},
+		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the rule group.",
@@ -115,67 +130,63 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 
 			// AWS standard columns
 			{
-				Name:        "partition",
-				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-			{
 				Name:        "region",
 				Description: "The AWS Region in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(ruleGroupRegion),
 			},
-			{
-				Name:        "account_id",
-				Description: "The AWS Account ID in which the resource is located.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-		},
+		}),
 	}
 }
 
 //// LIST FUNCTION
 
 func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	scope := aws.String("REGIONAL")
+	region := d.EqualsQualString(matrixKeyRegion)
+	scope := types.ScopeRegional
 
 	if region == "global" {
-		region = "us-east-1"
-		scope = aws.String("CLOUDFRONT")
+		scope = types.ScopeCloudfront
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2RuleGroups", "AWS_REGION", region)
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_rule_group.listAwsWafv2RuleGroups", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// List all rule groups
 	pagesLeft := true
-	params := &wafv2.ListRuleGroupsInput{
-		Scope: scope,
-		Limit: aws.Int64(100),
-	}
-
+	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				params.Limit = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				params.Limit = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
+	params := &wafv2.ListRuleGroupsInput{
+		Scope: scope,
+		Limit: aws.Int32(maxLimit),
+	}
 
+	// ListRuleGroups API doesn't support aws-sdk-go-v2 paginator yet
 	for pagesLeft {
-		response, err := svc.ListRuleGroups(params)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_rule_group.listAwsWafv2RuleGroups", "api_error", err)
 			return nil, err
 		}
 
@@ -183,7 +194,7 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			d.StreamListItem(ctx, ruleGroups)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -202,9 +213,8 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWafv2EuleGroup")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	var id, name, scope string
 	if h.Item != nil {
@@ -219,9 +229,9 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 			scope = "CLOUDFRONT"
 		}
 	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		scope = d.KeyColumnQuals["scope"].GetStringValue()
+		id = d.EqualsQuals["id"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		scope = d.EqualsQuals["scope"].GetStringValue()
 	}
 
 	/*
@@ -239,25 +249,27 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, nil
 	}
 
-	if region == "global" {
-		region = "us-east-1"
-	}
-
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_rule_group.getAwsWafv2RuleGroup", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	params := &wafv2.GetRuleGroupInput{
 		Id:    aws.String(id),
 		Name:  aws.String(name),
-		Scope: aws.String(scope),
+		Scope: types.Scope(scope),
 	}
 
-	op, err := svc.GetRuleGroup(params)
+	op, err := svc.GetRuleGroup(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("GetRuleGroup", "ERROR", err)
+
+		plugin.Logger(ctx).Error("aws_wafv2_rule_group.getAwsWafv2RuleGroup", "api_error", err)
 		return nil, err
 	}
 
@@ -268,35 +280,31 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTagsForAwsWafv2RuleGroup")
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	if region == "global" {
-		region = "us-east-1"
-	}
 	data := ruleGroupData(h.Item)
-	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if locationType == "global" && region != "us-east-1" {
-		return nil, nil
-	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_rule_group.listTagsForAwsWafv2RuleGroup", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
-		Limit:       aws.Int64(100),
+		Limit:       aws.Int32(100),
 	}
 
-	ruleGroupTags, err := svc.ListTagsForResource(param)
+	ruleGroupTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_rule_group.listTagsForAwsWafv2RuleGroup", "api_error", err)
 		return nil, err
 	}
 	return ruleGroupTags, nil
@@ -314,7 +322,7 @@ func ruleGroupLocation(_ context.Context, d *transform.TransformData) (interface
 }
 
 func ruleGroupTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ruleGroupTagListToTurbotTags")
+
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
 	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
@@ -353,7 +361,7 @@ func ruleGroupData(item interface{}) map[string]string {
 		data["Arn"] = *item.RuleGroup.ARN
 		data["Name"] = *item.RuleGroup.Name
 		data["Description"] = *item.RuleGroup.Description
-	case *wafv2.RuleGroupSummary:
+	case types.RuleGroupSummary:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name

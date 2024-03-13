@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/codepipeline"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
+	"github.com/aws/aws-sdk-go-v2/service/codepipeline/types"
+
+	codepipelinev1 "github.com/aws/aws-sdk-go/service/codepipeline"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,14 +21,28 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 		Name:        "aws_codepipeline_pipeline",
 		Description: "AWS Codepipeline Pipeline",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"PipelineNotFoundException"}),
-			Hydrate:           getCodepipelinePipeline,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"PipelineNotFoundException"}),
+			},
+			Hydrate: getCodepipelinePipeline,
+			Tags:    map[string]string{"service": "codepipeline", "action": "GetPipeline"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodepipelinePipelines,
+			Tags:    map[string]string{"service": "codepipeline", "action": "ListPipelines"},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getPipelineTags,
+				Tags: map[string]string{"service": "codepipeline", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getCodepipelinePipeline,
+				Tags: map[string]string{"service": "codepipeline", "action": "GetPipeline"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(codepipelinev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -122,46 +140,56 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 
 func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := CodePipelineService(ctx, d)
+	svc, err := CodePipelineClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codepipeline_pipeline.listCodepipelinePipelines", "connection_error", err)
 		return nil, err
 	}
-
-	input := &codepipeline.ListPipelinesInput{
-		MaxResults: aws.Int64(1000),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
+	input := &codepipeline.ListPipelinesInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	paginator := codepipeline.NewListPipelinesPaginator(svc, input, func(o *codepipeline.ListPipelinesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
 	// List call
-	err = svc.ListPipelinesPages(
-		input,
-		func(page *codepipeline.ListPipelinesOutput, isLast bool) bool {
-			for _, result := range page.Pipelines {
-				d.StreamListItem(ctx, result)
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_codepipeline_pipeline.listCodepipelinePipelines", "api_error", err)
+			return nil, err
+		}
+		for _, items := range output.Pipelines {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("ListPipelinesPages", "list", err)
+		}
 	}
 
 	return nil, err
@@ -170,19 +198,23 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 //// HYDRATE FUNCTIONS
 
 func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCodepipelinePipeline")
 
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*codepipeline.PipelineSummary).Name
+		name = *h.Item.(types.PipelineSummary).Name
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// Create session
-	svc, err := CodePipelineService(ctx, d)
+	svc, err := CodePipelineClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codepipeline_pipeline.getCodepipelinePipeline", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build params
@@ -190,9 +222,9 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 		Name: aws.String(name),
 	}
 
-	op, err := svc.GetPipeline(params)
+	op, err := svc.GetPipeline(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getCodepipelinePipeline__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_codepipeline_pipeline.getCodepipelinePipeline", "api_error", err)
 		return nil, err
 	}
 
@@ -204,33 +236,49 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 }
 
 func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getPipelineTags")
 
 	pipelineArn := pipelineARN(ctx, d, h)
 
 	// Create session
-	svc, err := CodePipelineService(ctx, d)
+	svc, err := CodePipelineClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codepipeline_pipeline.getPipelineTags", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
+	maxLimit := aws.Int32(100)
 	// Build params
 	params := &codepipeline.ListTagsForResourceInput{
 		ResourceArn: aws.String(pipelineArn),
+		MaxResults:  aws.Int32(*maxLimit),
 	}
 
-	tags := []*codepipeline.Tag{}
+	var tags []types.Tag
 
-	err = svc.ListTagsForResourcePages(
-		params,
-		func(page *codepipeline.ListTagsForResourceOutput, isLast bool) bool {
-			tags = append(tags, page.Tags...)
-			return !isLast
-		},
-	)
-	if err != nil {
-		plugin.Logger(ctx).Error("getPipelineTags", "ListTagsForResourcePages_error", err)
-		return nil, err
+	paginator := codepipeline.NewListTagsForResourcePaginator(svc, params, func(o *codepipeline.ListTagsForResourcePaginatorOptions) {
+		o.Limit = *maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_codepipeline_pipeline.getPipelineTags", "api_error", err)
+			return nil, err
+		}
+
+		tags = append(tags, output.Tags...)
+	}
+	if tags == nil {
+		return make([]types.Tag, 0), nil
 	}
 
 	return tags, nil
@@ -239,19 +287,18 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 //// TRANSFORM FUNCTIONS
 
 func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
-	plugin.Logger(ctx).Trace("pipelineARN")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	// Get region, partition, account id
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return ""
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
 	switch item := h.Item.(type) {
-	case *codepipeline.PipelineSummary:
+	case types.PipelineSummary:
 		return "arn:" + commonColumnData.Partition + ":codepipeline:" + region + ":" + commonColumnData.AccountId + ":" + *item.Name
 	case *codepipeline.GetPipelineOutput:
 		return *item.Metadata.PipelineArn
@@ -261,10 +308,10 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 }
 
 func codepipelineTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags := d.HydrateItem.([]*codepipeline.Tag)
+	tags := d.HydrateItem.([]types.Tag)
 
-	if tags == nil {
-		return nil, nil
+	if len(tags) <= 0 {
+		return map[string]string{}, nil
 	}
 
 	// Mapping the resource tags inside turbotTags

@@ -3,22 +3,24 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsEbsVolumeMetricWriteOps(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ebs_volume_metric_read_ops",
+		Name:        "aws_ebs_volume_metric_write_ops",
 		Description: "AWS EBS Volume Cloudwatch Metrics - Write Ops",
 		List: &plugin.ListConfig{
 			ParentHydrate: listEBSVolume,
 			Hydrate:       listEbsVolumeMetricWriteOps,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{
@@ -32,6 +34,6 @@ func tableAwsEbsVolumeMetricWriteOps(_ context.Context) *plugin.Table {
 }
 
 func listEbsVolumeMetricWriteOps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	volume := h.Item.(*ec2.Volume)
+	volume := h.Item.(types.Volume)
 	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/EBS", "VolumeWriteOps", "VolumeId", *volume.VolumeId)
 }

@@ -2,12 +2,16 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
@@ -15,14 +19,18 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_egress_only_internet_gateway",
 		Description: "AWS VPC Egress Only Internet Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
-			Hydrate:           getVpcEgressOnlyInternetGateway,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
+			},
+			Hydrate: getVpcEgressOnlyInternetGateway,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeEgressOnlyInternetGateways"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEgressOnlyInternetGateways,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeEgressOnlyInternetGateways"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -67,74 +75,80 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcEgressOnlyInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcEgressOnlyInternetGateways", "AWS_REGION", region)
-
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_egress_only_internet_gateway.listVpcEgressOnlyInternetGateways", "connection_error", err)
 		return nil, err
 	}
 
-	input := &ec2.DescribeEgressOnlyInternetGatewaysInput{
-		MaxResults: aws.Int64(255),
-	}
+	// Limiting the results
+	maxLimit := int32(255)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = int32(5)
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
+			}
+		}
+	}
+	input := &ec2.DescribeEgressOnlyInternetGatewaysInput{
+		MaxResults: &maxLimit,
+	}
+
+	paginator := ec2.NewDescribeEgressOnlyInternetGatewaysPaginator(svc, input, func(o *ec2.DescribeEgressOnlyInternetGatewaysPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_egress_only_internet_gateway.listVpcEgressOnlyInternetGateways", "api_error", err)
+			return nil, err
+		}
+
+		for _, egressOnlyInternetGateway := range output.EgressOnlyInternetGateways {
+			d.StreamListItem(ctx, egressOnlyInternetGateway)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeEgressOnlyInternetGatewaysPages(
-		input,
-		func(page *ec2.DescribeEgressOnlyInternetGatewaysOutput, isLast bool) bool {
-			for _, egressOnlyInternetGateway := range page.EgressOnlyInternetGateways {
-				d.StreamListItem(ctx, egressOnlyInternetGateway)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-
-		},
-	)
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcEgressOnlyInternetGateway")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	gatewayID := d.KeyColumnQuals["id"].GetStringValue()
+	gatewayID := d.EqualsQuals["id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_egress_only_internet_gateway.getVpcEgressOnlyInternetGateway", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeEgressOnlyInternetGatewaysInput{
-		EgressOnlyInternetGatewayIds: []*string{aws.String(gatewayID)},
+		EgressOnlyInternetGatewayIds: []string{gatewayID},
 	}
 
 	// Get call
-	op, err := svc.DescribeEgressOnlyInternetGateways(params)
+	op, err := svc.DescribeEgressOnlyInternetGateways(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcEgressOnlyInternetGateway__", "ERROR", err)
+		plugin.Logger(ctx).Debug("aws_vpc_egress_only_internet_gateway.getVpcEgressOnlyInternetGateway", "api_error", err)
 		return nil, err
 	}
 
@@ -146,26 +160,26 @@ func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h
 }
 
 func getVpcEgressOnlyInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcEgressOnlyInternetGatewayTurbotAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	egw := h.Item.(*ec2.EgressOnlyInternetGateway)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	region := d.EqualsQualString(matrixKeyRegion)
+	egw := h.Item.(types.EgressOnlyInternetGateway)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_egress_only_internet_gateway.getVpcEgressOnlyInternetGatewayTurbotAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get resource aka
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":egress-only-internet-gateway/" + *egw.EgressOnlyInternetGatewayId}
+	arn := fmt.Sprintf("arn:%s:ec2:%s:%s:egress-only-internet-gateway/%s", commonColumnData.Partition, region, commonColumnData.AccountId, *egw.EgressOnlyInternetGatewayId)
 
-	return akas, nil
+	return []string{arn}, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
 func egressOnlyIGWApiDataToTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	egw := d.HydrateItem.(*ec2.EgressOnlyInternetGateway)
+	egw := d.HydrateItem.(types.EgressOnlyInternetGateway)
 	param := d.Param.(string)
 
 	// Get resource title
@@ -173,7 +187,7 @@ func egressOnlyIGWApiDataToTurbotData(_ context.Context, d *transform.TransformD
 
 	// Get the resource tags
 	var turbotTagsMap map[string]string
-	if egw.Tags != nil {
+	if len(egw.Tags) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range egw.Tags {
 			turbotTagsMap[*i.Key] = *i.Value

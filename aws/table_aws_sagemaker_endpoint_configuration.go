@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+
+	sagemakerv1 "github.com/aws/aws-sdk-go/service/sagemaker"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,17 +21,31 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_endpoint_configuration",
 		Description: "AWS Sagemaker Endpoint Configuration",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException"}),
-			Hydrate:           getSagemakerEndpointConfiguration,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException"}),
+			},
+			Hydrate: getSagemakerEndpointConfiguration,
+			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeEndpointConfig"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSagemakerEndpointConfigurations,
+			Tags:    map[string]string{"service": "sagemaker", "action": "ListEndpointConfigs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSagemakerEndpointConfiguration,
+				Tags: map[string]string{"service": "sagemaker", "action": "DescribeEndpointConfig"},
+			},
+			{
+				Func: listSageMakerEndpointConfigurationTags,
+				Tags: map[string]string{"service": "sagemaker", "action": "ListTags"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -98,16 +116,32 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSagemakerEndpointConfigurations")
-
-	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	// Create client
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.listSagemakerEndpointConfigurations", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	input := &sagemaker.ListEndpointConfigsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	quals := d.Quals
@@ -123,33 +157,32 @@ func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryDat
 		}
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+	paginator := sagemaker.NewListEndpointConfigsPaginator(svc, input, func(o *sagemaker.ListEndpointConfigsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.listSagemakerEndpointConfigurations", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.EndpointConfigs {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List Call
-	err = svc.ListEndpointConfigsPages(
-		input,
-		func(page *sagemaker.ListEndpointConfigsOutput, isLast bool) bool {
-			for _, config := range page.EndpointConfigs {
-				d.StreamListItem(ctx, config)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 	return nil, err
 }
 
@@ -159,15 +192,20 @@ func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData,
 	// Get config name
 	var configName string
 	if h.Item != nil {
-		configName = *h.Item.(*sagemaker.EndpointConfigSummary).EndpointConfigName
+		configName = *h.Item.(types.EndpointConfigSummary).EndpointConfigName
 	} else {
-		configName = d.KeyColumnQuals["name"].GetStringValue()
+		configName = d.EqualsQuals["name"].GetStringValue()
 	}
 
-	// Create service
-	svc, err := SageMakerService(ctx, d)
+	// Create client
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.getSagemakerEndpointConfiguration", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -176,9 +214,9 @@ func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// Get call
-	data, err := svc.DescribeEndpointConfig(params)
+	data, err := svc.DescribeEndpointConfig(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSagemakerEndpointConfiguration", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.getSagemakerEndpointConfiguration", "api_error", err)
 		return nil, err
 	}
 	return data, nil
@@ -186,14 +224,18 @@ func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData,
 }
 
 func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSageMakerEndpointConfigurationTags")
+	configArn := endpointConfigARN(h.Item)
 
-	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	// Create client
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.listSageMakerEndpointConfigurationTags", "connection_error", err)
 		return nil, err
 	}
-	configArn := endpointConfigARN(h.Item)
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &sagemaker.ListTagsInput{
@@ -201,11 +243,15 @@ func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Query
 	}
 
 	pagesLeft := true
-	tags := []*sagemaker.Tag{}
+	tags := []types.Tag{}
 	for pagesLeft {
-		keyTags, err := svc.ListTags(params)
+
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		keyTags, err := svc.ListTags(ctx, params)
 		if err != nil {
-			plugin.Logger(ctx).Error("listSageMakerEndpointConfigurationTags", "ListTags_error", err)
+			plugin.Logger(ctx).Error("aws_sagemaker_endpoint_configuration.listSageMakerEndpointConfigurationTags", "api_error", err)
 			return nil, err
 		}
 		tags = append(tags, keyTags.Tags...)
@@ -224,7 +270,7 @@ func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Query
 
 func endpointConfigARN(item interface{}) string {
 	switch item := item.(type) {
-	case *sagemaker.EndpointConfigSummary:
+	case types.EndpointConfigSummary:
 		return *item.EndpointConfigArn
 	case *sagemaker.DescribeEndpointConfigOutput:
 		return *item.EndpointConfigArn

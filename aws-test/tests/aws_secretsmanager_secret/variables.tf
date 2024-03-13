@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -49,9 +49,6 @@ data "null_data_source" "resource" {
 resource "aws_secretsmanager_secret" "named_test_resource" {
   name             = var.resource_name
   description      = "Test secret."
-  rotation_rules {
-    automatically_after_days = 7
-  }
   tags = {
     "foo" = "bar"
   }

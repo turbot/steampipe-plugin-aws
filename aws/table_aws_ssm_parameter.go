@@ -2,15 +2,20 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
+
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsSSMParameter(_ context.Context) *plugin.Table {
@@ -18,12 +23,16 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_parameter",
 		Description: "AWS SSM Parameter",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate:           getAwsSSMParameter,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException"}),
+			},
+			Hydrate: getAwsSSMParameter,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeParameters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMParameters,
+			Tags:    map[string]string{"service": "ssm", "action": "DescribeParameters"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "type", Require: plugin.Optional},
 				{Name: "key_id", Require: plugin.Optional},
@@ -31,7 +40,17 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 				{Name: "data_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsSSMParameterDetails,
+				Tags: map[string]string{"service": "ssm", "action": "GetParameter"},
+			},
+			{
+				Func: getAwsSSMParameterTags,
+				Tags: map[string]string{"service": "ssm", "action": "ListTagsForResource"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -143,84 +162,97 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsSSMParameters")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_parameter.listAwsSSMParameters", "connection_error", err)
 		return nil, err
 	}
-
-	input := &ssm.DescribeParametersInput{
-		MaxResults: aws.Int64(50),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
-	filters := buildSsmParameterFilter(d.Quals, ctx)
-	if len(filters) > 0 {
-		input.ParameterFilters = filters
-	}
+	maxItems := int32(50)
+	input := &ssm.DescribeParametersInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeParametersPages(
-		input,
-		func(page *ssm.DescribeParametersOutput, isLast bool) bool {
-			for _, parameter := range page.Parameters {
-				d.StreamListItem(ctx, parameter)
+	filters := buildSSMParameterFilter(d.Quals, ctx)
+	if len(filters) > 0 {
+		input.ParameterFilters = filters
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := ssm.NewDescribeParametersPaginator(svc, input, func(o *ssm.DescribeParametersPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssm_parameter.listAwsSSMParameters", "api_error", err)
+			return nil, err
+		}
+
+		for _, parameter := range output.Parameters {
+			d.StreamListItem(ctx, parameter)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsSSMParameter")
-
-	name := d.KeyColumnQuals["name"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameter", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
 	params := &ssm.DescribeParametersInput{
-		ParameterFilters: []*ssm.ParameterStringFilter{
+		ParameterFilters: []types.ParameterStringFilter{
 			{
-				Key: types.String("Name"),
-				Values: []*string{
-					types.String(name),
-				},
+				Key:    aws.String("Name"),
+				Values: []string{name},
 			},
 		},
 	}
 
 	// Get call
-	data, err := svc.DescribeParameters(params)
+	data, err := svc.DescribeParameters(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsSSMParameter", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameter", "api_error", err)
 		return nil, err
 	}
 
@@ -232,27 +264,38 @@ func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 }
 
 func getAwsSSMParameterDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsSSMParameter")
 
-	parameterData := h.Item.(*ssm.ParameterMetadata)
+	parameterData := h.Item.(types.ParameterMetadata)
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameterDetails", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
 	params := &ssm.GetParameterInput{
 		Name:           parameterData.Name,
-		WithDecryption: types.Bool(true),
+		WithDecryption: aws.Bool(true),
 	}
 
 	// Get call
-	op, err := svc.GetParameter(params)
+	op, err := svc.GetParameter(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsSSMParameterDetails", "ERROR", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			// In case the KMS key encrypting the SSM Parameter value is disabled, below error is thrown
+			// operation error SSM: GetParameter, https response error StatusCode: 400, RequestID: 0965014b-77ab-4847-98d4-2b9e09a68385, InvalidKeyId: arn:aws:kms:us-east-1:111122223333:key/1a2b3c4d-f6b4-4c5b-97e7-123456ab210c is disabled. (Service: AWSKMS; Status Code: 400; Error Code: DisabledException; Request ID: 7b6ae355-c99a-4cad-b2c3-4b40c0abdda9; Proxy: null)
+			if ae.ErrorCode() == "InvalidKeyId" {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameterDetails", "api_error", err)
 		return nil, err
 	}
 
@@ -260,27 +303,30 @@ func getAwsSSMParameterDetails(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 func getAwsSSMParameterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsSSMParameterTags")
 
-	parameterData := h.Item.(*ssm.ParameterMetadata)
+	parameterData := h.Item.(types.ParameterMetadata)
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameterTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
 	params := &ssm.ListTagsForResourceInput{
-		ResourceType: types.String("Parameter"),
+		ResourceType: types.ResourceTypeForTagging("Parameter"),
 		ResourceId:   parameterData.Name,
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsSSMParameterTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameterTags", "api_error", err)
 		return nil, err
 	}
 
@@ -288,12 +334,12 @@ func getAwsSSMParameterTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 }
 
 func getAwsSSMParameterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsSSMParameterAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	parameterData := h.Item.(*ssm.ParameterMetadata)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+	parameterData := h.Item.(types.ParameterMetadata)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_parameter.getAwsSSMParameterTags", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
@@ -311,12 +357,11 @@ func getAwsSSMParameterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// TRANSFORM FUNCTIONS
 
 func ssmTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ssmTagListToTurbotTags")
-	tagList := d.Value.([]*ssm.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if tagList != nil {
+	if len(tagList) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tagList {
 			turbotTagsMap[*i.Key] = *i.Value
@@ -329,8 +374,8 @@ func ssmTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (in
 //// UTILITY FUNCTION
 
 // Build ssm parameter list call input filter
-func buildSsmParameterFilter(quals plugin.KeyColumnQualMap, ctx context.Context) []*ssm.ParameterStringFilter {
-	filters := make([]*ssm.ParameterStringFilter, 0)
+func buildSSMParameterFilter(quals plugin.KeyColumnQualMap, ctx context.Context) []types.ParameterStringFilter {
+	filters := make([]types.ParameterStringFilter, 0)
 
 	filterQuals := map[string]string{
 		"type":      "Type",
@@ -341,7 +386,7 @@ func buildSsmParameterFilter(quals plugin.KeyColumnQualMap, ctx context.Context)
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ssm.ParameterStringFilter{
+			filter := types.ParameterStringFilter{
 				Key:    aws.String(filterName),
 				Option: aws.String("Equals"),
 			}
@@ -349,11 +394,11 @@ func buildSsmParameterFilter(quals plugin.KeyColumnQualMap, ctx context.Context)
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{&val}
+				filter.Values = []string{val}
 			} else {
-				filter.Values = value.([]*string)
+				filter.Values = value.([]string)
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

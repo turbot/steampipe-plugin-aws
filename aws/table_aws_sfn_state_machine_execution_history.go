@@ -2,15 +2,21 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
+	"github.com/aws/smithy-go"
+
+	sfnv1 "github.com/aws/aws-sdk-go/service/sfn"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugin.Table {
@@ -19,9 +25,10 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 		Description: "AWS Step Functions State Machine Execution History",
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutionHistories,
-			ParentHydrate: listStepFunctionsStateManchines,
+			Tags:          map[string]string{"service": "states", "action": "ListExecutions"},
+			ParentHydrate: listStepFunctionsStateMachines,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(sfnv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -227,7 +234,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 }
 
 type historyInfo struct {
-	sfn.HistoryEvent
+	types.HistoryEvent
 	ExecutionArn string
 }
 
@@ -235,42 +242,50 @@ type historyInfo struct {
 
 func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "connection_error", err)
 		return nil, err
 	}
 
-	stateMachineArn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
-	var executions []sfn.ExecutionListItem
-
-	input := &sfn.ListExecutionsInput{
-		MaxResults:      types.Int64(1000),
-		StateMachineArn: stateMachineArn,
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
+	stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
+	var executions []types.ExecutionListItem
+	maxLimit := int32(1000)
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			input.MaxResults = limit
+		if *limit < int64(maxLimit) {
+			maxLimit = int32(*limit)
 		}
 	}
-
+	input := &sfn.ListExecutionsInput{
+		MaxResults:      int32(maxLimit),
+		StateMachineArn: stateMachineArn,
+	}
+	paginator := sfn.NewListExecutionsPaginator(svc, input, func(o *sfn.ListExecutionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 	// List call
-	err = svc.ListExecutionsPages(
-		input,
-		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
-			for _, execution := range page.Executions {
-				executions = append(executions, *execution)
-			}
-			return !isLast
-		},
-	)
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
+			return nil, err
+		}
+		executions = append(executions, output.Executions...)
+	}
 	if err != nil {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "ListExecutionsPages_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
 		return nil, err
 	}
 
@@ -290,7 +305,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	close(errorCh)
 
 	for err := range errorCh {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "getRowDataForExecutionHistoryAsync_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.listStepFunctionsStateMachineExecutionHistories", "api_error", err)
 		return nil, err
 	}
 
@@ -299,7 +314,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 			d.StreamLeafListItem(ctx, historyInfo{data.HistoryEvent, data.ExecutionArn})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -313,6 +328,7 @@ func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData
 
 	rowData, err := getRowDataForExecutionHistory(ctx, d, arn)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistoryAsync", "api_error", err)
 		errorCh <- err
 	} else if rowData != nil {
 		executionCh <- rowData
@@ -321,26 +337,59 @@ func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData
 
 func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn string) ([]historyInfo, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "connection_error", err)
 		return nil, err
 	}
 
-	params := &sfn.GetExecutionHistoryInput{
-		ExecutionArn: types.String(arn),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	maxLimit := int32(1000)
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if limit != nil {
+		if *limit < int64(maxLimit) {
+			maxLimit = int32(*limit)
+		}
 	}
 
 	var items []historyInfo
 
-	listHistory, err := svc.GetExecutionHistory(params)
-	if err != nil {
-		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "GetExecutionHistory_error", err)
-		return nil, err
+	input := &sfn.GetExecutionHistoryInput{
+		MaxResults:   maxLimit,
+		ExecutionArn: aws.String(arn),
 	}
+	paginator := sfn.NewGetExecutionHistoryPaginator(svc, input, func(o *sfn.GetExecutionHistoryPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+	// List call
+	for paginator.HasMorePages() {
+		plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_call GetExecutionHistory", arn)
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			// Note: IgnoreConfig doesn't work when a ParentHydrate is used https://github.com/turbot/steampipe-plugin-sdk/issues/544
+			var apiErr smithy.APIError
+			if errors.As(err, &apiErr) {
+				switch apiErr.(type) {
+				case *types.ExecutionDoesNotExist:
+					// Ignore expired executions for which history is no longer available
+					plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error ignore_expired", err)
+					return nil, nil
+				}
+			}
+			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error", err)
+			return nil, err
+		}
 
-	for _, event := range listHistory.Events {
-		items = append(items, historyInfo{*event, arn})
+		for _, event := range output.Events {
+			items = append(items, historyInfo{event, arn})
+		}
 	}
 
 	return items, nil
@@ -349,12 +398,11 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 //// Transform Function
 
 func executionHistoryArn(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("executionHistoryArn")
 	history := d.HydrateItem.(historyInfo)
 
 	// For State Machine, ARN format is arn:aws:states:us-east-1:632902152528:stateMachine:HelloWorld
 	// For State Machine Execution, ARN format is arn:aws:states:us-east-1:632902152528:execution:HelloWorld:a44bc846-3601-fd75-63f7-60ac06a4ef97
-	akas := []string{strings.Replace(history.ExecutionArn, "execution", "executionHistory", 1) + ":" + strconv.Itoa(int(*history.Id))}
+	akas := []string{strings.Replace(history.ExecutionArn, "execution", "executionHistory", 1) + ":" + strconv.Itoa(int(history.Id))}
 
 	return akas, nil
 }

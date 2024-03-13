@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,6 +21,7 @@ func tableAwsInstanceAvailability(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsRegions,
 			Hydrate:       listAwsAvailableInstanceTypes,
+			Tags:          map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "instance_type",
@@ -64,64 +65,71 @@ func tableAwsInstanceAvailability(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := h.Item.(*ec2.Region)
-	plugin.Logger(ctx).Trace("listAwsAvailableInstanceTypes", "region", *region.RegionName)
+	region := h.Item.(types.Region)
 
 	// If a region is not opted-in, we cannot list the availability zones
-	if types.SafeString(region.OptInStatus) == "not-opted-in" {
+	if *region.OptInStatus == "not-opted-in" {
 		return nil, nil
 	}
 
-	// Create Session
-	svc, err := Ec2Service(ctx, d, *region.RegionName)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &ec2.DescribeInstanceTypeOfferingsInput{
-		MaxResults:   aws.Int64(1000),
-		LocationType: aws.String("region"),
-	}
-
-	var filters []*ec2.Filter
-	filters = append(filters, &ec2.Filter{Name: aws.String("location"), Values: []*string{region.RegionName}})
-
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["instance_type"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("instance-type"), Values: []*string{aws.String(equalQuals["instance_type"].GetStringValue())}})
-	}
-	input.Filters = filters
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeInstanceTypeOfferingsPages(
-		input,
-		func(page *ec2.DescribeInstanceTypeOfferingsOutput, isLast bool) bool {
-			for _, instanceTypeOffering := range page.InstanceTypeOfferings {
-				d.StreamListItem(ctx, instanceTypeOffering)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
+	// Create Session
+	svc, err := EC2ClientForRegion(ctx, d, *region.RegionName)
 	if err != nil {
-		plugin.Logger(ctx).Error("listAwsAvailableInstanceTypes", "DescribeInstanceTypeOfferingsPages", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance_availability.listAwsAvailableInstanceTypes", "connection_error", err)
+		return nil, err
+	}
+
+	input := &ec2.DescribeInstanceTypeOfferingsInput{
+		MaxResults:   aws.Int32(maxLimit),
+		LocationType: types.LocationTypeRegion,
+	}
+
+	var filters []types.Filter
+	filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{*region.RegionName}})
+
+	equalQuals := d.EqualsQuals
+	if equalQuals["instance_type"] != nil {
+		filters = append(filters, types.Filter{Name: aws.String("instance-type"), Values: []string{equalQuals["instance_type"].GetStringValue()}})
+	}
+	input.Filters = filters
+
+	paginator := ec2.NewDescribeInstanceTypeOfferingsPaginator(svc, input, func(o *ec2.DescribeInstanceTypeOfferingsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_instance_availability.listAwsAvailableInstanceTypes", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.InstanceTypeOfferings {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
 	return nil, err
@@ -130,15 +138,14 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 //// TRANSFORM FUNCTIONS
 
 func getAwsInstanceAvailableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsInstanceAvailableAkas")
-	instanceType := h.Item.(*ec2.InstanceTypeOffering)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	instanceType := h.Item.(types.InstanceTypeOffering)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + *instanceType.Location + "::instance-type/" + *instanceType.InstanceType}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + *instanceType.Location + "::instance-type/" + string(instanceType.InstanceType)}
 	return akas, nil
 }

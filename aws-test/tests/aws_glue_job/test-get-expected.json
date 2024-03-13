@@ -1,0 +1,8 @@
+[
+	{
+		"arn": "{{ output.resource_aka.value }}",
+		"description": null,
+		"name": "{{ resourceName }}",
+		"region": "{{ output.aws_region.value }}"
+	}
+]

@@ -1,0 +1,14 @@
+[
+	{
+		"account_id": "{{ output.aws_account.value }}",
+		"connection_password_encryption": {
+			"AwsKmsKeyId": "{{ output.aws_kms_key.value }}",
+			"ReturnConnectionPasswordEncrypted": true
+		},
+		"encryption_at_rest": {
+			"CatalogEncryptionMode": "SSE-KMS",
+			"SseAwsKmsKeyId": "{{ output.aws_kms_key.value }}"
+		},
+		"region": "{{ output.aws_region.value }}"
+	}
+]

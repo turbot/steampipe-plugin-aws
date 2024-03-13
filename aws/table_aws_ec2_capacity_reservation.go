@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +21,16 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_capacity_reservation",
 		Description: "AWS EC2 Capacity Reservation",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("capacity_reservation_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidCapacityReservationId.NotFound", "InvalidCapacityReservationId.Unavailable", "InvalidCapacityReservationId.Malformed"}),
-			Hydrate:           getEc2CapacityReservation,
+			KeyColumns: plugin.SingleColumn("capacity_reservation_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidCapacityReservationId.NotFound", "InvalidCapacityReservationId.Unavailable", "InvalidCapacityReservationId.Malformed"}),
+			},
+			Hydrate: getEc2CapacityReservation,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeCapacityReservations"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2CapacityReservations,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeCapacityReservations"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "instance_type", Require: plugin.Optional},
 				{Name: "owner_id", Require: plugin.Optional},
@@ -38,7 +45,7 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				{Name: "instance_match_criteria", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "capacity_reservation_id",
@@ -131,6 +138,11 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "capacity_allocations",
+				Description: "Information about instance capacity usage.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "tag_src",
 				Description: "Any tags assigned to the capacity reservation.",
 				Type:        proto.ColumnType_JSON,
@@ -163,17 +175,29 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEc2CapacityReservations", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_capacity_reservation.listEc2CapacityReservations", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeCapacityReservationsInput{
-		MaxResults: aws.Int64(500),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filters := buildEc2CapacityReservationFilter(d.Quals)
@@ -181,33 +205,31 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 		input.Filters = filters
 	}
 
-	// Limiting the results
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	paginator := ec2.NewDescribeCapacityReservationsPaginator(svc, input, func(o *ec2.DescribeCapacityReservationsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.DescribeCapacityReservationsPages(
-		input,
-		func(page *ec2.DescribeCapacityReservationsOutput, isLast bool) bool {
-			for _, reservation := range page.CapacityReservations {
-				d.StreamListItem(ctx, reservation)
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_capacity_reservation.listEc2CapacityReservations", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.CapacityReservations {
+			d.StreamListItem(ctx, items)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
 
 	return nil, err
 }
@@ -215,23 +237,22 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getEc2CapacityReservation(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2CapacityReservation")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	reservationId := d.KeyColumnQuals["capacity_reservation_id"].GetStringValue()
+	reservationId := d.EqualsQuals["capacity_reservation_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_capacity_reservation.getEc2CapacityReservation", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeCapacityReservationsInput{
-		CapacityReservationIds: []*string{aws.String(reservationId)},
+		CapacityReservationIds: []string{reservationId},
 	}
 
-	op, err := svc.DescribeCapacityReservations(params)
+	op, err := svc.DescribeCapacityReservations(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_capacity_reservation.getEc2CapacityReservation", "api_error", err)
 		return nil, err
 	}
 
@@ -244,8 +265,7 @@ func getEc2CapacityReservation(ctx context.Context, d *plugin.QueryData, _ *plug
 //// TRANSFORM FUNCTIONS
 
 func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ec2CapacityReservationTagListToTurbotTags")
-	tagList := d.Value.([]*ec2.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
@@ -260,9 +280,10 @@ func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform
 }
 
 //// UTILITY FUNCTION
+
 // Build ec2 capacity reservation list call input filter
-func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"instance_type":           "instance-type",
@@ -280,18 +301,15 @@ func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []*ec2.Fil
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ec2.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				valSlice := value.([]*string)
-				filter.Values = valSlice
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

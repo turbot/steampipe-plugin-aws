@@ -4,11 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
+
+	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +22,18 @@ func tableAwsRDSDBEventSubscription(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_event_subscription",
 		Description: "AWS RDS DB Event Subscription",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cust_subscription_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"SubscriptionNotFound"}),
-			Hydrate:           getRDSDBEventSubscription,
+			KeyColumns: plugin.SingleColumn("cust_subscription_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionNotFound"}),
+			},
+			Hydrate: getRDSDBEventSubscription,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeEventSubscriptions"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBEventSubscriptions,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeEventSubscriptions"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cust_subscription_id",
@@ -100,45 +108,55 @@ func tableAwsRDSDBEventSubscription(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBEventSubscriptions")
-
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_event_subscription.listRDSDBEventSubscriptions", "connection_error", err)
 		return nil, err
 	}
 
-	input := &rds.DescribeEventSubscriptionsInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeEventSubscriptionsPages(
-		input,
-		func(page *rds.DescribeEventSubscriptionsOutput, isLast bool) bool {
-			for _, eventSubscription := range page.EventSubscriptionsList {
-				d.StreamListItem(ctx, eventSubscription)
+	input := &rds.DescribeEventSubscriptionsInput{
+		MaxRecords: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := rds.NewDescribeEventSubscriptionsPaginator(svc, input, func(o *rds.DescribeEventSubscriptionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_event_subscription.listRDSDBEventSubscriptions", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.EventSubscriptionsList {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -146,11 +164,12 @@ func listRDSDBEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	subscriptionId := d.KeyColumnQuals["cust_subscription_id"].GetStringValue()
+	subscriptionId := d.EqualsQuals["cust_subscription_id"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_event_subscription.getRDSDBEventSubscription", "connection_error", err)
 		return nil, err
 	}
 
@@ -158,8 +177,9 @@ func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 		SubscriptionName: aws.String(subscriptionId),
 	}
 
-	op, err := svc.DescribeEventSubscriptions(params)
+	op, err := svc.DescribeEventSubscriptions(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_event_subscription.getRDSDBEventSubscription", "api_error", err)
 		return nil, err
 	}
 
@@ -172,7 +192,7 @@ func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 //// TRANSFORM FUNCTION
 
 func convertStringToRFC3339Timestamp(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*rds.EventSubscription)
+	data := d.HydrateItem.(types.EventSubscription)
 	parsedTime := strings.Replace(*data.SubscriptionCreationTime, " ", "T", 1)
 
 	return parsedTime, nil

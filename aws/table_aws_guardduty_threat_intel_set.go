@@ -3,13 +3,14 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty"
+
+	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -25,18 +26,28 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 		Name:        "aws_guardduty_threat_intel_set",
 		Description: "AWS GuardDuty ThreatIntelSet",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"detector_id", "threat_intel_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
-			Hydrate:           getGuardDutyThreatIntelSet,
+			KeyColumns: plugin.AllColumns([]string{"detector_id", "threat_intel_set_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "BadRequestException"}),
+			},
+			Hydrate: getGuardDutyThreatIntelSet,
+			Tags:    map[string]string{"service": "guardduty", "action": "GetThreatIntelSet"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listGuardDutyThreatIntelSets,
+			Tags:          map[string]string{"service": "guardduty", "action": "ListThreatIntelSets"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "detector_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getGuardDutyThreatIntelSet,
+				Tags: map[string]string{"service": "guardduty", "action": "GetThreatIntelSet"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -107,72 +118,83 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 	detectorID := h.Item.(detectorInfo).DetectorID
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_threat_intel_set.getGuardDutyThreatIntelSet", "get_client_error", err)
 		return nil, err
 	}
-	equalQuals := d.KeyColumnQuals
 
-	// Minimize the API call with the given detector_id
+	equalQuals := d.EqualsQuals
+
+	// Minimize the API call with the given detector id
 	if equalQuals["detector_id"] != nil {
-		if equalQuals["detector_id"].GetStringValue() != "" {
-			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != detectorID {
-				return nil, nil
-			}
-		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), detectorID) {
+		if equalQuals["detector_id"].GetStringValue() != detectorID {
+			return nil, nil
+		}
+	}
+
+	maxItems := int32(50)
+	input := &guardduty.ListThreatIntelSetsInput{
+		DetectorId: &detectorID,
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			input.MaxResults = limit
+		}
+	}
+
+	paginator := guardduty.NewListThreatIntelSetsPaginator(svc, input, func(o *guardduty.ListThreatIntelSetsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_guardduty_ipset.getAwsGuardDutyIPSet", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.ThreatIntelSetIds {
+			d.StreamListItem(ctx, threatIntelSetInfo{
+				ThreatIntelSetID: item,
+				DetectorID:       detectorID,
+			})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
 	}
 
-	input := &guardduty.ListThreatIntelSetsInput{
-		DetectorId: &detectorID,
-		MaxResults: aws.Int64(50),
-	}
-
-	// List call
-	err = svc.ListThreatIntelSetsPages(
-		input,
-		func(page *guardduty.ListThreatIntelSetsOutput, isLast bool) bool {
-			for _, result := range page.ThreatIntelSetIds {
-				d.StreamLeafListItem(ctx, threatIntelSetInfo{
-					ThreatIntelSetID: *result,
-					DetectorID:       detectorID,
-				})
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getGuardDutyThreatIntelSet")
-
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_threat_intel_set.getGuardDutyThreatIntelSet", "get_client_error", err)
 		return nil, err
 	}
 
-	var id string
-	var detectorID string
+	var id, detectorID string
+
 	if h.Item != nil {
 		detectorID = h.Item.(threatIntelSetInfo).DetectorID
 		id = h.Item.(threatIntelSetInfo).ThreatIntelSetID
 	} else {
-		detectorID = d.KeyColumnQuals["detector_id"].GetStringValue()
-		id = d.KeyColumnQuals["threat_intel_set_id"].GetStringValue()
+		detectorID = d.EqualsQuals["detector_id"].GetStringValue()
+		id = d.EqualsQuals["threat_intel_set_id"].GetStringValue()
 	}
 
 	params := &guardduty.GetThreatIntelSetInput{
@@ -180,9 +202,9 @@ func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plu
 		ThreatIntelSetId: &id,
 	}
 
-	op, err := svc.GetThreatIntelSet(params)
+	op, err := svc.GetThreatIntelSet(ctx, params)
 	if err != nil {
-		logger.Debug("getGuardDutyThreatIntelSet", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_guardduty_threat_intel_set.getGuardDutyThreatIntelSet", "api_error", err)
 		return nil, err
 	}
 
@@ -192,17 +214,16 @@ func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plu
 //// TRANSFORM FUNCTIONS
 
 func getAwsGuardDutyThreatIntelSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsGuardDutyThreatIntelSetAkas")
 	data := h.Item.(threatIntelSetInfo)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_threat_intel_set.getAwsGuardDutyThreatIntelSetAkas", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorID + "/threatintelset/" + data.ThreatIntelSetID
+	aka := fmt.Sprintf("arn:%s:guardduty:%s:%s:detector/%s/threatintelset/%s", commonColumnData.Partition, region, commonColumnData.AccountId, data.DetectorID, data.ThreatIntelSetID)
 
 	return []string{aka}, nil
 }

@@ -15,25 +15,6 @@
     ],
     "owner_id": "{{ output.account_id.value }}",
     "route_table_id": "{{ output.resource_id.value }}",
-    "routes": [
-      {
-        "CarrierGatewayId": null,
-        "DestinationCidrBlock": "10.0.0.0/16",
-        "DestinationIpv6CidrBlock": null,
-        "DestinationPrefixListId": null,
-        "EgressOnlyInternetGatewayId": null,
-        "GatewayId": "local",
-        "InstanceId": null,
-        "InstanceOwnerId": null,
-        "LocalGatewayId": null,
-        "NatGatewayId": null,
-        "NetworkInterfaceId": null,
-        "Origin": "CreateRouteTable",
-        "State": "active",
-        "TransitGatewayId": null,
-        "VpcPeeringConnectionId": null
-      }
-    ],
     "tags_src": [
       {
         "Key": "Name",

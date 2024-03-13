@@ -2,13 +2,17 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ecrpublic"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+
+	ecrpublicv1 "github.com/aws/aws-sdk-go/service/ecrpublic"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,17 +22,35 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 		Name:        "aws_ecrpublic_repository",
 		Description: "AWS ECR Public Repository",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("repository_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
-			Hydrate:           getAwsEcrpublicRepository,
+			KeyColumns: plugin.SingleColumn("repository_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
+			},
+			Hydrate: getAwsEcrpublicRepository,
+			Tags:    map[string]string{"service": "ecr-public", "action": "DescribeRepositories"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrpublicRepositories,
+			Tags:    map[string]string{"service": "ecr-public", "action": "DescribeRepositories"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "registry_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listAwsEcrpublicRepositoryTags,
+				Tags: map[string]string{"service": "ecr-public", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getAwsEcrpublicRepositoryPolicy,
+				Tags: map[string]string{"service": "ecr-public", "action": "GetRepositoryPolicy"},
+			},
+			{
+				Func: getAwsEcrpublicDescribeImages,
+				Tags: map[string]string{"service": "ecr-public", "action": "DescribeImages"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(ecrpublicv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",
@@ -113,53 +135,66 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
 	// DescribeRepositories command is only supported in us-east-1
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	if region != "us-east-1" {
 		return nil, nil
 	}
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := ECRPublicClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecrpublic_repository.listAwsEcrpublicRepositories", "connection_error", err)
 		return nil, err
 	}
 
-	input := &ecrpublic.DescribeRepositoriesInput{
-		MaxResults: aws.Int64(1000),
-	}
-
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["registry_id"] != nil {
-		input.RegistryId = aws.String(equalQuals["registry_id"].GetStringValue())
-	}
-
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeRepositoriesPages(
-		input,
-		func(page *ecrpublic.DescribeRepositoriesOutput, isLast bool) bool {
-			for _, repository := range page.Repositories {
-				d.StreamListItem(ctx, repository)
+	input := &ecrpublic.DescribeRepositoriesInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	equalQuals := d.EqualsQuals
+	if equalQuals["registry_id"] != nil {
+		input.RegistryId = aws.String(equalQuals["registry_id"].GetStringValue())
+	}
+
+	paginator := ecrpublic.NewDescribeRepositoriesPaginator(svc, input, func(o *ecrpublic.DescribeRepositoriesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecrpublic_repository.listAwsEcrpublicRepositories", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Repositories {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -167,10 +202,8 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 ////  HYDRATE FUNCTIONS
 
 func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrpublicRepository")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
 	// DescribeRepositories command is only supported in us-east-1
@@ -178,23 +211,24 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, nil
 	}
 
-	name := d.KeyColumnQuals["repository_name"].GetStringValue()
+	name := d.EqualsQuals["repository_name"].GetStringValue()
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := ECRPublicClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecrpublic_repository.getAwsEcrpublicRepository", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ecrpublic.DescribeRepositoriesInput{
-		RepositoryNames: []*string{aws.String(name)},
+		RepositoryNames: []string{name},
 	}
 
 	// Get call
-	data, err := svc.DescribeRepositories(params)
+	data, err := svc.DescribeRepositories(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsEcrpublicRepository", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ecrpublic_repository.getAwsEcrpublicRepository", "api_error", err)
 		return nil, err
 	}
 	if data.Repositories != nil && len(data.Repositories) > 0 {
@@ -205,14 +239,13 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plug
 }
 
 func listAwsEcrpublicRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsEcrpublicRepositoryTags")
 
-	resourceArn := h.Item.(*ecrpublic.Repository).RepositoryArn
+	resourceArn := h.Item.(types.Repository).RepositoryArn
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := ECRPublicClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecrpublic_repository.listAwsEcrpublicRepositoryTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -222,23 +255,22 @@ func listAwsEcrpublicRepositoryTags(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("listAwsEcrpublicRepositoryTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ecrpublic_repository.listAwsEcrpublicRepositoryTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
 }
 
 func getAwsEcrpublicRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrpublicRepositoryPolicy")
 
-	repositoryName := h.Item.(*ecrpublic.Repository).RepositoryName
+	repositoryName := h.Item.(types.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := ECRPublicClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecrpublic_repository.getAwsEcrpublicRepositoryPolicy", "connection_error", err)
 		return nil, err
 	}
 
@@ -248,27 +280,26 @@ func getAwsEcrpublicRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	// Get call
-	op, err := svc.GetRepositoryPolicy(params)
+	op, err := svc.GetRepositoryPolicy(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "RepositoryPolicyNotFoundException" {
-				return nil, nil
-			}
-			return nil, err
+		if strings.Contains(err.Error(), "RepositoryPolicyNotFoundException") {
+			return nil, nil
 		}
+		plugin.Logger(ctx).Error("aws_ecrpublic_repository.getAwsEcrpublicRepositoryPolicy", "api_error", err)
+		return nil, err
+
 	}
 	return op, nil
 }
 
 func getAwsEcrpublicDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrpublicDescribeImages")
 
-	repositoryName := h.Item.(*ecrpublic.Repository).RepositoryName
+	repositoryName := h.Item.(types.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := ECRPublicClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecrpublic_repository.getAwsEcrpublicDescribeImages", "connection_error", err)
 		return nil, err
 	}
 
@@ -278,9 +309,9 @@ func getAwsEcrpublicDescribeImages(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Get call
-	op, err := svc.DescribeImages(params)
+	op, err := svc.DescribeImages(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsEcrpublicDescribeImages", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ecrpublic_repository.getAwsEcrpublicDescribeImages", "api_error", err)
 		return nil, err
 	}
 

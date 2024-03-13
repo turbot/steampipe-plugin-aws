@@ -2,14 +2,19 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/s3control/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	s3controlv1 "github.com/aws/aws-sdk-go/service/s3control"
+
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,16 +25,37 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 		Description: "AWS S3 Access Point",
 		List: &plugin.ListConfig{
 			Hydrate: listS3AccessPoints,
+			Tags:    map[string]string{"service": "s3", "action": "ListAccessPoints"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchAccessPoint", "InvalidParameter", "InvalidRequest"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Optional},
 			},
 		},
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
-			Hydrate:           getS3AccessPoint,
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchAccessPoint", "AccessDenied", "InvalidParameter"}),
+			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
+			Hydrate:    getS3AccessPoint,
+			Tags:       map[string]string{"service": "s3", "action": "GetAccessPoint"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchAccessPoint", "InvalidParameter", "InvalidRequest"}),
+			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getS3AccessPoint,
+				Tags: map[string]string{"service": "s3", "action": "GetAccessPoint"},
+			},
+			{
+				Func: getS3AccessPointPolicyStatus,
+				Tags: map[string]string{"service": "s3", "action": "GetAccessPointPolicyStatus"},
+			},
+			{
+				Func: getS3AccessPointPolicy,
+				Tags: map[string]string{"service": "s3", "action": "GetAccessPointPolicy"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(s3controlv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -138,88 +164,113 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listS3AccessPoints")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.listS3AccessPoints", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	region := d.EqualsQualString(matrixKeyRegion)
 	// Create Session
-	svc, err := S3ControlService(ctx, d, region)
+	svc, err := S3ControlClient(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.listS3AccessPoints", "client_error", err)
 		return nil, err
 	}
 
-	input := &s3control.ListAccessPointsInput{
-		AccountId:  aws.String(commonColumnData.AccountId),
-		MaxResults: aws.Int64(1000),
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
-	equalQuals := d.KeyColumnQuals
+	maxItems := int32(100)
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			maxItems = limit
+		}
+	}
+
+	// Minimum limit is 0 as per the doc https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_ListAccessPoints.html#API_control_ListAccessPoints_RequestSyntax
+	input := &s3control.ListAccessPointsInput{
+		AccountId:  aws.String(commonColumnData.AccountId),
+		MaxResults: maxItems,
+	}
+
+	equalQuals := d.EqualsQuals
 	if equalQuals["bucket_name"] != nil {
 		if equalQuals["bucket_name"].GetStringValue() != "" {
 			input.Bucket = aws.String(equalQuals["bucket_name"].GetStringValue())
 		}
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			// Minimum limit is 0 as per the doc https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_ListAccessPoints.html#API_control_ListAccessPoints_RequestSyntax
-			input.MaxResults = limit
+	paginator := s3control.NewListAccessPointsPaginator(svc, input, func(o *s3control.ListAccessPointsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_s3_access_point.listS3AccessPoints", "api_error", err)
+			return nil, err
+		}
+
+		for _, accessPoint := range output.AccessPointList {
+			d.StreamListItem(ctx, accessPoint)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 
-	err = svc.ListAccessPointsPages(
-		input,
-		func(page *s3control.ListAccessPointsOutput, isLast bool) bool {
-			for _, accessPoint := range page.AccessPointList {
-				d.StreamListItem(ctx, accessPoint)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getS3AccessPoint")
-	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
+	matrixRegion := d.EqualsQualString(matrixKeyRegion)
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPoint", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d, matrixRegion)
+	svc, err := S3ControlClient(ctx, d, matrixRegion)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPoint", "client_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	var name, region string
 	if h.Item != nil {
-		name = *h.Item.(*s3control.AccessPoint).Name
+		name = *h.Item.(types.AccessPoint).Name
 		region = matrixRegion
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		region = d.KeyColumnQuals["region"].GetStringValue()
+		name = d.EqualsQuals["name"].GetStringValue()
+		region = d.EqualsQuals["region"].GetStringValue()
 	}
 
 	// Return nil, if given region doesn't match config region
@@ -234,8 +285,9 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// execute list call
-	item, err := svc.GetAccessPoint(params)
+	item, err := svc.GetAccessPoint(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPoint", "api_error", err)
 		return nil, err
 	}
 
@@ -243,22 +295,29 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getS3AccessPointPolicyStatus")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicyStatus", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d, region)
+	svc, err := S3ControlClient(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicyStatus", "client_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
 	accessPointName := accessPointName(h.Item)
 
 	// Build params
@@ -268,13 +327,15 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// execute list call
-	op, err := svc.GetAccessPointPolicyStatus(params)
+	op, err := svc.GetAccessPointPolicyStatus(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "NoSuchAccessPointPolicy" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "NoSuchAccessPointPolicy" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicyStatus", "api_error", err)
 		return nil, err
 	}
 
@@ -282,22 +343,29 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 }
 
 func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getS3AccessPointPolicy")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicy", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d, region)
+	svc, err := S3ControlClient(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicy", "client_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
 	accessPointName := accessPointName(h.Item)
 
 	// Build params
@@ -307,13 +375,15 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// execute list call
-	op, err := svc.GetAccessPointPolicy(params)
+	op, err := svc.GetAccessPointPolicy(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "NoSuchAccessPointPolicy" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "NoSuchAccessPointPolicy" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicy", "api_error", err)
 		return nil, err
 	}
 
@@ -322,12 +392,13 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 func getAccessPointArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	accessPointName := accessPointName(h.Item)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_access_point.getAccessPointArn", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -338,7 +409,7 @@ func getAccessPointArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func accessPointName(item interface{}) string {
 	switch item := item.(type) {
-	case *s3control.AccessPoint:
+	case types.AccessPoint:
 		return *item.Name
 	case *s3control.GetAccessPointOutput:
 		return *item.Name

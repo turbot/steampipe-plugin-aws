@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,18 +18,11 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc_route",
 		Description: "AWS VPC Route",
-		// TODO -- get call returning a list of items
-
-		// Get: &plugin.GetConfig{
-		// 	KeyColumns:        plugin.SingleColumn("route_table_id"),
-		// 	ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
-		// 	Hydrate:           getAwsVpcRoute,
-		// },
 		List: &plugin.ListConfig{
 			ParentHydrate: listVpcRouteTables,
 			Hydrate:       listAwsVpcRoute,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",
@@ -143,7 +138,7 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 
 type routeTableRoute = struct {
 	RouteTableID *string
-	Route        *ec2.Route
+	Route        types.Route
 }
 
 //// LIST FUNCTION
@@ -151,13 +146,13 @@ type routeTableRoute = struct {
 func listAwsVpcRoute(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsVpcRoute")
 
-	routeTable := h.Item.(*ec2.RouteTable)
+	routeTable := h.Item.(types.RouteTable)
 
 	for _, route := range routeTable.Routes {
 		d.StreamLeafListItem(ctx, &routeTableRoute{routeTable.RouteTableId, route})
 
-		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -170,10 +165,9 @@ func listAwsVpcRoute(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 func getAwsVpcRouteTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsVpcRouteTurbotData")
 	routeData := h.Item.(*routeTableRoute)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

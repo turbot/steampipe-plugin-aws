@@ -2,16 +2,20 @@ package aws
 
 import (
 	"context"
-	"log"
+	"errors"
+	"fmt"
 	"strings"
 
-	"github.com/turbot/go-kit/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/acm/types"
+	"github.com/aws/smithy-go"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/acm"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	acmv1 "github.com/aws/aws-sdk-go/service/acm"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -23,17 +27,40 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("certificate_arn"),
 			Hydrate:    getAwsAcmCertificateAttributes,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
+			Tags: map[string]string{"service": "acm", "action": "DescribeCertificate"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAcmCertificates,
+			Tags:    map[string]string{"service": "acm", "action": "ListCertificates"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "status",
 					Require: plugin.Optional,
 				},
+				{
+					Name:    "key_algorithm",
+					Require: plugin.Optional,
+				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsAcmCertificateAttributes,
+				Tags: map[string]string{"service": "acm", "action": "DescribeCertificate"},
+			},
+			{
+				Func: getAwsAcmCertificateProperties,
+				Tags: map[string]string{"service": "acm", "action": "GetCertificate"},
+			},
+			{
+				Func: listTagsForAcmCertificate,
+				Tags: map[string]string{"service": "acm", "action": "ListTagsForCertificate"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(acmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "certificate_arn",
@@ -56,7 +83,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "domain_name",
 				Description: "Fully qualified domain name (FQDN), such as www.example.com or example.com, for the certificate",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "certificate_transparency_logging_preference",
@@ -69,7 +95,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "created_at",
 				Description: "The time at which the certificate was requested. This value exists only when the certificate type is AMAZON_ISSUED",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "subject",
@@ -81,7 +106,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "imported_at",
 				Description: "The name of the certificate authority that issued and signed the certificate",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "issuer",
@@ -117,19 +141,16 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "status",
 				Description: "The status of the certificate",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "key_algorithm",
 				Description: "The algorithm that was used to generate the public-private key pair",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "not_after",
 				Description: "The time after which the certificate is not valid",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "not_before",
@@ -141,7 +162,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "renewal_eligibility",
 				Description: "Specifies whether the certificate is eligible for renewal.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "revocation_reason",
@@ -153,7 +173,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "revoked_at",
 				Description: "The time at which the certificate was revoked. This value exists only when the certificate status is REVOKED",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "serial",
@@ -223,124 +242,196 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	logger := plugin.Logger(ctx)
 
 	// Create service
-	svc, err := ACMService(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
-		logger.Trace("listAwsAcmCertificates", "connection error", err)
+		logger.Error("listAwsAcmCertificates", "connection error", err)
 		return nil, err
 	}
+	// key_algorithm
 
-	input := &acm.ListCertificatesInput{
-		MaxItems: aws.Int64(1000),
-	}
-
-	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["status"] != nil {
-		input.CertificateStatuses = []*string{types.String(equalQuals["status"].GetStringValue())}
-	}
+	keyAlgorithm := d.EqualsQualString("key_algorithm")
 
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxItems = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListCertificatesPages(
-		input,
-		func(page *acm.ListCertificatesOutput, lastPage bool) bool {
-			for _, certificate := range page.CertificateSummaryList {
-				d.StreamListItem(ctx, &acm.CertificateDetail{
-					CertificateArn: certificate.CertificateArn,
-				})
+	input := &acm.ListCertificatesInput{
+		MaxItems: aws.Int32(maxLimit),
+		Includes: &types.Filters{},
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	filter := input.Includes
+
+	if keyAlgorithm != "" {
+		filter.KeyTypes = []types.KeyAlgorithm{types.KeyAlgorithm(keyAlgorithm)}
+	} else {
+		filter.KeyTypes = []types.KeyAlgorithm{
+			types.KeyAlgorithmRsa1024,
+			types.KeyAlgorithmRsa2048,
+			types.KeyAlgorithmRsa3072,
+			types.KeyAlgorithmRsa4096,
+			types.KeyAlgorithmEcPrime256v1,
+			types.KeyAlgorithmEcSecp384r1,
+			types.KeyAlgorithmEcSecp521r1,
+		}
+	}
+
+	input.Includes = filter
+
+	// Additonal Filter
+	equalQuals := d.EqualsQuals
+	if equalQuals["status"] != nil {
+		input.CertificateStatuses = []types.CertificateStatus{
+			types.CertificateStatus(equalQuals["status"].GetStringValue()),
+		}
+	}
+	paginator := acm.NewListCertificatesPaginator(svc, input, func(o *acm.ListCertificatesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_acm_certificate.listAwsAcmCertificates", "api_error", err)
+			return nil, err
+		}
+
+		for _, certificate := range output.CertificateSummaryList {
+			d.StreamListItem(ctx, certificate)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAcmCertificateAttributes")
 
 	// Create session
-	svc, err := ACMService(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	var arn string
 	if h.Item != nil {
-		arn = *h.Item.(*acm.CertificateDetail).CertificateArn
+		arn = *h.Item.(types.CertificateSummary).CertificateArn
 	} else {
-		arn = d.KeyColumnQuals["certificate_arn"].GetStringValue()
+		arn = d.EqualsQuals["certificate_arn"].GetStringValue()
 	}
 
 	params := &acm.DescribeCertificateInput{
 		CertificateArn: aws.String(arn),
 	}
 
-	detail, err := svc.DescribeCertificate(params)
+	detail, err := svc.DescribeCertificate(ctx, params)
 	if err != nil {
-		log.Println("[DEBUG] getAwsAcmCertificateAttributes__", "ERROR", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateAttributes", "api_error", err)
 		return nil, err
 	}
+
+	// The API documentation (https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateSummary.html#ACM-Type-CertificateSummary-KeyAlgorithm) specifies that the API should return the response with a separator "_" between the algorithm keys. However, we have observed that it is returning the response with a "-" separator instead.
+	if detail != nil && detail.Certificate != nil {
+		detail.Certificate.KeyAlgorithm = types.KeyAlgorithm(strings.ReplaceAll(fmt.Sprint(detail.Certificate.KeyAlgorithm), "-", "_"))
+	}
+
 	return detail.Certificate, nil
 }
 
 func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAcmCertificateProperties")
-	item := h.Item.(*acm.CertificateDetail)
+	arn, err := getCertificateArn(ctx, d, h)
 
-	// Create session
-	svc, err := ACMService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.getCertificateArn", "type_error", err)
 		return nil, err
 	}
 
-	detail, err := svc.GetCertificate(&acm.GetCertificateInput{
-		CertificateArn: item.CertificateArn,
+	// Create session
+	svc, err := ACMClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateProperties", "service_client_error", err)
+		return nil, err
+	}
+
+	detail, err := svc.GetCertificate(ctx, &acm.GetCertificateInput{
+		CertificateArn: arn,
 	})
 
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateProperties", "api_error", err)
 		return nil, err
 	}
 	return detail, nil
 }
 
 func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTagsForAcmCertificate")
-	item := h.Item.(*acm.CertificateDetail)
+	arn, err := getCertificateArn(ctx, d, h)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.getCertificateArn", "type_error", err)
+		return nil, err
+	}
+
+	if arn == nil {
+		return nil, nil
+	}
 
 	// Create session
-	svc, err := ACMService(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.listTagsForAcmCertificate", "service_client_error", err)
 		return nil, err
 	}
 
 	// Build param
 	param := &acm.ListTagsForCertificateInput{
-		CertificateArn: item.CertificateArn,
+		CertificateArn: arn,
 	}
 
-	certificateTags, err := svc.ListTagsForCertificate(param)
+	certificateTags, err := svc.ListTagsForCertificate(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.listTagsForAcmCertificate", "api_error", err)
 		return nil, err
 	}
 	return certificateTags, nil
+}
+
+func getCertificateArn(_ context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*string, error) {
+	if h.Item != nil {
+		switch item := h.Item.(type) {
+		case *types.CertificateDetail:
+			return item.CertificateArn, nil
+		case types.CertificateSummary:
+			return item.CertificateArn, nil
+		}
+	}
+	return nil, nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -358,7 +449,7 @@ func certificateTurbotTags(_ context.Context, d *transform.TransformData) (inter
 }
 
 func certificateArnToTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	item := types.SafeString(d.Value)
+	item := *d.Value.(*string)
 
 	// Get the resource title
 	title := item[strings.LastIndex(item, "/")+1:]

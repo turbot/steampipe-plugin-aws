@@ -2,13 +2,13 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +18,26 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_distribution",
 		Description: "AWS CloudFront Distribution",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchDistribution"}),
-			Hydrate:           getCloudFrontDistribution,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchDistribution"}),
+			},
+			Hydrate: getCloudFrontDistribution,
+			Tags:    map[string]string{"service": "cloudfront", "action": "GetDistribution"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsCloudFrontDistributions,
+			Tags:    map[string]string{"service": "cloudfront", "action": "ListDistributions"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getCloudFrontDistribution,
+				Tags: map[string]string{"service": "cloudfront", "action": "GetDistribution"},
+			},
+			{
+				Func: getCloudFrontDistributionTags,
+				Tags: map[string]string{"service": "cloudfront", "action": "ListTagsForResource"},
+			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -197,7 +211,7 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "viewer_certificate",
-				Description: "A complex type that determines the distribution’s SSL/TLS configuration for communicating with viewers.",
+				Description: "A complex type that determines the distribution's SSL/TLS configuration for communicating with viewers.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ViewerCertificate", "Distribution.DistributionConfig.ViewerCertificate"),
 			},
@@ -229,90 +243,102 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsCloudFrontDistributions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsCloudFrontDistributions")
-
-	// Create session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_distribution.listAwsCloudFrontDistributions", "client_error", err)
 		return nil, err
 	}
 
+	maxItems := int32(1000)
+
 	// The maximum number for MaxItems parameter is not defined by the API
 	// We have set the MaxItems to 1000 based on our test
-	input := &cloudfront.ListDistributionsInput{
-		MaxItems: aws.Int64(1000),
-	}
+	input := &cloudfront.ListDistributionsInput{}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListDistributionsPages(
-		input,
-		func(page *cloudfront.ListDistributionsOutput, isLast bool) bool {
-			for _, distribution := range page.DistributionList.Items {
-				d.StreamListItem(ctx, distribution)
+	input.MaxItems = &maxItems
+	paginator := cloudfront.NewListDistributionsPaginator(svc, input, func(o *cloudfront.ListDistributionsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudfront_distribution.listAwsCloudFrontDistributions", "api_error", err)
+			return nil, err
+		}
+
+		for _, distribution := range output.DistributionList.Items {
+			d.StreamListItem(ctx, distribution)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getCloudFrontDistribution(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudFrontDistribution")
-
-	// Create session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_distribution.getCloudFrontDistribution", "client_error", err)
 		return nil, err
 	}
 
 	var distributionID string
 	if h.Item != nil {
-		distributionID = *h.Item.(*cloudfront.DistributionSummary).Id
+		distributionID = *h.Item.(types.DistributionSummary).Id
 	} else {
-		distributionID = d.KeyColumnQuals["id"].GetStringValue()
+		distributionID = d.EqualsQuals["id"].GetStringValue()
+	}
+
+	if strings.TrimSpace(distributionID) == "" {
+		return nil, nil
 	}
 
 	params := &cloudfront.GetDistributionInput{
-		Id: aws.String(distributionID),
+		Id: &distributionID,
 	}
 
-	op, err := svc.GetDistribution(params)
+	op, err := svc.GetDistribution(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_distribution.getCloudFrontDistribution", "api_error", err)
 		return nil, err
 	}
 
-	return op, nil
+	return *op, nil
 }
 
 func getCloudFrontDistributionTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudFrontDistributionTags")
-
-	// Create session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_distribution.getCloudFrontDistributionTags", "client_error", err)
 		return nil, err
 	}
+
 	distributionAka := cloudFrontDistributionAka(h.Item)
 
 	// Build the params
@@ -321,8 +347,9 @@ func getCloudFrontDistributionTags(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_distribution.getCloudFrontDistributionTags", "api_error", err)
 		return nil, err
 	}
 
@@ -332,12 +359,11 @@ func getCloudFrontDistributionTags(ctx context.Context, d *plugin.QueryData, h *
 //// TRANSFORM FUNCTIONS
 
 func cloudFrontDistributionTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("cloudFrontDistributionTagListToTurbotTags")
-	tagList := d.Value.([]*cloudfront.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if tagList != nil {
+	if len(tagList) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tagList {
 			turbotTagsMap[*i.Key] = *i.Value
@@ -351,9 +377,9 @@ func cloudFrontDistributionTagListToTurbotTags(ctx context.Context, d *transform
 
 func cloudFrontDistributionAka(item interface{}) *string {
 	switch item := item.(type) {
-	case *cloudfront.GetDistributionOutput:
+	case cloudfront.GetDistributionOutput:
 		return item.Distribution.ARN
-	case *cloudfront.DistributionSummary:
+	case types.DistributionSummary:
 		return item.ARN
 	}
 	return nil

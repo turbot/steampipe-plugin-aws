@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,18 +21,22 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_key_pair",
 		Description: "AWS EC2 Key Pair",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("key_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidKeyPair.NotFound", "InvalidKeyPair.Unavailable", "InvalidKeyPair.Malformed"}),
-			Hydrate:           getEc2KeyPair,
+			KeyColumns: plugin.SingleColumn("key_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidKeyPair.NotFound", "InvalidKeyPair.Unavailable", "InvalidKeyPair.Malformed"}),
+			},
+			Hydrate: getEc2KeyPair,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeKeyPairs"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2KeyPairs,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeKeyPairs"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "key_pair_id", Require: plugin.Optional},
 				{Name: "key_fingerprint", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "key_name",
@@ -78,12 +85,11 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEc2KeyPairs", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_key_pair.listEc2KeyPairs", "connection_error", err)
 		return nil, err
 	}
 
@@ -95,13 +101,18 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		input.Filters = filters
 	}
 
-	resp, err := svc.DescribeKeyPairs(input)
+	resp, err := svc.DescribeKeyPairs(ctx, input)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_key_pair.listEc2KeyPairs", "api_error", err)
+		return nil, err
+	}
 
 	for _, keyPair := range resp.KeyPairs {
 		d.StreamListItem(ctx, keyPair)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -111,21 +122,22 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	keyName := d.KeyColumnQuals["key_name"].GetStringValue()
+	keyName := d.EqualsQuals["key_name"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_key_pair.getEc2KeyPair", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeKeyPairsInput{
-		KeyNames: []*string{aws.String(keyName)},
+		KeyNames: []string{keyName},
 	}
 
-	op, err := svc.DescribeKeyPairs(params)
+	op, err := svc.DescribeKeyPairs(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_key_pair.getEc2KeyPair", "api_error", err)
 		return nil, err
 	}
 
@@ -136,12 +148,12 @@ func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 }
 
 func getAwsEc2KeyPairAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2KeyPairAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	keyPair := h.Item.(*ec2.KeyPairInfo)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+	keyPair := h.Item.(types.KeyPairInfo)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_key_pair.getAwsEc2KeyPairAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -155,14 +167,25 @@ func getAwsEc2KeyPairAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 //// TRANSFORM FUNCTIONS
 
 func getEc2KeyPairTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	keyPair := d.HydrateItem.(*ec2.KeyPairInfo)
-	return ec2TagsToMap(keyPair.Tags)
+	keyPair := d.HydrateItem.(types.KeyPairInfo)
+	var turbotTagsMap map[string]string
+	if keyPair.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range keyPair.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
 
-//// UTILITY FUNCTION
+//// UTILITY FUNCTIONS
+
 // Build ec2 key-pair list call input filter
-func buildEc2KeyPairFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEc2KeyPairFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"key_pair_id":     "key-pair-id",
@@ -171,18 +194,15 @@ func buildEc2KeyPairFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ec2.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				v := value.([]*string)
-				filter.Values = v
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

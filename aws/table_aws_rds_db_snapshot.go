@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +21,16 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_snapshot",
 		Description: "AWS RDS DB Snapshot",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_snapshot_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBSnapshotNotFound"}),
-			Hydrate:           getRDSDBSnapshot,
+			KeyColumns: plugin.SingleColumn("db_snapshot_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBSnapshotNotFound"}),
+			},
+			Hydrate: getRDSDBSnapshot,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBSnapshots"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSnapshots,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBSnapshots"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_instance_identifier", Require: plugin.Optional},
 				{Name: "dbi_resource_id", Require: plugin.Optional},
@@ -31,7 +38,13 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 				{Name: "type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsRDSDBSnapshotAttributes,
+				Tags: map[string]string{"service": "rds", "action": "DescribeDBSnapshotAttributes"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_snapshot_identifier",
@@ -221,28 +234,28 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBSnapshots")
-
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_snapshot.listRDSDBSnapshots", "connection_error", err)
 		return nil, err
 	}
 
-	input := &rds.DescribeDBSnapshotsInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
+	}
+
+	input := &rds.DescribeDBSnapshotsInput{
+		MaxRecords: aws.Int32(maxLimit),
 	}
 
 	filters := buildRdsDbSnapshotFilter(d.Quals)
@@ -250,33 +263,46 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		input.Filters = filters
 	}
 
-	// List call
-	err = svc.DescribeDBSnapshotsPages(
-		input,
-		func(page *rds.DescribeDBSnapshotsOutput, isLast bool) bool {
-			for _, dbSnapshot := range page.DBSnapshots {
-				d.StreamListItem(ctx, dbSnapshot)
+	paginator := rds.NewDescribeDBSnapshotsPaginator(svc, input, func(o *rds.DescribeDBSnapshotsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Check if context has been cancelled or if the limit has been reached (if specified)
-				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_snapshot.listRDSDBSnapshots", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.DBSnapshots {
+			if isSuppportedRDSEngine(*items.Engine) {
+				d.StreamListItem(ctx, items)
 			}
-			return !isLast
-		},
-	)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	dbSnapshotIdentifier := d.KeyColumnQuals["db_snapshot_identifier"].GetStringValue()
+	dbSnapshotIdentifier := d.EqualsQuals["db_snapshot_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_snapshot.getRDSDBSnapshot", "connection_error", err)
 		return nil, err
 	}
 
@@ -284,25 +310,29 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		DBSnapshotIdentifier: aws.String(dbSnapshotIdentifier),
 	}
 
-	op, err := svc.DescribeDBSnapshots(params)
+	op, err := svc.DescribeDBSnapshots(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_snapshot.getRDSDBSnapshot", "api_error", err)
 		return nil, err
 	}
 
 	if op.DBSnapshots != nil && len(op.DBSnapshots) > 0 {
-		return op.DBSnapshots[0], nil
+		snapshot := op.DBSnapshots[0]
+		if isSuppportedRDSEngine(*snapshot.Engine) {
+			return snapshot, nil
+		}
 	}
 	return nil, nil
 }
 
 func getAwsRDSDBSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRDSDBSnapshotAttributes")
 
-	dbSnapshot := h.Item.(*rds.DBSnapshot)
+	dbSnapshot := h.Item.(types.DBSnapshot)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_snapshot.getAwsRDSDBSnapshotAttributes", "connection_error", err)
 		return nil, err
 	}
 
@@ -310,8 +340,9 @@ func getAwsRDSDBSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *
 		DBSnapshotIdentifier: aws.String(*dbSnapshot.DBSnapshotIdentifier),
 	}
 
-	op, err := svc.DescribeDBSnapshotAttributes(params)
+	op, err := svc.DescribeDBSnapshotAttributes(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_snapshot.getAwsRDSDBSnapshotAttributes", "api_error", err)
 		return nil, err
 	}
 
@@ -321,7 +352,7 @@ func getAwsRDSDBSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *
 //// TRANSFORM FUNCTIONS
 
 func getRDSDBSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbSnapshot := d.HydrateItem.(*rds.DBSnapshot)
+	dbSnapshot := d.HydrateItem.(types.DBSnapshot)
 
 	if dbSnapshot.TagList != nil {
 		turbotTagsMap := map[string]string{}
@@ -336,8 +367,8 @@ func getRDSDBSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (
 //// UTILITY FUNCTIONS
 
 // build snapshots list call input filter
-func buildRdsDbSnapshotFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
-	filters := make([]*rds.Filter, 0)
+func buildRdsDbSnapshotFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 	filterQuals := map[string]string{
 		"db_instance_identifier": "db-instance-id",
 		"dbi_resource_id":        "dbi-resource-id",
@@ -347,18 +378,15 @@ func buildRdsDbSnapshotFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := rds.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				v := value.([]*string)
-				filter.Values = v
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

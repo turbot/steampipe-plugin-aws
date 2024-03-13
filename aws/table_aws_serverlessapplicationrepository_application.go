@@ -4,12 +4,16 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
+	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository/types"
+
+	serverlessapplicationrepositoryv1 "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
+
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plugin.Table {
@@ -17,14 +21,28 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 		Name:        "aws_serverlessapplicationrepository_application",
 		Description: "AWS Serverless Application Repository Application",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "NotFoundException"}),
-			Hydrate:           getServerlessApplicationRepositoryApplication,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter", "NotFoundException"}),
+			},
+			Hydrate: getServerlessApplicationRepositoryApplication,
+			Tags:    map[string]string{"service": "serverlessrepo", "action": "GetApplication"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServerlessApplicationRepositoryApplications,
+			Tags:    map[string]string{"service": "serverlessrepo", "action": "ListApplications"},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getServerlessApplicationRepositoryApplicationPolicy,
+				Tags: map[string]string{"service": "serverlessrepo", "action": "GetApplicationPolicy"},
+			},
+			{
+				Func: getServerlessApplicationRepositoryApplication,
+				Tags: map[string]string{"service": "serverlessrepo", "action": "GetApplication"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(serverlessapplicationrepositoryv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -125,52 +143,59 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 //// LIST FUNCTION
 
 func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listServerlessApplicationRepositoryApplications")
-
 	// Create service
-	svc, err := ServerlessApplicationRepositoryService(ctx, d)
+	svc, err := ServerlessApplicationRepositoryClient(ctx, d)
 	if err != nil {
-		logger.Error("listServerlessApplicationRepositoryApplications", "error_ServerlessApplicationRepositoryService", err)
+		plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.listServerlessApplicationRepositoryApplications", "connection_error", err)
 		return nil, err
 	}
-
-	// Set MaxItems to the maximum number allowed
-	input := serverlessapplicationrepository.ListApplicationsInput{
-		MaxItems: types.Int64(100),
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxItems = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.ListApplicationsPages(
-		&input,
-		func(page *serverlessapplicationrepository.ListApplicationsOutput, lastPage bool) bool {
-			for _, application := range page.Applications {
-				d.StreamListItem(ctx, application)
+	// Set MaxItems to the maximum number allowed
+	input := &serverlessapplicationrepository.ListApplicationsInput{
+		MaxItems: maxLimit,
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := serverlessapplicationrepository.NewListApplicationsPaginator(svc, input, func(o *serverlessapplicationrepository.ListApplicationsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.listServerlessApplicationRepositoryApplications", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Applications {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		logger.Error("listServerlessApplicationRepositoryApplications", "error_ListApplicationsOutput", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -179,14 +204,11 @@ func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plu
 //// HYDRATE FUNCTIONS
 
 func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getServerlessApplicationRepositoryApplication")
-
 	var arn string
 	if h.Item != nil {
 		arn = *serverlessApplicationRepositoryArn(h.Item)
 	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
 	if arn == "" {
@@ -194,10 +216,14 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 	}
 
 	// Create service
-	svc, err := ServerlessApplicationRepositoryService(ctx, d)
+	svc, err := ServerlessApplicationRepositoryClient(ctx, d)
 	if err != nil {
-		logger.Error("getServerlessApplicationRepositoryApplication", "error_ServerlessApplicationRepositoryService", err)
+		plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.getServerlessApplicationRepositoryApplication", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -206,15 +232,9 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 	}
 
 	// Get call
-	data, err := svc.GetApplication(params)
+	data, err := svc.GetApplication(ctx, params)
 	if err != nil {
-		logger.Error("getServerlessApplicationRepositoryApplication", "error_GetApplication", err)
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "AccessDeniedException" {
-				return nil, errors.New("Unauthorized or InvalidFormat")
-			}
-		}
-
+		plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.getServerlessApplicationRepositoryApplication", "api_error", err)
 		return nil, err
 	}
 
@@ -222,19 +242,20 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 }
 
 func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getServerlessApplicationRepositoryApplicationPolicy")
-
 	var arn string
 	if h.Item != nil {
 		arn = *serverlessApplicationRepositoryArn(h.Item)
 	}
 
 	// Create service
-	svc, err := ServerlessApplicationRepositoryService(ctx, d)
+	svc, err := ServerlessApplicationRepositoryClient(ctx, d)
 	if err != nil {
-		logger.Error("getServerlessApplicationRepositoryApplicationPolicy", "error_ServerlessApplicationRepositoryService", err)
+		plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.getServerlessApplicationRepositoryApplicationPolicy", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -243,14 +264,15 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 	}
 
 	// Get call
-	data, err := svc.GetApplicationPolicy(params)
+	data, err := svc.GetApplicationPolicy(ctx, params)
 	if err != nil {
-		logger.Error("getServerlessApplicationRepositoryApplicationPolicy", "error_GetApplicationPolicy", err)
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ForbiddenException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ForbiddenException" {
 				return nil, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.getServerlessApplicationRepositoryApplicationPolicy", "api_error", err)
 		return nil, err
 	}
 
@@ -259,7 +281,7 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 
 func serverlessApplicationRepositoryArn(item interface{}) *string {
 	switch item := item.(type) {
-	case *serverlessapplicationrepository.ApplicationSummary:
+	case types.ApplicationSummary:
 		return item.ApplicationId
 	case *serverlessapplicationrepository.GetApplicationOutput:
 		return item.ApplicationId

@@ -2,17 +2,17 @@ package aws
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/route53"
+	"github.com/aws/aws-sdk-go-v2/service/route53/types"
+	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
@@ -20,14 +20,36 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_zone",
 		Description: "AWS Route53 Zone",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			Hydrate:           getHostedZone,
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchHostedZone"}),
+			KeyColumns: plugin.SingleColumn("id"),
+			Hydrate:    getHostedZone,
+			Tags:       map[string]string{"service": "route53", "action": "GetHostedZone"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchHostedZone"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listHostedZones,
+			Tags:    map[string]string{"service": "route53", "action": "ListHostedZones"},
 		},
-		Columns: awsColumns([]*plugin.Column{
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getHostedZone,
+				Tags: map[string]string{"service": "route53", "action": "GetHostedZone"},
+			},
+			{
+				Func: getHostedZoneTags,
+				Tags: map[string]string{"service": "route53", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getHostedZoneQueryLoggingConfigs,
+				Tags: map[string]string{"service": "route53", "action": "ListQueryLoggingConfigs"},
+			},
+			{
+				Func: getHostedZoneDNSSEC,
+				Tags: map[string]string{"service": "route53", "action": "GetDNSSEC"},
+			},
+		},
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the domain. For public hosted zones, this is the name that is registered with your DNS registrar.",
@@ -78,6 +100,7 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Description: "A list of configuration for DNS query logging that is associated with the current AWS account.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneQueryLoggingConfigs,
+				Transform:   transform.FromField("QueryLoggingConfigs"),
 			},
 			{
 				Name:        "dnssec_key_signing_keys",
@@ -99,6 +122,13 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneTags,
 				Transform:   transform.FromField("ResourceTagSet.Tags"),
+			},
+			{
+				Name:        "vpcs",
+				Description: "The list of VPCs that are authorized to be associated with the specified hosted zone.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getHostedZone,
+				Transform:   transform.FromField("VPCs"),
 			},
 
 			// Steampipe standard columns
@@ -122,68 +152,96 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Hydrate:     getRoute53HostedZoneTurbotAkas,
 				Transform:   transform.FromValue(),
 			},
+			{
+				Name:        "resource_record_set_limit",
+				Description: "The maximum number of resource record sets allowed in the hosted zone.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53HostedZoneLimit,
+				Transform:   transform.FromField("Limit.Value"),
+			},
 		}),
 	}
+}
+
+type HostedZoneResult struct {
+	types.HostedZone
+	VPCs []types.VPC
 }
 
 //// LIST FUNCTION
 
 func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listhostedZone")
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.listHostedZones", "client_error", err)
 		return nil, err
 	}
 
 	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListHostedZones.html
 	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 1000 to max and 1 to min
-	input := &route53.ListHostedZonesInput{
-		MaxItems: aws.String("1000"),
-	}
+	maxItems := int32(1000)
+	input := route53.ListHostedZonesInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < 1000 {
-			if *limit < 1 {
-				input.MaxItems = aws.String("1")
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = aws.String(fmt.Sprint(*limit))
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListHostedZonesPages(
-		input,
-		func(page *route53.ListHostedZonesOutput, isLast bool) bool {
-			for _, hostedZone := range page.HostedZones {
-				d.StreamListItem(ctx, hostedZone)
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := route53.NewListHostedZonesPaginator(svc, &input, func(o *route53.ListHostedZonesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_route53_zone.listHostedZones", "api_error", err)
+			return nil, err
+		}
+
+		for _, hostedZone := range output.HostedZones {
+			d.StreamListItem(ctx, HostedZoneResult{HostedZone: hostedZone})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
-func getHostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getHostedZone")
+func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.getHostedZone", "client_error", err)
 		return nil, err
 	}
-	id := d.KeyColumnQuals["id"].GetStringValue()
+
+	id := d.EqualsQuals["id"].GetStringValue()
+
+	if h.Item != nil && id == "" {
+		hostedZone := h.Item.(HostedZoneResult)
+		id = *hostedZone.Id
+	}
 
 	// Error: pq: rpc error: code = Unknown desc = InvalidParameter: 1 validation error(s) found.
 	// - minimum field size of 1, GetHostedZoneInput.Id.
@@ -196,32 +254,42 @@ func getHostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	}
 
 	// execute list call
-	item, err := svc.GetHostedZone(params)
+	item, err := svc.GetHostedZone(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
-	return item.HostedZone, nil
+	return HostedZoneResult{
+		HostedZone: *item.HostedZone,
+		VPCs:       item.VPCs,
+	}, nil
 }
 
 func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getHostedZone")
-	hostedZone := h.Item.(*route53.HostedZone)
+	hostedZone := h.Item.(HostedZoneResult)
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.getHostedZoneTags", "client_error", err)
 		return nil, err
 	}
 
 	params := &route53.ListTagsForResourceInput{
-		ResourceId:   hostedZone.Id,
-		ResourceType: types.String("hostedzone"),
+		ResourceId:   &strings.Split(*hostedZone.Id, "/")[2],
+		ResourceType: "hostedzone",
 	}
 
 	// execute list call
-	resp, err := svc.ListTagsForResource(params)
+	resp, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "NoSuchHostedZone" {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_route53_zone.getHostedZoneTags", "api_error", err)
 		return nil, err
 	}
 
@@ -229,43 +297,45 @@ func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getHostedZoneQueryLoggingConfigs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getHostedZoneQueryLoggingConfigs")
-	hostedZone := h.Item.(*route53.HostedZone)
+	hostedZone := h.Item.(HostedZoneResult)
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.getHostedZoneQueryLoggingConfigs", "client_error", err)
 		return nil, err
 	}
 
 	params := &route53.ListQueryLoggingConfigsInput{
 		HostedZoneId: &strings.Split(*hostedZone.Id, "/")[2],
 	}
-	resp, err := svc.ListQueryLoggingConfigs(params)
+	resp, err := svc.ListQueryLoggingConfigs(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "NoSuchHostedZone" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "NoSuchHostedZone" {
 				return nil, nil
 			}
-			return nil, err
 		}
+		plugin.Logger(ctx).Error("aws_route53_zone.getHostedZoneQueryLoggingConfigs", "api_error", err)
+		return nil, err
 	}
 
 	return resp, nil
 }
 
 func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getHostedZoneDNSSEC")
-	hostedZone := h.Item.(*route53.HostedZone)
+	hostedZone := h.Item.(HostedZoneResult)
 
 	// Operation is unsupported for private hosted zones.
-	if *hostedZone.Config.PrivateZone {
+	if hostedZone.Config.PrivateZone {
 		return nil, nil
 	}
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.getHostedZoneDNSSEC", "client_error", err)
 		return nil, err
 	}
 
@@ -274,7 +344,7 @@ func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// execute list call
-	resp, err := svc.GetDNSSEC(params)
+	resp, err := svc.GetDNSSEC(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -283,10 +353,9 @@ func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRoute53HostedZoneTurbotAkas")
-	hostedZone := h.Item.(*route53.HostedZone)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	hostedZone := h.Item.(HostedZoneResult)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -299,27 +368,49 @@ func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h 
 	return akas, nil
 }
 
+func getRoute53HostedZoneLimit(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	hostedZone := h.Item.(HostedZoneResult)
+
+	svc, err := Route53Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.getRoute53HostedZoneLimit", "client_error", err)
+		return nil, err
+	}
+
+	params := &route53.GetHostedZoneLimitInput{
+		HostedZoneId: hostedZone.Id,
+		Type:         types.HostedZoneLimitTypeMaxRrsetsByZone,
+	}
+
+	resp, err := svc.GetHostedZoneLimit(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_zone.getRoute53HostedZoneLimit", "api_error", err)
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 //// TRANSFORM FUNCTIONS
 
 func route53ZoneID(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	hostedZone := d.HydrateItem.(*route53.HostedZone)
+	hostedZone := d.HydrateItem.(HostedZoneResult)
 	id := strings.Split(string(*hostedZone.Id), "/")[2]
 
 	return id, nil
 }
 
 func route53HostedZoneTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53HostedZoneTurbotTags")
-	tags := d.Value.([]*route53.Tag)
+	tags := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tags != nil {
-		turbotTagsMap = map[string]string{}
+	if len(tags) > 0 {
+		turbotTagsMap := map[string]string{}
 		for _, i := range tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
+		return turbotTagsMap, nil
 	}
 
-	return turbotTagsMap, nil
+	return nil, nil
 }

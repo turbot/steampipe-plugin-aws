@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	eksv1 "github.com/aws/aws-sdk-go/service/eks"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,12 +22,20 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 		Description: "AWS Elastic Kubernetes Service Cluster",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
-			Hydrate:    getEksCluster,
+			Hydrate:    getEKSCluster,
+			Tags:       map[string]string{"service": "eks", "action": "DescribeCluster"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listEksClusters,
+			Hydrate: listEKSClusters,
+			Tags:    map[string]string{"service": "eks", "action": "ListClusters"},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEKSCluster,
+				Tags: map[string]string{"service": "eks", "action": "DescribeCluster"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -35,85 +46,85 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the cluster.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "created_at",
 				Description: "The Unix epoch timestamp in seconds for when the cluster was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "version",
 				Description: "The Kubernetes server version for the cluster.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "endpoint",
 				Description: "The endpoint for your Kubernetes API server.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "encryption_config",
 				Description: "The encryption configuration for the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "resources_vpc_config",
 				Description: "The VPC configuration used by the cluster control plane.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "kubernetes_network_config",
 				Description: "The Kubernetes network configuration for the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "logging",
 				Description: "The logging configuration for the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "identity",
 				Description: "The identity provider information for the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "status",
 				Description: "The current status of the cluster.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "certificate_authority",
 				Description: "The certificate-authority-data for the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "platform_version",
 				Description: "The platform version of your Amazon EKS cluster.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "tags",
 				Description: "A list of tags assigned to the table",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 
 			// Standard columns for all tables
@@ -122,14 +133,14 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Arn").Transform(arnToAkas),
-				Hydrate:     getEksCluster,
+				Hydrate:     getEKSCluster,
 			},
 		}),
 	}
@@ -137,71 +148,91 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEksClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEKSClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_cluster.listEksClusters", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	input := &eks.ListClustersInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(100),
 	}
 
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxResults {
+			if limit < 20 {
+				input.MaxResults = aws.Int32(20)
 			} else {
-				input.MaxResults = limit
+				input.MaxResults = aws.Int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListClustersPages(
-		input,
-		func(page *eks.ListClustersOutput, _ bool) bool {
-			for _, cluster := range page.Clusters {
-				d.StreamListItem(ctx, &eks.Cluster{
-					Name: cluster,
-				})
+	paginator := eks.NewListClustersPaginator(svc, input, func(o *eks.ListClustersPaginatorOptions) {
+		o.Limit = *input.MaxResults
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_eks_cluster.listEksClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, cluster := range output.Clusters {
+			d.StreamListItem(ctx, types.Cluster{
+				Name: aws.String(cluster),
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return true
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
-func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEksCluster")
-
+func getEKSCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var clusterName string
 	if h.Item != nil {
-		clusterName = *h.Item.(*eks.Cluster).Name
+		clusterName = *h.Item.(types.Cluster).Name
 	} else {
-		clusterName = d.KeyColumnQuals["name"].GetStringValue()
+		clusterName = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_cluster.getEKSCluster", "get_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
 	}
 
 	params := &eks.DescribeClusterInput{
 		Name: &clusterName,
 	}
 
-	op, err := svc.DescribeCluster(params)
+	op, err := svc.DescribeCluster(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_cluster.getEKSCluster", "api_error", err)
 		return nil, err
 	}
 

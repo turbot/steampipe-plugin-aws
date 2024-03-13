@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,13 +23,17 @@ func tableAwsEc2TransitGatewayRoute(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2TransitGatewayRouteTable,
 			Hydrate:       listEc2TransitGatewayRoute,
+			Tags:          map[string]string{"service": "ec2", "action": "SearchTransitGatewayRoutes"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "prefix_list_id", Require: plugin.Optional},
 				{Name: "state", Require: plugin.Optional},
 				{Name: "type", Require: plugin.Optional},
 			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
+			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_route_table_id",
@@ -81,25 +88,38 @@ func tableAwsEc2TransitGatewayRoute(_ context.Context) *plugin.Table {
 }
 
 type RouteDetails struct {
-	Route                      *ec2.TransitGatewayRoute
+	Route                      types.TransitGatewayRoute
 	TransitGatewayRouteTableId string
 }
 
 //// LIST FUNCTION
 
 func listEc2TransitGatewayRoute(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	routeTableId := h.Item.(*ec2.TransitGatewayRouteTable).TransitGatewayRouteTableId
+	routeTableId := h.Item.(types.TransitGatewayRouteTable).TransitGatewayRouteTableId
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_route.listEc2TransitGatewayRoute", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.SearchTransitGatewayRoutesInput{
-		MaxResults:                 aws.Int64(1000),
+		MaxResults:                 aws.Int32(maxLimit),
 		TransitGatewayRouteTableId: routeTableId,
 	}
 
@@ -107,26 +127,16 @@ func listEc2TransitGatewayRoute(ctx context.Context, d *plugin.QueryData, h *plu
 	blackholeState := "blackhole"
 	activeState := "active"
 	pendingState := "pending"
-	filterValue := []*string{&blackholeState, &pendingState, &activeState}
+	filterValue := []string{blackholeState, pendingState, activeState}
 
 	filters := buildEc2TransitGatewayRouteFilter(d.Quals)
-	filters = append(filters, &ec2.Filter{Name: &filterName, Values: filterValue})
+	filters = append(filters, types.Filter{Name: &filterName, Values: filterValue})
 
 	input.Filters = filters
 
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
 	// List call
 	// Filter parameter is required for making the api call otherwise it is throwing the error.
-	res, err := svc.SearchTransitGatewayRoutes(input)
+	res, err := svc.SearchTransitGatewayRoutes(ctx, input)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +148,7 @@ func listEc2TransitGatewayRoute(ctx context.Context, d *plugin.QueryData, h *plu
 		})
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -149,11 +159,10 @@ func listEc2TransitGatewayRoute(ctx context.Context, d *plugin.QueryData, h *plu
 //// TRANSFORM FUNCTIONS
 
 func getAwsEc2TransitGatewayRouteAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2TransitGatewayRouteAka")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	route := h.Item.(*RouteDetails)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -166,9 +175,10 @@ func getAwsEc2TransitGatewayRouteAka(ctx context.Context, d *plugin.QueryData, h
 }
 
 //// UTILITY FUNCTION
+
 // Build ec2 transit gateway route list call input filter
-func buildEc2TransitGatewayRouteFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEc2TransitGatewayRouteFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"prefix_list_id": "prefix-list-id",
@@ -178,18 +188,15 @@ func buildEc2TransitGatewayRouteFilter(quals plugin.KeyColumnQualMap) []*ec2.Fil
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ec2.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				v := value.([]*string)
-				filter.Values = v
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

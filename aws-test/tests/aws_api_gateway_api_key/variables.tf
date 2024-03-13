@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -60,10 +60,6 @@ output "resource_aka" {
 
 output "resource_id" {
   value = aws_api_gateway_api_key.named_test_resource.id
-}
-
-output "created_date" {
-  value = formatdate("YYYY-MM-DD hh:mm:ss", aws_api_gateway_api_key.named_test_resource.created_date)
 }
 
 output "resource_name" {

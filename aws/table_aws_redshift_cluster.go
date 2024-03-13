@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/redshift"
+	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +21,28 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_cluster",
 		Description: "AWS Redshift Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cluster_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFound"}),
-			Hydrate:           getRedshiftCluster,
+			KeyColumns: plugin.SingleColumn("cluster_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFound"}),
+			},
+			Hydrate: getRedshiftCluster,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftClusters,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusters"},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRedshiftLoggingDetails,
+				Tags: map[string]string{"service": "redshift", "action": "DescribeLoggingStatus"},
+			},
+			{
+				Func: getClusterScheduledActions,
+				Tags: map[string]string{"service": "redshift", "action": "DescribeScheduledActions"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_identifier",
@@ -98,6 +115,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "cluster_security_groups",
 				Description: "A list of cluster security group that are associated with the cluster. Each security group is represented by an element that contains ClusterSecurityGroup.Name and ClusterSecurityGroup.Status subelements. Cluster security groups are used when the cluster is not created in an Amazon Virtual Private Cloud (VPC). Clusters that are created in a VPC use VPC security groups, which are listed by the VpcSecurityGroups parameter.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ClusterSecurityGroups"),
 			},
 			{
 				Name:        "cluster_snapshot_copy_status",
@@ -134,6 +152,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "deferred_maintenance_windows",
 				Description: "Describes a group of DeferredMaintenanceWindow objects.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("DeferredMaintenanceWindows"),
 			},
 			{
 				Name:        "elastic_ip_status",
@@ -179,6 +198,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "iam_roles",
 				Description: "A list of AWS Identity and Access Management (IAM) roles that can be used by the cluster to access other AWS services.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("IamRoles"),
 			},
 			{
 				Name:        "kms_key_id",
@@ -259,6 +279,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "snapshot_schedule_state",
 				Description: "The current state of the cluster snapshot schedule.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SnapshotScheduleState"),
 			},
 			{
 				Name:        "vpc_id",
@@ -318,57 +339,69 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listUsagePlans")
-
-	// Create Session
-	svc, err := RedshiftService(ctx, d)
+	// Create client
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_cluster.listRedshiftClusters", "connection_error", err)
 		return nil, err
 	}
 
 	input := &redshift.DescribeClustersInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
 	// List call
-	err = svc.DescribeClustersPages(
-		input,
-		func(page *redshift.DescribeClustersOutput, isLast bool) bool {
-			for _, cluster := range page.Clusters {
-				d.StreamListItem(ctx, cluster)
+	paginator := redshift.NewDescribeClustersPaginator(svc, input, func(o *redshift.DescribeClustersPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_redshift_cluster.listRedshiftClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Clusters {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create service
-	svc, err := RedshiftService(ctx, d)
+	// Create client
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_cluster.getRedshiftCluster", "connection_error", err)
 		return nil, err
 	}
-	name := d.KeyColumnQuals["cluster_identifier"].GetStringValue()
+
+	name := d.EqualsQuals["cluster_identifier"].GetStringValue()
 
 	// Return nil, if no input provided
 	if name == "" {
@@ -380,8 +413,9 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		ClusterIdentifier: aws.String(name),
 	}
 
-	op, err := svc.DescribeClusters(params)
+	op, err := svc.DescribeClusters(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_cluster.getRedshiftCluster", "api_error", err)
 		return nil, err
 	}
 
@@ -392,11 +426,12 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 }
 
 func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	name := h.Item.(*redshift.Cluster).ClusterIdentifier
+	name := h.Item.(types.Cluster).ClusterIdentifier
 
-	// Create service
-	svc, err := RedshiftService(ctx, d)
+	// Create client
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_cluster.getRedshiftLoggingDetails", "connection_error", err)
 		return nil, err
 	}
 
@@ -404,8 +439,9 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 		ClusterIdentifier: name,
 	}
 
-	op, err := svc.DescribeLoggingStatus(params)
+	op, err := svc.DescribeLoggingStatus(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_cluster.getRedshiftLoggingDetails", "api_error", err)
 		return nil, err
 	}
 
@@ -413,46 +449,49 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getClusterScheduledActions")
-
-	// Create service
-	svc, err := RedshiftService(ctx, d)
+	// Create client
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_cluster.getClusterScheduledActions", "connection_error", err)
 		return nil, err
 	}
-	name := h.Item.(*redshift.Cluster).ClusterIdentifier
+	name := *h.Item.(types.Cluster).ClusterIdentifier
 
-	// List call
-	var scheduledActions []*redshift.ScheduledAction
-	err = svc.DescribeScheduledActionsPages(
-		&redshift.DescribeScheduledActionsInput{
-			Filters: []*redshift.ScheduledActionFilter{
-				{
-					Name:   aws.String("cluster-identifier"),
-					Values: []*string{name},
-				},
+	params := &redshift.DescribeScheduledActionsInput{
+		Filters: []types.ScheduledActionFilter{
+			{
+				Name:   "cluster-identifier",
+				Values: []string{name},
 			},
 		},
-		func(page *redshift.DescribeScheduledActionsOutput, isLast bool) bool {
-			scheduledActions = append(scheduledActions, page.ScheduledActions...)
-			return !isLast
-		},
-	)
-	if err != nil {
-		return nil, err
+	}
+
+	var scheduledActions []types.ScheduledAction
+	// List call
+	paginator := redshift.NewDescribeScheduledActionsPaginator(svc, params, func(o *redshift.DescribeScheduledActionsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_redshift_cluster.getClusterScheduledActions", "api_error", err)
+			return nil, err
+		}
+
+		scheduledActions = append(scheduledActions, output.ScheduledActions...)
 	}
 
 	return scheduledActions, nil
 }
 
 func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRedshiftClusterARN")
-	cluster := h.Item.(*redshift.Cluster)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	cluster := h.Item.(types.Cluster)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_cluster.getRedshiftClusterARN", "getCommonColumns_error", err)
 		return nil, err
 	}
 
@@ -465,9 +504,9 @@ func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 //// TRANSFORM FUNCTIONS
 
 func getRedshiftClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	cluster := d.HydrateItem.(*redshift.Cluster)
+	cluster := d.HydrateItem.(types.Cluster)
 
-	if cluster.Tags != nil {
+	if len(cluster.Tags) > 0 {
 		turbotTagsMap := map[string]string{}
 		for _, i := range cluster.Tags {
 			turbotTagsMap[*i.Key] = *i.Value

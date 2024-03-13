@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,13 +19,17 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 		Name:        "aws_availability_zone",
 		Description: "AWS Availability Zone",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
-			Hydrate:           getAwsAvailabilityZone,
+			KeyColumns: plugin.AllColumns([]string{"name", "region_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
+			},
+			Hydrate: getAwsAvailabilityZone,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeAvailabilityZones"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsRegions,
 			Hydrate:       listAwsAvailabilityZones,
+			Tags:          map[string]string{"service": "ec2", "action": "DescribeAvailabilityZones"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
@@ -104,43 +108,43 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := h.Item.(*ec2.Region)
-	plugin.Logger(ctx).Trace("getAwsAvailabilityZone", "region", *region.RegionName)
+	region := h.Item.(types.Region)
 
 	// If a region is not opted-in, we cannot list the availability zones
-	if types.SafeString(region.OptInStatus) == "not-opted-in" {
+	if *region.OptInStatus == "not-opted-in" {
 		return nil, nil
 	}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, *region.RegionName)
+	svc, err := EC2ClientForRegion(ctx, d, *region.RegionName)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_availability_zone.listAwsAvailabilityZones", "connection_error", err)
 		return nil, err
 	}
 
 	input := &ec2.DescribeAvailabilityZonesInput{
 		AllAvailabilityZones: aws.Bool(true),
-		Filters: []*ec2.Filter{
+		Filters: []types.Filter{
 			{
 				Name:   aws.String("region-name"),
-				Values: []*string{region.RegionName},
+				Values: []string{*region.RegionName},
 			},
 		},
 	}
 
 	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["zone_id"] != nil {
-		input.ZoneIds = []*string{aws.String(equalQuals["zone_id"].GetStringValue())}
+		input.ZoneIds = []string{equalQuals["zone_id"].GetStringValue()}
 	}
 	if equalQuals["name"] != nil {
-		input.ZoneNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+		input.ZoneNames = []string{equalQuals["name"].GetStringValue()}
 	}
 
 	// execute list call
-	resp, err := svc.DescribeAvailabilityZones(input)
+	resp, err := svc.DescribeAvailabilityZones(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Error("getAwsAvailabilityZone", "region", *region.RegionName, "DescribeAvailabilityZones error", err)
+		plugin.Logger(ctx).Error("aws_availability_zone.listAwsAvailabilityZones", "api_error", err)
 		return nil, err
 	}
 
@@ -148,7 +152,7 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 		d.StreamLeafListItem(ctx, zone)
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -159,23 +163,25 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 //// HYDRATE FUNCTIONS
 
 func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.KeyColumnQuals["name"].GetStringValue()
-	regionName := d.KeyColumnQuals["region_name"].GetStringValue()
+	name := d.EqualsQuals["name"].GetStringValue()
+	regionName := d.EqualsQuals["region_name"].GetStringValue()
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, regionName)
+	svc, err := EC2ClientForRegion(ctx, d, regionName)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_availability_zone.getAwsAvailabilityZone", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeAvailabilityZonesInput{
 		AllAvailabilityZones: aws.Bool(true),
-		ZoneNames:            []*string{&name},
+		ZoneNames:            []string{name},
 	}
 
-	// execute list call
-	op, err := svc.DescribeAvailabilityZones(params)
+	// execute get call
+	op, err := svc.DescribeAvailabilityZones(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_availability_zone.getAwsAvailabilityZone", "api_error", err)
 		return nil, err
 	}
 
@@ -187,11 +193,9 @@ func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func getAwsAvailabilityZoneAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAvailabilityZoneAkas")
-	zone := h.Item.(*ec2.AvailabilityZone)
+	zone := h.Item.(types.AvailabilityZone)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

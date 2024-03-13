@@ -18,8 +18,12 @@
 .idea
 
 # Ignore swap files
+*.swn
 *.swo
 *.swp
+
+# Ignore Desktop Services Store files
+.DS_Store
 
 # Parliament IAM permissions outputs
 scripts/generate_parliament_iam_permissions/__pycache__
@@ -30,4 +34,7 @@ scripts/generate_parliament_iam_permissions/generate_go_file.
 node_modules
 
 # Ignore file types
-.vscode/launch.json
+.vscode/
+
+# Ignore dist folders
+dist/

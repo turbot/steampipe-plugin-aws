@@ -3,13 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsRedshiftClusterMetricCpuUtilizationDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_redshift_cluster_metric_cpu_utilization_daily",
@@ -17,8 +18,9 @@ func tableAwsRedshiftClusterMetricCpuUtilizationDaily(_ context.Context) *plugin
 		List: &plugin.ListConfig{
 			ParentHydrate: listRedshiftClusters,
 			Hydrate:       listRedshiftClusterMetricCpuUtilizationDaily,
+			Tags:          map[string]string{"service": "cloudwatch", "action": "GetMetricStatistics"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: CloudWatchRegionsMatrix,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{
@@ -32,6 +34,6 @@ func tableAwsRedshiftClusterMetricCpuUtilizationDaily(_ context.Context) *plugin
 }
 
 func listRedshiftClusterMetricCpuUtilizationDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	cluster := h.Item.(*redshift.Cluster)
+	cluster := h.Item.(types.Cluster)
 	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/Redshift", "CPUUtilization", "ClusterIdentifier", *cluster.ClusterIdentifier)
 }

@@ -3,12 +3,16 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
+
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,19 +22,37 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_instance",
 		Description: "AWS RDS DB Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_instance_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBInstanceNotFound"}),
-			Hydrate:           getRDSDBInstance,
+			KeyColumns: plugin.SingleColumn("db_instance_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBInstanceNotFound"}),
+			},
+			Hydrate: getRDSDBInstance,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstances,
+			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "resource_id", Require: plugin.Optional},
 				{Name: "engine", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getRDSDBInstancePendingMaintenanceAction,
+				Tags: map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
+			},
+			{
+				Func: getRDSDBInstanceCertificate,
+				Tags: map[string]string{"service": "rds", "action": "DescribeCertificates"},
+			},
+			{
+				Func: getRDSDBInstanceProcessorFeatures,
+				Tags: map[string]string{"service": "rds", "action": "DescribeOrderableDBInstanceOptions"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_instance_identifier",
@@ -308,6 +330,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Default:     false,
 			},
 			{
+				Name:        "storage_throughput",
+				Description: "Specifies the storage throughput for the DB instance. This setting applies only to the gp3 storage type.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "storage_type",
 				Description: "Specifies the storage type associated with DB instance.",
 				Type:        proto.ColumnType_STRING,
@@ -334,6 +361,13 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "certificate",
+				Description: "The CA certificate associated with the DB instance.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRDSDBInstanceCertificate,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "db_parameter_groups",
 				Description: "A list of DB parameter groups applied to this DB instance.",
 				Type:        proto.ColumnType_JSON,
@@ -343,7 +377,6 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "db_security_groups",
 				Description: "A list of DB security group associated with the DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("DBSecurityGroups"),
 			},
 			{
 				Name:        "domain_memberships",
@@ -361,9 +394,18 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "pending_maintenance_actions",
+				Description: "A list that provides details about the pending maintenance actions for the resource.",
+				Hydrate:     getRDSDBInstancePendingMaintenanceAction,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "processor_features",
 				Description: "The number of CPU cores and the number of threads per core for the DB instance class of the DB instance.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRDSDBInstanceProcessorFeatures,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "read_replica_db_cluster_identifiers",
@@ -375,7 +417,6 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "read_replica_db_instance_identifiers",
 				Description: "A list of identifiers of the read replicas associated with this DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ReadReplicaDBInstanceIdentifiers"),
 			},
 			{
 				Name:        "status_infos",
@@ -426,28 +467,29 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBInstances")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.listRDSDBInstances", "connection_error", err)
 		return nil, err
 	}
 
-	input := &rds.DescribeDBInstancesInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
+	}
+
+	input := &rds.DescribeDBInstancesInput{
+		MaxRecords: aws.Int32(maxLimit),
 	}
 
 	filters := buildRdsDbInstanceFilter(d.Quals)
@@ -455,33 +497,46 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		input.Filters = filters
 	}
 
-	// List call
-	err = svc.DescribeDBInstancesPages(
-		input,
-		func(page *rds.DescribeDBInstancesOutput, isLast bool) bool {
-			for _, dbInstance := range page.DBInstances {
-				d.StreamListItem(ctx, dbInstance)
+	paginator := rds.NewDescribeDBInstancesPaginator(svc, input, func(o *rds.DescribeDBInstancesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Check if context has been cancelled or if the limit has been hit (if specified)
-				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_instance.listRDSDBInstances", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.DBInstances {
+			if isSuppportedRDSEngine(*items.Engine) {
+				d.StreamListItem(ctx, items)
 			}
-			return !isLast
-		},
-	)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	dbInstanceIdentifier := d.KeyColumnQuals["db_instance_identifier"].GetStringValue()
+	dbInstanceIdentifier := d.EqualsQuals["db_instance_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstance", "connection_error", err)
 		return nil, err
 	}
 
@@ -489,21 +544,137 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		DBInstanceIdentifier: aws.String(dbInstanceIdentifier),
 	}
 
-	op, err := svc.DescribeDBInstances(params)
+	op, err := svc.DescribeDBInstances(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstance", "api_error", err)
 		return nil, err
 	}
 
 	if op.DBInstances != nil && len(op.DBInstances) > 0 {
-		return op.DBInstances[0], nil
+		instance := op.DBInstances[0]
+		if isSuppportedRDSEngine(*instance.Engine) {
+			return instance, nil
+		}
 	}
 	return nil, nil
+}
+
+func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	dbInstanceIdentifier := *h.Item.(types.DBInstance).DBInstanceIdentifier
+
+	// Create service
+	svc, err := RDSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstancePendingMaintenanceAction", "connection_error", err)
+		return nil, err
+	}
+
+	filter := &types.Filter{
+		Name:   aws.String("db-instance-id"),
+		Values: []string{dbInstanceIdentifier},
+	}
+	params := &rds.DescribePendingMaintenanceActionsInput{
+		Filters: []types.Filter{*filter},
+	}
+
+	op, err := svc.DescribePendingMaintenanceActions(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstancePendingMaintenanceAction", "api_error", err)
+		return nil, err
+	}
+
+	if len(op.PendingMaintenanceActions) > 0 {
+		return op.PendingMaintenanceActions, nil
+	}
+	return nil, nil
+}
+
+func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	caCertificateIdentifier := *h.Item.(types.DBInstance).CACertificateIdentifier
+
+	// Create service
+	svc, err := RDSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceCertificate", "connection_error", err)
+		return nil, err
+	}
+
+	params := &rds.DescribeCertificatesInput{
+		CertificateIdentifier: aws.String(caCertificateIdentifier),
+	}
+
+	op, err := svc.DescribeCertificates(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceCertificate", "api_error", err)
+		return nil, err
+	}
+
+	if len(op.Certificates) > 0 {
+		return op.Certificates[0], nil
+	}
+	return nil, nil
+}
+
+// DescribeDBInstances API returns the non-default ProcessorFeature value.
+// For populating the default ProcessorFeature value we need to make DescribeOrderableDBInstanceOptions API call.
+func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var processFeatures []types.ProcessorFeature
+	dbInstance := h.Item.(types.DBInstance)
+
+	// Return the ProcessFeature details if the
+	if dbInstance.ProcessorFeatures != nil {
+		return dbInstance.ProcessorFeatures, nil
+	}
+
+	// Create service
+	svc, err := RDSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceProcessorFeatures", "connection_error", err)
+		return nil, err
+	}
+
+	// https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeOrderableDBInstanceOptions.html
+	// Return nil if unsupported engine type
+	if !helpers.StringSliceContains([]string{"aurora-mysql", "aurora-postgresql", "custom-oracle-ee", "db2-ae", "db2-se", "mariadb", "mysql", "oracle-ee", "oracle-ee-cdb", "oracle-se2", "oracle-se2-cdb", "postgres", "sqlserver-ee", "sqlserver-se", "sqlserver-ex", "sqlserver-web"}, *dbInstance.Engine) {
+		return nil, nil
+	}
+
+	params := &rds.DescribeOrderableDBInstanceOptionsInput{
+		Engine:                dbInstance.Engine,
+		DBInstanceClass:       dbInstance.DBInstanceClass,
+		AvailabilityZoneGroup: aws.String(d.EqualsQualString(matrixKeyRegion)),
+	}
+
+	op, err := svc.DescribeOrderableDBInstanceOptions(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceProcessorFeatures", "api_error", err)
+		return nil, err
+	}
+
+	for _, p := range op.OrderableDBInstanceOptions {
+		if *p.StorageType == *dbInstance.StorageType && *p.EngineVersion == *dbInstance.EngineVersion {
+			// Match the RDS insance Availability Zone
+			for _, a := range p.AvailabilityZones {
+				if *a.Name == *dbInstance.AvailabilityZone {
+					for _, f := range p.AvailableProcessorFeatures {
+						processFeature := &types.ProcessorFeature{
+							Name:  f.Name,
+							Value: f.DefaultValue,
+						}
+						processFeatures = append(processFeatures, *processFeature)
+					}
+				}
+			}
+		}
+	}
+
+	return processFeatures, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
 func getRDSDBInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbInstance := d.HydrateItem.(*rds.DBInstance)
+	dbInstance := d.HydrateItem.(types.DBInstance)
 
 	if dbInstance.TagList != nil {
 		turbotTagsMap := map[string]string{}
@@ -518,8 +689,8 @@ func getRDSDBInstanceTurbotTags(_ context.Context, d *transform.TransformData) (
 //// UTILITY FUNCTIONS
 
 // build rds db instance list call input filter
-func buildRdsDbInstanceFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
-	filters := make([]*rds.Filter, 0)
+func buildRdsDbInstanceFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 	filterQuals := map[string]string{
 		"db_cluster_identifier": "db-cluster-id",
 		"resource_id":           "dbi-resource-id",
@@ -528,18 +699,15 @@ func buildRdsDbInstanceFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := rds.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				v := value.([]*string)
-				filter.Values = v
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

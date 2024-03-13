@@ -2,13 +2,13 @@
   {
     "artifacts": {
       "ArtifactIdentifier": null,
-      "BucketOwnerAccess": null,
+      "BucketOwnerAccess": "",
       "EncryptionDisabled": null,
       "Location": null,
       "Name": null,
-      "NamespaceType": null,
+      "NamespaceType": "",
       "OverrideArtifactName": false,
-      "Packaging": null,
+      "Packaging": "",
       "Path": null,
       "Type": "NO_ARTIFACTS"
     },

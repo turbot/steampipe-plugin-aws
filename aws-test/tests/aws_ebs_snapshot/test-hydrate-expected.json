@@ -5,7 +5,7 @@
     ],
     "create_volume_permissions": [
       {
-        "Group": null,
+        "Group": "",
         "UserId": "388460667113"
       }
     ],

@@ -4,11 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
@@ -16,14 +20,28 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_endpoint_service",
 		Description: "AWS VPC Endpoint Service",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("service_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidServiceName"}),
-			Hydrate:           getVpcEndpointService,
+			KeyColumns: plugin.SingleColumn("service_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidServiceName"}),
+			},
+			Hydrate: getVpcEndpointService,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcEndpointServices"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpointServices,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeVpcEndpointServices"},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listVpcEndpointServicePermissions,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeVpcEndpointServicePermissions"},
+			},
+			{
+				Func: getVpcEndpointConnections,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeVpcEndpointConnections"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",
@@ -66,8 +84,8 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "service_type",
-				Description: "The type of service.",
+				Name:        "availability_zones",
+				Description: "The Availability Zones in which the service is available.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -76,9 +94,22 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "availability_zones",
-				Description: "The Availability Zones in which the service is available.",
+				Name:        "service_type",
+				Description: "The type of service.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "vpc_endpoint_connections",
+				Description: "Information about one or more VPC endpoint connections.",
+				Hydrate:     getVpcEndpointConnections,
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "vpc_endpoint_service_permissions",
+				Description: "Information about one or more allowed principals.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listVpcEndpointServicePermissions,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags_src",
@@ -112,37 +143,41 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcEndpointServices", "AWS_REGION", region)
-
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_endpoint_service.listVpcEndpointServices", "connection_error", err)
 		return nil, err
 	}
 
-	pagesLeft := true
-	params := &ec2.DescribeVpcEndpointServicesInput{
-		MaxResults: aws.Int64(1000),
-	}
+	// Limiting the results
+	maxLimit := int32(1000)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			if *limit < 1 {
-				params.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = int32(5)
 			} else {
-				params.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
+	input := &ec2.DescribeVpcEndpointServicesInput{
+		MaxResults: &maxLimit,
+	}
+
+	// API doesn't support aws-sdk-go-v2 paginator as of date
+	pagesLeft := true
 	for pagesLeft {
-		result, err := svc.DescribeVpcEndpointServices(params)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		result, err := svc.DescribeVpcEndpointServices(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("listVpcEndpointServices", "DescribeVpcEndpointServices_error", err)
+			plugin.Logger(ctx).Error("aws_vpc_endpoint_service.listVpcEndpointServices", "api_error", err)
 			return nil, err
 		}
 
@@ -150,44 +185,42 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 			d.StreamListItem(ctx, endpointService)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
 
 		if result.NextToken != nil {
-			params.NextToken = result.NextToken
+			input.NextToken = result.NextToken
 		} else {
 			pagesLeft = false
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcEndpointService")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceName := d.KeyColumnQuals["service_name"].GetStringValue()
+	serviceName := d.EqualsQuals["service_name"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_endpoint_service.getVpcEndpointService", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeVpcEndpointServicesInput{
-		ServiceNames: []*string{aws.String(serviceName)},
+		ServiceNames: []string{serviceName},
 	}
 
 	// Get call
-	op, err := svc.DescribeVpcEndpointServices(params)
+	op, err := svc.DescribeVpcEndpointServices(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcEndpointService__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_endpoint_service.getVpcEndpointService", "api_error", err)
 		return nil, err
 	}
 
@@ -197,13 +230,90 @@ func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	return nil, nil
 }
 
-func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcEndpointServiceAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	endpointService := h.Item.(*ec2.ServiceDetail)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+func listVpcEndpointServicePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	serviceId := h.Item.(types.ServiceDetail).ServiceId
+
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_endpoint_service.listVpcEndpointServicePermissions", "connection_error", err)
+		return nil, err
+	}
+
+	// Build the input
+	input := &ec2.DescribeVpcEndpointServicePermissionsInput{
+		ServiceId:  serviceId,
+		MaxResults: aws.Int32(1000),
+	}
+
+	paginator := ec2.NewDescribeVpcEndpointServicePermissionsPaginator(svc, input, func(o *ec2.DescribeVpcEndpointServicePermissionsPaginatorOptions) {
+		o.Limit = 1000
+		o.StopOnDuplicateToken = true
+	})
+
+	var allowedPrincipals []types.AllowedPrincipal
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			if err != nil {
+				if strings.Contains(err.Error(), "NotFound") {
+					return nil, nil
+				}
+				plugin.Logger(ctx).Error("aws_vpc_endpoint_service.listVpcEndpointServicePermissions", "api_error", err)
+				return nil, err
+			}
+
+			allowedPrincipals = append(allowedPrincipals, output.AllowedPrincipals...)
+		}
+	}
+	return allowedPrincipals, nil
+}
+
+func getVpcEndpointConnections(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	endpointService := h.Item.(types.ServiceDetail)
+
+	// get service
+	svc, err := EC2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_endpoint_service.getVpcEndpointConnections", "connection_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &ec2.DescribeVpcEndpointConnectionsInput{
+		Filters: []types.Filter{
+			{
+				Name:   aws.String("service-id"),
+				Values: []string{*endpointService.ServiceId},
+			},
+		},
+	}
+
+	// Get call
+	op, err := svc.DescribeVpcEndpointConnections(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_endpoint_service.getVpcEndpointConnections", "api_error", err)
+		return nil, err
+	}
+
+	if op.VpcEndpointConnections != nil && len(op.VpcEndpointConnections) > 0 {
+		return op, nil
+	}
+
+	return nil, nil
+}
+
+func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	region := d.EqualsQualString(matrixKeyRegion)
+	endpointService := h.Item.(types.ServiceDetail)
+
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_endpoint_service.getVpcEndpointServiceAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -218,6 +328,15 @@ func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plug
 //// TRANSFORM FUNCTIONS
 
 func getVpcEndpointServiceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	endpointService := d.HydrateItem.(*ec2.ServiceDetail)
-	return ec2TagsToMap(endpointService.Tags)
+	endpointService := d.HydrateItem.(types.ServiceDetail)
+	if len(endpointService.Tags) > 0 {
+		return nil, nil
+	}
+
+	turbotTagsMap := map[string]string{}
+	for _, i := range endpointService.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return turbotTagsMap, nil
 }

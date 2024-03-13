@@ -2,14 +2,21 @@ package aws
 
 import (
 	"context"
+	"errors"
+	"regexp"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/backup/types"
+	"github.com/aws/smithy-go"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	backupv1 "github.com/aws/aws-sdk-go/service/backup"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,18 +26,22 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_recovery_point",
 		Description: "AWS Backup Recovery Point",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"backup_vault_name", "recovery_point_arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "AccessDeniedException"}),
-			Hydrate:           getAwsBackupRecoveryPoint,
+			KeyColumns: plugin.AllColumns([]string{"backup_vault_name", "recovery_point_arn"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
+			},
+			Hydrate: getAwsBackupRecoveryPoint,
+			Tags:    map[string]string{"service": "backup", "action": "DescribeRecoveryPoint"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsBackupVaults,
 			Hydrate:       listAwsBackupRecoveryPoints,
+			Tags:          map[string]string{"service": "backup", "action": "ListRecoveryPointsByBackupVault"},
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "recovery_point_arn",
-					Require: plugin.Optional,
-				},
+				// {
+				// 	Name:    "recovery_point_arn",
+				// 	Require: plugin.Optional,
+				// },
 				{
 					Name:    "resource_type",
 					Require: plugin.Optional,
@@ -41,7 +52,13 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsBackupRecoveryPoint,
+				Tags: map[string]string{"service": "backup", "action": "DescribeRecoveryPoint"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "backup_vault_name",
@@ -142,10 +159,16 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 
 			// Steampipe standard columns
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsBackupRecoveryPointTags,
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceArn").Transform(arnToAkas),
+				Transform:   transform.FromField("ResourceArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -154,79 +177,117 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsBackupRecoveryPoints")
-	vault := h.Item.(*backup.VaultListMember)
+	vault := h.Item.(types.BackupVaultListMember)
 
 	// Create session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_recovery_point.listAwsBackupRecoveryPoints", "connection_error", err)
 		return nil, err
 	}
-
-	input := &backup.ListRecoveryPointsByBackupVaultInput{
-		MaxResults: aws.Int64(1000),
-	}
-	input.BackupVaultName = vault.BackupVaultName
-
-	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["recovery_point_arn"] != nil {
-		input.ByResourceArn = types.String(equalQuals["recovery_point_arn"].GetStringValue())
-	}
-	if equalQuals["resource_type"] != nil {
-		input.ByResourceType = types.String(equalQuals["resource_type"].GetStringValue())
-	}
-	if equalQuals["completion_date"] != nil {
-		input.ByCreatedAfter = types.Time(equalQuals["completion_date"].GetTimestampValue().AsTime())
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.ListRecoveryPointsByBackupVaultPages(
-		input,
-		func(page *backup.ListRecoveryPointsByBackupVaultOutput, lastPage bool) bool {
-			for _, point := range page.RecoveryPoints {
-				d.StreamListItem(ctx, point)
+	input := &backup.ListRecoveryPointsByBackupVaultInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+	input.BackupVaultName = vault.BackupVaultName
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// Additonal Filter
+	equalQuals := d.EqualsQuals
+	// The ListRecoveryPointsByBackupVault returns results with ARNs like arn:aws:ec2:us-east-1::snapshot/snap-03ba1ca215342e331, but when trying
+	// to pass this value in, the API throws "Error: InvalidParameterValueException: Unsupported resource type: arn:aws:ec2:us-east-1::snapshot/snap-03ba1ca215342e331"
+	// Raised https://github.com/aws/aws-sdk-go-v2/issues/1904 to better understand what to pass in
+	// if equalQuals["recovery_point_arn"] != nil {
+	// 	input.ByResourceArn = aws.String(equalQuals["recovery_point_arn"].GetStringValue())
+	// }
+	if equalQuals["resource_type"] != nil {
+		input.ByResourceType = aws.String(equalQuals["resource_type"].GetStringValue())
+	}
+	if equalQuals["completion_date"] != nil {
+		input.ByCreatedAfter = aws.Time(equalQuals["completion_date"].GetTimestampValue().AsTime())
+	}
+
+	paginator := backup.NewListRecoveryPointsByBackupVaultPaginator(svc, input, func(o *backup.ListRecoveryPointsByBackupVaultPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			if strings.Contains(err.Error(), "not supported resource type") {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+			plugin.Logger(ctx).Error("aws_backup_recovery_point.listAwsBackupRecoveryPoints", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.RecoveryPoints {
+			d.StreamListItem(ctx, item)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTION
 
 func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsBackupRecoveryPoint")
-
-	// Create session
-	svc, err := BackupService(ctx, d)
+	// Create client
+	svc, err := BackupClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_recovery_point.getAwsBackupRecoveryPoint", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var backupVaultName, recoveryPointArn string
 	if h.Item != nil {
-		backupVaultName = *h.Item.(*backup.RecoveryPointByResource).BackupVaultName
-		recoveryPointArn = *h.Item.(*backup.RecoveryPointByResource).RecoveryPointArn
+		backupVaultName = *h.Item.(types.RecoveryPointByBackupVault).BackupVaultName
+		recoveryPointArn = *h.Item.(types.RecoveryPointByBackupVault).RecoveryPointArn
 	} else {
-		backupVaultName = d.KeyColumnQuals["backup_vault_name"].GetStringValue()
-		recoveryPointArn = d.KeyColumnQuals["recovery_point_arn"].GetStringValue()
+		backupVaultName = d.EqualsQuals["backup_vault_name"].GetStringValue()
+		recoveryPointArn = d.EqualsQuals["recovery_point_arn"].GetStringValue()
+	}
+
+	if recoveryPointArn == "" || backupVaultName == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(recoveryPointArn) {
+		arnData, _ := arn.Parse(recoveryPointArn)
+		// Avoid cross-region queriying
+		if arnData.Region != d.EqualsQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	params := &backup.DescribeRecoveryPointInput{
@@ -234,11 +295,70 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 		RecoveryPointArn: aws.String(recoveryPointArn),
 	}
 
-	detail, err := svc.DescribeRecoveryPoint(params)
+	detail, err := svc.DescribeRecoveryPoint(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getAwsBackupRecoveryPoint", "DescribeRecoveryPoint error", err)
+		plugin.Logger(ctx).Error("aws_backup_recovery_point.getAwsBackupRecoveryPoint", "api_error", err)
 		return nil, err
 	}
 
 	return detail, nil
+}
+
+func getAwsBackupRecoveryPointTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	arn := recoveryPointArn(h.Item)
+
+	// Define the regex pattern for the recovery point ARN
+	pattern := `arn:aws:backup:[a-z0-9\-]+:[0-9]{12}:recovery-point:.*`
+
+	// Create a regular expression object
+	re := regexp.MustCompile(pattern)
+
+	// Only return the tags associated with the resovery point
+	if !re.MatchString(arn) {
+		return nil, nil
+	}
+
+	// Create Session
+	svc, err := BackupClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_recovery_point.getAwsBackupRecoveryPointTags", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	params := &backup.ListTagsInput{
+		ResourceArn: aws.String(arn),
+	}
+
+	op, err := svc.ListTags(ctx, params)
+	if err != nil {
+
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return &backup.GetBackupVaultNotificationsOutput{}, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_backup_recovery_point.getAwsBackupRecoveryPointTags", "api_error", err)
+		return nil, err
+	}
+
+	if op.Tags == nil {
+		return nil, nil
+	}
+
+	return op, nil
+}
+
+func recoveryPointArn(item interface{}) string {
+	switch item := item.(type) {
+	case types.RecoveryPointByBackupVault:
+		return *item.RecoveryPointArn
+	case *backup.DescribeRecoveryPointOutput:
+		return *item.RecoveryPointArn
+	}
+	return ""
 }

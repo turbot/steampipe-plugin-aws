@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/redshift"
+	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +21,16 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_snapshot",
 		Description: "AWS Redshift Snapshot",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("snapshot_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterSnapshotNotFound"}),
-			Hydrate:           getAwsRedshiftSnapshot,
+			KeyColumns: plugin.SingleColumn("snapshot_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterSnapshotNotFound"}),
+			},
+			Hydrate: getRedshiftSnapshot,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSnapshots"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsRedshiftSnapshots,
+			Hydrate: listRedshiftSnapshots,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSnapshots"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cluster_identifier", Require: plugin.Optional},
 				{Name: "owner_account", Require: plugin.Optional},
@@ -31,7 +38,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				{Name: "snapshot_create_time", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_identifier",
@@ -161,7 +168,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 			{
 				Name:        "snapshot_create_time",
 				Description: "The time (in UTC format) when Amazon Redshift began the snapshot.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "snapshot_retention_start_time",
@@ -222,39 +229,38 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRedshiftSnapshotAkas,
+				Hydrate:     getRedshiftSnapshotAkas,
 				Transform:   transform.FromValue(),
 			},
 		}),
 	}
 }
 
-func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsRedshiftSnapshots")
-
+func listRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_snapshot.listRedshiftSnapshots", "connection_error", err)
 		return nil, err
 	}
 
 	input := &redshift.DescribeClusterSnapshotsInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["cluster_identifier"] != nil {
 		if equalQuals["cluster_identifier"].GetStringValue() != "" {
 			input.ClusterIdentifier = aws.String(equalQuals["cluster_identifier"].GetStringValue())
@@ -275,36 +281,53 @@ func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// List call
-	err = svc.DescribeClusterSnapshotsPages(
-		input,
-		func(page *redshift.DescribeClusterSnapshotsOutput, isLast bool) bool {
-			for _, snapshot := range page.Snapshots {
-				d.StreamListItem(ctx, snapshot)
+	paginator := redshift.NewDescribeClusterSnapshotsPaginator(svc, input, func(o *redshift.DescribeClusterSnapshotsPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_redshift_snapshot.listRedshiftSnapshots", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Snapshots {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*redshift.Snapshot).SnapshotIdentifier
+		name = *h.Item.(types.Snapshot).SnapshotIdentifier
 	} else {
-		name = d.KeyColumnQuals["snapshot_identifier"].GetStringValue()
+		name = d.EqualsQuals["snapshot_identifier"].GetStringValue()
+	}
+
+	// Return nil, if no input provided
+	if name == "" {
+		return nil, nil
 	}
 
 	// Create service
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_snapshot.getRedshiftSnapshot", "connection_error", err)
 		return nil, err
 	}
 
@@ -312,25 +335,26 @@ func getAwsRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.
 		SnapshotIdentifier: aws.String(name),
 	}
 
-	op, err := svc.DescribeClusterSnapshots(params)
+	op, err := svc.DescribeClusterSnapshots(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_snapshot.getRedshiftSnapshot", "api_error", err)
 		return nil, err
 	}
 
-	if op != nil && len(op.Snapshots) > 0 {
+	if len(op.Snapshots) > 0 {
 		return op.Snapshots[0], nil
 	}
+
 	return nil, nil
 }
 
-func getAwsRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRedshiftSnapshotAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	snapshot := h.Item.(*redshift.Snapshot)
+func getRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
+	snapshot := h.Item.(types.Snapshot)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_snapshot.getRedshiftSnapshotAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 
@@ -346,15 +370,16 @@ func getAwsRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 //// TRANSFORM FUNCTIONS
 
 func redshiftSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	snapshot := d.HydrateItem.(*redshift.Snapshot)
+	snapshot := d.HydrateItem.(types.Snapshot)
 
 	// Get the resource tags
-	if snapshot.Tags != nil {
+	if len(snapshot.Tags) > 0 {
 		turbotTagsMap := map[string]string{}
 		for _, i := range snapshot.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
 	}
+
 	return nil, nil
 }

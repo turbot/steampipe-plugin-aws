@@ -2,13 +2,18 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+
+	sagemakerv1 "github.com/aws/aws-sdk-go/service/sagemaker"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,19 +23,29 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_app",
 		Description: "AWS Sagemaker App",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
-			Hydrate:           getSageMakerApp,
+			KeyColumns: plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
+			},
+			Hydrate: getSageMakerApp,
+			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeApp"},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsSageMakerDomains,
 			Hydrate:       listSageMakerApps,
+			Tags:          map[string]string{"service": "sagemaker", "action": "ListApps"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "user_profile_name", Require: plugin.Optional},
 				{Name: "domain_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSageMakerApp,
+				Tags: map[string]string{"service": "sagemaker", "action": "DescribeApp"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -116,17 +131,30 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	sageMakerDomain := h.Item.(*sagemaker.DomainDetails)
-	plugin.Logger(ctx).Trace("listSageMakerApps")
+	sageMakerDomain := h.Item.(types.DomainDetails)
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 
 	if equalQuals["domain_id"].GetStringValue() != "" && equalQuals["domain_id"].GetStringValue() != *sageMakerDomain.DomainId {
 		return nil, nil
 	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &sagemaker.ListAppsInput{
 		DomainIdEquals: sageMakerDomain.DomainId,
-		MaxResults:     aws.Int64(100),
+		MaxResults:     aws.Int32(maxLimit),
 	}
 	if equalQuals["user_profile_name"] != nil {
 		if equalQuals["user_profile_name"].GetStringValue() != "" {
@@ -135,38 +163,42 @@ func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_app.listSageMakerApps", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+	paginator := sagemaker.NewListAppsPaginator(svc, input, func(o *sagemaker.ListAppsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sagemaker_app.listSageMakerApps", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Apps {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListAppsPages(
-		input,
-		func(page *sagemaker.ListAppsOutput, isLast bool) bool {
-			for _, app := range page.Apps {
-				d.StreamListItem(ctx, app)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 	return nil, err
 }
 
@@ -179,7 +211,7 @@ func getSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if h.Item != nil {
 		params = sageMakerAppParams(h.Item)
 	} else {
-		equalQuals := d.KeyColumnQuals
+		equalQuals := d.EqualsQuals
 		appName := aws.String(equalQuals["name"].GetStringValue())
 		appType := aws.String(equalQuals["app_type"].GetStringValue())
 		userProfileName := aws.String(equalQuals["user_profile_name"].GetStringValue())
@@ -190,22 +222,27 @@ func getSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 		params = sagemaker.DescribeAppInput{
 			AppName:         appName,
-			AppType:         appType,
+			AppType:         types.AppType(*appType),
 			UserProfileName: userProfileName,
 			DomainId:        domainId,
 		}
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sagemaker_app.getSageMakerApp", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Get call
-	data, err := svc.DescribeApp(&params)
+	data, err := svc.DescribeApp(ctx, &params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getSageMakerApp", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_sagemaker_app.getSageMakerApp", "api_error", err)
 		return nil, err
 	}
 	return data, nil
@@ -213,20 +250,14 @@ func getSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 func sageMakerAppArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	switch item := h.Item.(type) {
-	case *sagemaker.AppDetails:
-		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-		c, err := getCommonColumnsCached(ctx, d, h)
+	case types.AppDetails:
+
+		c, err := getCommonColumns(ctx, d, h)
 		if err != nil {
 			return "", err
 		}
 		commonColumnData := c.(*awsCommonColumnData)
-		return "arn:" + commonColumnData.Partition +
-			":sagemaker:" + commonColumnData.Region +
-			":" + commonColumnData.AccountId +
-			":app/" + *item.DomainId +
-			"/" + *item.UserProfileName +
-			"/" + strings.ToLower(*item.AppType) +
-			"/" + *item.AppName, nil
+		return fmt.Sprintf("arn:%s:sagemaker:%s:%s:app/%s/%s/%s/%s", commonColumnData.Partition, commonColumnData.Region, commonColumnData.AccountId, *item.DomainId, *item.UserProfileName, strings.ToLower(string(item.AppType)), *item.AppName), nil
 	case *sagemaker.DescribeAppOutput:
 		return *item.AppArn, nil
 	}
@@ -235,7 +266,7 @@ func sageMakerAppArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 func sageMakerAppParams(item interface{}) sagemaker.DescribeAppInput {
 	switch item := item.(type) {
-	case *sagemaker.AppDetails:
+	case types.AppDetails:
 		return sagemaker.DescribeAppInput{
 			AppName:         item.AppName,
 			AppType:         item.AppType,

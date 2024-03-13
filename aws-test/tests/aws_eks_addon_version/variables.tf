@@ -163,3 +163,7 @@ output "region_id" {
 output "addon_version" {
   value = jsondecode(data.local_file.input.content).addons[0].addonVersions[0].addonVersion
 }
+
+output "addon_name" {
+  value = jsondecode(data.local_file.input.content).addons[0].addonName
+}

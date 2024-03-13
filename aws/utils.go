@@ -6,31 +6,19 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
+	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
-
-func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
-	var turbotTagsMap map[string]string
-	if tags == nil {
-		return nil, nil
-	}
-
-	turbotTagsMap = map[string]string{}
-	for _, i := range tags {
-		turbotTagsMap[*i.Key] = *i.Value
-	}
-
-	return &turbotTagsMap, nil
-}
 
 func arnToAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	arn := types.SafeString(d.Value)
@@ -73,7 +61,7 @@ func extractNameFromSqsQueueURL(queue string) (string, error) {
 }
 
 func handleNilString(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	value := types.SafeString(d.Value)
+	value := types.SafeString(fmt.Sprintf("%v", d.Value))
 	if value == "" {
 		return "false", nil
 	}
@@ -119,7 +107,7 @@ func base64DecodedData(_ context.Context, d *transform.TransformData) (interface
 // Transform function for sagemaker resources tags
 func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	tags := d.HydrateItem.([]*sagemaker.Tag)
+	tags := d.HydrateItem.([]sagemakerTypes.Tag)
 
 	if tags != nil {
 		turbotTagsMap := map[string]string{}
@@ -206,4 +194,54 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		}
 	}
 	return value
+}
+
+func isAWSARN(s string) bool {
+
+	// Define the AWS ARN pattern
+	arnPattern := `^arn:(aws|aws-cn|aws-us-gov):[a-z0-9_-]+:[a-z0-9_-]+:\d+:([a-zA-Z0-9/-]+)?$`
+	regex := regexp.MustCompile(arnPattern)
+
+	// Test if the string matches the ARN pattern
+	return regex.MatchString(s)
+}
+
+// The function ensures that the given engine is is not of type `docdb` or `neptune`
+// You can get the available engines list from - https://docs.aws.amazon.com/cli/latest/reference/rds/describe-db-engine-versions.html
+// Current supported RDS engine values as of 2023/08/07
+func isSuppportedRDSEngine(engine string) bool {
+	supportedEngines := []string{
+		"aurora",
+		"aurora-mysql",
+		"aurora-postgresql",
+		"custom-sqlserver-ee",
+		"custom-sqlserver-se",
+		"custom-sqlserver-web",
+		"mariadb",
+		"mysql",
+		"oracle-ee",
+		"oracle-ee-cdb",
+		"oracle-se2",
+		"oracle-se2-cdb",
+		"postgres",
+		"sqlserver-ee",
+		"sqlserver-ex",
+		"sqlserver-se",
+		"sqlserver-web",
+	}
+
+	return helpers.StringSliceContains(supportedEngines, engine)
+}
+
+// Helper function for integer based environment variables.
+func readEnvVarToInt(name string, defaultVal int) int {
+	val := defaultVal
+	envValue := os.Getenv(name)
+	if envValue != "" {
+		i, err := strconv.Atoi(envValue)
+		if err == nil {
+			val = i
+		}
+	}
+	return val
 }

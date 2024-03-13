@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,12 +23,16 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_reserved_instance",
 		Description: "AWS EC2 Reserved Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("reserved_instance_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			Hydrate:           getEc2ReservedInstance,
+			KeyColumns: plugin.SingleColumn("reserved_instance_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
+			},
+			Hydrate: getEc2ReservedInstance,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeReservedInstances"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ReservedInstances,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeReservedInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "availability_zone", Require: plugin.Optional},
 				{Name: "duration", Require: plugin.Optional},
@@ -41,7 +48,13 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 				{Name: "offering_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEc2ReservedInstanceModificationDetails,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeReservedInstancesModifications"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "reserved_instance_id",
@@ -175,12 +188,11 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEc2ReservedInstances", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_reserved_instance.listEc2ReservedInstances", "connection_error", err)
 		return nil, err
 	}
 
@@ -188,12 +200,12 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	filters := buildEc2ReservedInstanceFilter(d.Quals)
 
-	equalQuals := d.KeyColumnQuals
+	equalQuals := d.EqualsQuals
 	if equalQuals["offering_class"] != nil {
-		input.OfferingClass = aws.String(equalQuals["offering_class"].GetStringValue())
+		input.OfferingClass = types.OfferingClassType(equalQuals["offering_class"].GetStringValue())
 	}
 	if equalQuals["offering_type"] != nil {
-		input.OfferingType = aws.String(equalQuals["offering_type"].GetStringValue())
+		input.OfferingType = types.OfferingTypeValues(equalQuals["offering_type"].GetStringValue())
 	}
 
 	if len(filters) != 0 {
@@ -201,8 +213,9 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// List call
-	result, err := svc.DescribeReservedInstances(input)
+	result, err := svc.DescribeReservedInstances(ctx, input)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_reserved_instance.listEc2ReservedInstances", "api_error", err)
 		return nil, err
 	}
 
@@ -210,7 +223,7 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 		d.StreamListItem(ctx, reservedInstance)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -220,23 +233,23 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getEc2ReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2ReservedInstance")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instanceID := d.KeyColumnQuals["reserved_instance_id"].GetStringValue()
+	instanceID := d.EqualsQuals["reserved_instance_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_reserved_instance.getEc2ReservedInstance", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeReservedInstancesInput{
-		ReservedInstancesIds: []*string{aws.String(instanceID)},
+		ReservedInstancesIds: []string{instanceID},
 	}
 
-	op, err := svc.DescribeReservedInstances(params)
+	op, err := svc.DescribeReservedInstances(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_reserved_instance.getEc2ReservedInstance", "api_error", err)
 		return nil, err
 	}
 
@@ -247,12 +260,10 @@ func getEc2ReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func getEc2ReservedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2ReservedInstanceARN")
-	instance := h.Item.(*ec2.ReservedInstances)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	instance := h.Item.(types.ReservedInstances)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -264,14 +275,13 @@ func getEc2ReservedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 func getEc2ReservedInstanceModificationDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2ReservedInstanceModificationDetails")
 
-	instance := h.Item.(*ec2.ReservedInstances)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	instance := h.Item.(types.ReservedInstances)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_reserved_instance.getEc2ReservedInstanceModificationDetails", "connection_error", err)
 		return nil, err
 	}
 
@@ -279,16 +289,17 @@ func getEc2ReservedInstanceModificationDetails(ctx context.Context, d *plugin.Qu
 	filterValue := *instance.ReservedInstancesId
 
 	param := &ec2.DescribeReservedInstancesModificationsInput{
-		Filters: []*ec2.Filter{
+		Filters: []types.Filter{
 			{
 				Name:   &filterName,
-				Values: []*string{&filterValue},
+				Values: []string{filterValue},
 			},
 		},
 	}
 
-	res, err := svc.DescribeReservedInstancesModifications(param)
+	res, err := svc.DescribeReservedInstancesModifications(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_reserved_instance.getEc2ReservedInstanceModificationDetails", "api_error", err)
 		return nil, err
 	}
 
@@ -302,14 +313,25 @@ func getEc2ReservedInstanceModificationDetails(ctx context.Context, d *plugin.Qu
 //// TRANSFORM FUNCTION
 
 func getEc2ReservedInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	instance := d.HydrateItem.(*ec2.ReservedInstances)
-	return ec2TagsToMap(instance.Tags)
+	instance := d.HydrateItem.(types.ReservedInstances)
+	var turbotTagsMap map[string]string
+
+	if instance.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range instance.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 reserved instance list call input filter
-func buildEc2ReservedInstanceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEc2ReservedInstanceFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"availability_zone":   "availability-zone",
@@ -329,26 +351,23 @@ func buildEc2ReservedInstanceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ec2.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			if strings.Contains(fmt.Sprint(columnsDouble), columnName) { //check Double columns
 				value := getQualsValueByColumn(quals, columnName, "double")
-				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+				filter.Values = []string{fmt.Sprint(value)}
 			} else if strings.Contains(fmt.Sprint(columnsInt), columnName) { //check Int columns
 				value := getQualsValueByColumn(quals, columnName, "int64")
-				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+				filter.Values = []string{fmt.Sprint(value)}
 			} else {
 				value := getQualsValueByColumn(quals, columnName, "string")
 				val, ok := value.(string)
 				if ok {
-					filter.Values = []*string{aws.String(val)}
-				} else {
-					v := value.([]*string)
-					filter.Values = v
+					filter.Values = []string{val}
 				}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters

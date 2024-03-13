@@ -3,11 +3,14 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsVpcEip(_ context.Context) *plugin.Table {
@@ -15,12 +18,16 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_eip",
 		Description: "AWS VPC Elastic IP",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("allocation_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAllocationID.NotFound", "InvalidAllocationID.Malformed"}),
-			Hydrate:           getVpcEip,
+			KeyColumns: plugin.SingleColumn("allocation_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAllocationID.NotFound", "InvalidAllocationID.Malformed"}),
+			},
+			Hydrate: getVpcEip,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeAddresses"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEips,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeAddresses"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "association_id", Require: plugin.Optional},
 				{Name: "domain", Require: plugin.Optional},
@@ -32,7 +39,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				{Name: "public_ip", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "allocation_id",
@@ -40,6 +47,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				// EIPs in EC2-Classic have no valid ARN due to no allocation ID
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the VPC EIP.",
 				Type:        proto.ColumnType_STRING,
@@ -58,7 +66,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "domain",
-				Description: "Indicates whether Elastic IP address is for use with instances in EC2-Classic(standard) or instances in a VPC (vpc).",
+				Description: "Indicates whether Elastic IP address is for use with instances in EC2-Classic (standard) or instances in a VPC (vpc).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -121,12 +129,14 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				Transform:   transform.From(getVpcEipTurbotTags),
 			},
 			{
+				// Fallback to public IP for EIPs in EC2-Classic
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AllocationId"),
+				Transform:   transform.FromField("AllocationId", "PublicIp"),
 			},
 			{
+				// EIPs in EC2-Classic have no valid ARN, so no valid AKAs either
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -140,12 +150,11 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcEips", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_eip.listVpcEips", "connection_error", err)
 		return nil, err
 	}
 
@@ -167,13 +176,19 @@ func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		input.Filters = filters
 	}
 
+	// apply rate limiting
+	d.WaitForListRateLimit(ctx)
+
 	// List call
-	resp, err := svc.DescribeAddresses(input)
+	resp, err := svc.DescribeAddresses(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_eip.listVpcEips", "api_error", err)
+	}
 	for _, address := range resp.Addresses {
 		d.StreamListItem(ctx, address)
 
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
@@ -184,26 +199,25 @@ func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 //// HYDRATE FUNCTIONS
 
 func getVpcEip(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcEip")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	allocationID := d.KeyColumnQuals["allocation_id"].GetStringValue()
+	allocationID := d.EqualsQuals["allocation_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_eip.getVpcEip", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeAddressesInput{
-		AllocationIds: []*string{aws.String(allocationID)},
+		AllocationIds: []string{allocationID},
 	}
 
 	// Get call
-	op, err := svc.DescribeAddresses(params)
+	op, err := svc.DescribeAddresses(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcEip__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_eip.getVpcEip", "api_error", err)
 		return nil, err
 	}
 
@@ -214,17 +228,23 @@ func getVpcEip(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 }
 
 func getVpcEipARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcEipARN")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	eip := h.Item.(*ec2.Address)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+
+	eip := h.Item.(types.Address)
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_eip.getVpcEipARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get resource arn
+	// EIPs in EC2-Classic do not have an allocation ID, therefore no valid ARN
+	if eip.AllocationId == nil {
+		return nil, nil
+	}
+
+	// Get resource ARN
 	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":eip/" + *eip.AllocationId
 
 	return arn, nil
@@ -233,6 +253,16 @@ func getVpcEipARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 //// TRANSFORM FUNCTIONS
 
 func getVpcEipTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	eip := d.HydrateItem.(*ec2.Address)
-	return ec2TagsToMap(eip.Tags)
+	tags := d.HydrateItem.(types.Address).Tags
+	var turbotTagsMap map[string]string
+	if tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }

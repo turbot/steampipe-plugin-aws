@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -91,6 +91,7 @@ resource "aws_db_subnet_group" "my_subnetgroup" {
 
 resource "aws_rds_cluster" "test_cluster" {
   cluster_identifier   = var.resource_name
+  engine               = "aurora-mysql"
   master_username      = "turbottest"
   master_password      = "test123Q"
   skip_final_snapshot  = true

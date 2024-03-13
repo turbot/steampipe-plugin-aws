@@ -3,13 +3,17 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/go-kit/helpers"
+	go_kit "github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 
+	docdbv1 "github.com/aws/aws-sdk-go/service/docdb"
+
+	"github.com/aws/aws-sdk-go-v2/service/docdb"
+	"github.com/aws/aws-sdk-go-v2/service/docdb/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/docdb"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,19 +23,32 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 		Name:        "aws_docdb_cluster_snapshot",
 		Description: "AWS Doc DB Cluster Snapshot",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_cluster_snapshot_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBSnapshotNotFound", "DBClusterSnapshotNotFoundFault"}),
-			Hydrate:           getDocDBClusterSnapshot,
+			KeyColumns: plugin.SingleColumn("db_cluster_snapshot_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBSnapshotNotFound", "DBClusterSnapshotNotFoundFault"}),
+			},
+			Hydrate: getDocDBClusterSnapshot,
+			Tags:    map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshots"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDocDBClusterSnapshots,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
-				{Name: "db_cluster_snapshot_identifier", Require: plugin.Optional},
-				{Name: "type", Require: plugin.Optional},
+				{Name: "snapshot_type", Require: plugin.Optional},
+			},
+			Tags:    map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshots"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDocDBClusterTags,
+				Tags: map[string]string{"service": "docdb-elastic", "action": "ListTagsForResource"},
+			},
+			{
+				Func: getAwsDocDBClusterSnapshotAttributes,
+				Tags: map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshotAttributes"},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(docdbv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_snapshot_identifier",
@@ -46,10 +63,9 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DBClusterSnapshotArn"),
 			},
 			{
-				Name:        "type",
+				Name:        "snapshot_type",
 				Description: "The type of the cluster snapshot.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("SnapshotType"),
 			},
 			{
 				Name:        "status",
@@ -63,10 +79,9 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DBClusterIdentifier"),
 			},
 			{
-				Name:        "create_time",
+				Name:        "snapshot_create_time",
 				Description: "The time when the snapshot was taken.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("SnapshotCreateTime"),
 			},
 			{
 				Name:        "cluster_create_time",
@@ -170,53 +185,68 @@ func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 	plugin.Logger(ctx).Trace("listDocDBClusterSnapshots")
 
 	// Create Session
-	svc, err := DocDBService(ctx, d)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	input := docdb.DescribeDBClusterSnapshotsInput{
-		MaxRecords: types.Int64(100),
-	}
-
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = types.Int64(100)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
-	filters := buildDocDbClusterSnapshotFilter(d.KeyColumnQuals)
+	input := docdb.DescribeDBClusterSnapshotsInput{
+		MaxRecords: go_kit.Int32(maxLimit),
+	}
+
 
 	// List call
-	err = svc.DescribeDBClusterSnapshotsPages(filters, func(page *docdb.DescribeDBClusterSnapshotsOutput, isLast bool) bool {
-		for _, dbClusterSnapshot := range page.DBClusterSnapshots {
-			d.StreamListItem(ctx, dbClusterSnapshot)
-			// Check if context has been cancelled or if the limit has been hit (if specified)
-			// if there is a limit, it will return the number of rows required to reach this limit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return false
-			}
+
+	paginator := docdb.NewDescribeDBClusterSnapshotsPaginator(svc, &input, func(o *docdb.DescribeDBClusterSnapshotsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_docdb_cluster.listDocDBClusters", "api_error", err)
+			return nil, err
 		}
 
-		return !isLast
-	},
-	)
+		for _, cluster := range output.DBClusterSnapshots {
+			// The DescribeDBClusters API returns non-DocDB clusters as well, but we only want DocDB clusters here.
+			if helpers.StringSliceContains([]string{"docdb"}, *cluster.Engine) {
+				d.StreamListItem(ctx, cluster)
+			}
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getDocDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	snapshotIdentifier := d.KeyColumnQuals["db_cluster_snapshot_identifier"].GetStringValue()
+	snapshotIdentifier := d.EqualsQualString("db_cluster_snapshot_identifier")
 
 	// Create service
-	svc, err := DocDBService(ctx, d)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +255,7 @@ func getDocDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 		DBClusterSnapshotIdentifier: aws.String(snapshotIdentifier),
 	}
 
-	op, err := svc.DescribeDBClusterSnapshots(params)
+	op, err := svc.DescribeDBClusterSnapshots(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -239,10 +269,10 @@ func getDocDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getAwsDocDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsDocDBClusterSnapshotAttributes")
 
-	dbClusterSnapshot := h.Item.(*docdb.DBClusterSnapshot)
+	dbClusterSnapshot := h.Item.(types.DBClusterSnapshot)
 
 	// Create service
-	svc, err := DocDBService(ctx, d)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +281,7 @@ func getAwsDocDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryDa
 		DBClusterSnapshotIdentifier: dbClusterSnapshot.DBClusterSnapshotIdentifier,
 	}
 
-	dbClusterSnapshotData, err := svc.DescribeDBClusterSnapshotAttributes(params)
+	dbClusterSnapshotData, err := svc.DescribeDBClusterSnapshotAttributes(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -260,12 +290,10 @@ func getAwsDocDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryDa
 }
 
 func getDocDBClusterSnapshotTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getDocDBClusterSnapshotTags")
-	cluster := h.Item.(*docdb.DBClusterSnapshot)
+	cluster := h.Item.(types.DBClusterSnapshot)
 
 	// Create Session
-	svc, err := DocDBService(ctx, d)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -276,9 +304,8 @@ func getDocDBClusterSnapshotTags(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Error("getDocDBClusterSnapshotTags", "ERROR", err)
 		return nil, err
 	}
 
@@ -288,8 +315,7 @@ func getDocDBClusterSnapshotTags(ctx context.Context, d *plugin.QueryData, h *pl
 //// TRANSFORM FUNCTIONS
 
 func getDocDBClusterSnapshotTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDocDBClusterSnapshotTurbotTags")
-	tagList := d.Value.([]*docdb.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
@@ -301,19 +327,4 @@ func getDocDBClusterSnapshotTurbotTags(ctx context.Context, d *transform.Transfo
 	}
 
 	return turbotTagsMap, nil
-}
-
-//// UTILITY FUNCTIONS
-
-// build snapshots list call input filter
-func buildDocDbClusterSnapshotFilter(quals plugin.KeyColumnEqualsQualMap) *docdb.DescribeDBClusterSnapshotsInput {
-	var filters *docdb.DescribeDBClusterSnapshotsInput
-
-	if quals["db_cluster_identifier"] != nil {
-		*filters.DBClusterIdentifier = quals["db_cluster_identifier"].GetStringValue()
-		*filters.DBClusterSnapshotIdentifier = quals["db_cluster_snapshot_identifier"].GetStringValue()
-		*filters.SnapshotType = quals["type"].GetStringValue()
-	}
-
-	return filters
 }

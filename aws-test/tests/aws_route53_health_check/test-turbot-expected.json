@@ -1,0 +1,11 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "tags": {
+      "Name": "{{ resourceName }}"
+    },
+    "title": "{{ output.health_check_id.value }}"
+  }
+]

@@ -4,11 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/redshift"
+	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
+
+	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
@@ -16,14 +20,18 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_event_subscription",
 		Description: "AWS Redshift Event Subscription",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cust_subscription_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"SubscriptionNotFound"}),
-			Hydrate:           getAwsRedshiftEventSubscription,
+			KeyColumns: plugin.SingleColumn("cust_subscription_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionNotFound"}),
+			},
+			Hydrate: getRedshiftEventSubscription,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeEventSubscriptions"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsRedshiftEventSubscriptions,
+			Hydrate: listRedshiftEventSubscriptions,
+			Tags:    map[string]string{"service": "redshift", "action": "DescribeEventSubscriptions"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cust_subscription_id",
@@ -99,7 +107,7 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRedshiftEventSubscriptionAkas,
+				Hydrate:     getRedshiftEventSubscriptionAkas,
 				Transform:   transform.FromValue(),
 			},
 		}),
@@ -108,63 +116,74 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsRedshiftEventSubscriptions", "AWS_REGION")
-
+func listRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_event_subscription.listRedshiftEventSubscriptions", "connection_error", err)
 		return nil, err
 	}
 
 	input := &redshift.DescribeEventSubscriptionsInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
 	// List call
-	err = svc.DescribeEventSubscriptionsPages(
-		input,
-		func(page *redshift.DescribeEventSubscriptionsOutput, isLast bool) bool {
-			for _, parameter := range page.EventSubscriptionsList {
-				d.StreamListItem(ctx, parameter)
+	paginator := redshift.NewDescribeEventSubscriptionsPaginator(svc, input, func(o *redshift.DescribeEventSubscriptionsPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_redshift_event_subscription.listRedshiftEventSubscriptions", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.EventSubscriptionsList {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsRedshiftEventSubscription")
-
+func getRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_event_subscription.getRedshiftEventSubscription", "connection_error", err)
 		return nil, err
 	}
 
-	name := d.KeyColumnQuals["cust_subscription_id"].GetStringValue()
+	name := d.EqualsQuals["cust_subscription_id"].GetStringValue()
+
+	// Return nil, if no input provided
+	if name == "" {
+		return nil, nil
+	}
 
 	// Build the params
 	params := &redshift.DescribeEventSubscriptionsInput{
@@ -172,24 +191,25 @@ func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Get call
-	data, err := svc.DescribeEventSubscriptions(params)
+	data, err := svc.DescribeEventSubscriptions(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_event_subscription.getRedshiftEventSubscription", "api_error", err)
 		return nil, err
 	}
 
-	if data.EventSubscriptionsList != nil && len(data.EventSubscriptionsList) > 0 {
+	if len(data.EventSubscriptionsList) > 0 {
 		return data.EventSubscriptionsList[0], nil
 	}
 	return nil, nil
 }
 
-func getAwsRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRedshiftEventSubscriptionAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	parameterData := h.Item.(*redshift.EventSubscription)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
+func getRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
+	parameterData := h.Item.(types.EventSubscription)
+
+	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_event_subscription.getRedshiftEventSubscriptionAkas", "getCommonColumns_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
@@ -207,22 +227,14 @@ func getAwsRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryDat
 //// TRANSFORM FUNCTION
 
 func redshiftEventSubListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("redshiftEventSubListToTurbotTags")
+	tagList := d.HydrateItem.(types.EventSubscription)
 
-	tagList := d.HydrateItem.(*redshift.EventSubscription)
-
-	if tagList.Tags == nil {
-		return nil, nil
-	}
-
-	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tagList != nil {
-		turbotTagsMap = map[string]string{}
+	if len(tagList.Tags) > 0 {
+		turbotTagsMap := map[string]string{}
 		for _, i := range tagList.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
+		return turbotTagsMap, nil
 	}
-
-	return turbotTagsMap, nil
+	return nil, nil
 }

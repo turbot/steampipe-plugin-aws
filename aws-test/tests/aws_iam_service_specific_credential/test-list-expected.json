@@ -1,0 +1,6 @@
+[
+  {
+    "service_specific_credential_id": "{{ output.service_specific_credential_id.value }}",
+    "service_user_name": "{{ output.service_user_name.value }}"
+  }
+]

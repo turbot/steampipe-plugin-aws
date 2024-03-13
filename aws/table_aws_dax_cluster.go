@@ -4,14 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dax"
+	"github.com/aws/aws-sdk-go-v2/service/dax/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/service/dax"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	daxv1 "github.com/aws/aws-sdk-go/service/dax"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,12 +22,19 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_dax_cluster",
 		Description: "AWS DAX Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cluster_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFoundFault", "ServiceLinkedRoleNotFoundFault"}),
-			Hydrate:           getDaxCluster,
+			KeyColumns: plugin.SingleColumn("cluster_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ClusterNotFoundFault", "ServiceLinkedRoleNotFoundFault"}),
+			},
+			Hydrate: getDaxCluster,
+			Tags:    map[string]string{"service": "dax", "action": "DescribeClusters"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDaxClusters,
+			Tags:    map[string]string{"service": "dax", "action": "DescribeClusters"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValueException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "cluster_name",
@@ -34,7 +42,13 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getDaxClusterTags,
+				Tags: map[string]string{"service": "dax", "action": "ListTags"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(daxv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_name",
@@ -158,52 +172,49 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	// AWS Dax Cluster is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://dax.ap-northeast-3.amazonaws.com/": dial tcp: lookup dax.ap-northeast-3.amazonaws.com: no such host
-	serviceId := endpoints.DaxServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
+	// Create Session
+	svc, err := DAXClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_dax_cluster.listDaxClusters", "connection error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
-	// Create Session
-	svc, err := DaxService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	pagesLeft := true
-	params := &dax.DescribeClustersInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	// Additonal Filter
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["cluster_name"] != nil {
-		params.ClusterNames = []*string{aws.String(equalQuals["cluster_name"].GetStringValue())}
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			if *limit < 20 {
-				params.MaxResults = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				params.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
+	pagesLeft := true
+	params := &dax.DescribeClustersInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	// Additonal Filter
+	equalQuals := d.EqualsQuals
+	if equalQuals["cluster_name"] != nil {
+		params.ClusterNames = []string{equalQuals["cluster_name"].GetStringValue()}
+	}
+
 	for pagesLeft {
-		result, err := svc.DescribeClusters(params)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		result, err := svc.DescribeClusters(ctx, params)
 		if err != nil {
-			if strings.Contains(err.Error(), "InvalidParameterValueException") {
-				return nil, nil
-			}
+			plugin.Logger(ctx).Error("aws_dax_cluster.listDaxClusters", "api_error", err)
 			return nil, err
 		}
 
@@ -211,7 +222,7 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			d.StreamListItem(ctx, cluster)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -230,31 +241,28 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	// AWS Dax Cluster is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://dax.ap-northeast-3.amazonaws.com/": dial tcp: lookup dax.ap-northeast-3.amazonaws.com: no such host
-	serviceId := endpoints.DaxServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
+	// Create Session
+	svc, err := DAXClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxCluster", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
-	// create service
-	svc, err := DaxService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	quals := d.KeyColumnQuals
+	quals := d.EqualsQuals
 	name := quals["cluster_name"].GetStringValue()
 
 	params := &dax.DescribeClustersInput{
-		ClusterNames: []*string{aws.String(name)},
+		ClusterNames: []string{name},
 	}
 
-	op, err := svc.DescribeClusters(params)
+	op, err := svc.DescribeClusters(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxCluster", "api_error", err)
 		return nil, err
 	}
 
@@ -265,25 +273,30 @@ func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 }
 
 func getDaxClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDaxClusterTags")
 
-	clusterArn := *h.Item.(*dax.Cluster).ClusterArn
+	clusterArn := *h.Item.(types.Cluster).ClusterArn
 
-	// Create service
-	svc, err := DaxService(ctx, d)
+	// Create Session
+	svc, err := DAXClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxClusterTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dax.ListTagsInput{
 		ResourceName: &clusterArn,
 	}
 
-	clusterdata, err := svc.ListTags(params)
+	clusterdata, err := svc.ListTags(ctx, params)
 	if err != nil {
 		if strings.Contains(err.Error(), "ClusterNotFoundFault") {
 			return nil, nil
 		}
+		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxClusterTags", "api_error", err)
 		return nil, err
 	}
 

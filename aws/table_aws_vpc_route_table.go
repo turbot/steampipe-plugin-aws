@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,18 +21,22 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_route_table",
 		Description: "AWS VPC Route table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("route_table_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
-			Hydrate:           getVpcRouteTable,
+			KeyColumns: plugin.SingleColumn("route_table_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
+			},
+			Hydrate: getVpcRouteTable,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeRouteTables"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcRouteTables,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeRouteTables"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "owner_id", Require: plugin.Optional},
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",
@@ -94,17 +102,29 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcRouteTables", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_route_table.listVpcRouteTables", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = int32(5)
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeRouteTablesInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -117,60 +137,55 @@ func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		input.Filters = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeRouteTablesPaginator(svc, input, func(o *ec2.DescribeRouteTablesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_route_table.listVpcRouteTables", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.RouteTables {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeRouteTablesPages(
-		input,
-		func(page *ec2.DescribeRouteTablesOutput, isLast bool) bool {
-			for _, routeTable := range page.RouteTables {
-				d.StreamListItem(ctx, routeTable)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcRouteTable")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	routeTableID := d.KeyColumnQuals["route_table_id"].GetStringValue()
+	routeTableID := d.EqualsQuals["route_table_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_route_table.getVpcRouteTable", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeRouteTablesInput{
-		RouteTableIds: []*string{aws.String(routeTableID)},
+		RouteTableIds: []string{routeTableID},
 	}
 
 	// Get call
-	op, err := svc.DescribeRouteTables(params)
+	op, err := svc.DescribeRouteTables(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcRouteTable__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_route_table.getVpcRouteTable", "api_error", err)
 		return nil, err
 	}
 
@@ -181,13 +196,12 @@ func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 }
 
 func getVpcRouteTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcRouteTableTurbotAkas")
-	routeTable := h.Item.(*ec2.RouteTable)
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	routeTable := h.Item.(types.RouteTable)
+	region := d.EqualsQualString(matrixKeyRegion)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_route_table.getVpcRouteTableAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -201,7 +215,7 @@ func getVpcRouteTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 //// TRANSFORM FUNCTIONS
 
 func getVpcRouteTableTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	routeTable := d.HydrateItem.(*ec2.RouteTable)
+	routeTable := d.HydrateItem.(types.RouteTable)
 	var turbotTagsMap map[string]string
 
 	// Get the resource tags

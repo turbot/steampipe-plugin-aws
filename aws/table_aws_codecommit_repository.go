@@ -3,10 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/codecommit"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/codecommit"
+	"github.com/aws/aws-sdk-go-v2/service/codecommit/types"
+
+	codecommitv1 "github.com/aws/aws-sdk-go/service/codecommit"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,10 +21,19 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 		Name:        "aws_codecommit_repository",
 		Description: "AWS CodeCommit Repository",
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter"}),
-			Hydrate:           listCodeCommitRepositories,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameter"}),
+			},
+			Hydrate: listCodeCommitRepositories,
+			Tags:    map[string]string{"service": "codecommit", "action": "ListRepositories"},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listCodeCommitRepositoryTags,
+				Tags: map[string]string{"service": "codecommit", "action": "ListTagsForResource"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(codecommitv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",
@@ -96,24 +110,42 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 
 func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := CodeCommitService(ctx, d)
+	svc, err := CodeCommitClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codecommit_repository.listCodeCommitRepositories", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
+	input := &codecommit.ListRepositoriesInput{}
 	// List all available repositories
 	var repositoryNames []*string
-	err = svc.ListRepositoriesPages(
-		&codecommit.ListRepositoriesInput{},
-		func(page *codecommit.ListRepositoriesOutput, isLast bool) bool {
-			for _, data := range page.Repositories {
-				repositoryNames = append(repositoryNames, data.RepositoryName)
-			}
-			return !isLast
-		},
-	)
-	if err != nil {
-		return nil, err
+
+	paginator := codecommit.NewListRepositoriesPaginator(svc, input, func(o *codecommit.ListRepositoriesPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_codecommit_repository.listCodeCommitRepositories", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Repositories {
+			repositoryNames = append(repositoryNames, items.RepositoryName)
+		}
+	}
+
+	if len(repositoryNames) <= 0 {
+		return nil, nil
 	}
 
 	passedRepositoryNames := 0
@@ -133,19 +165,20 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 
 		// Build params
 		params := &codecommit.BatchGetRepositoriesInput{
-			RepositoryNames: names,
+			RepositoryNames: aws.ToStringSlice(names),
 		}
 
 		// Get details for all available repositories
-		result, err := svc.BatchGetRepositories(params)
+		result, err := svc.BatchGetRepositories(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_codecommit_repository.BatchGetRepositories", "api_error", err)
 			return nil, err
 		}
 		for _, repository := range result.Repositories {
 			d.StreamListItem(ctx, repository)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
@@ -157,22 +190,26 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 //// HYDRATE FUNCTIONS
 
 func listCodeCommitRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listCodeCommitRepositoryTags")
-
 	// Create service
-	svc, err := CodeCommitService(ctx, d)
+	svc, err := CodeCommitClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codecommit_repository.listCodeCommitRepositoryTags", "connection_error", err)
 		return nil, err
 	}
-	repositoryARN := h.Item.(*codecommit.RepositoryMetadata).Arn
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+	repositoryARN := h.Item.(types.RepositoryMetadata).Arn
 
 	// Build the params
 	params := &codecommit.ListTagsForResourceInput{
 		ResourceArn: repositoryARN,
 	}
 
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codecommit_repository.listCodeCommitRepositoryTags", "api_error", err)
 		return nil, err
 	}
 

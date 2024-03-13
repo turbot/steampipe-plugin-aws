@@ -2,14 +2,15 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/smithy-go"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +22,13 @@ func tableAwsS3AccountSettings(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listS3Account,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAccountBucketPublicAccessBlock,
+				Tags: map[string]string{"service": "s3", "action": "GetAccountPublicAccessBlock"},
+			},
+		},
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "block_public_acls",
 				Description: "Specifies whether Amazon S3 should block public access control lists (ACLs) for this bucket and objects in this bucket",
@@ -70,9 +77,9 @@ func tableAwsS3AccountSettings(_ context.Context) *plugin.Table {
 
 func listS3Account(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_account_settings.listS3Account", "common_data_error", err)
 		return nil, err
 	}
 
@@ -84,12 +91,18 @@ func listS3Account(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 //// HYDRATE FUNCTIONS
 
 func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAccountBucketPublicAccessBlock")
 	s3Account := h.Item.(*awsCommonColumnData)
 
-	// Create Session
-	svc, err := S3ControlService(ctx, d, GetDefaultAwsRegion(d))
+	// Unlike most services, S3 buckets are a global list. They can be retrieved
+	// from any single region. It's best to use the client region of the user
+	// (e.g. closest to them).
+	clientRegion, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
+		return nil, err
+	}
+	svc, err := S3ControlClient(ctx, d, clientRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "get_client_error", err, "clientRegion", clientRegion)
 		return nil, err
 	}
 
@@ -97,23 +110,25 @@ func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData,
 		AccountId: &s3Account.AccountId,
 	}
 
-	defaultAccessBlock := &s3control.PublicAccessBlockConfiguration{
-		BlockPublicAcls:       aws.Bool(false),
-		BlockPublicPolicy:     aws.Bool(false),
-		IgnorePublicAcls:      aws.Bool(false),
-		RestrictPublicBuckets: aws.Bool(false),
+	defaultAccessBlock := &types.PublicAccessBlockConfiguration{
+		BlockPublicAcls:       false,
+		BlockPublicPolicy:     false,
+		IgnorePublicAcls:      false,
+		RestrictPublicBuckets: false,
 	}
 
-	accessBlock, err := svc.GetPublicAccessBlock(params)
+	accessBlock, err := svc.GetPublicAccessBlock(ctx, params)
 	if err != nil {
 		// If the GetPublicAccessBlock is called on an account ( that was created
 		// before Public Access Block setting was introduced ), sometime it
 		// fails with  NoSuchPublicAccessBlockConfiguration error
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "NoSuchPublicAccessBlockConfiguration" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "NoSuchPublicAccessBlockConfiguration" {
 				return defaultAccessBlock, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_s3_account_settings.getAccountBucketPublicAccessBlock", "api_error", err, "clientRegion", clientRegion)
 		return nil, err
 	}
 
@@ -123,7 +138,6 @@ func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData,
 //// Transform Functions
 
 func s3AccountDataToAkas(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("s3AccountDataToAkas")
 	accountInfo := d.HydrateItem.(*awsCommonColumnData)
 
 	akas := []string{"arn:" + accountInfo.Partition + ":s3::" + accountInfo.AccountId + ":account"}

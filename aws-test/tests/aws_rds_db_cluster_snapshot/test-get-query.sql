@@ -3,8 +3,6 @@ SELECT
   arn,
   TYPE,
   db_cluster_identifier,
-  engine,
-  engine_version,
   iam_database_authentication_enabled,
   license_model,
   master_user_name,

@@ -3,12 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+
+	apigatewayv1 "github.com/aws/aws-sdk-go/service/apigateway"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +21,18 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_usage_plan",
 		Description: "AWS API Gateway Usage Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getUsagePlan,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
+			},
+			Hydrate: getUsagePlan,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetUsagePlan"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listUsagePlans,
+			Tags:    map[string]string{"service": "apigateway", "action": "GetUsagePlans"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -90,42 +97,54 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	logger := plugin.Logger(ctx)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
-		logger.Trace("listUsagePlans", "connection error", err)
+		logger.Error("aws_api_gateway_usage_plan.listUsagePlans", "service_client_error", err)
 		return nil, err
 	}
 
-	input := &apigateway.GetUsagePlansInput{
-		Limit: aws.Int64(500),
-	}
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(500)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.Limit = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	err = svc.GetUsagePlansPages(
-		input,
-		func(page *apigateway.GetUsagePlansOutput, lastPage bool) bool {
-			for _, plan := range page.Items {
-				d.StreamListItem(ctx, plan)
+	input := &apigateway.GetUsagePlansInput{
+		Limit: aws.Int32(maxLimit),
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := apigateway.NewGetUsagePlansPaginator(svc, input, func(o *apigateway.GetUsagePlansPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listUsagePlans", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Items {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -133,22 +152,22 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 //// HYDRATE FUNCTIONS
 
 func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getUsagePlan")
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getUsagePlan", "service_cllient_error", err)
 		return nil, err
 	}
 
-	id := d.KeyColumnQuals["id"].GetStringValue()
+	id := d.EqualsQuals["id"].GetStringValue()
 	params := &apigateway.GetUsagePlanInput{
 		UsagePlanId: aws.String(id),
 	}
 
-	op, err := svc.GetUsagePlan(params)
+	op, err := svc.GetUsagePlan(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getUsagePlan__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gateway_usage_plan.getUsagePlan", "api_error", err)
 		return nil, err
 	}
 
@@ -156,18 +175,23 @@ func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 }
 
 func getUsagePlanAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getUsagePlanAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	usagePlan := h.Item.(*apigateway.UsagePlan)
+	region := d.EqualsQualString(matrixKeyRegion)
+	id := ""
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	switch h.Item.(type) {
+	case *apigateway.GetUsagePlanOutput:
+		id = *h.Item.(*apigateway.GetUsagePlanOutput).Id
+	case types.UsagePlan:
+		id = *h.Item.(types.UsagePlan).Id
+	}
+
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/usageplans/" + *usagePlan.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/usageplans/" + id}
 
 	return akas, nil
 }

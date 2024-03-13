@@ -63,9 +63,9 @@ resource "aws_elasticache_subnet_group" "my_subnet_group" {
 resource "aws_elasticache_replication_group" "named_test_resource" {
   replication_group_id          = var.resource_name
   automatic_failover_enabled    = true
-  replication_group_description = "test description"
+  description                   = "test description"
   node_type                     = "cache.t2.micro"
-  number_cache_clusters         = 2
+  num_cache_clusters            = 2
   parameter_group_name          = "default.redis5.0"
   engine_version                = "5.0.6"
   port                          = 6379

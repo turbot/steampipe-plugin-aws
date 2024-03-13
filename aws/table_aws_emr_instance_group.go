@@ -2,12 +2,18 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/emr"
+	"github.com/aws/aws-sdk-go-v2/service/emr/types"
 
-	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	emrv1 "github.com/aws/aws-sdk-go/service/emr"
+
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,8 +25,9 @@ func tableAwsEmrInstanceGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstanceGroups,
+			Tags:          map[string]string{"service": "elasticmapreduce", "action": "ListInstanceGroups"},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -154,7 +161,7 @@ func tableAwsEmrInstanceGroup(_ context.Context) *plugin.Table {
 }
 
 type instanceGroupDetails = struct {
-	emr.InstanceGroup
+	types.InstanceGroup
 	ClusterID string
 }
 
@@ -162,42 +169,62 @@ type instanceGroupDetails = struct {
 
 func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EmrService(ctx, d)
+	svc, err := EMRClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_emr_instance_group.listEmrInstanceGroups", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Get cluster details
-	clusterID := h.Item.(*emr.ClusterSummary).Id
+	clusterID := h.Item.(types.ClusterSummary).Id
+
+	input := &emr.ListInstanceGroupsInput{
+		ClusterId: clusterID,
+	}
+
+	paginator := emr.NewListInstanceGroupsPaginator(svc, input, func(o *emr.ListInstanceGroupsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.ListInstanceGroupsPages(
-		&emr.ListInstanceGroupsInput{
-			ClusterId: clusterID,
-		},
-		func(page *emr.ListInstanceGroupsOutput, isLast bool) bool {
-			for _, instanceGroup := range page.InstanceGroups {
-				d.StreamListItem(ctx, instanceGroupDetails{*instanceGroup, *clusterID})
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "InvalidRequestException" {
+					return nil, nil
 				}
 			}
-			return !isLast
-		},
-	)
+			plugin.Logger(ctx).Error("aws_emr_instance_group.listEmrInstanceGroups", err)
+			return nil, err
+		}
 
-	return nil, err
+		for _, items := range output.InstanceGroups {
+			d.StreamListItem(ctx, instanceGroupDetails{items, *clusterID})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 func getEmrInstanceGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEmrInstanceGroupARN")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.EqualsQualString(matrixKeyRegion)
 	data := h.Item.(instanceGroupDetails)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

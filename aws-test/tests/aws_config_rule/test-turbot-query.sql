@@ -1,3 +1,3 @@
 select title, arn, tags, akas 
-from aws.aws_config_rule
+from aws_config_rule
 where name = '{{ resourceName }}';

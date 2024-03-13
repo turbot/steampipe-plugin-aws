@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "ap-southeast-1"
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -72,9 +72,9 @@ EOF
 
 resource "aws_kinesis_firehose_delivery_stream" "named_test_resource" {
   name        = var.resource_name
-  destination = "s3"
+  destination = "extended_s3"
 
-  s3_configuration {
+  extended_s3_configuration {
     role_arn   = aws_iam_role.firehose_role.arn
     bucket_arn = aws_s3_bucket.firehose_bucket.arn
   }

@@ -1,0 +1,8 @@
+[
+  {
+    "cluster_name": "{{ resourceName }}",
+    "fargate_profile_arn": "{{ output.resource_aka.value }}",
+    "fargate_profile_name": "{{ resourceName }}",
+    "status": "{{ output.status.value }}"
+  }
+]

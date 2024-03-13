@@ -2,13 +2,17 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/auditmanager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	auditmanagerv1 "github.com/aws/aws-sdk-go/service/auditmanager"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +22,24 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_framework",
 		Description: "AWS Audit Manager Framework",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
-			Hydrate:           getAuditManagerFramework,
+			KeyColumns: plugin.AllColumns([]string{"id", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
+			},
+			Hydrate: getAuditManagerFramework,
+			Tags:    map[string]string{"service": "auditmanager", "action": "GetAssessmentFramework"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerFrameworks,
+			Tags:    map[string]string{"service": "auditmanager", "action": "ListAssessmentFrameworks"},
 		},
-		GetMatrixItem: BuildRegionList,
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAuditManagerFramework,
+				Tags: map[string]string{"service": "auditmanager", "action": "GetAssessmentFramework"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -133,79 +147,141 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "REGION", region)
-
-	svc, err := AuditManagerService(ctx, d, region)
+	svc, err := AuditManagerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_auditmanager_framework.listAuditManagerFrameworks", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	maxItems := int32(100)
+	params := &auditmanager.ListAssessmentFrameworksInput{
+		FrameworkType: types.FrameworkTypeStandard,
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
+	}
+
+	params.MaxResults = &maxItems
+	paginator := auditmanager.NewListAssessmentFrameworksPaginator(svc, params, func(o *auditmanager.ListAssessmentFrameworksPaginatorOptions) {
+		o.Limit = 32
+		o.StopOnDuplicateToken = true
+	})
 
 	// List standard audit manager frameworks
-	err = svc.ListAssessmentFrameworksPages(
-		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: aws.String("Standard")},
-		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
-			for _, framework := range page.FrameworkMetadataList {
-				d.StreamListItem(ctx, framework)
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+			// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+			if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+			plugin.Logger(ctx).Error("aws_auditmanager_framework.listAuditManagerFrameworks", "api_error", err)
+			return nil, err
+		}
 
-	if err != nil {
-		return nil, err
+		for _, framework := range output.FrameworkMetadataList {
+			d.StreamListItem(ctx, framework)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
-	// List custom audit manager frameworks
-	err = svc.ListAssessmentFrameworksPages(
-		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: aws.String("Custom")},
-		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
-			for _, framework := range page.FrameworkMetadataList {
-				d.StreamListItem(ctx, framework)
-			}
-			return !lastPage
-		},
-	)
+	params.FrameworkType = types.FrameworkTypeCustom
+	paginatorCustom := auditmanager.NewListAssessmentFrameworksPaginator(svc, params, func(o *auditmanager.ListAssessmentFrameworksPaginatorOptions) {
+		o.Limit = 32
+		o.StopOnDuplicateToken = true
+	})
 
-	return nil, err
+	// List standard audit manager frameworks
+	for paginatorCustom.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginatorCustom.NextPage(ctx)
+		if err != nil {
+			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+			// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+			if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+				return nil, nil
+			}
+			plugin.Logger(ctx).Error("aws_auditmanager_framework.listAuditManagerFrameworks", "api_error", err)
+			return nil, err
+		}
+
+		for _, framework := range output.FrameworkMetadataList {
+			d.StreamListItem(ctx, framework)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Debug("getAuditManagerFramework", "REGION", region)
-
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
+	// Get client
+	svc, err := AuditManagerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_auditmanager_framework.getAuditManagerFramework", "client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var id string
 	if h.Item != nil {
-		id = *h.Item.(*auditmanager.AssessmentFrameworkMetadata).Id
+		id = *h.Item.(types.AssessmentFrameworkMetadata).Id
 	} else {
-		location := d.KeyColumnQuals["region"].GetStringValue()
+		region := d.EqualsQualString(matrixKeyRegion)
+		location := d.EqualsQuals["region"].GetStringValue()
 		if location != region {
 			return nil, nil
 		}
-		id = d.KeyColumnQuals["id"].GetStringValue()
+		id = d.EqualsQuals["id"].GetStringValue()
 	}
 
 	params := &auditmanager.GetAssessmentFrameworkInput{
 		FrameworkId: aws.String(id),
 	}
 
-	op, err := svc.GetAssessmentFramework(params)
+	op, err := svc.GetAssessmentFramework(ctx, params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("aws_auditmanager_framework.getAuditManagerFramework", "api_error", err)
 		return nil, err
 	}
 
-	return op.Framework, nil
+	return *op.Framework, nil
 }
