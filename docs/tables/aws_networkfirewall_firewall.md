@@ -239,9 +239,9 @@ from
 select
   name,
   arn,
-  json_extract(l.value, '$.LogDestination') AS log_destination,
-  json_extract(l.value, '$.LogDestinationType') AS log_destination_type,
-  json_extract(l.value, '$.LogType') AS log_type
+  json_extract(l.value, '$.LogDestination') as log_destination,
+  json_extract(l.value, '$.LogDestinationType') as log_destination_type,
+  json_extract(l.value, '$.LogType') as log_type
 from
   aws_networkfirewall_firewall,
   json_each(aws_networkfirewall_firewall.logging_configuration) as l;
