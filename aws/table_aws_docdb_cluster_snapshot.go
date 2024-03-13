@@ -202,12 +202,12 @@ func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 			}
 		}
 	}
+	
 	input := docdb.DescribeDBClusterSnapshotsInput{
 		MaxRecords: go_kit.Int32(maxLimit),
 	}
 
 	// List call
-
 	paginator := docdb.NewDescribeDBClusterSnapshotsPaginator(svc, &input, func(o *docdb.DescribeDBClusterSnapshotsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
