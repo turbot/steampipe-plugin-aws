@@ -36,7 +36,7 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "snapshot_type", Require: plugin.Optional},
 			},
-			Tags:    map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshots"},
+			Tags: map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshots"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
@@ -182,11 +182,10 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listDocDBClusterSnapshots")
-
 	// Create Session
 	svc, err := DocDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_docdb_cluster_snapshot.listDocDBClusterSnapshots", "connection", err)
 		return nil, err
 	}
 
@@ -207,7 +206,6 @@ func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		MaxRecords: go_kit.Int32(maxLimit),
 	}
 
-
 	// List call
 
 	paginator := docdb.NewDescribeDBClusterSnapshotsPaginator(svc, &input, func(o *docdb.DescribeDBClusterSnapshotsPaginatorOptions) {
@@ -221,7 +219,7 @@ func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_docdb_cluster.listDocDBClusters", "api_error", err)
+			plugin.Logger(ctx).Error("aws_docdb_cluster_snapshot.listDocDBClusterSnapshots", "api_error", err)
 			return nil, err
 		}
 
@@ -248,6 +246,7 @@ func getDocDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 	// Create service
 	svc, err := DocDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_docdb_cluster_snapshot.getDocDBClusterSnapshot", "connection_error", err)
 		return nil, err
 	}
 
@@ -257,6 +256,7 @@ func getDocDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	op, err := svc.DescribeDBClusterSnapshots(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_docdb_cluster_snapshot.getDocDBClusterSnapshot", "api_error", err)
 		return nil, err
 	}
 
@@ -267,13 +267,12 @@ func getDocDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 }
 
 func getAwsDocDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsDocDBClusterSnapshotAttributes")
-
 	dbClusterSnapshot := h.Item.(types.DBClusterSnapshot)
 
 	// Create service
 	svc, err := DocDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_docdb_cluster_snapshot.getAwsDocDBClusterSnapshotAttributes", "connection_error", err)
 		return nil, err
 	}
 
@@ -283,6 +282,7 @@ func getAwsDocDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryDa
 
 	dbClusterSnapshotData, err := svc.DescribeDBClusterSnapshotAttributes(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_docdb_cluster_snapshot.getAwsDocDBClusterSnapshotAttributes", "api_error", err)
 		return nil, err
 	}
 
@@ -295,6 +295,7 @@ func getDocDBClusterSnapshotTags(ctx context.Context, d *plugin.QueryData, h *pl
 	// Create Session
 	svc, err := DocDBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_docdb_cluster_snapshot.getDocDBClusterSnapshotTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -306,6 +307,7 @@ func getDocDBClusterSnapshotTags(ctx context.Context, d *plugin.QueryData, h *pl
 	// Get call
 	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_docdb_cluster_snapshot.getDocDBClusterSnapshotTags", "api_error", err)
 		return nil, err
 	}
 
