@@ -358,11 +358,11 @@ func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (in
 */
 
 // Functionality Overview
-// # Identifies and decodes URLs within the template body. (URLs are decoded selectively to avoid issues with '%' characters not part of a valid escaped sequence.)
-// # Integrates the decoded URLs back into the original template body.
-// # Determines if the template body is in JSON or YAML format.
-// # Directly unmarshal the content if it's a JSON string.
-// # Converts YAML format to JSON if the template body is in YAML.
+// Identifies and decodes URLs within the template body. (URLs are decoded selectively to avoid issues with '%' characters not part of a valid escaped sequence.)
+// Integrates the decoded URLs back into the original template body.
+// Determines if the template body is in JSON or YAML format.
+// Directly unmarshal the content if it's a JSON string.
+// Converts YAML format to JSON if the template body is in YAML.
 func formatJsonBody(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	if d.Value == nil {
 		return nil, nil
