@@ -3,6 +3,6 @@
     "arn": "{{ output.resource_aka.value }}",
     "db_cluster_identifier": "{{resourceName}}",
     "db_cluster_snapshot_identifier": "{{ resourceName }}",
-    "type": "manual"
+    "snapshot_type": "manual"
   }
 ]

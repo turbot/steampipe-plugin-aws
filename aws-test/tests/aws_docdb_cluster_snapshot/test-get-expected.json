@@ -4,7 +4,7 @@
     "db_cluster_identifier": "{{resourceName}}",
     "db_cluster_snapshot_identifier": "{{resourceName}}",
     "engine": "docdb",
-    "storage_encrypted": false,
-    "type": "manual"
+    "snapshot_type": "manual",
+    "storage_encrypted": false
   }
 ]

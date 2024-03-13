@@ -1,7 +1,7 @@
 SELECT
   db_cluster_snapshot_identifier,
   arn,
-  type,
+  snapshot_type,
   db_cluster_identifier,
   engine,
   storage_encrypted
