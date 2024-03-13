@@ -35,6 +35,8 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "snapshot_type", Require: plugin.Optional},
+				{Name: "include_public", Require: plugin.Optional},
+				{Name: "include_shared", Require: plugin.Optional},
 			},
 			Tags: map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshots"},
 		},
@@ -71,6 +73,20 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Name:        "status",
 				Description: "Specifies the status of this cluster snapshot.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "include_public",
+				Description: "Set to true to include manual cluster snapshots that are public and can be copied or restored by any Amazon Web Services account, and otherwise false.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromQual("include_public"),
+				Default:     false,
+			},
+			{
+				Name:        "include_shared",
+				Description: "Set to true to include shared manual cluster snapshots from other Amazon Web Services accounts that this Amazon Web Services account has been given permission to copy or restore, and otherwise false.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromQual("include_shared"),
+				Default:     false,
 			},
 			{
 				Name:        "db_cluster_identifier",
@@ -202,9 +218,22 @@ func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 			}
 		}
 	}
-	
+
 	input := docdb.DescribeDBClusterSnapshotsInput{
 		MaxRecords: go_kit.Int32(maxLimit),
+	}
+
+	if d.EqualsQualString("db_cluster_identifier") != "" {
+		input.DBClusterIdentifier = aws.String(d.EqualsQualString("db_cluster_identifier"))
+	}
+	if d.EqualsQualString("snapshot_type") != "" {
+		input.SnapshotType = aws.String(d.EqualsQualString("snapshot_type"))
+	}
+	if d.EqualsQuals["include_public"] != nil {
+		input.IncludePublic = d.EqualsQuals["include_public"].GetBoolValue()
+	}
+	if d.EqualsQuals["include_shared"] != nil {
+		input.IncludePublic = d.EqualsQuals["include_shared"].GetBoolValue()
 	}
 
 	// List call
