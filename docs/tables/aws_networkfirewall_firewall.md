@@ -53,7 +53,7 @@ select
   encryption_configuration
 from
   aws_networkfirewall_firewall
-where 
+where
   encryption_configuration ->> 'Type' = `AWS_OWNED_KMS_KEY';
 ```
 
@@ -65,7 +65,7 @@ select
   encryption_configuration
 from
   aws_networkfirewall_firewall
-where 
+where
   json_extract(encryption_configuration, '$.Type') = 'AWS_OWNED_KMS_KEY';
 ```
 
@@ -218,4 +218,31 @@ from
 where
   k.id = json_extract(f.encryption_configuration, '$.KeyId')
   and not json_extract(f.encryption_configuration, '$.Type') = 'AWS_OWNED_KMS_KEY';
+```
+
+### Get logging configuration details of firewall
+The detailed insight into log types and destinations aids in ensuring that the network firewall configurations comply with organizational policies and regulatory standards. This is essential for audits, where evidence of proper log management practices needs to be presented.
+
+```sql+postgres
+select
+  name,
+  arn,
+  l -> 'LogDestination' as log_destination,
+  l ->> 'LogDestinationType' as log_destination_type,
+  l ->> 'LogType' as log_type
+from
+  aws_networkfirewall_firewall,
+  jsonb_array_elements(logging_configuration) as l;
+```
+
+```sql+sqlite
+select
+  name,
+  arn,
+  json_extract(l.value, '$.LogDestination') AS log_destination,
+  json_extract(l.value, '$.LogDestinationType') AS log_destination_type,
+  json_extract(l.value, '$.LogType') AS log_type
+from
+  aws_networkfirewall_firewall,
+  json_each(aws_networkfirewall_firewall.logging_configuration) as l;
 ```
