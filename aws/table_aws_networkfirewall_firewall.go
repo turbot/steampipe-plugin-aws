@@ -297,7 +297,6 @@ func getNetworkFirewallFirewallLoggingConfiguration(ctx context.Context, d *plug
 	}
 
 	// Build the params
-	// Can pass in ARN, name, or both
 	params := &networkfirewall.DescribeLoggingConfigurationInput{
 		FirewallArn: firewallArn,
 	}
