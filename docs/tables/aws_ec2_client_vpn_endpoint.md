@@ -100,7 +100,7 @@ where
   creation_time >= datetime('now', '-30 day');
 ```
 
-### Get the security group and the VPC details of client VPN endpoints 
+### Get the security group and the VPC details of client VPN endpoints
 Determine the security setup of recently created VPN endpoints, including their associated security groups and VPC details. This is useful for reviewing and auditing the security configurations of new VPN connections in your network.
 
 ```sql+postgres
@@ -137,7 +137,7 @@ where
   creation_time >= datetime('now', '-30 day');
 ```
 
-### Get the security group and the VPC details of client VPN endpoints 
+### Get the security group and the VPC details of client VPN endpoints
 Explore the security settings and network details of your client VPN endpoints. This can help in assessing the security measures in place and understanding the network configuration, which is crucial for maintaining a secure and efficient VPN service.
 
 ```sql+postgres
@@ -170,7 +170,7 @@ from
   aws_ec2_client_vpn_endpoint;
 ```
 
-### Get the logging configuration of client VPN endpoints 
+### Get the logging configuration of client VPN endpoints
 Determine the status of client VPN endpoints and assess whether their logging configurations are enabled. This can be useful for monitoring and troubleshooting VPN connectivity issues.
 
 ```sql+postgres
@@ -178,9 +178,9 @@ select
   title,
   status ->> 'Code' as status,
   client_vpn_endpoint_id,
-  client_log_options ->> 'Enabled' as client_log_options_enabled,
-  client_log_options ->> 'CloudwatchLogGroup' as client_log_options_cloudwatch_log_group,
-  client_log_options ->> 'CloudwatchLogStream' as client_log_options_cloudwatch_log_stream,
+  connection_log_options ->> 'Enabled' as connection_log_options_enabled,
+  connection_log_options ->> 'CloudwatchLogGroup' as connection_log_options_cloudwatch_log_group,
+  connection_log_options ->> 'CloudwatchLogStream' as connection_log_options_cloudwatch_log_stream,
   tags
 from
   aws_ec2_client_vpn_endpoint;
@@ -191,15 +191,15 @@ select
   title,
   json_extract(status, '$.Code') as status,
   client_vpn_endpoint_id,
-  json_extract(client_log_options, '$.Enabled') as client_log_options_enabled,
-  json_extract(client_log_options, '$.CloudwatchLogGroup') as client_log_options_cloudwatch_log_group,
-  json_extract(client_log_options, '$.CloudwatchLogStream') as client_log_options_cloudwatch_log_stream,
+  json_extract(connection_log_options, '$.Enabled') as connection_log_options_enabled,
+  json_extract(connection_log_options, '$.CloudwatchLogGroup') as connection_log_options_cloudwatch_log_group,
+  json_extract(connection_log_options, '$.CloudwatchLogStream') as connection_log_options_cloudwatch_log_stream,
   tags
 from
   aws_ec2_client_vpn_endpoint;
 ```
 
-### Get the authentication information of client VPN endpoints 
+### Get the authentication information of client VPN endpoints
 This query is used to gain insights into the authentication information of client VPN endpoints within the AWS EC2 service. It's particularly useful for understanding the type of authentication being used and the details of the mutual authentication, which can help in assessing security measures and compliance requirements.
 
 ```sql+postgres
