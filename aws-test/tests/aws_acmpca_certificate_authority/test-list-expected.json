@@ -1,0 +1,9 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "arn": "{{ output.resource_aka.value }}",
+    "title": "{{ output.resource_aka.value.split('/').pop() }}"
+  }
+]
