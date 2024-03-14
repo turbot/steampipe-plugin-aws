@@ -120,6 +120,8 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 
 // // LIST FUNCTION
 func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	// check if account_id or region is provided from optional param to avoid unnecessary API calls
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err

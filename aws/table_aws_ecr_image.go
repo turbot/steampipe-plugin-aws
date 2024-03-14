@@ -113,7 +113,8 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 			return nil, nil
 		}
 	}
-  
+
+	// avoid unnecessary API calls if account_id or region is not matched from parentHydrate
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
