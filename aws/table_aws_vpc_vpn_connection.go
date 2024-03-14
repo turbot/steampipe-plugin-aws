@@ -148,6 +148,11 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
+	// Unsupported/disabled region check
+	if svc == nil {
+		return nil, nil
+	}
+
 	input := &ec2.DescribeVpnConnectionsInput{}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -194,6 +199,11 @@ func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_vpn_connection.listVpcVpnConnections", "connection_error", err)
 		return nil, err
+	}
+
+	// Unsupported/disabled region check
+	if svc == nil {
+		return nil, nil
 	}
 
 	// Build the params

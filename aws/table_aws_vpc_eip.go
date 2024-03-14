@@ -158,6 +158,11 @@ func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
+	// Unsupported/disabled region check
+	if svc == nil {
+		return nil, nil
+	}
+
 	input := &ec2.DescribeAddressesInput{}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -207,6 +212,11 @@ func getVpcEip(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_eip.getVpcEip", "connection_error", err)
 		return nil, err
+	}
+
+	// Unsupported/disabled region check
+	if svc == nil {
+		return nil, nil
 	}
 
 	// Build the params

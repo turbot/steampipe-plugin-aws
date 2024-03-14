@@ -617,6 +617,9 @@ func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	if cfg == nil {
+		return nil, nil
+	}
 	return ec2.NewFromConfig(*cfg), nil
 }
 
