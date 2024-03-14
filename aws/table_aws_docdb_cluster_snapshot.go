@@ -21,7 +21,7 @@ import (
 func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_docdb_cluster_snapshot",
-		Description: "AWS Doc DB Cluster Snapshot",
+		Description: "AWS DocumentDB Cluster Snapshot",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_snapshot_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
