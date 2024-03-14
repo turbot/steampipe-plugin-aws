@@ -75,6 +75,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.15.1
 	github.com/aws/aws-sdk-go-v2/service/kms v1.20.1
+	github.com/aws/aws-sdk-go-v2/service/lakeformation v1.25.0
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.29.0
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.25.0
 	github.com/aws/aws-sdk-go-v2/service/macie2 v1.26.0
@@ -134,10 +135,7 @@ require (
 	golang.org/x/text v0.14.0
 )
 
-require (
-	github.com/aws/aws-sdk-go-v2/service/lakeformation v1.25.0 // indirect
-	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-)
+require golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 
 require (
 	cloud.google.com/go v0.111.0 // indirect
