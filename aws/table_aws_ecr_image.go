@@ -101,11 +101,8 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
 	repository := h.Item.(types.Repository)
-
 	repositoryName := repository.RepositoryName
-
 	repoName := d.EqualsQuals["repository_name"].GetStringValue()
 
 	if repoName != "" {
