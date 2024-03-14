@@ -36,7 +36,6 @@ where
   redrive_policy is null;
 ```
 
-
 ### List of subscriptions which are not configured to filter messages
 Determine the areas in which subscriptions are not set up to filter messages. This is beneficial for identifying potential inefficiencies or areas of improvement within your notification system.
 
@@ -59,7 +58,6 @@ from
 where
   filter_policy is null;
 ```
-
 
 ### Subscription count by topic arn
 Determine the areas in which your AWS SNS topics are gaining the most traction by analyzing the number of subscriptions each topic has. This can help prioritize content creation and resource allocation for popular topics.
