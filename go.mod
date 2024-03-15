@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.19.1
 	github.com/aws/aws-sdk-go-v2/service/account v1.8.0
 	github.com/aws/aws-sdk-go-v2/service/acm v1.17.1
+	github.com/aws/aws-sdk-go-v2/service/acmpca v1.22.7
 	github.com/aws/aws-sdk-go-v2/service/amplify v1.13.0
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.16.1
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.13.1
@@ -124,7 +125,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.24.2
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.28.0
-	github.com/aws/smithy-go v1.19.0
+	github.com/aws/smithy-go v1.20.1
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/goccy/go-yaml v1.11.3
 	github.com/golang/protobuf v1.5.3

@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/acmpca"
 	"github.com/aws/aws-sdk-go-v2/service/amplify"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
@@ -238,6 +239,14 @@ func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 		return nil, err
 	}
 	return acm.NewFromConfig(*cfg), nil
+}
+
+func ACMPCAClient(ctx context.Context, d *plugin.QueryData) (*acmpca.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return acmpca.NewFromConfig(*cfg), nil
 }
 
 func AmplifyClient(ctx context.Context, d *plugin.QueryData) (*amplify.Client, error) {
