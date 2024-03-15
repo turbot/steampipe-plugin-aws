@@ -5,14 +5,13 @@ description: "Enables users to query AWS DMS Replication Tasks to retrieve detai
 
 # Table: aws_dms_replication_task - Query AWS DMS Replication Tasks using SQL
 
-AWS Database Migration Service (DMS) Replication Tasks play a critical role in managing data migrations between source and target databases. These tasks facilitate the entire migration process, supporting various migration types, including full load migrations, ongoing replication to synchronize source and target databases, and change data capture (CDC) for applying data modifications.
+AWS Database Migration Service (DMS) Replication Tasks play a critical role in managing data migrations between source and target databases. These tasks facilitate the entire migration process, supporting various migration types, including full load migrations, ongoing replication to synchronize source and target databases and change data capture (CDC) for applying data modifications.
 
 The `aws_dms_replication_task` table in Steampipe allows for in-depth analysis of replication tasks, providing details such as task identifiers, status, migration types, settings, and endpoint ARNs. This table proves essential for database administrators and DevOps engineers overseeing database migrations, offering comprehensive insights into each task's configuration, progress, and performance.
 
-## Table Usage Guide
+## Examples
 
 ### Basic Info
-
 Query to fetch basic details about DMS replication tasks.
 
 ```sql+postgresql
@@ -37,8 +36,7 @@ from
   aws_dms_replication_task;
 ```
 
-### Tasks with Specific Migration Types
-
+### Tasks with specific migration types
 List replication tasks by a specific migration type, such as 'full-load'.
 
 ```sql+postgresql
@@ -63,8 +61,7 @@ where
   migration_type = 'full-load';
 ```
 
-### Replication Tasks with Failures
-
+### Replication tasks with failures
 Identify replication tasks that have failed, focusing on the last failure message.
 
 ```sql+postgresql
@@ -89,8 +86,7 @@ where
   status = 'failed';
 ```
 
-### Task Performance Statistics
-
+### Task performance statistics
 Examine detailed performance statistics of replication tasks.
 
 ```sql+postgresql
@@ -131,8 +127,7 @@ from
   aws_dms_replication_task;
 ```
 
-### Get Replication Instance details
-
+### Get replication instance details
 Retrieve replication instance details for the tasks.
 
 ```sql+postgresql
@@ -162,8 +157,7 @@ join
   aws_dms_replication_instance as i on t.replication_instance_arn = i.arn;
 ```
 
-### List Source Endpoint Tasks
-
+### List source endpoint tasks
 Query to list tasks associated with source endpoints.
 
 ```sql+postgresql
@@ -188,8 +182,7 @@ where
   endpoint_type = 'source';
 ```
 
-### Endpoint Type Count
-
+### Endpoint type count
 Count tasks by endpoint type (source or target).
 
 ```sql+postgresql
