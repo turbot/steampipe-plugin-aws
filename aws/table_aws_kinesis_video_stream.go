@@ -113,7 +113,6 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listKinesisVideoStreams")
 
 	// Create session
 	svc, err := KinesisVideoClient(ctx, d)

@@ -187,7 +187,6 @@ func listEKSIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 		}
 
 		for _, providerConfig := range output.IdentityProviderConfigs {
-			plugin.Logger(ctx).Info("providerConfig ", providerConfig)
 			d.StreamListItem(ctx, &IdentityProviderConfig{providerConfig.Name, providerConfig.Type, types.OidcIdentityProviderConfig{
 				ClusterName: cluster.Name,
 			}})

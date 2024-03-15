@@ -124,20 +124,20 @@ func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []stri
 			plugin.Logger(ctx).Error("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "query_regions_error", err)
 			return []map[string]interface{}{}
 		}
-		plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "query_regions", queryRegions)
+		plugin.Logger(ctx).Debug("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "query_regions", queryRegions)
 		// Get the possible regions for this service
 		var serviceRegions []string
 		if serviceID == "" {
 			// No service given, assume all regions are in scope
 			serviceRegions = queryRegions
-			plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions_using_query_regions", serviceRegions)
+			plugin.Logger(ctx).Debug("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions_using_query_regions", serviceRegions)
 		} else {
 			serviceRegions, err = listRegionsForServiceWithExclusions(ctx, d, serviceID, excludeRegions)
 			if err != nil {
 				plugin.Logger(ctx).Error("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions_error", err)
 				return []map[string]interface{}{}
 			}
-			plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions", serviceRegions)
+			plugin.Logger(ctx).Debug("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions", serviceRegions)
 		}
 		// Find all regions in both the query regions and the service regions
 		for _, region := range queryRegions {
@@ -146,7 +146,7 @@ func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []stri
 				matrix = append(matrix, obj)
 			}
 		}
-		plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "matrix", matrix)
+		plugin.Logger(ctx).Debug("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "matrix", matrix)
 		return matrix
 	}
 }
@@ -202,7 +202,7 @@ func listQueryRegionsForConnection(ctx context.Context, d *plugin.QueryData) ([]
 			return nil, fmt.Errorf("regions or default_region must be defined")
 		}
 		// Return the default region as the only query region for this connection
-		plugin.Logger(ctx).Trace("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "using default region", region)
+		plugin.Logger(ctx).Debug("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "using default region", region)
 		return []string{region}, nil
 	}
 
@@ -236,7 +236,7 @@ func listQueryRegionsForConnection(ctx context.Context, d *plugin.QueryData) ([]
 	}
 	targetRegions = helpers.StringSliceDistinct(targetRegions)
 
-	plugin.Logger(ctx).Trace("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "targetRegions", targetRegions)
+	plugin.Logger(ctx).Debug("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "targetRegions", targetRegions)
 
 	return targetRegions, nil
 }
@@ -277,7 +277,7 @@ func listRegionsForServiceWithExclusions(ctx context.Context, d *plugin.QueryDat
 	serviceRegions := iRegions.([]string)
 	// Remove the excluded regions from the valid list
 	serviceRegions = helpers.RemoveFromStringSlice(serviceRegions, excludeRegions...)
-	plugin.Logger(ctx).Trace("listRegionsForServiceWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "serviceRegions", serviceRegions)
+	plugin.Logger(ctx).Debug("listRegionsForServiceWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "serviceRegions", serviceRegions)
 	return serviceRegions, nil
 }
 
@@ -353,7 +353,7 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 		regionsForService = append(regionsForService, rs)
 	}
 
-	plugin.Logger(ctx).Trace("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "partition", partition, "serviceID", serviceID, "regionsForService", regionsForService)
+	plugin.Logger(ctx).Debug("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "partition", partition, "serviceID", serviceID, "regionsForService", regionsForService)
 	return regionsForService, nil
 }
 
@@ -376,7 +376,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Trace("listRegionsUncached", "status", "starting", "connection_name", d.Connection.Name, "region", clientRegion)
+	plugin.Logger(ctx).Debug("listRegionsUncached", "status", "starting", "connection_name", d.Connection.Name, "region", clientRegion)
 
 	// If the client region is not AWS commercial (our default) then update
 	// the full region list from a best guess based on the client region.
@@ -430,7 +430,7 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		APIRetrivedList: true,
 	}
 
-	plugin.Logger(ctx).Trace("listRegionsUncached", "status", "finished", "connection_name", d.Connection.Name, "region", clientRegion, "data", data)
+	plugin.Logger(ctx).Debug("listRegionsUncached", "status", "finished", "connection_name", d.Connection.Name, "region", clientRegion, "data", data)
 
 	// save to extension cache
 	return data, nil
@@ -470,7 +470,7 @@ func listRawAwsRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 
-	logger.Trace("listRawAwsRegionsUncached", "connection_name", d.Connection.Name, "clientRegion", clientRegion, "len(resp.Regions)", len(resp.Regions))
+	logger.Debug("listRawAwsRegionsUncached", "connection_name", d.Connection.Name, "clientRegion", clientRegion, "len(resp.Regions)", len(resp.Regions))
 
 	return resp.Regions, nil
 }
@@ -488,11 +488,11 @@ func getLastResortRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return "", err
 	}
 
-	plugin.Logger(ctx).Trace("getLastResortRegion", "connection_name", d.Connection.Name, "region", region)
+	plugin.Logger(ctx).Debug("getLastResortRegion", "connection_name", d.Connection.Name, "region", region)
 
 	// Get the last resort region for the partition
 	lastResortRegion := awsLastResortRegionFromRegionWildcard(region)
-	plugin.Logger(ctx).Trace("getLastResortRegion", "connection_name", d.Connection.Name, "lastResortRegion", lastResortRegion)
+	plugin.Logger(ctx).Debug("getLastResortRegion", "connection_name", d.Connection.Name, "lastResortRegion", lastResortRegion)
 	if lastResortRegion != "" {
 		return lastResortRegion, nil
 	}
@@ -527,7 +527,7 @@ func getAwsSpcConfigDefaultRegion(ctx context.Context, d *plugin.QueryData) stri
 	}
 
 	region := *awsSpcConfig.DefaultRegion
-	plugin.Logger(ctx).Trace("getAwsSpcConfigDefaultRegion", "connection_name", d.Connection.Name, "region", region)
+	plugin.Logger(ctx).Debug("getAwsSpcConfigDefaultRegion", "connection_name", d.Connection.Name, "region", region)
 	return region
 }
 
@@ -538,7 +538,7 @@ func getAwsSdkRegion(ctx context.Context, d *plugin.QueryData) string {
 	cfg, err := getBaseClientForAccount(ctx, d)
 	if cfg != nil && cfg.Region != "" && err == nil {
 		region := cfg.Region
-		plugin.Logger(ctx).Trace("getAwsSdkRegion", "connection_name", d.Connection.Name, "region", region)
+		plugin.Logger(ctx).Debug("getAwsSdkRegion", "connection_name", d.Connection.Name, "region", region)
 		// The AWS SDK will return us-east-1 if it can't find a region. So, we
 		// can only trust regions other than us-east-1 as being intentional from
 		// the config. Return those regions immediately as the default.
@@ -563,7 +563,7 @@ func awsLastResortRegionFromRegionsConfig(ctx context.Context, d *plugin.QueryDa
 		for _, r := range awsSpcConfig.Regions {
 			lastResort := awsLastResortRegionFromRegionWildcard(r)
 			if lastResort != "" {
-				plugin.Logger(ctx).Trace("awsLastResortRegionFromRegionsConfig", "connection_name", d.Connection.Name, "region", lastResort)
+				plugin.Logger(ctx).Debug("awsLastResortRegionFromRegionsConfig", "connection_name", d.Connection.Name, "region", lastResort)
 				return lastResort
 			}
 		}
@@ -585,7 +585,7 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	var region string
 
-	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name)
+	plugin.Logger(ctx).Debug("getDefaultRegionUncached", "connection_name", d.Connection.Name)
 
 	// The user has defined a specific default_region in their config. We use
 	// it without further review. For example, they can have a default_region
@@ -594,7 +594,7 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// - It can be a region that is not in the regions list.
 	region = getAwsSpcConfigDefaultRegion(ctx, d)
 	if region != "" {
-		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "default_region in config file")
+		plugin.Logger(ctx).Debug("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "default_region in config file")
 		return region, nil
 	}
 
@@ -603,7 +603,7 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// region for the partition.
 	region = getAwsSdkRegion(ctx, d)
 	if region != "" {
-		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "AWS SDK resolution")
+		plugin.Logger(ctx).Debug("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "AWS SDK resolution")
 		return region, nil
 	}
 
@@ -616,14 +616,14 @@ func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// Pacific.
 	region = awsLastResortRegionFromRegionsConfig(ctx, d)
 	if region != "" {
-		plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
+		plugin.Logger(ctx).Debug("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
 		return region, nil
 	}
 
 	// If all else fails, and we just don't know what to do ... default to
 	// us-east-1 (the last resort region for the most common partition).
 	region = "us-east-1"
-	plugin.Logger(ctx).Trace("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "last resort region in most common partition")
+	plugin.Logger(ctx).Debug("getDefaultRegionUncached", "connection_name", d.Connection.Name, "region", region, "source", "last resort region in most common partition")
 	return region, nil
 }
 
@@ -640,7 +640,7 @@ func getDefaultRegionFromConfig(ctx context.Context, d *plugin.QueryData, _ *plu
 
 	var region string
 
-	plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name)
+	plugin.Logger(ctx).Debug("getDefaultRegionFromConfig", "connection_name", d.Connection.Name)
 
 	// The user has defined a specific default_region in their config. We use
 	// it without further review. For example, they can have a default_region
@@ -649,7 +649,7 @@ func getDefaultRegionFromConfig(ctx context.Context, d *plugin.QueryData, _ *plu
 	// - It can be a region that is not in the regions list.
 	region = getAwsSpcConfigDefaultRegion(ctx, d)
 	if region != "" {
-		plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "default_region in config file")
+		plugin.Logger(ctx).Debug("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "default_region in config file")
 		return region, nil
 	}
 
@@ -662,14 +662,14 @@ func getDefaultRegionFromConfig(ctx context.Context, d *plugin.QueryData, _ *plu
 	// Pacific.
 	region = awsLastResortRegionFromRegionsConfig(ctx, d)
 	if region != "" {
-		plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
+		plugin.Logger(ctx).Debug("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "best guess from regions config")
 		return region, nil
 	}
 
 	// If all else fails, and we just don't know what to do ... default to
 	// us-east-1 (the last resort region for the most common partition).
 	region = "us-east-1"
-	plugin.Logger(ctx).Trace("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "last resort region in most common partition")
+	plugin.Logger(ctx).Debug("getDefaultRegionFromConfig", "connection_name", d.Connection.Name, "region", region, "source", "last resort region in most common partition")
 	return region, nil
 }
 
