@@ -166,9 +166,7 @@ select
   my_sql_settings ->> 'DatabaseName' as database_name,
   cast(json_extract(my_sql_settings, '$.EventsPollInterval') as integer) as events_poll_interval,
   cast(json_extract(my_sql_settings, '$.ExecuteTimeout') as integer) as execute_timeout,
-  cast(json_extract(my_sql_settings, '$.
-
-MaxFileSize') as integer) as max_file_size,
+  cast(json_extract(my_sql_settings, '$.MaxFileSize') as integer) as max_file_size,
   cast(json_extract(my_sql_settings, '$.ParallelLoadThreads') as integer) as parallel_load_threads,
   my_sql_settings ->> 'Password' as password,
   cast(json_extract(my_sql_settings, '$.Port') as integer) as port,
