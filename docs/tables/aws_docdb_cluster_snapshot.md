@@ -13,8 +13,7 @@ This table allows DevOps engineers, database administrators, and other technical
 
 ## Examples
 
-### List of Cluster Snapshots Which Are Not Encrypted
-
+### List of cluster snapshots that are not encrypted
 Identify unencrypted cluster snapshots to assess and improve your security posture.
 
 ```sql+postgres
@@ -41,8 +40,7 @@ where
   not storage_encrypted;
 ```
 
-### Cluster Info of Each Snapshot
-
+### Cluster information of each snapshot
 Retrieve basic information about each cluster snapshot, including its creation time and the engine details.
 
 ```sql+postgres
@@ -65,8 +63,7 @@ from
   aws_docdb_cluster_snapshot;
 ```
 
-### Cluster Snapshot Count Per Cluster
-
+### Cluster snapshot count per cluster
 Determine the number of snapshots taken for each cluster to help manage snapshot policies and storage.
 
 ```sql+postgres
@@ -89,8 +86,7 @@ group by
   db_cluster_identifier;
 ```
 
-### List of Manual Cluster Snapshots
-
+### List of manual cluster snapshots
 Filter for manually created cluster snapshots to distinguish them from automatic backups.
 
 ```sql+postgres
