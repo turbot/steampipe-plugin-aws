@@ -152,6 +152,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_dms_replication_instance":                                 tableAwsDmsReplicationInstance(ctx),
 			"aws_docdb_cluster":                                            tableAwsDocDBCluster(ctx),
 			"aws_docdb_cluster_instance":                                   tableAwsDocDBClusterInstance(ctx),
+			"aws_docdb_cluster_snapshot":                                   tableAwsDocDBClusterSnapshot(ctx),
 			"aws_drs_job":                                                  tableAwsDRSJob(ctx),
 			"aws_drs_recovery_instance":                                    tableAwsDRSRecoveryInstance(ctx),
 			"aws_drs_recovery_snapshot":                                    tableAwsDRSRecoverySnapshot(ctx),
