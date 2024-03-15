@@ -15,15 +15,14 @@ _Enhancements_
 - Added `open_zfs_configuration` column to `aws_fsx_file_system` table. ([#2113](https://github.com/turbot/steampipe-plugin-aws/pull/2113))
 - Added `logging_configuration` column to `aws_networkfirewall_firewall` table. ([#2115](https://github.com/turbot/steampipe-plugin-aws/pull/2115))
 - Added `lf_tags` column to `aws_glue_catalog_table` table. ([#2128](https://github.com/turbot/steampipe-plugin-aws/pull/2128))
-- Updated `aws_sns_topic_subscription` table to use `ListSubscriptionsByTopic` API instead of `ListSubscriptions`. ([#2048](https://github.com/turbot/steampipe-plugin-aws/pull/2048))
 
 _Bug fixes_
 
-- Fixed the query in the `aws_s3_bucket` docs to correctly filter out buckets without the `application` tag. ([#2093](https://github.com/turbot/steampipe-plugin-aws/pull/2093))
-- Fixed the `aws_cloudtrail_lookup_event` input param to pass correctly end time as input param. ([#2102](https://github.com/turbot/steampipe-plugin-aws/pull/2102))
-- Fixed the `arn` column of `aws_elastic_beanstalk_environment` table to correctly return data instead of `null`. ([#2105](https://github.com/turbot/steampipe-plugin-aws/issues/2105))
+- Fixed the query in the `aws_s3_bucket` table doc to correctly filter out buckets without the `application` tag. ([#2093](https://github.com/turbot/steampipe-plugin-aws/pull/2093))
+- Fixed the `aws_cloudtrail_lookup_event` input param to pass correctly `end_time` as an optional qual. ([#2102](https://github.com/turbot/steampipe-plugin-aws/pull/2102))
+- Fixed the `arn` column of the `aws_elastic_beanstalk_environment` table to correctly return data instead of `null`. ([#2105](https://github.com/turbot/steampipe-plugin-aws/issues/2105))
 - Fixed the `template_body_json` column of the `aws_cloudformation_stack` table to correctly return data by adding a new transform function `formatJsonBody`, replacing the `UnmarshalYAML` transform function. ([#1959](https://github.com/turbot/steampipe-plugin-aws/pull/1959))
-- Fixed the `aws_ssm_maintenance_window` table to correctly return data if `ScheduleTimezone` is not in `UTC` format. ([#2116](https://github.com/turbot/steampipe-plugin-aws/pull/2116))
+- Fixed the `next_execution_time` column of `aws_ssm_maintenance_window` table to be of `String` datatype instead of `TIMESTAMP`. ([#2116](https://github.com/turbot/steampipe-plugin-aws/pull/2116))
 - Renamed the `client_log_options` column to `connection_log_options` in  `aws_ec2_client_vpn_endpoint` table to correctly return data instead of `null`. ([#2122](https://github.com/turbot/steampipe-plugin-aws/pull/2122))
 
 ## v0.132.0 [2024-02-27]
