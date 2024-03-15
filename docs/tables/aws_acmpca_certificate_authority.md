@@ -13,8 +13,7 @@ This table can be utilized to monitor the configuration and operational health o
 
 ## Examples
 
-### Basic Information
-
+### Basic information
 Retrieve basic details about your ACM PCA Certificate Authorities.
 
 ```sql+postgres
@@ -43,8 +42,7 @@ from
   aws_acmpca_certificate_authority;
 ```
 
-### Certificate Authorities with Specific Key Storage Security Standards
-
+### Certificate authorities with specific key storage security standards
 List certificate authorities that comply with a specific key storage security standard.
 
 ```sql+postgres
@@ -69,8 +67,7 @@ where
   key_storage_security_standard = 'FIPS_140_2_LEVEL_3_OR_HIGHER';
 ```
 
-### Certificate Authorities by Status
-
+### Certificate authorities by status
 Find certificate authorities by their operational status, e.g., `ACTIVE`, `DISABLED`.
 
 ```sql+postgres
@@ -98,7 +95,6 @@ where
 ```
 
 ### Tagged Certificate Authorities
-
 Identify certificate authorities tagged with specific key-value pairs for organizational purposes.
 
 ```sql+postgres
