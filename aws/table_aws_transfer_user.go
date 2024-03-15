@@ -188,7 +188,7 @@ func getTransferUser(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		userName = *h.Item.(TransferUserInfo).UserName
 		serverID = *h.Item.(TransferUserInfo).ServerID
 	} else {
-		userName = d.EqualsQuals["user_name"].GetStringValue()
+		userName = d.EqualsQualString("user_name")
 		serverID = d.EqualsQuals["server_id"].GetStringValue()
 	}
 
