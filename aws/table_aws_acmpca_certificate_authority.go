@@ -20,7 +20,7 @@ import (
 func tableAwsAcmPcaCertificateAuthority(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_acmpca_certificate_authority",
-		Description: "AWS ACM Private certificate authorities",
+		Description: "AWS ACM Private Certificate Authority",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getAwsAcmPcaCertificateAuthority,
@@ -200,7 +200,7 @@ func listAwsAcmPcaCertificateAuthorities(ctx context.Context, d *plugin.QueryDat
 		for _, item := range output.CertificateAuthorities {
 			d.StreamListItem(ctx, item)
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			// Context may get canceled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
