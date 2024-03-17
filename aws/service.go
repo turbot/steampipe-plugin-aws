@@ -32,6 +32,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/batch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
@@ -148,6 +149,7 @@ import (
 	appsyncv2Endpoint "github.com/aws/aws-sdk-go/service/appsync"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
+	batchEndpoint "github.com/aws/aws-sdk-go/service/batch"
 	cloudsearchEndpoint "github.com/aws/aws-sdk-go/service/cloudsearch"
 	codeartifactEndpoint "github.com/aws/aws-sdk-go/service/codeartifact"
 	codebuildEndpoint "github.com/aws/aws-sdk-go/service/codebuild"
@@ -362,6 +364,17 @@ func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, err
 		return nil, nil
 	}
 	return backup.NewFromConfig(*cfg), nil
+}
+
+func BatchClient(ctx context.Context, d *plugin.QueryData) (*batch.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, batchEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return batch.NewFromConfig(*cfg), nil
 }
 
 func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {
