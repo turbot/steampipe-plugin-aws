@@ -321,13 +321,13 @@ func uniqueStrings(arr []string) []string {
 // and it must be unescaped beofre converting to canonical form
 func unescape(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Debug("unescape")
 
 	// get the value of policy safely
 	inputStr := types.SafeString(d.Value)
 
 	data, err := url.QueryUnescape(inputStr)
 	if err != nil {
+		logger.Error("Error in Unescape URL ", err)
 		return nil, err
 	}
 
@@ -337,7 +337,6 @@ func unescape(ctx context.Context, d *transform.TransformData) (interface{}, err
 // policyToCanonical converts a (unescaped) IAM policy to a standardized form
 func policyToCanonical(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Debug("policyStringToCanonical")
 
 	data := types.SafeString(d.Value)
 	if data == "" {
