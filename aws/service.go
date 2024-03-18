@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/acmpca"
 	"github.com/aws/aws-sdk-go-v2/service/amplify"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
@@ -85,6 +86,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
@@ -237,6 +239,14 @@ func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 		return nil, err
 	}
 	return acm.NewFromConfig(*cfg), nil
+}
+
+func ACMPCAClient(ctx context.Context, d *plugin.QueryData) (*acmpca.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return acmpca.NewFromConfig(*cfg), nil
 }
 
 func AmplifyClient(ctx context.Context, d *plugin.QueryData) (*amplify.Client, error) {
@@ -932,6 +942,14 @@ func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, err
 	return lambda.NewFromConfig(*cfg), nil
 }
 
+func LakeFormationClient(ctx context.Context, d *plugin.QueryData) (*lakeformation.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return lakeformation.NewFromConfig(*cfg), nil
+}
+
 func LightsailClient(ctx context.Context, d *plugin.QueryData) (*lightsail.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, lightsailEndpoint.EndpointsID)
 	if err != nil {
@@ -1467,9 +1485,9 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 }
 
 func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, error) {
-// AWS Support is a global service. This means that any endpoint that you use will update your support cases in the Support Center Console.
-// For example, if you use the US East (N. Virginia) endpoint to create a case, you can use the US West (Oregon) or Europe (Ireland) endpoint to add a correspondence to the same case.
-// https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html#endpoint
+	// AWS Support is a global service. This means that any endpoint that you use will update your support cases in the Support Center Console.
+	// For example, if you use the US East (N. Virginia) endpoint to create a case, you can use the US West (Oregon) or Europe (Ireland) endpoint to add a correspondence to the same case.
+	// https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html#endpoint
 	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err

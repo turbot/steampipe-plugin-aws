@@ -1,3 +1,30 @@
+## v0.133.0 [2024-03-15]
+
+_What's new?_
+
+- New tables added
+  - [aws_acmpca_certificate_authority](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_acmpca_certificate_authority) ([#2125](https://github.com/turbot/steampipe-plugin-aws/pull/2125))
+  - [aws_dms_endpoint](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dms_endpoint) ([#1992](https://github.com/turbot/steampipe-plugin-aws/pull/1992))
+  - [aws_dms_replication_task](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dms_replication_task) ([#2110](https://github.com/turbot/steampipe-plugin-aws/pull/2110))
+  - [aws_docdb_cluster_snapshot](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_docdb_cluster_snapshot) ([#2123](https://github.com/turbot/steampipe-plugin-aws/pull/2123))
+  - [aws_transfer_user](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_transfer_user) ([#2089](https://github.com/turbot/steampipe-plugin-aws/pull/2089)) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
+
+_Enhancements_
+
+- Added `auto_minor_version_upgrade` column to `aws_rds_db_cluster` table. ([#2109](https://github.com/turbot/steampipe-plugin-aws/pull/2109))
+- Added `open_zfs_configuration` column to `aws_fsx_file_system` table. ([#2113](https://github.com/turbot/steampipe-plugin-aws/pull/2113))
+- Added `logging_configuration` column to `aws_networkfirewall_firewall` table. ([#2115](https://github.com/turbot/steampipe-plugin-aws/pull/2115))
+- Added `lf_tags` column to `aws_glue_catalog_table` table. ([#2128](https://github.com/turbot/steampipe-plugin-aws/pull/2128))
+
+_Bug fixes_
+
+- Fixed the query in the `aws_s3_bucket` table doc to correctly filter out buckets without the `application` tag. ([#2093](https://github.com/turbot/steampipe-plugin-aws/pull/2093))
+- Fixed the `aws_cloudtrail_lookup_event` input param to pass correctly `end_time` as an optional qual. ([#2102](https://github.com/turbot/steampipe-plugin-aws/pull/2102))
+- Fixed the `arn` column of the `aws_elastic_beanstalk_environment` table to correctly return data instead of `null`. ([#2105](https://github.com/turbot/steampipe-plugin-aws/issues/2105))
+- Fixed the `template_body_json` column of the `aws_cloudformation_stack` table to correctly return data by adding a new transform function `formatJsonBody`, replacing the `UnmarshalYAML` transform function. ([#1959](https://github.com/turbot/steampipe-plugin-aws/pull/1959))
+- Fixed the `next_execution_time` column of `aws_ssm_maintenance_window` table to be of `String` datatype instead of `TIMESTAMP`. ([#2116](https://github.com/turbot/steampipe-plugin-aws/pull/2116))
+- Renamed the `client_log_options` column to `connection_log_options` in  `aws_ec2_client_vpn_endpoint` table to correctly return data instead of `null`. ([#2122](https://github.com/turbot/steampipe-plugin-aws/pull/2122))
+
 ## v0.132.0 [2024-02-27]
 
 _What's new?_
