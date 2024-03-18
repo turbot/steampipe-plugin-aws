@@ -356,6 +356,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
 			"aws_rds_db_cluster_parameter_group":                           tableAwsRDSDBClusterParameterGroup(ctx),
 			"aws_rds_db_cluster_snapshot":                                  tableAwsRDSDBClusterSnapshot(ctx),
+			"aws_rds_db_engine_version":                                    tableAwsRDSDBEngineVersion(ctx),
 			"aws_rds_db_event_subscription":                                tableAwsRDSDBEventSubscription(ctx),
 			"aws_rds_db_instance":                                          tableAwsRDSDBInstance(ctx),
 			"aws_rds_db_instance_automated_backup":                         tableAwsRDSDBInstanceAutomatedBackup(ctx),
