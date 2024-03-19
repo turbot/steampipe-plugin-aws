@@ -127,7 +127,7 @@ func listS3ObjectVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	bucketName := d.EqualsQualString("bucket_name")
 
 	// default supported max value is 1000 by ListObjectVersions
 	maxItems := int32(1000)
