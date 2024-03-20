@@ -148,7 +148,7 @@ func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h
 	// Get call
 	op, err := svc.DescribeEgressOnlyInternetGateways(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_vpc_egress_only_internet_gateway.getVpcEgressOnlyInternetGateway", "api_error", err)
+		plugin.Logger(ctx).Error("aws_vpc_egress_only_internet_gateway.getVpcEgressOnlyInternetGateway", "api_error", err)
 		return nil, err
 	}
 

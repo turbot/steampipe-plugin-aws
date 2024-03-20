@@ -203,7 +203,7 @@ func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	// Get call
 	data, err := svc.GetAnalyzer(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_accessanalyzer_analyzer.getAccessAnalyzer", "api_error", err)
+		plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.getAccessAnalyzer", "api_error", err)
 		return nil, err
 	}
 

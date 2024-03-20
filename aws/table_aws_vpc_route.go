@@ -144,7 +144,6 @@ type routeTableRoute = struct {
 //// LIST FUNCTION
 
 func listAwsVpcRoute(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsVpcRoute")
 
 	routeTable := h.Item.(types.RouteTable)
 
@@ -163,7 +162,6 @@ func listAwsVpcRoute(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getAwsVpcRouteTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsVpcRouteTurbotData")
 	routeData := h.Item.(*routeTableRoute)
 	region := d.EqualsQualString(matrixKeyRegion)
 

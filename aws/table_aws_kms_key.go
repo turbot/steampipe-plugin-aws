@@ -294,7 +294,7 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 
 	keyData, err := svc.DescribeKey(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_kms_key.getKmsKey", "api_error", err)
+		plugin.Logger(ctx).Error("aws_kms_key.getKmsKey", "api_error", err)
 		return nil, err
 	}
 

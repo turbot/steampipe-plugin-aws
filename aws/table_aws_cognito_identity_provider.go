@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -128,7 +127,6 @@ func listCognitoIdentityProviders(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	userPoolId := h.Item.(types.UserPoolDescriptionType).Id
-	plugin.Logger(ctx).Debug("aws_cognito_identity_provider.listCognitoIdentityProviders", "user_pool_id", *userPoolId)
 
 	equalQuals := d.EqualsQuals
 	// Minimize the API call with the given user_pool_id
@@ -171,10 +169,8 @@ func listCognitoIdentityProviders(ctx context.Context, d *plugin.QueryData, h *p
 			plugin.Logger(ctx).Error("aws_cognito_identity_provider.listCognitoIdentityProviders", "api_error", err)
 			return nil, err
 		}
-		plugin.Logger(ctx).Debug("aws_cognito_identity_provider.listCognitoIdentityProviders", "providers", fmt.Sprintf("%#v", output.Providers))
 
 		for _, provider := range output.Providers {
-			plugin.Logger(ctx).Debug("aws_cognito_identity_provider.listCognitoIdentityProviders", "provider", fmt.Sprintf("%#v", provider))
 			d.StreamListItem(ctx, identityProviderInfo{provider, userPoolId})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -205,8 +201,6 @@ func getCognitoIdentityProvider(ctx context.Context, d *plugin.QueryData, h *plu
 		userPoolId = d.EqualsQualString("user_pool_id")
 	}
 
-	plugin.Logger(ctx).Debug("aws_cognito_identity_provider.getCognitoIdentityProvider", "provider_name", providerName, "user_pool_id", userPoolId)
-
 	// check if providerName or userPoolId is empty
 	if providerName == "" || userPoolId == "" {
 		return nil, nil
@@ -236,7 +230,6 @@ func getCognitoIdentityProvider(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("aws_cognito_identity_provider.getCognitoIdentityProvider", "api_error", err)
 		return nil, err
 	}
-	plugin.Logger(ctx).Debug("aws_cognito_identity_provider.getCognitoIdentityProvider", "identity_provider", fmt.Sprintf("%#v", *data.IdentityProvider))
 	return *data.IdentityProvider, nil
 }
 
@@ -244,10 +237,8 @@ func getCognitoIdentityProviderTurbotAkas(ctx context.Context, d *plugin.QueryDa
 	region := d.EqualsQualString(matrixKeyRegion)
 	userPoolId := d.EqualsQualString("user_pool_id")
 	data := h.Item.(identityProviderInfo)
-	plugin.Logger(ctx).Debug("aws_cognito_identity_provider.getCognitoIdentityProviderTurbotAkas", "user_pool_id", userPoolId, "provider_name", *data.ProviderName)
 
 	// Get common columns
-
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cognito_identity_provider.getCognitoIdentityProviderTurbotAkas", "common_error", err)

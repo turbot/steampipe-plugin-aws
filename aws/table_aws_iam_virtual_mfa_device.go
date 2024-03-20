@@ -187,7 +187,7 @@ func getIamMfaDeviceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	op, err := svc.ListMFADeviceTags(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_iam_virtual_mfa_device.getIamMfaDeviceTags", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iam_virtual_mfa_device.getIamMfaDeviceTags", "api_error", err)
 		return nil, err
 	}
 

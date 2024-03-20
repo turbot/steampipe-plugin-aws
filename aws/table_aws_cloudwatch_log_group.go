@@ -226,7 +226,7 @@ func getCloudwatchLogGroupDataProtectionPolicy(ctx context.Context, d *plugin.Qu
 	// Get client
 	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroupDataProtectionPolicy", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getCloudwatchLogGroupDataProtectionPolicy", "client_error", err)
 		return nil, err
 	}
 
@@ -237,7 +237,7 @@ func getCloudwatchLogGroupDataProtectionPolicy(ctx context.Context, d *plugin.Qu
 	// Get data protection policy
 	dataProtectionPolicyData, err := svc.GetDataProtectionPolicy(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_log_group.getCloudwatchLogGroupDataProtectionPolicy", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_group.getCloudwatchLogGroupDataProtectionPolicy", "api_error", err)
 		return nil, err
 	}
 

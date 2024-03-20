@@ -321,7 +321,6 @@ func getAwsEcrpublicDescribeImages(ctx context.Context, d *plugin.QueryData, h *
 //// TRANSFORM FUNCTIONS
 
 func ecrpublicTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ecrpublicTagListToTurbotTags")
 	tags := d.HydrateItem.(*ecrpublic.ListTagsForResourceOutput)
 
 	if tags == nil {

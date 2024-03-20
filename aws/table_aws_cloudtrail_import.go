@@ -118,7 +118,7 @@ func listCloudTrailImports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	// Get client
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_import.listCloudTrailImports", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_import.listCloudTrailImports", "client_error", err)
 		return nil, err
 	}
 

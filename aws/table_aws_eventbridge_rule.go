@@ -329,7 +329,6 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 //// TRANSFORM FUNCTIONS
 
 func eventBridgeTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("eventBridgeTagListToTurbotTags")
 	tagList := d.HydrateItem.(*eventbridge.ListTagsForResourceOutput)
 
 	if tagList.Tags == nil {

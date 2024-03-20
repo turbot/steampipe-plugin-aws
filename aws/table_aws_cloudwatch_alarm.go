@@ -223,7 +223,7 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	// Create session
 	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_alarm.listCloudWatchAlarms", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_alarm.listCloudWatchAlarms", "get_client_error", err)
 		return nil, err
 	}
 
@@ -289,7 +289,7 @@ func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// Create session
 	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_alarm.getCloudWatchAlarm", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_alarm.getCloudWatchAlarm", "get_client_error", err)
 		return nil, err
 	}
 
@@ -300,7 +300,7 @@ func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// execute list call
 	item, err := svc.DescribeAlarms(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_alarm.getCloudWatchAlarm", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_alarm.getCloudWatchAlarm", "api_error", err)
 		return nil, err
 	}
 
@@ -317,7 +317,7 @@ func getAwsCloudWatchAlarmTags(ctx context.Context, d *plugin.QueryData, h *plug
 	// Create session
 	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudwatch_alarm.getAwsCloudWatchAlarmTags", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudwatch_alarm.getAwsCloudWatchAlarmTags", "client_error", err)
 		return nil, err
 	}
 

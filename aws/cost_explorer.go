@@ -165,8 +165,6 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 }
 
 func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostAndUsageOutput, _ map[string]*proto.QualValue) []CEMetricRow {
-	logger := plugin.Logger(ctx)
-	logger.Trace("buildCEMetricRows")
 	var rows []CEMetricRow
 
 	for _, result := range costUsageData.ResultsByTime {
@@ -280,8 +278,7 @@ type CEQuals struct {
 }
 
 func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("hydrateKeyQuals")
-	//plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
+	plugin.Logger(ctx).Debug("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
 
 	return &CEQuals{
 		SearchStartTime: d.EqualsQuals["search_start_time"].GetTimestampValue(),

@@ -170,7 +170,7 @@ func listCloudTrailLakeQueries(ctx context.Context, d *plugin.QueryData, h *plug
 	// Get client
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_query.listCloudTrailLakeQueries", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_query.listCloudTrailLakeQueries", "client_error", err)
 		return nil, err
 	}
 
@@ -253,7 +253,7 @@ func getCloudTrailQuery(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Create session
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_query.getCloudTrailQuery", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_query.getCloudTrailQuery", "client_error", err)
 		return nil, err
 	}
 
@@ -265,7 +265,7 @@ func getCloudTrailQuery(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// execute list call
 	op, err := svc.DescribeQuery(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_query.getCloudTrailQuery", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_query.getCloudTrailQuery", "api_error", err)
 		return nil, err
 	}
 

@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -272,10 +271,8 @@ func listCognitoUserPools(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 			plugin.Logger(ctx).Error("aws_cognito_user_pool.listCognitoUserPools", "api_error", err)
 			return nil, err
 		}
-		plugin.Logger(ctx).Debug("aws_cognito_user_pool.listCognitoUserPools", "user_pools", fmt.Sprintf("%#v", output.UserPools))
 
 		for _, userPool := range output.UserPools {
-			plugin.Logger(ctx).Debug("aws_cognito_user_pool.listCognitoUserPools", "user_pool", fmt.Sprintf("%#v", userPool))
 			d.StreamListItem(ctx, userPool)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -300,7 +297,6 @@ func getCognitoUserPool(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	} else {
 		id = d.EqualsQualString("id")
 	}
-	plugin.Logger(ctx).Debug("aws_cognito_user_pool.getCognitoUserPool", "id", id)
 
 	// check if id is empty
 	if id == "" {
@@ -330,6 +326,5 @@ func getCognitoUserPool(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		plugin.Logger(ctx).Error("aws_cognito_user_pool.getCognitoUserPool", "api_error", err)
 		return nil, err
 	}
-	plugin.Logger(ctx).Debug("aws_cognito_user_pool.getCognitoUserPool", "user_pool", fmt.Sprintf("%#v", *data.UserPool))
 	return *data.UserPool, nil
 }

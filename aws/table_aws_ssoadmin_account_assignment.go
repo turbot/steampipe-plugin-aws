@@ -102,7 +102,6 @@ func listSsoAdminAccountAssignments(ctx context.Context, d *plugin.QueryData, h 
 		input.InstanceArn = aws.String(i)
 	}
 
-	plugin.Logger(ctx).Debug("aws_ssoadmin_account_assignment.listSsoAdminAccountAssignments", "input", input)
 	paginator := ssoadmin.NewListAccountAssignmentsPaginator(svc, input, func(o *ssoadmin.ListAccountAssignmentsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true

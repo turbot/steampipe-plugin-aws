@@ -298,7 +298,6 @@ func listWorkspacesDirectoriesTags(ctx context.Context, d *plugin.QueryData, h *
 
 // https://docs.aws.amazon.com/workspaces/latest/adminguide/workspaces-access-control.html
 func getWorkspaceDirectoryArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Debug("getDirectoryArn")
 	region := d.EqualsQualString(matrixKeyRegion)
 	DirectoryId := h.Item.(types.WorkspaceDirectory).DirectoryId
 
