@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
@@ -552,10 +553,10 @@ func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plu
 
 	params := &s3.GetPublicAccessBlockInput{Bucket: bucket.Name}
 	defaultAccessBlock := &types.PublicAccessBlockConfiguration{
-		BlockPublicAcls:       false,
-		BlockPublicPolicy:     false,
-		IgnorePublicAcls:      false,
-		RestrictPublicBuckets: false,
+		BlockPublicAcls:       aws.Bool(false),
+		BlockPublicPolicy:     aws.Bool(false),
+		IgnorePublicAcls:      aws.Bool(false),
+		RestrictPublicBuckets: aws.Bool(false),
 	}
 
 	accessBlock, err := svc.GetPublicAccessBlock(ctx, params)

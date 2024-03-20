@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/drs"
 	"github.com/aws/aws-sdk-go-v2/service/drs/types"
 
@@ -151,7 +152,7 @@ func listAwsDRSRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 		}
 	}
 
-	input.MaxResults = int32(maxItems)
+	input.MaxResults = aws.Int32(maxItems)
 	sourceServerID := d.EqualsQualString("source_server_id")
 	recoveryInstanceId := d.EqualsQualString("recovery_instance_id")
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/macie2/types"
 
@@ -177,7 +178,7 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 
 	maxItems := int32(200)
 	input := &macie2.ListClassificationJobsInput{
-		MaxResults: maxItems,
+		MaxResults: aws.Int32(maxItems),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

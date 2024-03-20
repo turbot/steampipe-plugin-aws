@@ -169,7 +169,7 @@ func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin
 		}
 	}
 
-	input.MaxResults = int32(maxItems)
+	input.MaxResults = aws.Int32(maxItems)
 	sourceServerID := d.EqualsQualString("source_server_id")
 	stagingAccountID := d.EqualsQualString("staging_account_id")
 	hardwareID := d.EqualsQualString("hardware_id")

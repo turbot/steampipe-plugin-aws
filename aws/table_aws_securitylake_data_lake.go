@@ -81,15 +81,15 @@ func getSecurityLakeDataLake(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, nil
 	}
 
-	input := &securitylake.GetDatalakeInput{}
+	input := &securitylake.GetDataLakeSourcesInput{}
 
-	resp, err := svc.GetDatalake(ctx, input)
+	resp, err := svc.GetDataLakeSources(ctx, input)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_securitylake_data_lake.getSecurityLakeDataLake", "api_error", err)
 		return nil, err
 	}
 
-	for _, v := range resp.Configurations {
+	for _, v := range resp.DataLakeSources {
 		d.StreamLeafListItem(ctx, v)
 	}
 
