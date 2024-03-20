@@ -44,26 +44,28 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		},
 		RateLimiters: []*rate_limiter.Definition{
 			{
-				Name:           "aws_servicequotas_list_tags_for_resource",
-				FillRate:       5,
-				BucketSize:     5,
-				Scope:          []string{"connection", "region", "service", "action"},
-				Where:          "service = 'servicequotas' and action = 'ListServiceQuotas'",
-				MaxConcurrency: 10,
-			},
-			{
-				Name:       "aws_servicequotas_list_tags_for_resource",
-				FillRate:   10,
-				BucketSize: 10,
-				Scope:      []string{"connection", "region", "service", "action"},
-				Where:      "service = 'servicequotas' and action = 'ListTagsForResource'",
-			},
-			{
 				Name:       "aws_servicequotas_list_aws_default_service_quotas",
 				FillRate:   5,
 				BucketSize: 5,
 				Scope:      []string{"connection", "region", "service", "action"},
 				Where:      "service = 'servicequotas' and action = 'ListAWSDefaultServiceQuotas'",
+			},
+			{
+				Name:       "aws_servicequotas_list_service_quotas",
+				FillRate:   5,
+				BucketSize: 5,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'servicequotas' and action = 'ListServiceQuotas'",
+			},
+			// We still get throttled heavily by AWS when listing tags, even though
+			// we are within AWS limits per https://docs.aws.amazon.com/servicequotas/latest/userguide/reference_limits.html.
+			// But this limiter still significantly reduces the numbers we get.
+			{
+				Name:       "aws_servicequotas_list_tags_for_resource",
+				FillRate:   5,
+				BucketSize: 5,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'servicequotas' and action = 'ListTagsForResource'",
 			},
 		},
 		TableMap: map[string]*plugin.Table{
