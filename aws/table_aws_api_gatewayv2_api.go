@@ -56,6 +56,11 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "api_gateway_managed",
+				Description: "Specifies whether an API is managed by API Gateway.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "protocol_type",
 				Description: "The API protocol",
 				Type:        proto.ColumnType_STRING,
@@ -71,8 +76,18 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "disable_schema_validation",
+				Description: "Avoid validating models when creating a deployment. Supported only for WebSocket APIs.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "route_selection_expression",
 				Description: "The route selection expression for the API. For HTTP APIs, the routeSelectionExpression must be ${request.method} ${request.path}. If not provided, this will be the default for HTTP APIs",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "version",
+				Description: "A version identifier for the API.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -80,6 +95,23 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 				Description: "The timestamp when the API was created",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+			{
+				Name:        "cors_configuration",
+				Description: "A CORS configuration. Supported only for HTTP APIs.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "import_info",
+				Description: "The validation information during API import. This may include particular properties of your OpenAPI definition which are ignored during import. Supported only for HTTP APIs.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "warnings",
+				Description: "The warning messages reported when failonwarnings is turned on during API import.",
+				Type:        proto.ColumnType_JSON,
+			},
+
+			//// Steampipe standard columns
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
