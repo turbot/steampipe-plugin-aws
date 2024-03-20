@@ -88,7 +88,7 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "findings",
-				Description: "A list of findings retrieved from the analyzer that match the filter criteria specified, if any.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use table aws_accessanalyzer_finding instead. A list of findings retrieved from the analyzer that match the filter criteria specified, if any.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAccessAnalyzerFindings,
 				Transform:   transform.FromValue(),
