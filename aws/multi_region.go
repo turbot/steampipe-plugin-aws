@@ -110,6 +110,14 @@ func SupportedRegionMatrix(serviceID string) func(ctx context.Context, d *plugin
 	return SupportedRegionMatrixWithExclusions(serviceID, []string{})
 }
 
+
+// This function is used in the GetMatrixItemFunc implementations within the table definitions.
+// GetMatrixItemFunc is designed to accept a dingle return type `[]map[string]interface{}``.
+// AWS regional tables make API calls based on the region matrix return by the SupportedRegionMatrixWithExclusions function.
+// In cases of incorrect credential configurations, listQueryRegionsForConnection returns an error, such as: "Error: operation error STS: GetCallerIdentity, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, https response error StatusCode: 403, RequestID: a1028f7b-cb77-4b9e-b1e5-ce96ea77150e, api error InvalidClientTokenId: The security token included in the request is invalid."
+// When an error is encountered, it should trigger a panic with that error; otherwise, regional tables return an empty row.
+// The reason regional tables return an empty row because the function(SupportedRegionMatrixWithExclusions) returns an empty `[]map[string]interface{}` upon encountering any error.
+
 // Similar to SupportedRegionMatrix, but excludes the regions in excludeRegions
 // for manual overrides if the service definition is incorrect.
 func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []string) func(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
@@ -122,7 +130,7 @@ func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []stri
 		queryRegions, err := listQueryRegionsForConnection(ctx, d)
 		if err != nil {
 			plugin.Logger(ctx).Error("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "query_regions_error", err)
-			return []map[string]interface{}{}
+			panic(err)
 		}
 		plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "query_regions", queryRegions)
 		// Get the possible regions for this service
@@ -135,7 +143,7 @@ func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []stri
 			serviceRegions, err = listRegionsForServiceWithExclusions(ctx, d, serviceID, excludeRegions)
 			if err != nil {
 				plugin.Logger(ctx).Error("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions_error", err)
-				return []map[string]interface{}{}
+				panic(err)
 			}
 			plugin.Logger(ctx).Trace("SupportedRegionMatrixWithExclusions", "connection_name", d.Connection.Name, "serviceID", serviceID, "excludeRegions", excludeRegions, "service_regions", serviceRegions)
 		}
