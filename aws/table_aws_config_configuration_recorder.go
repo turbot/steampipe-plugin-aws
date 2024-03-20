@@ -51,6 +51,11 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "recording_mode",
+				Description: "Specifies the default recording frequency that Config uses to record configuration changes. Config supports Continuous recording and Daily recording.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "recording_group",
 				Description: "Specifies the types of AWS resources for which AWS Config records configuration changes.",
 				Type:        proto.ColumnType_JSON,
