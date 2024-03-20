@@ -55,6 +55,12 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "scalable_target_arn",
+				Description: "The ARN of the scalable target.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ScalableTargetARN"),
+			},
+			{
 				Name:        "scalable_dimension",
 				Description: "The scalable dimension associated with the scalable target. This string consists of the service namespace, resource type, and scaling property.",
 				Type:        proto.ColumnType_STRING,
