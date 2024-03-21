@@ -50,6 +50,16 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("SourceServerID"),
 			},
 			{
+				Name:        "agent_version",
+				Description: "The version of the DRS agent installed on the recovery instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "origin_availability_zone",
+				Description: "AWS availability zone associated with the recovery instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "ec2_instance_id",
 				Description: "The EC2 instance ID of the recovery instance.",
 				Type:        proto.ColumnType_STRING,
