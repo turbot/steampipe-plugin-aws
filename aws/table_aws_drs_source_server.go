@@ -56,6 +56,17 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "agent_version",
+				Description: "The version of the DRS agent installed on the source server.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_network_id",
+				Description: "ID of the Source Network which is protecting this Source Server's network.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SourceNetworkID"),
+			},
+			{
 				Name:        "source_properties",
 				Description: "The source properties of the Source Server.",
 				Type:        proto.ColumnType_JSON,
