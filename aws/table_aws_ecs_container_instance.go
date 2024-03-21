@@ -87,6 +87,11 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "health_status",
+				Description: "An object representing the health status of the container instance.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "running_tasks_count",
 				Description: "CPU and memory that is available for new tasks.",
 				Type:        proto.ColumnType_INT,
