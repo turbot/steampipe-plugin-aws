@@ -97,6 +97,11 @@ func tableAwsEmrInstanceFleet(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "resize_specifications",
+				Description: "The resize specification for the instance fleet.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "state_change_reason",
 				Description: "Provides status change reason details for the instance fleet.",
 				Type:        proto.ColumnType_JSON,
