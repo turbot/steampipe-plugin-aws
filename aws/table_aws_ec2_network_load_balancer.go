@@ -71,6 +71,11 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "enforce_security_group_inbound_rules_on_private_link_traffic",
+				Description: "Indicates whether to evaluate inbound security group rules for traffic sent to a Network Load Balancer through Amazon Web Services PrivateLink.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "scheme",
 				Description: "The load balancing scheme of load balancer",
 				Type:        proto.ColumnType_STRING,
