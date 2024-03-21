@@ -152,6 +152,11 @@ func tableAwsDmsEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "timestream_settings",
+				Description: "The settings for the Amazon Timestream target endpoint. For more information, see the TimestreamSettings structure.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "dynamo_db_settings",
 				Description: "The settings for the DynamoDB target endpoint.",
 				Type:        proto.ColumnType_JSON,
