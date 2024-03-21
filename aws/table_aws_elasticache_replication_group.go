@@ -60,6 +60,41 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "auto_minor_version_upgrade",
+				Description: "If you are running Redis engine version 6.0 or later, set this parameter to yes if you want to opt-in to the next auto minor version upgrade campaign.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "ip_discovery",
+				Description: "The network type associated with the cluster, either ipv4 | ipv6.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "network_type",
+				Description: "Must be either ipv4 | ipv6 | dual_stack.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "cluster_mode",
+				Description: "Enabled or Disabled. To modify cluster mode from Disabled to Enabled, you must first set the cluster mode to Compatible.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "data_tiering",
+				Description: "Enables data tiering. Data tiering is only supported for replication groups using the r6gd node type.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "transit_encryption_mode",
+				Description: "A setting that allows you to migrate your clients to use in-transit encryption, with no downtime.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "replication_group_create_time",
+				Description: "The date and time when the cluster was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
 				Name:        "auth_token_enabled",
 				Description: "A flag that enables using an AuthToken (password) when issuing Redis commands.",
 				Type:        proto.ColumnType_BOOL,
@@ -123,6 +158,11 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 			{
 				Name:        "global_replication_group_info",
 				Description: "The name of the Global Datastore and role of this replication group in the Global Datastore.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "log_delivery_configurations",
+				Description: "Returns the destination, format and type of the logs.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

@@ -116,21 +116,6 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "cache_nodes",
-				Description: "A list of cache nodes that are members of the cluster.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "cache_security_groups",
-				Description: "A list of cache security group elements, composed of name and status sub-elements.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "log_delivery_configurations",
-				Description: "Returns the destination, format and type of the logs.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "cache_subnet_group_name",
 				Description: "The name of the cache subnet group associated with the cluster.",
 				Type:        proto.ColumnType_STRING,
@@ -193,6 +178,21 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "cache_parameter_group",
 				Description: "Status of the cache parameter group.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "cache_nodes",
+				Description: "A list of cache nodes that are members of the cluster.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "cache_security_groups",
+				Description: "A list of cache security group elements, composed of name and status sub-elements.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "log_delivery_configurations",
+				Description: "Returns the destination, format and type of the logs.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
