@@ -90,6 +90,12 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsElasticsearchDomain,
 			},
 			{
+				Name:        "domain_processing_status",
+				Description: "The status of any changes that are currently in progress for the domain.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsElasticsearchDomain,
+			},
+			{
 				Name:        "created",
 				Description: "The domain creation status.",
 				Type:        proto.ColumnType_BOOL,
@@ -200,6 +206,18 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsElasticsearchDomain,
 				Transform:   transform.FromField("VPCOptions"),
+			},
+			{
+				Name:        "change_progress_details",
+				Description: "Specifies change details of the domain configuration change.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticsearchDomain,
+			},
+			{
+				Name:        "modifying_properties",
+				Description: "Information about the domain properties that are currently being modified.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticsearchDomain,
 			},
 			{
 				Name:        "tags_src",
