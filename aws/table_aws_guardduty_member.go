@@ -70,6 +70,11 @@ func tableAwsGuardDutyMember(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "administrator_id",
+				Description: "The administrator account ID.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "updated_at",
 				Description: "The last-updated timestamp of the member.",
 				Type:        proto.ColumnType_TIMESTAMP,
