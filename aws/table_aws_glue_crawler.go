@@ -120,6 +120,11 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "lake_formation_configuration",
+				Description: "Specifies whether the crawler should use Lake Formation credentials for the crawler instead of the IAM role credentials.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "configuration",
 				Description: "Crawler configuration information.",
 				Type:        proto.ColumnType_JSON,
