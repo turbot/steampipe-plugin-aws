@@ -16,15 +16,9 @@ import (
 
 //// TABLE DEFINITION
 
-
-type listFindingsInfo = struct {
-	Finding types.FindingSummary
-	Arn     string
-}
-
-type getFindingInfo = struct {
+type accessanalyzerFindingInfo = struct {
 	Finding types.Finding
-	Arn     string
+	AccessAnalyzerArn     string
 }
 
 func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
@@ -56,7 +50,7 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Name:        "access_analyzer_arn",
 				Description: "The Amazon Resource Name (ARN) of the analyzer that generated the finding.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Arn"),
+				Transform:   transform.FromField("AccessAnalyzerArn"),
 			},
 			{
 				Name:        "id",
@@ -68,7 +62,7 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Name:        "action",
 				Description: "The action in the analyzed policy statement that an external principal has permission to use.",
 				Type:        proto.ColumnType_JSON,
-				Transform:  transform.FromField("Finding.Action"),
+				Transform:   transform.FromField("Finding.Action"),
 			},
 			{
 				Name:        "analyzed_at",
@@ -80,7 +74,7 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Name:        "condition",
 				Description: "The condition in the analyzed policy statement that resulted in a finding.",
 				Type:        proto.ColumnType_JSON,
-				Transform:  transform.FromField("Finding.Condition"),
+				Transform:   transform.FromField("Finding.Condition"),
 			},
 			{
 				Name:        "created_at",
@@ -104,7 +98,7 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Name:        "principal",
 				Description: "The external principal that has access to a resource within the zone of trust.",
 				Type:        proto.ColumnType_JSON,
-				Transform:  transform.FromField("Finding.Principal"),
+				Transform:   transform.FromField("Finding.Principal"),
 			},
 			{
 				Name:        "resource",
@@ -160,7 +154,7 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(arnToAkas),
+				Transform:   transform.FromField("AccessAnalyzerArn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -169,10 +163,21 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	arn := d.EqualsQualString("access_analyzer_arn")
+
+	var arn string
+	if h.Item != nil {
+		arn = *h.Item.(types.AnalyzerSummary).Arn
+	}
 
 	if arn == "" {
-		arn = *h.Item.(types.AnalyzerSummary).Arn
+		return nil, nil
+	}
+
+	// Minimize API call with given Access analyzer ARN
+	if arn != "" && d.EqualsQualString("access_analyzer_arn") != "" {
+		if d.EqualsQualString("access_analyzer_arn") != arn {
+			return nil, nil
+		}
 	}
 
 	// Create session
@@ -193,11 +198,7 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			if limit < 1 {
-				maxItems = int32(1)
-			} else {
-				maxItems = int32(limit)
-			}
+			maxItems = int32(limit)
 		}
 	}
 
@@ -219,7 +220,22 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		}
 
 		for _, finding := range output.Findings {
-			d.StreamListItem(ctx, listFindingsInfo{finding, arn})
+			f := types.Finding{
+				AnalyzedAt:           finding.AnalyzedAt,
+				Condition:            finding.Condition,
+				CreatedAt:            finding.CreatedAt,
+				Error:                finding.Error,
+				Id:                   finding.Id,
+				IsPublic:             finding.IsPublic,
+				Principal:            finding.Principal,
+				Resource:             finding.Resource,
+				ResourceOwnerAccount: finding.ResourceOwnerAccount,
+				ResourceType:         finding.ResourceType,
+				Sources:              finding.Sources,
+				Status:               finding.Status,
+				UpdatedAt:            finding.UpdatedAt,
+			}
+			d.StreamListItem(ctx, accessanalyzerFindingInfo{f, arn})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -236,19 +252,19 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 func getAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := d.EqualsQuals["id"].GetStringValue()
 	arn := d.EqualsQuals["access_analyzer_arn"].GetStringValue()
-	
-	if len(id) < 1 || len(arn) < 1 {
+
+	if id == "" || arn == "" {
 		return nil, nil
 	}
 
-// 	// Create Session
+	// 	// Create Session
 	svc, err := AccessAnalyzerClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.getAccessAnalyzerFindings", "client_error", err)
 		return nil, err
 	}
 
-// 	// Build the params
+	// 	// Build the params
 	params := &accessanalyzer.GetFindingInput{
 		AnalyzerArn: &arn,
 		Id:          &id,
@@ -261,5 +277,5 @@ func getAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 
-	return getFindingInfo{*data.Finding, arn}, nil
+	return accessanalyzerFindingInfo{*data.Finding, arn}, nil
 }
