@@ -20,6 +20,7 @@ Retrieve essential details of findings to understand potential access issues and
 ```sql+postgres
 select
   id,
+  access_analyzer_arn,
   analyzed_at,
   resource_type,
   status,
@@ -47,7 +48,7 @@ Identify findings where resources are potentially exposed to public access. High
 select
   id,
   resource_type,
-  resource_arn,
+  access_analyzer_arn,
   status,
   is_public
 from
@@ -59,8 +60,9 @@ where
 ```sql+sqlite
 select
   id,
-  resource,
-  analyzed_at,
+  resource_type,
+  access_analyzer_arn,
+  status,
   is_public
 from
   aws_accessanalyzer_finding
