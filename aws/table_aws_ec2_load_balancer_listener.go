@@ -77,6 +77,11 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 				Description: "The default actions for the listener.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "mutual_authentication",
+				Description: "The mutual authentication configuration information.",
+				Type:        proto.ColumnType_JSON,
+			},
 
 			// Standard columns
 			{
