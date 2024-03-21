@@ -28,9 +28,9 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "access_analyzer_arn"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Hydrate: getAccessAnalyzerFindings,
+			Hydrate: getAccessAnalyzerFinding,
 			Tags:    map[string]string{"service": "access-analyzer", "action": "GetFinding"},
 		},
 		List: &plugin.ListConfig{
@@ -162,7 +162,7 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAccessAnalyzersFinding(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	var arn string
 	if h.Item != nil {
@@ -183,7 +183,7 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 	// Create session
 	svc, err := AccessAnalyzerClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFindings", "client_error", err)
+		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFinding", "client_error", err)
 		return nil, err
 	}
 
@@ -215,7 +215,7 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFindings", "api_error", err)
+			plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFinding", "api_error", err)
 			return nil, err
 		}
 
@@ -257,14 +257,14 @@ func getAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, nil
 	}
 
-	// 	// Create Session
+	// Create Session
 	svc, err := AccessAnalyzerClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.getAccessAnalyzerFindings", "client_error", err)
 		return nil, err
 	}
 
-	// 	// Build the params
+	// Build the params
 	params := &accessanalyzer.GetFindingInput{
 		AnalyzerArn: &arn,
 		Id:          &id,
