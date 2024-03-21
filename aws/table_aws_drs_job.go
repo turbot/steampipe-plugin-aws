@@ -74,6 +74,11 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 				Description: "A list of servers that the Job is acting upon.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "participating_resources",
+				Description: "A list of resources that the Job is acting upon.",
+				Type:        proto.ColumnType_JSON,
+			},
 			// Steampipe standard columns
 			{
 				Name:        "title",
