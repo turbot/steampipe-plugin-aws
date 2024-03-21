@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
-	// "strings"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types"
+	"github.com/aws/smithy-go"
 
 	accessanalyzerv1 "github.com/aws/aws-sdk-go/service/accessanalyzer"
 
@@ -17,8 +18,8 @@ import (
 //// TABLE DEFINITION
 
 type accessanalyzerFindingInfo = struct {
-	Finding types.Finding
-	AccessAnalyzerArn     string
+	Finding           types.Finding
+	AccessAnalyzerArn string
 }
 
 func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
@@ -28,7 +29,7 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "access_analyzer_arn"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getAccessAnalyzerFinding,
 			Tags:    map[string]string{"service": "access-analyzer", "action": "GetFinding"},
@@ -37,6 +38,9 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 			ParentHydrate: listAccessAnalyzers,
 			Hydrate:       listAccessAnalyzersFindings,
 			Tags:          map[string]string{"service": "access-analyzer", "action": "ListFindings"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "access_analyzer_arn",
@@ -50,7 +54,6 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Name:        "access_analyzer_arn",
 				Description: "The Amazon Resource Name (ARN) of the analyzer that generated the finding.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AccessAnalyzerArn"),
 			},
 			{
 				Name:        "id",
@@ -144,25 +147,13 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.Id"),
 			},
-			{
-				Name:        "tags",
-				Description: "A placeholder for tags, as findings typically do not have tags but are included for consistency.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromConstant(map[string]*string{}),
-			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("AccessAnalyzerArn").Transform(arnToAkas),
-			},
 		}),
 	}
 }
 
 //// LIST FUNCTION
 
-func listAccessAnalyzersFinding(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	var arn string
 	if h.Item != nil {
@@ -183,7 +174,7 @@ func listAccessAnalyzersFinding(ctx context.Context, d *plugin.QueryData, h *plu
 	// Create session
 	svc, err := AccessAnalyzerClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFinding", "client_error", err)
+		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFindings", "client_error", err)
 		return nil, err
 	}
 
@@ -215,7 +206,18 @@ func listAccessAnalyzersFinding(ctx context.Context, d *plugin.QueryData, h *plu
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFinding", "api_error", err)
+			plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFindings", "api_error", err)
+			return nil, err
+		}
+
+		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
+					return nil, nil
+				}
+			}
+			plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFindings", "api_error", err)
 			return nil, err
 		}
 
@@ -249,7 +251,7 @@ func listAccessAnalyzersFinding(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// HYDRATE FUNCTIONS
 
-func getAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := d.EqualsQuals["id"].GetStringValue()
 	arn := d.EqualsQuals["access_analyzer_arn"].GetStringValue()
 
@@ -260,7 +262,7 @@ func getAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plug
 	// Create Session
 	svc, err := AccessAnalyzerClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.getAccessAnalyzerFindings", "client_error", err)
+		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.getAccessAnalyzerFinding", "client_error", err)
 		return nil, err
 	}
 
@@ -273,7 +275,18 @@ func getAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plug
 	// Get call
 	data, err := svc.GetFinding(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_accessanalyzer_finding.getAccessAnalyzerFindings", "api_error", err)
+		plugin.Logger(ctx).Debug("aws_accessanalyzer_finding.getAccessAnalyzerFinding", "api_error", err)
+		return nil, err
+	}
+
+	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.getAccessAnalyzerFinding", "api_error", err)
 		return nil, err
 	}
 
