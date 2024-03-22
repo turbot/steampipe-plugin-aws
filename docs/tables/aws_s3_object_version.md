@@ -91,7 +91,7 @@ and
   key = 'test/template.txt';
 ```
 
-# Get the specific version details for an object.
+# Get the specific version details of objects.
 
 ```sql+postgres
  select
