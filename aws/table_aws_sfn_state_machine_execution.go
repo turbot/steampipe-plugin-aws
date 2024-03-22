@@ -94,7 +94,31 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 				Description: "The date the execution was last redriven.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getStepFunctionsStateMachineExecution,
-				Transform: transform.FromField("RedriveDate").Transform(trans),
+				Transform:   transform.FromField("RedriveDate").Transform(transform.NullIfZeroValue),
+			},
+			{
+				Name:        "redrive_status",
+				Description: "Indicates whether or not an execution can be redriven at a given point in time.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachineExecution,
+			},
+			{
+				Name:        "redrive_status_reason",
+				Description: "When redriveStatus is NOT_REDRIVABLE , redriveStatusReason specifies the reason why an execution cannot be redriven.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachineExecution,
+			},
+			{
+				Name:        "state_machine_alias_arn",
+				Description: "The Amazon Resource Name (ARN) of the state machine alias associated with the execution.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachineExecution,
+			},
+			{
+				Name:        "state_machine_version_arn",
+				Description: "The Amazon Resource Name (ARN) of the state machine version associated with the execution.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachineExecution,
 			},
 			{
 				Name:        "output",
