@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -21,10 +20,7 @@ func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "s3", "action": "ListObjectVersions"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Required, CacheMatch: "exact"},
-				{Name: "prefix", Require: plugin.Optional},
-				{Name: "encoding_type", Require: plugin.Optional},
-				{Name: "delimiter", Require: plugin.Optional},
-				{Name: "version_id_marker", Require: plugin.Optional},
+				{Name: "key", Require: plugin.Optional},
 			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
@@ -41,43 +37,56 @@ func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 				Transform:   transform.FromQual("bucket_name"),
 			},
 			{
-				Name:        "delimiter",
-				Description: "The delimiter grouping the included keys.",
+				Name:        "key",
+				Description: "The object key.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "encoding_type",
-				Description: "Encoding type used by Amazon S3 to encode object key names in the XML response.",
+				Name:        "storage_class",
+				Description: "The class of storage used to store the object.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "version_id_marker",
-				Description: "Marks the last version of the key returned in a truncated response.",
+				Name:        "version_id",
+				Description: "The entity tag is an MD5 hash of that version of the object.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "prefix",
-				Description: "Selects objects that start with the value supplied by this parameter.",
+				Name:        "owner_display_name",
+				Description: "Container for the display name of the owner.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Owner.DisplayName"),
 			},
 			{
-				Name:        "is_truncated",
-				Description: "A flag that indicates whether Amazon S3 returned all of the results that satisfied the search criteria.",
+				Name:        "owner_id",
+				Description: "The entity tag is an MD5 hash of that version of the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Owner.ID"),
+			},
+			{
+				Name:        "etag",
+				Description: "Version ID of an object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ETag"),
+			},
+			{
+				Name:        "size",
+				Description: "Size in bytes of the object.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "is_latest",
+				Description: "Specifies whether the object is (true) or is not (false) the latest version of an object.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "common_prefixes",
-				Description: "All of the keys rolled up into a common prefix count as a single return when calculating the number of returns.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "last_modified",
+				Description: "Date and time the object was last modified.",
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "delete_markers",
-				Description: "Specifies caching behavior along the request/reply chain.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "version",
-				Description: "Container for version information.",
+				Name:        "checksum_algorithm",
+				Description: "The algorithm that was used to create a checksum of the object.",
 				Type:        proto.ColumnType_JSON,
 			},
 
@@ -86,7 +95,7 @@ func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Version.Key"),
+				Transform:   transform.FromField("VersionId"),
 			},
 			{
 				Name:        "region",
@@ -97,18 +106,6 @@ func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-type ObjectVersionDetails struct {
-	CommonPrefixes  []types.CommonPrefix
-	DeleteMarkers   []types.DeleteMarkerEntry
-	Delimiter       *string
-	EncodingType    types.EncodingType
-	IsTruncated     bool
-	BucketName      *string
-	Prefix          *string
-	VersionIdMarker *string
-	Version         types.ObjectVersion
 }
 
 func listS3ObjectVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -146,17 +143,8 @@ func listS3ObjectVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		MaxKeys: maxItems,
 	}
 
-	if d.EqualsQualString("prefix") != "" {
-		input.Prefix = aws.String(d.EqualsQualString("prefix"))
-	}
-	if d.EqualsQualString("encoding_type") != "" {
-		input.EncodingType = types.EncodingType(d.EqualsQualString("encoding_type"))
-	}
-	if d.EqualsQualString("delimeter") != "" {
-		input.Delimiter = aws.String(d.EqualsQualString("delimeter"))
-	}
-	if d.EqualsQualString("version_id_marker") != "" {
-		input.VersionIdMarker = aws.String(d.EqualsQualString("version_id_marker"))
+	if d.EqualsQualString("key") != "" {
+		input.Prefix = aws.String(d.EqualsQualString("key"))
 	}
 
 	// execute list call
@@ -171,17 +159,7 @@ func listS3ObjectVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		}
 
 		for _, version := range objects.Versions {
-			d.StreamListItem(ctx, ObjectVersionDetails{
-				CommonPrefixes:  objects.CommonPrefixes,
-				DeleteMarkers:   objects.DeleteMarkers,
-				Delimiter:       objects.Delimiter,
-				BucketName:      objects.Name,
-				IsTruncated:     objects.IsTruncated,
-				EncodingType:    objects.EncodingType,
-				Prefix:          objects.Prefix,
-				VersionIdMarker: objects.VersionIdMarker,
-				Version:         version,
-			})
+			d.StreamListItem(ctx, version)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
