@@ -127,6 +127,21 @@ func tableAwsRDSDBInstanceAutomatedBackup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "aws_backup_recovery_point_arn",
+				Description: "The Amazon Resource Name (ARN) of the recovery point in Amazon Web Services Backup.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "dedicated_log_volume",
+				Description: "Indicates whether the DB instance has a dedicated log volume (DLV) enabled.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "multi_tenant",
+				Description: "Specifies whether the automatic backup is for a DB instance in the multi-tenant configuration (TRUE) or the single-tenant configuration (FALSE).",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "license_model",
 				Description: "The Amazon Web Services KMS key ID for an automated backup. The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key.",
 				Type:        proto.ColumnType_STRING,
