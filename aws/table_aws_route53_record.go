@@ -119,6 +119,26 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Record.Weight"),
 			},
 			{
+				Name:        "cidr_routing_config",
+				Description: "The object that is specified in resource record set object when you are linking a resource record set to a CIDR location.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Record.CidrRoutingConfig"),
+			},
+			{
+				Name:        "geo_proximity_location",
+				Description: "GeoproximityLocation resource record sets only: A complex type that lets you control how Route 53 responds to DNS queries based on the geographic origin of the query and your resources.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Record.GeoProximityLocation"),
+			},
+			{
+				Name:        "resource_records",
+				Description: "Information about the resource records to act upon. If you're creating an alias resource record set, omit ResourceRecords.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Record.ResourceRecords"),
+			},
+
+			//// Steampipe Standard Column
+			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
