@@ -66,6 +66,37 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 				Hydrate:     getStepFunctionsStateMachineExecution,
 			},
 			{
+				Name:        "cause",
+				Description: "The cause string if the state machine execution failed.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachineExecution,
+			},
+			{
+				Name:        "error",
+				Description: "The error string if the state machine execution failed.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachineExecution,
+			},
+			{
+				Name:        "map_run_arn",
+				Description: "The Amazon Resource Name (ARN) that identifies a Map Run, which dispatched this execution.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachineExecution,
+			},
+			{
+				Name:        "redrive_count",
+				Description: "The number of times you've redriven an execution. If you have not yet redriven an execution, the redriveCount is 0.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getStepFunctionsStateMachineExecution,
+			},
+			{
+				Name:        "redrive_date",
+				Description: "The date the execution was last redriven.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getStepFunctionsStateMachineExecution,
+				Transform: transform.FromField("RedriveDate").Transform(trans),
+			},
+			{
 				Name:        "output",
 				Description: "The JSON output data of the execution.",
 				Type:        proto.ColumnType_STRING,
