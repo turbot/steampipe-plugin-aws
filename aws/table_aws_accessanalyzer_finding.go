@@ -3,7 +3,9 @@ package aws
 import (
 	"context"
 	"errors"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types"
 	"github.com/aws/smithy-go"
@@ -44,6 +46,63 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "access_analyzer_arn",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "id",
+					Require: plugin.Optional,
+
+				},
+				{
+					Name:    "action",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "analyzed_at",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "condition",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "created_at",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "error",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "is_public",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "principal",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "resource",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "resource_owner_account",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "resource_type",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "sources",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "status",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "updated_at",
 					Require: plugin.Optional,
 				},
 			},
@@ -181,10 +240,7 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 	// The maximum number for MaxResults parameter is not defined by the API
 	// We have set the MaxResults to 1000 based on our test
 	maxItems := int32(1000)
-	input := &accessanalyzer.ListFindingsInput{
-		AnalyzerArn: &arn,
-	}
-
+	
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -193,7 +249,13 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		}
 	}
 
-	input.MaxResults = &maxItems
+	filters := buildListFindingsFilters(d.Quals)
+
+	input := &accessanalyzer.ListFindingsInput{
+		AnalyzerArn: &arn,
+		Filter:      filters,
+		MaxResults:  &maxItems,
+	}
 
 	paginator := accessanalyzer.NewListFindingsPaginator(svc, input, func(o *accessanalyzer.ListFindingsPaginatorOptions) {
 		o.Limit = maxItems
@@ -291,4 +353,56 @@ func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	return accessanalyzerFindingInfo{*data.Finding, arn}, nil
+}
+
+// Build the list call input filter
+//// UTILITY FUNCTION
+
+// Build Access Analyzer list call input filter
+func buildListFindingsFilters(quals plugin.KeyColumnQualMap) map[string]types.Criterion {
+	filters := make(map[string]types.Criterion)
+
+	for qualName, qual := range quals {
+			criterion := types.Criterion{}
+
+			switch qualName {
+			case "contains", "eq", "neq":
+					var stringPointers []*string
+					for _, q := range qual.Quals {
+						// Convert each string to a *string and append to the slice
+						stringVal := q.Value.GetStringValue() // Get the string value
+						stringPointers = append(stringPointers, &stringVal) // Append the pointer to the slice
+					}
+
+					// Convert the slice of string pointers to a slice of strings
+					var stringSlice []string
+					for _, sp := range stringPointers {
+						stringSlice = append(stringSlice, *sp)
+					}
+
+					// Directly assign the slice of strings to the appropriate field
+					if qualName == "contains" {
+						criterion.Contains = stringSlice
+					} else if qualName == "eq" {
+						criterion.Eq = stringSlice
+					} else if qualName == "neq" {
+						criterion.Neq = stringSlice
+					}
+
+			case "exists":
+					if len(qual.Quals) > 0 {
+							existsValue, err := strconv.ParseBool(qual.Quals[0].Value.GetStringValue())
+							if err == nil {
+									criterion.Exists = aws.Bool(existsValue) // Directly use aws.Bool for a boolean pointer
+							}
+					}
+			}
+
+			// Ensure criterion is not empty before adding to filters
+			if len(criterion.Contains) > 0 || len(criterion.Eq) > 0 || len(criterion.Neq) > 0 || criterion.Exists != nil {
+					filters[qualName] = criterion
+			}
+	}
+
+	return filters
 }
