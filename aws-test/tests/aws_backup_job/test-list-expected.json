@@ -1,0 +1,6 @@
+[
+	{
+		"backup_plan_id": "{{ output.backup_plan_id.value }}",
+		"status": "{{ output.status.value }}"
+	}
+]
