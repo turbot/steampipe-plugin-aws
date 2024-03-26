@@ -15,7 +15,6 @@ The `aws_s3_object_version` table in Steampipe provides you with information abo
 
 - You must specify a `bucket_name` in a where or join clause in order to use this table.
 - It's recommended that you specify the `prefix` column when querying buckets with a large number of object versions to reduce the query time.
-- Optionally, you can specify the column values `encoding_type`, `delimeter`, or `version_id_marker` in where clause to reduce the query time.
 
 ## Examples
 
@@ -92,6 +91,7 @@ and
 ```
 
 # Get the specific version details of objects.
+Ensure that you specify the exact version identifier for each object of interest. This process typically involves accessing a version-controlled storage system or database where each object can have multiple versions, each distinguished by a unique version ID.
 
 ```sql+postgres
  select
