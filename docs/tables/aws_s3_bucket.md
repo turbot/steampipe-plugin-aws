@@ -168,7 +168,7 @@ where
 ```
 
 ### List buckets without the 'application' tags key
-Discover the segments that have been tagged specifically for application purposes within your AWS S3 buckets. This is particularly useful for managing and organizing your buckets based on their intended application usage.
+Discover the buckets that have not been tagged specifically for application purposes. This is particularly useful for managing and organizing your buckets based on their intended application usage.
 
 ```sql+postgres
 select
@@ -177,7 +177,7 @@ select
 from
   aws_s3_bucket
 where
-  tags ->> 'application' is not null;
+  tags ->> 'application' is null;
 ```
 
 ```sql+sqlite
@@ -187,7 +187,7 @@ select
 from
   aws_s3_bucket
 where
-  json_extract(tags, '$.application') is not null;
+  json_extract(tags, '$.application') is null;
 ```
 
 ### List buckets that enforce encryption in transit

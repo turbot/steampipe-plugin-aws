@@ -212,7 +212,7 @@ func buildCloudtrailLookupEventFilter(ctx context.Context, quals plugin.KeyColum
 	}
 	if quals["end_time"] != nil {
 		value := getQualsValueByColumn(quals, "end_time", "time")
-		input.StartTime = aws.Time(value.(time.Time))
+		input.EndTime = aws.Time(value.(time.Time))
 	}
 
 	return input

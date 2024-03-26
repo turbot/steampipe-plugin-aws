@@ -183,6 +183,7 @@ func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	resp, err := svc.DescribeAddresses(ctx, input)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_eip.listVpcEips", "api_error", err)
+		return nil, err
 	}
 	for _, address := range resp.Addresses {
 		d.StreamListItem(ctx, address)

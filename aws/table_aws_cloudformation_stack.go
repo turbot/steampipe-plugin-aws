@@ -2,12 +2,18 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
+	"net/url"
+	"regexp"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	go_kit "github.com/turbot/go-kit/types"
 
 	cloudformationv1 "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/goccy/go-yaml"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -146,14 +152,14 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Description: "Structure containing the template body.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getStackTemplate,
-				Transform:   transform.FromField("TemplateBody"),
+				Transform:   transform.FromField("TemplateBody").Transform(transform.ToString),
 			},
 			{
 				Name:        "template_body_json",
 				Description: "Structure containing the template body. Parsed into json object for better readability.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getStackTemplate,
-				Transform:   transform.FromField("TemplateBody").Transform(transform.UnmarshalYAML),
+				Transform:   transform.FromField("TemplateBody").Transform(formatJsonBody),
 			},
 			{
 				Name:        "resources",
@@ -342,4 +348,72 @@ func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (in
 		}
 	}
 	return turbotTagsMap, nil
+}
+
+/*
+* Encountering errors when parsing YAML to JSON with `transform.UnmarshalYAML` in the Steampipe SDK, primarily due to `url.QueryUnescape()` usage.
+* The API may return the template body in various formats like JSON or YAML, based on configuration made by user. Consequently, converting YAML to JSON isn't always required.
+* To address this, a dedicated function has been implemented. It ensures the template body is correctly formatted to JSON as per the API's output, adapting the transformation process accordingly.
+* This approach is specifically designed for this table, providing a tailored and accurate response handling as per the API specifications.
+*/
+
+// Functionality Overview
+// Identifies and decodes URLs within the template body. (URLs are decoded selectively to avoid issues with '%' characters not part of a valid escaped sequence.)
+// Integrates the decoded URLs back into the original template body.
+// Determines if the template body is in JSON or YAML format.
+// Directly unmarshal the content if it's a JSON string.
+// Converts YAML format to JSON if the template body is in YAML.
+func formatJsonBody(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	if d.Value == nil {
+		return nil, nil
+	}
+
+	inputStr := go_kit.SafeString(d.Value)
+	var result interface{}
+	if inputStr != "" {
+
+		// Unescape only URLs instead of checking if any '%' character is not followed by two hexadecimal digits in the template body.
+		// QueryUnescape does the inverse transformation of QueryEscape, converting each 3-byte encoded substring of the form "%AB" into the hex-decoded byte 0xAB. It returns an error if any % is not followed by two hexadecimal digits.
+		// Regex to match URLs
+		regex := regexp.MustCompile(`(https?://[^\s]+)`)
+
+		// Find all URLs in the input string
+		matches := regex.FindAllString(inputStr, -1)
+
+		// Iterate the URLs present in the template body.
+		for _, match := range matches {
+			// The `QueryUnescape()` function returns an error if any '%' character is not followed by two hexadecimal digits while unescaping the URL.
+			// The template body may contain instances where '%' is not followed by two hexadecimal digits.
+			// We should Unescape only the URLs not all the template body.
+			decoded, err := url.QueryUnescape(match)
+			if err != nil {
+				return nil, err
+			}
+			inputStr = strings.ReplaceAll(inputStr, match, decoded)
+		}
+
+		// Check if the template body return by API is in JSON/YAML format
+		if isJSON(inputStr) {
+			err := json.Unmarshal([]byte(inputStr), &result)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			// Occasionally, the API response includes the template body with carriage return characters (`\r`).
+			// This leads to an "Unmarshal error [2:4] unexpected key name" when attempting to parse the YAML string to JSON.
+			// Therefore, it's necessary to substitute the carriage return character `\r` with `\n` to resolve this issue.
+			inputStr = strings.ReplaceAll(inputStr, "\r", "\n")
+			err := yaml.Unmarshal([]byte(inputStr), &result)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+	}
+	return result, nil
+}
+
+func isJSON(str string) bool {
+	var js json.RawMessage
+	return json.Unmarshal([]byte(str), &js) == nil
 }
