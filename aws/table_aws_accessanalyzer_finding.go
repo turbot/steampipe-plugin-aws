@@ -3,9 +3,6 @@ package aws
 import (
 	"context"
 	"errors"
-	"strconv"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types"
 	"github.com/aws/smithy-go"
@@ -43,69 +40,6 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
-			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "access_analyzer_arn",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "id",
-					Require: plugin.Optional,
-
-				},
-				{
-					Name:    "action",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "analyzed_at",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "condition",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "created_at",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "error",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "is_public",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "principal",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "resource",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "resource_owner_account",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "resource_type",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "sources",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "status",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "updated_at",
-					Require: plugin.Optional,
-				},
-			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(accessanalyzerv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -121,22 +55,10 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Finding.Id"),
 			},
 			{
-				Name:        "action",
-				Description: "The action in the analyzed policy statement that an external principal has permission to use.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Finding.Action"),
-			},
-			{
 				Name:        "analyzed_at",
 				Description: "The time at which the resource-based policy that generated the finding was analyzed.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Finding.AnalyzedAt"),
-			},
-			{
-				Name:        "condition",
-				Description: "The condition in the analyzed policy statement that resulted in a finding.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Finding.Condition"),
 			},
 			{
 				Name:        "created_at",
@@ -157,12 +79,6 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Finding.IsPublic"),
 			},
 			{
-				Name:        "principal",
-				Description: "The external principal that has access to a resource within the zone of trust.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Finding.Principal"),
-			},
-			{
 				Name:        "resource",
 				Description: "The resource that the external principal has access to.",
 				Type:        proto.ColumnType_STRING,
@@ -181,12 +97,6 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Finding.ResourceType"),
 			},
 			{
-				Name:        "sources",
-				Description: "The sources of the finding, indicating how the access that generated the finding is granted. It is populated for Amazon S3 bucket findings.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Finding.Sources"),
-			},
-			{
 				Name:        "status",
 				Description: "The status of the finding.",
 				Type:        proto.ColumnType_STRING,
@@ -198,7 +108,30 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Finding.UpdatedAt"),
 			},
-
+			{
+				Name:        "action",
+				Description: "The action in the analyzed policy statement that an external principal has permission to use.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Finding.Action"),
+			},
+			{
+				Name:        "sources",
+				Description: "The sources of the finding, indicating how the access that generated the finding is granted. It is populated for Amazon S3 bucket findings.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Finding.Sources"),
+			},
+			{
+				Name:        "principal",
+				Description: "The external principal that has access to a resource within the zone of trust.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Finding.Principal"),
+			},
+			{
+				Name:        "condition",
+				Description: "The condition in the analyzed policy statement that resulted in a finding.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Finding.Condition"),
+			},
 			// Steampipe standard columns
 			{
 				Name:        "title",
@@ -249,11 +182,8 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		}
 	}
 
-	filters := buildListFindingsFilters(d.Quals)
-
 	input := &accessanalyzer.ListFindingsInput{
 		AnalyzerArn: &arn,
-		Filter:      filters,
 		MaxResults:  &maxItems,
 	}
 
@@ -353,56 +283,4 @@ func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	return accessanalyzerFindingInfo{*data.Finding, arn}, nil
-}
-
-// Build the list call input filter
-//// UTILITY FUNCTION
-
-// Build Access Analyzer list call input filter
-func buildListFindingsFilters(quals plugin.KeyColumnQualMap) map[string]types.Criterion {
-	filters := make(map[string]types.Criterion)
-
-	for qualName, qual := range quals {
-			criterion := types.Criterion{}
-
-			switch qualName {
-			case "contains", "eq", "neq":
-					var stringPointers []*string
-					for _, q := range qual.Quals {
-						// Convert each string to a *string and append to the slice
-						stringVal := q.Value.GetStringValue() // Get the string value
-						stringPointers = append(stringPointers, &stringVal) // Append the pointer to the slice
-					}
-
-					// Convert the slice of string pointers to a slice of strings
-					var stringSlice []string
-					for _, sp := range stringPointers {
-						stringSlice = append(stringSlice, *sp)
-					}
-
-					// Directly assign the slice of strings to the appropriate field
-					if qualName == "contains" {
-						criterion.Contains = stringSlice
-					} else if qualName == "eq" {
-						criterion.Eq = stringSlice
-					} else if qualName == "neq" {
-						criterion.Neq = stringSlice
-					}
-
-			case "exists":
-					if len(qual.Quals) > 0 {
-							existsValue, err := strconv.ParseBool(qual.Quals[0].Value.GetStringValue())
-							if err == nil {
-									criterion.Exists = aws.Bool(existsValue) // Directly use aws.Bool for a boolean pointer
-							}
-					}
-			}
-
-			// Ensure criterion is not empty before adding to filters
-			if len(criterion.Contains) > 0 || len(criterion.Eq) > 0 || len(criterion.Neq) > 0 || criterion.Exists != nil {
-					filters[qualName] = criterion
-			}
-	}
-
-	return filters
 }
