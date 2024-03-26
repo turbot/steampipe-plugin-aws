@@ -808,6 +808,14 @@ jobs:
       # Export
       - build-export-tool
     steps:
+      - name: Set up job environment
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
+
       - name: Set environment variables
         run: |
           plugin_name=$(echo $GITHUB_REPOSITORY | cut -d'-' -f 3)
