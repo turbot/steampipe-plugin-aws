@@ -15,22 +15,21 @@ The `aws_s3_object_version` table in Steampipe provides you with information abo
 
 - You must specify a `bucket_name` in a where or join clause in order to use this table.
 - It's recommended that you specify the `prefix` column when querying buckets with a large number of object versions to reduce the query time.
-- Optionally, you can specify the column values `encoding_type`, `delimeter`, or `version_id_marker` in where clause to reduce the query time.
 
 ## Examples
 
 ### Basic Info
 
-Query basic information about AWS S3 object versions, including the bucket name, delimiter, encoding type, version ID marker, prefix, and whether the results are truncated.
+Query basic information about AWS S3 object versions, including the bucket name, size, version ID, storage class and last update.
 
 ```sql+postgres
 select
   bucket_name,
-  delimiter,
-  encoding_type,
-  version_id_marker,
-  prefix,
-  is_truncated
+  key,
+  storage_class,
+  version_id,
+  is_latest,
+  size
 from
   aws_s3_object_version
 where
@@ -40,96 +39,69 @@ where
 ```sql+sqlite
 select
   bucket_name,
-  delimiter,
-  encoding_type,
-  version_id_marker,
-  prefix,
-  is_truncated
+  key,
+  storage_class,
+  version_id,
+  is_latest,
+  size
 from
   aws_s3_object_version
 where
   bucket_name = 'testbucket';
 ```
 
-### List Object Versions with Common Prefixes and Delete Markers
+### List Object Versions for a particular object
 
 Retrieve object versions along with common prefixes and delete markers.
 
 ```sql+postgres
 select
   bucket_name,
-  delimiter,
-  encoding_type,
-  version_id_marker,
-  prefix,
-  is_truncated,
-  common_prefixes,
-  delete_markers
+  key,
+  storage_class,
+  version_id,
+  is_latest,
+  size,
+  etag,
+  owner_id
 from
   aws_s3_object_version
 where
-  bucket_name = 'testbucket';
+  bucket_name = 'testbucket'
+and
+  key = 'test/template.txt';
 ```
 
 ```sql+sqlite
 select
   bucket_name,
-  delimiter,
-  encoding_type,
-  version_id_marker,
-  prefix,
-  is_truncated,
-  common_prefixes,
-  delete_markers
+  key,
+  storage_class,
+  version_id,
+  is_latest,
+  size,
+  etag,
+  owner_id
 from
   aws_s3_object_version
 where
-  bucket_name = 'testbucket';
+  bucket_name = 'testbucket'
+and
+  key = 'test/template.txt';
 ```
 
-### Get Version Information
-
-Retrieve version information for objects stored in S3 buckets.
-
-```sql+postgres
-select
-  bucket_name,
-  delimiter,
-  encoding_type,
-  version_id_marker,
-  prefix,
-  is_truncated,
-  version
-from
-  aws_s3_object_version
-where
-  bucket_name = 'testbucket';
-```
-
-```sql+sqlite
-select
-  bucket_name,
-  delimiter,
-  encoding_type,
-  version_id_marker,
-  prefix,
-  is_truncated,
-  version
-from
-  aws_s3_object_version
-where
-  bucket_name = 'testbucket';
-```
-
-# Get the specific version details for an object.
+# Get the specific version details of objects
+Ensure that you specify the exact version identifier for each object of interest. This process typically involves accessing a version-controlled storage system or database where each object can have multiple versions, each distinguished by a unique version ID.
 
 ```sql+postgres
  select
   v.bucket_name,
-  v.encoding_type,
-  v.version_id_marker,
-  v.is_truncated,
-  v.version ->> 'VersionId' as version_id
+  v.key,
+  v.storage_class,
+  v.version_id,
+  o.accept_ranges,
+  o.body,
+  o.content_type
 from
   aws_s3_object_version as v,
   aws_s3_object as o
@@ -138,24 +110,26 @@ where
 and
   o.bucket_name = 'test-delete90'
 and
-  version_id = o.version_id;
+  v.version_id = o.version_id;
 ```
 
 ```sql+sqlite
 select
   v.bucket_name,
-  v.encoding_type,
-  v.version_id_marker,
-  v.is_truncated,
-  json_extract(v.version, '$.VersionId') as version_id
+  v.key,
+  v.storage_class,
+  v.version_id,
+  o.accept_ranges,
+  o.body,
+  o.content_type
 from
   aws_s3_object_version as v
 join
-  aws_s3_object AS o on v.bucket_name = o.bucket_name
+  aws_s3_object as o on v.bucket_name = o.bucket_name
 where
   v.bucket_name = 'test-delete90'
 and
   o.bucket_name = 'test-delete90'
 and
-  json_extract(v.version, '$.VersionId') = o.version_id;
+  v.version_id = o.version_id;
 ```
