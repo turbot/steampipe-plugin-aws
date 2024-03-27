@@ -86,6 +86,18 @@ func tableAwsBackupJob(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("BackupVaultName"),
 			},
 			{
+				Name:        "backup_options",
+				Description: "Specifies the backup options for a selected resource.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("BackupOptions"),
+			},
+			{
+				Name:        "backup_type",
+				Description: "Represents the type of backup for a backup job.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("BackupType"),
+			},
+			{
 				Name:        "bytes_transferred",
 				Description: "The size in bytes transferred to a backup vault at the time that the job status was queried.",
 				Type:        proto.ColumnType_INT,
@@ -211,7 +223,7 @@ func getAwsBackupJob(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	// Create session
 	svc, err := BackupClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupJob", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_backup_job.getAwsBackupJob", "connection_error", err)
 		return nil, err
 	}
 
@@ -234,7 +246,7 @@ func getAwsBackupJob(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	op, err := svc.DescribeBackupJob(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupJob", "api_error", err)
+		plugin.Logger(ctx).Error("aws_backup_job.getAwsBackupJob", "api_error", err)
 		return nil, err
 	}
 
