@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/acmpca"
 	"github.com/aws/aws-sdk-go-v2/service/amplify"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
@@ -85,6 +86,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
@@ -134,12 +136,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
+	"github.com/aws/smithy-go/logging"
+	"github.com/hashicorp/go-hclog"
 	"github.com/rs/dnscache"
-	"golang.org/x/sync/semaphore"
-
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"golang.org/x/sync/semaphore"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
@@ -237,6 +240,14 @@ func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 		return nil, err
 	}
 	return acm.NewFromConfig(*cfg), nil
+}
+
+func ACMPCAClient(ctx context.Context, d *plugin.QueryData) (*acmpca.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return acmpca.NewFromConfig(*cfg), nil
 }
 
 func AmplifyClient(ctx context.Context, d *plugin.QueryData) (*amplify.Client, error) {
@@ -932,6 +943,14 @@ func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, err
 	return lambda.NewFromConfig(*cfg), nil
 }
 
+func LakeFormationClient(ctx context.Context, d *plugin.QueryData) (*lakeformation.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return lakeformation.NewFromConfig(*cfg), nil
+}
+
 func LightsailClient(ctx context.Context, d *plugin.QueryData) (*lightsail.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, lightsailEndpoint.EndpointsID)
 	if err != nil {
@@ -1467,9 +1486,9 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 }
 
 func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, error) {
-// AWS Support is a global service. This means that any endpoint that you use will update your support cases in the Support Center Console.
-// For example, if you use the US East (N. Virginia) endpoint to create a case, you can use the US West (Oregon) or Europe (Ireland) endpoint to add a correspondence to the same case.
-// https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html#endpoint
+	// AWS Support is a global service. This means that any endpoint that you use will update your support cases in the Support Center Console.
+	// For example, if you use the US East (N. Virginia) endpoint to create a case, you can use the US West (Oregon) or Europe (Ireland) endpoint to add a correspondence to the same case.
+	// https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html#endpoint
 	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
@@ -1990,6 +2009,12 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
+	if plugin.Logger(ctx).GetLevel() <= hclog.Debug {
+		logger := plugin.Logger(ctx)
+		configOptions = append(configOptions, config.WithLogger(NewHCLoggerToSmithyLoggerWrapper(&logger)))
+		configOptions = append(configOptions, config.WithClientLogMode(aws.LogRetries))
+	}
+
 	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
 
 	// NOTE: EC2 metadata service IMDS throttling and retries
@@ -2056,6 +2081,19 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 
 	return &cfg, err
 
+}
+
+// HCLoggerToSmithyLoggerWrapper wraps an hclog Logger in order to pass it as an AWS SDK smithy Logger
+type HCLoggerToSmithyLoggerWrapper struct {
+	hclogger *hclog.Logger
+}
+
+func (logger *HCLoggerToSmithyLoggerWrapper) Logf(classification logging.Classification, format string, v ...interface{}) {
+	(*logger.hclogger).Debug(fmt.Sprintf(format, v...))
+}
+
+func NewHCLoggerToSmithyLoggerWrapper(l *hclog.Logger) *HCLoggerToSmithyLoggerWrapper {
+	return &HCLoggerToSmithyLoggerWrapper{l}
 }
 
 // ExponentialJitterBackoff provides backoff delays with jitter based on the
