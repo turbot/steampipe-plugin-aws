@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
@@ -100,15 +101,25 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	repositoryName := h.Item.(types.Repository).RepositoryName
-
+	repository := h.Item.(types.Repository)
+	repositoryName := repository.RepositoryName
 	repoName := d.EqualsQuals["repository_name"].GetStringValue()
 
 	if repoName != "" {
 		if repoName != *repositoryName {
 			return nil, nil
 		}
+	}
+
+	// avoid unnecessary API calls if account_id or region is not matched from parentHydrate
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	if *repository.RegistryId != commonColumnData.AccountId || strings.Split(*repository.RepositoryArn, ":")[3] != commonColumnData.Region {
+		return nil, nil
 	}
 
 	// Limiting the results
