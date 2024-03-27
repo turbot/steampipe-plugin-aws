@@ -154,7 +154,7 @@ func listS3ObjectVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 		objects, err := svc.ListObjectVersions(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_s3_object_version.ListObjectsV2", "api_error", err)
+			plugin.Logger(ctx).Error("aws_s3_object_version.ListObjectVersions", "api_error", err)
 			return nil, err
 		}
 
