@@ -191,7 +191,7 @@ func listAwsBackupJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_backup_vault.listAwsBackupJobs", "api_error", err)
+			plugin.Logger(ctx).Error("aws_backup_job.listAwsBackupJobs", "api_error", err)
 			return nil, err
 		}
 
