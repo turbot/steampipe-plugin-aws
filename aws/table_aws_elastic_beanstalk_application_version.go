@@ -126,7 +126,7 @@ func listElasticBeanstalkApplicationVersions(ctx context.Context, d *plugin.Quer
 	// Create session
 	svc, err := ElasticBeanstalkClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listElasticBeanstalkApplicationVersions", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application_version.listElasticBeanstalkApplicationVersions", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -186,7 +186,7 @@ func getElasticBeanstalkApplicationVersion(ctx context.Context, d *plugin.QueryD
 	// Get call
 	data, err := svc.DescribeApplicationVersions(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.getElasticBeanstalkApplicationVersion", "api_error", err)
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application_version.getElasticBeanstalkApplicationVersion", "api_error", err)
 		return nil, err
 	}
 
@@ -197,14 +197,13 @@ func getElasticBeanstalkApplicationVersion(ctx context.Context, d *plugin.QueryD
 	return nil, nil
 }
 
-
 func listAwsElasticBeanstalkApplicationVersionTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	arn := h.Item.(types.ApplicationVersionDescription).ApplicationVersionArn
 
 	// Create Session
 	svc, err := ElasticBeanstalkClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listAwsElasticBeanstalkApplicationVersionTags", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application_version.listAwsElasticBeanstalkApplicationVersionTags", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -225,7 +224,7 @@ func listAwsElasticBeanstalkApplicationVersionTags(ctx context.Context, d *plugi
 				return nil, nil
 			}
 		}
-		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listAwsElasticBeanstalkApplicationVersionTags", "api_error", err)
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application_version.listAwsElasticBeanstalkApplicationVersionTags", "api_error", err)
 		return nil, err
 	}
 
