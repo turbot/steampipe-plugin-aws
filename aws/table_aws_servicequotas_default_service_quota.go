@@ -75,6 +75,11 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "quota_applied_at_level",
+				Description: "Specifies at which level of granularity that the quota value is applied.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "adjustable",
 				Description: "Indicates whether the quota value can be increased.",
 				Type:        proto.ColumnType_BOOL,
@@ -102,6 +107,11 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 			{
 				Name:        "usage_metric",
 				Description: "Information about the measurement.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "quota_context",
+				Description: "The context for this service quota.",
 				Type:        proto.ColumnType_JSON,
 			},
 

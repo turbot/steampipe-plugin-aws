@@ -175,11 +175,11 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 
 	input := &wellarchitected.ListLensReviewsInput{
 		WorkloadId: workloadId,
-		MaxResults: maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	if d.EqualsQuals["milestone_number"] != nil {
-		input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+		input.MilestoneNumber = aws.Int32(int32(d.EqualsQuals["milestone_number"].GetInt64Value()))
 		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.listWellArchitectedLensReviews", "milestone_number", input.MilestoneNumber)
 	}
 
@@ -207,7 +207,7 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 
 		for _, item := range output.LensReviewSummaries {
 			d.StreamListItem(ctx, LensReviewInfo{
-				MilestoneNumber: output.MilestoneNumber,
+				MilestoneNumber: *output.MilestoneNumber,
 				WorkloadId:      workloadId,
 				LensReview: &types.LensReview{
 					LensAlias:   item.LensAlias,
@@ -267,7 +267,7 @@ func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	if d.EqualsQuals["milestone_number"] != nil {
-		params.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+		params.MilestoneNumber = aws.Int32(int32(d.EqualsQuals["milestone_number"].GetInt64Value()))
 		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.getWellArchitectedLensReview", "milestone_number", params.MilestoneNumber)
 	}
 
@@ -278,7 +278,7 @@ func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	return LensReviewInfo{
-		MilestoneNumber: op.MilestoneNumber,
+		MilestoneNumber: *op.MilestoneNumber,
 		WorkloadId:      &workloadId,
 		LensReview:      op.LensReview,
 	}, nil

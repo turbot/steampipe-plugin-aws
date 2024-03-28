@@ -77,6 +77,11 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "cluster_endpoint_encryption_type",
+				Description: "The type of encryption supported by the cluster's endpoint. Values are:   - NONE for no encryption TLS for Transport Layer Security",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "node_type",
 				Description: "The node type for the nodes in the cluster.",
 				Type:        proto.ColumnType_STRING,

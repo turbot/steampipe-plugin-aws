@@ -90,6 +90,9 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromP(logMetricTransformationsData, "MetricValue"),
 			},
+
+			//// Steampipe Standard Columns
+
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),

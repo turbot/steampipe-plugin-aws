@@ -275,7 +275,7 @@ func listRDSDBEngineVersions(ctx context.Context, d *plugin.QueryData, _ *plugin
 		input.ListSupportedTimezones = aws.Bool(d.EqualsQuals["list_supported_timezones"].GetBoolValue())
 	}
 	if d.EqualsQuals["default_only"] != nil {
-		input.DefaultOnly = d.EqualsQuals["default_only"].GetBoolValue()
+		input.DefaultOnly = aws.Bool(d.EqualsQuals["default_only"].GetBoolValue())
 	}
 
 	// Additional input filter

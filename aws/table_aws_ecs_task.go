@@ -204,6 +204,11 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "platform_family",
+				Description: "The operating system that your tasks are running on.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "version",
 				Description: "The version counter for the task.",
 				Type:        proto.ColumnType_INT,

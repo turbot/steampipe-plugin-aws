@@ -86,6 +86,16 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "protocol_version",
+				Description: "The protocol version. The possible values are GRPC , HTTP1 , and HTTP2 .",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "ip_address_type",
+				Description: "The type of IP address used for this target group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "matcher_http_code",
 				Description: "The HTTP codes to use when checking for a successful response from a target.",
 				Type:        proto.ColumnType_STRING,

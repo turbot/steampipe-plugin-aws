@@ -66,6 +66,11 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "max_capacity",
+				Description: "The maximum data-warehouse capacity Amazon Redshift Serverless uses to serve queries.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "creation_date",
 				Description: "The creation date of the workgroup.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -79,6 +84,27 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 				Name:        "namespace_name",
 				Description: "The namespace the workgroup is associated with.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "custom_domain_certificate_arn",
+				Description: "The custom domain name certificate Amazon resource name (ARN).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "patch_version",
+				Description: "The patch version of your Amazon Redshift Serverless workgroup.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "custom_domain_name",
+				Description: "The custom domain name associated with the workgroup.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "custom_domain_certificate_expiry_time",
+				Description: "The expiration time for the certificate.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("CustomDomainCertificateExpiryTime").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "publicly_accessible",
@@ -103,6 +129,11 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 			{
 				Name:        "subnet_ids",
 				Description: "An array of subnet IDs the workgroup is associated with.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "cross_account_vpcs",
+				Description: " A list of VPCs. Each entry is the unique identifier of a virtual private cloud with access to Amazon Redshift Serverless.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

@@ -55,6 +55,30 @@ func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
 				Hydrate:     getCloudTrailEventDataStore,
 			},
 			{
+				Name:        "billing_mode",
+				Description: "The billing mode for the event data store.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudTrailEventDataStore,
+			},
+			{
+				Name:        "federation_role_arn",
+				Description: "If Lake query federation is enabled, provides the ARN of the federation role used to access the resources for the federated event data store.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudTrailEventDataStore,
+			},
+			{
+				Name:        "federation_status",
+				Description: "Indicates the Lake query federation status.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudTrailEventDataStore,
+			},
+			{
+				Name:        "kms_key_id",
+				Description: "Specifies the KMS key ID that encrypts the events delivered by CloudTrail.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudTrailEventDataStore,
+			},
+			{
 				Name:        "created_timestamp",
 				Description: "The timestamp of the event data store's creation.",
 				Type:        proto.ColumnType_TIMESTAMP,

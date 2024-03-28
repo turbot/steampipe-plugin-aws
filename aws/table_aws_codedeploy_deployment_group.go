@@ -74,6 +74,12 @@ func tableAwsCodeDeployDeploymentGroup(_ context.Context) *plugin.Table {
 				Hydrate:     getCodeDeployDeploymentGroup,
 			},
 			{
+				Name:        "termination_hook_enabled",
+				Description: "Indicates whether the deployment group was configured to have CodeDeploy install a termination hook into an Auto Scaling group.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getCodeDeployDeploymentGroup,
+			},
+			{
 				Name:        "deployment_group_name",
 				Description: "The deployment group name.",
 				Type:        proto.ColumnType_STRING,

@@ -71,6 +71,13 @@ func tableAwsNetworkFirewallRuleGroup(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("RuleGroupResponse.Description"),
 			},
 			{
+				Name:        "sns_topic",
+				Description: "The Amazon resource name (ARN) of the Amazon Simple Notification Service SNS topic that's used to record changes to the managed rule group.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getNetworkFirewallRuleGroup,
+				Transform:   transform.FromField("RuleGroupResponse.SnsTopic"),
+			},
+			{
 				Name:        "number_of_associations",
 				Description: "The number of firewall policies that use this rule group.",
 				Type:        proto.ColumnType_INT,
@@ -90,6 +97,20 @@ func tableAwsNetworkFirewallRuleGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getNetworkFirewallRuleGroup,
 				Transform:   transform.FromField("RuleGroupResponse.RuleGroupStatus"),
+			},
+			{
+				Name:        "analysis_results",
+				Description: "The list of analysis results for AnalyzeRuleGroup.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getNetworkFirewallRuleGroup,
+				Transform:   transform.FromField("RuleGroupResponse.AnalysisResults"),
+			},
+			{
+				Name:        "encryption_configuration",
+				Description: "A complex type that contains the Amazon Web Services KMS encryption configuration settings for your rule group.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getNetworkFirewallRuleGroup,
+				Transform:   transform.FromField("RuleGroupResponse.EncryptionConfiguration"),
 			},
 			{
 				Name:        "rule_variables",

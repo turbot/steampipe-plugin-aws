@@ -145,6 +145,17 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "current_instance_boot_mode",
+				Description: "The boot mode that is used to boot the instance at launch or start.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "ipv6_address",
+				Description: "The IPv6 address assigned to the instance.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Ipv6Address"),
+			},
+			{
 				Name:        "capacity_reservation_id",
 				Description: "The ID of the Capacity Reservation.",
 				Type:        proto.ColumnType_STRING,
@@ -426,6 +437,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			{
 				Name:        "hibernation_options",
 				Description: "Indicates whether the instance is enabled for hibernation.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "state_reason",
+				Description: "The reason for the most recent state transition.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

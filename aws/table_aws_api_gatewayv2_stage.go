@@ -139,6 +139,15 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Stage.StageVariables"),
 			},
 			{
+				Name:        "route_settings",
+				Description: "Route settings for the stage, by routeKey.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Stage.RouteSettings"),
+			},
+
+			//// Steampipe standard columns
+
+			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,

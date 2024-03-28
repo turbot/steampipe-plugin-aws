@@ -49,6 +49,11 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "display_name",
+				Description: "The friendly name of the SSM document.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "name",
 				Description: "The name of the Systems Manager document.",
 				Type:        proto.ColumnType_STRING,
@@ -154,6 +159,18 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			{
 				Name:        "parameters",
 				Description: "A description of the parameters for a document.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "category",
+				Description: "The classification of a document to help you identify and categorize its use.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "category_enum",
+				Description: "The value that identifies a document's category.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocument,
 			},

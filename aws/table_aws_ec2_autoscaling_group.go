@@ -67,6 +67,26 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "capacity_rebalance",
+				Description: "Indicates whether Capacity Rebalancing is enabled.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "default_instance_warmup",
+				Description: "The duration of the default instance warmup, in seconds.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "warm_pool_size",
+				Description: "The current size of the warm pool.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "desired_capacity_type",
+				Description: " The unit of measurement for the value specified for desired capacity.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "launch_configuration_name",
 				Description: "The name of the associated launch configuration.",
 				Type:        proto.ColumnType_STRING,
@@ -225,6 +245,21 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 			{
 				Name:        "enabled_metrics",
 				Description: "The metrics enabled for the group.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "traffic_sources",
+				Description: "The traffic sources associated with this Auto Scaling group.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "warm_pool_configuration",
+				Description: "The warm pool for the group.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "instance_maintenance_policy",
+				Description: "An instance maintenance policy.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
