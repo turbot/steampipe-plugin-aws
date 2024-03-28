@@ -1,0 +1,9 @@
+[
+  {
+    "application_name": "{{ output.application_name.value }}",
+    "application_version_arn": "{{ output.application_version_arn.value }}",
+    "tags": {
+      "name": "{{ output.version_label.value }}"
+    }
+  }
+]

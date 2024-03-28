@@ -102,6 +102,7 @@ func tableAwsElasticBeanstalkApplicationVersion(_ context.Context) *plugin.Table
 				Name:        "title",
 				Description: "A title for the resource, typically the resource name.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("VersionLabel"),
 			},
 			{
 				Name:        "tags",
