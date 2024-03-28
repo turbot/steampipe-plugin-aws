@@ -71,16 +71,6 @@ func tableAwsElasticBeanstalkApplicationVersion(_ context.Context) *plugin.Table
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "source_build_information",
-				Description: "Information about the source code for the application version if the source code was retrieved from AWS CodeCommit.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "source_bundle",
-				Description: "The storage location of the application version's source bundle in Amazon S3.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "status",
 				Description: "The processing status of the application version. Reflects the state of the application version during its creation.",
 				Type:        proto.ColumnType_STRING,
@@ -89,6 +79,16 @@ func tableAwsElasticBeanstalkApplicationVersion(_ context.Context) *plugin.Table
 				Name:        "version_label",
 				Description: "A unique identifier for the application version.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_build_information",
+				Description: "Information about the source code for the application version if the source code was retrieved from AWS CodeCommit.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "source_bundle",
+				Description: "The storage location of the application version's source bundle in Amazon S3.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
