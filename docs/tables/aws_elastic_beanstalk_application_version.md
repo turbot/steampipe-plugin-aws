@@ -99,7 +99,7 @@ where
   status = 'Processed';
 ```
 
-### List the apllication versions of a specific application
+### List the application versions of a specific application
 
 Identify the application versions of a specific application in your AWS Elastic Beanstalk environment. This can help in understanding the different versions available for a specific application and their configurations.
 
