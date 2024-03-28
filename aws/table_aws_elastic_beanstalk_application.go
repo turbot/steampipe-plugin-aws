@@ -90,7 +90,6 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Hydrate:     listAwsElasticBeanstalkApplicationTags,
 				Transform:   transform.FromField("ResourceTags"),
 			},
-
 			// Standard columns for all tables
 			{
 				Name:        "title",
