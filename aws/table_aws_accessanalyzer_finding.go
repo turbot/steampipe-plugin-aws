@@ -197,10 +197,6 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		d.WaitForListRateLimit(ctx)
 
 		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFindings", "api_error", err)
-			return nil, err
-		}
 
 		if err != nil {
 			var ae smithy.APIError
@@ -231,7 +227,7 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 			}
 			d.StreamListItem(ctx, accessanalyzerFindingInfo{f, arn})
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			// Context may get canceled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
@@ -266,10 +262,6 @@ func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	// Get call
 	data, err := svc.GetFinding(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Debug("aws_accessanalyzer_finding.getAccessAnalyzerFinding", "api_error", err)
-		return nil, err
-	}
 
 	if err != nil {
 		var ae smithy.APIError
