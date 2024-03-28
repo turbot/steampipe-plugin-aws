@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk/types"
 	"github.com/aws/smithy-go"
 
@@ -21,7 +22,7 @@ func tableAwsElasticBeanstalkApplicationVersion(_ context.Context) *plugin.Table
 		Name:        "aws_elastic_beanstalk_application_version",
 		Description: "AWS Elastic Beanstalk Application Version",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("application_name"),
+			KeyColumns: plugin.AllColumns([]string{"application_name", "version_label"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -29,6 +30,16 @@ func tableAwsElasticBeanstalkApplicationVersion(_ context.Context) *plugin.Table
 			Tags:    map[string]string{"service": "elasticbeanstalk", "action": "DescribeApplicationVersions"},
 		},
 		List: &plugin.ListConfig{
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "application_name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "version_label",
+					Require: plugin.Optional,
+				},
+			},
 			Hydrate: listElasticBeanstalkApplicationVersions,
 			Tags:    map[string]string{"service": "elasticbeanstalk", "action": "DescribeApplicationVersions"},
 		},
@@ -138,6 +149,14 @@ func listElasticBeanstalkApplicationVersions(ctx context.Context, d *plugin.Quer
 	// List call
 	params := &elasticbeanstalk.DescribeApplicationVersionsInput{}
 
+	if d.EqualsQuals["application_name"] != nil {
+		params.ApplicationName = aws.String(d.EqualsQuals["application_name"].GetStringValue())
+	}
+
+	if d.EqualsQuals["version_label"] != nil {
+		params.VersionLabels = []string{d.EqualsQuals["version_label"].GetStringValue()}
+	}
+
 	// DescribeApplicationVersions doesn't support pagination
 	op, err := svc.DescribeApplicationVersions(ctx, params)
 	if err != nil {
@@ -147,7 +166,6 @@ func listElasticBeanstalkApplicationVersions(ctx context.Context, d *plugin.Quer
 
 	for _, application_version := range op.ApplicationVersions {
 		d.StreamListItem(ctx, application_version)
-
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
@@ -161,9 +179,10 @@ func listElasticBeanstalkApplicationVersions(ctx context.Context, d *plugin.Quer
 
 func getElasticBeanstalkApplicationVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	appname := d.EqualsQuals["application_name"].GetStringValue()
+	versionlabel := d.EqualsQuals["version_label"].GetStringValue()
 
 	// Return nil, if no input provided
-	if appname == "" {
+	if appname == "" || versionlabel == "" {
 		return nil, nil
 	}
 
@@ -182,6 +201,7 @@ func getElasticBeanstalkApplicationVersion(ctx context.Context, d *plugin.QueryD
 	// Build the params
 	params := &elasticbeanstalk.DescribeApplicationVersionsInput{
 		ApplicationName: namePtr,
+		VersionLabels:   []string{versionlabel},
 	}
 
 	// Get call
@@ -191,8 +211,8 @@ func getElasticBeanstalkApplicationVersion(ctx context.Context, d *plugin.QueryD
 		return nil, err
 	}
 
-	if len(data.ApplicationVersions) > 0 {
-		return data.ApplicationVersions[0], nil
+	if data.ApplicationVersions != nil && len(data.ApplicationVersions) > 0 {
+	return data.ApplicationVersions[0], nil
 	}
 
 	return nil, nil
