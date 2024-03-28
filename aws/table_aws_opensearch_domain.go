@@ -90,6 +90,32 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				Hydrate:     getOpenSearchDomain,
 			},
 			{
+				Name:        "endpoint_v2",
+				Description: "If IPAddressType to set to dualstack , a version 2 domain endpoint is provisioned.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getOpenSearchDomain,
+			},
+			{
+				Name:        "auto_software_update_enabled",
+				Description: "Whether automatic service software updates are enabled for the domain.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getOpenSearchDomain,
+				Transform:   transform.FromField("SoftwareUpdateOptions.AutoSoftwareUpdateEnabled"),
+			},
+			{
+				Name:        "ip_address_type",
+				Description: "The type of IP addresses supported by the endpoint for the domain.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getOpenSearchDomain,
+				Transform:   transform.FromField("IPAddressType"),
+			},
+			{
+				Name:        "domain_processing_status",
+				Description: "The status of any changes that are currently in progress for the domain.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getOpenSearchDomain,
+			},
+			{
 				Name:        "engine_version",
 				Description: "The domain's OpenSearch version.",
 				Type:        proto.ColumnType_STRING,
@@ -184,6 +210,24 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 			{
 				Name:        "snapshot_options",
 				Description: "Specifies the status of the snapshot options.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getOpenSearchDomain,
+			},
+			{
+				Name:        "change_progress_details",
+				Description: "Information about a configuration change happening on the domain.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getOpenSearchDomain,
+			},
+			{
+				Name:        "off_peak_window_options",
+				Description: "Options that specify a custom 10-hour window during which OpenSearch Service can perform configuration changes on the domain.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getOpenSearchDomain,
+			},
+			{
+				Name:        "modifying_properties",
+				Description: "Information about the domain properties that are currently being modified.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getOpenSearchDomain,
 			},

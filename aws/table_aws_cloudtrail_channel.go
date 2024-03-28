@@ -34,7 +34,7 @@ func tableAwsCloudtrailChannel(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getCloudSearchDomain,
+				Func: getCloudTrailChannel,
 				Tags: map[string]string{"service": "cloudtrail", "action": "GetChannel"},
 			},
 		},
@@ -70,6 +70,12 @@ func tableAwsCloudtrailChannel(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudTrailChannel,
 				Transform:   transform.FromField("SourceConfig.AdvancedEventSelectors"),
+			},
+			{
+				Name:        "ingestion_status",
+				Description: "A table showing information about the most recent successful and failed attempts to ingest events.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudTrailChannel,
 			},
 			{
 				Name:        "destinations",

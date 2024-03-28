@@ -116,7 +116,7 @@ func listAwsDRSRecoverySnapshots(ctx context.Context, d *plugin.QueryData, h *pl
 		}
 	}
 
-	input.MaxResults = int32(maxItems)
+	input.MaxResults = aws.Int32(maxItems)
 
 	filter := &types.DescribeRecoverySnapshotsRequestFilters{}
 

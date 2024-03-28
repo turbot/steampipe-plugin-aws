@@ -72,6 +72,12 @@ func tableAwsBackupLegalHold(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "cancel_description",
+				Description: "The reason for removing the legal hold.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsBackupLegalHold,
+			},
+			{
 				Name:        "retain_record_until",
 				Description: "This is the date and time until which the legal hold record will be retained.",
 				Type:        proto.ColumnType_TIMESTAMP,

@@ -48,10 +48,77 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("User.UserName"),
 			},
 			{
+				Name:        "display_name",
+				Description: "A string containing the name of the user that is formatted for display when the user is referenced.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("User.DisplayName"),
+			},
+			{
+				Name:        "nick_name",
+				Description: "A string containing an alternate name for the user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("User.NickName"),
+			},
+			{
+				Name:        "locale",
+				Description: "A string containing the geographical region or location of the user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("User.Locale"),
+			},
+			{
+				Name:        "preferred_language",
+				Description: "A string containing the preferred language of the user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("User.PreferredLanguage"),
+			},
+			{
+				Name:        "profile_url",
+				Description: "A string containing a URL that might be associated with the user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("User.ProfileUrl"),
+			},
+			{
+				Name:        "timezone",
+				Description: "A string containing the time zone of the user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("User.Timezone"),
+			},
+			{
+				Name:        "user_type",
+				Description: "A string indicating the type of user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("User.UserType"),
+			},
+			{
 				Name:        "id",
 				Description: "The identifier for a user in the identity store.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("User.UserId"),
+			},
+
+			{
+				Name:        "addresses",
+				Description: "A list of Address objects containing addresses associated with the user.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("User.Addresses"),
+			},
+			{
+				Name:        "emails",
+				Description: "A list of Email objects containing email addresses associated with the user.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("User.Emails"),
+			},
+			{
+				Name:        "external_ids",
+				Description: "A list of ExternalId objects that contains the identifiers issued to this resource by an external identity provider.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("User.ExternalIds"),
+			},
+			{
+				Name:        "phone_numbers",
+				Description: "A list of PhoneNumber objects containing phone numbers associated with the user.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("User.PhoneNumbers"),
 			},
 
 			// Standard columns for all tables

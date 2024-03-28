@@ -63,6 +63,16 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "log_group_arn",
+				Description: "The Amazon Resource Name (ARN) of the log group. This version of the ARN doesn't include a trailing :* after the log group name.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "log_group_class",
+				Description: "This specifies the log group class for this log group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "creation_time",
 				Description: "The creation time of the log group.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -89,6 +99,16 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "data_protection_status",
+				Description: "Displays whether this log group has a protection policy, or whether it had one in the past.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "inherited_properties",
+				Description: "Displays all the properties that this log group has inherited from account-level settings.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "data_protection",
 				Description: "Log group data protection policy information.",
 				Type:        proto.ColumnType_JSON,
@@ -102,6 +122,9 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Hydrate:     getCloudwatchLogGroupDataProtectionPolicy,
 				Transform:   transform.FromField("PolicyDocument"),
 			},
+
+			//// Steampipe Standard Columns
+
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),

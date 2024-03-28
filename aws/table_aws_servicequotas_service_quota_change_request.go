@@ -101,6 +101,11 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "quota_requested_at_level",
+				Description: "Specifies at which level of granularity that the quota value is requested.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "service_name",
 				Description: "The service name.",
 				Type:        proto.ColumnType_STRING,
@@ -114,6 +119,11 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 				Name:        "unit",
 				Description: "The unit of measurement.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "quota_context",
+				Description: "The context for this service quota.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",

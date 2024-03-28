@@ -69,6 +69,11 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 				Description: "The Amazon Inspector scan type covering the resource.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "last_scanned_at",
+				Description: "The date and time the resource was last checked for vulnerabilities.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
 			// the "resource_" (or "resource_metadata_") prefix seems overly
 			// verbose, so we omit it; really, the "ResourceMetadata" only
 			// exists to collect the union of type-specific values.

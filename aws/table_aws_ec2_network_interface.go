@@ -90,6 +90,21 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "deny_all_igw_traffic",
+				Description: "Indicates whether a network interface with an IPv6 address is unreachable from the public internet.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "ipv6_native",
+				Description: "Indicates whether this is an IPv6 only network interface.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "ipv6_address",
+				Description: "The IPv6 globally unique address associated with the network interface.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "association_allocation_id",
 				Description: "Allocation id for the association. Association can be an Elastic IP address (IPv4 only), or a Carrier IP address.",
 				Type:        proto.ColumnType_STRING,
@@ -233,6 +248,23 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				Name:        "private_ip_addresses",
 				Description: "The IPv4 address of the network interface within the subnet.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "connection_tracking_configuration",
+				Description: "A security group connection tracking configuration that enables you to set the timeout for connection tracking on an Elastic network interface.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "ipv6_prefixes",
+				Description: "The IPv6 prefixes that are assigned to the network interface.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Ipv6Prefixes"),
+			},
+			{
+				Name:        "ipv4_prefixes",
+				Description: "The IPv4 prefixes associated with the network interface.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Ipv4Prefixes"),
 			},
 			{
 				Name:        "tags_src",

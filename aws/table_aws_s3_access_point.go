@@ -76,6 +76,12 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Bucket"),
 			},
 			{
+				Name:        "alias",
+				Description: "The name or alias of the access point.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getS3AccessPoint,
+			},
+			{
 				Name:        "access_point_policy_is_public",
 				Description: "Indicates whether this access point policy is public, or not.",
 				Type:        proto.ColumnType_BOOL,
@@ -127,6 +133,12 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 				Description: "Specifies the VPC ID from which the access point will only allow connections.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("VpcConfiguration.VpcId"),
+			},
+			{
+				Name:        "endpoints",
+				Description: "The VPC endpoint for the access point.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getS3AccessPoint,
 			},
 			{
 				Name:        "policy",

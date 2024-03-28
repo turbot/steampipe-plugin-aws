@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 
 	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
@@ -126,7 +127,7 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	input := &securityhub.DescribeProductsInput{
-		MaxResults: maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	paginator := securityhub.NewDescribeProductsPaginator(svc, input, func(o *securityhub.DescribeProductsPaginatorOptions) {

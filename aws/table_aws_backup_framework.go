@@ -68,6 +68,12 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "idempotency_token",
+				Description: "A customer-chosen string that you can use to distinguish between otherwise identical calls to DescribeFrameworkOutput .",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsBackupFramework,
+			},
+			{
 				Name:        "creation_time",
 				Description: "The date and time that a framework was created.",
 				Type:        proto.ColumnType_TIMESTAMP,

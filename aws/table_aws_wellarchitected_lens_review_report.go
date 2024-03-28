@@ -115,7 +115,7 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 				if milestoneNumber < 1 || milestoneNumber > 100 {
 					return nil, fmt.Errorf("MilestoneNumber must have minimum value of 1 and maximum value of 100")
 				}
-				input.MilestoneNumber = milestoneNumber
+				input.MilestoneNumber = aws.Int32(milestoneNumber)
 			}
 		}
 
@@ -136,7 +136,7 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 			Base64String:    op.LensReviewReport.Base64String,
 			LensAlias:       op.LensReviewReport.LensAlias,
 			LensArn:         op.LensReviewReport.LensArn,
-			MilestoneNumber: op.MilestoneNumber,
+			MilestoneNumber: *op.MilestoneNumber,
 			WorkloadId:      op.WorkloadId,
 		})
 

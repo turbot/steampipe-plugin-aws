@@ -61,6 +61,35 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ApplicationARN"),
 			},
 			{
+				Name:        "application_mode",
+				Description: "To create a Managed Service for Apache Flink Studio notebook, you must set the mode to INTERACTIVE.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "application_version_rolled_back_from",
+				Description: "If you reverted the application using RollbackApplication , the application version when RollbackApplication was called.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getKinesisAnalyticsV2Application,
+			},
+			{
+				Name:        "application_version_rolled_back_to",
+				Description: "The version to which you want to roll back the application.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getKinesisAnalyticsV2Application,
+			},
+			{
+				Name:        "application_version_updated_from",
+				Description: "The previous application version before the latest application update.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getKinesisAnalyticsV2Application,
+			},
+			{
+				Name:        "conditional_token",
+				Description: "A value you use to implement strong concurrency for application updates.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getKinesisAnalyticsV2Application,
+			},
+			{
 				Name:        "application_status",
 				Description: "The status of the application.",
 				Type:        proto.ColumnType_STRING,
@@ -97,6 +126,12 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 			{
 				Name:        "application_configuration_description",
 				Description: "Provides details about the application's Java, SQL, or Scala code and starting parameters.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getKinesisAnalyticsV2Application,
+			},
+			{
+				Name:        "application_maintenance_configuration_description",
+				Description: "The details of the maintenance configuration for the application.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getKinesisAnalyticsV2Application,
 			},

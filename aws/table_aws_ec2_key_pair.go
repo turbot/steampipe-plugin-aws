@@ -49,6 +49,21 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "key_type",
+				Description: "The type of key pair.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "public_key",
+				Description: "The public key material.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "create_time",
+				Description: "If you used Amazon EC2 to create the key pair, this is the date and time when the key was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
 				Name:        "key_fingerprint",
 				Description: "If key pair was created using CreateKeyPair, this is the SHA-1 digest of the DER encoded private key. If key pair was created using ImportKeyPair to provide AWS the public key, this is the MD5 public key fingerprint as specified in section 4 of RFC4716",
 				Type:        proto.ColumnType_STRING,

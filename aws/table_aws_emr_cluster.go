@@ -183,6 +183,31 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEmrCluster,
 			},
 			{
+				Name:        "unhealthy_node_replacement",
+				Description: "Indicates whether Amazon EMR should gracefully replace Amazon EC2 core instances that have degraded within the cluster.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getEmrCluster,
+			},
+			{
+				Name:        "ebs_root_volume_iops",
+				Description: "The IOPS, of the Amazon EBS root device volume of the Linux AMI that is used for each Amazon EC2 instance.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getEmrCluster,
+			},
+			{
+				Name:        "ebs_root_volume_throughput",
+				Description: "The throughput, in MiB/s, of the Amazon EBS root device volume of the Linux AMI that is used for each Amazon EC2 instance.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getEmrCluster,
+			},
+			{
+				Name:        "os_release_label",
+				Description: "The Amazon Linux release specified in a cluster launch RunJobFlow request.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEmrCluster,
+				Transform: transform.FromField("OSReleaseLabel"),
+			},
+			{
 				Name:        "visible_to_all_users",
 				Description: "Indicates whether the cluster is visible to all IAM users of the AWS account associated with the cluster.",
 				Type:        proto.ColumnType_BOOL,

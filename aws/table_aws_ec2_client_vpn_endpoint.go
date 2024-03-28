@@ -138,6 +138,11 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "associated_target_networks",
+				Description: "Information about the associated target networks. A target network is a subnet in a VPC.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "tags_src",
 				Description: "Any tags assigned to the Client VPN endpoint.",
 				Type:        proto.ColumnType_JSON,

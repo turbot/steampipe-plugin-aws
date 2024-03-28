@@ -51,6 +51,12 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "export_type",
+				Description: "The type of export that was performed. Valid values are FULL_EXPORT or INCREMENTAL_EXPORT.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTableExport,
+			},
+			{
 				Name:        "billed_size_bytes",
 				Description: "The billable size of the table export.",
 				Type:        proto.ColumnType_INT,
@@ -150,6 +156,12 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 				Name:        "table_id",
 				Description: "Unique ID of the table that was exported.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTableExport,
+			},
+			{
+				Name:        "incremental_export_specification",
+				Description: "Optional object containing the parameters specific to an incremental export.",
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTableExport,
 			},
 

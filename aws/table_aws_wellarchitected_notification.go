@@ -97,7 +97,7 @@ func listWellArchitectedNotifications(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	input := &wellarchitected.ListNotificationsInput{
-		MaxResults: maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	if d.EqualsQualString("workload_id") != "" {

@@ -192,6 +192,24 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("SSEDescription"),
 			},
 			{
+				Name:        "replicas",
+				Description: "Represents replicas of the table.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDynamoDBTable,
+			},
+			{
+				Name:        "restore_summary",
+				Description: "Contains details for the restore.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDynamoDBTable,
+			},
+			{
+				Name:        "stream_specification",
+				Description: "The current DynamoDB Streams configuration for the table.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDynamoDBTable,
+			},
+			{
 				Name:        "deletion_protection_enabled",
 				Description: "Indicates whether deletion protection is enabled (true) or disabled (false) on the table.",
 				Type:        proto.ColumnType_BOOL,

@@ -71,6 +71,18 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 				Hydrate:     getSagemakerEndpointConfiguration,
 			},
 			{
+				Name:        "execution_role_arn",
+				Description: "The Amazon Resource Name (ARN) of the IAM role that you assigned to the endpoint configuration.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getSagemakerEndpointConfiguration,
+			},
+			{
+				Name:        "enable_network_isolation",
+				Description: "AWS KMS key ID Amazon SageMaker uses to encrypt data when storing it on the ML storage volume attached to the instance.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getSagemakerEndpointConfiguration,
+			},
+			{
 				Name:        "data_capture_config",
 				Description: "Specifies the parameters to capture input/output of Sagemaker models endpoints.",
 				Type:        proto.ColumnType_JSON,
@@ -78,6 +90,31 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 			{
 				Name:        "production_variants",
 				Description: "An array of ProductionVariant objects, one for each model that you want to host at this endpoint.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSagemakerEndpointConfiguration,
+			},
+			{
+				Name:        "async_inference_config",
+				Description: "Returns the description of an endpoint configuration created using the CreateEndpointConfig API.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSagemakerEndpointConfiguration,
+			},
+			{
+				Name:        "clarify_explainer_config",
+				Description: "A member of ExplainerConfig that contains configuration parameters for the SageMaker Clarify explainer.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSagemakerEndpointConfiguration,
+				Transform:   transform.FromField("ExplainerConfig.ClarifyExplainerConfig"),
+			},
+			{
+				Name:        "shadow_production_variants",
+				Description: "An array of ProductionVariant objects, one for each model that you want to host at this endpoint in shadow mode with production traffic replicated from the model specified on ProductionVariants.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSagemakerEndpointConfiguration,
+			},
+			{
+				Name:        "vpc_config",
+				Description: "Specifies an Amazon Virtual Private Cloud (VPC) that your SageMaker jobs, hosted models, and compute resources have access to.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getSagemakerEndpointConfiguration,
 			},
