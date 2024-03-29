@@ -196,7 +196,7 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	input := &ec2.DescribeSnapshotsInput{}
 
 	// Limiting the results
-	// You cannot specify this parameter and the snapshot IDs parameter in the same request.
+	// You cannot specify limit and the snapshot ID in the same request.
 	// It would be more efficient / faster for us to not paginate requests to the DescribeSnapshots API (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshots.html#API_DescribeSnapshots_RequestParameters).
 	// If the user specifies a limit parameter with a value ranging from 5 to 1000, it will be set accordingly. Otherwise, the DescribeSnapshots API will default to retrieving all available snapshots, which is faster than paginating with a value of 1000 per page.
 	if d.EqualsQualString("snapshot_id") == "" {
