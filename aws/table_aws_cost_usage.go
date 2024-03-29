@@ -18,10 +18,33 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 		Name:        "aws_cost_usage",
 		Description: "AWS Cost Explorer - Cost and Usage",
 		List: &plugin.ListConfig{
-			//KeyColumns: plugin.AllColumns([]string{"search_start_time", "search_end_time", "granularity", "dimension_type_1", "dimension_type_2"}),
-			KeyColumns: plugin.AllColumns([]string{"granularity", "dimension_type_1", "dimension_type_2"}),
-			Hydrate:    listCostAndUsage,
-			Tags:       map[string]string{"service": "ce", "action": "GetCostAndUsage"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:    "granularity",
+					Require: plugin.Required,
+				},
+				{
+					Name:    "dimension_type_1",
+					Require: plugin.Required,
+				},
+				{
+					Name:    "dimension_type_2",
+					Require: plugin.Required,
+				},
+				{
+					Name:      "search_start_time",
+					Require:   plugin.Optional,
+					Operators: []string{"="},
+				},
+				{
+					Name:      "search_end_time",
+					Require:   plugin.Optional,
+					Operators: []string{"="},
+				},
+			},
+
+			Hydrate: listCostAndUsage,
+			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
@@ -121,6 +144,11 @@ func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.Get
 	}
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
+
+	if keyQuals["search_start_time"] != nil && keyQuals["search_end_time"] != nil {
+		startTime = keyQuals["search_start_time"].GetTimestampValue().AsTime().Format(timeFormat)
+		endTime = keyQuals["search_end_time"].GetTimestampValue().AsTime().Format(timeFormat)
+	}
 
 	dim1 := strings.ToUpper(keyQuals["dimension_type_1"].GetStringValue())
 	dim2 := strings.ToUpper(keyQuals["dimension_type_2"].GetStringValue())

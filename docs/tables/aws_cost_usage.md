@@ -14,12 +14,14 @@ The `aws_cost_usage` table in Steampipe provides you with information about cost
 Amazon Cost Explorer assists you in visualizing, understanding, and managing your AWS costs and usage. The `aws_cost_usage` table offers you a simplified yet flexible view of cost for your account (or all linked accounts when run against the organization master). You need to specify a granularity (`MONTHLY`, `DAILY`), and 2 dimension types (`AZ` , `INSTANCE_TYPE`, `LEGAL_ENTITY_NAME`, `LINKED_ACCOUNT`, `OPERATION`, `PLATFORM`, `PURCHASE_TYPE`, `SERVICE`, `TENANCY`, `RECORD_TYPE`, and `USAGE_TYPE`)
 
 **Important Notes**
+
 - This table requires an '=' qualifier for all of the following columns: granularity, dimension_type_1, dimension_type_2.
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01 for you.
 
 ## Examples
 
 ### Monthly net unblended cost by account and service
+
 Explore the monthly expenditure for each linked account and service in your AWS environment. This query can help you understand your cost trends and identify areas for potential savings.
 
 ```sql+postgres
@@ -56,7 +58,52 @@ order by
   period_start;
 ```
 
+### Get unblended cost and usage details within a custom time frame
+
+This query is useful for organizations looking to gain a detailed understanding of their AWS costs on a per-service and per-account basis, within a specified time frame, and on a monthly granularity.
+
+```sql+postgres
+select
+  period_start,
+  period_end,
+  dimension_1 as account_id,
+  dimension_2 as service_name,
+  net_unblended_cost_amount::numeric::money
+from
+  aws_cost_usage
+where
+  granularity = 'MONTHLY'
+  and dimension_type_1 = 'LINKED_ACCOUNT'
+  and dimension_type_2 = 'SERVICE'
+  and search_start_time = '2023-04-01T05:30:00+05:30'
+  and search_end_time = '2023-04-05T05:30:00+05:30'
+order by
+  dimension_1,
+  period_start;
+```
+
+```sql+sqlite
+select
+  period_start,
+  period_end,
+  dimension_1 as account_id,
+  dimension_2 as service_name,
+  net_unblended_cost_amount::numeric::money
+from
+  aws_cost_usage
+where
+  granularity = 'MONTHLY'
+  and dimension_type_1 = 'LINKED_ACCOUNT'
+  and dimension_type_2 = 'SERVICE'
+  and search_start_time = '2023-04-01T05:30:00+05:30'
+  and search_end_time = '2023-04-05T05:30:00+05:30'
+order by
+  dimension_1,
+  period_start;
+```
+
 ### Top 5 most expensive services (net unblended cost) in each account
+
 Identify the top five most costly services in each account to manage and optimize your AWS expenses effectively.
 
 ```sql+postgres
@@ -87,6 +134,7 @@ Error: SQLite does not support rank window functions.
 ```
 
 ### Monthly net unblended cost by account and record type
+
 Analyze your monthly AWS account costs by record type to better understand your expenses. This can help you identify areas where costs may be reduced or controlled.
 
 ```sql+postgres
@@ -124,6 +172,7 @@ order by
 ```
 
 ### List monthly discounts and credits by account
+
 This query allows users to monitor their AWS account's monthly spending by tracking discounts and credits. It's beneficial for budgeting purposes and helps in optimizing cost management strategies.
 
 ```sql+postgres

@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
-	"github.com/golang/protobuf/ptypes/timestamp"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -270,8 +269,8 @@ func getCEStartDateForGranularity(granularity string) time.Time {
 
 type CEQuals struct {
 	// Quals stuff
-	SearchStartTime *timestamp.Timestamp
-	SearchEndTime   *timestamp.Timestamp
+	SearchStartTime time.Time
+	SearchEndTime   time.Time
 	Granularity     string
 	DimensionType1  string
 	DimensionType2  string
@@ -284,8 +283,8 @@ func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugi
 	//plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
 
 	return &CEQuals{
-		SearchStartTime: d.EqualsQuals["search_start_time"].GetTimestampValue(),
-		SearchEndTime:   d.EqualsQuals["search_end_time"].GetTimestampValue(),
+		SearchStartTime: d.EqualsQuals["search_start_time"].GetTimestampValue().AsTime(),
+		SearchEndTime:   d.EqualsQuals["search_end_time"].GetTimestampValue().AsTime(),
 		Granularity:     d.EqualsQuals["granularity"].GetStringValue(),
 		DimensionType1:  d.EqualsQuals["dimension_type_1"].GetStringValue(),
 		DimensionType2:  d.EqualsQuals["dimension_type_2"].GetStringValue(),
