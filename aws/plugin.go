@@ -10,6 +10,7 @@ import (
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/rate_limiter"
 )
 
 const pluginName = "steampipe-plugin-aws"
@@ -40,6 +41,32 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
+		},
+		RateLimiters: []*rate_limiter.Definition{
+			{
+				Name:       "aws_servicequotas_list_aws_default_service_quotas",
+				FillRate:   5,
+				BucketSize: 5,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'servicequotas' and action = 'ListAWSDefaultServiceQuotas'",
+			},
+			{
+				Name:       "aws_servicequotas_list_service_quotas",
+				FillRate:   5,
+				BucketSize: 5,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'servicequotas' and action = 'ListServiceQuotas'",
+			},
+			// We still get throttled heavily by AWS when listing tags, even though
+			// we are within AWS limits per https://docs.aws.amazon.com/servicequotas/latest/userguide/reference_limits.html.
+			// But this limiter still significantly reduces the numbers we get.
+			{
+				Name:       "aws_servicequotas_list_tags_for_resource",
+				FillRate:   5,
+				BucketSize: 5,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'servicequotas' and action = 'ListTagsForResource'",
+			},
 		},
 		TableMap: map[string]*plugin.Table{
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
@@ -433,6 +460,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_service_discovery_namespace":                              tableAwsServiceDiscoveryNamespace(ctx),
 			"aws_service_discovery_service":                                tableAwsServiceDiscoveryService(ctx),
 			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
+			"aws_servicequotas_service":                                    tableAwsServiceQuotasService(ctx),
 			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
 			"aws_servicequotas_service_quota_change_request":               tableAwsServiceQuotasServiceQuotaChangeRequest(ctx),
 			"aws_ses_domain_identity":                                      tableAwsSESDomainIdentity(ctx),
