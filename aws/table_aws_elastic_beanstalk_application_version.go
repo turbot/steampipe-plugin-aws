@@ -164,28 +164,23 @@ func listElasticBeanstalkApplicationVersions(ctx context.Context, d *plugin.Quer
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < *params.MaxRecords {
-			if limit < 1 {
-				params.MaxRecords = aws.Int32(1)
-			} else {
-				params.MaxRecords = aws.Int32(limit)
-			}
+			params.MaxRecords = aws.Int32(limit)
 		}
 	}
 
 	for pagesLeft {
-	// apply rate limiting
-	d.WaitForListRateLimit(ctx)
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
-	// DescribeApplicationVersions doesn't support pagination
-	op, err := svc.DescribeApplicationVersions(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application_version.listElasticBeanstalkApplicationVersions", "api_error", err)
-		return nil, err
-	}
+		op, err := svc.DescribeApplicationVersions(ctx, params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_elastic_beanstalk_application_version.listElasticBeanstalkApplicationVersions", "api_error", err)
+			return nil, err
+		}
 
-	for _, application_version := range op.ApplicationVersions {
-		d.StreamListItem(ctx, application_version)
-		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		for _, application_version := range op.ApplicationVersions {
+			d.StreamListItem(ctx, application_version)
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
@@ -238,7 +233,7 @@ func getElasticBeanstalkApplicationVersion(ctx context.Context, d *plugin.QueryD
 	}
 
 	if data.ApplicationVersions != nil && len(data.ApplicationVersions) > 0 {
-	return data.ApplicationVersions[0], nil
+		return data.ApplicationVersions[0], nil
 	}
 
 	return nil, nil
