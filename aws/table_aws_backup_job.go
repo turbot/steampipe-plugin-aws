@@ -158,12 +158,6 @@ func tableAwsBackupJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("BackupJobId"),
 			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceArn").Transform(arnToAkas),
-			},
 		}),
 	}
 }
