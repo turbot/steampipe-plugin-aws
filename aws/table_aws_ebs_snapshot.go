@@ -211,10 +211,6 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		}
 	}
 
-	if input.MaxResults != nil {
-		plugin.Logger(ctx).Error("Max result input ==>> ", *input.MaxResults)
-	}
-
 	// Build filter for ebs snapshot
 	filters := buildEbsSnapshotFilter(ctx, d, h, d.EqualsQuals, input)
 	input.Filters = filters
