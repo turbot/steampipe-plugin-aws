@@ -255,9 +255,9 @@ func getAwsBackupJob(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 }
 
 func getAwsBackupJobAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-		region := d.EqualsQualString(matrixKeyRegion)
-		data := h.Item.(types.BackupJob)
-		plugin.Logger(ctx).Debug("aws_backup_job.getAwsBackupJobAkas", "backup_job_id", *data.BackupJobId)
+	region := d.EqualsQualString(matrixKeyRegion)
+	data := h.Item.(types.BackupJob)
+	plugin.Logger(ctx).Debug("aws_backup_job.getAwsBackupJobAkas", "backup_job_id", *data.BackupJobId)
 
 	// Get common columns
 
