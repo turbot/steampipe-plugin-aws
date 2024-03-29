@@ -204,9 +204,10 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			limit := int32(*d.QueryContext.Limit)
 			if limit < 5 {
 				input.MaxResults = aws.Int32(5)
-			}
-			if limit > 1000 {
+			} else if limit > 1000 {
 				input.MaxResults = aws.Int32(1000)
+			} else {
+				input.MaxResults = aws.Int32(limit)
 			}
 		}
 	}
