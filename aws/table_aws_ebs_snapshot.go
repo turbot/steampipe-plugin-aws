@@ -193,22 +193,26 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
-	// It would be more efficient / faster for us to not paginate requests to the DescribeSnapshots API (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshots.html#API_DescribeSnapshots_RequestParameters).
-	// If the user specifies a limit parameter with a value ranging from 5 to 1000, it will be set accordingly. Otherwise, the DescribeSnapshots API will default to retrieving all available snapshots, which is faster than paginating with a value of 1000 per page.
 	input := &ec2.DescribeSnapshotsInput{}
 
 	// Limiting the results
-	if d.QueryContext.Limit != nil {
-		maxLimit := int32(1000)
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxLimit {
-			if limit < 5 && d.EqualsQualString("snapshot_id") == "" { // MaxResults parameter and the snapshot IDs parameter in the same request.
-				maxLimit = 5
-				input.MaxResults = &maxLimit
-			} else if limit >= 5 && limit <= 1000 && d.EqualsQualString("snapshot_id") == "" {
-				input.MaxResults = &limit
+	// You cannot specify this parameter and the snapshot IDs parameter in the same request.
+	// It would be more efficient / faster for us to not paginate requests to the DescribeSnapshots API (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshots.html#API_DescribeSnapshots_RequestParameters).
+	// If the user specifies a limit parameter with a value ranging from 5 to 1000, it will be set accordingly. Otherwise, the DescribeSnapshots API will default to retrieving all available snapshots, which is faster than paginating with a value of 1000 per page.
+	if d.EqualsQualString("snapshot_id") == "" {
+		if d.QueryContext.Limit != nil {
+			limit := int32(*d.QueryContext.Limit)
+			if limit < 5 {
+				input.MaxResults = aws.Int32(5)
+			}
+			if limit > 1000 {
+				input.MaxResults = aws.Int32(1000)
 			}
 		}
+	}
+
+	if input.MaxResults != nil {
+		plugin.Logger(ctx).Error("Max result input ==>> ", *input.MaxResults)
 	}
 
 	// Build filter for ebs snapshot
