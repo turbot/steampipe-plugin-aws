@@ -127,8 +127,8 @@ func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugi
 		region = "global"
 	}
 
-	// Debug logging to debug cache and execution flows
-	plugin.Logger(ctx).Debug("getCommonColumnsUncached", "status", "starting", "connection_name", d.Connection.Name, "region", region)
+	// Trace logging to debug cache and execution flows
+	plugin.Logger(ctx).Trace("getCommonColumnsUncached", "status", "starting", "connection_name", d.Connection.Name, "region", region)
 
 	// use the cached version of the getCallerIdentity to reduce the number of request
 	var commonColumnData *awsCommonColumnData
@@ -146,7 +146,7 @@ func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugi
 		Region:    region,
 	}
 
-	plugin.Logger(ctx).Debug("getCommonColumnsUncached", "status", "starting", "connection_name", d.Connection.Name, "common_column_data", *commonColumnData)
+	plugin.Logger(ctx).Trace("getCommonColumnsUncached", "status", "starting", "connection_name", d.Connection.Name, "common_column_data", *commonColumnData)
 
 	return commonColumnData, nil
 }
@@ -159,8 +159,8 @@ var getCallerIdentity = plugin.HydrateFunc(getCallerIdentityUncached).Memoize()
 // returns details about the IAM user or role whose credentials are used to call the operation
 func getCallerIdentityUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	// Debug logging to debug cache and execution flows
-	plugin.Logger(ctx).Debug("getCallerIdentityUncached", "status", "starting", "connection_name", d.Connection.Name)
+	// Trace logging to debug cache and execution flows
+	plugin.Logger(ctx).Trace("getCallerIdentityUncached", "status", "starting", "connection_name", d.Connection.Name)
 
 	// get the service connection for the service
 	svc, err := STSClient(ctx, d)
@@ -175,6 +175,6 @@ func getCallerIdentityUncached(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Debug("getCallerIdentityUncached", "status", "finished", "connection_name", d.Connection.Name)
+	plugin.Logger(ctx).Trace("getCallerIdentityUncached", "status", "finished", "connection_name", d.Connection.Name)
 	return callerIdentity, nil
 }
