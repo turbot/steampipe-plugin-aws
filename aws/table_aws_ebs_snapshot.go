@@ -284,7 +284,6 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 }
 
 func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEBSSnapshotARN")
 	region := d.EqualsQualString(matrixKeyRegion)
 	snapshotData := h.Item.(types.Snapshot)
 
