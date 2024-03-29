@@ -269,7 +269,6 @@ func getAwsBackupJobAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	commonColumnData := c.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	//arn:aws:cognito-identity:<region>:<account-id>:identitypool/<id>
 	arn := "arn:" + commonColumnData.Partition + ":backup:" + region + ":" + commonColumnData.AccountId + ":backup-job/" + *data.BackupJobId
 
 	return []string{arn}, nil
