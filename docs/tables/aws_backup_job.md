@@ -44,12 +44,13 @@ select
   job_id,
   recovery_point_arn,
   backup_vault_arn,
-  status
+  status,
+  current_date
 from
   aws_backup_job
 where
   status != 'COMPLETED'
-  AND creation_date > current_date
+  and creation_date > current_date
 ```
 
 ```sql+sqlite
@@ -62,5 +63,28 @@ from
   aws_backup_job
 where
   status != 'COMPLETED'
-  AND creation_date > current_date;
+  and creation_date > current_date;
+```
+
+### List backup jobs by resource type
+Monitor the number of your AWS backup jobs by resource type.
+
+```sql+postgres
+select
+  resource_type,
+  count(*)
+from
+  aws_backup_job
+group by
+  resource_type
+```
+
+```sql+sqlite
+select
+  resource_type,
+  count(*)
+from
+  aws_backup_job
+group by
+  resource_type;
 ```

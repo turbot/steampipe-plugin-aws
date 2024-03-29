@@ -162,7 +162,8 @@ func tableAwsBackupJob(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourceArn").Transform(arnToAkas),
+				Hydrate:     getAwsBackupJobAkas,
+				Transform:   transform.FromValue(),
 			},
 		}),
 	}
@@ -251,4 +252,25 @@ func getAwsBackupJob(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	return op, nil
+}
+
+func getAwsBackupJobAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+		region := d.EqualsQualString(matrixKeyRegion)
+		data := h.Item.(types.BackupJob)
+		plugin.Logger(ctx).Debug("aws_backup_job.getAwsBackupJobAkas", "backup_job_id", *data.BackupJobId)
+
+	// Get common columns
+
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_backup_job.getAwsBackupJobAkas", "common_error", err)
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
+	// Get data for turbot defined properties
+	//arn:aws:cognito-identity:<region>:<account-id>:identitypool/<id>
+	arn := "arn:" + commonColumnData.Partition + ":backup:" + region + ":" + commonColumnData.AccountId + ":backup-job/" + *data.BackupJobId
+
+	return []string{arn}, nil
 }
