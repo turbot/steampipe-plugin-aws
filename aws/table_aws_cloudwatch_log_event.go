@@ -143,10 +143,6 @@ func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, _ *plugin
 		}
 	}
 
-	if params.FilterPattern != nil {
-		plugin.Logger(ctx).Trace("listCloudwatchLogTrailEvents", "params.FilterPattern", *params.FilterPattern)
-	}
-
 	quals := d.Quals
 
 	if quals["timestamp"] != nil {

@@ -370,7 +370,6 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 	})
 	// List call
 	for paginator.HasMorePages() {
-		plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_call GetExecutionHistory", arn)
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			// Note: IgnoreConfig doesn't work when a ParentHydrate is used https://github.com/turbot/steampipe-plugin-sdk/issues/544
@@ -379,7 +378,6 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 				switch apiErr.(type) {
 				case *types.ExecutionDoesNotExist:
 					// Ignore expired executions for which history is no longer available
-					plugin.Logger(ctx).Trace("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error ignore_expired", err)
 					return nil, nil
 				}
 			}

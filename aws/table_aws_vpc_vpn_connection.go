@@ -169,6 +169,7 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_vpn_connection.listVpcVpnConnections", "api_error", err)
+		return nil, err
 	}
 
 	for _, vpnConnection := range resp.VpnConnections {

@@ -19,7 +19,7 @@ import (
 func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_servicequotas_service_quota",
-		Description: "AWS ServiceQuotas Service Quota",
+		Description: "AWS Service Quotas Service Quota",
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 		},
@@ -32,7 +32,7 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 			},
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listServiceQuotasService,
+			ParentHydrate: listServiceQuotasServices,
 			Hydrate:       listServiceQuotas,
 			Tags:          map[string]string{"service": "servicequotas", "action": "ListServiceQuotas"},
 			IgnoreConfig: &plugin.IgnoreConfig{

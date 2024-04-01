@@ -264,14 +264,14 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	// Get client
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.listCloudtrailTrails", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.listCloudtrailTrails", "client_error", err)
 		return nil, err
 	}
 
 	// Doesn't support paginator for CloudTrail DescribeTrails API
 	resp, err := svc.DescribeTrails(ctx, &cloudtrail.DescribeTrailsInput{})
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.listCloudtrailTrails", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.listCloudtrailTrails", "api_error", err)
 		return nil, err
 	}
 
@@ -304,7 +304,7 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// Create session
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailStatus", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailStatus", "client_error", err)
 		return nil, err
 	}
 
@@ -315,7 +315,7 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// execute list call
 	item, err := svc.DescribeTrails(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrail", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrail", "api_error", err)
 		return nil, err
 	}
 
@@ -330,7 +330,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailStatus", "common_data_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailStatus", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -345,7 +345,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	// Create session
 	svc, err := CloudTrailRegionsClient(ctx, d, *trail.HomeRegion)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailStatus", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailStatus", "client_error", err)
 		return nil, err
 	}
 
@@ -361,7 +361,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 				return nil, nil
 			}
 		}
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailStatus", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailStatus", "api_error", err)
 		return nil, err
 	}
 
@@ -372,7 +372,7 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "common_data_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -387,7 +387,7 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	// Create session
 	svc, err := CloudTrailRegionsClient(ctx, d, *trail.HomeRegion)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "client_error", err)
 		return nil, err
 	}
 
@@ -404,7 +404,7 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 				return nil, nil
 			}
 		}
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "api_error", err)
 		return nil, err
 	}
 	return item, nil
@@ -456,7 +456,7 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailTags", "common_data_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailTags", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -473,7 +473,7 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Create session
 	svc, err := CloudTrailRegionsClient(ctx, d, *trail.HomeRegion)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "client_error", err)
 		return nil, err
 	}
 
@@ -489,7 +489,7 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 				return nil, nil
 			}
 		}
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_trail.getCloudtrailTrailEventSelector", "api_error", err)
 		return nil, err
 	}
 

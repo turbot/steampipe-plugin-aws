@@ -10,6 +10,7 @@ import (
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/rate_limiter"
 )
 
 const pluginName = "steampipe-plugin-aws"
@@ -47,8 +48,35 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
 		},
+		RateLimiters: []*rate_limiter.Definition{
+			{
+				Name:       "aws_servicequotas_list_aws_default_service_quotas",
+				FillRate:   5,
+				BucketSize: 5,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'servicequotas' and action = 'ListAWSDefaultServiceQuotas'",
+			},
+			{
+				Name:       "aws_servicequotas_list_service_quotas",
+				FillRate:   5,
+				BucketSize: 5,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'servicequotas' and action = 'ListServiceQuotas'",
+			},
+			// We still get throttled heavily by AWS when listing tags, even though
+			// we are within AWS limits per https://docs.aws.amazon.com/servicequotas/latest/userguide/reference_limits.html.
+			// But this limiter still significantly reduces the numbers we get.
+			{
+				Name:       "aws_servicequotas_list_tags_for_resource",
+				FillRate:   5,
+				BucketSize: 5,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'servicequotas' and action = 'ListTagsForResource'",
+			},
+		},
 		TableMap: map[string]*plugin.Table{
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
+			"aws_accessanalyzer_finding":                                   tableAwsAccessAnalyzerFinding(ctx),
 			"aws_account":                                                  tableAwsAccount(ctx),
 			"aws_account_alternate_contact":                                tableAwsAccountAlternateContact(ctx),
 			"aws_account_contact":                                          tableAwsAccountContact(ctx),
@@ -89,6 +117,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_backup_report_plan":                                       tableAwsBackupReportPlan(ctx),
 			"aws_backup_selection":                                         tableAwsBackupSelection(ctx),
 			"aws_backup_vault":                                             tableAwsBackupVault(ctx),
+			"aws_backup_job":                                               tableAwsBackupJob(ctx),
 			"aws_cloudcontrol_resource":                                    tableAwsCloudControlResource(ctx),
 			"aws_cloudformation_stack":                                     tableAwsCloudFormationStack(ctx),
 			"aws_cloudformation_stack_resource":                            tableAwsCloudFormationStackResource(ctx),
@@ -239,6 +268,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_eks_identity_provider_config":                             tableAwsEksIdentityProviderConfig(ctx),
 			"aws_eks_node_group":                                           tableAwsEksNodeGroup(ctx),
 			"aws_elastic_beanstalk_application":                            tableAwsElasticBeanstalkApplication(ctx),
+			"aws_elastic_beanstalk_application_version":                    tableAwsElasticBeanstalkApplicationVersion(ctx),
 			"aws_elastic_beanstalk_environment":                            tableAwsElasticBeanstalkEnvironment(ctx),
 			"aws_elasticache_cluster":                                      tableAwsElastiCacheCluster(ctx),
 			"aws_elasticache_parameter_group":                              tableAwsElastiCacheParameterGroup(ctx),
@@ -362,6 +392,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
 			"aws_rds_db_cluster_parameter_group":                           tableAwsRDSDBClusterParameterGroup(ctx),
 			"aws_rds_db_cluster_snapshot":                                  tableAwsRDSDBClusterSnapshot(ctx),
+			"aws_rds_db_engine_version":                                    tableAwsRDSDBEngineVersion(ctx),
 			"aws_rds_db_event_subscription":                                tableAwsRDSDBEventSubscription(ctx),
 			"aws_rds_db_instance":                                          tableAwsRDSDBInstance(ctx),
 			"aws_rds_db_instance_automated_backup":                         tableAwsRDSDBInstanceAutomatedBackup(ctx),
@@ -411,6 +442,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_s3_bucket_intelligent_tiering_configuration":              tableAwsS3BucketIntelligentTieringConfiguration(ctx),
 			"aws_s3_multi_region_access_point":                             tableAwsS3MultiRegionAccessPoint(ctx),
 			"aws_s3_object":                                                tableAwsS3Object(ctx),
+			"aws_s3_object_version":                                        tableAwsS3ObjectVersion(ctx),
 			"aws_sagemaker_app":                                            tableAwsSageMakerApp(ctx),
 			"aws_sagemaker_domain":                                         tableAwsSageMakerDomain(ctx),
 			"aws_sagemaker_endpoint_configuration":                         tableAwsSageMakerEndpointConfiguration(ctx),
@@ -437,6 +469,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_service_discovery_namespace":                              tableAwsServiceDiscoveryNamespace(ctx),
 			"aws_service_discovery_service":                                tableAwsServiceDiscoveryService(ctx),
 			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
+			"aws_servicequotas_service":                                    tableAwsServiceQuotasService(ctx),
 			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
 			"aws_servicequotas_service_quota_change_request":               tableAwsServiceQuotasServiceQuotaChangeRequest(ctx),
 			"aws_ses_domain_identity":                                      tableAwsSESDomainIdentity(ctx),
