@@ -1,0 +1,7 @@
+[
+  {
+    "arn": "{{output.resource_aka.value}}",
+    "server_id": "{{output.resource_server_id.value}}",
+    "user_name": "{{output.resource_user_name.value}}"
+  }
+]

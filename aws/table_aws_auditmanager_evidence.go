@@ -351,7 +351,6 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin
 }
 
 func getAuditManagerEvidenceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAuditManagerEvidenceARN")
 	region := d.EqualsQualString(matrixKeyRegion)
 	evidenceID := *h.Item.(evidenceInfo).Evidence.Id
 

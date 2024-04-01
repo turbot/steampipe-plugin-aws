@@ -1,0 +1,21 @@
+[
+  {
+    "region": "{{ output.aws_region.value }}",
+    "registry_id": "{{ output.aws_account.value }}",
+    "scanning_configuration": {
+      "Rules": [
+        {
+          "RepositoryFilters": [
+            {
+              "Filter": "example",
+              "FilterType": "WILDCARD"
+            }
+          ],
+          "ScanFrequency": "CONTINUOUS_SCAN"
+        }
+      ],
+      "ScanType": "ENHANCED"
+    },
+    "title": "{{ output.aws_account.value }}"
+  }
+]

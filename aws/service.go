@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/acmpca"
 	"github.com/aws/aws-sdk-go-v2/service/amplify"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
@@ -85,6 +86,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
@@ -124,20 +126,23 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssmincidents"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/support"
 	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
+	"github.com/aws/smithy-go/logging"
+	"github.com/hashicorp/go-hclog"
 	"github.com/rs/dnscache"
-	"golang.org/x/sync/semaphore"
-
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"golang.org/x/sync/semaphore"
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
@@ -192,6 +197,7 @@ import (
 	sesEndpoint "github.com/aws/aws-sdk-go/service/ses"
 	simspaceWeaverEndpoint "github.com/aws/aws-sdk-go/service/simspaceweaver"
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
+	ssmIncidentsEndpoint "github.com/aws/aws-sdk-go/service/ssmincidents"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
 	transferEndpoint "github.com/aws/aws-sdk-go/service/transfer"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
@@ -234,6 +240,14 @@ func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 		return nil, err
 	}
 	return acm.NewFromConfig(*cfg), nil
+}
+
+func ACMPCAClient(ctx context.Context, d *plugin.QueryData) (*acmpca.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return acmpca.NewFromConfig(*cfg), nil
 }
 
 func AmplifyClient(ctx context.Context, d *plugin.QueryData) (*amplify.Client, error) {
@@ -929,6 +943,14 @@ func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, err
 	return lambda.NewFromConfig(*cfg), nil
 }
 
+func LakeFormationClient(ctx context.Context, d *plugin.QueryData) (*lakeformation.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return lakeformation.NewFromConfig(*cfg), nil
+}
+
 func LightsailClient(ctx context.Context, d *plugin.QueryData) (*lightsail.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, lightsailEndpoint.EndpointsID)
 	if err != nil {
@@ -1423,6 +1445,17 @@ func SSMClient(ctx context.Context, d *plugin.QueryData) (*ssm.Client, error) {
 	return ssm.NewFromConfig(*cfg), nil
 }
 
+func SSMIncidentsClient(ctx context.Context, d *plugin.QueryData) (*ssmincidents.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmIncidentsEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return ssmincidents.NewFromConfig(*cfg), nil
+}
+
 func SQSClient(ctx context.Context, d *plugin.QueryData) (*sqs.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -1450,6 +1483,20 @@ func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client,
 		return nil, nil
 	}
 	return ssoadmin.NewFromConfig(*cfg), nil
+}
+
+func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, error) {
+	// AWS Support is a global service. This means that any endpoint that you use will update your support cases in the Support Center Console.
+	// For example, if you use the US East (N. Virginia) endpoint to create a case, you can use the US West (Oregon) or Europe (Ireland) endpoint to add a correspondence to the same case.
+	// https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html#endpoint
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return support.NewFromConfig(*cfg), nil
 }
 
 func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {
@@ -1641,7 +1688,7 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// but a clever pass through of context for our case.
 	region := h.Item.(string)
 
-	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+	plugin.Logger(ctx).Debug("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
 	awsSpcConfig := GetConfig(d.Connection)
 
@@ -1680,13 +1727,13 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Info("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	plugin.Logger(ctx).Debug("getClientUncached", "connection_name", d.Connection.Name, "region", region, "status", "done")
 	return sess, err
 }
 
 func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 
-	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
+	plugin.Logger(ctx).Debug("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
 
 	if region == "" {
 		return nil, fmt.Errorf("getClientWithMaxRetries called with an empty region")
@@ -1699,7 +1746,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		return nil, err
 	}
 	cfg := baseCfg.Copy()
-	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "copy_base_config")
+	plugin.Logger(ctx).Debug("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "copy_base_config")
 
 	// Set the region for this client
 	// Note: The region set directly in cfg.Region will not be used by the AWS
@@ -1709,7 +1756,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	// a signing error will be thrown for API calls with this client, e.g.,
 	// Error: operation error CloudFront: ListDistributions, failed to sign request: failed to retrieve credentials: failed to refresh cached credentials, operation error STS: AssumeRole, failed to resolve service endpoint, an AWS region is required, but was not found
 	cfg.Region = region
-	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "set_client_region")
+	plugin.Logger(ctx).Debug("getClientWithMaxRetries", "connection_name", d.Connection.Name, "config_region", cfg.Region, "status", "set_client_region")
 
 	// Add the retryer definition
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
@@ -1753,7 +1800,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		}
 	}
 
-	plugin.Logger(ctx).Info("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
+	plugin.Logger(ctx).Debug("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
 
 	return &cfg, err
 }
@@ -1929,7 +1976,7 @@ var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUn
 // can be modified in the higher level client functions.
 func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
+	plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
 
 	awsSpcConfig := GetConfig(d.Connection)
 
@@ -1943,7 +1990,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 
 	if awsSpcConfig.Profile != nil {
 		profile := aws.ToString(awsSpcConfig.Profile)
-		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
+		plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "profile_found", "profile", profile)
 		configOptions = append(configOptions, config.WithSharedConfigProfile(profile))
 	}
 
@@ -1952,17 +1999,22 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 	} else if awsSpcConfig.SecretKey != nil && awsSpcConfig.AccessKey == nil {
 		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
 	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
-		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
+		plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
 		sessionToken := ""
 		if awsSpcConfig.SessionToken != nil {
-			plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
+			plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
 			sessionToken = *awsSpcConfig.SessionToken
 		}
 		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 
-	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+	plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
+	if plugin.Logger(ctx).GetLevel() <= hclog.Debug {
+		logger := plugin.Logger(ctx)
+		configOptions = append(configOptions, config.WithLogger(NewHCLoggerToSmithyLoggerWrapper(&logger)))
+		configOptions = append(configOptions, config.WithClientLogMode(aws.LogRetries))
+	}
 
 	// NOTE: EC2 metadata service IMDS throttling and retries
 	//
@@ -2015,7 +2067,7 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 			return nil, err
 		}
 
-		plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "region", defaultRegion, "status", "set_default_region")
+		plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "region", defaultRegion, "status", "set_default_region")
 		configOptions = append(configOptions, config.WithRegion(defaultRegion))
 		cfg, err = config.LoadDefaultConfig(ctx, configOptions...)
 		if err != nil {
@@ -2024,10 +2076,23 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 		}
 	}
 
-	plugin.Logger(ctx).Info("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
+	plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
 
 	return &cfg, err
 
+}
+
+// HCLoggerToSmithyLoggerWrapper wraps an hclog Logger in order to pass it as an AWS SDK smithy Logger
+type HCLoggerToSmithyLoggerWrapper struct {
+	hclogger *hclog.Logger
+}
+
+func (logger *HCLoggerToSmithyLoggerWrapper) Logf(classification logging.Classification, format string, v ...interface{}) {
+	(*logger.hclogger).Debug(fmt.Sprintf(format, v...))
+}
+
+func NewHCLoggerToSmithyLoggerWrapper(l *hclog.Logger) *HCLoggerToSmithyLoggerWrapper {
+	return &HCLoggerToSmithyLoggerWrapper{l}
 }
 
 // ExponentialJitterBackoff provides backoff delays with jitter based on the

@@ -179,7 +179,6 @@ func listIamServerCertificates(ctx context.Context, d *plugin.QueryData, _ *plug
 //// HYDRATE FUNCTIONS
 
 func getIamServerCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getIamServerCertificate")
 
 	// Get client
 	svc, err := IAMClient(ctx, d)
