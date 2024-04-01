@@ -99,7 +99,7 @@ where
 ```
 
 ### List active thing groups
-List active Thing Groups in your AWS IoT environment. Dynamic groups are defined by queries and this query is particularly useful to identify groups that are in active state.
+List Thing Groups that are currently being used to manage and organize devices (referred to as "things") within your IoT environment.
 
 ```sql+postgres
 select
