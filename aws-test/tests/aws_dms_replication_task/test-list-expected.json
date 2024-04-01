@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "replication_task_identifier": "{{ resourceName }}",
+    "title": "{{ resourceName }}"
+  }
+]

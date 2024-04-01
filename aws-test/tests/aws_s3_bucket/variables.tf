@@ -107,18 +107,38 @@ resource "aws_s3_bucket" "named_test_resource" {
     }
   }
 
-  grant {
-    id          = data.aws_canonical_user_id.current_user.id
-    type        = "CanonicalUser"
-    permissions = ["FULL_CONTROL"]
-  }
-
   tags = {
     name = var.resource_name
   }
 
   object_lock_configuration {
     object_lock_enabled = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "named_test_resource" {
+  bucket = aws_s3_bucket.named_test_resource.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "named_test_resource" {
+  depends_on = [aws_s3_bucket_ownership_controls.named_test_resource]
+
+  bucket = aws_s3_bucket.named_test_resource.id
+  access_control_policy {
+    grant {
+      grantee {
+        id   = data.aws_canonical_user_id.current_user.id
+        type = "CanonicalUser"
+      }
+      permission = "FULL_CONTROL"
+    }
+
+    owner {
+      id = data.aws_canonical_user_id.current_user.id
+    }
   }
 }
 

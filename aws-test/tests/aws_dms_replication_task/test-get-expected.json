@@ -1,0 +1,24 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": ["{{ output.resource_aka.value }}"],
+    "arn": "{{ output.resource_aka.value }}",
+    "migration_type": "full-load",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "replication_instance_arn": "{{ output.replication_instance_arn.value }}",
+    "replication_task_identifier": "{{ resourceName }}",
+    "tags": {
+      "Name": "test"
+    },
+    "tags_src": [
+      {
+        "Key": "Name",
+        "ResourceArn": null,
+        "Value": "test"
+      }
+    ],
+    "target_endpoint_arn": "{{ output.target_endpoint_arn.value }}",
+    "title": "{{ resourceName }}"
+  }
+]

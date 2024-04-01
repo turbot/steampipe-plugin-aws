@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 	"sync"
@@ -9,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
+	"github.com/aws/smithy-go"
 
 	sfnv1 "github.com/aws/aws-sdk-go/service/sfn"
 
@@ -346,20 +348,46 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 		return nil, nil
 	}
 
-	params := &sfn.GetExecutionHistoryInput{
-		ExecutionArn: aws.String(arn),
+	maxLimit := int32(1000)
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if limit != nil {
+		if *limit < int64(maxLimit) {
+			maxLimit = int32(*limit)
+		}
 	}
 
 	var items []historyInfo
 
-	listHistory, err := svc.GetExecutionHistory(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error", err)
-		return nil, err
+	input := &sfn.GetExecutionHistoryInput{
+		MaxResults:   maxLimit,
+		ExecutionArn: aws.String(arn),
 	}
+	paginator := sfn.NewGetExecutionHistoryPaginator(svc, input, func(o *sfn.GetExecutionHistoryPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			// Note: IgnoreConfig doesn't work when a ParentHydrate is used https://github.com/turbot/steampipe-plugin-sdk/issues/544
+			var apiErr smithy.APIError
+			if errors.As(err, &apiErr) {
+				switch apiErr.(type) {
+				case *types.ExecutionDoesNotExist:
+					// Ignore expired executions for which history is no longer available
+					return nil, nil
+				}
+			}
+			plugin.Logger(ctx).Error("aws_sfn_state_machine_execution_history.getRowDataForExecutionHistory", "api_error", err)
+			return nil, err
+		}
 
-	for _, event := range listHistory.Events {
-		items = append(items, historyInfo{event, arn})
+		for _, event := range output.Events {
+			items = append(items, historyInfo{event, arn})
+		}
 	}
 
 	return items, nil

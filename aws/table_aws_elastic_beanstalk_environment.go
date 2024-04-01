@@ -69,6 +69,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The environment's Amazon Resource Name (ARN).",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("EnvironmentArn"),
 			},
 			{
 				Name:        "description",
