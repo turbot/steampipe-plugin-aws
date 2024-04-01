@@ -51,7 +51,7 @@ func tableAwsIoTFleetMetric(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) for the thing type.",
+				Description: "The ARN of the fleet metric to describe.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("MetricArn"),
 			},
