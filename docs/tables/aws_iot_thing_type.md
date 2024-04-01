@@ -13,7 +13,7 @@ The `aws_iot_thing_type` table can be used to access detailed information about 
 
 ## Examples
 
-### Basic Info
+### Basic info
 Retrieve essential details about AWS IoT Thing Types. This query is vital for understanding the various types of IoT Things, their descriptions, and when they were created.
 
 ```sql+postgres
@@ -38,7 +38,7 @@ from
   aws_iot_thing_type;
 ```
 
-### List Deprecated Thing Types
+### List deprecated thing types
 Identify Thing Types that have been marked as deprecated. This query helps track Thing Types that are no longer recommended for use.
 
 ```sql+postgres
@@ -69,7 +69,7 @@ where
   deprecated;
 ```
 
-### List Thing Types Created in the Last 30 Days
+### List thing types created in the last 30 days
 Find Thing Types that were created within the last 30 days. This query is useful for monitoring recent additions and updates in your IoT environment.
 
 ```sql+postgres
@@ -102,7 +102,7 @@ where
   datetime(creation_date) >= datetime('now', '-30 days');
 ```
 
-### List Thing Types Scheduled for Deprecation Within the Next 30 Days
+### List thing types scheduled for deprecation within the next 30 days
 Discover Thing Types scheduled for deprecation in the next 30 days. This query assists in proactive planning for transitioning away from soon-to-be deprecated Thing Types.
 
 ```sql+postgres
@@ -132,7 +132,3 @@ from
 where
   datetime(deprecation_date) <= datetime('now', '-30 days');
 ```
-
----
-
-This updated format offers a comprehensive guide for querying AWS IoT Thing Types using SQL, supporting various operational and management needs in IoT environments.
