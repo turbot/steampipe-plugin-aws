@@ -22,18 +22,24 @@ func tableAwsIotGreengrassDeployment(_ context.Context) *plugin.Table {
 		Description: "AWS IoT Greengrass Deployment",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("deployment_id"),
-			Hydrate:    getIotGreengrassDeployment,
+			Hydrate:    getIoTGreengrassDeployment,
 			Tags:       map[string]string{"service": "greengrassv2", "action": "GetDeployment"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listIotGreengrassDeployments,
+			Hydrate: listIoTGreengrassDeployments,
 			Tags:    map[string]string{"service": "greengrassv2", "action": "ListDeployments"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "parent_target_arn", Require: plugin.Optional},
 				{Name: "target_arn", Require: plugin.Optional},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getIoTGreengrassDeployment,
+				Tags: map[string]string{"service": "greengrassv2", "action": "GetDeployment"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(greengrassv1.EndpointsID),
@@ -82,13 +88,13 @@ func tableAwsIotGreengrassDeployment(_ context.Context) *plugin.Table {
 				Name:        "iot_job_arn",
 				Description: "The ARN of the IoT job that applies the deployment to target devices.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotGreengrassDeployment,
+				Hydrate:     getIoTGreengrassDeployment,
 			},
 			{
 				Name:        "iot_job_id",
 				Description: "The ID of the IoT job that applies the deployment to target devices.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotGreengrassDeployment,
+				Hydrate:     getIoTGreengrassDeployment,
 			},
 
 			// JSON fields
@@ -96,19 +102,19 @@ func tableAwsIotGreengrassDeployment(_ context.Context) *plugin.Table {
 				Name:        "components",
 				Description: "The components to deploy. This is a dictionary, where each key is the name of a component, and each key's value is the version and configuration to deploy for that component.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotGreengrassDeployment,
+				Hydrate:     getIoTGreengrassDeployment,
 			},
 			{
 				Name:        "deployment_policies",
 				Description: "The deployment policies for the deployment. These policies define how the deployment updates components and handles failure.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotGreengrassDeployment,
+				Hydrate:     getIoTGreengrassDeployment,
 			},
 			{
 				Name:        "iot_job_configuration",
 				Description: " The job configuration for the deployment configuration. The job configuration specifies the rollout, timeout, and stop configurations for the deployment configuration.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotGreengrassDeployment,
+				Hydrate:     getIoTGreengrassDeployment,
 			},
 
 			// Steampipe standard columns
@@ -122,7 +128,7 @@ func tableAwsIotGreengrassDeployment(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotGreengrassDeployment,
+				Hydrate:     getIoTGreengrassDeployment,
 			},
 		}),
 	}
@@ -130,11 +136,11 @@ func tableAwsIotGreengrassDeployment(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listIotGreengrassDeployments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listIoTGreengrassDeployments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := IoTGreengrassClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_greengrass_deployment.listIotGreengrassDeployments", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_greengrass_deployment.listIoTGreengrassDeployments", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -173,7 +179,7 @@ func listIotGreengrassDeployments(ctx context.Context, d *plugin.QueryData, _ *p
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_iot_greengrass_deployment.listIotGreengrassDeployments", "api_error", err)
+			plugin.Logger(ctx).Error("aws_iot_greengrass_deployment.listIoTGreengrassDeployments", "api_error", err)
 			return nil, err
 		}
 
@@ -192,7 +198,7 @@ func listIotGreengrassDeployments(ctx context.Context, d *plugin.QueryData, _ *p
 
 //// HYDRATE FUNCTIONS
 
-func getIotGreengrassDeployment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIoTGreengrassDeployment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	deploymentId := ""
 	if h.Item != nil {
 		t := h.Item.(types.Deployment)
@@ -208,7 +214,7 @@ func getIotGreengrassDeployment(ctx context.Context, d *plugin.QueryData, h *plu
 	// Create service
 	svc, err := IoTGreengrassClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_greengrass_deployment.getIotGreengrassDeployment", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_greengrass_deployment.getIoTGreengrassDeployment", "connection_error", err)
 		return nil, err
 	}
 
@@ -218,7 +224,7 @@ func getIotGreengrassDeployment(ctx context.Context, d *plugin.QueryData, h *plu
 
 	resp, err := svc.GetDeployment(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_greengrass_deployment.getIotGreengrassDeployment", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iot_greengrass_deployment.getIoTGreengrassDeployment", "api_error", err)
 		return nil, err
 	}
 

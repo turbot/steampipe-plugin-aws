@@ -22,14 +22,14 @@ func tableAwsIotGreengrassCoreDevice(_ context.Context) *plugin.Table {
 		Description: "AWS IoT Greengrass Core Device",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("core_device_thing_name"),
-			Hydrate:    getIotGreengrassCoreDevice,
+			Hydrate:    getIoTGreengrassCoreDevice,
 			Tags:       map[string]string{"service": "greengrassv2", "action": "GetCoreDevice"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listIotGreengrassCoreDevices,
+			Hydrate: listIoTGreengrassCoreDevices,
 			Tags:    map[string]string{"service": "greengrassv2", "action": "ListCoreDevices"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "status", Require: plugin.Optional},
@@ -37,7 +37,7 @@ func tableAwsIotGreengrassCoreDevice(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getIotGreengrassCoreDevice,
+				Func: getIoTGreengrassCoreDevice,
 				Tags: map[string]string{"service": "greengrassv2", "action": "GetCoreDevice"},
 			},
 		},
@@ -52,19 +52,19 @@ func tableAwsIotGreengrassCoreDevice(_ context.Context) *plugin.Table {
 				Name:        "architecture",
 				Description: "The computer architecture of the core device.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotGreengrassCoreDevice,
+				Hydrate:     getIoTGreengrassCoreDevice,
 			},
 			{
 				Name:        "core_version",
 				Description: "The version of the IoT Greengrass Core software that the core device runs.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotGreengrassCoreDevice,
+				Hydrate:     getIoTGreengrassCoreDevice,
 			},
 			{
 				Name:        "platform",
 				Description: "The operating system platform that the core device runs.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotGreengrassCoreDevice,
+				Hydrate:     getIoTGreengrassCoreDevice,
 			},
 			{
 				Name:        "last_status_update_timestamp",
@@ -88,7 +88,7 @@ func tableAwsIotGreengrassCoreDevice(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotGreengrassCoreDevice,
+				Hydrate:     getIoTGreengrassCoreDevice,
 			},
 		}),
 	}
@@ -96,11 +96,11 @@ func tableAwsIotGreengrassCoreDevice(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listIotGreengrassCoreDevices(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listIoTGreengrassCoreDevices(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := IoTGreengrassClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_greengrass_core_device.listIotGreengrassCoreDevices", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_greengrass_core_device.listIoTGreengrassCoreDevices", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -136,7 +136,7 @@ func listIotGreengrassCoreDevices(ctx context.Context, d *plugin.QueryData, _ *p
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_iot_greengrass_core_device.listIotGreengrassCoreDevices", "api_error", err)
+			plugin.Logger(ctx).Error("aws_iot_greengrass_core_device.listIoTGreengrassCoreDevices", "api_error", err)
 			return nil, err
 		}
 
@@ -155,7 +155,7 @@ func listIotGreengrassCoreDevices(ctx context.Context, d *plugin.QueryData, _ *p
 
 //// HYDRATE FUNCTIONS
 
-func getIotGreengrassCoreDevice(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIoTGreengrassCoreDevice(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	coreDeviceThingName := ""
 	if h.Item != nil {
 		t := h.Item.(types.CoreDevice)
@@ -171,7 +171,7 @@ func getIotGreengrassCoreDevice(ctx context.Context, d *plugin.QueryData, h *plu
 	// Create service
 	svc, err := IoTGreengrassClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_greengrass_core_device.getIotGreengrassCoreDevice", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_greengrass_core_device.getIoTGreengrassCoreDevice", "connection_error", err)
 		return nil, err
 	}
 
@@ -181,7 +181,7 @@ func getIotGreengrassCoreDevice(ctx context.Context, d *plugin.QueryData, h *plu
 
 	resp, err := svc.GetCoreDevice(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_greengrass_core_device.getIotGreengrassCoreDevice", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iot_greengrass_core_device.getIoTGreengrassCoreDevice", "api_error", err)
 		return nil, err
 	}
 

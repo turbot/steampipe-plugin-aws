@@ -21,12 +21,16 @@ func tableAwsIotGreengrassComponent(_ context.Context) *plugin.Table {
 		Name:        "aws_iot_greengrass_component",
 		Description: "AWS IoT Greengrass Component",
 		List: &plugin.ListConfig{
-			Hydrate: listIotGreengrassComponents,
+			Hydrate: listIoTGreengrassComponents,
 			Tags:    map[string]string{"service": "greengrassv2", "action": "ListComponents"},
 		},
+		// The `get config` is not included here for several reasons:
+		//   1. The API only returns the recipe and recipeOutputFormat, without any additional information.
+		//   2. A specific version is required to make the API call, but we obtain the latest version through the list call.
+		//   3. Utilizing the GetComponent API as a hydrated call is a more effective approach.
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getIotGreengrassComponent,
+				Func: getIoTGreengrassComponent,
 				Tags: map[string]string{"service": "greengrassv2", "action": "GetComponent"},
 				IgnoreConfig: &plugin.IgnoreConfig{
 					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
@@ -42,21 +46,32 @@ func tableAwsIotGreengrassComponent(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
+				Description: "The ARN of the component.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "component_version_arn",
 				Description: "The ARN of the component version.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ARN"),
+				Transform:   transform.FromField("LatestVersion.Arn"),
+			},
+			{
+				Name:        "component_version",
+				Description: "The version of the component.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("LatestVersion.ComponentVersion"),
 			},
 			{
 				Name:        "recipe",
 				Description: "The recipe of the component version.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotGreengrassComponent,
+				Hydrate:     getIoTGreengrassComponent,
 			},
 			{
 				Name:        "recipe_output_format",
 				Description: "The format of the recipe.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIotGreengrassComponent,
+				Hydrate:     getIoTGreengrassComponent,
 			},
 
 			// JSON columns
@@ -71,19 +86,19 @@ func tableAwsIotGreengrassComponent(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CoreDeviceThingName"),
+				Transform:   transform.FromField("ComponentName"),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIotGreengrassComponent,
+				Hydrate:     getIoTGreengrassComponent,
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ARN").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -91,11 +106,11 @@ func tableAwsIotGreengrassComponent(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listIotGreengrassComponents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listIoTGreengrassComponents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := IoTGreengrassClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_greengrass_component.listIotGreengrassComponents", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_greengrass_component.listIoTGreengrassComponents", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -128,7 +143,7 @@ func listIotGreengrassComponents(ctx context.Context, d *plugin.QueryData, _ *pl
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_iot_greengrass_component.listIotGreengrassComponents", "api_error", err)
+			plugin.Logger(ctx).Error("aws_iot_greengrass_component.listIoTGreengrassComponents", "api_error", err)
 			return nil, err
 		}
 
@@ -147,24 +162,34 @@ func listIotGreengrassComponents(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getIotGreengrassComponent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	t := h.Item.(types.Component)
-	arn := *t.Arn
+func getIoTGreengrassComponent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	arn := ""
+	componentVersion := ""
+	if h.Item != nil {
+		item := h.Item.(types.Component)
+		arn = *item.Arn
+		componentVersion = *item.LatestVersion.ComponentVersion
+	}
+
+	// Empty check
+	if arn == "" || componentVersion == "" {
+		return nil, nil
+	}
 
 	// Create service
 	svc, err := IoTGreengrassClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_greengrass_component.getIotGreengrassComponent", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_iot_greengrass_component.getIoTGreengrassComponent", "connection_error", err)
 		return nil, err
 	}
 
 	params := &greengrassv2.GetComponentInput{
-		Arn: aws.String(arn),
+		Arn: aws.String(arn + ":versions:" + componentVersion),
 	}
 
 	resp, err := svc.GetComponent(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iot_greengrass_component.getIotGreengrassComponent", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iot_greengrass_component.getIoTGreengrassComponent", "api_error", err)
 		return nil, err
 	}
 
