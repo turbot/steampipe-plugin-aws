@@ -40,7 +40,7 @@ select
   target_arn
 from
   aws_iot_greengrass_deployment;
-``
+```
 
 ### List deployments created in the last 30 days
 Identify recent deployments to manage and monitor new changes in your IoT environment.
