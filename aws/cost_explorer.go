@@ -269,8 +269,8 @@ func getCEStartDateForGranularity(granularity string) time.Time {
 
 type CEQuals struct {
 	// Quals stuff
-	SearchStartTime time.Time
-	SearchEndTime   time.Time
+	SearchStartTime *time.Time
+	SearchEndTime   *time.Time
 	Granularity     string
 	DimensionType1  string
 	DimensionType2  string
@@ -283,12 +283,26 @@ func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugi
 	//plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
 
 	return &CEQuals{
-		SearchStartTime: d.EqualsQuals["search_start_time"].GetTimestampValue().AsTime(),
-		SearchEndTime:   d.EqualsQuals["search_end_time"].GetTimestampValue().AsTime(),
+		SearchStartTime: getSearchTimestampValueFromQuals(d, "search_start_time"),
+		SearchEndTime:   getSearchTimestampValueFromQuals(d, "search_end_time"),
 		Granularity:     d.EqualsQuals["granularity"].GetStringValue(),
 		DimensionType1:  d.EqualsQuals["dimension_type_1"].GetStringValue(),
 		DimensionType2:  d.EqualsQuals["dimension_type_2"].GetStringValue(),
 		TagKey1:         d.EqualsQuals["tag_key_1"].GetStringValue(),
 		TagKey2:         d.EqualsQuals["tag_key_2"].GetStringValue(),
 	}, nil
+}
+
+// In the case of >, <=, <, or <= operator uses in the where clause.
+// The value for the column search_start_time and search_end_time are not being populated correctly
+// by "d.EqualsQuals["search_end_time"].GetTimestampValue().AsTime()"."
+func getSearchTimestampValueFromQuals(quals *plugin.QueryData, columnName string) *time.Time {
+
+	if quals.Quals[columnName] != nil {
+		for _, q := range quals.Quals[columnName].Quals {
+		 t := q.Value.GetTimestampValue().AsTime()
+			return &t
+		}
+	}
+	return nil
 }

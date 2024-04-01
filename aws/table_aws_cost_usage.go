@@ -34,12 +34,12 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 				{
 					Name:      "search_start_time",
 					Require:   plugin.Optional,
-					Operators: []string{"="},
+					Operators: []string{">", ">=", "=", "<", "<="},
 				},
 				{
 					Name:      "search_end_time",
 					Require:   plugin.Optional,
-					Operators: []string{"="},
+					Operators: []string{">", ">=", "=", "<", "<="},
 				},
 			},
 
@@ -132,12 +132,12 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostAndUsage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildInputFromQuals(d.EqualsQuals)
+	params := buildInputFromQuals(ctx, d)
 	return streamCostAndUsage(ctx, d, params)
 }
 
-func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.GetCostAndUsageInput {
-	granularity := strings.ToUpper(keyQuals["granularity"].GetStringValue())
+func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *costexplorer.GetCostAndUsageInput {
+	granularity := strings.ToUpper(keyQuals.EqualsQuals["granularity"].GetStringValue())
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"
@@ -145,13 +145,32 @@ func buildInputFromQuals(keyQuals map[string]*proto.QualValue) *costexplorer.Get
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
-	if keyQuals["search_start_time"] != nil && keyQuals["search_end_time"] != nil {
-		startTime = keyQuals["search_start_time"].GetTimestampValue().AsTime().Format(timeFormat)
-		endTime = keyQuals["search_end_time"].GetTimestampValue().AsTime().Format(timeFormat)
+	if keyQuals.Quals["search_start_time"] != nil {
+		for _, q := range keyQuals.Quals["search_start_time"].Quals {
+			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
+			switch q.Operator {
+			case "=", ">=", ">":
+				startTime = t
+			case "<", "<=":
+				endTime = t
+			}
+		}
 	}
 
-	dim1 := strings.ToUpper(keyQuals["dimension_type_1"].GetStringValue())
-	dim2 := strings.ToUpper(keyQuals["dimension_type_2"].GetStringValue())
+	if keyQuals.Quals["search_end_time"] != nil {
+		for _, q := range keyQuals.Quals["search_end_time"].Quals {
+			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
+			switch q.Operator {
+			case "=", ">=", ">":
+				endTime = t
+			case "<", "<=":
+				startTime = t
+			}
+		}
+	}
+
+	dim1 := strings.ToUpper(keyQuals.EqualsQuals["dimension_type_1"].GetStringValue())
+	dim2 := strings.ToUpper(keyQuals.EqualsQuals["dimension_type_2"].GetStringValue())
 
 	params := &costexplorer.GetCostAndUsageInput{
 		TimePeriod: &types.DateInterval{
