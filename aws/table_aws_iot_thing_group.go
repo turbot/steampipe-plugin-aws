@@ -19,7 +19,7 @@ import (
 func tableAwsIoTThingGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iot_thing_group",
-		Description: "AWS Iot Thing Group",
+		Description: "AWS IoT Thing Group",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("group_name"),
 			Hydrate:    getIoTThingGroup,
