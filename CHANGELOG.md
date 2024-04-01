@@ -9,6 +9,10 @@ _What's new?_
   - [aws_s3_object_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3_object_version) ([#2070](https://github.com/turbot/steampipe-plugin-aws/pull/2070))
   - [aws_servicequotas_service](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicequotas_service) ([#2070](https://github.com/turbot/steampipe-plugin-aws/pull/2141))
 
+_Enhancements_
+
+- The plugin level logs have been updated to maintain consistency: `Trace` logs have been elevated to `Debug`, `Info` logs elevated to `Error` where needed, and unnecessary `Debug` logs removed to streamline and optimize logging. ([#2131](https://github.com/turbot/steampipe-plugin-aws/pull/2131))
+
 _Bug fixes_
 
 - Fixed the `aws_vpc_eip` table to return an `Access Denied` error instead of an `Invalid Memory Address or Nil Pointer Dereference` error when a `Service Control Policy` is applied to an account for a specific region. ([#2136](https://github.com/turbot/steampipe-plugin-aws/pull/2136))
