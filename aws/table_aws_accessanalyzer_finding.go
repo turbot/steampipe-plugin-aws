@@ -3,6 +3,8 @@ package aws
 import (
 	"context"
 	"errors"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types"
 	"github.com/aws/smithy-go"
@@ -39,6 +41,36 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 			Tags:          map[string]string{"service": "access-analyzer", "action": "ListFindings"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
+			},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "access_analyzer_arn",
+					Require: plugin.Optional,
+				},
+				{
+					Name:      "id",
+					Require:   plugin.Optional,
+					Operators: []string{"=", "<>"},
+				},
+				{
+					Name:    "is_public",
+					Require: plugin.Optional,
+				},
+				{
+					Name:      "resource_owner_account",
+					Require:   plugin.Optional,
+					Operators: []string{"=", "<>"},
+				},
+				{
+					Name:      "resource_type",
+					Require:   plugin.Optional,
+					Operators: []string{"=", "<>"},
+				},
+				{
+					Name:      "status",
+					Require:   plugin.Optional,
+					Operators: []string{"=", "<>"},
+				},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(accessanalyzerv1.EndpointsID),
@@ -132,6 +164,7 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Finding.Condition"),
 			},
+
 			// Steampipe standard columns
 			{
 				Name:        "title",
@@ -152,10 +185,6 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		arn = *h.Item.(types.AnalyzerSummary).Arn
 	}
 
-	if arn == "" {
-		return nil, nil
-	}
-
 	// Minimize API call with given Access analyzer ARN
 	if arn != "" && d.EqualsQualString("access_analyzer_arn") != "" {
 		if d.EqualsQualString("access_analyzer_arn") != arn {
@@ -173,7 +202,7 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 	// The maximum number for MaxResults parameter is not defined by the API
 	// We have set the MaxResults to 1000 based on our test
 	maxItems := int32(1000)
-	
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -185,7 +214,16 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 	input := &accessanalyzer.ListFindingsInput{
 		AnalyzerArn: &arn,
 		MaxResults:  &maxItems,
+		Filter:      map[string]types.Criterion{},
 	}
+
+	// set optional params
+	if d.EqualsQuals["is_public"] != nil {
+		input.Filter["is_public"] = types.Criterion{
+			Exists: aws.Bool(d.EqualsQuals["is_public"].GetBoolValue()),
+		}
+	}
+	setFilterCriteria(d, input)
 
 	paginator := accessanalyzer.NewListFindingsPaginator(svc, input, func(o *accessanalyzer.ListFindingsPaginatorOptions) {
 		o.Limit = maxItems
@@ -240,9 +278,10 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 //// HYDRATE FUNCTIONS
 
 func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	id := d.EqualsQuals["id"].GetStringValue()
-	arn := d.EqualsQuals["access_analyzer_arn"].GetStringValue()
+	id := d.EqualsQualString("id")
+	arn := d.EqualsQualString("access_analyzer_arn")
 
+	// check if id or arn is empty
 	if id == "" || arn == "" {
 		return nil, nil
 	}
@@ -275,4 +314,24 @@ func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	return accessanalyzerFindingInfo{*data.Finding, arn}, nil
+}
+
+func setFilterCriteria(d *plugin.QueryData, input *accessanalyzer.ListFindingsInput) {
+	params := []string{"id", "resource_owner_account", "resource_type", "status"}
+	for _, param := range params {
+		if d.Quals[param] != nil {
+			for _, q := range d.Quals[param].Quals {
+				switch q.Operator {
+				case "=":
+					input.Filter[param] = types.Criterion{
+						Eq: []string{d.EqualsQualString(param)},
+					}
+				case "<>":
+					input.Filter[param] = types.Criterion{
+						Neq: []string{d.EqualsQualString(param)},
+					}
+				}
+			}
+		}
+	}
 }
