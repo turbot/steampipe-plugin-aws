@@ -13,7 +13,7 @@ The `aws_iot_fleet_metric` table can be utilized to access detailed information 
 
 ## Examples
 
-### Basic Info
+### Basic info
 Retrieve fundamental details about AWS IoT Fleet Metrics, including metric names, associated ARNs, index names, and dates of creation and modification.
 
 ```sql+postgres
@@ -38,7 +38,7 @@ from
   aws_iot_fleet_metric;
 ```
 
-### Aggregate Fleet Metric by Type Name
+### Group fleet metrics by aggregation type name
 Group fleet metrics by their aggregation type name. This query is useful for analyzing metrics across different aggregation types, providing a broader view of fleet data categorization.
 
 ```sql+postgres
@@ -67,7 +67,7 @@ group by
   aggregation_type_name;
 ```
 
-### List Fleet Metrics Updated in the Last 30 Days
+### List fleet metrics updated in the last 30 days
 Find fleet metrics that have been updated within the last 30 days. This query assists in identifying recent changes or updates in fleet metric configurations.
 
 ```sql+postgres
