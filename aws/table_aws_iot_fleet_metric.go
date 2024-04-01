@@ -120,7 +120,7 @@ func tableAwsIoTFleetMetric(_ context.Context) *plugin.Table {
 			{
 				Name:        "version",
 				Description: "The version of the fleet metric.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 				Hydrate:     getIoTFleetMetric,
 			},
 			{
