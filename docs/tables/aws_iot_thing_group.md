@@ -98,8 +98,8 @@ where
   datetime(creation_date) >= datetime('now', '-30 days');
 ```
 
-### List dynamic groups
-List dynamic Thing Groups in your AWS IoT environment. Dynamic groups are defined by queries and this query is particularly useful to identify groups that are automatically managed based on set criteria.
+### List active dynamic groups
+List active dynamic Thing Groups in your AWS IoT environment. Dynamic groups are defined by queries and this query is particularly useful to identify groups that are in active state.
 
 ```sql+postgres
 select
@@ -111,7 +111,7 @@ select
 from
   aws_iot_thing_group
 where
-  status <> '';
+  status = 'ACTIVE';
 ```
 
 ```sql+sqlite
@@ -124,5 +124,5 @@ select
 from
   aws_iot_thing_group
 where
-  status <> '';
+  status = 'ACTIVE';
 ```
