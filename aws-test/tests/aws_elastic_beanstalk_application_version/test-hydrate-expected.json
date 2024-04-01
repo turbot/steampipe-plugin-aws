@@ -1,0 +1,12 @@
+[
+    {
+        "application_version_arn": "{{ output.application_version_arn.value }}",
+        "tags_src": [
+            {
+                "Key": "name",
+                "Value": "{{ output.version_label.value }}"
+            }
+        ],
+        "version_label": "{{ output.version_label.value }}"
+    }
+]

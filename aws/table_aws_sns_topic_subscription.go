@@ -30,8 +30,12 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "sns", "action": "GetSubscriptionAttributes"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsSnsTopicSubscriptions,
-			Tags:    map[string]string{"service": "sns", "action": "ListSubscriptions"},
+			ParentHydrate: listAwsSnsTopics,
+			Hydrate:       listAwsSnsTopicSubscriptions,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "topic_arn", Require: plugin.Optional},
+			},
+			Tags: map[string]string{"service": "sns", "action": "ListSubscriptionsByTopic"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
@@ -141,7 +145,17 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	if h.Item == nil {
+		return nil, nil
+	}
+	topic := h.Item.(*sns.GetTopicAttributesOutput)
+	topicArn := topic.Attributes["TopicArn"]
+
+	if d.EqualsQualString("topic_arn") != "" && d.EqualsQualString("topic_arn") != topicArn {
+		return nil, nil
+	}
+
 	// Get  Client
 	svc, err := SNSClient(ctx, d)
 	if err != nil {
@@ -149,9 +163,11 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
-	params := &sns.ListSubscriptionsInput{}
+	params := &sns.ListSubscriptionsByTopicInput{
+		TopicArn: &topicArn,
+	}
 	// Does not support limit
-	paginator := sns.NewListSubscriptionsPaginator(svc, params, func(o *sns.ListSubscriptionsPaginatorOptions) {
+	paginator := sns.NewListSubscriptionsByTopicPaginator(svc, params, func(o *sns.ListSubscriptionsByTopicPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 

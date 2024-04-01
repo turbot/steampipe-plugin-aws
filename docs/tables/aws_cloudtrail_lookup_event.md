@@ -40,8 +40,8 @@ select
 from
   aws_cloudtrail_lookup_event
 where
-  start_time = now()
-  and end_time = now() - interval '5 minutes';
+  start_time = now() - interval '5 minutes'
+  and end_time = now();
 ```
 
 ```sql+sqlite
@@ -54,8 +54,8 @@ select
 from
   aws_cloudtrail_lookup_event
 where
-  start_time = datetime('now')
-  and end_time = datetime('now', '-5 minutes');
+  start_time = datetime('now', '-5 minutes')
+  and end_time = datetime('now');
 ```
 
 ### List all action events, i.e., not ReadOnly that occurred over the last hour

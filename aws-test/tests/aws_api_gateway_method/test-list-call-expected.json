@@ -1,0 +1,8 @@
+[
+  {
+    "http_method": "GET",
+    "resource_id": "{{output.resource_id.value}}",
+    "rest_api_id": "{{output.rest_api_id.value}}",
+    "title": "GET"
+  }
+]
