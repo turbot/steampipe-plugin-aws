@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types"
 	"github.com/aws/smithy-go"
@@ -48,28 +47,16 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 				{
-					Name:      "id",
-					Require:   plugin.Optional,
-					Operators: []string{"=", "<>"},
-				},
-				{
-					Name:    "is_public",
+					Name:    "id",
 					Require: plugin.Optional,
 				},
 				{
-					Name:      "resource_owner_account",
-					Require:   plugin.Optional,
-					Operators: []string{"=", "<>"},
+					Name:    "resource",
+					Require: plugin.Optional,
 				},
 				{
-					Name:      "resource_type",
-					Require:   plugin.Optional,
-					Operators: []string{"=", "<>"},
-				},
-				{
-					Name:      "status",
-					Require:   plugin.Optional,
-					Operators: []string{"=", "<>"},
+					Name:    "status",
+					Require: plugin.Optional,
 				},
 			},
 		},
@@ -218,11 +205,6 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	// set optional params
-	if d.EqualsQuals["is_public"] != nil {
-		input.Filter["is_public"] = types.Criterion{
-			Exists: aws.Bool(d.EqualsQuals["is_public"].GetBoolValue()),
-		}
-	}
 	setFilterCriteria(d, input)
 
 	paginator := accessanalyzer.NewListFindingsPaginator(svc, input, func(o *accessanalyzer.ListFindingsPaginatorOptions) {
@@ -317,20 +299,11 @@ func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugi
 }
 
 func setFilterCriteria(d *plugin.QueryData, input *accessanalyzer.ListFindingsInput) {
-	params := []string{"id", "resource_owner_account", "resource_type", "status"}
+	params := []string{"id", "status", "resource"}
 	for _, param := range params {
 		if d.Quals[param] != nil {
-			for _, q := range d.Quals[param].Quals {
-				switch q.Operator {
-				case "=":
-					input.Filter[param] = types.Criterion{
-						Eq: []string{d.EqualsQualString(param)},
-					}
-				case "<>":
-					input.Filter[param] = types.Criterion{
-						Neq: []string{d.EqualsQualString(param)},
-					}
-				}
+			input.Filter[param] = types.Criterion{
+				Eq: []string{d.EqualsQualString(param)},
 			}
 		}
 	}
