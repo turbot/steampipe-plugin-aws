@@ -309,7 +309,6 @@ func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 // https://docs.aws.amazon.com/workspaces/latest/adminguide/workspaces-access-control.html
 func getWorkspaceArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getWorkspaceArn")
 	region := d.EqualsQualString(matrixKeyRegion)
 	workspaceId := h.Item.(types.Workspace).WorkspaceId
 

@@ -129,7 +129,7 @@ func listCloudtrailLookupEvents(ctx context.Context, d *plugin.QueryData, _ *plu
 	// Get client
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_lookup_event.listCloudtrailLookupEvents", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_lookup_event.listCloudtrailLookupEvents", "client_error", err)
 		return nil, err
 	}
 
@@ -152,7 +152,7 @@ func listCloudtrailLookupEvents(ctx context.Context, d *plugin.QueryData, _ *plu
 
 		resp, err := svc.LookupEvents(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Info("aws_cloudtrail_lookup_event.listCloudtrailLookupEvents", "api_error", err)
+			plugin.Logger(ctx).Error("aws_cloudtrail_lookup_event.listCloudtrailLookupEvents", "api_error", err)
 			return nil, err
 		}
 
@@ -212,7 +212,7 @@ func buildCloudtrailLookupEventFilter(ctx context.Context, quals plugin.KeyColum
 	}
 	if quals["end_time"] != nil {
 		value := getQualsValueByColumn(quals, "end_time", "time")
-		input.StartTime = aws.Time(value.(time.Time))
+		input.EndTime = aws.Time(value.(time.Time))
 	}
 
 	return input

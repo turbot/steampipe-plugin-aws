@@ -169,8 +169,7 @@ func listEc2LaunchTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func launchTemplateAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	launchTemplate := h.Item.(types.LaunchTemplate)
 	region := d.EqualsQualString(matrixKeyRegion)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_launch_template.launchTemplateAkas", "common_data_error", err)
 		return nil, err

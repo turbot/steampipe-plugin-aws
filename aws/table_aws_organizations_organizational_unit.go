@@ -1,184 +1,192 @@
 package aws
 
-// Commenting out the table for the time being because, we need to hove the column type LTREE first then we can add it back.
+import (
+	"context"
+	"strings"
 
-// The table will return the Organizational Units for the root account if parent_id is not specified in the query parameter.
-// If parent_id is specified in the query parameter then it will return the Organizational Units for the given parent.
-// func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
-// 	return &plugin.Table{
-// 		Name:        "aws_organizations_organizational_unit",
-// 		Description: "AWS Organizations Organizational Unit",
-// List: &plugin.ListConfig{
-// 	ParentHydrate: listOrganizationsRoots,
-// 	Hydrate:       listOrganizationsOrganizationalUnits,
-// 	IgnoreConfig: &plugin.IgnoreConfig{
-// 		ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ParentNotFoundException", "InvalidInputException"}),
-// 	},
-// 	KeyColumns: plugin.KeyColumnSlice{
-// 		{
-// 			Name:      "parent_id",
-// 			Require:   plugin.Optional,
-// 			Operators: []string{"="},
-// 		},
-// 	},
-// },
-// Columns: awsGlobalRegionColumns([]*plugin.Column{
-// 	{
-// 		Name:        "name",
-// 		Description: "The friendly name of this OU.",
-// 		Hydrate:     getOrganizationsOrganizationalUnit,
-// 		Type:        proto.ColumnType_STRING,
-// 	},
-// 	{
-// 		Name:        "id",
-// 		Description: "The unique identifier (ID) associated with this OU.",
-// 		Type:        proto.ColumnType_STRING,
-// 	},
-// 	{
-// 		Name:        "arn",
-// 		Description: "The Amazon Resource Name (ARN) of this OU.",
-// 		Hydrate:     getOrganizationsOrganizationalUnit,
-// 		Type:        proto.ColumnType_STRING,
-// 	},
-// 	{
-// 		Name:        "parent_id",
-// 		Description: "The unique identifier (ID) of the root or OU whose child OUs you want to list.",
-// 		Type:        proto.ColumnType_STRING,
-// 	},
-// 	{
-// 		Name:        "path",
-// 		Description: "The OU path is a string representation that uniquely identifies the hierarchical location of an Organizational Unit within the AWS Organizations structure.",
-// 		Type:        proto.ColumnType_LTREE,
-// 	},
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+)
 
-// 	// Steampipe standard columns
-// 	{
-// 		Name:        "title",
-// 		Description: resourceInterfaceDescription("title"),
-// 		Type:        proto.ColumnType_STRING,
-// 		Hydrate:     getOrganizationsOrganizationalUnit,
-// 		Transform:   transform.FromField("Name"),
-// 	},
-// 	{
-// 		Name:        "akas",
-// 		Description: resourceInterfaceDescription("akas"),
-// 		Type:        proto.ColumnType_JSON,
-// 		Hydrate:     getOrganizationsOrganizationalUnit,
-// 		Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
-// 	},
-// }),
-// 	}
-// }
+func tableAwsOrganizationsOrganizationalUnit(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_organizations_organizational_unit",
+		Description: "AWS Organizations Organizational Unit",
+		List: &plugin.ListConfig{
+			ParentHydrate: listOrganizationsRoots,
+			Hydrate:       listOrganizationsOrganizationalUnits,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ParentNotFoundException", "InvalidInputException"}),
+			},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:      "parent_id",
+					Require:   plugin.Optional,
+					Operators: []string{"="},
+				},
+			},
+		},
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
+			{
+				Name:        "name",
+				Description: "The friendly name of this OU.",
+				Hydrate:     getOrganizationsOrganizationalUnit,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "id",
+				Description: "The unique identifier (ID) associated with this OU.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of this OU.",
+				Hydrate:     getOrganizationsOrganizationalUnit,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "parent_id",
+				Description: "The unique identifier (ID) of the root or OU whose child OUs you want to list.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "path",
+				Description: "The OU path is a string representation that uniquely identifies the hierarchical location of an Organizational Unit within the AWS Organizations structure.",
+				Type:        proto.ColumnType_LTREE,
+			},
 
-// type OrganizationalUnit struct {
-// 	types.OrganizationalUnit
-// 	Path     string
-// 	ParentId string
-// }
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getOrganizationsOrganizationalUnit,
+				Transform:   transform.FromField("Name"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getOrganizationsOrganizationalUnit,
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
+			},
+		}),
+	}
+}
 
-// //// LIST FUNCTION
+type OrganizationalUnit struct {
+	types.OrganizationalUnit
+	Path     string
+	ParentId string
+}
 
-// func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	parentId := *h.Item.(types.Root).Id
+//// LIST FUNCTION
 
-// 	// Check if the parentId is provided
-// 	// The unique identifier (ID) of the root or OU whose child OUs you want to list.
-// 	if d.EqualsQualString("parent_id") != "" {
-// 		parentId = d.EqualsQualString("parent_id")
-// 	}
+func listOrganizationsOrganizationalUnits(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	parentId := *h.Item.(types.Root).Id
 
-// 	// empty check
-// 	if parentId == "" {
-// 		return nil, nil
-// 	}
+	// Check if the parentId is provided
+	// The unique identifier (ID) of the root or OU whose child OUs you want to list.
+	if d.EqualsQualString("parent_id") != "" {
+		parentId = d.EqualsQualString("parent_id")
+	}
 
-// 	// Get Client
-// 	svc, err := OrganizationClient(ctx, d)
-// 	if err != nil {
-// 		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.listOrganizationsOrganizationalUnits", "client_error", err)
-// 		return nil, err
-// 	}
+	// empty check
+	if parentId == "" {
+		return nil, nil
+	}
 
-// 	// Limiting the result
-// 	maxItems := int32(20)
+	// Get Client
+	svc, err := OrganizationClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.listOrganizationsOrganizationalUnits", "client_error", err)
+		return nil, err
+	}
 
-// 	// Reduce the basic request limit down if the user has only requested a small number of rows
-// 	if d.QueryContext.Limit != nil {
-// 		limit := int32(*d.QueryContext.Limit)
-// 		if limit < maxItems {
-// 			maxItems = int32(limit)
-// 		}
-// 	}
+	// Limiting the result
+	maxItems := int32(20)
 
-// 	// Call the recursive function to list all nested OUs
-// 	rootPath := parentId
-// 	err = listAllNestedOUs(ctx, d, svc, parentId, maxItems, rootPath)
-// 	if err != nil {
-// 		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.listOrganizationsOrganizationalUnits", "recursive_call_error", err)
-// 		return nil, err
-// 	}
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			maxItems = int32(limit)
+		}
+	}
 
-// 	return nil, nil
-// }
+	// Call the recursive function to list all nested OUs
+	rootPath := parentId
+	err = listAllNestedOUs(ctx, d, svc, parentId, maxItems, rootPath)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.listOrganizationsOrganizationalUnits", "recursive_call_error", err)
+		return nil, err
+	}
 
-// func listAllNestedOUs(ctx context.Context, d *plugin.QueryData, svc *organizations.Client, parentId string, maxItems int32, currentPath string) error {
-// 	params := &organizations.ListOrganizationalUnitsForParentInput{
-// 		ParentId:   aws.String(parentId),
-// 		MaxResults: &maxItems,
-// 	}
+	return nil, nil
+}
 
-// 	paginator := organizations.NewListOrganizationalUnitsForParentPaginator(svc, params, func(o *organizations.ListOrganizationalUnitsForParentPaginatorOptions) {
-// 		o.Limit = maxItems
-// 		o.StopOnDuplicateToken = true
-// 	})
+func listAllNestedOUs(ctx context.Context, d *plugin.QueryData, svc *organizations.Client, parentId string, maxItems int32, currentPath string) error {
+	params := &organizations.ListOrganizationalUnitsForParentInput{
+		ParentId:   aws.String(parentId),
+		MaxResults: &maxItems,
+	}
 
-// 	for paginator.HasMorePages() {
-// 		// apply rate limiting
-// 		output, err := paginator.NextPage(ctx)
-// 		if err != nil {
-// 			return err
-// 		}
+	paginator := organizations.NewListOrganizationalUnitsForParentPaginator(svc, params, func(o *organizations.ListOrganizationalUnitsForParentPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-// 		for _, unit := range output.OrganizationalUnits {
-// 			ouPath := strings.Replace(currentPath, "-", "_", -1) + "." + strings.Replace(*unit.Id, "-", "_", -1)
-// 			d.StreamListItem(ctx, OrganizationalUnit{unit, ouPath, parentId})
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			return err
+		}
 
-// 			// Recursively list units for this child
-// 			err := listAllNestedOUs(ctx, d, svc, *unit.Id, maxItems, ouPath)
-// 			if err != nil {
-// 				return err
-// 			}
+		for _, unit := range output.OrganizationalUnits {
+			ouPath := strings.Replace(currentPath, "-", "_", -1) + "." + strings.Replace(*unit.Id, "-", "_", -1)
+			d.StreamListItem(ctx, OrganizationalUnit{unit, ouPath, parentId})
 
-// 			if d.RowsRemaining(ctx) == 0 {
-// 				return nil
-// 			}
-// 		}
-// 	}
+			// Recursively list units for this child
+			err := listAllNestedOUs(ctx, d, svc, *unit.Id, maxItems, ouPath)
+			if err != nil {
+				return err
+			}
 
-// 	return nil
-// }
+			if d.RowsRemaining(ctx) == 0 {
+				return nil
+			}
+		}
+	}
 
-// //// HYDRATE FUNCTIONS
+	return nil
+}
 
-// func getOrganizationsOrganizationalUnit(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	orgUnitId := *h.Item.(OrganizationalUnit).Id
+//// HYDRATE FUNCTIONS
 
-// 	// Get Client
-// 	svc, err := OrganizationClient(ctx, d)
-// 	if err != nil {
-// 		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.getOrganizationsOrganizationalUnit", "client_error", err)
-// 		return nil, err
-// 	}
+func getOrganizationsOrganizationalUnit(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	orgUnitId := *h.Item.(OrganizationalUnit).Id
 
-// 	params := &organizations.DescribeOrganizationalUnitInput{
-// 		OrganizationalUnitId: aws.String(orgUnitId),
-// 	}
+	// Get Client
+	svc, err := OrganizationClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.getOrganizationsOrganizationalUnit", "client_error", err)
+		return nil, err
+	}
 
-// 	op, err := svc.DescribeOrganizationalUnit(ctx, params)
-// 	if err != nil {
-// 		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.getOrganizationsOrganizationalUnit", "api_error", err)
-// 		return nil, err
-// 	}
+	params := &organizations.DescribeOrganizationalUnitInput{
+		OrganizationalUnitId: aws.String(orgUnitId),
+	}
 
-// 	return *op.OrganizationalUnit, nil
-// }
+	op, err := svc.DescribeOrganizationalUnit(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_organizational_unit.getOrganizationsOrganizationalUnit", "api_error", err)
+		return nil, err
+	}
+
+	return *op.OrganizationalUnit, nil
+}

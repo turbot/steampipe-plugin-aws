@@ -180,7 +180,6 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 //// HYDRATE FUNCTIONS
 
 func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIKey")
 
 	// Create session
 	svc, err := APIGatewayClient(ctx, d)
@@ -203,7 +202,6 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 }
 
 func getAwsAPIKeysAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAPIKeysAkas")
 	region := d.EqualsQualString(matrixKeyRegion)
 	id := ""
 

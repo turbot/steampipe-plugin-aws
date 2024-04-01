@@ -318,8 +318,6 @@ func listAwsEcrRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugi
 }
 
 func getAwsEcrRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrRepositoryPolicy")
 
 	repositoryName := h.Item.(types.Repository).RepositoryName
 
