@@ -46,7 +46,7 @@ func tableAwsIoTFleetMetric(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "metric_name",
-				Description: "The name of the thing type.",
+				Description: "The name of the fleet metric to describe.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
