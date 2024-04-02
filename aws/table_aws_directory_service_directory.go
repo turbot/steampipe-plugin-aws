@@ -352,6 +352,12 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 func getDirectoryServiceEventTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	directory := h.Item.(types.DirectoryDescription)
 
+	// This operation is not supported for for Shared MicrosoftAD directories
+	// Error: aws: operation error Directory Service: DescribeEventTopics, https response error StatusCode: 400, RequestID: 56b47735-04a6-434c-97e4-7258c0a43d5b, ClientException: Operation is not supported for Shared MicrosoftAD directories. : RequestId: 56b47735-04a6-434c-97e4-7258c0a43d5b
+	if directory.Type == "SharedMicrosoftAD" {
+		return nil, nil
+	}
+
 	// Create service
 	svc, err := DirectoryServiceClient(ctx, d)
 	if err != nil {
@@ -382,6 +388,12 @@ func getDirectoryServiceEventTopics(ctx context.Context, d *plugin.QueryData, h 
 
 func getDirectoryServiceSnapshotLimit(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	directory := h.Item.(types.DirectoryDescription)
+
+	// This operation is not supported for for Shared MicrosoftAD directories
+	// Error: aws: operation error Directory Service: GetSnapshotLimits, https response error StatusCode: 400, RequestID: 5126ab72-c6e9-41a2-92df-d59f2a3e4ebb, ClientException: Snapshot limits can be fetched only for VPC or Microsoft AD directories. : RequestId: 5126ab72-c6e9-41a2-92df-d59f2a3e4ebb
+	if directory.Type == "SharedMicrosoftAD" {
+		return nil, nil
+	}
 
 	// Create service
 	svc, err := DirectoryServiceClient(ctx, d)
