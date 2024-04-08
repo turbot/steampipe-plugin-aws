@@ -391,6 +391,7 @@ func getDirectoryServiceSnapshotLimit(ctx context.Context, d *plugin.QueryData, 
 
 	// This operation is not supported for for Shared MicrosoftAD directories
 	// Error: aws: operation error Directory Service: GetSnapshotLimits, https response error StatusCode: 400, ClientException: Snapshot limits can be fetched only for VPC or Microsoft AD directories.
+	if directory.Type == "SharedMicrosoftAD" {
 		return nil, nil
 	}
 
