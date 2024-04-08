@@ -1,3 +1,25 @@
+## v0.134.0 [2024-03-29]
+
+_What's new?_
+
+- New tables added
+  - [aws_backup_job](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_job) ([#2145](https://github.com/turbot/steampipe-plugin-aws/pull/2145)) (Thanks [@rogerioacp](https://github.com/rogerioacp) for the contribution!)
+  - [aws_elastic_beanstalk_application_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elastic_beanstalk_application_version) ([#2150](https://github.com/turbot/steampipe-plugin-aws/pull/2150))
+  - [aws_rds_db_engine_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_engine_version) ([#2098](https://github.com/turbot/steampipe-plugin-aws/pull/2098))
+  - [aws_s3_object_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3_object_version) ([#2070](https://github.com/turbot/steampipe-plugin-aws/pull/2070))
+  - [aws_servicequotas_service](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicequotas_service) ([#2070](https://github.com/turbot/steampipe-plugin-aws/pull/2141))
+
+_Enhancements_
+
+- The plugin level logs have been updated to maintain consistency: `Trace` logs have been elevated to `Debug`, `Info` logs elevated to `Error` where needed, and unnecessary `Debug` logs removed to streamline and optimize logging. ([#2131](https://github.com/turbot/steampipe-plugin-aws/pull/2131))
+
+_Bug fixes_
+
+- Fixed the `aws_vpc_eip` table to return an `Access Denied` error instead of an `Invalid Memory Address or Nil Pointer Dereference` error when a `Service Control Policy` is applied to an account for a specific region. ([#2136](https://github.com/turbot/steampipe-plugin-aws/pull/2136))
+- Fixed the `aws_s3_bucket` terraform script to prevent the `AccessControlListNotSupported: The bucket does not allow ACLs` error during the `PutBucketAcl` terraform call. ([#2080](https://github.com/turbot/steampipe-plugin-aws/pull/2080)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Fixed an issue where querying regional tables while using AWS profiles with `cross-account` role credentials results in the correct error being reported instead of zero rows. ([#2137](https://github.com/turbot/steampipe-plugin-aws/pull/2137))
+- Fixed pagination in the `aws_ebs_snapshot` table to make fewer API calls when the `limit` parameter is passed to the query. ([#2088](https://github.com/turbot/steampipe-plugin-aws/pull/2088))
+
 ## v0.133.0 [2024-03-15]
 
 _What's new?_

@@ -130,7 +130,7 @@ func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Info("aws_cloudwatch_metric.listCloudWatchMetrics", "api_error", err)
+			plugin.Logger(ctx).Error("aws_cloudwatch_metric.listCloudWatchMetrics", "api_error", err)
 			return nil, err
 		}
 

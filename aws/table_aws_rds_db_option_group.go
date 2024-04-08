@@ -225,8 +225,6 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 }
 
 func getAwsRDSOptionGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRDSOptionGroupTags")
-
 	optionGroup := h.Item.(types.OptionGroup)
 
 	// Create service

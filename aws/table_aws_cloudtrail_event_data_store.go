@@ -144,7 +144,7 @@ func listCloudTrailEventDataStores(ctx context.Context, d *plugin.QueryData, _ *
 	// Get client
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_event_data_store.listCloudTrailEventDataStores", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_event_data_store.listCloudTrailEventDataStores", "client_error", err)
 		return nil, err
 	}
 
@@ -206,7 +206,7 @@ func getCloudTrailEventDataStore(ctx context.Context, d *plugin.QueryData, h *pl
 	// Create session
 	svc, err := CloudTrailClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_event_data_store.getCloudTrailEventDataStore", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_event_data_store.getCloudTrailEventDataStore", "client_error", err)
 		return nil, err
 	}
 
@@ -217,7 +217,7 @@ func getCloudTrailEventDataStore(ctx context.Context, d *plugin.QueryData, h *pl
 	// execute list call
 	op, err := svc.GetEventDataStore(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_event_data_store.getCloudTrailEventDataStore", "api_error", err)
+		plugin.Logger(ctx).Error("aws_cloudtrail_event_data_store.getCloudTrailEventDataStore", "api_error", err)
 		return nil, err
 	}
 

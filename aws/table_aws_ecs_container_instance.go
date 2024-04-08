@@ -153,7 +153,6 @@ type containerInstanceData = struct {
 // all info for less then 100 instances including the Describe request here, and batching requests means only making
 // two API calls as opposed to 101.
 func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listEcsContainerInstances")
 
 	// Create Session
 	svc, err := ECSClient(ctx, d)
@@ -240,7 +239,6 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 //// TRANSFORM FUNCTIONS
 
 func containerInstanceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("containerInstanceTagsToTurbotTags")
 	tags := d.HydrateItem.(containerInstanceData).Tags
 
 	// Mapping the resource tags inside turbotTags
