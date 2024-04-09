@@ -52,7 +52,7 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("RegionName"),
 			},
 			{
-				Name:        "connection_config_set",
+				Name:        "connection_config_region_set",
 				Description: "True if the region is specified in the connection config file.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAWSRegionsInConfig,
