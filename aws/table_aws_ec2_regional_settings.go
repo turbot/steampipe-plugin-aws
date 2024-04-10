@@ -34,6 +34,10 @@ func tableAwsEc2RegionalSettings(_ context.Context) *plugin.Table {
 				Func: getDefaultEBSVolumeEncryptionKey,
 				Tags: map[string]string{"service": "ec2", "action": "GetEbsDefaultKmsKeyId"},
 			},
+			{
+				Func: getSnapshotBlockPublicAccessState,
+				Tags: map[string]string{"service": "ec2", "action": "GetSnapshotBlockPublicAccessState"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
