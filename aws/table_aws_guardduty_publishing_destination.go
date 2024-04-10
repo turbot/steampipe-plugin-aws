@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty/types"
 
@@ -147,7 +146,7 @@ func listGuardDutyPublishingDestinations(ctx context.Context, d *plugin.QueryDat
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			input.MaxResults = limit
+			input.MaxResults = &limit
 		}
 	}
 
@@ -229,7 +228,7 @@ func getGuardDutyPublishingDestination(ctx context.Context, d *plugin.QueryData,
 		DestinationArn:                  data.DestinationProperties.DestinationArn,
 		KmsKeyArn:                       data.DestinationProperties.KmsKeyArn,
 		Status:                          data.Status,
-		PublishingFailureStartTimestamp: aws.Int64(data.PublishingFailureStartTimestamp),
+		PublishingFailureStartTimestamp: data.PublishingFailureStartTimestamp,
 		DetectorId:                      detectorID,
 	}, nil
 }

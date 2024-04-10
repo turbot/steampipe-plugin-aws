@@ -177,7 +177,7 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 
 	maxItems := int32(200)
 	input := &macie2.ListClassificationJobsInput{
-		MaxResults: maxItems,
+		MaxResults: &maxItems,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
