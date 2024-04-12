@@ -1,3 +1,19 @@
+## v0.135.0 [2024-04-12]
+
+_What's new?_
+
+- New tables added
+  - [aws_accessanalyzer_finding](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_accessanalyzer_finding) ([#2142](https://github.com/turbot/steampipe-plugin-aws/pull/2142))
+
+_Enhancements_
+
+- Added `snapshot_block_public_access_state` column to `aws_ec2_regional_settings` table. ([#2077](https://github.com/turbot/steampipe-plugin-aws/pull/2077))
+
+_Bug fixes_
+
+- Fixed the `getDirectoryServiceSnapshotLimit` and `getDirectoryServiceEventTopics` hydrate calls in the `aws_directory_service_directory` table to correctly return `nil` for `SharedMicrosoftAD` services instead of an error. ([#2156](https://github.com/turbot/steampipe-plugin-aws/pull/2156))
+- Fixed the plugin's Postgres FDW Extension crash [issue](https://github.com/turbot/steampipe-postgres-fdw/issues/434).
+
 ## v0.134.0 [2024-03-29]
 
 _What's new?_
