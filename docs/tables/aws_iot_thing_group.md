@@ -13,7 +13,7 @@ The `aws_iot_thing_group` table can be utilized to obtain detailed information a
 
 ## Examples
 
-### Basic Info
+### Basic info
 Acquire essential details about AWS IoT Thing Groups, including their names, IDs, descriptions, and hierarchical relationships. This fundamental query is crucial for an overview of the groups and their structures.
 
 ```sql+postgres
@@ -40,7 +40,7 @@ from
   aws_iot_thing_group;
 ```
 
-### Filter Thing Groups by Parent Group
+### Filter thing groups by parent group
 Identify specific IoT Thing Groups based on their parent group. This query is useful for analyzing the hierarchical organization of your IoT devices.
 
 ```sql+postgres
@@ -69,7 +69,7 @@ where
   parent_group_name = 'foo';
 ```
 
-### List Thing Groups Created in the Last 30 Days
+### List thing groups created in the last 30 days
 Discover Thing Groups that have been created in the last 30 days. This query helps in tracking recent additions to your IoT environment.
 
 ```sql+postgres
@@ -98,8 +98,8 @@ where
   datetime(creation_date) >= datetime('now', '-30 days');
 ```
 
-### List Dynamic Groups
-List dynamic Thing Groups in your AWS IoT environment. Dynamic groups are defined by queries and this query is particularly useful to identify groups that are automatically managed based on set criteria.
+### List active thing groups
+List Thing Groups that are currently being used to manage and organize devices (referred to as "things") within your IoT environment.
 
 ```sql+postgres
 select
@@ -111,7 +111,7 @@ select
 from
   aws_iot_thing_group
 where
-  status <> '';
+  status = 'ACTIVE';
 ```
 
 ```sql+sqlite
@@ -124,9 +124,5 @@ select
 from
   aws_iot_thing_group
 where
-  status <> '';
+  status = 'ACTIVE';
 ```
-
----
-
-This format offers a comprehensive guide for querying AWS IoT Thing Groups using SQL, supporting various operational and management needs in IoT environments.
