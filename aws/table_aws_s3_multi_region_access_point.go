@@ -90,8 +90,7 @@ func tableAwsS3MultiRegionAccessPoint(_ context.Context) *plugin.Table {
 
 func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.listS3MultiRegionAccessPoints", "common_data_error", err)
 		return nil, err
@@ -162,8 +161,7 @@ func listS3MultiRegionAccessPoints(ctx context.Context, d *plugin.QueryData, h *
 func getS3MultiRegionAccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.getS3MultiRegionAccessPoint", "common_data_error", err)
 		return nil, err
@@ -210,8 +208,7 @@ func getMultiRegionAccessPointArn(ctx context.Context, d *plugin.QueryData, h *p
 	accessPointName := multiRegionAccessPointName(h.Item)
 
 	// Get account details
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_multi_region_access_point.getMultiRegionAccessPointArn", "common_data_error", err)
 		return nil, err

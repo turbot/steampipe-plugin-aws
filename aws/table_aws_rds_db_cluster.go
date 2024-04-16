@@ -99,6 +99,11 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "auto_minor_version_upgrade",
+				Description: "A value that indicates that minor version patches are applied automatically. This setting is only for non-Aurora Multi-AZ DB clusters.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "backtrack_consumed_change_records",
 				Description: "The number of change records stored for Backtrack.",
 				Type:        proto.ColumnType_INT,

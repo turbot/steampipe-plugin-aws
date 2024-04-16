@@ -155,10 +155,11 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsSSMMaintenanceWindow,
 			},
+			// The value of NextExecutionTime is influenced by the timezone set by the user. Due to uncertainty regarding the date string's format, attempts to parse it into the time.RFC3339 format result in errors when the timezone isn't UTC. Consequently, we have designated the column type as a string.
 			{
 				Name:        "next_execution_time",
 				Description: "The next time the maintenance window will actually run, taking into account any specified times for the Maintenance Window to become active or inactive.",
-				Type:        proto.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_STRING,
 			},
 
 			/// Standard columns for all tables
@@ -380,7 +381,6 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 }
 
 func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsSSMMaintenanceWindowAkas")
 	region := d.EqualsQualString(matrixKeyRegion)
 	id := maintenanceWindowID(h.Item)
 
@@ -397,7 +397,6 @@ func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h 
 /// TRANSFORM FUNCTIONS
 
 func ssmMaintenanceWindowTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ssmMaintenanceWindowTagListToTurbotTags")
 	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags

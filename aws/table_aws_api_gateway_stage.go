@@ -183,6 +183,7 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Create Session
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_stage.listAPIGatewayStage", "service_client_error", err)
 		return nil, err
 	}
 
@@ -192,6 +193,7 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	op, err := svc.GetStages(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_stage.listAPIGatewayStage", "api_error", err)
 		return nil, err
 	}
 
@@ -228,7 +230,7 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	stageData, err := svc.GetStage(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_api_gateway_stage.getAPIGatewayStage", "api_error", err)
+		plugin.Logger(ctx).Error("aws_api_gateway_stage.getAPIGatewayStage", "api_error", err)
 		return nil, err
 	}
 
