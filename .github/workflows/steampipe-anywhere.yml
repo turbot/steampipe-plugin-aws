@@ -11,7 +11,6 @@ on:
         description: "The version to release (must be prefixed with 'v')"
         required: true
         
-
 jobs:
   build-postgres-14-fdw-linux-amd64:
     name: Build Postgres 14 FDW for Linux - AMD64
@@ -958,3 +957,105 @@ jobs:
             ${{ steps.download_export_darwin_arm64.outputs.download-path }}/steampipe_export_${{ env.PLUGIN_NAME }}.darwin_arm64.tar.gz
             ${{ steps.download_export_linux_amd64.outputs.download-path }}/steampipe_export_${{ env.PLUGIN_NAME }}.linux_amd64.tar.gz
             ${{ steps.download_export_linux_arm64.outputs.download-path }}/steampipe_export_${{ env.PLUGIN_NAME }}.linux_arm64.tar.gz
+
+  check-installation-linux:
+    name: Check Installation(Linux)
+    runs-on: ubuntu-latest
+    needs: build-draft-release
+    steps:
+      - name: Set environment variables
+        run: |
+          plugin_name=$(echo $GITHUB_REPOSITORY | cut -d'-' -f 3)
+          echo $plugin_name
+          echo "PLUGIN_NAME=${plugin_name}" >> $GITHUB_ENV
+
+      - name: Install PostgreSQL14 Dev
+        run: |-
+          sudo apt-get -y install postgresql-server-dev-14
+
+      - name: Check pg_config version
+        run: pg_config --version
+
+      - name: Download and install Postgres FDW
+        run: |-
+          curl -fsSL -o install_postgres_fdw.sh https://steampipe.io/install/postgres.sh
+          echo | sudo -E TERM=xterm bash install_postgres_fdw.sh ${{ env.PLUGIN_NAME }} latest 2>/dev/null
+          rm -f install_postgres_fdw.sh
+      
+      - name: Test Postgres FDW
+        run: |-
+          sudo service postgresql start
+          sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS steampipe_postgres_${{ env.PLUGIN_NAME }};"
+          sudo -u postgres psql -c "CREATE SERVER steampipe_${{ env.PLUGIN_NAME }} FOREIGN DATA WRAPPER steampipe_postgres_${{ env.PLUGIN_NAME }};"
+          sudo -u postgres psql -c "CREATE SCHEMA ${{ env.PLUGIN_NAME }};"
+          sudo -u postgres psql -c "IMPORT FOREIGN SCHEMA ${{ env.PLUGIN_NAME }} FROM SERVER steampipe_${{ env.PLUGIN_NAME }} INTO ${{ env.PLUGIN_NAME }};"
+          sudo -u postgres psql -c "SELECT * FROM pg_extension;"
+
+      - name: Install SQLite3
+        run: sudo apt-get install -y sqlite3
+
+      - name: Download and install SQLite Extension
+        run: |-
+          echo | TERM=xterm bash <(curl -fsSL https://steampipe.io/install/sqlite.sh) ${{ env.PLUGIN_NAME }} latest 2>/dev/null
+
+      - name: Test SQLite Extension
+        run: |
+          echo ".load ./steampipe_sqlite_${{ env.PLUGIN_NAME }}" | sqlite3
+
+      - name: Download and install Export Tool
+        run: |-
+          curl -fsSL -o install_export.sh https://steampipe.io/install/export.sh
+          echo | sudo -E TERM=xterm bash install_export.sh ${{ env.PLUGIN_NAME }} latest 2>/dev/null
+          rm -f install_export.sh
+      
+      - name: Test Export Tool
+        run: |
+          steampipe_export_${{ env.PLUGIN_NAME }} --help
+  
+  check-installation-darwin:
+    name: Check Installation(Darwin)
+    runs-on: macos-latest
+    needs: build-draft-release
+    steps:
+      - name: Set environment variables
+        run: |
+          plugin_name=$(echo $GITHUB_REPOSITORY | cut -d'-' -f 3)
+          echo $plugin_name
+          echo "PLUGIN_NAME=${plugin_name}" >> $GITHUB_ENV
+
+      - name: Install PostgreSQL14
+        run: brew install postgresql@14
+
+      - name: Start PostgreSQL service
+        run: brew services start postgresql@14
+
+      - name: Check pg_config version
+        run: pg_config --version
+
+      - name: Download and install Postgres FDW
+        run: |-
+          curl -fsSL -o install_postgres_fdw.sh https://steampipe.io/install/postgres.sh
+          echo | sudo -E TERM=xterm bash install_postgres_fdw.sh ${{ env.PLUGIN_NAME }} latest 2>/dev/null
+          rm -f install_postgres_fdw.sh
+
+      - name: Configure PostgreSQL
+        run: |-
+          psql -d postgres -c "CREATE EXTENSION IF NOT EXISTS steampipe_postgres_${{ env.PLUGIN_NAME }};"
+          psql -d postgres -c "CREATE SERVER steampipe_${{ env.PLUGIN_NAME }} FOREIGN DATA WRAPPER steampipe_postgres_${{ env.PLUGIN_NAME }};"
+          psql -d postgres -c "CREATE SCHEMA ${{ env.PLUGIN_NAME }};"
+          psql -d postgres -c "IMPORT FOREIGN SCHEMA ${{ env.PLUGIN_NAME }} FROM SERVER steampipe_${{ env.PLUGIN_NAME }} INTO ${{ env.PLUGIN_NAME }};"
+          psql -d postgres -c "SELECT * FROM pg_extension;"
+
+      - name: Download and install SQLite Extension
+        run: |-
+          echo | TERM=xterm bash <(curl -fsSL https://steampipe.io/install/sqlite.sh) ${{ env.PLUGIN_NAME }} latest 2>/dev/null
+
+      - name: Download and install Export Tool
+        run: |-
+          curl -fsSL -o install_export.sh https://steampipe.io/install/export.sh
+          echo | sudo -E TERM=xterm bash install_export.sh ${{ env.PLUGIN_NAME }} latest 2>/dev/null
+          rm -f install_export.sh
+
+      - name: Test Export Tool
+        run: |
+          steampipe_export_${{ env.PLUGIN_NAME }} --help

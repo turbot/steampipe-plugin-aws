@@ -347,6 +347,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_inspector_exclusion":                                      tableAwsInspectorExclusion(ctx),
 			"aws_inspector_finding":                                        tableAwsInspectorFinding(ctx),
 			"aws_iot_thing":                                                tableAwsIoTThing(ctx),
+			"aws_iot_fleet_metric":                                         tableAwsIoTFleetMetric(ctx),
 			"aws_kinesis_consumer":                                         tableAwsKinesisConsumer(ctx),
 			"aws_kinesis_firehose_delivery_stream":                         tableAwsKinesisFirehoseDeliveryStream(ctx),
 			"aws_kinesis_stream":                                           tableAwsKinesisStream(ctx),
