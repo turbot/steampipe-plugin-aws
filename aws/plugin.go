@@ -70,6 +70,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		},
 		TableMap: map[string]*plugin.Table{
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
+			"aws_accessanalyzer_finding":                                   tableAwsAccessAnalyzerFinding(ctx),
 			"aws_account":                                                  tableAwsAccount(ctx),
 			"aws_account_alternate_contact":                                tableAwsAccountAlternateContact(ctx),
 			"aws_account_contact":                                          tableAwsAccountContact(ctx),
@@ -339,8 +340,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_inspector_assessment_template":                            tableAwsInspectorAssessmentTemplate(ctx),
 			"aws_inspector_exclusion":                                      tableAwsInspectorExclusion(ctx),
 			"aws_inspector_finding":                                        tableAwsInspectorFinding(ctx),
+      "aws_iot_fleet_metric":                                         tableAwsIoTFleetMetric(ctx),
 			"aws_iot_thing":                                                tableAwsIoTThing(ctx),
-                        "aws_iot_thing_type":                                           tableAwsIoTThingType(ctx),
+      "aws_iot_thing_type":                                           tableAwsIoTThingType(ctx),
 			"aws_kinesis_consumer":                                         tableAwsKinesisConsumer(ctx),
 			"aws_kinesis_firehose_delivery_stream":                         tableAwsKinesisFirehoseDeliveryStream(ctx),
 			"aws_kinesis_stream":                                           tableAwsKinesisStream(ctx),
