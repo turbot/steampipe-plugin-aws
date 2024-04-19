@@ -126,7 +126,7 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	input := &securityhub.DescribeProductsInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	paginator := securityhub.NewDescribeProductsPaginator(svc, input, func(o *securityhub.DescribeProductsPaginatorOptions) {

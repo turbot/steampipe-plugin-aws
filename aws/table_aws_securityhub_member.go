@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 
 	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
@@ -98,7 +99,7 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	params := &securityhub.ListMembersInput{
-		OnlyAssociated: false,
+		OnlyAssociated: aws.Bool(false),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

@@ -147,14 +147,14 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	maxItems := int32(50)
 	params := &guardduty.ListDetectorsInput{
-		MaxResults: maxItems,
+		MaxResults: &maxItems,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			params.MaxResults = limit
+			params.MaxResults = &limit
 		}
 	}
 

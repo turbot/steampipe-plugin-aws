@@ -292,7 +292,7 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	input := &securityhub.GetFindingsInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	findingsFilter := buildListFindingsParam(d.Quals)

@@ -159,7 +159,7 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 		input := &wellarchitected.ListLensReviewImprovementsInput{
 			WorkloadId: workload.WorkloadId,
 			LensAlias:  aws.String(lensAlias),
-			MaxResults: maxLimit,
+			MaxResults: &maxLimit,
 		}
 
 		if d.EqualsQuals["pillar_id"] != nil {
@@ -170,7 +170,7 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 			if milestoneNumber < 1 || milestoneNumber > 100 {
 				return nil, fmt.Errorf("MilestoneNumber must have minimum value of 1 and maximum value of 100")
 			}
-			input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+			input.MilestoneNumber = aws.Int32(int32(d.EqualsQuals["milestone_number"].GetInt64Value()))
 		}
 
 		_, err := stereamlistLensReviewImprovements(ctx, d, h, svc, input, maxLimit)
@@ -218,7 +218,7 @@ func stereamlistLensReviewImprovements(ctx context.Context, d *plugin.QueryData,
 			d.StreamListItem(ctx, ReviewImprovementInfo{
 				LensAlias:          output.LensAlias,
 				LensArn:            output.LensArn,
-				MilestoneNumber:    output.MilestoneNumber,
+				MilestoneNumber:    *output.MilestoneNumber,
 				WorkloadId:         output.WorkloadId,
 				ImprovementSummary: item,
 			})
