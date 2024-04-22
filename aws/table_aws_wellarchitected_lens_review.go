@@ -144,8 +144,6 @@ type LensReviewInfo struct {
 func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	workloadId := h.Item.(types.WorkloadSummary).WorkloadId
 
-	plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.listWellArchitectedLensReviews", "workload_id", *workloadId)
-
 	// Reduce number of API call if the workload id has been provided in query parameter.
 	if d.EqualsQualString("workload_id") != "" {
 		if d.EqualsQualString("workload_id") != *workloadId {
@@ -175,12 +173,11 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 
 	input := &wellarchitected.ListLensReviewsInput{
 		WorkloadId: workloadId,
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	if d.EqualsQuals["milestone_number"] != nil {
-		input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
-		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.listWellArchitectedLensReviews", "milestone_number", input.MilestoneNumber)
+		input.MilestoneNumber = aws.Int32(int32(d.EqualsQuals["milestone_number"].GetInt64Value()))
 	}
 
 	paginator := wellarchitected.NewListLensReviewsPaginator(svc, input, func(o *wellarchitected.ListLensReviewsPaginatorOptions) {
@@ -198,7 +195,6 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 			// TODO: Shouldn't be needed, but the List IgnoreConfig doesn't seem to
 			// be working (maybe due to ParentHydrate use?)
 			if strings.Contains(err.Error(), "ResourceNotFoundException") {
-				plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.listWellArchitectedLensReviews", "resource_not_found_error", err)
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_wellarchitected_lens_review.listWellArchitectedLensReviews", "api_error", err)
@@ -207,7 +203,7 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 
 		for _, item := range output.LensReviewSummaries {
 			d.StreamListItem(ctx, LensReviewInfo{
-				MilestoneNumber: output.MilestoneNumber,
+				MilestoneNumber: *output.MilestoneNumber,
 				WorkloadId:      workloadId,
 				LensReview: &types.LensReview{
 					LensAlias:   item.LensAlias,
@@ -237,12 +233,10 @@ func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *p
 	if h.Item != nil {
 		workloadId = *h.Item.(LensReviewInfo).WorkloadId
 		lensAlias = *h.Item.(LensReviewInfo).LensAlias
-		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.getWellArchitectedLensReview from item", "workload_id", workloadId, "lens_alias", lensAlias)
 	} else {
 		quals := d.EqualsQuals
 		workloadId = quals["workload_id"].GetStringValue()
 		lensAlias = quals["lens_alias"].GetStringValue()
-		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review..getWellArchitectedLensReview from quals", "workload_id", workloadId, "lens_alias", lensAlias)
 	}
 
 	// Empty Check
@@ -267,8 +261,7 @@ func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	if d.EqualsQuals["milestone_number"] != nil {
-		params.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
-		plugin.Logger(ctx).Debug("aws_wellarchitected_lens_review.getWellArchitectedLensReview", "milestone_number", params.MilestoneNumber)
+		params.MilestoneNumber = aws.Int32(int32(d.EqualsQuals["milestone_number"].GetInt64Value()))
 	}
 
 	op, err := svc.GetLensReview(ctx, params)
@@ -278,7 +271,7 @@ func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	return LensReviewInfo{
-		MilestoneNumber: op.MilestoneNumber,
+		MilestoneNumber: *op.MilestoneNumber,
 		WorkloadId:      &workloadId,
 		LensReview:      op.LensReview,
 	}, nil

@@ -230,10 +230,10 @@ func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		input.SnapshotType = aws.String(d.EqualsQualString("snapshot_type"))
 	}
 	if d.EqualsQuals["include_public"] != nil {
-		input.IncludePublic = d.EqualsQuals["include_public"].GetBoolValue()
+		input.IncludePublic = aws.Bool(d.EqualsQuals["include_public"].GetBoolValue())
 	}
 	if d.EqualsQuals["include_shared"] != nil {
-		input.IncludePublic = d.EqualsQuals["include_shared"].GetBoolValue()
+		input.IncludePublic = aws.Bool(d.EqualsQuals["include_shared"].GetBoolValue())
 	}
 
 	// List call

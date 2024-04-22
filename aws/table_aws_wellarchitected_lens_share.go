@@ -133,7 +133,7 @@ func listWellArchitectedLensShares(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	input := &wellarchitected.ListLensSharesInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 		LensAlias:  lens.LensArn,
 	}
 

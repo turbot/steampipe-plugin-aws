@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentity"
@@ -147,7 +146,7 @@ func listCognitoIdentityPools(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 	}
 	input := &cognitoidentity.ListIdentityPoolsInput{
-		MaxResults: maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 	// List call
 	paginator := cognitoidentity.NewListIdentityPoolsPaginator(svc, input, func(o *cognitoidentity.ListIdentityPoolsPaginatorOptions) {
@@ -164,10 +163,8 @@ func listCognitoIdentityPools(ctx context.Context, d *plugin.QueryData, _ *plugi
 			plugin.Logger(ctx).Error("aws_cognito_identity_pool.listCognitoIdentityPools", "api_error", err)
 			return nil, err
 		}
-		plugin.Logger(ctx).Debug("aws_cognito_identity_pool.listCognitoIdentityPools", "identity_pools", fmt.Sprintf("%#v", output.IdentityPools))
 
 		for _, identityPool := range output.IdentityPools {
-			plugin.Logger(ctx).Debug("aws_cognito_identity_pool.listCognitoIdentityPools", "identity_pool", fmt.Sprintf("%#v", identityPool))
 			d.StreamListItem(ctx, identityPool)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -192,7 +189,6 @@ func getCognitoIdentityPool(ctx context.Context, d *plugin.QueryData, h *plugin.
 	} else {
 		identityPoolId = d.EqualsQualString("identity_pool_id")
 	}
-	plugin.Logger(ctx).Debug("aws_cognito_identity_pool.getCognitoIdentityPool", "identity_pool_id", identityPoolId)
 
 	// check if id is empty
 	if identityPoolId == "" {
@@ -222,7 +218,6 @@ func getCognitoIdentityPool(ctx context.Context, d *plugin.QueryData, h *plugin.
 		plugin.Logger(ctx).Error("aws_cognito_identity_pool.getCognitoIdentityPool", "api_error", err)
 		return nil, err
 	}
-	plugin.Logger(ctx).Debug("aws_cognito_identity_pool.getCognitoIdentityPool", "identity_pool", fmt.Sprintf("%#v", *data))
 	return *data, nil
 }
 

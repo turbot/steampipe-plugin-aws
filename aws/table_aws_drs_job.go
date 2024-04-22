@@ -128,7 +128,7 @@ func listAwsDRSJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		}
 	}
 
-	input.MaxResults = int32(maxItems)
+	input.MaxResults = &maxItems
 
 	filter := &types.DescribeJobsRequestFilters{}
 

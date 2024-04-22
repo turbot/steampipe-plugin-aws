@@ -105,7 +105,7 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 	}
 
 	input := &securityhub.ListFindingAggregatorsInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 	// List Call
 	paginator := securityhub.NewListFindingAggregatorsPaginator(svc, input, func(o *securityhub.ListFindingAggregatorsPaginatorOptions) {

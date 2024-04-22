@@ -139,7 +139,7 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			params.MaxResults = limit
+			params.MaxResults = &limit
 		}
 	}
 
