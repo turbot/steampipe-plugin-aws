@@ -1,3 +1,9 @@
+## v0.136.1 [2024-04-23]
+
+_Bug fixes_
+
+- Fixed the [runtime error](https://github.com/turbot/steampipe-postgres-fdw/issues/454) in the `v0.136.0` version of the plugin’s Postgres FDW extension.
+
 ## v0.136.0 [2024-04-19]
 
 _What's new?_
