@@ -17,11 +17,11 @@ Amazon Cost Explorer assists you in visualizing, understanding, and managing you
 
 - This table requires an '=' qualifier for all of the following columns: granularity, dimension_type_1, dimension_type_2.
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01 for you.
+- You can optionally pass `search_start_time` or/and `search_end_time` in the where clause to reduce the query time. Supported operators are: `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
 ### Monthly net unblended cost by account and service
-
 Explore the monthly expenditure for each linked account and service in your AWS environment. This query can help you understand your cost trends and identify areas for potential savings.
 
 ```sql+postgres
@@ -59,7 +59,6 @@ order by
 ```
 
 ### Get unblended cost and usage details within a custom time frame
-
 This query is useful for organizations looking to gain a detailed understanding of their AWS costs on a per-service and per-account basis, within a specified time frame, and on a monthly granularity.
 
 ```sql+postgres
@@ -103,7 +102,6 @@ order by
 ```
 
 ### Top 5 most expensive services (net unblended cost) in each account
-
 Identify the top five most costly services in each account to manage and optimize your AWS expenses effectively.
 
 ```sql+postgres
@@ -130,11 +128,29 @@ select * from ranked_costs where rank <=5
 ```
 
 ```sql+sqlite
-Error: SQLite does not support rank window functions.
+with ranked_costs as (
+  select
+    dimension_1 as account_id,
+    dimension_2 as service_name,
+    cast(sum(net_unblended_cost_amount) as numeric) as net_unblended_cost,
+    rank() over (
+        partition by dimension_1
+        order by sum(net_unblended_cost_amount) desc
+    )
+  from
+    aws_cost_usage
+  where
+    granularity = 'MONTHLY'
+    and dimension_type_1 = 'LINKED_ACCOUNT'
+    and dimension_type_2 = 'SERVICE'
+  group by
+    dimension_1,
+    dimension_2
+)
+select * from ranked_costs where rank <=5
 ```
 
 ### Monthly net unblended cost by account and record type
-
 Analyze your monthly AWS account costs by record type to better understand your expenses. This can help you identify areas where costs may be reduced or controlled.
 
 ```sql+postgres
@@ -172,7 +188,6 @@ order by
 ```
 
 ### List monthly discounts and credits by account
-
 This query allows users to monitor their AWS account's monthly spending by tracking discounts and credits. It's beneficial for budgeting purposes and helps in optimizing cost management strategies.
 
 ```sql+postgres

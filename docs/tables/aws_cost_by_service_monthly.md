@@ -11,11 +11,12 @@ The AWS Cost Explorer Service provides detailed information about your AWS costs
 
 The `aws_cost_by_service_monthly` table in Steampipe provides you with information about the monthly cost breakdown by service within AWS Cost Explorer. This table allows you, as a financial analyst, DevOps engineer, or other stakeholder, to query cost-specific details, including the service name, the cost associated with it, and the currency code. You can utilize this table to gather insights on cost management, such as tracking AWS expenses, identifying cost trends, and auditing. The schema outlines the various attributes of the cost information, including the service name, cost, and currency code.
 
-Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_service_monthly` table provides you with a simplified view of cost for services in your account (or all linked accounts when run against the organization master), summarized by month, for the last year.  
+Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_service_monthly` table provides you with a simplified view of cost for services in your account (or all linked accounts when run against the organization master), summarized by month, for the last year.
 
 **Important Notes**
 
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
+- You can optionally pass `search_start_time` or/and `search_end_time` in the where clause to reduce the query time. Supported operators are: `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -31,7 +32,7 @@ select
   amortized_cost_amount::numeric::money,
   net_unblended_cost_amount::numeric::money,
   net_amortized_cost_amount::numeric::money
-from 
+from
   aws_cost_by_service_monthly
 order by
   service,
@@ -47,7 +48,7 @@ select
   cast(amortized_cost_amount as decimal),
   cast(net_unblended_cost_amount as decimal),
   cast(net_amortized_cost_amount as decimal)
-from 
+from
   aws_cost_by_service_monthly
 order by
   service,
@@ -65,7 +66,7 @@ select
   min(unblended_cost_amount)::numeric::money as min,
   max(unblended_cost_amount)::numeric::money as max,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_monthly
 group by
   service
@@ -79,7 +80,7 @@ select
   min(unblended_cost_amount) as min,
   max(unblended_cost_amount) as max,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_monthly
 group by
   service
@@ -95,7 +96,7 @@ select
   service,
   sum(unblended_cost_amount)::numeric::money as sum,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_monthly
 group by
   service
@@ -109,7 +110,7 @@ select
   service,
   sum(unblended_cost_amount) as sum,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_monthly
 group by
   service
@@ -127,7 +128,7 @@ select
   service,
   sum(unblended_cost_amount)::numeric::money as sum,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_monthly
 group by
   service
@@ -141,7 +142,7 @@ select
   service,
   sum(unblended_cost_amount) as sum,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_monthly
 group by
   service
@@ -161,7 +162,7 @@ with ranked_costs as (
     period_start,
     unblended_cost_amount::numeric::money,
     rank() over(partition by service order by unblended_cost_amount desc)
-  from 
+  from
     aws_cost_by_service_monthly
 )
 select * from ranked_costs where rank = 1;
@@ -181,7 +182,7 @@ with cost_data as (
     period_start,
     unblended_cost_amount as this_month,
     lag(unblended_cost_amount,1) over(partition by service order by period_start desc) as previous_month
-  from 
+  from
     aws_cost_by_service_monthly
 )
 select
@@ -189,10 +190,10 @@ select
     period_start,
     this_month::numeric::money,
     previous_month::numeric::money,
-    case 
+    case
       when previous_month = 0 and this_month = 0  then 0
       when previous_month = 0 then 999
-      else round((100 * ( (this_month - previous_month) / previous_month))::numeric, 2) 
+      else round((100 * ( (this_month - previous_month) / previous_month))::numeric, 2)
     end as percent_change
 from
   cost_data
@@ -208,7 +209,7 @@ with cost_data as (
     period_start,
     unblended_cost_amount as this_month,
     lag(unblended_cost_amount,1) over(partition by service order by period_start desc) as previous_month
-  from 
+  from
     aws_cost_by_service_monthly
 )
 select
@@ -216,10 +217,10 @@ select
     period_start,
     this_month,
     previous_month,
-    case 
+    case
       when previous_month = 0 and this_month = 0  then 0
       when previous_month = 0 then 999
-      else round((100 * ( (this_month - previous_month) / previous_month)), 2) 
+      else round((100 * ( (this_month - previous_month) / previous_month)), 2)
     end as percent_change
 from
   cost_data

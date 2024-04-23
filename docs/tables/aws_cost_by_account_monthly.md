@@ -11,10 +11,11 @@ The AWS Cost Explorer Service provides insights into your AWS costs and usage. I
 
 The `aws_cost_by_account_monthly` table in Steampipe provides you with information about your monthly AWS costs per account. This table allows you, as a financial analyst or DevOps engineer, to query cost-specific details, including the total amount spent, the currency code, and the associated AWS account. You can utilize this table to gain insights on your AWS spending and to manage your budget more effectively. The schema outlines the various attributes of your AWS cost, including the account ID, the month, the total amount, and the currency code.
 
-Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_account_monthly` table provides a simplified view of cost for your account (or all linked accounts when run against the organization master), summarized by month, for the last year.  
+Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_account_monthly` table provides a simplified view of cost for your account (or all linked accounts when run against the organization master), summarized by month, for the last year.
 
 **Important Notes**
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
+- You can optionally pass `search_start_time` or/and `search_end_time` in the where clause to reduce the query time. Supported operators are: `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -30,7 +31,7 @@ select
   amortized_cost_amount::numeric::money,
   net_unblended_cost_amount::numeric::money,
   net_amortized_cost_amount::numeric::money
-from 
+from
   aws_cost_by_account_monthly
 order by
   linked_account_id,
@@ -46,7 +47,7 @@ select
   CAST(amortized_cost_amount AS REAL) AS amortized_cost_amount,
   CAST(net_unblended_cost_amount AS REAL) AS net_unblended_cost_amount,
   CAST(net_amortized_cost_amount AS REAL) AS net_amortized_cost_amount
-from 
+from
   aws_cost_by_account_monthly
 order by
   linked_account_id,
@@ -64,7 +65,7 @@ select
   min(unblended_cost_amount)::numeric::money as min,
   max(unblended_cost_amount)::numeric::money as max,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_account_monthly
 group by
   linked_account_id
@@ -78,7 +79,7 @@ select
   min(unblended_cost_amount) as min,
   max(unblended_cost_amount) as max,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_account_monthly
 group by
   linked_account_id
@@ -96,7 +97,7 @@ select
   period_start,
   unblended_cost_amount::numeric::money,
   rank() over(partition by linked_account_id order by unblended_cost_amount desc)
-from 
+from
   aws_cost_by_account_monthly;
 ```
 
@@ -114,7 +115,7 @@ with cost_data as (
     period_start,
     unblended_cost_amount as this_month,
     lag(unblended_cost_amount,1) over(partition by linked_account_id order by period_start desc) as previous_month
-  from 
+  from
     aws_cost_by_account_monthly
 )
 select
@@ -137,7 +138,7 @@ with cost_data as (
     period_start,
     unblended_cost_amount as this_month,
     lag(unblended_cost_amount, 1) over(partition by linked_account_id order by period_start desc) as previous_month
-  from 
+  from
     aws_cost_by_account_monthly
 )
 select

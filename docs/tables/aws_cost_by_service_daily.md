@@ -11,10 +11,11 @@ The AWS Cost Explorer is a tool that allows you to visualize, understand, and ma
 
 The `aws_cost_by_service_daily` table in Steampipe provides you with information about the daily cost breakdown by AWS service within AWS Cost Explorer. This table allows you, as a financial analyst or cloud administrator, to query cost-specific details, including total cost, unit, and service name on a daily basis. You can utilize this table to track your spending on AWS services, monitor cost trends, and identify potential cost-saving opportunities. The schema outlines the various attributes of your cost data, including your linked account, service, currency, and amount.
 
-Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_service_daily` table provides you with a simplified view of cost for services in your account (or all linked accounts when run against the organization master), summarized by day, for the last year. 
+Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_service_daily` table provides you with a simplified view of cost for services in your account (or all linked accounts when run against the organization master), summarized by day, for the last year.
 
 **Important Notes**
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
+- You can optionally pass `search_start_time` or/and `search_end_time` in the where clause to reduce the query time. Supported operators are: `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -30,7 +31,7 @@ select
   amortized_cost_amount::numeric::money,
   net_unblended_cost_amount::numeric::money,
   net_amortized_cost_amount::numeric::money
-from 
+from
   aws_cost_by_service_daily
 order by
   service,
@@ -46,7 +47,7 @@ select
   cast(amortized_cost_amount as decimal),
   cast(net_unblended_cost_amount as decimal),
   cast(net_amortized_cost_amount as decimal)
-from 
+from
   aws_cost_by_service_daily
 order by
   service,
@@ -62,7 +63,7 @@ select
   min(unblended_cost_amount)::numeric::money as min,
   max(unblended_cost_amount)::numeric::money as max,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_daily
 group by
   service
@@ -76,7 +77,7 @@ select
   min(unblended_cost_amount) as min,
   max(unblended_cost_amount) as max,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_daily
 group by
   service
@@ -92,7 +93,7 @@ select
   service,
   sum(unblended_cost_amount)::numeric::money as sum,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_daily
 group by
   service
@@ -106,7 +107,7 @@ select
   service,
   sum(unblended_cost_amount) as sum,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_daily
 group by
   service
@@ -123,7 +124,7 @@ select
   service,
   sum(unblended_cost_amount)::numeric::money as sum,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_daily
 group by
   service
@@ -137,7 +138,7 @@ select
   service,
   sum(unblended_cost_amount) as sum,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_daily
 group by
   service
@@ -157,7 +158,7 @@ with ranked_costs as (
     period_start,
     unblended_cost_amount::numeric::money,
     rank() over(partition by service order by unblended_cost_amount desc)
-  from 
+  from
     aws_cost_by_service_daily
 )
 select * from ranked_costs where rank <= 10;

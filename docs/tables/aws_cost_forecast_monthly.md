@@ -16,6 +16,7 @@ Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs 
 **Important Notes**
 
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
+- You can optionally pass `search_start_time` or/and `search_end_time` in the where clause to reduce the query time. Supported operators are: `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -24,22 +25,22 @@ Assess the elements within your AWS cost forecast on a monthly basis to better u
 
 ```sql+postgres
 
-select 
+select
    period_start,
    period_end,
-   mean_value::numeric::money  
-from 
+   mean_value::numeric::money
+from
   aws_cost_forecast_monthly
 order by
   period_start;
 ```
 
 ```sql+sqlite
-select 
+select
    period_start,
    period_end,
    cast(mean_value as real) as mean_value
-from 
+from
   aws_cost_forecast_monthly
 order by
   period_start;
@@ -57,17 +58,17 @@ with cost_data as (
     period_start,
     mean_value as this_month,
     lag(mean_value,-1) over(order by period_start desc) as previous_month
-  from 
+  from
     aws_cost_forecast_monthly
 )
 select
     period_start,
     this_month::numeric::money,
     previous_month::numeric::money,
-    case 
+    case
       when previous_month = 0 and this_month = 0  then 0
       when previous_month = 0 then 999
-      else round((100 * ( (this_month - previous_month) / previous_month))::numeric, 2) 
+      else round((100 * ( (this_month - previous_month) / previous_month))::numeric, 2)
     end as percent_change
 from
   cost_data
@@ -81,17 +82,17 @@ with cost_data as (
     period_start,
     mean_value as this_month,
     lag(mean_value,-1) over(order by period_start desc) as previous_month
-  from 
+  from
     aws_cost_forecast_monthly
 )
 select
     period_start,
     this_month,
     previous_month,
-    case 
+    case
       when previous_month = 0 and this_month = 0  then 0
       when previous_month = 0 then 999
-      else round((100 * ( (this_month - previous_month) / previous_month)), 2) 
+      else round((100 * ( (this_month - previous_month) / previous_month)), 2)
     end as percent_change
 from
   cost_data

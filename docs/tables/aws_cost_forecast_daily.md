@@ -15,6 +15,7 @@ Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs 
 
 **Important Notes**
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
+- You can optionally pass `search_start_time` or/and `search_end_time` in the where clause to reduce the query time. Supported operators are: `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -23,22 +24,22 @@ Explore the daily cost forecast for AWS, allowing you to understand and predict 
 
 ```sql+postgres
 
-select 
+select
    period_start,
    period_end,
-   mean_value::numeric::money   
-from 
+   mean_value::numeric::money
+from
   aws_cost_forecast_daily
 order by
   period_start;
 ```
 
 ```sql+sqlite
-select 
+select
    period_start,
    period_end,
-   cast(mean_value as decimal) as mean_value   
-from 
+   cast(mean_value as decimal) as mean_value
+from
   aws_cost_forecast_daily
 order by
   period_start;

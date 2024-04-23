@@ -11,10 +11,11 @@ The AWS Cost and Usage Report service provides comprehensive cost and usage data
 
 The `aws_cost_by_record_type_monthly` table in Steampipe provides you with information about AWS Cost and Usage Report Records, specifically detailing costs incurred by different record types on a monthly basis. This table allows you, whether you're a DevOps engineer or a financial analyst, to query cost-specific details, including service usage, cost allocation, and associated metadata. You can utilize this table to gather insights on AWS costs, such as costs associated with specific AWS services, cost trends over time, and cost allocation across different record types. The schema outlines the various attributes of the cost and usage report record, including the record type, usage type, operation, and cost.
 
-Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_record_type_monthly` table provides a simplified view of cost for your account (or all linked accounts when run against the organization master) as per record types (fees, usage, costs, tax refunds, and credits), summarized by month, for the last year.  
+Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_record_type_monthly` table provides a simplified view of cost for your account (or all linked accounts when run against the organization master) as per record types (fees, usage, costs, tax refunds, and credits), summarized by month, for the last year.
 
 **Important Notes**
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01 for you.
+- You can optionally pass `search_start_time` or/and `search_end_time` in the where clause to reduce the query time. Supported operators are: `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -31,7 +32,7 @@ select
   amortized_cost_amount::numeric::money,
   net_unblended_cost_amount::numeric::money,
   net_amortized_cost_amount::numeric::money
-from 
+from
   aws_cost_by_record_type_monthly
 order by
   linked_account_id,
@@ -48,7 +49,7 @@ select
   CAST(amortized_cost_amount AS REAL) AS amortized_cost_amount,
   CAST(net_unblended_cost_amount AS REAL) AS net_unblended_cost_amount,
   CAST(net_amortized_cost_amount AS REAL) AS net_amortized_cost_amount
-from 
+from
   aws_cost_by_record_type_monthly
 order by
   linked_account_id,
@@ -65,7 +66,7 @@ select
   min(unblended_cost_amount)::numeric::money as min,
   max(unblended_cost_amount)::numeric::money as max,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_record_type_monthly
 group by
   linked_account_id,
@@ -81,7 +82,7 @@ select
   min(unblended_cost_amount) as min,
   max(unblended_cost_amount) as max,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_record_type_monthly
 group by
   linked_account_id,
@@ -100,7 +101,7 @@ select
   period_start,
   unblended_cost_amount::numeric::money,
   rank() over(partition by linked_account_id, record_type order by unblended_cost_amount desc)
-from 
+from
   aws_cost_by_record_type_monthly;
 ```
 
@@ -111,13 +112,13 @@ select
   period_start,
   unblended_cost_amount,
   (
-    select count(*) + 1 
+    select count(*) + 1
     from aws_cost_by_record_type_monthly as b
-    where 
-      a.linked_account_id = b.linked_account_id and 
-      a.record_type = b.record_type and 
+    where
+      a.linked_account_id = b.linked_account_id and
+      a.record_type = b.record_type and
       a.unblended_cost_amount < b.unblended_cost_amount
   )
-from 
+from
   aws_cost_by_record_type_monthly as a;
 ```

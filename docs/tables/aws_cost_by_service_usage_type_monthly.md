@@ -11,10 +11,11 @@ The AWS Cost Explorer Service is a tool that enables you to view and analyze you
 
 The `aws_cost_by_service_usage_type_monthly` table in Steampipe provides you with information about the monthly cost data per service and usage type within AWS Cost Explorer Service. This table allows you, as a financial analyst or cloud cost manager, to query detailed cost data, including the service name, usage type, cost, and currency. You can utilize this table to gather insights on monthly AWS costs, such as cost per service, cost per usage type, and the total monthly cost. The schema outlines the various attributes of the cost data, including the service name, usage type, cost, and the currency used.
 
-Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_service_usage_type_monthly` table provides you with a simplified view of cost for services in your account (or all linked accounts when run against the organization master), summarized by month, for the last year.  
+Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage. The `aws_cost_by_service_usage_type_monthly` table provides you with a simplified view of cost for services in your account (or all linked accounts when run against the organization master), summarized by month, for the last year.
 
 **Important Notes**
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
+- You can optionally pass `search_start_time` or/and `search_end_time` in the where clause to reduce the query time. Supported operators are: `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -31,7 +32,7 @@ select
   amortized_cost_amount::numeric::money,
   net_unblended_cost_amount::numeric::money,
   net_amortized_cost_amount::numeric::money
-from 
+from
   aws_cost_by_service_usage_type_monthly
 order by
   service,
@@ -48,7 +49,7 @@ select
   cast(amortized_cost_amount as decimal),
   cast(net_unblended_cost_amount as decimal),
   cast(net_amortized_cost_amount as decimal)
-from 
+from
   aws_cost_by_service_usage_type_monthly
 order by
   service,
@@ -65,7 +66,7 @@ select
   min(unblended_cost_amount)::numeric::money as min,
   max(unblended_cost_amount)::numeric::money as max,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_usage_type_monthly
 group by
   service,
@@ -82,7 +83,7 @@ select
   min(cast(unblended_cost_amount as numeric)) as min,
   max(cast(unblended_cost_amount as numeric)) as max,
   avg(cast(unblended_cost_amount as numeric)) as average
-from 
+from
   aws_cost_by_service_usage_type_monthly
 group by
   service,
@@ -101,7 +102,7 @@ select
   usage_type,
   sum(unblended_cost_amount)::numeric::money as sum,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_usage_type_monthly
 group by
   service,
@@ -117,7 +118,7 @@ select
   usage_type,
   sum(unblended_cost_amount) as sum,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_usage_type_monthly
 group by
   service,
@@ -136,7 +137,7 @@ select
   usage_type,
   sum(unblended_cost_amount)::numeric::money as sum,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_usage_type_monthly
 group by
   service,
@@ -152,7 +153,7 @@ select
   usage_type,
   sum(unblended_cost_amount) as sum,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_usage_type_monthly
 group by
   service,
