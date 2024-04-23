@@ -21,48 +21,72 @@ func tableAwsCostByTag(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost By Tags",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "granularity", Require: plugin.Required},
-				{Name: "tag_key_1", Require: plugin.Required},
-				{Name: "tag_key_2", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
+				{
+					Name:    "granularity",
+					Require: plugin.Required,
+				},
+				{
+					Name:    "tag_key_1",
+					Require: plugin.Required,
+				},
+				{
+					Name:       "tag_key_2",
+					Operators:  []string{"=", "<>"},
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "search_start_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "search_end_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
 			},
 			Hydrate: listCostAndUsageByTags,
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns([]*plugin.Column{
-
-				// Quals columns - to filter the lookups
-				{
-					Name:        "granularity",
-					Description: "The granularity for cost and usage metric data. Possible values are: DAILY|MONTHLY.",
-					Type:        proto.ColumnType_STRING,
-					Hydrate:     hydrateCostAndUsageQuals,
-				},
-				{
-					Name:        "tag_key_1",
-					Description: "The tag key to group by.",
-					Type:        proto.ColumnType_STRING,
-					Hydrate:     hydrateCostAndUsageQuals,
-				},
-				{
-					Name:        "tag_value_1",
-					Description: "The primary tag value grouped by.",
-					Type:        proto.ColumnType_STRING,
-					Transform:   transform.FromField("Dimension1").Transform(splitCETagValue),
-				},
-				{
-					Name:        "tag_key_2",
-					Description: "A secondary tag key to group by.",
-					Type:        proto.ColumnType_STRING,
-					Hydrate:     hydrateCostAndUsageQuals,
-				},
-				{
-					Name:        "tag_value_2",
-					Description: "A secondary tag value grouped by.",
-					Type:        proto.ColumnType_STRING,
-					Transform:   transform.FromField("Dimension2").Transform(splitCETagValue),
-				},
-			}),
+			costExplorerColumns(
+				searchByTimeColumns([]*plugin.Column{
+					// Quals columns - to filter the lookups
+					{
+						Name:        "granularity",
+						Description: "The granularity for cost and usage metric data. Possible values are: DAILY|MONTHLY.",
+						Type:        proto.ColumnType_STRING,
+						Hydrate:     hydrateCostAndUsageQuals,
+					},
+					{
+						Name:        "tag_key_1",
+						Description: "The tag key to group by.",
+						Type:        proto.ColumnType_STRING,
+						Hydrate:     hydrateCostAndUsageQuals,
+					},
+					{
+						Name:        "tag_value_1",
+						Description: "The primary tag value grouped by.",
+						Type:        proto.ColumnType_STRING,
+						Transform:   transform.FromField("Dimension1").Transform(splitCETagValue),
+					},
+					{
+						Name:        "tag_key_2",
+						Description: "A secondary tag key to group by.",
+						Type:        proto.ColumnType_STRING,
+						Hydrate:     hydrateCostAndUsageQuals,
+					},
+					{
+						Name:        "tag_value_2",
+						Description: "A secondary tag value grouped by.",
+						Type:        proto.ColumnType_STRING,
+						Transform:   transform.FromField("Dimension2").Transform(splitCETagValue),
+					},
+				}),
+			),
 		),
 	}
 }

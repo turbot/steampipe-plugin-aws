@@ -126,6 +126,24 @@ func costExplorerColumns(columns []*plugin.Column) []*plugin.Column {
 	return append(columns, costExplorerColumnDefs...)
 }
 
+// append search timestamp columns
+func searchByTimeColumns(otherColumns []*plugin.Column) []*plugin.Column {
+	return append([]*plugin.Column{
+		{
+			Name:        "search_start_time",
+			Description: "Search start timestamp for this cost metric.",
+			Type:        proto.ColumnType_TIMESTAMP,
+			Hydrate:     hydrateCostAndUsageQuals,
+		},
+		{
+			Name:        "search_end_time",
+			Description: "Search end timestamp for this cost metric.",
+			Type:        proto.ColumnType_TIMESTAMP,
+			Hydrate:     hydrateCostAndUsageQuals,
+		},
+	}, otherColumns...)
+}
+
 //// LIST FUNCTION
 
 func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costexplorer.GetCostAndUsageInput) (interface{}, error) {
@@ -276,12 +294,12 @@ type CEQuals struct {
 	TagKey2         string
 }
 
-func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Debug("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
 
 	return &CEQuals{
-		SearchStartTime: getSearchTimestampValueFromQuals(d, "search_start_time"),
-		SearchEndTime:   getSearchTimestampValueFromQuals(d, "search_end_time"),
+		SearchStartTime: getSearchTimestampValueFromQuals(ctx, d, "search_start_time", h),
+		SearchEndTime:   getSearchTimestampValueFromQuals(ctx, d, "search_end_time", h),
 		Granularity:     d.EqualsQuals["granularity"].GetStringValue(),
 		DimensionType1:  d.EqualsQuals["dimension_type_1"].GetStringValue(),
 		DimensionType2:  d.EqualsQuals["dimension_type_2"].GetStringValue(),
@@ -292,14 +310,44 @@ func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 // In the case of >, <=, <, or <= operator uses in the where clause.
 // The value for the column search_start_time and search_end_time are not being populated correctly
-// by "d.EqualsQuals["search_end_time"].GetTimestampValue().AsTime()"."
-func getSearchTimestampValueFromQuals(quals *plugin.QueryData, columnName string) *time.Time {
-
-	if quals.Quals[columnName] != nil {
-		for _, q := range quals.Quals[columnName].Quals {
-		 t := q.Value.GetTimestampValue().AsTime()
-			return &t
+// by 'd.EqualsQuals["search_end_time"].GetTimestampValue().AsTime()'.
+func getSearchTimestampValueFromQuals(ctx context.Context, quals *plugin.QueryData, columnName string, h *plugin.HydrateData) *time.Time {
+	var st, et *string
+	if h.Item != nil {
+		switch item := h.Item.(type) {
+		case CEMetricRow:
+			st = item.PeriodStart
+			et = item.PeriodEnd
+		case types.ForecastResult:
+			st = item.TimePeriod.Start
+			et = item.TimePeriod.End
 		}
 	}
+
+	if quals.Quals[columnName] != nil {
+		var t time.Time
+		for _, q := range quals.Quals[columnName].Quals {
+			if q.Operator == ">" || q.Operator == "<" {
+				if columnName == "search_start_time" {
+					t = convertStringTypeToTimestamp(*st)
+				}
+				if columnName == "search_end_time" {
+					t = convertStringTypeToTimestamp(*et)
+				}
+			} else {
+				t = q.Value.GetTimestampValue().AsTime()
+			}
+		}
+		return &t
+	}
 	return nil
+}
+
+func convertStringTypeToTimestamp(t string) time.Time {
+	timeFormat := "2006-01-02"
+	ti, err := time.Parse(timeFormat, t)
+	if err != nil {
+		panic("Error parsing search time: " + err.Error())
+	}
+	return ti
 }

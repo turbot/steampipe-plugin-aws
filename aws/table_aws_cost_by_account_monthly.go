@@ -19,18 +19,33 @@ func tableAwsCostByLinkedAccountMonthly(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Linked Account (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByLinkedAccountMonthly,
-			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:       "search_start_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "search_end_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+			},
+			Tags: map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns([]*plugin.Column{
-
-				{
-					Name:        "linked_account_id",
-					Description: "The AWS Account ID.",
-					Type:        proto.ColumnType_STRING,
-					Transform:   transform.FromField("Dimension1"),
-				},
-			}),
+			costExplorerColumns(
+				searchByTimeColumns([]*plugin.Column{
+					{
+						Name:        "linked_account_id",
+						Description: "The AWS Account ID.",
+						Type:        proto.ColumnType_STRING,
+						Transform:   transform.FromField("Dimension1"),
+					},
+				}),
+			),
 		),
 	}
 }

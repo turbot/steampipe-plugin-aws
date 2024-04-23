@@ -15,26 +15,41 @@ func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostForecastMonthly,
 			Tags:    map[string]string{"service": "ce", "action": "GetCostForecast"},
-		},
-		Columns: awsGlobalRegionColumns([]*plugin.Column{
-			{
-				Name:        "period_start",
-				Description: "Start timestamp for this cost metric",
-				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("TimePeriod.Start"),
-			},
-			{
-				Name:        "period_end",
-				Description: "End timestamp for this cost metric",
-				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("TimePeriod.End"),
-			},
-			{
-				Name:        "mean_value",
-				Description: "Average forecasted value",
-				Type:        proto.ColumnType_DOUBLE,
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:       "search_start_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "search_end_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
 			},
 		},
+		Columns: awsGlobalRegionColumns(
+			searchByTimeColumns([]*plugin.Column{
+				{
+					Name:        "period_start",
+					Description: "Start timestamp for this cost metric",
+					Type:        proto.ColumnType_TIMESTAMP,
+					Transform:   transform.FromField("TimePeriod.Start"),
+				},
+				{
+					Name:        "period_end",
+					Description: "End timestamp for this cost metric",
+					Type:        proto.ColumnType_TIMESTAMP,
+					Transform:   transform.FromField("TimePeriod.End"),
+				},
+				{
+					Name:        "mean_value",
+					Description: "Average forecasted value",
+					Type:        proto.ColumnType_DOUBLE,
+				},
+			}),
 		),
 	}
 }
@@ -50,7 +65,7 @@ func listCostForecastMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	params := buildCostForecastInput(d.EqualsQuals, "MONTHLY")
+	params := buildCostForecastInput(d, "MONTHLY")
 
 	output, err := svc.GetCostForecast(ctx, params)
 	if err != nil {

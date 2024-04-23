@@ -22,25 +22,45 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 			Hydrate: listCostByServiceAndUsageMonthly,
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "service", Operators: []string{"=", "<>"}, Require: plugin.Optional},
-				{Name: "usage_type", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{Name: "service",
+					Operators: []string{"=", "<>"},
+					Require:   plugin.Optional,
+				},
+				{Name: "usage_type",
+					Operators: []string{"=", "<>"},
+					Require:   plugin.Optional,
+				},
+				{
+					Name:       "search_start_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "search_end_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
 			},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns([]*plugin.Column{
-				{
-					Name:        "service",
-					Description: "The name of the AWS service.",
-					Type:        proto.ColumnType_STRING,
-					Transform:   transform.FromField("Dimension1"),
-				},
-				{
-					Name:        "usage_type",
-					Description: "The usage type of this metric.",
-					Type:        proto.ColumnType_STRING,
-					Transform:   transform.FromField("Dimension2"),
-				},
-			}),
+			costExplorerColumns(
+				searchByTimeColumns([]*plugin.Column{
+					{
+						Name:        "service",
+						Description: "The name of the AWS service.",
+						Type:        proto.ColumnType_STRING,
+						Transform:   transform.FromField("Dimension1"),
+					},
+					{
+						Name:        "usage_type",
+						Description: "The usage type of this metric.",
+						Type:        proto.ColumnType_STRING,
+						Transform:   transform.FromField("Dimension2"),
+					},
+				}),
+			),
 		),
 	}
 }

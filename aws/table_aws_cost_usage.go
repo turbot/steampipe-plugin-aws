@@ -32,14 +32,16 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 					Require: plugin.Required,
 				},
 				{
-					Name:      "search_start_time",
-					Require:   plugin.Optional,
-					Operators: []string{">", ">=", "=", "<", "<="},
+					Name:       "search_start_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
 				},
 				{
-					Name:      "search_end_time",
-					Require:   plugin.Optional,
-					Operators: []string{">", ">=", "=", "<", "<="},
+					Name:       "search_end_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
 				},
 			},
 
@@ -47,84 +49,74 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns([]*plugin.Column{
-				{
-					Name:        "dimension_1",
-					Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
-					Type:        proto.ColumnType_STRING,
-				},
-				{
-					Name:        "dimension_2",
-					Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
-					Type:        proto.ColumnType_STRING,
-				},
+			costExplorerColumns(
+				searchByTimeColumns([]*plugin.Column{
+					{
+						Name:        "dimension_1",
+						Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
+						Type:        proto.ColumnType_STRING,
+					},
+					{
+						Name:        "dimension_2",
+						Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
+						Type:        proto.ColumnType_STRING,
+					},
 
-				// Quals columns - to filter the lookups
-				{
-					Name:        "granularity",
-					Description: "",
-					Type:        proto.ColumnType_STRING,
-					Hydrate:     hydrateCostAndUsageQuals,
-				},
-				{
-					Name:        "search_start_time",
-					Description: "",
-					Type:        proto.ColumnType_TIMESTAMP,
-					Hydrate:     hydrateCostAndUsageQuals,
-				},
-				{
-					Name:        "search_end_time",
-					Description: "",
-					Type:        proto.ColumnType_TIMESTAMP,
-					Hydrate:     hydrateCostAndUsageQuals,
-				},
-				{
-					Name:        "dimension_type_1",
-					Description: "",
-					Type:        proto.ColumnType_STRING,
-					Hydrate:     hydrateCostAndUsageQuals,
-				},
-				{
-					Name:        "dimension_type_2",
-					Description: "",
-					Type:        proto.ColumnType_STRING,
-					Hydrate:     hydrateCostAndUsageQuals,
-				},
-				// {
-				// 	Name:        "raw_quals",
-				// 	Description: "",
-				// 	Type:        proto.ColumnType_STRING,
-				// 	Hydrate:     hydrateKeyQuals,
-				// 	Transform:   transform.FromValue(),
-				// },
-				// {
-				// 	Name:        "raw",
-				// 	Description: "raw data",
-				// 	Type:        proto.ColumnType_JSON,
-				// 	Transform:   transform.FromValue(),
-				// },
+					// Quals columns - to filter the lookups
+					{
+						Name:        "granularity",
+						Description: "",
+						Type:        proto.ColumnType_STRING,
+						Hydrate:     hydrateCostAndUsageQuals,
+					},
+					{
+						Name:        "dimension_type_1",
+						Description: "",
+						Type:        proto.ColumnType_STRING,
+						Hydrate:     hydrateCostAndUsageQuals,
+					},
+					{
+						Name:        "dimension_type_2",
+						Description: "",
+						Type:        proto.ColumnType_STRING,
+						Hydrate:     hydrateCostAndUsageQuals,
+					},
+					// {
+					// 	Name:        "raw_quals",
+					// 	Description: "",
+					// 	Type:        proto.ColumnType_STRING,
+					// 	Hydrate:     hydrateKeyQuals,
+					// 	Transform:   transform.FromValue(),
+					// },
+					// {
+					// 	Name:        "raw",
+					// 	Description: "raw data",
+					// 	Type:        proto.ColumnType_JSON,
+					// 	Transform:   transform.FromValue(),
+					// },
 
-				//Standard columns for all tables
-				// {
-				// 	Name:        "tags",
-				// 	Description: resourceInterfaceDescription("tags"),
-				// 	Type:        proto.ColumnType_JSON,
-				// 	Transform:   transform.FromConstant(nil),
-				// },
-				// {
-				// 	Name:        "title",
-				// 	Description: resourceInterfaceDescription("title"),
-				// 	Type:        proto.ColumnType_STRING,
-				// 	Transform:   transform.FromField("ServiceCode"),
-				// },
-				// {
-				// 	Name:        "akas",
-				// 	Description: resourceInterfaceDescription("akas"),
-				// 	Type:        proto.ColumnType_JSON,
-				// 	Hydrate:     getAwsVpcTurbotData,
-				// 	Transform:   transform.FromValue(),
-				// },
-			}),
+					//Standard columns for all tables
+					// {
+					// 	Name:        "tags",
+					// 	Description: resourceInterfaceDescription("tags"),
+					// 	Type:        proto.ColumnType_JSON,
+					// 	Transform:   transform.FromConstant(nil),
+					// },
+					// {
+					// 	Name:        "title",
+					// 	Description: resourceInterfaceDescription("title"),
+					// 	Type:        proto.ColumnType_STRING,
+					// 	Transform:   transform.FromField("ServiceCode"),
+					// },
+					// {
+					// 	Name:        "akas",
+					// 	Description: resourceInterfaceDescription("akas"),
+					// 	Type:        proto.ColumnType_JSON,
+					// 	Hydrate:     getAwsVpcTurbotData,
+					// 	Transform:   transform.FromValue(),
+					// },
+				}),
+			),
 		),
 	}
 }
@@ -145,28 +137,13 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
-	if keyQuals.Quals["search_start_time"] != nil {
-		for _, q := range keyQuals.Quals["search_start_time"].Quals {
-			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
-			switch q.Operator {
-			case "=", ">=", ">":
-				startTime = t
-			case "<", "<=":
-				endTime = t
-			}
-		}
-	}
+	st, et := getSearchStartTImeAndSearchEndTime(keyQuals)
 
-	if keyQuals.Quals["search_end_time"] != nil {
-		for _, q := range keyQuals.Quals["search_end_time"].Quals {
-			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
-			switch q.Operator {
-			case "=", ">=", ">":
-				endTime = t
-			case "<", "<=":
-				startTime = t
-			}
-		}
+	if st != "" {
+		startTime = st
+	}
+	if et != "" {
+		endTime = et
 	}
 
 	dim1 := strings.ToUpper(keyQuals.EqualsQuals["dimension_type_1"].GetStringValue())
@@ -196,6 +173,41 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 	params.GroupBy = groupings
 
 	return params
+}
+
+func getSearchStartTImeAndSearchEndTime(keyQuals *plugin.QueryData) (string, string) {
+	granularity := strings.ToUpper(keyQuals.EqualsQuals["granularity"].GetStringValue())
+	timeFormat := "2006-01-02"
+	if granularity == "HOURLY" {
+		timeFormat = "2006-01-02T15:04:05Z"
+	}
+
+	st, et := "", ""
+
+	if keyQuals.Quals["search_start_time"] != nil {
+		for _, q := range keyQuals.Quals["search_start_time"].Quals {
+			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
+			switch q.Operator {
+			case "=", ">=", ">":
+				st = t
+			case "<", "<=":
+				et = t
+			}
+		}
+	}
+
+	if keyQuals.Quals["search_end_time"] != nil {
+		for _, q := range keyQuals.Quals["search_end_time"].Quals {
+			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
+			switch q.Operator {
+			case "=", ">=", ">":
+				et = t
+			case "<", "<=":
+				st = t
+			}
+		}
+	}
+	return st, et
 }
 
 //// HYDRATE FUNCTIONS

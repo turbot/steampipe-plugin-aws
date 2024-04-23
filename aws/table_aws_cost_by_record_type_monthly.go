@@ -19,24 +19,39 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Record Type (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByRecordTypeMonthly,
-			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:       "search_start_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "search_end_time",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+			},
+			Tags: map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns([]*plugin.Column{
-
-				{
-					Name:        "linked_account_id",
-					Description: "The linked AWS Account ID.",
-					Type:        proto.ColumnType_STRING,
-					Transform:   transform.FromField("Dimension1"),
-				},
-				{
-					Name:        "record_type",
-					Description: "The different types of charges such as RI fees, usage, costs, tax refunds, and credits.",
-					Type:        proto.ColumnType_STRING,
-					Transform:   transform.FromField("Dimension2"),
-				},
-			}),
+			costExplorerColumns(
+				searchByTimeColumns([]*plugin.Column{
+					{
+						Name:        "linked_account_id",
+						Description: "The linked AWS Account ID.",
+						Type:        proto.ColumnType_STRING,
+						Transform:   transform.FromField("Dimension1"),
+					},
+					{
+						Name:        "record_type",
+						Description: "The different types of charges such as RI fees, usage, costs, tax refunds, and credits.",
+						Type:        proto.ColumnType_STRING,
+						Transform:   transform.FromField("Dimension2"),
+					},
+				}),
+			),
 		),
 	}
 }
