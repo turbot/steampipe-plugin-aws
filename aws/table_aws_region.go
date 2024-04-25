@@ -52,11 +52,16 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("RegionName"),
 			},
 			{
-				Name:        "connection_config_region_set",
-				Description: "True if the region is specified in the connection config file.",
+				Name:        "steampipe_available",
+				Description: "True if the region is available for query in Steampipe.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAWSRegionsInConfig,
-				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "steampipe_default",
+				Description: "True if this region is the default region for Steampipe to use.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAWSRegionsInConfig,
 			},
 		}),
 	}
@@ -95,10 +100,22 @@ func getAWSRegionsInConfig(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
-	// check if the region is set in connection config
-	if helpers.StringSliceContains(configRegions, *region.RegionName) {
-		return true, nil
-	} else {
-		return false, nil
+	var regionsInConfig RegionsInConfig
+
+	// check if the region is set as a default region in the connection config
+	defaultRegion := getAwsSpcConfigDefaultRegion(ctx, d)
+	if *region.RegionName == defaultRegion {
+		regionsInConfig.SteampipeDefault = true
 	}
+
+	// check if the region is set in the connection config
+	if helpers.StringSliceContains(configRegions, *region.RegionName) {
+		regionsInConfig.SteampipeAvailable = true
+	}
+	return regionsInConfig, nil
+}
+
+type RegionsInConfig struct {
+	SteampipeAvailable bool
+	SteampipeDefault   bool
 }
