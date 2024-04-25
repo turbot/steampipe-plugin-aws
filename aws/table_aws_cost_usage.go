@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -32,6 +33,12 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 					Require: plugin.Required,
 				},
 				{
+					Name:      "metrics",
+					Require:   plugin.Optional,
+					Operators: []string{"="},
+					CacheMatch: "exact",
+				},
+				{
 					Name:       "search_start_time",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -50,7 +57,7 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns(
-				searchByTimeColumns([]*plugin.Column{
+				searchByTimeAndMetricColumns([]*plugin.Column{
 					{
 						Name:        "dimension_1",
 						Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
@@ -137,13 +144,22 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
-	st, et := getSearchStartTImeAndSearchEndTime(keyQuals)
-
+	st, et := getSearchStartTImeAndSearchEndTime(keyQuals, granularity)
 	if st != "" {
 		startTime = st
 	}
 	if et != "" {
 		endTime = et
+	}
+
+	selectedMetrics := AllCostMetrics()
+	if keyQuals.EqualsQualString("metrics") != "" {
+		m := getCostMetricByMetricName(keyQuals.EqualsQualString("metrics"))
+		if !(len(m) > 0) {
+			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", keyQuals.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
+		}
+
+		selectedMetrics = m
 	}
 
 	dim1 := strings.ToUpper(keyQuals.EqualsQuals["dimension_type_1"].GetStringValue())
@@ -155,7 +171,7 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 			End:   aws.String(endTime),
 		},
 		Granularity: types.Granularity(granularity),
-		Metrics:     AllCostMetrics(),
+		Metrics:     selectedMetrics,
 	}
 	var groupings []types.GroupDefinition
 	if dim1 != "" {
@@ -175,8 +191,7 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 	return params
 }
 
-func getSearchStartTImeAndSearchEndTime(keyQuals *plugin.QueryData) (string, string) {
-	granularity := strings.ToUpper(keyQuals.EqualsQuals["granularity"].GetStringValue())
+func getSearchStartTImeAndSearchEndTime(keyQuals *plugin.QueryData, granularity string) (string, string) {
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"

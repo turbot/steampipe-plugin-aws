@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -21,6 +23,12 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 			Hydrate: listCostByRecordTypeMonthly,
 			KeyColumns: plugin.KeyColumnSlice{
 				{
+					Name:       "metrics",
+					Require:    plugin.Optional,
+					Operators:  []string{"="},
+					CacheMatch: "exact",
+				},
+				{
 					Name:       "search_start_time",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -37,7 +45,7 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns(
-				searchByTimeColumns([]*plugin.Column{
+				searchByTimeAndMetricColumns([]*plugin.Column{
 					{
 						Name:        "linked_account_id",
 						Description: "The linked AWS Account ID.",
@@ -59,12 +67,11 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostByRecordTypeMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByRecordTypeInput("MONTHLY")
-
+	params := buildCostByRecordTypeInput(d, "MONTHLY")
 	return streamCostAndUsage(ctx, d, params)
 }
 
-func buildCostByRecordTypeInput(granularity string) *costexplorer.GetCostAndUsageInput {
+func buildCostByRecordTypeInput(d *plugin.QueryData, granularity string) *costexplorer.GetCostAndUsageInput {
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"
@@ -72,13 +79,31 @@ func buildCostByRecordTypeInput(granularity string) *costexplorer.GetCostAndUsag
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
+	st, et := getSearchStartTImeAndSearchEndTime(d, granularity)
+	if st != "" {
+		startTime = st
+	}
+	if et != "" {
+		endTime = et
+	}
+
+	selectedMetrics := AllCostMetrics()
+	if d.EqualsQualString("metrics") != "" {
+		m := getCostMetricByMetricName(d.EqualsQualString("metrics"))
+		if !(len(m) > 0) {
+			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", d.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
+		}
+
+		selectedMetrics = m
+	}
+
 	params := &costexplorer.GetCostAndUsageInput{
 		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
 		Granularity: types.Granularity(granularity),
-		Metrics:     AllCostMetrics(),
+		Metrics:     selectedMetrics,
 		GroupBy: []types.GroupDefinition{
 			{
 				Type: types.GroupDefinitionType("DIMENSION"),

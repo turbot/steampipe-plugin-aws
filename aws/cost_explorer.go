@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -23,6 +24,32 @@ func AllCostMetrics() []string {
 		"UsageQuantity",
 		"NormalizedUsageAmount",
 	}
+}
+
+// getCostMetricByMetricName returns the select metrics
+func getCostMetricByMetricName(metricName string) []string {
+	metrics := strings.Split(metricName, ",")
+	var selectedMetric []string
+	for _, m := range metrics {
+		switch strings.ToLower(m) {
+		case "blendedcost":
+			selectedMetric = append(selectedMetric, "BlendedCost")
+		case "unblendedcost":
+			selectedMetric = append(selectedMetric, "UnblendedCost")
+		case "netunblendedcost":
+			selectedMetric = append(selectedMetric, "NetUnblendedCost")
+		case "amortizedcost":
+			selectedMetric = append(selectedMetric, "AmortizedCost")
+		case "netamortizedcost":
+			selectedMetric = append(selectedMetric, "NetAmortizedCost")
+		case "usagequantity":
+			selectedMetric = append(selectedMetric, "UsageQuantity")
+		case "normalizedusageamount":
+			selectedMetric = append(selectedMetric, "NormalizedUsageAmount")
+		}
+	}
+
+	return selectedMetric
 }
 
 var costExplorerColumnDefs = []*plugin.Column{
@@ -127,7 +154,7 @@ func costExplorerColumns(columns []*plugin.Column) []*plugin.Column {
 }
 
 // append search timestamp columns
-func searchByTimeColumns(otherColumns []*plugin.Column) []*plugin.Column {
+func searchByTimeAndMetricColumns(otherColumns []*plugin.Column) []*plugin.Column {
 	return append([]*plugin.Column{
 		{
 			Name:        "search_start_time",
@@ -139,6 +166,12 @@ func searchByTimeColumns(otherColumns []*plugin.Column) []*plugin.Column {
 			Name:        "search_end_time",
 			Description: "Search end timestamp for this cost metric.",
 			Type:        proto.ColumnType_TIMESTAMP,
+			Hydrate:     hydrateCostAndUsageQuals,
+		},
+		{
+			Name:        "metrics",
+			Description: "This cost metrics.",
+			Type:        proto.ColumnType_STRING,
 			Hydrate:     hydrateCostAndUsageQuals,
 		},
 	}, otherColumns...)
@@ -287,6 +320,7 @@ type CEQuals struct {
 	// Quals stuff
 	SearchStartTime *time.Time
 	SearchEndTime   *time.Time
+	Metrics         string
 	Granularity     string
 	DimensionType1  string
 	DimensionType2  string
@@ -300,6 +334,7 @@ func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, h *plugi
 	return &CEQuals{
 		SearchStartTime: getSearchTimestampValueFromQuals(ctx, d, "search_start_time", h),
 		SearchEndTime:   getSearchTimestampValueFromQuals(ctx, d, "search_end_time", h),
+		Metrics:         d.EqualsQuals["metrics"].GetStringValue(),
 		Granularity:     d.EqualsQuals["granularity"].GetStringValue(),
 		DimensionType1:  d.EqualsQuals["dimension_type_1"].GetStringValue(),
 		DimensionType2:  d.EqualsQuals["dimension_type_2"].GetStringValue(),

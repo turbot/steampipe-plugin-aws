@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -36,6 +37,12 @@ func tableAwsCostByTag(_ context.Context) *plugin.Table {
 					CacheMatch: "exact",
 				},
 				{
+					Name:       "metrics",
+					Require:    plugin.Optional,
+					Operators:  []string{"="},
+					CacheMatch: "exact",
+				},
+				{
 					Name:       "search_start_time",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -53,7 +60,7 @@ func tableAwsCostByTag(_ context.Context) *plugin.Table {
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns(
-				searchByTimeColumns([]*plugin.Column{
+				searchByTimeAndMetricColumns([]*plugin.Column{
 					// Quals columns - to filter the lookups
 					{
 						Name:        "granularity",
@@ -107,13 +114,31 @@ func buildInputFromTagKeyAndTagValueQuals(ctx context.Context, d *plugin.QueryDa
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
+	st, et := getSearchStartTImeAndSearchEndTime(d, granularity)
+	if st != "" {
+		startTime = st
+	}
+	if et != "" {
+		endTime = et
+	}
+
+	selectedMetrics := AllCostMetrics()
+	if d.EqualsQualString("metrics") != "" {
+		m := getCostMetricByMetricName(d.EqualsQualString("metrics"))
+		if !(len(m) > 0) {
+			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", d.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
+		}
+
+		selectedMetrics = m
+	}
+
 	params := &costexplorer.GetCostAndUsageInput{
 		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
 		Granularity: types.Granularity(granularity),
-		Metrics:     AllCostMetrics(),
+		Metrics:     selectedMetrics,
 	}
 	tagKey1 := d.EqualsQualString("tag_key_1")
 	tagKey2 := d.EqualsQualString("tag_key_2")

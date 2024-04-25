@@ -36,7 +36,7 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 			Tags: map[string]string{"service": "ce", "action": "GetCostForecast"},
 		},
 		Columns: awsGlobalRegionColumns(
-			searchByTimeColumns([]*plugin.Column{
+			searchByTimeAndMetricColumns([]*plugin.Column{
 				{
 					Name:        "period_start",
 					Description: "Start timestamp for this cost metric",
@@ -71,6 +71,8 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	params := buildCostForecastInput(d, "DAILY")
+	plugin.Logger(ctx).Error("Time Period Start:", *params.TimePeriod.Start)
+	plugin.Logger(ctx).Error("Time Period End : ", *params.TimePeriod.End)
 
 	output, err := svc.GetCostForecast(ctx, params)
 	if err != nil {
@@ -106,7 +108,7 @@ func buildCostForecastInput(d *plugin.QueryData, granularity string) *costexplor
 	endTime := getForecastEndDateForGranularity(granularity).Format(timeFormat)
 
 	// Get search start time and search end time based on the quals value with operator
-	st, et := getSearchStartTImeAndSearchEndTime(d)
+	st, et := getSearchStartTImeAndSearchEndTime(d, granularity)
 	if st != "" {
 		startTime = st
 	}

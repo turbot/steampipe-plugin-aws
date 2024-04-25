@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -22,13 +23,21 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 			Hydrate: listCostByServiceAndUsageMonthly,
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "service",
+				{
+					Name:      "service",
 					Operators: []string{"=", "<>"},
 					Require:   plugin.Optional,
 				},
-				{Name: "usage_type",
+				{
+					Name:      "usage_type",
 					Operators: []string{"=", "<>"},
 					Require:   plugin.Optional,
+				},
+				{
+					Name:       "metrics",
+					Require:    plugin.Optional,
+					Operators:  []string{"="},
+					CacheMatch: "exact",
 				},
 				{
 					Name:       "search_start_time",
@@ -46,7 +55,7 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns(
-				searchByTimeColumns([]*plugin.Column{
+				searchByTimeAndMetricColumns([]*plugin.Column{
 					{
 						Name:        "service",
 						Description: "The name of the AWS service.",
@@ -80,13 +89,31 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
+	st, et := getSearchStartTImeAndSearchEndTime(d, granularity)
+	if st != "" {
+		startTime = st
+	}
+	if et != "" {
+		endTime = et
+	}
+
+	selectedMetrics := AllCostMetrics()
+	if d.EqualsQualString("metrics") != "" {
+		m := getCostMetricByMetricName(d.EqualsQualString("metrics"))
+		if !(len(m) > 0) {
+			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", d.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
+		}
+
+		selectedMetrics = m
+	}
+
 	params := &costexplorer.GetCostAndUsageInput{
 		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
 		Granularity: types.Granularity(granularity),
-		Metrics:     AllCostMetrics(),
+		Metrics:     selectedMetrics,
 		GroupBy: []types.GroupDefinition{
 			{
 				Type: types.GroupDefinitionType("DIMENSION"),

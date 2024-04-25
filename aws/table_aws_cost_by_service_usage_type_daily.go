@@ -27,6 +27,12 @@ func tableAwsCostByServiceUsageTypeDaily(_ context.Context) *plugin.Table {
 					Require:   plugin.Optional,
 				},
 				{
+					Name:      "metrics",
+					Require:   plugin.Optional,
+					Operators: []string{"="},
+					CacheMatch: "exact",
+				},
+				{
 					Name:       "search_start_time",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -42,7 +48,7 @@ func tableAwsCostByServiceUsageTypeDaily(_ context.Context) *plugin.Table {
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns(
-				searchByTimeColumns([]*plugin.Column{
+				searchByTimeAndMetricColumns([]*plugin.Column{
 					{
 						Name:        "service",
 						Description: "The name of the AWS service.",
