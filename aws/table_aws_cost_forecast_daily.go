@@ -71,8 +71,6 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	params := buildCostForecastInput(d, "DAILY")
-	plugin.Logger(ctx).Error("Time Period Start:", *params.TimePeriod.Start)
-	plugin.Logger(ctx).Error("Time Period End : ", *params.TimePeriod.End)
 
 	output, err := svc.GetCostForecast(ctx, params)
 	if err != nil {
