@@ -17,7 +17,10 @@ Amazon Cost Explorer assists you in visualizing, understanding, and managing you
 
 - This table requires an '=' qualifier for all of the following columns: granularity, dimension_type_1, dimension_type_2.
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01 for you.
-- You can optionally pass `search_start_time` or/and `search_end_time` in the where clause to reduce the query time. Supported operators are: `=`, `>=`, `>`, `<=`, and `<`.
+- This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
+  - `search_start_time` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
+  - `search_end_time` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
+  - `metrics` with the supported operator `=`.
 
 ## Examples
 
