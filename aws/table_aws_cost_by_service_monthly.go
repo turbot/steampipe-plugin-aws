@@ -115,7 +115,7 @@ func buildCostByServiceInput(granularity string, d *plugin.QueryData) *costexplo
 
 	for _, keyQual := range d.Table.List.KeyColumns {
 		filterQual := d.Quals[keyQual.Name]
-		if filterQual == nil {
+		if filterQual == nil || keyQual.Name != "service"{
 			continue
 		}
 		for _, qual := range filterQual.Quals {
