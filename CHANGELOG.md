@@ -9,11 +9,12 @@ _What's new?_
 
 _Enhancements_
 
-- Added the `version` flag to the plugin's SQLite extension.
+- Added the `version` flag to the plugin's Export tool. ([#65](https://github.com/turbot/steampipe-export/pull/65))
 
 _Bug fixes_
 
-- Fixed the broken Postgres 14, Postgres 15 and SQLIte extensions for Darwin operating systems.  
+- Fixed the broken Postgres 14, Postgres 15 and SQLite x86_64 binaries for Darwin operating systems. 
+- Fixed intermittent FDW crashes when certain postgres errors resulted in a signal 16 being raised. ([#455](https://github.com/turbot/steampipe-postgres-fdw/pull/455))
 
 ## v0.136.1 [2024-04-23]
 
