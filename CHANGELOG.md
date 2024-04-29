@@ -1,3 +1,29 @@
+## v0.136.1 [2024-04-23]
+
+_Bug fixes_
+
+- Fixed the [runtime error](https://github.com/turbot/steampipe-postgres-fdw/issues/454) in the `v0.136.0` version of the plugin’s Postgres FDW extension.
+
+## v0.136.0 [2024-04-19]
+
+_What's new?_
+
+- New tables added
+  - [aws_iot_fleet_metric](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_fleet_metric) ([#2000](https://github.com/turbot/steampipe-plugin-aws/pull/2000))
+
+_Enhancements_
+
+- The `account_id` column has now been assigned as a connection key column across all the tables which facilitates more precise and efficient querying across multiple AWS accounts. ([#2133](https://github.com/turbot/steampipe-plugin-aws/pull/2133))
+
+_Bug fixes_
+
+- Fixed the `getDirectoryServiceSnapshotLimit` and `getDirectoryServiceEventTopics` hydrate calls in the `aws_directory_service_directory` table to correctly return `nil` for the unsupported `ADConnector` services instead of an error. ([#2170](https://github.com/turbot/steampipe-plugin-aws/pull/2170))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.10.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v5100-2024-04-10) that adds support for connection key columns. ([#2133](https://github.com/turbot/steampipe-plugin-aws/pull/2133))
+- Recompiled plugin with [aws-sdk-go v1.26.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2163](https://github.com/turbot/steampipe-plugin-aws/pull/2163))
+
 ## v0.135.0 [2024-04-12]
 
 _What's new?_

@@ -254,7 +254,7 @@ func listCognitoUserPools(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		}
 	}
 	input := &cognitoidentityprovider.ListUserPoolsInput{
-		MaxResults: maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 	// List call
 	paginator := cognitoidentityprovider.NewListUserPoolsPaginator(svc, input, func(o *cognitoidentityprovider.ListUserPoolsPaginatorOptions) {

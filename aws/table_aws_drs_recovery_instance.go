@@ -151,7 +151,7 @@ func listAwsDRSRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 		}
 	}
 
-	input.MaxResults = int32(maxItems)
+	input.MaxResults = &maxItems
 	sourceServerID := d.EqualsQualString("source_server_id")
 	recoveryInstanceId := d.EqualsQualString("recovery_instance_id")
 

@@ -39,6 +39,12 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrorPluginDefault(),
 		},
+		ConnectionKeyColumns: []plugin.ConnectionKeyColumn{
+			{
+				Name:    "account_id",
+				Hydrate: accountIdForConnection,
+			},
+		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
 		},
@@ -342,7 +348,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_inspector_finding":                                        tableAwsInspectorFinding(ctx),
 			"aws_iot_fleet_metric":                                         tableAwsIoTFleetMetric(ctx),
 			"aws_iot_thing":                                                tableAwsIoTThing(ctx),
-			"aws_iot_thing_group":                                          tableAwsIoTThingGroup(ctx),
+			"aws_iot_thing_group":                                          tableAwsIoTThingGroup(ctx),                                              tableAwsIoTThing(ctx),
+      "aws_iot_thing_type":                                           tableAwsIoTThingType(ctx),
 			"aws_kinesis_consumer":                                         tableAwsKinesisConsumer(ctx),
 			"aws_kinesis_firehose_delivery_stream":                         tableAwsKinesisFirehoseDeliveryStream(ctx),
 			"aws_kinesis_stream":                                           tableAwsKinesisStream(ctx),
@@ -350,6 +357,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_kinesisanalyticsv2_application":                           tableAwsKinesisAnalyticsV2Application(ctx),
 			"aws_kms_alias":                                                tableAwsKmsAlias(ctx),
 			"aws_kms_key":                                                  tableAwsKmsKey(ctx),
+			"aws_kms_key_rotation":                                         tableAwsKmsKeyRotation(ctx),
 			"aws_lambda_alias":                                             tableAwsLambdaAlias(ctx),
 			"aws_lambda_event_source_mapping":                              tableAwsLambdaEventSourceMapping(ctx),
 			"aws_lambda_function":                                          tableAwsLambdaFunction(ctx),
@@ -556,4 +564,13 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 	}
 
 	return p
+}
+
+func accountIdForConnection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (any, error) {
+	commonColumnData, err := getCommonColumnsMemoized(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	return commonColumnData.(*awsCommonColumnData).AccountId, nil
 }
