@@ -106,5 +106,57 @@ select * from ranked_costs where rank <= 10;
 ```
 
 ```sql+sqlite
-Error: SQLite does not support the rank window function.
+with ranked_costs as (
+  select
+    linked_account_id,
+    period_start,
+    cast(unblended_cost_amount as real) as unblended_cost_amount,
+    rank() over (partition by linked_account_id order by unblended_cost_amount desc) as rnk
+  from
+    aws_cost_by_account_daily
+)
+select * from ranked_costs where rnk <= 10;
+```
+
+### Get the specific costs within a given time frame
+Analyze your AWS accounts' daily specific expenditure to identify the minimum, maximum, and average costs whin a given time frame.
+
+```sql+postgres
+select
+  linked_account_id,
+  period_start,
+  blended_cost_amount::numeric::money,
+  unblended_cost_amount::numeric::money,
+  amortized_cost_amount::numeric::money,
+  net_unblended_cost_amount::numeric::money,
+  net_amortized_cost_amount::numeric::money
+from
+  aws_cost_by_account_daily
+where
+  search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'BlendedCost,UnblendedCost,AmortizedCost,NetAmortizedCost,NetUnblendedCost'
+order by
+  linked_account_id,
+  period_start;
+```
+
+```sql+sqlite
+select
+  linked_account_id,
+  period_start,
+  blended_cost_amount::numeric::money,
+  unblended_cost_amount::numeric::money,
+  amortized_cost_amount::numeric::money,
+  net_unblended_cost_amount::numeric::money,
+  net_amortized_cost_amount::numeric::money
+from
+  aws_cost_by_account_daily
+where
+  search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'BlendedCost,UnblendedCost,AmortizedCost,NetAmortizedCost,NetUnblendedCost'
+order by
+  linked_account_id,
+  period_start;
 ```

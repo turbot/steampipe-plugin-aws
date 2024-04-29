@@ -125,3 +125,40 @@ select
 from
   aws_cost_by_record_type_monthly as a;
 ```
+
+### Get only monthly amortized cost details by account and record type within a custom time frame
+Focusing on amortized costs by account and record type, organizations can achieve a clearer, more detailed understanding of their spending patterns.
+
+```sql+postgres
+select
+  linked_account_id,
+  record_type,
+  period_start,
+  amortized_cost_amount::numeric::money
+from
+  aws_cost_by_record_type_monthly
+where
+  search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'AmortizedCost'
+order by
+  linked_account_id,
+  period_start;
+```
+
+```sql+sqlite
+select
+  linked_account_id,
+  record_type,
+  period_start,
+  case(amortized_cost_amount as real) as amortized_cost_amount
+from
+  aws_cost_by_record_type_monthly
+where
+  search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'AmortizedCost'
+order by
+  linked_account_id,
+  period_start;
+```

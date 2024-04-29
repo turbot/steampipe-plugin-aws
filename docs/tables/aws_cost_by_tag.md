@@ -130,3 +130,41 @@ where
 ```sql+sqlite
 Error: SQLite does not support the rank window function.
 ```
+
+### Get only blended cost and usage details within a custom time frame
+This query is useful for organizations to get only blended cost and usage, within a specified time frame, and on a daily granularity.
+
+```sql+postgres
+select
+  tag_key_1,
+  tag_value_1,
+  period_start,
+  blended_cost_amount::numeric::money
+from
+  aws_cost_by_tag
+where
+  granularity = 'DAILY'
+  and search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'BlendedCost'
+and
+  tag_key_1 = 'Name';
+```
+
+```sql+sqlite
+select
+  tag_key_1,
+  tag_value_1,
+  period_start,
+  cast(blended_cost_amount as numeric) as blended_cost_amount
+from
+  aws_cost_by_tag
+where
+  granularity = 'DAILY'
+  and search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'BlendedCost'
+and
+  tag_key_1 = 'Name';
+```
+

@@ -168,3 +168,48 @@ order by
   sum desc
 limit 10;
 ```
+
+### Min, Max, and average daily blended_cost_amount by service and usage type for a specific time range
+Gain insights into your AWS service usage by evaluating the minimum, maximum, and average monthly blended costs associated with each service and usage type.
+
+```sql+postgres
+select
+  service,
+  usage_type,
+  min(blended_cost_amount)::numeric::money as min,
+  max(blended_cost_amount)::numeric::money as max,
+  avg(blended_cost_amount)::numeric::money as average
+from
+  aws_cost_by_service_usage_type_daily
+where
+  search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'BlendedCost'
+group by
+  service,
+  usage_type
+order by
+  service,
+  usage_type;
+```
+
+```sql+sqlite
+select
+  service,
+  usage_type,
+  min(cast(blended_cost_amount as numeric)) as min,
+  max(cast(blended_cost_amount as numeric)) as max,
+  avg(cast(blended_cost_amount as numeric)) as average
+from
+  aws_cost_by_service_usage_type_daily
+where
+  search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'BlendedCost'
+group by
+  service,
+  usage_type
+order by
+  service,
+  usage_type;
+```

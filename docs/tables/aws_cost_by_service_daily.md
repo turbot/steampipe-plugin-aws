@@ -170,3 +170,40 @@ select * from ranked_costs where rank <= 10;
 ```sql+sqlite
 Error: SQLite does not support the rank window function.
 ```
+
+### Get only daily blended and unblended cost details for the services within a custom time frame
+Focusing on blended and unblended costs within a custom time frame offers a clear, detailed perspective on where money is being spent in the cloud, enabling more strategic financial planning and better resource allocation.
+
+```sql+postgres
+select
+  service,
+  period_start,
+  blended_cost_amount::numeric::money,
+  unblended_cost_amount::numeric::money
+from
+  aws_cost_by_service_daily
+where
+  search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'BlendedCost,UnblendedCost'
+order by
+  service,
+  period_start;
+```
+
+```sql+sqlite
+select
+  service,
+  period_start,
+  cast(blended_cost_amount as decimal),
+  cast(unblended_cost_amount as decimal)
+from
+  aws_cost_by_service_daily
+where
+  search_start_time = '2023-05-01T05:30:00+05:30'
+  and search_end_time = '2023-05-05T05:30:00+05:30'
+  and metrics = 'BlendedCost,UnblendedCost'
+order by
+  service,
+  period_start;
+```

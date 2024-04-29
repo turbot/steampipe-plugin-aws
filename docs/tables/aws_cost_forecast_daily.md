@@ -46,3 +46,34 @@ from
 order by
   period_start;
 ```
+
+### Get forecast cost and usage details within a custom time frame
+This query is useful for organizations to get a forecast, within a specified time frame, and on a daily granularity.
+
+```sql+postgres
+select
+  period_start,
+  period_end,
+  mean_value::numeric::money
+from
+  aws_cost_forecast_daily
+where
+  search_start_time = '2024-05-01T05:30:00+05:30'
+  and search_end_time = '2024-05-05T05:30:00+05:30'
+order by
+  period_start;
+```
+
+```sql+sqlite
+select
+  period_start,
+  period_end,
+  cast(mean_value as real) as mean_value
+from
+  aws_cost_forecast_daily
+where
+  search_start_time = '2024-05-01T05:30:00+05:30'
+  and search_end_time = '2024-05-05T05:30:00+05:30'
+order by
+  period_start;
+```

@@ -49,8 +49,6 @@ order by
 ```
 
 
-
-
 ###  Month on month forecasted growth
 Gain insights into the monthly growth forecast by comparing the current month's mean value with the previous month's. This allows for a clear understanding of the growth percentage change, which can aid in future planning and budgeting.
 
@@ -98,6 +96,37 @@ select
     end as percent_change
 from
   cost_data
+order by
+  period_start;
+```
+
+### Get forecast cost and usage details within a custom time frame
+This query is useful for organizations to get a forecast, within a specified time frame, and on a monthly granularity.
+
+```sql+postgres
+select
+  period_start,
+  period_end,
+  mean_value::numeric::money
+from
+  aws_cost_forecast_monthly
+where
+  search_start_time = '2024-05-01T05:30:00+05:30'
+  and search_end_time = '2024-05-05T05:30:00+05:30'
+order by
+  period_start;
+```
+
+```sql+sqlite
+select
+  period_start,
+  period_end,
+  cast(mean_value as real) as mean_value
+from
+  aws_cost_forecast_monthly
+where
+  search_start_time = '2024-05-01T05:30:00+05:30'
+  and search_end_time = '2024-05-05T05:30:00+05:30'
 order by
   period_start;
 ```
