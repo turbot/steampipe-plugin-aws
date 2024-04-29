@@ -54,7 +54,7 @@ func tableAwsKmsKeyRotation(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "rotation_type",
-				Description: "Identifies whether the key material rotation was a scheduled automatic rotation or an on-demand rotation",
+				Description: "Identifies whether the key material rotation was a scheduled automatic rotation or an on-demand rotation.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
