@@ -1,3 +1,20 @@
+## v0.137.0 [2024-04-29]
+
+_What's new?_
+
+- New tables added
+  - [aws_iot_thing_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_thing_group) ([#1998](https://github.com/turbot/steampipe-plugin-aws/pull/1998))
+  - [aws_iot_thing_type](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_thing_type) ([#1999](https://github.com/turbot/steampipe-plugin-aws/pull/1999))
+  - [aws_kms_key_rotation](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_kms_key_rotation) ([#2174](https://github.com/turbot/steampipe-plugin-aws/pull/2174))
+
+_Enhancements_
+
+- Added the `version` flag to the plugin's SQLite extension.
+
+_Bug fixes_
+
+- Fixed the broken Postgres 14, Postgres 15 and SQLIte extensions for Darwin operating systems.  
+
 ## v0.136.1 [2024-04-23]
 
 _Bug fixes_
