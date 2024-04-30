@@ -15,7 +15,9 @@ builds:
       - arm64
     id: "steampipe-linux"
     binary: "{{ .ProjectName }}.plugin"
-
+    flags:
+      - -tags=netgo
+      
   - env:
       - CGO_ENABLED=0
       - GO111MODULE=on
