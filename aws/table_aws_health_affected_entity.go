@@ -166,6 +166,9 @@ func getHealthEventEntityAka(ctx context.Context, d *transform.TransformData) (i
 			plugin.Logger(ctx).Debug("getHealthEventEntityAka case string:...")
 			return []string{v}, nil
 		case *string:
+			if v == nil {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Debug("getHealthEventEntityAka case *string:...")
 			return []string{*v}, nil
 		default:
