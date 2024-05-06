@@ -16,8 +16,8 @@ Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs 
 **Important Notes**
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
 - This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
-  - `search_start_time` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
-  - `search_end_time` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
+  - `period_start` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
+  - `period_end` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
   - `metrics` with the supported operator `=`.
 
 ## Examples
@@ -182,8 +182,8 @@ select
 from
   aws_cost_by_service_usage_type_daily
 where
-  search_start_time = '2023-05-01T05:30:00+05:30'
-  and search_end_time = '2023-05-05T05:30:00+05:30'
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
   and metrics = 'BlendedCost'
 group by
   service,
@@ -203,8 +203,8 @@ select
 from
   aws_cost_by_service_usage_type_daily
 where
-  search_start_time = '2023-05-01T05:30:00+05:30'
-  and search_end_time = '2023-05-05T05:30:00+05:30'
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
   and metrics = 'BlendedCost'
 group by
   service,

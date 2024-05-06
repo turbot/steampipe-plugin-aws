@@ -17,8 +17,8 @@ Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs 
 
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
 - This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
-  - `search_start_time` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
-  - `search_end_time` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
+  - `period_start` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
+  - `period_end` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
   - `metrics` with the supported operator `=`.
 
 ## Examples
@@ -173,8 +173,8 @@ select
 from
   aws_cost_by_account_monthly
 where
-  search_start_time = '2023-05-01T05:30:00+05:30'
-  and search_end_time = '2023-05-05T05:30:00+05:30'
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
   and metrics = 'BlendedCost,UnblendedCost,AmortizedCost,NetAmortizedCost,NetUnblendedCost'
 order by
   linked_account_id,
@@ -184,13 +184,19 @@ order by
 ```sql+sqlite
 select
   linked_account_id,
-  min(unblended_cost_amount) as min,
-  max(unblended_cost_amount) as max,
-  avg(unblended_cost_amount) as average
+  period_start,
+  blended_cost_amount AS blended_cost_amount,
+  unblended_cost_amount AS unblended_cost_amount,
+  amortized_cost_amount AS amortized_cost_amount,
+  net_unblended_cost_amount AS net_unblended_cost_amount,
+  net_amortized_cost_amount AS net_amortized_cost_amount
 from
   aws_cost_by_account_monthly
-group by
-  linked_account_id
+where
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
+  and metrics = 'BlendedCost,UnblendedCost,AmortizedCost,NetAmortizedCost,NetUnblendedCost'
 order by
-  linked_account_id;
+  linked_account_id,
+  period_start;
 ```
