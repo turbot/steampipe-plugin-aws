@@ -33,19 +33,19 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 					Require: plugin.Required,
 				},
 				{
-					Name:      "metrics",
-					Require:   plugin.Optional,
-					Operators: []string{"="},
+					Name:       "metrics",
+					Require:    plugin.Optional,
+					Operators:  []string{"="},
 					CacheMatch: "exact",
 				},
 				{
-					Name:       "search_start_time",
+					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
 					CacheMatch: "exact",
 				},
 				{
-					Name:       "search_end_time",
+					Name:       "period_end",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
 					CacheMatch: "exact",
@@ -199,8 +199,8 @@ func getSearchStartTImeAndSearchEndTime(keyQuals *plugin.QueryData, granularity 
 
 	st, et := "", ""
 
-	if keyQuals.Quals["search_start_time"] != nil {
-		for _, q := range keyQuals.Quals["search_start_time"].Quals {
+	if keyQuals.Quals["period_start"] != nil {
+		for _, q := range keyQuals.Quals["period_start"].Quals {
 			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
 			switch q.Operator {
 			case "=", ">=", ">":
@@ -211,8 +211,8 @@ func getSearchStartTImeAndSearchEndTime(keyQuals *plugin.QueryData, granularity 
 		}
 	}
 
-	if keyQuals.Quals["search_end_time"] != nil {
-		for _, q := range keyQuals.Quals["search_end_time"].Quals {
+	if keyQuals.Quals["period_end"] != nil {
+		for _, q := range keyQuals.Quals["period_end"].Quals {
 			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
 			switch q.Operator {
 			case "=", ">=", ">":

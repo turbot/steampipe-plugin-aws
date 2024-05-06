@@ -8,7 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
-func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
+func tableAwsCostForecastMonthly(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cost_forecast_monthly",
 		Description: "AWS Cost Explorer - Cost Forecast (Monthly)",
@@ -17,13 +17,13 @@ func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "ce", "action": "GetCostForecast"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:       "search_start_time",
+					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
 					CacheMatch: "exact",
 				},
 				{
-					Name:       "search_end_time",
+					Name:       "period_end",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
 					CacheMatch: "exact",

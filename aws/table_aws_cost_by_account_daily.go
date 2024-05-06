@@ -16,19 +16,19 @@ func tableAwsCostByLinkedAccountDaily(_ context.Context) *plugin.Table {
 			Hydrate: listCostByLinkedAccountDaily,
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:      "metrics",
-					Require:   plugin.Optional,
-					Operators: []string{"="},
+					Name:       "metrics",
+					Require:    plugin.Optional,
+					Operators:  []string{"="},
 					CacheMatch: "exact",
 				},
 				{
-					Name:       "search_start_time",
+					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
 					CacheMatch: "exact",
 				},
 				{
-					Name:       "search_end_time",
+					Name:       "period_end",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
 					CacheMatch: "exact",

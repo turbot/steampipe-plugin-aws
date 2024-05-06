@@ -21,13 +21,13 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 			Hydrate: listCostForecastDaily,
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:       "search_start_time",
+					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
 					CacheMatch: "exact",
 				},
 				{
-					Name:       "search_end_time",
+					Name:       "period_end",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
 					CacheMatch: "exact",

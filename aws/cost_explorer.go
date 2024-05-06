@@ -157,18 +157,6 @@ func costExplorerColumns(columns []*plugin.Column) []*plugin.Column {
 func searchByTimeAndMetricColumns(otherColumns []*plugin.Column) []*plugin.Column {
 	return append([]*plugin.Column{
 		{
-			Name:        "search_start_time",
-			Description: "Search start timestamp for this cost metric.",
-			Type:        proto.ColumnType_TIMESTAMP,
-			Hydrate:     hydrateCostAndUsageQuals,
-		},
-		{
-			Name:        "search_end_time",
-			Description: "Search end timestamp for this cost metric.",
-			Type:        proto.ColumnType_TIMESTAMP,
-			Hydrate:     hydrateCostAndUsageQuals,
-		},
-		{
 			Name:        "metrics",
 			Description: "This cost metrics.",
 			Type:        proto.ColumnType_STRING,
