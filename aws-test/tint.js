@@ -460,7 +460,7 @@ const _runGraphqlQuery = function (test, query) {
       }
       if (true) {
         // if (code) { <<<< WHY?
-        var outputStr = JSON.stringify(result.output, null, 2) + "\n";
+        var outputStr = JSON.stringify(result.output.rows, null, 2) + "\n";
         var expectedStr =
           JSON.stringify(JSON.parse(fs.readFileSync(expectedTmp)), null, 2) +
           "\n";

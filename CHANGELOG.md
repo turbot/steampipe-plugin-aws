@@ -1,3 +1,27 @@
+## v0.137.0 [2024-04-29]
+
+_What's new?_
+
+- New tables added
+  - [aws_iot_thing_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_thing_group) ([#1998](https://github.com/turbot/steampipe-plugin-aws/pull/1998))
+  - [aws_iot_thing_type](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_thing_type) ([#1999](https://github.com/turbot/steampipe-plugin-aws/pull/1999))
+  - [aws_kms_key_rotation](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_kms_key_rotation) ([#2174](https://github.com/turbot/steampipe-plugin-aws/pull/2174))
+
+_Enhancements_
+
+- Added the `version` flag to the plugin's Export tool. ([#65](https://github.com/turbot/steampipe-export/pull/65))
+
+_Bug fixes_
+
+- Fixed the broken Postgres 14, Postgres 15 and SQLite x86_64 binaries for Darwin operating systems. 
+- Fixed intermittent FDW crashes when certain postgres errors resulted in a signal 16 being raised. ([#455](https://github.com/turbot/steampipe-postgres-fdw/pull/455))
+
+## v0.136.1 [2024-04-23]
+
+_Bug fixes_
+
+- Fixed the [runtime error](https://github.com/turbot/steampipe-postgres-fdw/issues/454) in the `v0.136.0` version of the plugin’s Postgres FDW extension.
+
 ## v0.136.0 [2024-04-19]
 
 _What's new?_
