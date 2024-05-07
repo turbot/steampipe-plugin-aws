@@ -20,7 +20,6 @@ Amazon Cost Explorer assists you in visualizing, understanding, and managing you
 - This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
   - `period_start` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
   - `period_end` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
-  - `metrics` with the supported operator `=`.
 
 ## Examples
 

@@ -18,7 +18,6 @@ Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs 
 - This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
   - `period_start` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
   - `period_end` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
-  - `metrics` with the supported operator `=`.
 
 ## Examples
 
@@ -181,7 +180,6 @@ from
 where
   period_start = '2023-05-01T05:30:00+05:30'
   and period_end = '2023-05-05T05:30:00+05:30'
-  and metrics = 'BlendedCost'
 group by
   service,
   usage_type
@@ -202,7 +200,6 @@ from
 where
   period_start = '2023-05-01T05:30:00+05:30'
   and period_end = '2023-05-05T05:30:00+05:30'
-  and metrics = 'BlendedCost'
 group by
   service,
   usage_type
