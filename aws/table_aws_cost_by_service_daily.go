@@ -22,12 +22,6 @@ func tableAwsCostByServiceDaily(_ context.Context) *plugin.Table {
 					Require:   plugin.Optional,
 				},
 				{
-					Name:      "metrics",
-					Require:   plugin.Optional,
-					Operators: []string{"="},
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -42,16 +36,14 @@ func tableAwsCostByServiceDaily(_ context.Context) *plugin.Table {
 			},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns(
-				searchByTimeAndMetricColumns([]*plugin.Column{
-					{
-						Name:        "service",
-						Description: "The name of the AWS service.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension1"),
-					},
-				}),
-			),
+			costExplorerColumns([]*plugin.Column{
+				{
+					Name:        "service",
+					Description: "The name of the AWS service.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1"),
+				},
+			}),
 		),
 	}
 }

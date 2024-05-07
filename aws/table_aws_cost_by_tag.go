@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -37,12 +36,6 @@ func tableAwsCostByTag(_ context.Context) *plugin.Table {
 					CacheMatch: "exact",
 				},
 				{
-					Name:       "metrics",
-					Require:    plugin.Optional,
-					Operators:  []string{"="},
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -59,41 +52,39 @@ func tableAwsCostByTag(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns(
-				searchByTimeAndMetricColumns([]*plugin.Column{
-					// Quals columns - to filter the lookups
-					{
-						Name:        "granularity",
-						Description: "The granularity for cost and usage metric data. Possible values are: DAILY|MONTHLY.",
-						Type:        proto.ColumnType_STRING,
-						Hydrate:     hydrateCostAndUsageQuals,
-					},
-					{
-						Name:        "tag_key_1",
-						Description: "The tag key to group by.",
-						Type:        proto.ColumnType_STRING,
-						Hydrate:     hydrateCostAndUsageQuals,
-					},
-					{
-						Name:        "tag_value_1",
-						Description: "The primary tag value grouped by.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension1").Transform(splitCETagValue),
-					},
-					{
-						Name:        "tag_key_2",
-						Description: "A secondary tag key to group by.",
-						Type:        proto.ColumnType_STRING,
-						Hydrate:     hydrateCostAndUsageQuals,
-					},
-					{
-						Name:        "tag_value_2",
-						Description: "A secondary tag value grouped by.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension2").Transform(splitCETagValue),
-					},
-				}),
-			),
+			costExplorerColumns([]*plugin.Column{
+				// Quals columns - to filter the lookups
+				{
+					Name:        "granularity",
+					Description: "The granularity for cost and usage metric data. Possible values are: DAILY|MONTHLY.",
+					Type:        proto.ColumnType_STRING,
+					Hydrate:     hydrateCostAndUsageQuals,
+				},
+				{
+					Name:        "tag_key_1",
+					Description: "The tag key to group by.",
+					Type:        proto.ColumnType_STRING,
+					Hydrate:     hydrateCostAndUsageQuals,
+				},
+				{
+					Name:        "tag_value_1",
+					Description: "The primary tag value grouped by.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1").Transform(splitCETagValue),
+				},
+				{
+					Name:        "tag_key_2",
+					Description: "A secondary tag key to group by.",
+					Type:        proto.ColumnType_STRING,
+					Hydrate:     hydrateCostAndUsageQuals,
+				},
+				{
+					Name:        "tag_value_2",
+					Description: "A secondary tag value grouped by.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension2").Transform(splitCETagValue),
+				},
+			}),
 		),
 	}
 }
@@ -123,13 +114,8 @@ func buildInputFromTagKeyAndTagValueQuals(ctx context.Context, d *plugin.QueryDa
 	}
 
 	selectedMetrics := AllCostMetrics()
-	if d.EqualsQualString("metrics") != "" {
-		m := getCostMetricByMetricName(d.EqualsQualString("metrics"))
-		if !(len(m) > 0) {
-			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", d.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
-		}
-
-		selectedMetrics = m
+	if len(getMetricsByQueryContext(d.QueryContext)) > 0 {
+		selectedMetrics = getMetricsByQueryContext(d.QueryContext)
 	}
 
 	params := &costexplorer.GetCostAndUsageInput{

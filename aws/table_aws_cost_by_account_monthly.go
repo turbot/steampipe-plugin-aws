@@ -2,8 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -23,12 +21,6 @@ func tableAwsCostByLinkedAccountMonthly(_ context.Context) *plugin.Table {
 			Hydrate: listCostByLinkedAccountMonthly,
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:       "metrics",
-					Require:    plugin.Optional,
-					Operators:  []string{"="},
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -44,16 +36,14 @@ func tableAwsCostByLinkedAccountMonthly(_ context.Context) *plugin.Table {
 			Tags: map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns(
-				searchByTimeAndMetricColumns([]*plugin.Column{
-					{
-						Name:        "linked_account_id",
-						Description: "The AWS Account ID.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension1"),
-					},
-				}),
-			),
+			costExplorerColumns([]*plugin.Column{
+				{
+					Name:        "linked_account_id",
+					Description: "The AWS Account ID.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1"),
+				},
+			}),
 		),
 	}
 }
@@ -82,13 +72,8 @@ func buildCostByLinkedAccountInput(d *plugin.QueryData, granularity string) *cos
 	}
 
 	selectedMetrics := AllCostMetrics()
-	if d.EqualsQualString("metrics") != "" {
-		m := getCostMetricByMetricName(d.EqualsQualString("metrics"))
-		if !(len(m) > 0) {
-			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", d.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
-		}
-
-		selectedMetrics = m
+	if len(getMetricsByQueryContext(d.QueryContext)) > 0 {
+		selectedMetrics = getMetricsByQueryContext(d.QueryContext)
 	}
 
 	params := &costexplorer.GetCostAndUsageInput{

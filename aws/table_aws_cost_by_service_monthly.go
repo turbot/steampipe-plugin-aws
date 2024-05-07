@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -29,12 +28,6 @@ func tableAwsCostByServiceMonthly(_ context.Context) *plugin.Table {
 					Require:   plugin.Optional,
 				},
 				{
-					Name:       "metrics",
-					Require:    plugin.Optional,
-					Operators:  []string{"="},
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -49,16 +42,14 @@ func tableAwsCostByServiceMonthly(_ context.Context) *plugin.Table {
 			},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns(
-				searchByTimeAndMetricColumns([]*plugin.Column{
-					{
-						Name:        "service",
-						Description: "The name of the AWS service.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension1"),
-					},
-				}),
-			),
+			costExplorerColumns([]*plugin.Column{
+				{
+					Name:        "service",
+					Description: "The name of the AWS service.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1"),
+				},
+			}),
 		),
 	}
 }
@@ -87,13 +78,8 @@ func buildCostByServiceInput(granularity string, d *plugin.QueryData) *costexplo
 	}
 
 	selectedMetrics := AllCostMetrics()
-	if d.EqualsQualString("metrics") != "" {
-		m := getCostMetricByMetricName(d.EqualsQualString("metrics"))
-		if !(len(m) > 0) {
-			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", d.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
-		}
-
-		selectedMetrics = m
+	if len(getMetricsByQueryContext(d.QueryContext)) > 0 {
+		selectedMetrics = getMetricsByQueryContext(d.QueryContext)
 	}
 
 	params := &costexplorer.GetCostAndUsageInput{
@@ -115,7 +101,7 @@ func buildCostByServiceInput(granularity string, d *plugin.QueryData) *costexplo
 
 	for _, keyQual := range d.Table.List.KeyColumns {
 		filterQual := d.Quals[keyQual.Name]
-		if filterQual == nil || keyQual.Name != "service"{
+		if filterQual == nil || keyQual.Name != "service" {
 			continue
 		}
 		for _, qual := range filterQual.Quals {

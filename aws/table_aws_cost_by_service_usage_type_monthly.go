@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -35,12 +34,6 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 					Require:   plugin.Optional,
 				},
 				{
-					Name:       "metrics",
-					Require:    plugin.Optional,
-					Operators:  []string{"="},
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -55,22 +48,20 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 			},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns(
-				searchByTimeAndMetricColumns([]*plugin.Column{
-					{
-						Name:        "service",
-						Description: "The name of the AWS service.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension1"),
-					},
-					{
-						Name:        "usage_type",
-						Description: "The usage type of this metric.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension2"),
-					},
-				}),
-			),
+			costExplorerColumns([]*plugin.Column{
+				{
+					Name:        "service",
+					Description: "The name of the AWS service.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1"),
+				},
+				{
+					Name:        "usage_type",
+					Description: "The usage type of this metric.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension2"),
+				},
+			}),
 		),
 	}
 }
@@ -99,13 +90,8 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 	}
 
 	selectedMetrics := AllCostMetrics()
-	if d.EqualsQualString("metrics") != "" {
-		m := getCostMetricByMetricName(d.EqualsQualString("metrics"))
-		if !(len(m) > 0) {
-			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", d.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
-		}
-
-		selectedMetrics = m
+	if len(getMetricsByQueryContext(d.QueryContext)) > 0 {
+		selectedMetrics = getMetricsByQueryContext(d.QueryContext)
 	}
 
 	params := &costexplorer.GetCostAndUsageInput{
@@ -131,7 +117,7 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 
 	for _, keyQual := range d.Table.List.KeyColumns {
 		filterQual := d.Quals[keyQual.Name]
-		if filterQual == nil || !helpers.StringSliceContains([]string{"service", "usage_type"}, keyQual.Name){
+		if filterQual == nil || !helpers.StringSliceContains([]string{"service", "usage_type"}, keyQual.Name) {
 			continue
 		}
 		for _, qual := range filterQual.Quals {

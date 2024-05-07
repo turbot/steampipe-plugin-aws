@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -33,12 +32,6 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 					Require: plugin.Required,
 				},
 				{
-					Name:       "metrics",
-					Require:    plugin.Optional,
-					Operators:  []string{"="},
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -56,74 +49,72 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns(
-				searchByTimeAndMetricColumns([]*plugin.Column{
-					{
-						Name:        "dimension_1",
-						Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
-						Type:        proto.ColumnType_STRING,
-					},
-					{
-						Name:        "dimension_2",
-						Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
-						Type:        proto.ColumnType_STRING,
-					},
+			costExplorerColumns([]*plugin.Column{
+				{
+					Name:        "dimension_1",
+					Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
+					Type:        proto.ColumnType_STRING,
+				},
+				{
+					Name:        "dimension_2",
+					Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
+					Type:        proto.ColumnType_STRING,
+				},
 
-					// Quals columns - to filter the lookups
-					{
-						Name:        "granularity",
-						Description: "",
-						Type:        proto.ColumnType_STRING,
-						Hydrate:     hydrateCostAndUsageQuals,
-					},
-					{
-						Name:        "dimension_type_1",
-						Description: "",
-						Type:        proto.ColumnType_STRING,
-						Hydrate:     hydrateCostAndUsageQuals,
-					},
-					{
-						Name:        "dimension_type_2",
-						Description: "",
-						Type:        proto.ColumnType_STRING,
-						Hydrate:     hydrateCostAndUsageQuals,
-					},
-					// {
-					// 	Name:        "raw_quals",
-					// 	Description: "",
-					// 	Type:        proto.ColumnType_STRING,
-					// 	Hydrate:     hydrateKeyQuals,
-					// 	Transform:   transform.FromValue(),
-					// },
-					// {
-					// 	Name:        "raw",
-					// 	Description: "raw data",
-					// 	Type:        proto.ColumnType_JSON,
-					// 	Transform:   transform.FromValue(),
-					// },
+				// Quals columns - to filter the lookups
+				{
+					Name:        "granularity",
+					Description: "",
+					Type:        proto.ColumnType_STRING,
+					Hydrate:     hydrateCostAndUsageQuals,
+				},
+				{
+					Name:        "dimension_type_1",
+					Description: "",
+					Type:        proto.ColumnType_STRING,
+					Hydrate:     hydrateCostAndUsageQuals,
+				},
+				{
+					Name:        "dimension_type_2",
+					Description: "",
+					Type:        proto.ColumnType_STRING,
+					Hydrate:     hydrateCostAndUsageQuals,
+				},
+				// {
+				// 	Name:        "raw_quals",
+				// 	Description: "",
+				// 	Type:        proto.ColumnType_STRING,
+				// 	Hydrate:     hydrateKeyQuals,
+				// 	Transform:   transform.FromValue(),
+				// },
+				// {
+				// 	Name:        "raw",
+				// 	Description: "raw data",
+				// 	Type:        proto.ColumnType_JSON,
+				// 	Transform:   transform.FromValue(),
+				// },
 
-					//Standard columns for all tables
-					// {
-					// 	Name:        "tags",
-					// 	Description: resourceInterfaceDescription("tags"),
-					// 	Type:        proto.ColumnType_JSON,
-					// 	Transform:   transform.FromConstant(nil),
-					// },
-					// {
-					// 	Name:        "title",
-					// 	Description: resourceInterfaceDescription("title"),
-					// 	Type:        proto.ColumnType_STRING,
-					// 	Transform:   transform.FromField("ServiceCode"),
-					// },
-					// {
-					// 	Name:        "akas",
-					// 	Description: resourceInterfaceDescription("akas"),
-					// 	Type:        proto.ColumnType_JSON,
-					// 	Hydrate:     getAwsVpcTurbotData,
-					// 	Transform:   transform.FromValue(),
-					// },
-				}),
-			),
+				//Standard columns for all tables
+				// {
+				// 	Name:        "tags",
+				// 	Description: resourceInterfaceDescription("tags"),
+				// 	Type:        proto.ColumnType_JSON,
+				// 	Transform:   transform.FromConstant(nil),
+				// },
+				// {
+				// 	Name:        "title",
+				// 	Description: resourceInterfaceDescription("title"),
+				// 	Type:        proto.ColumnType_STRING,
+				// 	Transform:   transform.FromField("ServiceCode"),
+				// },
+				// {
+				// 	Name:        "akas",
+				// 	Description: resourceInterfaceDescription("akas"),
+				// 	Type:        proto.ColumnType_JSON,
+				// 	Hydrate:     getAwsVpcTurbotData,
+				// 	Transform:   transform.FromValue(),
+				// },
+			}),
 		),
 	}
 }
@@ -153,13 +144,8 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 	}
 
 	selectedMetrics := AllCostMetrics()
-	if keyQuals.EqualsQualString("metrics") != "" {
-		m := getCostMetricByMetricName(keyQuals.EqualsQualString("metrics"))
-		if !(len(m) > 0) {
-			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", keyQuals.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
-		}
-
-		selectedMetrics = m
+	if len(getMetricsByQueryContext(keyQuals.QueryContext)) > 0 {
+		selectedMetrics = getMetricsByQueryContext(keyQuals.QueryContext)
 	}
 
 	dim1 := strings.ToUpper(keyQuals.EqualsQuals["dimension_type_1"].GetStringValue())

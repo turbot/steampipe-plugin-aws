@@ -16,12 +16,6 @@ func tableAwsCostByLinkedAccountDaily(_ context.Context) *plugin.Table {
 			Hydrate: listCostByLinkedAccountDaily,
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:       "metrics",
-					Require:    plugin.Optional,
-					Operators:  []string{"="},
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -37,16 +31,14 @@ func tableAwsCostByLinkedAccountDaily(_ context.Context) *plugin.Table {
 			Tags: map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns(
-				searchByTimeAndMetricColumns([]*plugin.Column{
-					{
-						Name:        "linked_account_id",
-						Description: "The AWS Account ID.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension1"),
-					},
-				}),
-			),
+			costExplorerColumns([]*plugin.Column{
+				{
+					Name:        "linked_account_id",
+					Description: "The AWS Account ID.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1"),
+				},
+			}),
 		),
 	}
 }

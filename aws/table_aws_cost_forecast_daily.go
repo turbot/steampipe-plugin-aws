@@ -35,27 +35,25 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "ce", "action": "GetCostForecast"},
 		},
-		Columns: awsGlobalRegionColumns(
-			searchByTimeAndMetricColumns([]*plugin.Column{
-				{
-					Name:        "period_start",
-					Description: "Start timestamp for this cost metric",
-					Type:        proto.ColumnType_TIMESTAMP,
-					Transform:   transform.FromField("TimePeriod.Start"),
-				},
-				{
-					Name:        "period_end",
-					Description: "End timestamp for this cost metric",
-					Type:        proto.ColumnType_TIMESTAMP,
-					Transform:   transform.FromField("TimePeriod.End"),
-				},
-				{
-					Name:        "mean_value",
-					Description: "Average forecasted value",
-					Type:        proto.ColumnType_DOUBLE,
-				},
-			}),
-		),
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
+			{
+				Name:        "period_start",
+				Description: "Start timestamp for this cost metric",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("TimePeriod.Start"),
+			},
+			{
+				Name:        "period_end",
+				Description: "End timestamp for this cost metric",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("TimePeriod.End"),
+			},
+			{
+				Name:        "mean_value",
+				Description: "Average forecasted value",
+				Type:        proto.ColumnType_DOUBLE,
+			},
+		}),
 	}
 }
 

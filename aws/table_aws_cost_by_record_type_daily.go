@@ -16,12 +16,6 @@ func tableAwsCostByRecordTypeDaily(_ context.Context) *plugin.Table {
 			Hydrate: listCostByRecordTypeDaily,
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:      "metrics",
-					Require:   plugin.Optional,
-					Operators: []string{"="},
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -37,22 +31,20 @@ func tableAwsCostByRecordTypeDaily(_ context.Context) *plugin.Table {
 			Tags: map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns(
-				searchByTimeAndMetricColumns([]*plugin.Column{
-					{
-						Name:        "linked_account_id",
-						Description: "The linked AWS Account ID.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension1"),
-					},
-					{
-						Name:        "record_type",
-						Description: "The different types of charges such as RI fees, usage, costs, tax refunds, and credits.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension2"),
-					},
-				}),
-			),
+			costExplorerColumns([]*plugin.Column{
+				{
+					Name:        "linked_account_id",
+					Description: "The linked AWS Account ID.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1"),
+				},
+				{
+					Name:        "record_type",
+					Description: "The different types of charges such as RI fees, usage, costs, tax refunds, and credits.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension2"),
+				},
+			}),
 		),
 	}
 }

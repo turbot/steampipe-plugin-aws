@@ -2,8 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -23,12 +21,6 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 			Hydrate: listCostByRecordTypeMonthly,
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:       "metrics",
-					Require:    plugin.Optional,
-					Operators:  []string{"="},
-					CacheMatch: "exact",
-				},
-				{
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
@@ -44,22 +36,20 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 			Tags: map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
-			costExplorerColumns(
-				searchByTimeAndMetricColumns([]*plugin.Column{
-					{
-						Name:        "linked_account_id",
-						Description: "The linked AWS Account ID.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension1"),
-					},
-					{
-						Name:        "record_type",
-						Description: "The different types of charges such as RI fees, usage, costs, tax refunds, and credits.",
-						Type:        proto.ColumnType_STRING,
-						Transform:   transform.FromField("Dimension2"),
-					},
-				}),
-			),
+			costExplorerColumns([]*plugin.Column{
+				{
+					Name:        "linked_account_id",
+					Description: "The linked AWS Account ID.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension1"),
+				},
+				{
+					Name:        "record_type",
+					Description: "The different types of charges such as RI fees, usage, costs, tax refunds, and credits.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("Dimension2"),
+				},
+			}),
 		),
 	}
 }
@@ -88,13 +78,8 @@ func buildCostByRecordTypeInput(d *plugin.QueryData, granularity string) *costex
 	}
 
 	selectedMetrics := AllCostMetrics()
-	if d.EqualsQualString("metrics") != "" {
-		m := getCostMetricByMetricName(d.EqualsQualString("metrics"))
-		if !(len(m) > 0) {
-			panic(fmt.Sprintf("unsupported metric '%s', supported metrics are %s", d.EqualsQualString("metrics"), strings.Join(selectedMetrics, ",")))
-		}
-
-		selectedMetrics = m
+	if len(getMetricsByQueryContext(d.QueryContext)) > 0 {
+		selectedMetrics = getMetricsByQueryContext(d.QueryContext)
 	}
 
 	params := &costexplorer.GetCostAndUsageInput{

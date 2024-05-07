@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
+	"github.com/golang/protobuf/ptypes/timestamp"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -50,6 +51,32 @@ func getCostMetricByMetricName(metricName string) []string {
 	}
 
 	return selectedMetric
+}
+
+func getMetricsByQueryContext(qc *plugin.QueryContext) []string {
+	queryColumns := qc.Columns
+	var metrics []string
+
+	for _, c := range queryColumns {
+		switch c {
+		case "blended_cost_amount", "blended_cost_unit":
+			metrics = append(metrics, "BlendedCost")
+		case "unblended_cost_amount", "unblended_cost_unit":
+			metrics = append(metrics, "UnblendedCost")
+		case "net_unblended_cost_amount", "net_unblended_cost_unit":
+			metrics = append(metrics, "NetUnblendedCost")
+		case "amortized_cost_amount", "amortized_cost_unit":
+			metrics = append(metrics, "AmortizedCost")
+		case "net_amortized_cost_amount", "net_amortized_cost_unit":
+			metrics = append(metrics, "NetAmortizedCost")
+		case "usage_quantity_amount", "usage_quantity_unit":
+			metrics = append(metrics, "UsageQuantity")
+		case "normalized_usage_amount", "normalized_usage_unit":
+			metrics = append(metrics, "NormalizedUsageAmount")
+		}
+	}
+
+	return removeDuplicates(metrics)
 }
 
 var costExplorerColumnDefs = []*plugin.Column{
@@ -151,18 +178,6 @@ var costExplorerColumnDefs = []*plugin.Column{
 // append the common aws cost explorer columns onto the column list
 func costExplorerColumns(columns []*plugin.Column) []*plugin.Column {
 	return append(columns, costExplorerColumnDefs...)
-}
-
-// append search timestamp columns
-func searchByTimeAndMetricColumns(otherColumns []*plugin.Column) []*plugin.Column {
-	return append([]*plugin.Column{
-		{
-			Name:        "metrics",
-			Description: "This cost metrics.",
-			Type:        proto.ColumnType_STRING,
-			Hydrate:     hydrateCostAndUsageQuals,
-		},
-	}, otherColumns...)
 }
 
 //// LIST FUNCTION
@@ -306,8 +321,8 @@ func getCEStartDateForGranularity(granularity string) time.Time {
 
 type CEQuals struct {
 	// Quals stuff
-	SearchStartTime *time.Time
-	SearchEndTime   *time.Time
+	SearchStartTime *timestamp.Timestamp
+	SearchEndTime   *timestamp.Timestamp
 	Metrics         string
 	Granularity     string
 	DimensionType1  string
@@ -316,61 +331,16 @@ type CEQuals struct {
 	TagKey2         string
 }
 
-func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Debug("hydrateKeyQuals", "d.EqualsQuals", d.EqualsQuals)
 
 	return &CEQuals{
-		SearchStartTime: getSearchTimestampValueFromQuals(ctx, d, "search_start_time", h),
-		SearchEndTime:   getSearchTimestampValueFromQuals(ctx, d, "search_end_time", h),
-		Metrics:         d.EqualsQuals["metrics"].GetStringValue(),
+		SearchStartTime: d.EqualsQuals["search_start_time"].GetTimestampValue(),
+		SearchEndTime:   d.EqualsQuals["search_end_time"].GetTimestampValue(),
 		Granularity:     d.EqualsQuals["granularity"].GetStringValue(),
 		DimensionType1:  d.EqualsQuals["dimension_type_1"].GetStringValue(),
 		DimensionType2:  d.EqualsQuals["dimension_type_2"].GetStringValue(),
 		TagKey1:         d.EqualsQuals["tag_key_1"].GetStringValue(),
 		TagKey2:         d.EqualsQuals["tag_key_2"].GetStringValue(),
 	}, nil
-}
-
-// In the case of >, <=, <, or <= operator uses in the where clause.
-// The value for the column search_start_time and search_end_time are not being populated correctly
-// by 'd.EqualsQuals["search_end_time"].GetTimestampValue().AsTime()'.
-func getSearchTimestampValueFromQuals(ctx context.Context, quals *plugin.QueryData, columnName string, h *plugin.HydrateData) *time.Time {
-	var st, et *string
-	if h.Item != nil {
-		switch item := h.Item.(type) {
-		case CEMetricRow:
-			st = item.PeriodStart
-			et = item.PeriodEnd
-		case types.ForecastResult:
-			st = item.TimePeriod.Start
-			et = item.TimePeriod.End
-		}
-	}
-
-	if quals.Quals[columnName] != nil {
-		var t time.Time
-		for _, q := range quals.Quals[columnName].Quals {
-			if q.Operator == ">" || q.Operator == "<" {
-				if columnName == "search_start_time" {
-					t = convertStringTypeToTimestamp(*st)
-				}
-				if columnName == "search_end_time" {
-					t = convertStringTypeToTimestamp(*et)
-				}
-			} else {
-				t = q.Value.GetTimestampValue().AsTime()
-			}
-		}
-		return &t
-	}
-	return nil
-}
-
-func convertStringTypeToTimestamp(t string) time.Time {
-	timeFormat := "2006-01-02"
-	ti, err := time.Parse(timeFormat, t)
-	if err != nil {
-		panic("Error parsing search time: " + err.Error())
-	}
-	return ti
 }
