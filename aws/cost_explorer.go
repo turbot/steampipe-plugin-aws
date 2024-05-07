@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -25,32 +24,6 @@ func AllCostMetrics() []string {
 		"UsageQuantity",
 		"NormalizedUsageAmount",
 	}
-}
-
-// getCostMetricByMetricName returns the select metrics
-func getCostMetricByMetricName(metricName string) []string {
-	metrics := strings.Split(metricName, ",")
-	var selectedMetric []string
-	for _, m := range metrics {
-		switch strings.ToLower(m) {
-		case "blendedcost":
-			selectedMetric = append(selectedMetric, "BlendedCost")
-		case "unblendedcost":
-			selectedMetric = append(selectedMetric, "UnblendedCost")
-		case "netunblendedcost":
-			selectedMetric = append(selectedMetric, "NetUnblendedCost")
-		case "amortizedcost":
-			selectedMetric = append(selectedMetric, "AmortizedCost")
-		case "netamortizedcost":
-			selectedMetric = append(selectedMetric, "NetAmortizedCost")
-		case "usagequantity":
-			selectedMetric = append(selectedMetric, "UsageQuantity")
-		case "normalizedusageamount":
-			selectedMetric = append(selectedMetric, "NormalizedUsageAmount")
-		}
-	}
-
-	return selectedMetric
 }
 
 func getMetricsByQueryContext(qc *plugin.QueryContext) []string {
