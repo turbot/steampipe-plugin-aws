@@ -22,7 +22,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 			Hydrate: listAwsEBSSnapshots,
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeSnapshots"},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue", "InvalidUserID.Malformed"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidUserID.Malformed"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -214,7 +214,9 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// Build filter for ebs snapshot
 	filters := buildEbsSnapshotFilter(ctx, d, h, d.EqualsQuals, input)
-	input.Filters = filters
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
 
 	paginator := ec2.NewDescribeSnapshotsPaginator(svc, input, func(o *ec2.DescribeSnapshotsPaginatorOptions) {
 		if input.MaxResults != nil {
