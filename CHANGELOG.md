@@ -1,3 +1,17 @@
+## v0.138.0 [2024-05-09]
+
+_Enhancements_
+
+- The Plugin and the Steampipe Anywhere binaries are now built with the `netgo` package for both the Linux and Darwin systems. ([#219](https://github.com/turbot/steampipe-plugin-kubernetes/pull/219)) ([#2180](https://github.com/turbot/steampipe-plugin-aws/pull/2180))
+
+_Bug fixes_
+
+- Fixed the `aws_ebs_snapshot` table to correctly return data instead of an empty row. ([#2185](https://github.com/turbot/steampipe-plugin-aws/pull/2185))
+
+_Dependencies_
+
+- Recompiled plugin with [github.com/hashicorp/go-getter v1.7.4](https://github.com/hashicorp/go-getter/releases/tag/v1.7.4). ([#2178](https://github.com/turbot/steampipe-plugin-aws/pull/2178))
+
 ## v0.137.0 [2024-04-29]
 
 _What's new?_
