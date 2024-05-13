@@ -369,8 +369,6 @@ github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.25.2 h1:U3w0gmiIoXKn3
 github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.25.2/go.mod h1:Q/h38JkaT+63VOq809LCCNjDOjT7TvOFsW1/PDpVkuo=
 github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.23.4 h1:MncIhVIHv+hKmhzOQz551X2irgormmMdQeiKBkzZE8E=
 github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.23.4/go.mod h1:SP1vzJ1AN2/JQ7S66QgIda+rVPSxZSt/y9LDHtk6E1k=
-github.com/aws/aws-sdk-go-v2/service/kms v1.30.1 h1:SBn4I0fJXF9FYOVRSVMWuhvEKoAHDikjGpS3wlmw5DE=
-github.com/aws/aws-sdk-go-v2/service/kms v1.30.1/go.mod h1:2snWQJQUKsbN66vAawJuOGX7dr37pfOq9hb0tZDGIqQ=
 github.com/aws/aws-sdk-go-v2/service/kms v1.31.0 h1:yl7wcqbisxPzknJVfWTLnK83McUvXba+pz2+tPbIUmQ=
 github.com/aws/aws-sdk-go-v2/service/kms v1.31.0/go.mod h1:2snWQJQUKsbN66vAawJuOGX7dr37pfOq9hb0tZDGIqQ=
 github.com/aws/aws-sdk-go-v2/service/lakeformation v1.31.5 h1:HUg52pxsqXCGJRNOLkCDx6Sm6hcKA3CU6cl83gqBNtE=
@@ -449,8 +447,8 @@ github.com/aws/aws-sdk-go-v2/service/simspaceweaver v1.10.4 h1:3Van6iPm54SieS9ap
 github.com/aws/aws-sdk-go-v2/service/simspaceweaver v1.10.4/go.mod h1:epFVpwUgd/c80/2fR2Zd7WDDctrJfXfxBvhreA5PJYo=
 github.com/aws/aws-sdk-go-v2/service/sns v1.29.4 h1:VhW/J21SPH9bNmk1IYdZtzqA6//N2PB5Py5RexNmLVg=
 github.com/aws/aws-sdk-go-v2/service/sns v1.29.4/go.mod h1:DojKGyWXa4p+e+C+GpG7qf02QaE68Nrg2v/UAXQhKhU=
-github.com/aws/aws-sdk-go-v2/service/sqs v1.31.4 h1:mE2ysZMEeQ3ulHWs4mmc4fZEhOfeY1o6QXAfDqjbSgw=
-github.com/aws/aws-sdk-go-v2/service/sqs v1.31.4/go.mod h1:lCN2yKnj+Sp9F6UzpoPPTir+tSaC9Jwf6LcmTqnXFZw=
+github.com/aws/aws-sdk-go-v2/service/sqs v1.32.0 h1:6SqfD+Oyi6GuoBeSXl0khuW5MFpPJTYcdGHzi86eWiA=
+github.com/aws/aws-sdk-go-v2/service/sqs v1.32.0/go.mod h1:lCN2yKnj+Sp9F6UzpoPPTir+tSaC9Jwf6LcmTqnXFZw=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.49.5 h1:KBwyHzP2QG8J//hoGuPyHWZ5tgL1BzaoMURUkecpI4g=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.49.5/go.mod h1:Ebk/HZmGhxWKDVxM4+pwbxGjm3RQOQLMjAEosI3ss9Q=
 github.com/aws/aws-sdk-go-v2/service/ssmincidents v1.30.4 h1:FctT4NUwB7L4EvS5OBT10m7mY7a4HzUD2jxHM94C4T0=
