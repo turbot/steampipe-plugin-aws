@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -165,6 +166,7 @@ func getHealthEventEntityAka(ctx context.Context, d *transform.TransformData) (i
 			}
 			return []string{*v}, nil
 		default:
+			str := fmt.Sprintf("%v", d.Value)
 			return []string{str}, nil
 		}
 
