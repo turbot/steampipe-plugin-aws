@@ -164,22 +164,18 @@ func listHealthEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 // TRANSFORM FUNCTIONS
 
 func getHealthEventAka(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Debug("getHealthEventAka invoked...")
-	plugin.Logger(ctx).Debug("getHealthEventAka Transform Data:", d)
-	plugin.Logger(ctx).Debug("getHealthEventAka Transform Data: EntityArn", d.Value)
 	if d.Value != nil {
 		switch v := d.Value.(type) {
 		case []string:
-			plugin.Logger(ctx).Debug("getHealthEventAka case []string:...")
 			return v, nil
 		case string:
-			plugin.Logger(ctx).Debug("getHealthEventAka case string:...")
 			return []string{v}, nil
 		case *string:
-			plugin.Logger(ctx).Debug("getHealthEventAka case *string:...")
+			if v == nil {
+				return nil, nil
+			}
 			return []string{*v}, nil
 		default:
-			plugin.Logger(ctx).Debug("getHealthEventAka case default:...")
 			str := fmt.Sprintf("%v", d.Value)
 			return []string{str}, nil
 		}
