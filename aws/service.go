@@ -281,6 +281,7 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 		"eu-central-2",   // Zurich
 		"eu-south-2",     // Spain
 		"me-central-1",   // UAE
+		"il-central-1",   // Israel (Tel Aviv)
 	}
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, apigatewayv2Endpoint.EndpointsID, excludeRegions)
 	if err != nil {
