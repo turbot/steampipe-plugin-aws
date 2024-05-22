@@ -82,7 +82,6 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 				Name:        "create_time",
 				Description: "The time that the keypair was created or imported",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("CreateTime"),
 			},
 		}),
 	}
