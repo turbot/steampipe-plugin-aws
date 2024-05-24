@@ -3,10 +3,9 @@ package aws
 import (
 	"context"
 	"errors"
-	"fmt"
-	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
@@ -334,27 +333,27 @@ func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return cachedData.(string), nil
 	}
 
-	// The most reliable way to discover the region of an S3 bucket is to make an unauthenticated HTTP HEAD request.
-	// See https://github.com/aws/aws-sdk-go/issues/356#issuecomment-132707340
-	// Using the S3 path style allows to query buckets with dots in their name.
-	// Not doing so with such buckets causes `tls: failed to verify certificate: x509: certificate is valid for *.s3.amazonaws.com, s3.amazonaws.com, not www.somedomain.com.s3.amazonaws.com (SQLSTATE HV000)` errors.
-	// FIXME: do we also want to implement non S3 path style? It may help avoiding rate limiting, but given the above limitation,
-	// it may be better to define a default Steampipe limiter once actual AWS limits are discovered.
-	resp, err := http.Head(fmt.Sprintf("https://s3.amazonaws.com/%s", bucket))
+	// Create client in default region
+	defaultRegion, err := getDefaultRegion(ctx, d, nil)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "http_head_error", err)
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "default_region_error", err)
+		return "", err
+	}
+	svc, err := S3Client(ctx, d, defaultRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "client_error", err)
 		return "", err
 	}
 
-	// We only care about the 400 and 404 HTTP status codes which respectively mean the request is invalid or the bucket does not exist at all.
-	// FIXME: do 429 responses happen and also include the header?
-	if resp.StatusCode == 400 || resp.StatusCode == 404 {
-		plugin.Logger(ctx).Debug("aws_s3_bucket.doGetBucketRegion", "http_head_status_code", resp.StatusCode)
+	// The most reliable way to discover the region of an S3 bucket is to make an unauthenticated HTTP HEAD request which this SDK manager.GetBucketRegion() function does.
+	// See https://github.com/aws/aws-sdk-go/issues/356#issuecomment-132707340
+	// and https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/feature/s3/manager#GetBucketRegion
+	bucketRegion, err := manager.GetBucketRegion(ctx, svc, bucket)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "get_bucket_region_error", err)
+		return "", err
 	}
-
-	// In the other situations (i.e. 200, 301 and 403, the x-amz-bucket-region header is always present
-	bucketRegion := resp.Header.Get("x-amz-bucket-region")
-	plugin.Logger(ctx).Debug("aws_s3_bucket.doGetBucketRegion", "bucket", bucket, "region", bucketRegion, "status_code", resp.StatusCode)
+	plugin.Logger(ctx).Debug("aws_s3_bucket.doGetBucketRegion", "bucket", bucket, "region", bucketRegion)
 
 	d.ConnectionManager.Cache.Set(cacheKey, bucketRegion)
 	return bucketRegion, nil
