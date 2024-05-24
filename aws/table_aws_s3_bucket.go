@@ -349,7 +349,7 @@ func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// We only care about the 400 and 404 HTTP status codes which respectively mean the request is invalid or the bucket does not exist at all.
 	// FIXME: do 429 responses happen and also include the header?
 	if resp.StatusCode == 400 || resp.StatusCode == 404 {
-		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "http_head_status_code", resp.StatusCode)
+		plugin.Logger(ctx).Debug("aws_s3_bucket.doGetBucketRegion", "http_head_status_code", resp.StatusCode)
 	}
 
 	// In the other situations (i.e. 200, 301 and 403, the x-amz-bucket-region header is always present
