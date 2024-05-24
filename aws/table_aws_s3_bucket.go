@@ -30,7 +30,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getBucketRegion,
-				Tags: map[string]string{"service": "s3", "action": "HTTPHeadBucket"},
+				Tags: map[string]string{"service": "s3", "action": "HeadBucket"},
 			},
 			{
 				Func:    getBucketIsPublic,
