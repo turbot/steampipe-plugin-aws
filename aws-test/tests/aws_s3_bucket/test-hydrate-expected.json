@@ -25,6 +25,7 @@
       "ObjectLockEnabled": "Enabled",
       "Rule": null
     },
+    "region": "us-east-2",
     "replication": null,
     "versioning_enabled": true,
     "versioning_mfa_delete": false
