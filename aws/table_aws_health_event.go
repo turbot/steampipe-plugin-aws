@@ -160,29 +160,6 @@ func listHealthEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return nil, err
 }
 
-// TRANSFORM FUNCTIONS
-
-func getHealthEventAka(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	if d.Value != nil {
-		switch v := d.Value.(type) {
-		case []string:
-			return v, nil
-		case string:
-			return []string{v}, nil
-		case *string:
-			if v == nil {
-				return nil, nil
-			}
-			return []string{*v}, nil
-		default:
-			str := fmt.Sprintf("%v", d.Value)
-			return []string{str}, nil
-		}
-
-	}
-	return nil, nil
-}
-
 // / UTILITY FUNCTION
 // Build health event list call input filter
 func buildHealthEventFilter(d *plugin.QueryData) *types.EventFilter {
