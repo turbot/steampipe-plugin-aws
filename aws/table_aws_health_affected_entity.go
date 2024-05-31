@@ -150,7 +150,7 @@ func listHealthAffectedEntities(ctx context.Context, d *plugin.QueryData, h *plu
 	return nil, err
 }
 
-// // UTILITY FUNCTION
+//// UTILITY FUNCTION
 // Build health affected entity list call input filter
 func buildHealthAffectedEntityFilter(d *plugin.QueryData) *types.EntityFilter {
 	filter := &types.EntityFilter{}
