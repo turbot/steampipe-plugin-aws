@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -78,7 +77,7 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("EntityArn").Transform(getHealthEventEntityAka),
+				Transform:   transform.FromField("EntityArn").Transform(transform.NullIfZeroValue).Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -149,37 +148,6 @@ func listHealthAffectedEntities(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	return nil, err
-}
-
-// TRANSFORM FUNCTIONS
-
-func getHealthEventEntityAka(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Debug("getHealthEventEntityAka invoked...")
-	plugin.Logger(ctx).Debug("getHealthEventEntityAka Transform Data:", d)
-	plugin.Logger(ctx).Debug("getHealthEventEntityAka Transform Data: EntityArn", d.Value)
-	if d.Value != nil {
-		switch v := d.Value.(type) {
-		case []string:
-			plugin.Logger(ctx).Debug("getHealthEventEntityAka case []string:...")
-			return v, nil
-		case string:
-			plugin.Logger(ctx).Debug("getHealthEventEntityAka case string:...")
-			return []string{v}, nil
-		case *string:
-			if v == nil {
-				plugin.Logger(ctx).Debug("getHealthEventEntityAka: nil string pointer", v)
-				return nil, nil
-			}
-			plugin.Logger(ctx).Debug("getHealthEventEntityAka case *string:...")
-			return []string{*v}, nil
-		default:
-			plugin.Logger(ctx).Debug("getHealthEventEntityAka case default:...")
-			str := fmt.Sprintf("%v", d.Value)
-			return []string{str}, nil
-		}
-
-	}
-	return nil, nil
 }
 
 // // UTILITY FUNCTION

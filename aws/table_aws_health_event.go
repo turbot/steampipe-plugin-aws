@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/health"
@@ -92,7 +91,7 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(getHealthEventAka),
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -159,33 +158,6 @@ func listHealthEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	return nil, err
-}
-
-// TRANSFORM FUNCTIONS
-
-func getHealthEventAka(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Debug("getHealthEventAka invoked...")
-	plugin.Logger(ctx).Debug("getHealthEventAka Transform Data:", d)
-	plugin.Logger(ctx).Debug("getHealthEventAka Transform Data: EntityArn", d.Value)
-	if d.Value != nil {
-		switch v := d.Value.(type) {
-		case []string:
-			plugin.Logger(ctx).Debug("getHealthEventAka case []string:...")
-			return v, nil
-		case string:
-			plugin.Logger(ctx).Debug("getHealthEventAka case string:...")
-			return []string{v}, nil
-		case *string:
-			plugin.Logger(ctx).Debug("getHealthEventAka case *string:...")
-			return []string{*v}, nil
-		default:
-			plugin.Logger(ctx).Debug("getHealthEventAka case default:...")
-			str := fmt.Sprintf("%v", d.Value)
-			return []string{str}, nil
-		}
-
-	}
-	return nil, nil
 }
 
 // / UTILITY FUNCTION
