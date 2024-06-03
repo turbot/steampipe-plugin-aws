@@ -20,7 +20,7 @@ import (
 func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_servicequotas_service_quota_change_request",
-		Description: "AWS ServiceQuotas Service Quota Change Request",
+		Description: "AWS Service Quotas Service Quota Change Request",
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 		},
@@ -301,7 +301,7 @@ func getServiceQuotaChangeRequestAkas(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := fmt.Sprintf("arn:/%s:servicequotas:%s:%s:changeRequest/%s", commonColumnData.Partition, region, commonColumnData.AccountId, *data.Id)
+	arn := fmt.Sprintf("arn:%s:servicequotas:%s:%s:changeRequest/%s", commonColumnData.Partition, region, commonColumnData.AccountId, *data.Id)
 
 	return []string{arn}, nil
 }

@@ -399,7 +399,7 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Debug("aws_securityhub_finding.getSecurityHubFinding", "api_error", err)
+		plugin.Logger(ctx).Error("aws_securityhub_finding.getSecurityHubFinding", "api_error", err)
 		return nil, err
 	}
 	if len(op.Findings) > 0 {

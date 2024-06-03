@@ -276,7 +276,7 @@ func getRoute53RecordSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Trace("aws_route53_record.getRoute53RecordSetAkas", "common_data_error", err)
+		plugin.Logger(ctx).Error("aws_route53_record.getRoute53RecordSetAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

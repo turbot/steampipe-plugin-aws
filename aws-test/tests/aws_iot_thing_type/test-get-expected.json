@@ -1,0 +1,9 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "arn": "{{ output.resource_aka.value }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "thing_type_name": "{{ resourceName }}"
+  }
+]

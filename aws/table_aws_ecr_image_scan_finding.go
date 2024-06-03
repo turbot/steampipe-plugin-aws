@@ -126,7 +126,7 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	imageTag := d.EqualsQuals["image_tag"]
 	repositoryName := d.EqualsQuals["repository_name"]
-	plugin.Logger(ctx).Trace("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "repositoryName", repositoryName, "imageTag", imageTag)
+	
 
 	// Limiting the results
 	maxLimit := int32(1000)

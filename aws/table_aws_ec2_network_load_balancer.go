@@ -268,7 +268,6 @@ func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 }
 
 func getAwsEc2NetworkLoadBalancerAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2NetworkLoadBalancerAttributes")
 
 	networkLoadBalancer := h.Item.(types.LoadBalancer)
 

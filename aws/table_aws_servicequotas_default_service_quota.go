@@ -19,7 +19,7 @@ import (
 func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_servicequotas_default_service_quota",
-		Description: "AWS ServiceQuotas Default Service Quota",
+		Description: "AWS Service Quotas Default Service Quota",
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 		},
@@ -32,7 +32,7 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 			},
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listServiceQuotasService,
+			ParentHydrate: listServiceQuotasServices,
 			Hydrate:       listDefaultServiceQuotas,
 			Tags:          map[string]string{"service": "servicequotas", "action": "ListAWSDefaultServiceQuotas"},
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -130,46 +130,6 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// PARENT HYDRATE FUNCTION
-
-func listServiceQuotasService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Create Session
-	svc, err := ServiceQuotasClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.listServiceQuotasService", "connection_error", err)
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
-	input := &servicequotas.ListServicesInput{
-		MaxResults: aws.Int32(100),
-	}
-
-	paginator := servicequotas.NewListServicesPaginator(svc, input, func(o *servicequotas.ListServicesPaginatorOptions) {
-		o.Limit = 100
-		o.StopOnDuplicateToken = true
-	})
-
-	for paginator.HasMorePages() {
-		// apply rate limiting
-		d.WaitForListRateLimit(ctx)
-
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_servicequotas_default_service_quota.listServiceQuotasService", "api_error", err)
-			return nil, err
-		}
-
-		for _, service := range output.Services {
-			d.StreamListItem(ctx, service)
-		}
-	}
-
-	return nil, nil
 }
 
 //// LIST FUNCTION

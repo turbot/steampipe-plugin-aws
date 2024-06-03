@@ -1,3 +1,99 @@
+## v0.138.0 [2024-05-09]
+
+_Enhancements_
+
+- The Plugin and the Steampipe Anywhere binaries are now built with the `netgo` package for both the Linux and Darwin systems. ([#219](https://github.com/turbot/steampipe-plugin-kubernetes/pull/219)) ([#2180](https://github.com/turbot/steampipe-plugin-aws/pull/2180))
+
+_Bug fixes_
+
+- Fixed the `aws_ebs_snapshot` table to correctly return data instead of an empty row. ([#2185](https://github.com/turbot/steampipe-plugin-aws/pull/2185))
+
+_Dependencies_
+
+- Recompiled plugin with [github.com/hashicorp/go-getter v1.7.4](https://github.com/hashicorp/go-getter/releases/tag/v1.7.4). ([#2178](https://github.com/turbot/steampipe-plugin-aws/pull/2178))
+
+## v0.137.0 [2024-04-29]
+
+_What's new?_
+
+- New tables added
+  - [aws_iot_thing_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_thing_group) ([#1998](https://github.com/turbot/steampipe-plugin-aws/pull/1998))
+  - [aws_iot_thing_type](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_thing_type) ([#1999](https://github.com/turbot/steampipe-plugin-aws/pull/1999))
+  - [aws_kms_key_rotation](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_kms_key_rotation) ([#2174](https://github.com/turbot/steampipe-plugin-aws/pull/2174))
+
+_Enhancements_
+
+- Added the `version` flag to the plugin's Export tool. ([#65](https://github.com/turbot/steampipe-export/pull/65))
+
+_Bug fixes_
+
+- Fixed the broken Postgres 14, Postgres 15 and SQLite x86_64 binaries for Darwin operating systems. 
+- Fixed intermittent FDW crashes when certain postgres errors resulted in a signal 16 being raised. ([#455](https://github.com/turbot/steampipe-postgres-fdw/pull/455))
+
+## v0.136.1 [2024-04-23]
+
+_Bug fixes_
+
+- Fixed the [runtime error](https://github.com/turbot/steampipe-postgres-fdw/issues/454) in the `v0.136.0` version of the plugin’s Postgres FDW extension.
+
+## v0.136.0 [2024-04-19]
+
+_What's new?_
+
+- New tables added
+  - [aws_iot_fleet_metric](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iot_fleet_metric) ([#2000](https://github.com/turbot/steampipe-plugin-aws/pull/2000))
+
+_Enhancements_
+
+- The `account_id` column has now been assigned as a connection key column across all the tables which facilitates more precise and efficient querying across multiple AWS accounts. ([#2133](https://github.com/turbot/steampipe-plugin-aws/pull/2133))
+
+_Bug fixes_
+
+- Fixed the `getDirectoryServiceSnapshotLimit` and `getDirectoryServiceEventTopics` hydrate calls in the `aws_directory_service_directory` table to correctly return `nil` for the unsupported `ADConnector` services instead of an error. ([#2170](https://github.com/turbot/steampipe-plugin-aws/pull/2170))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.10.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v5100-2024-04-10) that adds support for connection key columns. ([#2133](https://github.com/turbot/steampipe-plugin-aws/pull/2133))
+- Recompiled plugin with [aws-sdk-go v1.26.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2163](https://github.com/turbot/steampipe-plugin-aws/pull/2163))
+
+## v0.135.0 [2024-04-12]
+
+_What's new?_
+
+- New tables added
+  - [aws_accessanalyzer_finding](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_accessanalyzer_finding) ([#2142](https://github.com/turbot/steampipe-plugin-aws/pull/2142))
+
+_Enhancements_
+
+- Added `snapshot_block_public_access_state` column to `aws_ec2_regional_settings` table. ([#2077](https://github.com/turbot/steampipe-plugin-aws/pull/2077))
+
+_Bug fixes_
+
+- Fixed the `getDirectoryServiceSnapshotLimit` and `getDirectoryServiceEventTopics` hydrate calls in the `aws_directory_service_directory` table to correctly return `nil` for unsupported `SharedMicrosoftAD` services instead of an error. ([#2156](https://github.com/turbot/steampipe-plugin-aws/pull/2156))
+- Fixed the plugin's Postgres FDW Extension crash [issue](https://github.com/turbot/steampipe-postgres-fdw/issues/434).
+
+## v0.134.0 [2024-03-29]
+
+_What's new?_
+
+- New tables added
+  - [aws_backup_job](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_job) ([#2145](https://github.com/turbot/steampipe-plugin-aws/pull/2145)) (Thanks [@rogerioacp](https://github.com/rogerioacp) for the contribution!)
+  - [aws_elastic_beanstalk_application_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elastic_beanstalk_application_version) ([#2150](https://github.com/turbot/steampipe-plugin-aws/pull/2150))
+  - [aws_rds_db_engine_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_engine_version) ([#2098](https://github.com/turbot/steampipe-plugin-aws/pull/2098))
+  - [aws_s3_object_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3_object_version) ([#2070](https://github.com/turbot/steampipe-plugin-aws/pull/2070))
+  - [aws_servicequotas_service](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicequotas_service) ([#2070](https://github.com/turbot/steampipe-plugin-aws/pull/2141))
+
+_Enhancements_
+
+- The plugin level logs have been updated to maintain consistency: `Trace` logs have been elevated to `Debug`, `Info` logs elevated to `Error` where needed, and unnecessary `Debug` logs removed to streamline and optimize logging. ([#2131](https://github.com/turbot/steampipe-plugin-aws/pull/2131))
+
+_Bug fixes_
+
+- Fixed the `aws_vpc_eip` table to return an `Access Denied` error instead of an `Invalid Memory Address or Nil Pointer Dereference` error when a `Service Control Policy` is applied to an account for a specific region. ([#2136](https://github.com/turbot/steampipe-plugin-aws/pull/2136))
+- Fixed the `aws_s3_bucket` terraform script to prevent the `AccessControlListNotSupported: The bucket does not allow ACLs` error during the `PutBucketAcl` terraform call. ([#2080](https://github.com/turbot/steampipe-plugin-aws/pull/2080)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Fixed an issue where querying regional tables while using AWS profiles with `cross-account` role credentials results in the correct error being reported instead of zero rows. ([#2137](https://github.com/turbot/steampipe-plugin-aws/pull/2137))
+- Fixed pagination in the `aws_ebs_snapshot` table to make fewer API calls when the `limit` parameter is passed to the query. ([#2088](https://github.com/turbot/steampipe-plugin-aws/pull/2088))
+
 ## v0.133.0 [2024-03-15]
 
 _What's new?_

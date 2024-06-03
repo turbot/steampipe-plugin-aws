@@ -95,7 +95,6 @@ func listIamActions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 //// HYDRATE FUNCTIONS
 
 func getIamAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Info("Item", h.Item)
 	action := d.EqualsQuals["action"].GetStringValue()
 
 	for _, service := range permissionsData {

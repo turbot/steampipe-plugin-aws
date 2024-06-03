@@ -381,7 +381,6 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 }
 
 func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsSSMMaintenanceWindowAkas")
 	region := d.EqualsQualString(matrixKeyRegion)
 	id := maintenanceWindowID(h.Item)
 
@@ -398,7 +397,6 @@ func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h 
 /// TRANSFORM FUNCTIONS
 
 func ssmMaintenanceWindowTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ssmMaintenanceWindowTagListToTurbotTags")
 	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags

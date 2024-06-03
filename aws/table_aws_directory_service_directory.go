@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice/types"
 
 	directoryservicev1 "github.com/aws/aws-sdk-go/service/directoryservice"
+	"github.com/turbot/go-kit/helpers"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -357,6 +358,12 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 func getDirectoryServiceEventTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	directory := h.Item.(types.DirectoryDescription)
 
+	// This operation is not supported for for Shared MicrosoftAD directories
+	// Error: aws: operation error Directory Service: DescribeEventTopics, https response error StatusCode: 400, ClientException: Operation is not supported for Shared MicrosoftAD directories.
+	if directory.Type == "SharedMicrosoftAD" {
+		return nil, nil
+	}
+
 	// Create service
 	svc, err := DirectoryServiceClient(ctx, d)
 	if err != nil {
@@ -387,6 +394,13 @@ func getDirectoryServiceEventTopics(ctx context.Context, d *plugin.QueryData, h 
 
 func getDirectoryServiceSnapshotLimit(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	directory := h.Item.(types.DirectoryDescription)
+
+	// This operation is not supported for for Shared MicrosoftAD and ADConnector directories
+	// Error: aws: operation error Directory Service: GetSnapshotLimits, https response error StatusCode: 400, ClientException: Snapshot limits can be fetched only for VPC or Microsoft AD directories.
+	supportedDirectoryType := []string{"SimpleAD", "MicrosoftAD"}
+	if !helpers.StringSliceContains(supportedDirectoryType, string(directory.Type)) {
+		return nil, nil
+	}
 
 	// Create service
 	svc, err := DirectoryServiceClient(ctx, d)

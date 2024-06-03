@@ -370,7 +370,6 @@ func getDocDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// TRANSFORM FUNCTIONS
 
 func docDBClusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("docDBClusterTagListToTurbotTags")
 	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
