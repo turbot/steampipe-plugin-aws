@@ -131,7 +131,7 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 	}
 
 	input := &securityhub.DescribeStandardsInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	paginator := securityhub.NewDescribeStandardsPaginator(svc, input, func(o *securityhub.DescribeStandardsPaginatorOptions) {

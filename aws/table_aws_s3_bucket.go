@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
@@ -26,77 +28,77 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		// list call.
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getBucketLocation,
-				Tags: map[string]string{"service": "s3", "action": "GetBucketLocation"},
+				Func: getBucketRegion,
+				Tags: map[string]string{"service": "s3", "action": "HeadBucket"},
 			},
 			{
 				Func:    getBucketIsPublic,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketPolicyStatus"},
 			},
 			{
 				Func:    getBucketVersioning,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketVersioning"},
 			},
 			{
 				Func:    getBucketEncryption,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketEncryption"},
 			},
 			{
 				Func:    getBucketPublicAccessBlock,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetPublicAccessBlock"},
 			},
 			{
 				Func:    getBucketACL,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketAcl"},
 			},
 			{
 				Func:    getBucketLifecycle,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetLifecycleConfiguration"},
 			},
 			{
 				Func:    getBucketLogging,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketLogging"},
 			},
 			{
 				Func:    getBucketPolicy,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketPolicy"},
 			},
 			{
 				Func:    getBucketReplication,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketReplication"},
 			},
 			{
 				Func:    getBucketTagging,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketTagging"},
 			},
 			{
 				Func:    getObjectLockConfiguration,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetObjectLockConfiguration"},
 			},
 			{
 				Func:    getS3BucketEventNotificationConfigurations,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketNotificationConfiguration"},
 			},
 			{
 				Func:    getS3BucketObjectOwnershipControl,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketOwnershipControls"},
 			},
 			{
 				Func:    getBucketWebsite,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
+				Depends: []plugin.HydrateFunc{getBucketRegion},
 				Tags:    map[string]string{"service": "s3", "action": "GetBucketWebsite"},
 			},
 		},
@@ -275,8 +277,8 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Name:        "region",
 				Description: "The AWS Region in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBucketLocation,
-				Transform:   transform.FromField("LocationConstraint"),
+				Hydrate:     getBucketRegion,
+				Transform:   transform.FromValue(),
 			},
 		}),
 	}
@@ -318,25 +320,64 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	return nil, nil
 }
 
-func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
+func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, bucket string) (string, error) {
+	// Have we already resolved and cached the bucket name?
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "get_common_columns_error", err)
+		return "", err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+	cacheKey := "getBucketRegion/" + commonColumnData.Partition + "/" + bucket
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.(string), nil
 	}
 
-	name := h.Item.(types.Bucket).Name
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	// Create client in default region
+	defaultRegion, err := getDefaultRegion(ctx, d, nil)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "default_region_error", err)
+		return "", err
+	}
+	svc, err := S3Client(ctx, d, defaultRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "client_error", err)
+		return "", err
+	}
+
+	// The most reliable way to discover the region of an S3 bucket is to make an unauthenticated HTTP HEAD request which this SDK manager.GetBucketRegion() function does.
+	// See https://github.com/aws/aws-sdk-go/issues/356#issuecomment-132707340
+	// and https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/feature/s3/manager#GetBucketRegion
+	bucketRegion, err := manager.GetBucketRegion(ctx, svc, bucket)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.doGetBucketRegion", "get_bucket_region_error", err)
+		return "", err
+	}
+	plugin.Logger(ctx).Debug("aws_s3_bucket.doGetBucketRegion", "bucket", bucket, "region", bucketRegion)
+
+	d.ConnectionManager.Cache.Set(cacheKey, bucketRegion)
+	return bucketRegion, nil
+}
+
+func getBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	bucketName := h.Item.(types.Bucket).Name
+
+	return doGetBucketRegion(ctx, d, h, *bucketName)
+}
+
+func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getS3BucketEventNotificationConfigurations", "client_error", err)
 		return nil, err
 	}
 
 	// Build param
-	input := &s3.GetBucketNotificationConfigurationInput{Bucket: name}
+	input := &s3.GetBucketNotificationConfigurationInput{Bucket: bucketName}
 
 	notificationDetails, err := svc.GetBucketNotificationConfiguration(ctx, input)
 	if err != nil {
@@ -357,17 +398,11 @@ func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.Q
 }
 
 func getS3BucketObjectOwnershipControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	name := h.Item.(types.Bucket).Name
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getS3BucketObjectOwnershipControl", "client_error", err)
@@ -375,7 +410,7 @@ func getS3BucketObjectOwnershipControl(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// Build param
-	input := &s3.GetBucketOwnershipControlsInput{Bucket: name}
+	input := &s3.GetBucketOwnershipControlsInput{Bucket: bucketName}
 
 	conf, err := svc.GetBucketOwnershipControls(ctx, input)
 	if err != nil {
@@ -396,67 +431,18 @@ func getS3BucketObjectOwnershipControl(ctx context.Context, d *plugin.QueryData,
 	return conf.OwnershipControls, nil
 }
 
-func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucket := h.Item.(types.Bucket)
-
-	// Unlike most services, S3 buckets are a global list. They can be retrieved
-	// from any single region. It's best to use the client region of the user
-	// (e.g. closest to them).
-	clientRegion, err := getDefaultRegion(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	svc, err := S3Client(ctx, d, clientRegion)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "get_client_error", err, "clientRegion", clientRegion)
-		return nil, err
-	}
-
-	params := &s3.GetBucketLocationInput{Bucket: bucket.Name}
-
-	// Specifies the Region where the bucket resides. For a list of all the Amazon
-	// S3 supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region).
-	location, err := svc.GetBucketLocation(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "bucket_name", *bucket.Name, "clientRegion", clientRegion, "api_error", err)
-		return nil, err
-	}
-
-	if location != nil && location.LocationConstraint != "" {
-		// Buckets in eu-west-1 created through the AWS CLI or other API driven methods can return a location of "EU",
-		// so we need to convert back
-		if location.LocationConstraint == "EU" {
-			return &s3.GetBucketLocationOutput{
-				LocationConstraint: "eu-west-1",
-			}, nil
-		}
-		return location, nil
-	}
-
-	// Buckets in us-east-1 have a LocationConstraint of null
-	return &s3.GetBucketLocationOutput{
-		LocationConstraint: "us-east-1",
-	}, nil
-}
-
 func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketIsPublic", "client_error", err)
 		return nil, err
 	}
 
-	params := &s3.GetBucketPolicyStatusInput{Bucket: bucket.Name}
+	params := &s3.GetBucketPolicyStatusInput{Bucket: bucketName}
 	policyStatus, err := svc.GetBucketPolicyStatus(ctx, params)
 	if err != nil {
 		var a smithy.APIError
@@ -473,23 +459,17 @@ func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getBucketVersioning(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketVersioning", "client_error", err)
 		return nil, err
 	}
 
-	params := &s3.GetBucketVersioningInput{Bucket: bucket.Name}
+	params := &s3.GetBucketVersioningInput{Bucket: bucketName}
 	versioning, err := svc.GetBucketVersioning(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketVersioning", "api_error", err)
@@ -500,23 +480,17 @@ func getBucketVersioning(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketEncryption", "client_error", err)
 		return nil, err
 	}
 	params := &s3.GetBucketEncryptionInput{
-		Bucket: bucket.Name,
+		Bucket: bucketName,
 	}
 
 	encryption, err := svc.GetBucketEncryption(ctx, params)
@@ -534,28 +508,22 @@ func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketPublicAccessBlock", "client_error", err)
 		return nil, err
 	}
 
-	params := &s3.GetPublicAccessBlockInput{Bucket: bucket.Name}
+	params := &s3.GetPublicAccessBlockInput{Bucket: bucketName}
 	defaultAccessBlock := &types.PublicAccessBlockConfiguration{
-		BlockPublicAcls:       false,
-		BlockPublicPolicy:     false,
-		IgnorePublicAcls:      false,
-		RestrictPublicBuckets: false,
+		BlockPublicAcls:       aws.Bool(false),
+		BlockPublicPolicy:     aws.Bool(false),
+		IgnorePublicAcls:      aws.Bool(false),
+		RestrictPublicBuckets: aws.Bool(false),
 	}
 
 	accessBlock, err := svc.GetPublicAccessBlock(ctx, params)
@@ -576,23 +544,17 @@ func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plu
 }
 
 func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketACL", "client_error", err)
 		return nil, err
 	}
 
-	params := &s3.GetBucketAclInput{Bucket: bucket.Name}
+	params := &s3.GetBucketAclInput{Bucket: bucketName}
 
 	acl, err := svc.GetBucketAcl(ctx, params)
 	if err != nil {
@@ -611,23 +573,17 @@ func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 }
 
 func getBucketLifecycle(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLifecycle", "client_error", err)
 		return nil, err
 	}
 
-	params := &s3.GetBucketLifecycleConfigurationInput{Bucket: bucket.Name}
+	params := &s3.GetBucketLifecycleConfigurationInput{Bucket: bucketName}
 
 	lifecycleConfiguration, err := svc.GetBucketLifecycleConfiguration(ctx, params)
 	if err != nil {
@@ -645,23 +601,17 @@ func getBucketLifecycle(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 }
 
 func getBucketLogging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLogging", "client_error", err)
 		return nil, err
 	}
 
-	params := &s3.GetBucketLoggingInput{Bucket: bucket.Name}
+	params := &s3.GetBucketLoggingInput{Bucket: bucketName}
 	logging, err := svc.GetBucketLogging(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLogging", "api_error", err)
@@ -671,23 +621,17 @@ func getBucketLogging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getBucketPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketPolicy", "client_error", err)
 		return nil, err
 	}
 	params := &s3.GetBucketPolicyInput{
-		Bucket: bucket.Name,
+		Bucket: bucketName,
 	}
 
 	bucketPolicy, err := svc.GetBucketPolicy(ctx, params)
@@ -706,22 +650,16 @@ func getBucketPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 }
 
 func getBucketReplication(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketReplication", "client_error", err)
 		return nil, err
 	}
-	params := &s3.GetBucketReplicationInput{Bucket: bucket.Name}
+	params := &s3.GetBucketReplicationInput{Bucket: bucketName}
 
 	replication, err := svc.GetBucketReplication(ctx, params)
 	if err != nil {
@@ -739,23 +677,17 @@ func getBucketReplication(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketTagging", "client_error", err)
 		return nil, err
 	}
 
-	params := &s3.GetBucketTaggingInput{Bucket: bucket.Name}
+	params := &s3.GetBucketTaggingInput{Bucket: bucketName}
 
 	bucketTags, _ := svc.GetBucketTagging(ctx, params)
 	if err != nil {
@@ -767,23 +699,17 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getBucketWebsite(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketWebsite", "client_error", err)
 		return nil, err
 	}
 
-	params := &s3.GetBucketWebsiteInput{Bucket: bucket.Name}
+	params := &s3.GetBucketWebsiteInput{Bucket: bucketName}
 
 	bucketwebsites, _ := svc.GetBucketWebsite(ctx, params)
 	if err != nil {
@@ -795,7 +721,7 @@ func getBucketWebsite(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucket := h.Item.(types.Bucket)
+	bucketName := h.Item.(types.Bucket).Name
 
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -804,29 +730,23 @@ func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":s3:::" + *bucket.Name
+	arn := "arn:" + commonColumnData.Partition + ":s3:::" + *bucketName
 
 	return arn, nil
 }
 
 func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocation returned an error but
-	// was ignored through ignore_error_codes config arg
-	if h.HydrateResults["getBucketLocation"] == nil {
-		return nil, nil
-	}
-
-	bucket := h.Item.(types.Bucket)
-	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+	bucketName := h.Item.(types.Bucket).Name
+	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
 
 	// Create client
-	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getObjectLockConfiguration", "client_error", err)
 		return nil, err
 	}
 
-	params := &s3.GetObjectLockConfigurationInput{Bucket: bucket.Name}
+	params := &s3.GetObjectLockConfigurationInput{Bucket: bucketName}
 
 	data, err := svc.GetObjectLockConfiguration(ctx, params)
 	if err != nil {

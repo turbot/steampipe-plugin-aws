@@ -162,7 +162,7 @@ func listWellArchitectedLenses(ctx context.Context, d *plugin.QueryData, _ *plug
 	}
 
 	input := &wellarchitected.ListLensesInput{
-		MaxResults: maxLimit,
+		MaxResults: &maxLimit,
 	}
 
 	if d.EqualsQualString("lens_status") != "" {
