@@ -136,10 +136,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
-	"github.com/aws/smithy-go/logging"
+	smithylogging "github.com/aws/smithy-go/logging"
 	"github.com/hashicorp/go-hclog"
 	"github.com/rs/dnscache"
 	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v5/logging"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"golang.org/x/sync/semaphore"
@@ -1683,6 +1684,8 @@ func getClientCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 // be run only once per region per connection. Do not call this directly, use
 // getClient instead.
 func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logging.LogTime("getClientUncached start")
+	defer logging.LogTime("getClientUncached end")
 
 	// Extract the region from the hydrate data. This is not per-row data,
 	// but a clever pass through of context for our case.
@@ -1975,6 +1978,8 @@ var getBaseClientForAccountCached = plugin.HydrateFunc(getBaseClientForAccountUn
 // regions. This client has the minimal reusable configuration on it, so it
 // can be modified in the higher level client functions.
 func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logging.LogTime("getBaseClientForAccountUncached start")
+	defer logging.LogTime("getBaseClientForAccountUncached end")
 
 	plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "starting")
 
@@ -2087,7 +2092,7 @@ type HCLoggerToSmithyLoggerWrapper struct {
 	hclogger *hclog.Logger
 }
 
-func (logger *HCLoggerToSmithyLoggerWrapper) Logf(classification logging.Classification, format string, v ...interface{}) {
+func (logger *HCLoggerToSmithyLoggerWrapper) Logf(classification smithylogging.Classification, format string, v ...interface{}) {
 	(*logger.hclogger).Debug(fmt.Sprintf(format, v...))
 }
 

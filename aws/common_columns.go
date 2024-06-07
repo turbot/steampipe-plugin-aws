@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/logging"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -122,6 +123,9 @@ func getCommonColumnsCacheKey(ctx context.Context, d *plugin.QueryData, h *plugi
 
 // get columns which are returned with all tables: region, partition and account
 func getCommonColumnsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logging.LogTime("getCommonColumnsUncached start")
+	defer logging.LogTime("getCommonColumnsUncached end")
+
 	region := d.EqualsQualString(matrixKeyRegion)
 	if region == "" {
 		region = "global"
@@ -158,6 +162,8 @@ var getCallerIdentity = plugin.HydrateFunc(getCallerIdentityUncached).Memoize()
 
 // returns details about the IAM user or role whose credentials are used to call the operation
 func getCallerIdentityUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logging.LogTime("getCallerIdentityUncached start")
+	defer logging.LogTime("getCallerIdentityUncached end")
 
 	// Trace logging to debug cache and execution flows
 	plugin.Logger(ctx).Trace("getCallerIdentityUncached", "status", "starting", "connection_name", d.Connection.Name)
