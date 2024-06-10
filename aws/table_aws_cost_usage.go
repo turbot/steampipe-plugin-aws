@@ -143,9 +143,6 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 		endTime = et
 	}
 
-	plugin.Logger(ctx).Error("Period start date ===>>> ", st)
-	plugin.Logger(ctx).Error("Period end date ===>>> ", et)
-
 	selectedMetrics := AllCostMetrics()
 	if len(getMetricsByQueryContext(keyQuals.QueryContext)) > 0 {
 		selectedMetrics = getMetricsByQueryContext(keyQuals.QueryContext)
