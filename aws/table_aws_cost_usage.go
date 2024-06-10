@@ -143,6 +143,9 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 		endTime = et
 	}
 
+	plugin.Logger(ctx).Error("Period start date ===>>> ", st)
+	plugin.Logger(ctx).Error("Period end date ===>>> ", et)
+
 	selectedMetrics := AllCostMetrics()
 	if len(getMetricsByQueryContext(keyQuals.QueryContext)) > 0 {
 		selectedMetrics = getMetricsByQueryContext(keyQuals.QueryContext)
@@ -185,7 +188,7 @@ func getSearchStartTImeAndSearchEndTime(keyQuals *plugin.QueryData, granularity 
 
 	st, et := "", ""
 
-	if keyQuals.Quals["period_start"] != nil {
+	if keyQuals.Quals["period_start"] != nil && !(len(keyQuals.Quals["period_start"].Quals) > 1) {
 		for _, q := range keyQuals.Quals["period_start"].Quals {
 			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
 			switch q.Operator {
@@ -197,14 +200,31 @@ func getSearchStartTImeAndSearchEndTime(keyQuals *plugin.QueryData, granularity 
 		}
 	}
 
-	if keyQuals.Quals["period_end"] != nil {
+	// The API supports a single value with the '=' operator.
+	// For queries like: "period_end BETWEEN current_timestamp - interval '31d' AND current_timestamp - interval '1d'", the FDW parses the query parameters with multiple qualifiers.
+	// In this case, we will have multiple qualifiers with operators such as:
+	// 1. The length of keyQuals.Quals["period_end"].Quals will be 2.
+	// 2. The qualifier values would be "2024-05-10" with the '>=' operator and "2024-06-09" with the '<=' operator.
+	// Plugin Log:
+	// 2024-06-10 11:17:39.071 UTC [DEBUG] steampipe-plugin-aws.plugin: [ERROR] 1718018259212: Period end Scan Length ===>>> : EXTRA_VALUE_AT_END=2
+	// 2024-06-10 11:17:39.071 UTC [DEBUG] steampipe-plugin-aws.plugin: [ERROR] 1718018259212: Period End => : >=2024-05-10
+	// 2024-06-10 11:17:39.071 UTC [DEBUG] steampipe-plugin-aws.plugin: [ERROR] 1718018259212: Period End => : <=2024-06-09
+	// In this scenario, manipulating the start and end time is a bit difficult and challenging.
+	// Let the API fetch all the rows, and filtering will occur at the Steampipe level.
+
+	if keyQuals.Quals["period_end"] != nil && !(len(keyQuals.Quals["period_end"].Quals) > 1) {
 		for _, q := range keyQuals.Quals["period_end"].Quals {
 			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
 			switch q.Operator {
 			case "=", ">=", ">":
-				et = t
+				if st == "" {
+					st = t
+				}
+				// et = t
 			case "<", "<=":
-				st = t
+				if et == "" {
+					et = t
+				}
 			}
 		}
 	}
