@@ -121,7 +121,7 @@ func listWellArchitectedConsolidatedReports(ctx context.Context, d *plugin.Query
 
 	input := &wellarchitected.GetConsolidatedReportInput{
 		Format:     types.ReportFormatJson,
-		MaxResults: &maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	// The default value for IncludeSharedResources in input param is false.
@@ -172,7 +172,7 @@ func listWellArchitectedConsolidatedReportBase64(ctx context.Context, d *plugin.
 
 	input := &wellarchitected.GetConsolidatedReportInput{
 		Format:     types.ReportFormatPdf,
-		MaxResults: aws.Int32(int32(15)),
+		MaxResults: aws.Int32(15),
 	}
 
 	// The default value for IncludeSharedResources in input param is false.

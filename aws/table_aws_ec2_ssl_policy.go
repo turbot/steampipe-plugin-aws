@@ -49,6 +49,11 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 				Description: "A list of protocols.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "supported_load_balancer_types",
+				Description: "The supported load balancers.",
+				Type:        proto.ColumnType_JSON,
+			},
 
 			// Steampipe standard columns
 			{

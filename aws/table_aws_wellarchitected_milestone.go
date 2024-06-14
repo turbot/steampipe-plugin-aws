@@ -93,7 +93,7 @@ func listWellArchitectedMilestones(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	input := &wellarchitected.ListMilestonesInput{
-		MaxResults: &maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	// Validate - User input must match the hydrated WorkloadId

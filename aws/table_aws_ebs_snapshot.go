@@ -112,8 +112,23 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "restore_expiry_time",
+				Description: "Only for archived snapshots that are temporarily restored. Indicates the date and time when a temporarily restored snapshot will be automatically re-archived.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
 				Name:        "description",
 				Description: "The description for the snapshot.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "outpost_arn",
+				Description: "The ARN of the Outpost on which the snapshot is stored.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "storage_tier",
+				Description: " The storage tier in which the snapshot is stored.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{

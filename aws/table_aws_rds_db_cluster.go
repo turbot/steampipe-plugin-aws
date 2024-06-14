@@ -275,6 +275,110 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "performance_insights_enabled",
+				Description: "Indicates whether Performance Insights is enabled for the DB cluster.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "publicly_accessible",
+				Description: "Indicates whether the DB cluster is publicly accessible.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "automatic_restart_time",
+				Description: "The time when a stopped DB cluster is restarted automatically.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("AutomaticRestartTime").Transform(transform.NullIfZeroValue),
+			},
+			{
+				Name:        "aws_backup_recovery_point_arn",
+				Description: "The Amazon Resource Name (ARN) of the recovery point in Amazon Web Services Backup.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "performance_insights_kms_key_id",
+				Description: "The Amazon Web Services KMS key identifier for encryption of Performance Insights data.",
+				Type:        proto.ColumnType_STRING,
+				Transform: transform.FromField("PerformanceInsightsKMSKeyId"),
+			},
+			{
+				Name:        "monitoring_interval",
+				Description: "The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB cluster.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "storage_throughput",
+				Description: "The storage throughput for the DB cluster.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "performance_insights_retention_period",
+				Description: "The number of days to retain Performance Insights data.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "monitoring_role_arn",
+				Description: "The ARN for the IAM role that permits RDS to send Enhanced Monitoring metrics to Amazon CloudWatch Logs.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "network_type",
+				Description: "The network type of the DB instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "storage_type",
+				Description: "The storage type associated with the DB cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "db_cluster_instance_class",
+				Description: "The name of the compute and memory capacity class of the DB instance.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("DBClusterInstanceClass"),
+			},
+			{
+				Name:        "local_write_forwarding_status",
+				Description: " Indicates whether an Aurora DB cluster has in-cluster write forwarding enabled, not enabled, requested, or is in the process of enabling it.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "io_optimized_next_allowed_modification_time",
+				Description: "The next time you can modify the DB cluster to use the aurora-iopt1 storage type. This setting is only for Aurora DB clusters.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("IOOptimizedNextAllowedModificationTime").Transform(transform.NullIfZeroValue),
+			},
+			{
+				Name:        "pending_modified_values",
+				Description: "Information about pending changes to the DB cluster.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "serverless_v2_scaling_configuration",
+				Description: "The scaling configuration for an Aurora Serverless v2 DB cluster.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "scaling_configuration_info",
+				Description: "The scaling configuration for an Aurora DB cluster in serverless DB engine mode.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "master_user_secret",
+				Description: "The secret managed by RDS in Amazon Web Services Secrets Manager for the master user password.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "limitless_database",
+				Description: "The details for Aurora Limitless Database.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "certificate_details",
+				Description: "The details of the DB instance’s server certificate.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "associated_roles",
 				Description: "A list of AWS IAM roles that are associated with the DB cluster.",
 				Type:        proto.ColumnType_JSON,

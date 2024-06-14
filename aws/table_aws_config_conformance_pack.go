@@ -79,6 +79,12 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ConformancePackInputParameters"),
 			},
+			{
+				Name:        "template_ssm_document_details",
+				Description: "An object that contains the name or Amazon Resource Name (ARN) of the Amazon Web Services Systems Manager document (SSM document) and the version of the SSM document that is used to create a conformance pack.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("TemplateSSMDocumentDetails"),
+			},
 
 			// Standard columns
 			{

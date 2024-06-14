@@ -158,7 +158,7 @@ func listKafkaClusters(clusterType string) func(ctx context.Context, d *plugin.Q
 		}
 
 		input := kafka.ListClustersV2Input{
-			MaxResults:        &maxLimit,
+			MaxResults:        aws.Int32(maxLimit),
 			ClusterTypeFilter: &clusterType,
 		}
 

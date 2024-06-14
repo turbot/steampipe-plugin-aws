@@ -46,12 +46,37 @@ func tableAwsSecurityLakeDataLake(_ context.Context) *plugin.Table {
 				Name:        "replication_role_arn",
 				Description: "This parameter uses the IAM role created by you that is managed by Security Lake, to ensure the replication setting is correct.",
 				Type:        proto.ColumnType_STRING,
-				Transform: transform.FromField("ReplicationConfiguration.RoleArn"),
+				Transform:   transform.FromField("ReplicationConfiguration.RoleArn"),
 			},
 			{
 				Name:        "s3_bucket_arn",
 				Description: "Amazon Resource Names (ARNs) uniquely identify Amazon Web Services resources.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_name",
+				Description: "The supported Amazon Web Services from which logs and events are collected. Amazon Security Lake supports log and event collection for natively supported Amazon Web Services.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "status",
+				Description: "Retrieves the status of the configuration operation for an account in Amazon Security Lake.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "replication_destination_regions",
+				Description: "Replication enables automatic, asynchronous copying of objects across Amazon S3 buckets.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "source_statuses",
+				Description: "The log status for the Security Lake account.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "retention_settings",
+				Description: "Retention settings for the destination Amazon S3 buckets.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "replication_configuration",
@@ -110,6 +135,5 @@ func getSecurityLakeDataLake(ctx context.Context, d *plugin.QueryData, _ *plugin
 	for _, v := range resp.DataLakes {
 		d.StreamLeafListItem(ctx, v)
 	}
-
 	return nil, nil
 }

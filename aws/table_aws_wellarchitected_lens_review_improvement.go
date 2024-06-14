@@ -159,7 +159,7 @@ func listWellArchitectedLensReviewImprovements(ctx context.Context, d *plugin.Qu
 		input := &wellarchitected.ListLensReviewImprovementsInput{
 			WorkloadId: workload.WorkloadId,
 			LensAlias:  aws.String(lensAlias),
-			MaxResults: &maxLimit,
+			MaxResults: aws.Int32(maxLimit),
 		}
 
 		if d.EqualsQuals["pillar_id"] != nil {

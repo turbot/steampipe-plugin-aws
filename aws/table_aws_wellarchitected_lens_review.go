@@ -173,7 +173,7 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 
 	input := &wellarchitected.ListLensReviewsInput{
 		WorkloadId: workloadId,
-		MaxResults: &maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	if d.EqualsQuals["milestone_number"] != nil {

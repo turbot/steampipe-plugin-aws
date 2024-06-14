@@ -115,7 +115,7 @@ func listWellArchitectedShareInvitations(ctx context.Context, d *plugin.QueryDat
 	}
 
 	input := &wellarchitected.ListShareInvitationsInput{
-		MaxResults: &maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	if d.EqualsQualString("workload_name") != "" && d.EqualsQualString("lens_name") != "" {

@@ -130,7 +130,7 @@ func ListAwsMGNApplications(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	// Page size must be greater than 0 and less than or equal to 1000
 	input := &mgn.ListApplicationsInput{
-		MaxResults: &maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filter := buildMGNApplicationFilter(d.Quals)

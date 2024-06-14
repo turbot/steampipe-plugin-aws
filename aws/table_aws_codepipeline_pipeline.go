@@ -64,6 +64,18 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Created", "Metadata.Created"),
 			},
 			{
+				Name:        "execution_mode",
+				Description: "The method that the pipeline will use to handle multiple executions.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ExecutionMode", "Pipeline.ExecutionMode"),
+			},
+			{
+				Name:        "pipeline_type",
+				Description: "The pipeline type.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PipelineType", "Pipeline.PipelineType"),
+			},
+			{
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) for AWS CodePipeline to use to either perform actions with no actionRoleArn, or to use to assume roles for actions with an actionRoleArn.",
 				Type:        proto.ColumnType_STRING,
@@ -90,11 +102,25 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Pipeline.ArtifactStore.EncryptionKey"),
 			},
 			{
+				Name:        "triggers",
+				Description: "The trigger configuration specifying a type of event, such as Git tags, that starts the pipeline.",
+				Hydrate:     getCodepipelinePipeline,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Pipeline.Triggers"),
+			},
+			{
+				Name:        "variables",
+				Description: "A list that defines the pipeline variables for a pipeline resource.",
+				Hydrate:     getCodepipelinePipeline,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Pipeline.Variables"),
+			},
+			{
 				Name:        "artifact_stores",
 				Description: "A mapping of artifactStore objects and their corresponding AWS Regions. There must be an artifact store for the pipeline Region and for each cross-region action in the pipeline.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCodepipelinePipeline,
-				Transform:   transform.FromField("Pipeline.ArtifactStores"),
+				Transform:   transform.FromField("Pipeline.ArtifactStore"),
 			},
 			{
 				Name:        "stages",

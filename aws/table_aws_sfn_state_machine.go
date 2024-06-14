@@ -64,6 +64,24 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "description",
+				Description: "The description of the state machine version.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachine,
+			},
+			{
+				Name:        "label",
+				Description: "A user-defined or an auto-generated string that identifies a Map state.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachine,
+			},
+			{
+				Name:        "revision_id",
+				Description: "The revision identifier for the state machine.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getStepFunctionsStateMachine,
+			},
+			{
 				Name:        "creation_date",
 				Description: "The date the state machine is created.",
 				Type:        proto.ColumnType_TIMESTAMP,

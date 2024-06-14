@@ -149,6 +149,11 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "storage_type",
+				Description: "Storage type associated with your cluster Storage type associated with the cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "port",
 				Description: "Specifies the port that the database engine is listening on.",
 				Type:        proto.ColumnType_INT,

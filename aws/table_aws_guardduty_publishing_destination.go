@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty/types"
 
@@ -146,7 +147,7 @@ func listGuardDutyPublishingDestinations(ctx context.Context, d *plugin.QueryDat
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			input.MaxResults = &limit
+			input.MaxResults = aws.Int32(limit)
 		}
 	}
 

@@ -146,6 +146,24 @@ func tableAwsRoute53Domain(_ context.Context) *plugin.Table {
 				Hydrate:     getRoute53Domain,
 			},
 			{
+				Name:        "billing_privacy",
+				Description: "Specifies whether contact information is concealed from WHOIS queries.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getRoute53Domain,
+			},
+			{
+				Name:        "billing_contact",
+				Description: "Provides details about the domain billing contact.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53Domain,
+			},
+			{
+				Name:        "dnssec_keys",
+				Description: "A complex type that contains information about the DNSSEC configuration.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53Domain,
+			},
+			{
 				Name:        "nameservers",
 				Description: "The name of the domain.",
 				Type:        proto.ColumnType_JSON,

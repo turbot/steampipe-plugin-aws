@@ -84,6 +84,7 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 				Name:        "ip_v6_addresses",
 				Description: "The IPv6 addresses of the instance.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Ipv6Addresses"),
 			},
 			{
 				Name:        "is_static_ip",
@@ -104,6 +105,11 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 			{
 				Name:        "networking",
 				Description: "Information about the public ports and monthly data transfer rates for the instance.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "add_ons",
+				Description: "An array of objects representing the add-ons enabled on the instance.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
