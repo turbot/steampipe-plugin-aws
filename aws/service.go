@@ -74,6 +74,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/glacier"
 	"github.com/aws/aws-sdk-go-v2/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
+	"github.com/aws/aws-sdk-go-v2/service/greengrassv2"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 	"github.com/aws/aws-sdk-go-v2/service/health"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -169,6 +170,7 @@ import (
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
+	greengrassEndpoint "github.com/aws/aws-sdk-go/service/greengrassv2"
 	iotEndpoint "github.com/aws/aws-sdk-go/service/iot"
 	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
 	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
@@ -867,6 +869,17 @@ func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Cli
 		return nil, nil
 	}
 	return inspector2.NewFromConfig(*cfg), nil
+}
+
+func IoTGreengrassClient(ctx context.Context, d *plugin.QueryData) (*greengrassv2.Client, error) {
+cfg, err := getClientForQuerySupportedRegion(ctx, d, greengrassEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return greengrassv2.NewFromConfig(*cfg), nil
 }
 
 func IoTClient(ctx context.Context, d *plugin.QueryData) (*iot.Client, error) {
