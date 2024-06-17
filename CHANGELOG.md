@@ -14,7 +14,7 @@ _Enhancements_
 _Bug fixes_
 
 - Fixed the `akas` column in `aws_health_affected_entity` table to correctly return data instead of an error by handling events that do not have any `ARN`. ([#2189](https://github.com/turbot/steampipe-plugin-aws/pull/2189))
-- Fixed `cname` and `endpoint_url` columns of `aws_elastic_beanstalk_environment` table to correclty return data instead of `null`. ([#2201](https://github.com/turbot/steampipe-plugin-aws/pull/2201))
+- Fixed `cname` and `endpoint_url` columns of `aws_elastic_beanstalk_environment` table to correctly return data instead of `null`. ([#2201](https://github.com/turbot/steampipe-plugin-aws/pull/2201))
 - Fixed the `aws_api_gatewayv2_*` tables to correctly return data instead of an error by excluding support for the new `il-central-1` region. ([#2190](https://github.com/turbot/steampipe-plugin-aws/pull/2190))
 
 ## v0.138.0 [2024-05-09]
