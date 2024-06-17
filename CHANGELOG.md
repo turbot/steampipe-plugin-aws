@@ -1,3 +1,22 @@
+## v0.139.0 [2024-06-17]
+
+_What's new?_
+
+- New tables added
+  - [aws_route53_vpc_association_authorization](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_route53_vpc_association_authorization) ([#2199](https://github.com/turbot/steampipe-plugin-aws/pull/2199)) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
+
+_Enhancements_
+
+- Updated `aws_s3_bucket`, `aws_s3_bucket_intelligent_tiering_configuration`, `aws_s3_object` and `aws_s3_object_version` tables to use `HeadBucket` API instead of `GetBucketLocation` to fetch the region that the bucket resides in. ([#2082](https://github.com/turbot/steampipe-plugin-aws/pull/2082)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Added column `create_time` to `aws_ec2_key_pair` table. ([#2196](https://github.com/turbot/steampipe-plugin-aws/pull/2196)) (Thanks [@kasadaamos](https://github.com/https://github.com/kasadaamos) for the contribution!)
+- Added `instance_type` column as an optional qual to the `aws_ec2_instance_type` table. ([#2200](https://github.com/turbot/steampipe-plugin-aws/pull/2200))
+
+_Bug fixes_
+
+- Fixed the `akas` column in `aws_health_affected_entity` table to correctly return data instead of an error by handling events that do not have any `ARN`. ([#2189](https://github.com/turbot/steampipe-plugin-aws/pull/2189))
+- Fixed `cname` and `endpoint_url` columns of `aws_elastic_beanstalk_environment` table to correclty return data instead of `null`. ([#2201](https://github.com/turbot/steampipe-plugin-aws/pull/2201))
+- Fixed the `aws_api_gatewayv2_*` tables to correctly return data instead of an error by excluding support for the new `il-central-1` region. ([#2190](https://github.com/turbot/steampipe-plugin-aws/pull/2190))
+
 ## v0.138.0 [2024-05-09]
 
 _Enhancements_
