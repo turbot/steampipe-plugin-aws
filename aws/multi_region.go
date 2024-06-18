@@ -110,7 +110,6 @@ func SupportedRegionMatrix(serviceID string) func(ctx context.Context, d *plugin
 	return SupportedRegionMatrixWithExclusions(serviceID, []string{})
 }
 
-
 // This function is used in the GetMatrixItemFunc implementations within the table definitions.
 // GetMatrixItemFunc is designed to accept a single return type `[]map[string]interface{}`.
 // AWS regional tables make API calls based on the region matrix return by the SupportedRegionMatrixWithExclusions function.
@@ -307,6 +306,8 @@ func listRegionsForServiceCacheKey(ctx context.Context, d *plugin.QueryData, h *
 //     GetCallerIdentity). This is more accurate than guessing from the default
 //     region.
 func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logging.LogTime("listRegionsForServiceUncached start")
+	defer logging.LogTime("listRegionsForServiceUncached end")
 
 	var partitionName string
 	var partition endpoints.Partition
@@ -375,6 +376,8 @@ var listRegionsCached = plugin.HydrateFunc(listRegionsUncached).Memoize()
 // possible (e.g. region list API). But, it will also fall back to defaults
 // like a full region list.
 func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logging.LogTime("listRegionsUncached start")
+	defer logging.LogTime("listRegionsUncached end")
 
 	// The client region is used for two things:
 	// 1. To make API calls to get the region list (if possible).
@@ -452,6 +455,9 @@ var listRawAwsRegions = plugin.HydrateFunc(listRawAwsRegionsUncached).Memoize()
 // close to the user) and then cached. This region list is used as an input to
 // which regions are opted-in (active) for the account.
 func listRawAwsRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logging.LogTime("listRawAwsRegionsUncached start")
+	defer logging.LogTime("listRawAwsRegionsUncached end")
+
 	logger := plugin.Logger(ctx)
 
 	clientRegion, err := getDefaultRegion(ctx, d, h)
@@ -590,6 +596,8 @@ func awsLastResortRegionFromRegionsConfig(ctx context.Context, d *plugin.QueryDa
 // 3. The last resort region for the partition best matched by each region added to regions in the aws.spc file.
 // 4. us-east-1 (last resort region for the most common partition).
 func getDefaultRegionUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logging.LogTime("getDefaultRegionUncached start")
+	defer logging.LogTime("getDefaultRegionUncached end")
 
 	var region string
 
