@@ -5,8 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codestarnotifications"
+	"github.com/aws/aws-sdk-go-v2/service/codestarnotifications/types"
 
-	"github.com/turbot/go-kit/types"
+	turbot_types "github.com/turbot/go-kit/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -22,13 +23,13 @@ func tableAwsCodestarNotificationRule(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFound", "InvalidParameter"}),
 			},
-			Hydrate: describeNotificationRule,
+			Hydrate: getCodeStarNotificationRule,
 			Tags:    map[string]string{"service": "codestar-notifications", "action": "DescribeNotificationRule"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listNotificationRules,
+			Hydrate: listCodeStarNotificationRules,
 			Tags:    map[string]string{"service": "codestar-notifications", "action": "ListNotificationRules"},
 		},
 		HydrateConfig:     []plugin.HydrateConfig{},
@@ -40,58 +41,63 @@ func tableAwsCodestarNotificationRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "id",
+				Description: "The unique ID of the notification rule.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "name",
 				Description: "The name of the notification rule.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
 			},
 			{
 				Name:        "resource",
 				Description: "The Amazon Resource Name (ARN) of the resource associated with the notification rule.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
 			},
 			{
 				Name:        "detail_type",
 				Description: "The level of detail included in the notifications for this resource. BASIC will include only the contents of the event as it would appear in Amazon CloudWatch. FULL will include any supplemental information provided by AWS CodeStar Notifications and/or the service for the resource for which the notification is created.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
 			},
 			{
 				Name:        "status",
 				Description: "The status of the notification rule. Valid statuses are on (sending notifications) or off (not sending notifications).",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeNotificationRule,
-			},
-			{
-				Name:        "event_types",
-				Description: "A list of the event types associated with the notification rule.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     describeNotificationRule,
-			},
-			{
-				Name:        "targets",
-				Description: "A list of targets associated with the notification rule.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
 			},
 			{
 				Name:        "created_by",
 				Description: "The name or email alias of the person who created the notification rule.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
 			},
 			{
 				Name:        "created_timestamp",
 				Description: "The date and time the notification rule was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
 			},
 			{
 				Name:        "last_modified_timestamp",
 				Description: "The date and time the notification rule was most recently updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
+			},
+			{
+				Name:        "event_types",
+				Description: "A list of the event types associated with the notification rule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCodeStarNotificationRule,
+			},
+			{
+				Name:        "targets",
+				Description: "A list of targets associated with the notification rule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCodeStarNotificationRule,
 			},
 
 			// Steampipe standard columns
@@ -99,20 +105,20 @@ func tableAwsCodestarNotificationRule(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
 				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     describeNotificationRule,
+				Hydrate:     getCodeStarNotificationRule,
 				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -121,15 +127,21 @@ func tableAwsCodestarNotificationRule(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listNotificationRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listCodeStarNotificationRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Get client
 	svc, err := CodeStarNotificationsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_codestar_notification_rule.listNotificationRules", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_codestar_notification_rule.listCodeStarNotificationRules", "connection_error", err)
 		return nil, err
 	}
 
 	params := &codestarnotifications.ListNotificationRulesInput{}
+
+	filters := buildCodeStarNotificationRulesFilter(d.EqualsQuals)
+	if len(filters) != 0 {
+		params.Filters = filters
+	}
+
 	paginator := codestarnotifications.NewListNotificationRulesPaginator(svc, params, func(o *codestarnotifications.ListNotificationRulesPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
@@ -140,7 +152,7 @@ func listNotificationRules(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_codestar_notification_rule.listNotificationRules", "api_error", err)
+			plugin.Logger(ctx).Error("aws_codestar_notification_rule.listCodeStarNotificationRules", "api_error", err)
 			return nil, err
 		}
 		for _, rule := range output.NotificationRules {
@@ -159,11 +171,11 @@ func listNotificationRules(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func describeNotificationRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCodeStarNotificationRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var arn string
 	if h.Item != nil {
 		data := h.Item.(*codestarnotifications.DescribeNotificationRuleOutput)
-		arn = types.SafeString(data.Arn)
+		arn = turbot_types.SafeString(data.Arn)
 	} else {
 		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
@@ -175,7 +187,7 @@ func describeNotificationRule(ctx context.Context, d *plugin.QueryData, h *plugi
 	// Get client
 	svc, err := CodeStarNotificationsClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_codestar_notification_rule.describeNotificationRule", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_codestar_notification_rule.getCodeStarNotificationRule", "connection_error", err)
 		return nil, err
 	}
 
@@ -186,8 +198,32 @@ func describeNotificationRule(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	op, err := svc.DescribeNotificationRule(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_codestar_notification_rule.describeNotificationRule", "api_error", err)
+		plugin.Logger(ctx).Error("aws_codestar_notification_rule.getCodeStarNotificationRule", "api_error", err)
 		return nil, err
 	}
 	return op, nil
+}
+
+//// UTILITY FUNCTIONS
+
+func buildCodeStarNotificationRulesFilter(equalQuals plugin.KeyColumnEqualsQualMap) []types.ListNotificationRulesFilter {
+	filters := make([]types.ListNotificationRulesFilter, 0)
+
+	// Filtering also supports "EVENT_TYPE_ID" and "TARGET_ADDRESS"
+	// but we don't have columns for these
+	filterQuals := map[string]types.ListNotificationRulesFilterName{
+		"created_by": "CREATED_BY",
+		"resource":   "RESOURCE",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := types.ListNotificationRulesFilter{
+				Name:  filterName,
+				Value: aws.String(equalQuals[columnName].GetStringValue()),
+			}
+			filters = append(filters, filter)
+		}
+	}
+	return filters
 }
