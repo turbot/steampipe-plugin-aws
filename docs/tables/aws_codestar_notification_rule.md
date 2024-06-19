@@ -67,3 +67,28 @@ cross join
 left join
   aws_sns_topic as topic on target->>'TargetAddress' = topic.topic_arn;
 ```
+
+By using a Common Table Expression (`with` query), it is possible to join on targets without discarding notification rules that don't have any targets.
+
+```sql+postgres
+with rule_target as (
+  select
+    arn,
+    target->>'TargetAddress' as target_address,
+    target->>'TargetStatus' as target_status,
+    target->>'TargetType' as target_type
+  from
+    aws_codestar_notification_rule
+  cross join
+    jsonb_array_elements(targets) as target
+) select
+  notification_rule.name as notification_rule,
+  rule_target.target_type,
+  topic.title as target_topic
+from
+  aws_codestar_notification_rule as notification_rule
+left join
+  rule_target on rule_target.arn = notification_rule.arn
+left join
+  aws_sns_topic as topic on rule_target.target_address = topic.topic_arn;
+```
