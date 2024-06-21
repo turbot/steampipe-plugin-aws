@@ -96,11 +96,6 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "configuration_endpoint",
-				Description: "Represents a Memcached cluster endpoint which can be used by an application to connect to any node in the cluster.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "engine",
 				Description: "The name of the cache engine (memcached or redis) to be used for this cluster.",
 				Type:        proto.ColumnType_STRING,
@@ -163,6 +158,11 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "security_groups",
 				Description: "A list of VPC Security Groups associated with the cluster.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "configuration_endpoint",
+				Description: "Represents a Memcached cluster endpoint which can be used by an application to connect to any node in the cluster.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
