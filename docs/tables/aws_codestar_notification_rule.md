@@ -29,16 +29,13 @@ from
 Determine which AWS CodePipeline pipelines do or do not have associated notification rules.
 
 ```sql+postgres
-select
-  pipeline.name as pipeline,
-  notification_rule.name notification_rule,
-  notification_rule.status
-from
-  aws_codepipeline_pipeline as pipeline
-left join
-  aws_codestar_notification_rule as notification_rule
-on
-  pipeline.arn = notification_rule.resource;
+select 
+  pipeline.name as pipeline, 
+  notification_rule.name notification_rule, 
+  notification_rule.status 
+from 
+  aws_codepipeline_pipeline as pipeline 
+  left join aws_codestar_notification_rule as notification_rule on pipeline.arn = notification_rule.resource;
 ```
 
 ### Check for notification rules with no targets
@@ -56,39 +53,35 @@ where
 Determine which AWS SNS topics the notification rules are targeting. This query uses PostgreSQL's JSON querying capabilities to join on the notification rule targets. Note that due to the cross join, this query will not list notification rules that don't have any targets.
 
 ```sql+postgres
-select
-  notification_rule.name as notification_rule,
-  target->>'TargetType' as target_type,
-  topic.title as target_topic
-from
-  aws_codestar_notification_rule as notification_rule
-cross join
-  jsonb_array_elements(notification_rule.targets) as target
-left join
-  aws_sns_topic as topic on target->>'TargetAddress' = topic.topic_arn;
+select 
+  notification_rule.name as notification_rule, 
+  target ->> 'TargetType' as target_type, 
+  topic.title as target_topic 
+from 
+  aws_codestar_notification_rule as notification_rule cross 
+  join jsonb_array_elements(notification_rule.targets) as target 
+  left join aws_sns_topic as topic on target ->> 'TargetAddress' = topic.topic_arn;
 ```
 
 By using a Common Table Expression (`with` query), it is possible to join on targets without discarding notification rules that don't have any targets.
 
 ```sql+postgres
 with rule_target as (
-  select
-    arn,
-    target->>'TargetAddress' as target_address,
-    target->>'TargetStatus' as target_status,
-    target->>'TargetType' as target_type
-  from
-    aws_codestar_notification_rule
-  cross join
-    jsonb_array_elements(targets) as target
-) select
-  notification_rule.name as notification_rule,
-  rule_target.target_type,
-  topic.title as target_topic
-from
-  aws_codestar_notification_rule as notification_rule
-left join
-  rule_target on rule_target.arn = notification_rule.arn
-left join
-  aws_sns_topic as topic on rule_target.target_address = topic.topic_arn;
+  select 
+    arn, 
+    target ->> 'TargetAddress' as target_address, 
+    target ->> 'TargetStatus' as target_status, 
+    target ->> 'TargetType' as target_type 
+  from 
+    aws_codestar_notification_rule cross 
+    join jsonb_array_elements(targets) as target
+) 
+select 
+  notification_rule.name as notification_rule, 
+  rule_target.target_type, 
+  topic.title as target_topic 
+from 
+  aws_codestar_notification_rule as notification_rule 
+  left join rule_target on rule_target.arn = notification_rule.arn 
+  left join aws_sns_topic as topic on rule_target.target_address = topic.topic_arn;
 ```
