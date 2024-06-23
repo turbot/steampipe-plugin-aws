@@ -76,6 +76,18 @@ func tableAwsCodestarNotificationRule(_ context.Context) *plugin.Table {
 				Hydrate:     getCodeStarNotificationRule,
 			},
 			{
+				Name:        "event_type_id",
+				Description: "Specifies that only notification rules with the given event type enabled are returned.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("event_type_id"),
+			},
+			{
+				Name:        "target_address",
+				Description: "Specifies that only notification rules with a target with the given address are returned.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("target_address"),
+			},
+			{
 				Name:        "created_timestamp",
 				Description: "The date and time the notification rule was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -209,11 +221,11 @@ func getCodeStarNotificationRule(ctx context.Context, d *plugin.QueryData, h *pl
 func buildCodeStarNotificationRulesFilter(equalQuals plugin.KeyColumnEqualsQualMap) []types.ListNotificationRulesFilter {
 	filters := make([]types.ListNotificationRulesFilter, 0)
 
-	// Filtering also supports "EVENT_TYPE_ID" and "TARGET_ADDRESS"
-	// but we don't have columns for these
 	filterQuals := map[string]types.ListNotificationRulesFilterName{
-		"created_by": "CREATED_BY",
-		"resource":   "RESOURCE",
+		"event_type_id":  "EVENT_TYPE_ID",
+		"created_by":     "CREATED_BY",
+		"resource":       "RESOURCE",
+		"target_address": "TARGET_ADDRESS",
 	}
 
 	for columnName, filterName := range filterQuals {
