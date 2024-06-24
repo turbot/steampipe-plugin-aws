@@ -469,7 +469,19 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucketRegion := ""
+
+	// Bucket location will be nil if getBucketLocationForObjects returned an error but
+	// was ignored through ignore_error_codes config arg
+	res := h.HydrateResults["getBucketRegionForObjects"]
+	if res != nil {
+		bucketRegion = res.(string)
+	}
+
+	// Bucket region empty check
+	if bucketRegion == "" {
+		return nil, nil
+	}
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -500,7 +512,19 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucketRegion := ""
+
+	// Bucket location will be nil if getBucketLocationForObjects returned an error but
+	// was ignored through ignore_error_codes config arg
+	res := h.HydrateResults["getBucketRegionForObjects"]
+	if res != nil {
+		bucketRegion = res.(string)
+	}
+
+	// Bucket region empty check
+	if bucketRegion == "" {
+		return nil, nil
+	}
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -528,7 +552,19 @@ func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucketRegion := ""
+
+	// Bucket location will be nil if getBucketLocationForObjects returned an error but
+	// was ignored through ignore_error_codes config arg
+	res := h.HydrateResults["getBucketRegionForObjects"]
+	if res != nil {
+		bucketRegion = res.(string)
+	}
+
+	// Bucket region empty check
+	if bucketRegion == "" {
+		return nil, nil
+	}
 
 	object := h.Item.(types.Object)
 
@@ -561,7 +597,19 @@ func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 func getS3ObjectTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucketRegion := ""
+
+	// Bucket location will be nil if getBucketLocationForObjects returned an error but
+	// was ignored through ignore_error_codes config arg
+	res := h.HydrateResults["getBucketRegionForObjects"]
+	if res != nil {
+		bucketRegion = res.(string)
+	}
+
+	// Bucket region empty check
+	if bucketRegion == "" {
+		return nil, nil
+	}
 
 	object := h.Item.(types.Object)
 
