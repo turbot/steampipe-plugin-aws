@@ -44,6 +44,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codecommit"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
+	"github.com/aws/aws-sdk-go-v2/service/codestarnotifications"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentity"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
@@ -498,6 +499,14 @@ func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline
 		return nil, nil
 	}
 	return codepipeline.NewFromConfig(*cfg), nil
+}
+
+func CodeStarNotificationsClient(ctx context.Context, d *plugin.QueryData) (*codestarnotifications.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codestarnotifications.NewFromConfig(*cfg), nil
 }
 
 func CognitoIdentityClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentity.Client, error) {
