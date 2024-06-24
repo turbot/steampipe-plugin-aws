@@ -9,6 +9,7 @@ import (
 
 	turbot_types "github.com/turbot/go-kit/types"
 
+	codestarv1 "github.com/aws/aws-sdk-go/service/codestarnotifications"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -30,10 +31,15 @@ func tableAwsCodestarNotificationRule(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodeStarNotificationRules,
-			Tags:    map[string]string{"service": "codestar-notifications", "action": "ListNotificationRules"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "event_type_id", Require: plugin.Optional},
+				{Name: "created_by", Require: plugin.Optional},
+				{Name: "resource", Require: plugin.Optional},
+				{Name: "target_address", Require: plugin.Optional},
+			},
+			Tags: map[string]string{"service": "codestar-notifications", "action": "ListNotificationRules"},
 		},
-		HydrateConfig:     []plugin.HydrateConfig{},
-		GetMatrixItemFunc: SupportedRegionMatrix("codestar-notifications"), // unsure how to get EndpointsID from the package
+		GetMatrixItemFunc: SupportedRegionMatrix(codestarv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -147,7 +153,18 @@ func listCodeStarNotificationRules(ctx context.Context, d *plugin.QueryData, _ *
 		return nil, err
 	}
 
-	params := &codestarnotifications.ListNotificationRulesInput{}
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
+	}
+
+	params := &codestarnotifications.ListNotificationRulesInput{
+		MaxResults: &maxLimit,
+	}
 
 	filters := buildCodeStarNotificationRulesFilter(d.EqualsQuals)
 	if len(filters) != 0 {
@@ -168,9 +185,8 @@ func listCodeStarNotificationRules(ctx context.Context, d *plugin.QueryData, _ *
 			return nil, err
 		}
 		for _, rule := range output.NotificationRules {
-			d.StreamListItem(ctx, &codestarnotifications.DescribeNotificationRuleOutput{
-				Arn: rule.Arn,
-			})
+			d.StreamListItem(ctx, rule)
+
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
@@ -186,12 +202,13 @@ func listCodeStarNotificationRules(ctx context.Context, d *plugin.QueryData, _ *
 func getCodeStarNotificationRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var arn string
 	if h.Item != nil {
-		data := h.Item.(*codestarnotifications.DescribeNotificationRuleOutput)
+		data := h.Item.(types.NotificationRuleSummary)
 		arn = turbot_types.SafeString(data.Arn)
 	} else {
 		arn = d.EqualsQuals["arn"].GetStringValue()
 	}
 
+	// Empty check
 	if arn == "" {
 		return nil, nil
 	}
@@ -222,10 +239,10 @@ func buildCodeStarNotificationRulesFilter(equalQuals plugin.KeyColumnEqualsQualM
 	filters := make([]types.ListNotificationRulesFilter, 0)
 
 	filterQuals := map[string]types.ListNotificationRulesFilterName{
-		"event_type_id":  "EVENT_TYPE_ID",
-		"created_by":     "CREATED_BY",
-		"resource":       "RESOURCE",
-		"target_address": "TARGET_ADDRESS",
+		"event_type_id":  types.ListNotificationRulesFilterNameEventTypeId,
+		"created_by":     types.ListNotificationRulesFilterNameCreatedBy,
+		"resource":       types.ListNotificationRulesFilterNameResource,
+		"target_address": types.ListNotificationRulesFilterNameTargetAddress,
 	}
 
 	for columnName, filterName := range filterQuals {
