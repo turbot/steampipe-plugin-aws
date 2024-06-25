@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -129,10 +130,16 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 	if equalQuals["log_group_name"] != nil {
 		input.LogGroupName = aws.String(equalQuals["log_group_name"].GetStringValue())
 	}
+	if equalQuals["metric_transformation_name"] == nil && equalQuals["metric_transformation_namespace"] != nil {
+		return nil, fmt.Errorf("if you include metric_transformation_name parameter in your request, you must also include the metric_transformation_namespace parameter")
+	}
+	if equalQuals["metric_transformation_name"] != nil && equalQuals["metric_transformation_namespace"] == nil {
+		return nil, fmt.Errorf("if you include metric_transformation_namespace parameter in your request, you must also include the metric_transformation_name parameter")
+	}
 	if equalQuals["metric_transformation_name"] != nil {
 		input.MetricName = aws.String(equalQuals["metric_transformation_name"].GetStringValue())
 	}
-	if equalQuals["metric_transformation_namespace"] != nil {
+	if input.MetricName != nil && equalQuals["metric_transformation_namespace"] != nil {
 		input.MetricNamespace = aws.String(equalQuals["metric_transformation_namespace"].GetStringValue())
 	}
 
