@@ -394,8 +394,8 @@ func getBucketRegionForObjects(ctx context.Context, d *plugin.QueryData, h *plug
 	return doGetBucketRegion(ctx, d, h, bucketName)
 }
 
-// We cannot define the Hydrate Config for the List Hydrate call.
-// Therefore, we need to make an explicit API call to get the bucket location.
+// We cannot define the Hydrate Config for the List Hydrate call with hydrate dependencies.
+// Therefore, we need to make an explicit hydrate call to get the bucket location.
 func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
 
