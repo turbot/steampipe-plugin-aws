@@ -14,11 +14,24 @@ func tableAwsCostByLinkedAccountDaily(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Linked Account (Daily)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByLinkedAccountDaily,
-			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:       "period_start",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "period_end",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+			},
+			Tags: map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
-
 				{
 					Name:        "linked_account_id",
 					Description: "The AWS Account ID.",
@@ -33,6 +46,6 @@ func tableAwsCostByLinkedAccountDaily(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostByLinkedAccountDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByLinkedAccountInput("DAILY")
+	params := buildCostByLinkedAccountInput(d, "DAILY")
 	return streamCostAndUsage(ctx, d, params)
 }

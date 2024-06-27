@@ -16,12 +16,27 @@ func tableAwsCostByServiceDaily(_ context.Context) *plugin.Table {
 			Hydrate: listCostByServiceDaily,
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "service", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{
+					Name:      "service",
+					Operators: []string{"=", "<>"},
+					Require:   plugin.Optional,
+				},
+				{
+					Name:       "period_start",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "period_end",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
 			},
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
-
 				{
 					Name:        "service",
 					Description: "The name of the AWS service.",

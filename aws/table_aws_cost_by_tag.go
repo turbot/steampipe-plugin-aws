@@ -21,16 +21,38 @@ func tableAwsCostByTag(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost By Tags",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "granularity", Require: plugin.Required},
-				{Name: "tag_key_1", Require: plugin.Required},
-				{Name: "tag_key_2", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
+				{
+					Name:    "granularity",
+					Require: plugin.Required,
+				},
+				{
+					Name:    "tag_key_1",
+					Require: plugin.Required,
+				},
+				{
+					Name:       "tag_key_2",
+					Operators:  []string{"=", "<>"},
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "period_start",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
+				{
+					Name:       "period_end",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: "exact",
+				},
 			},
 			Hydrate: listCostAndUsageByTags,
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
-
 				// Quals columns - to filter the lookups
 				{
 					Name:        "granularity",
@@ -83,13 +105,26 @@ func buildInputFromTagKeyAndTagValueQuals(ctx context.Context, d *plugin.QueryDa
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
+	st, et := getSearchStartTImeAndSearchEndTime(d, granularity)
+	if st != "" {
+		startTime = st
+	}
+	if et != "" {
+		endTime = et
+	}
+
+	selectedMetrics := AllCostMetrics()
+	if len(getMetricsByQueryContext(d.QueryContext)) > 0 {
+		selectedMetrics = getMetricsByQueryContext(d.QueryContext)
+	}
+
 	params := &costexplorer.GetCostAndUsageInput{
 		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
 		Granularity: types.Granularity(granularity),
-		Metrics:     AllCostMetrics(),
+		Metrics:     selectedMetrics,
 	}
 	tagKey1 := d.EqualsQualString("tag_key_1")
 	tagKey2 := d.EqualsQualString("tag_key_2")
