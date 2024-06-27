@@ -113,7 +113,7 @@ with cost_data as (
     linked_account_id,
     period_start,
     unblended_cost_amount as this_month,
-    lag(unblended_cost_amount,1) over(partition by linked_account_id order by period_start desc) as previous_month
+    lag(unblended_cost_amount,-1) over(partition by linked_account_id order by period_start desc) as previous_month
   from 
     aws_cost_by_account_monthly
 )
@@ -136,7 +136,7 @@ with cost_data as (
     linked_account_id,
     period_start,
     unblended_cost_amount as this_month,
-    lag(unblended_cost_amount, 1) over(partition by linked_account_id order by period_start desc) as previous_month
+    lag(unblended_cost_amount, -1) over(partition by linked_account_id order by period_start desc) as previous_month
   from 
     aws_cost_by_account_monthly
 )
