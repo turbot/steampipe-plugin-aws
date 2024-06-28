@@ -251,17 +251,19 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				Description: "The function's X-Ray tracing configuration.",
 				Type:        proto.ColumnType_JSON,
 			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("FunctionArn").Transform(arnToAkas),
-			},
+
+			// Standard columns for all tables
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Version"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("FunctionArn").Transform(arnToAkas),
 			},
 		}),
 	}
