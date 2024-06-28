@@ -26,7 +26,7 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listOrganizationsAccounts,
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "parent_id", Require: plugin.Optional},
+				{Name: "parent_id", Require: plugin.Optional, CacheMatch: "exact"},
 			},
 			Tags: map[string]string{"service": "organizations", "action": "ListAccounts"},
 		},
