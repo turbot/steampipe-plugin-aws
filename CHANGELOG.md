@@ -1,3 +1,20 @@
+## v0.140.0 [2024-06-28]
+
+_What's new_
+
+- New tables added
+  - [aws_codestar_notification_rule](//hub.steampipe.io/plugins/turbot/aws/tables/aws_codestar_notification_rule) ([#2217](https://github.com/turbot/steampipe-plugin-aws/pull/2217))
+
+_Enhancements_
+
+- Added 9 new columns to the `aws_elasticache_cluster` table. ([#2224](https://github.com/turbot/steampipe-plugin-aws/pull/2224))
+
+_Bug fixes_
+
+- Fixed the `aws_s3_object` table not returning any rows due to panic error. ([#2221](https://github.com/turbot/steampipe-plugin-aws/pull/2221))
+- Fixed no rows being returned from the `aws_organizations_account` table if an unqualified query is run before one with `parent_id` specified.
+- Fixed data type for `configuration_endpoint` column in `aws_elasticache_cluster` table to be `json`. ([#2214](https://github.com/turbot/steampipe-plugin-aws/pull/2214))
+
 ## v0.139.0 [2024-06-17]
 
 _What's new?_
