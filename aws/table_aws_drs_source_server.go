@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
@@ -22,7 +23,7 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "source_server_id", Require: plugin.Optional},
 				{Name: "staging_account_id", Require: plugin.Optional},
-				{Name: "hardware_id", Require: plugin.Optional},
+				{Name: "hardware_id", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				// UninitializedAccountException - This error comes up when default replication settings are not set for a particular region.
