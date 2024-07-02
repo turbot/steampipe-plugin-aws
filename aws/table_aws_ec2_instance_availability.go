@@ -27,6 +27,10 @@ func tableAwsInstanceAvailability(_ context.Context) *plugin.Table {
 					Name:    "instance_type",
 					Require: plugin.Optional,
 				},
+				{
+					Name:    "location_type",
+					Require: plugin.Optional,
+				},
 			},
 		},
 		Columns: []*plugin.Column{
@@ -93,17 +97,23 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	input := &ec2.DescribeInstanceTypeOfferingsInput{
-		MaxResults:   aws.Int32(maxLimit),
-		LocationType: types.LocationTypeRegion,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	var filters []types.Filter
-	filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{*region.RegionName}})
+
+	if d.EqualsQualString("location_type") != "" {
+		input.LocationType = types.LocationType(d.EqualsQualString("location_type"))
+	} else {
+		input.LocationType = types.LocationTypeRegion
+		filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{*region.RegionName}})
+	}
 
 	equalQuals := d.EqualsQuals
 	if equalQuals["instance_type"] != nil {
 		filters = append(filters, types.Filter{Name: aws.String("instance-type"), Values: []string{equalQuals["instance_type"].GetStringValue()}})
 	}
+
 	input.Filters = filters
 
 	paginator := ec2.NewDescribeInstanceTypeOfferingsPaginator(svc, input, func(o *ec2.DescribeInstanceTypeOfferingsPaginatorOptions) {
