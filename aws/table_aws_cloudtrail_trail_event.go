@@ -16,6 +16,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -209,7 +210,7 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 		// CloudWatch fields
 		{Name: "log_group_name"},
 		{Name: "log_stream_name", Require: plugin.Optional},
-		{Name: "filter", Require: plugin.Optional, CacheMatch: "exact"},
+		{Name: "filter", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 		{Name: "region", Require: plugin.Optional},
 		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 

@@ -13,6 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -32,10 +33,10 @@ func tableAwsCodestarNotificationRule(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCodeStarNotificationRules,
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "event_type_id", Require: plugin.Optional},
+				{Name: "event_type_id", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "created_by", Require: plugin.Optional},
 				{Name: "resource", Require: plugin.Optional},
-				{Name: "target_address", Require: plugin.Optional},
+				{Name: "target_address", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 			Tags: map[string]string{"service": "codestar-notifications", "action": "ListNotificationRules"},
 		},

@@ -13,6 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -26,12 +27,12 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "inspector2", "action": "ListCoverage"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "source_account_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
-				{Name: "ec2_instance_tags", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ecr_image_tag", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{Name: "ec2_instance_tags", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ecr_image_tag", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "ecr_repository_name", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "lambda_function_name", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "lambda_function_runtime", Operators: []string{"=", "<>"}, Require: plugin.Optional},
-				{Name: "lambda_function_tags", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "lambda_function_tags", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "resource_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "resource_type", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "scan_status_code", Operators: []string{"=", "<>"}, Require: plugin.Optional},

@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -25,8 +26,9 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 			Tags:    map[string]string{"service": "wellarchitected", "action": "GetConsolidatedReport"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:    "include_shared_resources",
-					Require: plugin.Optional,
+					Name:       "include_shared_resources",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 		},

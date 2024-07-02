@@ -14,6 +14,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -36,17 +37,17 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 				{
 					Name:       "source_account_id",
 					Require:    plugin.Optional,
-					CacheMatch: "exact",
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
 					Name:       "expression",
 					Require:    plugin.Optional,
-					CacheMatch: "exact",
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
 					Name:       "metric_stat",
 					Require:    plugin.Optional,
-					CacheMatch: "exact",
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
 					Name:       "period",
@@ -61,12 +62,12 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 					Name:       "timestamp",
 					Operators:  []string{">", ">=", "=", "<", "<="},
 					Require:    plugin.Optional,
-					CacheMatch: "exact",
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
 					Name:       "timezone",
 					Require:    plugin.Optional,
-					CacheMatch: "exact",
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 		},

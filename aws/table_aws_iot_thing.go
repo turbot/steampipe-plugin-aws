@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -35,8 +36,8 @@ func tableAwsIoTThing(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "iot", "action": "ListThings"},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "attribute_name", Require: plugin.Optional, Operators: []string{"="}},
-				{Name: "attribute_value", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "attribute_name", Require: plugin.Optional, Operators: []string{"="}, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "attribute_value", Require: plugin.Optional, Operators: []string{"="}, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "thing_type_name", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
@@ -153,7 +154,7 @@ func listIoTThings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	if d.EqualsQualString("attribute_name") != "" {
 		input.AttributeName = aws.String(d.EqualsQualString("attribute_name"))
 	}
-	if d.EqualsQualString("attribute_value") != "" && d.EqualsQualString("attribute_name") != ""{
+	if d.EqualsQualString("attribute_value") != "" && d.EqualsQualString("attribute_name") != "" {
 		input.AttributeValue = aws.String(d.EqualsQualString("attribute_value"))
 	}
 	if d.EqualsQualString("thing_type_name") != "" {

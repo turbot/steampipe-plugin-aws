@@ -13,6 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsRoute53ResolverQueryLogConfig(_ context.Context) *plugin.Table {
@@ -32,7 +33,7 @@ func tableAwsRoute53ResolverQueryLogConfig(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "creator_request_id", Require: plugin.Optional},
 				{Name: "name", Require: plugin.Optional},
-				{Name: "ip_address_count", Require: plugin.Optional},
+				{Name: "ip_address_count", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "status", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53ResolverQueryLogConfigs,

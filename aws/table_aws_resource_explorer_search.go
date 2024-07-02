@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -24,8 +25,8 @@ func tableAWSResourceExplorerSearch(_ context.Context) *plugin.Table {
 			Hydrate: awsResourceExplorerSearch,
 			Tags:    map[string]string{"service": "resource-explorer-2", "action": "Search"},
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "query", Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "view_arn", Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "query", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "view_arn", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
 		Columns: []*plugin.Column{

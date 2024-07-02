@@ -11,6 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -24,8 +25,9 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "inspector2", "action": "ListMembers"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
-					Name:    "only_associated",
-					Require: plugin.Optional,
+					Name:       "only_associated",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 		},

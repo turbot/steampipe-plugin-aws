@@ -13,6 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -32,10 +33,10 @@ func tableAwsCloudtrailLookupEvent(_ context.Context) *plugin.Table {
 				{Name: "event_name", Require: plugin.Optional},
 				{Name: "event_source", Require: plugin.Optional},
 				{Name: "read_only", Require: plugin.Optional},
-				{Name: "end_time", Require: plugin.Optional},
-				{Name: "start_time", Require: plugin.Optional},
-				{Name: "resource_name", Require: plugin.Optional},
-				{Name: "resource_type", Require: plugin.Optional},
+				{Name: "end_time", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "start_time", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "resource_name", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "resource_type", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "username", Require: plugin.Optional},
 				{Name: "access_key_id", Require: plugin.Optional},
 			},

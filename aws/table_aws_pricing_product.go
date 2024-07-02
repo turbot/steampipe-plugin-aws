@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
@@ -25,7 +26,7 @@ func tableAwsPricingProduct(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "pricing", "action": "GetProducts"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Required},
-				{Name: "filters", Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "filters", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{

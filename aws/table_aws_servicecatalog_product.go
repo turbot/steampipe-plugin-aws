@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -33,12 +34,14 @@ func tableAwsServicecatalogProduct(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "servicecatalog", "action": "SearchProducts"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:    "accept_language",
-					Require: plugin.Optional,
+					Name:       "accept_language",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
-					Name:    "full_text_search",
-					Require: plugin.Optional,
+					Name:       "full_text_search",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
 					Name:    "owner",
@@ -49,8 +52,9 @@ func tableAwsServicecatalogProduct(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 				{
-					Name:    "source_product_id",
-					Require: plugin.Optional,
+					Name:       "source_product_id",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 		},

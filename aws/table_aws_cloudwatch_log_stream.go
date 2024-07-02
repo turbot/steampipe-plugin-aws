@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 type logStreamInfo = struct {
@@ -44,16 +45,19 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 				{
-					Name:    "log_stream_name_prefix",
-					Require: plugin.Optional,
+					Name:       "log_stream_name_prefix",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
-					Name:    "descending",
-					Require: plugin.Optional,
+					Name:       "descending",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
-					Name:    "order_by",
-					Require: plugin.Optional,
+					Name:       "order_by",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 		},

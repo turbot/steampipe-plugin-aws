@@ -8,6 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
@@ -18,7 +19,7 @@ func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 			Hydrate: listS3ObjectVersions,
 			Tags:    map[string]string{"service": "s3", "action": "ListObjectVersions"},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "bucket_name", Require: plugin.Required, CacheMatch: "exact"},
+				{Name: "bucket_name", Require: plugin.Required, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "key", Require: plugin.Optional},
 			},
 		},
