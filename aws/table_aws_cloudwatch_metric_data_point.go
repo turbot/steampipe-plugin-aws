@@ -52,7 +52,7 @@ func tableAwsCloudWatchMetricDataPoint(_ context.Context) *plugin.Table {
 				{
 					Name:       "period",
 					Require:    plugin.Optional,
-					CacheMatch: "exact",
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
 					Name:    "scan_by",
