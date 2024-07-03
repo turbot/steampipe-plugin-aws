@@ -16,7 +16,15 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		Name:        "aws_organizations_account",
 		Description: "AWS Organizations Account",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("id"),
+			// We have added "parent_id" as an optional qual because the column value is being populated using "FromQual()". If we add it as an optional or required qual, the column value will be populated.
+
+			// The query SELECT * FROM aws_organizations_account WHERE parent_id = 'r-kjsdw' AND id = 'xxxxxxxxxxxx' returns the value by making the Get API call since the "id" value is passed in the query parameter. However, it displays an empty result due to Steampipe's level filtration on the "parent_id" value("FromQual()" returns null value if we don't include "parent_id" as optional quals).
+
+			// By including "parent_id" as an optional qual, the above query returns the expected result.
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "id", Require: plugin.Required},
+				{Name: "parent_id", Require: plugin.Optional},
+			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AccountNotFoundException", "InvalidInputException"}),
 			},
