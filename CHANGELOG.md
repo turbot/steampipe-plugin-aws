@@ -1,3 +1,13 @@
+## v0.142.0 [2024-07-04]
+
+_Enhancements_
+
+- Added 16 new columns to the `aws_lambda_version` table. ([#2229](https://github.com/turbot/steampipe-plugin-aws/pull/2229))
+
+_Bug fixes_
+
+- Fixed the export tool of the plugin to return a non-zero error code instead of 0 whenever an error occurred. ([#79](https://github.com/turbot/steampipe-export/pull/79))
+
 ## v0.141.0 [2024-07-01]
 
 _Bug fixes_
