@@ -1,3 +1,15 @@
+## v0.143.0 [2024-07-05]
+
+_What's new?_
+
+- New tables added
+  - [aws_rds_db_recommendation](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_recommendation) ([#2238](https://github.com/turbot/steampipe-plugin-aws/pull/2238))
+
+_Bug fixes_
+
+- Fixed the caching issue in `aws_organizations_account` table. ([#2236](https://github.com/turbot/steampipe-plugin-aws/pull/2236))
+- Fixed typo (missing comma) in an example query of `aws_health_affected_entity` table doc. ([#2237](https://github.com/turbot/steampipe-plugin-aws/pull/2237)) (Thanks [@tieum](https://github.com/tieum) for the contribution!)
+
 ## v0.142.0 [2024-07-04]
 
 _Enhancements_
