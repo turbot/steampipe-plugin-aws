@@ -1,5 +1,3 @@
-Sure, here is the updated documentation with queries in both PostgreSQL and SQLite formats:
-
 ---
 title: "Steampipe Table: aws_rds_db_recommendation - Query AWS RDS DB Recommendations using SQL"
 description: "Allows users to query AWS RDS DB Recommendations and retrieve valuable information about each recommendation's status, impact, and suggested actions."
@@ -18,8 +16,7 @@ The `aws_rds_db_recommendation` table in Steampipe offers detailed information a
 ### List all recommendations with high severity
 Identify all recommendations with a high severity level to prioritize actions that address the most critical issues in your RDS setup.
 
-#### PostgreSQL
-```sql
+```sql+postgres
 select
   recommendation_id,
   title,
@@ -32,8 +29,7 @@ where
   severity = 'high';
 ```
 
-#### SQLite
-```sql
+```sql+sqlite
 select
   recommendation_id,
   title,
@@ -96,7 +92,7 @@ from
   aws_rds_db_recommendation;
 ```
 
-### List recommendations by their impact
+### List recommendations by the order of impact
 Understand the potential impact of each recommendation to prioritize actions based on the severity of the issues.
 
 ```sql+postgres
@@ -150,8 +146,8 @@ where
   status != 'resolved';
 ```
 
-### Get issue details that caused the recommendation
-Analysis performance issues for the recommendation.
+### Get the issue details that triggered the recommendation
+Analyze performance issues for the recommendation.
 
 ```sql+postgres
 select
@@ -179,8 +175,8 @@ where
   issue_details is not null;
 ```
 
-### List the recommended actions details for a particular recommendation
-View all relevant details in a clear and organized manner, facilitating better planning and decision-making for database maintenance and optimization.
+### List the recommended action details for a particular recommendation
+View all relevant information clearly and organized, facilitating better planning and decision-making for database maintenance and optimization.
 
 ```sql+postgres
 select
@@ -215,4 +211,3 @@ from
   aws_rds_db_recommendation,
   json_each(recommended_actions) as action;
 ```
-
