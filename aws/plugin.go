@@ -416,6 +416,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_rds_db_option_group":                                      tableAwsRDSDBOptionGroup(ctx),
 			"aws_rds_db_parameter_group":                                   tableAwsRDSDBParameterGroup(ctx),
 			"aws_rds_db_proxy":                                             tableAwsRDSDBProxy(ctx),
+			"aws_rds_db_recommendation":                                    tableAwsRDSDBRecommendation(ctx),
 			"aws_rds_db_snapshot":                                          tableAwsRDSDBSnapshot(ctx),
 			"aws_rds_db_subnet_group":                                      tableAwsRDSDBSubnetGroup(ctx),
 			"aws_rds_reserved_db_instance":                                 tableAwsRDSReservedDBInstance(ctx),
