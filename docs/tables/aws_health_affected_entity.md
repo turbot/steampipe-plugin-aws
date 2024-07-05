@@ -80,7 +80,7 @@ select
   e.entity_url,
   e.event_arn,
   v.event_type_category,
-  v.event_type_code
+  v.event_type_code,
   v.service
 from
   aws_health_affected_entity as e,
