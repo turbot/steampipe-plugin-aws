@@ -170,7 +170,7 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Restrict listing of parents when "parent_id" is provided.
-	if !(len(parents) > 0) {
+	if len(parents) == 0 {
 		// Call the recursive function to list all nested OUs
 		rootPath := parentId
 		res, err := listAllOusByParent(ctx, d, svc, parentId, maxItems, rootPath)
@@ -293,6 +293,7 @@ func listAllOusByParent(ctx context.Context, d *plugin.QueryData, svc *organizat
 			// Recursively list units for this child
 			childUnits, err := listAllOusByParent(ctx, d, svc, *unit.Id, maxItems, ouPath)
 			if err != nil {
+				plugin.Logger(ctx).Error("aws_organizations_account.listAllOusByParent", "recursive_api_error", err)
 				return nil, err
 			}
 			// Append child units to the main units slice
