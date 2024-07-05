@@ -239,8 +239,10 @@ func getOrganizationsAccount(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	// The "parent_id" column value will not be populated by the GET API call because its response does not include parent ID information.
-	// We can populate this value through a hydrated call for the parent_id column.
-	// However, to avoid unnecessary API calls for all rows, if our LIST API call is executed, it will correctly populate the parent_id column value.
+	// We can populate this value by making a separate hydrated function.
+	// However, to avoid unnecessary API calls for all rows.
+	// If our LIST API call is executed, it will correctly populate the parent_id column value.
+	// In the case of a GET API call, the Parent ID will not be available. Therefore, we make an additional API call to populate the parent_id column value when only the GET configuration is used.
 	parent, err := getParentForAccount(ctx, svc, accountId)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_organizations_account.getParentForAccount", "api_error", err)
