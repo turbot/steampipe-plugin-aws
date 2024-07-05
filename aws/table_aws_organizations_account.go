@@ -2,7 +2,9 @@ package aws
 
 import (
 	"context"
+	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
 
@@ -11,20 +13,29 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
+// Table behavior:
+// 1. Uses `aws_organizations_root` as the parent hydrate function.
+// 2. Avoids using the "ListAccounts" API call to retrieve all accounts
+//    within the organization.
+// 3. If `parent_id` is specified in the query parameter,
+//    lists the accounts for that specific parent.
+// 4. If `parent_id` is not specified, lists the accounts under all
+//    Organizational Units (OUs), including the Root ID.
+
+// Reason for this table design:
+// 1. To address the issue described here:
+//    https://github.com/turbot/steampipe-plugin-aws/issues/2235
+// 2. As per the query plan for the query:
+//    select id, parent_id, title from aws_organizations_account WHERE parent_id IN (select id from aws_organizations_organizational_unit WHERE parent_id='ou-wxnb-wofu2g1q') limit 2
+//    Postgres does not provide the `parent_id` value with our previous design where the `parent_id` column value was populated from the query parameter.
+//    This resulted in an empty result set due to Steampipe's level filtration on the `parent_id` value ("FromQual()" returns a null value) and the value passed in the query parameter mismatch.
+
 func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_organizations_account",
 		Description: "AWS Organizations Account",
 		Get: &plugin.GetConfig{
-			// We have added "parent_id" as an optional qual because the column value is being populated using "FromQual()". If we add it as an optional or required qual, the column value will be populated.
-
-			// The query SELECT * FROM aws_organizations_account WHERE parent_id = 'r-kjsdw' AND id = 'xxxxxxxxxxxx' returns the value by making the Get API call since the "id" value is passed in the query parameter. However, it displays an empty result due to Steampipe's level filtration on the "parent_id" value("FromQual()" returns null value if we don't include "parent_id" as optional quals).
-
-			// By including "parent_id" as an optional qual, the above query returns the expected result.
-			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "id", Require: plugin.Required},
-				{Name: "parent_id", Require: plugin.Optional},
-			},
+			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AccountNotFoundException", "InvalidInputException"}),
 			},
@@ -32,7 +43,8 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "organizations", "action": "DescribeAccount"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listOrganizationsAccounts,
+			ParentHydrate: listOrganizationsRoots,
+			Hydrate:       listOrganizationsAccounts,
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "parent_id", Require: plugin.Optional, CacheMatch: "exact"},
 			},
@@ -60,7 +72,6 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 				Name:        "parent_id",
 				Description: "The unique identifier (ID) for the parent root or organization unit (OU) whose accounts you want to list.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("parent_id"),
 			},
 			{
 				Name:        "arn",
@@ -118,10 +129,16 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 	}
 }
 
+type OrgAccount struct {
+	types.Account
+	ParentId *string
+}
+
 //// LIST FUNCTION
 
-func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	parentId := d.EqualsQualString("parent_id")
+func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	parentId := *h.Item.(types.Root).Id
 
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)
@@ -137,90 +154,66 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			if limit < 1 {
-				maxItems = int32(1)
-			} else {
-				maxItems = int32(limit)
-			}
+			maxItems = int32(limit)
 		}
 	}
+
+	var parents []types.OrganizationalUnit
 
 	// Lists the accounts in an organization that are contained by the specified target root or organizational unit (OU).
 	// If you specify the root, you get a list of all the accounts that aren't in any OU.
 	// If you specify an OU, you get a list of all the accounts in only that OU and not in any child OUs.
-	if parentId != "" {
-		op, err := listOrganizationsAccountsForParent(ctx, d, svc, maxItems, &organizations.ListAccountsForParentInput{
-			ParentId:   &parentId,
-			MaxResults: &maxItems,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		accounts := op.([]types.Account)
-		for _, account := range accounts {
-			d.StreamListItem(ctx, account)
-
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
-			}
-		}
-
-		return nil, nil
+	if d.EqualsQualString("parent_id") != "" {
+		parents = []types.OrganizationalUnit{{
+			Id: aws.String(d.EqualsQualString("parent_id")),
+		}}
 	}
 
-	params := &organizations.ListAccountsInput{}
-
-	params.MaxResults = &maxItems
-	paginator := organizations.NewListAccountsPaginator(svc, params, func(o *organizations.ListAccountsPaginatorOptions) {
-		o.Limit = maxItems
-		o.StopOnDuplicateToken = true
-	})
-
-	for paginator.HasMorePages() {
-		// apply rate limiting
-		d.WaitForListRateLimit(ctx)
-
-		output, err := paginator.NextPage(ctx)
+	// Restrict listing of parents when "parent_id" is provided.
+	if !(len(parents) > 0) {
+		// Call the recursive function to list all nested OUs
+		rootPath := parentId
+		res, err := listAllOusByParent(ctx, d, svc, parentId, maxItems, rootPath)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_organizations_account.listOrganizationsAccounts", "api_error", err)
 			return nil, err
 		}
 
-		for _, account := range output.Accounts {
-			d.StreamListItem(ctx, account)
+		parents = append(res, types.OrganizationalUnit{Id: aws.String(rootPath)})
+	}
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
+	// Iterate the API call based on the parent entities
+	for _, p := range parents {
+		params := &organizations.ListAccountsForParentInput{
+			ParentId:   p.Id,
+			MaxResults: &maxItems,
+		}
+		paginator := organizations.NewListAccountsForParentPaginator(svc, params, func(o *organizations.ListAccountsForParentPaginatorOptions) {
+			o.Limit = maxItems
+			o.StopOnDuplicateToken = true
+		})
+
+		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
+
+			output, err := paginator.NextPage(ctx)
+			if err != nil {
+				plugin.Logger(ctx).Error("aws_organizations_account.listOrganizationsAccounts", "api_error", err)
+				return nil, err
+			}
+
+			for _, account := range output.Accounts {
+				d.StreamListItem(ctx, OrgAccount{account, p.Id})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
 			}
 		}
 	}
 
 	return nil, nil
-}
-
-func listOrganizationsAccountsForParent(ctx context.Context, d *plugin.QueryData, svc *organizations.Client, maxItems int32, params *organizations.ListAccountsForParentInput) (interface{}, error) {
-	paginator := organizations.NewListAccountsForParentPaginator(svc, params, func(o *organizations.ListAccountsForParentPaginatorOptions) {
-		o.Limit = maxItems
-		o.StopOnDuplicateToken = true
-	})
-
-	var accounts []types.Account
-	for paginator.HasMorePages() {
-		// apply rate limiting
-		d.WaitForListRateLimit(ctx)
-
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_organizations_account.listOrganizationsAccountsForParent", "api_error", err)
-			return nil, err
-		}
-
-		accounts = append(accounts, output.Accounts...)
-	}
-	return accounts, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -245,12 +238,72 @@ func getOrganizationsAccount(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	return *op.Account, nil
+	// The "parent_id" column value will not be populated by the GET API call because its response does not include parent ID information.
+	// We can populate this value through a hydrated call for the parent_id column.
+	// However, to avoid unnecessary API calls for all rows, if our LIST API call is executed, it will correctly populate the parent_id column value.
+	parent, err := getParentForAccount(ctx, svc, accountId)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_account.getParentForAccount", "api_error", err)
+		return nil, err
+	}
+
+	return OrgAccount{*op.Account, parent}, nil
+}
+
+func getParentForAccount(ctx context.Context, client *organizations.Client, accountId string) (*string, error) {
+	// Pagination is not needed here because an account will always have a single parent.
+	parent, err := client.ListParents(ctx, &organizations.ListParentsInput{ChildId: &accountId})
+	if err != nil {
+		return nil, err
+	}
+	if len(parent.Parents) > 0 {
+		return parent.Parents[0].Id, nil
+	}
+	return nil, nil
+}
+
+// List all nested Organizational Units (OUs)
+// We cannot use the existing table "aws_organizations_organizational_unit" as the parent hydrate because it already has a parent hydrate, and Steampipe does not support parent hydrate chaining.
+func listAllOusByParent(ctx context.Context, d *plugin.QueryData, svc *organizations.Client, parentId string, maxItems int32, currentPath string) ([]types.OrganizationalUnit, error) {
+	params := &organizations.ListOrganizationalUnitsForParentInput{
+		ParentId:   aws.String(parentId),
+		MaxResults: &maxItems,
+	}
+
+	var units []types.OrganizationalUnit
+	paginator := organizations.NewListOrganizationalUnitsForParentPaginator(svc, params, func(o *organizations.ListOrganizationalUnitsForParentPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_organizations_account.listAllOusByParent", "api_error", err)
+			return nil, err
+		}
+
+		for _, unit := range output.OrganizationalUnits {
+			ouPath := strings.Replace(currentPath, "-", "_", -1) + "." + strings.Replace(*unit.Id, "-", "_", -1)
+			units = append(units, unit)
+
+			// Recursively list units for this child
+			childUnits, err := listAllOusByParent(ctx, d, svc, *unit.Id, maxItems, ouPath)
+			if err != nil {
+				return nil, err
+			}
+			// Append child units to the main units slice
+			units = append(units, childUnits...)
+		}
+	}
+
+	return units, nil
 }
 
 func getOrganizationsAccountTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	resourceId := *h.Item.(types.Account).Id
+	resourceId := *h.Item.(OrgAccount).Id
 
 	tags, err := getOrganizationsResourceTags(ctx, d, resourceId)
 	return tags, err
