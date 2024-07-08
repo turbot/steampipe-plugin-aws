@@ -141,6 +141,7 @@ run_test aws_eks_cluster
 run_test aws_eks_fargate_profile
 run_test aws_eks_identity_provider_config
 run_test aws_elastic_beanstalk_application
+run_test aws_elastic_beanstalk_application_version
 run_test aws_elastic_beanstalk_environment
 run_test aws_elasticache_cluster
 run_test aws_elasticache_parameter_group
@@ -188,6 +189,8 @@ run_test aws_identitystore_user
 run_test aws_inspector_assessment_target
 run_test aws_inspector_assessment_template
 run_test aws_iot_thing
+run_test aws_iot_thing_group
+run_test aws_iot_thing_type
 run_test aws_kinesis_consumer
 run_test aws_kinesis_firehose_delivery_stream
 run_test aws_kinesis_stream
@@ -239,6 +242,7 @@ run_test aws_route53_resolver_query_log_config
 run_test aws_route53_resolver_rule
 run_test aws_route53_traffic_policy
 run_test aws_route53_traffic_policy_instance
+run_test aws_route53_vpc_association_authorization
 run_test aws_route53_zone
 run_test aws_s3_access_point
 run_test aws_s3_bucket
@@ -260,8 +264,8 @@ run_test aws_serverlessapplicationrepository_application
 run_test aws_service_discovery_instance
 run_test aws_service_discovery_namespace
 run_test aws_service_discovery_service
-run_test aws_servicecatalog_portfolio
-run_test aws_servicecatalog_product
+# run_test aws_servicecatalog_portfolio # Not supported by terraform anymore
+# run_test aws_servicecatalog_product
 run_test aws_servicequotas_default_service_quota
 run_test aws_servicequotas_service_quota
 run_test aws_ses_email_identity
