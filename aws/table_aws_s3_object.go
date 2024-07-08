@@ -236,13 +236,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Hydrate:     getS3Object,
 			},
 			{
-				Name:        "parts_count",
-				Description: "The count of parts this object has. This value is only returned if you specify partNumber in your request and the object was uploaded as a multipart upload.",
-				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromQual("PartsCount"),
-				Hydrate:     getS3Object,
-			},
-			{
 				Name:        "prefix",
 				Description: "The prefix of the key of the object.",
 				Type:        proto.ColumnType_STRING,
