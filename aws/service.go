@@ -1149,6 +1149,37 @@ func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 	return rds.NewFromConfig(*cfg), nil
 }
 
+func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
+	// RDS DB Recommendation has the same endpoint information in the SDK as RDS, but
+	// is actually available in less regions. We have to manually remove them
+	// here.
+	// Source - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UserRecommendationsView.html
+	excludeRegions := []string{
+		"af-south-1",     // Africa (Cape Town)
+		"ap-east-1",      // Asia Pacific (Hong Kong)
+		"ap-northeast-3", // Asia Pacific (Osaka)
+		"ap-southeast-3", // Asia Pacific (Jakarta)
+		"eu-north-1",     // Europe (Stockholm)
+		"eu-south-1",     // Europe (Milan)
+		"me-central-1",   // Middle East (UAE)
+		"me-south-1",     // Middle East (Bahrain)
+		"us-gov-west-1",  // AWS GovCloud (US-West)
+		"us-gov-east-1",  // AWS GovCloud (US-East)
+		"cn-north-1",     // China (Beijing)
+		"cn-northwest-1", // China (Ningxia)
+	}
+	excludeRegions = append(excludeRegions, awsChinaRegions()...)
+	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return rds.NewFromConfig(*cfg), nil
+}
+
 func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 	// RDS DB Proxy has the same endpoint information in the SDK as RDS, but
 	// is actually available in less regions. We have to manually remove them
