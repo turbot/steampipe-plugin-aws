@@ -101,7 +101,10 @@ func base64DecodedData(_ context.Context, d *transform.TransformData) (interface
 	} else if !utf8.Valid(data) {
 		return types.SafeString(d.Value), nil
 	}
-	return data, nil
+
+	// Remove null characters
+	processedData := strings.ReplaceAll(string(data), "\x00", "")
+	return processedData, nil
 }
 
 // Transform function for sagemaker resources tags
