@@ -103,7 +103,6 @@ func isPrintable(r rune) bool {
 	return unicode.IsPrint(r) && !isControlCharacter(r)
 }
 
-
 // cleanString removes control characters and ensures valid UTF-8 encoding
 func cleanString(data string) string {
 	var builder strings.Builder
