@@ -11,6 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 // Table behavior:
@@ -46,7 +47,7 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 			ParentHydrate: listOrganizationsRoots,
 			Hydrate:       listOrganizationsAccounts,
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "parent_id", Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "parent_id", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 			Tags: map[string]string{"service": "organizations", "action": "ListAccounts"},
 		},

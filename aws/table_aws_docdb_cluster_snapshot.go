@@ -7,6 +7,7 @@ import (
 	go_kit "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 
 	docdbv1 "github.com/aws/aws-sdk-go/service/docdb"
 
@@ -35,8 +36,8 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "snapshot_type", Require: plugin.Optional},
-				{Name: "include_public", Require: plugin.Optional},
-				{Name: "include_shared", Require: plugin.Optional},
+				{Name: "include_public", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "include_shared", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 			Tags: map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshots"},
 		},
