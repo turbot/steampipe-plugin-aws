@@ -1,3 +1,14 @@
+## v0.144.0 [2024-07-10]
+
+_Enhancements_
+
+- Updated IAM parliament permissions to the latest. ([#2239](https://github.com/turbot/steampipe-plugin-aws/pull/2239))
+
+_Bug fixes_
+
+- Fixed the caching issue in 29 tables to correctly return data by adding the missing `CacheMatch: query_cache.CacheMatchExact` property. ([#2232](https://github.com/turbot/steampipe-plugin-aws/pull/2232))
+- Fixed the `user_data` column of `aws_ec2_instance` table to remove invalid UTF-8 characters. ([#2240](https://github.com/turbot/steampipe-plugin-aws/pull/2240))
+
 ## v0.143.0 [2024-07-05]
 
 _What's new?_
