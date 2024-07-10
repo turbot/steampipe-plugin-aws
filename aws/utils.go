@@ -98,7 +98,7 @@ func isControlCharacter(r rune) bool {
 	return r < 32 || r == 127
 }
 
-// isPrintable checks if a character is printable.
+// isPrintable checks if a character is printable
 func isPrintable(r rune) bool {
 	return unicode.IsPrint(r) && !isControlCharacter(r)
 }
