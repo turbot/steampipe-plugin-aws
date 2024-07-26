@@ -12,10 +12,11 @@ The AWS Application Auto Scaling Targets are used to manage scalable targets wit
 The `aws_appautoscaling_target` table in Steampipe provides you with information about each target within AWS Application Auto Scaling. This table allows you, as a DevOps engineer, to query target-specific details, including the service namespace, scalable dimension, resource ID, and the associated scaling policies. You can utilize this table to gather insights on scaling targets, such as the min and max capacity, role ARN, and more. The schema outlines the various attributes of the scaling target for you, including the resource ID, scalable dimension, creation time, and associated tags.
 
 **Important Notes**
-- In order to list targets, the `service_namespace` column must be specified.
-- This table supports the optional quals `resource_id`, and `scalable_dimension`.
-- Queries with optional quals are optimised to use additional filtering provided by the AWS API function.
-- For supported values of service namespace, please refer to the [Possible values for ServiceNamespace](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_ScalableTarget.html#autoscaling-Type-ScalableTarget-ServiceNamespace).
+- You **_must_** specify `service_namespace` in a `where` clause in order to use this table.
+- For supported values of the service namespace, please refer [Service Namespace](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_ScalableTarget.html#autoscaling-Type-ScalableTarget-ServiceNamespace).
+- This table supports optional quals. Queries with optional quals are optimised to use additional filtering provided by the AWS API function. Optional quals are supported for the following columns:
+  - `resource_id`
+  - `scalable_dimension`
 
 ## Examples
 
