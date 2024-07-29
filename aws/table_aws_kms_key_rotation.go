@@ -2,15 +2,18 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
+	"github.com/aws/smithy-go"
 
 	kmsv1 "github.com/aws/aws-sdk-go/service/kms"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -138,6 +141,15 @@ func listKmsKeyRotations(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// In the case of parent hydrate the ignore config seems to not work for the child table. So we need to handle it manually.
+			// Steampipe SDK issue ref: https://github.com/turbot/steampipe-plugin-sdk/issues/544
+			ignoreCodes := GetConfig(d.Connection).IgnoreErrorCodes
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if helpers.StringSliceContains(ignoreCodes, ae.ErrorCode()){
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_kms_key_rotation.listKmsKeyRotations", "api_error", err)
 			return nil, err
 		}
