@@ -21,7 +21,8 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_control",
 		Description: "AWS Audit Manager Control",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("id"),
+			// Controls with same ID can exist in different regions for an account, we should filter the results by region in such cases to resolve the error: "Error: get call returned 2 results - the key column is not globally unique".
+			KeyColumns: plugin.AllColumns([]string{"id", "region"}),
 			Hydrate:    getAuditManagerControl,
 			Tags:       map[string]string{"service": "auditmanager", "action": "GetControl"},
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -31,6 +32,9 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerControls,
 			Tags:    map[string]string{"service": "auditmanager", "action": "ListControls"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "type", Require: plugin.Optional},
+			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
@@ -157,10 +161,16 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, nil
 	}
 
-	maxItems := int32(100)
+	maxItems := int32(1000)
 	params := &auditmanager.ListControlsInput{
 		ControlType: types.ControlTypeStandard,
 	}
+
+	if d.EqualsQualString("type") != "" {
+		params.ControlType = types.ControlType(d.EqualsQualString("type"))
+	}
+
+	plugin.Logger(ctx).Error("Input Param  ==>>> ", params)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
