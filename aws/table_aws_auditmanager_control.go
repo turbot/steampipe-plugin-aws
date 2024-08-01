@@ -61,7 +61,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "type",
-				Description: "The type of control, such as custom or standard.",
+				Description: "The type of control, such as custom or standard. Possible values are 'Standard' | 'Custom' | 'Core'.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAuditManagerControl,
 			},
@@ -169,8 +169,6 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if d.EqualsQualString("type") != "" {
 		params.ControlType = types.ControlType(d.EqualsQualString("type"))
 	}
-
-	plugin.Logger(ctx).Error("Input Param  ==>>> ", params)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
