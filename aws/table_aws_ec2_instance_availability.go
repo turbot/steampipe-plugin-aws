@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -28,8 +29,9 @@ func tableAwsInstanceAvailability(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 				{
-					Name:    "location_type",
-					Require: plugin.Optional,
+					Name:       "location_type",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 		},
