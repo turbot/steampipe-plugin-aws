@@ -95,6 +95,18 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Hydrate:     describeInstanceType,
 			},
 			{
+				Name:        "nitro_enclaves_support",
+				Description: "Indicates whether instance storage is supported.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "nitro_tpm_support",
+				Description: "Indicates whether NitroTPM is supported.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     describeInstanceType,
+			},
+			{
 				Name:        "hypervisor",
 				Description: "The hypervisor for the instance type.",
 				Type:        proto.ColumnType_STRING,
@@ -164,6 +176,30 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 			{
 				Name:        "gpu_info",
 				Description: "Describes the GPU accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "fpga_info",
+				Description: "Describes the FPGA accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "inference_accelerator_info",
+				Description: "Describes the Inference accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "nitro_tpm_info",
+				Description: "Describes the supported NitroTPM versions for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "supported_boot_modes",
+				Description: "The supported boot modes.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
 			},
