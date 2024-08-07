@@ -133,7 +133,7 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "cross_account_vpcs",
-				Description: " A list of VPCs. Each entry is the unique identifier of a virtual private cloud with access to Amazon Redshift Serverless.",
+				Description: "A list of VPCs. Each entry is the unique identifier of a virtual private cloud with access to Amazon Redshift Serverless.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

@@ -171,7 +171,7 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "ReplicationInstanceIpv6Addresses",
+				Name:        "replication_instance_ipv6_addresses",
 				Description: "One or more IPv6 addresses for the replication instance.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ReplicationInstanceIpv6Addresses"),

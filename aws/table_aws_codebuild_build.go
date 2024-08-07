@@ -149,9 +149,10 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "network_interface",
+				Name:        "network_interfaces",
 				Description: "Describes a network interface.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("NetworkInterface"),
 			},
 			{
 				Name:        "phases",

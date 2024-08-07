@@ -205,7 +205,7 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Description: "The Amazon Linux release specified in a cluster launch RunJobFlow request.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform: transform.FromField("OSReleaseLabel"),
+				Transform:   transform.FromField("OSReleaseLabel"),
 			},
 			{
 				Name:        "visible_to_all_users",

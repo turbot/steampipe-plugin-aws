@@ -91,7 +91,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tpm_support",
-				Description: "If the image is configured for NitroTPM support, the value is v2.0 .",
+				Description: "If the image is configured for NitroTPM support, the value is v2.0.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{

@@ -66,7 +66,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "MasterPasswordSecretArn",
+				Name:        "master_password_secret_arn",
 				Description: "The Amazon Resource Name (ARN) for the cluster's admin user credentials secret.",
 				Type:        proto.ColumnType_STRING,
 			},

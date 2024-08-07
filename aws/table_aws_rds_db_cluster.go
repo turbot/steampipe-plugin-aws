@@ -339,7 +339,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "local_write_forwarding_status",
-				Description: " Indicates whether an Aurora DB cluster has in-cluster write forwarding enabled, not enabled, requested, or is in the process of enabling it.",
+				Description: "Indicates whether an Aurora DB cluster has in-cluster write forwarding enabled, not enabled, requested, or is in the process of enabling it.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{

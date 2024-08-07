@@ -128,7 +128,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "storage_tier",
-				Description: " The storage tier in which the snapshot is stored.",
+				Description: "The storage tier in which the snapshot is stored.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
