@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -26,6 +27,11 @@ func tableAwsInstanceAvailability(_ context.Context) *plugin.Table {
 				{
 					Name:    "instance_type",
 					Require: plugin.Optional,
+				},
+				{
+					Name:       "location_type",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 		},
@@ -93,17 +99,23 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	input := &ec2.DescribeInstanceTypeOfferingsInput{
-		MaxResults:   aws.Int32(maxLimit),
-		LocationType: types.LocationTypeRegion,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	var filters []types.Filter
-	filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{*region.RegionName}})
+
+	if d.EqualsQualString("location_type") != "" {
+		input.LocationType = types.LocationType(d.EqualsQualString("location_type"))
+	} else {
+		input.LocationType = types.LocationTypeRegion
+		filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{*region.RegionName}})
+	}
 
 	equalQuals := d.EqualsQuals
 	if equalQuals["instance_type"] != nil {
 		filters = append(filters, types.Filter{Name: aws.String("instance-type"), Values: []string{equalQuals["instance_type"].GetStringValue()}})
 	}
+
 	input.Filters = filters
 
 	paginator := ec2.NewDescribeInstanceTypeOfferingsPaginator(svc, input, func(o *ec2.DescribeInstanceTypeOfferingsPaginatorOptions) {

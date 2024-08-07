@@ -1,0 +1,6 @@
+[
+  {
+    "hosted_zone_id": "{{output.resource_hosted_zone_id.value}}",
+    "akas": "{{output.resource_aka.value}}"
+  }
+]

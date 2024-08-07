@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsPipes(_ context.Context) *plugin.Table {
@@ -32,8 +33,8 @@ func tableAwsPipes(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "current_state", Require: plugin.Optional},
 				{Name: "desired_state", Require: plugin.Optional},
-				{Name: "source_prefix", Require: plugin.Optional},
-				{Name: "target_prefix", Require: plugin.Optional},
+				{Name: "source_prefix", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "target_prefix", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{

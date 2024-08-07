@@ -11,6 +11,10 @@ The AWS Audit Manager Control is a feature within AWS Audit Manager that allows 
 
 The `aws_auditmanager_control` table in Steampipe provides you with information about controls within AWS Audit Manager. This table allows you, as a DevOps engineer, to query control-specific details, including control source, control type, description, and associated metadata. You can utilize this table to gather insights on controls, such as their sources, types, descriptions, and more. The schema outlines the various attributes of the control for you, including the control id, name, type, source, description, and associated tags.
 
+**Important Notes**
+- This table by default returns the `Standard` controls.
+- You **must** specify `type` in a `where` clause to retrieve other control types. For more information, please refer to the [list of controls by specific type](https://docs.aws.amazon.com/audit-manager/latest/APIReference/API_ListControls.html#API_ListControls_RequestSyntax).
+
 ## Examples
 
 ### Basic info

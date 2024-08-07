@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 
 	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
@@ -92,16 +93,44 @@ func lastPathElement(_ context.Context, d *transform.TransformData) (interface{}
 	return getLastPathElement(types.SafeString(d.Value)), nil
 }
 
-func base64DecodedData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+// isControlCharacter checks if a character is a control character
+func isControlCharacter(r rune) bool {
+	return r < 32 || r == 127
+}
+
+// isPrintable checks if a character is printable
+func isPrintable(r rune) bool {
+	return unicode.IsPrint(r) && !isControlCharacter(r)
+}
+
+// cleanString removes control characters and ensures valid UTF-8 encoding
+func cleanString(data string) string {
+	var builder strings.Builder
+	for _, r := range data {
+		// Only add valid and printable runes to the builder
+		if utf8.ValidRune(r) && isPrintable(r) {
+			builder.WriteRune(r)
+		}
+	}
+	return builder.String()
+}
+
+func base64DecodedData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	data, err := base64.StdEncoding.DecodeString(types.SafeString(d.Value))
 	// check if CorruptInputError or invalid UTF-8
 	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-add-user-data.html
 	if err != nil {
 		return nil, nil
-	} else if !utf8.Valid(data) {
+	} 
+	// Check for valid UTF-8
+	if !utf8.Valid(data) {
 		return types.SafeString(d.Value), nil
 	}
-	return data, nil
+	// Convert byte slice to string
+	decodedString := string(data)
+	// Clean the string by removing invalid UTF-8 and control characters
+	processedData := cleanString(decodedString)
+	return processedData, nil
 }
 
 // Transform function for sagemaker resources tags

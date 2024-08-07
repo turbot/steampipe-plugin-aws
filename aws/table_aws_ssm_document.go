@@ -13,6 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsSSMDocument(_ context.Context) *plugin.Table {
@@ -33,7 +34,7 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "ssm", "action": "ListDocuments"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "document_type", Require: plugin.Optional},
-				{Name: "owner_type", Require: plugin.Optional},
+				{Name: "owner_type", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{

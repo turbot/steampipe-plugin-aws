@@ -13,6 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
@@ -29,7 +30,7 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 		},
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "type_name"},
+				{Name: "type_name", CacheMatch: query_cache.CacheMatchExact},
 				{Name: "identifier"},
 			},
 			Hydrate: getCloudControlResource,

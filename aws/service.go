@@ -44,6 +44,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codecommit"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
+	"github.com/aws/aws-sdk-go-v2/service/codestarnotifications"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentity"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
@@ -280,7 +281,7 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 		"ap-southeast-4", // Melbourne
 		"eu-central-2",   // Zurich
 		"eu-south-2",     // Spain
-		"me-central-1",   // UAE
+		"il-central-1",   // Israel (Tel Aviv)
 	}
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, apigatewayv2Endpoint.EndpointsID, excludeRegions)
 	if err != nil {
@@ -498,6 +499,14 @@ func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline
 		return nil, nil
 	}
 	return codepipeline.NewFromConfig(*cfg), nil
+}
+
+func CodeStarNotificationsClient(ctx context.Context, d *plugin.QueryData) (*codestarnotifications.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codestarnotifications.NewFromConfig(*cfg), nil
 }
 
 func CognitoIdentityClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentity.Client, error) {
@@ -1136,6 +1145,37 @@ func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	return rds.NewFromConfig(*cfg), nil
+}
+
+func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
+	// RDS DB Recommendation has the same endpoint information in the SDK as RDS, but
+	// is actually available in less regions. We have to manually remove them
+	// here.
+	// Source - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UserRecommendationsView.html
+	excludeRegions := []string{
+		"af-south-1",     // Africa (Cape Town)
+		"ap-east-1",      // Asia Pacific (Hong Kong)
+		"ap-northeast-3", // Asia Pacific (Osaka)
+		"ap-southeast-3", // Asia Pacific (Jakarta)
+		"eu-north-1",     // Europe (Stockholm)
+		"eu-south-1",     // Europe (Milan)
+		"me-central-1",   // Middle East (UAE)
+		"me-south-1",     // Middle East (Bahrain)
+		"us-gov-west-1",  // AWS GovCloud (US-West)
+		"us-gov-east-1",  // AWS GovCloud (US-East)
+		"cn-north-1",     // China (Beijing)
+		"cn-northwest-1", // China (Ningxia)
+	}
+	excludeRegions = append(excludeRegions, awsChinaRegions()...)
+	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return rds.NewFromConfig(*cfg), nil
 }
