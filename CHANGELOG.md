@@ -1,3 +1,15 @@
+## v0.145.0 [2024-08-07]
+
+_Enhancements_
+
+- Updated tables as per `EC2` package version update. ([#2078](https://github.com/turbot/steampipe-plugin-aws/pull/2078))
+
+_Bug fixes_
+
+- Enhanced the `aws_auditmanager_control` table to list controls by type and fixed the get config error `get call returned 2 results`. ([#2254](https://github.com/turbot/steampipe-plugin-aws/pull/2254))
+- Updated docs for `aws_appautoscaling_policy` and `aws_appautoscaling_target` table to add info on required quals. ([#2247](https://github.com/turbot/steampipe-plugin-aws/pull/2247))
+- Fixed the `aws_kms_key_rotation` table to not throw an `AccessDeniedException` despite the `ignore_error_codes` configuration in the connection config. ([#2253](https://github.com/turbot/steampipe-plugin-aws/pull/2253))
+
 ## v0.144.0 [2024-07-10]
 
 _Enhancements_
@@ -102,7 +114,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the broken Postgres 14, Postgres 15 and SQLite x86_64 binaries for Darwin operating systems. 
+- Fixed the broken Postgres 14, Postgres 15 and SQLite x86_64 binaries for Darwin operating systems.
 - Fixed intermittent FDW crashes when certain postgres errors resulted in a signal 16 being raised. ([#455](https://github.com/turbot/steampipe-postgres-fdw/pull/455))
 
 ## v0.136.1 [2024-04-23]
