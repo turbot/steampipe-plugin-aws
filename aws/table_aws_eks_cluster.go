@@ -43,8 +43,20 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "id",
+				Description: "The ID of your local Amazon EKS cluster on an Amazon Web Services Outpost.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEKSCluster,
+			},
+			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the cluster.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEKSCluster,
+			},
+			{
+				Name:        "client_request_token",
+				Description: "A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEKSCluster,
 			},
@@ -87,6 +99,24 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "kubernetes_network_config",
 				Description: "The Kubernetes network configuration for the cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEKSCluster,
+			},
+			{
+				Name:        "connector_config",
+				Description: "The configuration used to connect to a cluster for registration.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEKSCluster,
+			},
+			{
+				Name:        "access_config",
+				Description: "The access configuration for the cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEKSCluster,
+			},
+			{
+				Name:        "outpost_config",
+				Description: "An object representing the configuration of your local Amazon EKS cluster on an Amazon Web Services Outpost.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEKSCluster,
 			},

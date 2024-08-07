@@ -53,6 +53,16 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "admin_password_secret_arn",
+				Description: "The Amazon Resource Name (ARN) for the namespace's admin user credentials secret.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "admin_password_secret_kms_key_id",
+				Description: "The ID of the Key Management Service (KMS) key used to encrypt and store the namespace's admin credentials secret.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "status",
 				Description: "The status of the namespace.",
 				Type:        proto.ColumnType_STRING,

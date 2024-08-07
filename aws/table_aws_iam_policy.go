@@ -61,6 +61,11 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "description",
+				Description: "A friendly description of the policy.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the iam policy.",
 				Type:        proto.ColumnType_STRING,

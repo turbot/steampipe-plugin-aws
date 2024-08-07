@@ -69,6 +69,11 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Description: "The stable and unique string identifying the role.",
 			},
+			{
+				Name:        "assume_role_policy_document",
+				Type:        proto.ColumnType_STRING,
+				Description: "The policy that grants an entity permission to assume the role.",
+			},
 
 			// Other Columns
 			{
@@ -139,7 +144,7 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 			},
 			{
 				Name:        "inline_policies",
-				Description: "A list of policy documents that are embedded as inline policies for the role..",
+				Description: "A list of policy documents that are embedded as inline policies for the role.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue(),

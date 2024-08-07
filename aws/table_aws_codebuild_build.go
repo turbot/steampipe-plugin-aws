@@ -109,6 +109,11 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "service_role",
+				Description: "The name of a service role used for this build.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "artifacts",
 				Description: "A BuildArtifacts object the defines the build artifacts for this build.",
 				Type:        proto.ColumnType_JSON,
@@ -147,6 +152,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				Name:        "network_interfaces",
 				Description: "Describes a network interface.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("NetworkInterface"),
 			},
 			{
 				Name:        "phases",

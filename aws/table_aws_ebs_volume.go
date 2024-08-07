@@ -112,6 +112,11 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "throughput",
+				Description: "The throughput that the volume supports, in MiB/s..",
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "kms_key_id",
 				Description: "The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS) customer master key (CMK) that was used to protect the volume encryption key for the volume.",
 				Type:        proto.ColumnType_STRING,

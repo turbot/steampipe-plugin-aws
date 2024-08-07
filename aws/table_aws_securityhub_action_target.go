@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 
 	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
@@ -100,7 +101,7 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 
 	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &securityhub.DescribeActionTargetsInput{
-		MaxResults: &maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	// List call

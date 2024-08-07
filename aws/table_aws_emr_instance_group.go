@@ -94,6 +94,11 @@ func tableAwsEmrInstanceGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "custom_ami_id",
+				Description: "The custom AMI ID to use for the provisioned instance group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "requested_instance_count",
 				Description: "The target number of instances for the instance group.",
 				Type:        proto.ColumnType_INT,

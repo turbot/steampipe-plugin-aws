@@ -106,6 +106,11 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "execution_class",
+				Description: "TIndicates whether the job is run with a standard or flexible execution class.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "security_configuration",
 				Description: "The name of the SecurityConfiguration structure to be used with this job.",
 				Type:        proto.ColumnType_STRING,
@@ -138,6 +143,16 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 			{
 				Name:        "execution_property",
 				Description: "An ExecutionProperty specifying the maximum number of concurrent runs allowed for this job.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "code_gen_configuration_nodes",
+				Description: "The representation of a directed acyclic graph on which both the Glue Studio visual component and Glue Studio code generation is based.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "source_control_details",
+				Description: "The details for a source control configuration for a job, allowing synchronization of job artifacts to or from a remote repository.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

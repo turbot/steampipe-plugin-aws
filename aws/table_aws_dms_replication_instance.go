@@ -120,6 +120,11 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "network_type",
+				Description: "The type of IP address protocol used by a replication instance, such as IPv4 only or Dual-stack that supports both IPv4 and IPv6 addressing.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "multi_az",
 				Description: "Specifies whether the replication instance is a Multi-AZ deployment.",
 				Type:        proto.ColumnType_BOOL,
@@ -164,6 +169,12 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				Name:        "replication_instance_public_ip_addresses",
 				Description: "One or more public IP addresses for the replication instance.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "replication_instance_ipv6_addresses",
+				Description: "One or more IPv6 addresses for the replication instance.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ReplicationInstanceIpv6Addresses"),
 			},
 			{
 				Name:        "replication_subnet_group",

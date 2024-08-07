@@ -65,7 +65,9 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 				Description: "The date and time when Security Hub was enabled in the account.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
-			/// Standard columns
+
+			/// Steampie Standard Columns
+			
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),

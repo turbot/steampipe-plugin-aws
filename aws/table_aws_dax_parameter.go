@@ -85,6 +85,11 @@ func tableAwsDaxParameter(_ context.Context) *plugin.Table {
 				Description: "How the parameter is defined. For example, system denotes a system-defined parameter.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "node_type_specific_values",
+				Description: "A list of node types, and specific parameter values for each node.",
+				Type:        proto.ColumnType_JSON,
+			},
 
 			// Steampipe standard columns
 			{

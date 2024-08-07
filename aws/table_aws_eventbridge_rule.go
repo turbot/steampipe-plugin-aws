@@ -84,6 +84,18 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsEventBridgeRule,
 			},
 			{
+				Name:        "role_arn",
+				Description: "The Amazon Resource Name (ARN) of the IAM role associated with the rule.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsEventBridgeRule,
+			},
+			{
+				Name:        "schedule_expression",
+				Description: "The scheduling expression. For example, 'cron(0 20 * * ? *)', 'rate(5 minutes)'.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsEventBridgeRule,
+			},
+			{
 				Name:        "managed_by",
 				Description: "If this is a managed rule, created by an AWS service on your behalf, this field displays the principal name of the AWS service that created the rule.",
 				Type:        proto.ColumnType_STRING,

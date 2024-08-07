@@ -78,9 +78,30 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "boot_mode",
+				Description: "The boot mode of the image.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_instance_id",
+				Description: "The ID of the instance that the AMI was created from if the AMI was created using CreateImage.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "tpm_support",
+				Description: "If the image is configured for NitroTPM support, the value is v2.0.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "creation_date",
 				Description: "The date and time when the image was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "deprecation_time",
+				Description: "The date and time to deprecate the AMI.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("DeprecationTime").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "architecture",
@@ -173,6 +194,11 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 			{
 				Name:        "block_device_mappings",
 				Description: "Any block device mapping entries.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "state_reason",
+				Description: "The reason for the state change.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

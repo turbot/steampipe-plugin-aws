@@ -53,6 +53,21 @@ func tableAwsSSMManagedInstance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "iam_role",
+				Description: "The Identity and Access Management (IAM) role assigned to the on-premises Systems Manager managed node.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_id",
+				Description: "The ID of the source resource. For IoT Greengrass devices, SourceId is the Thing name.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_type",
+				Description: "The type of the source resource.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "resource_type",
 				Description: "The type of instance. Instances are either EC2 instances or managed instances.",
 				Type:        proto.ColumnType_STRING,

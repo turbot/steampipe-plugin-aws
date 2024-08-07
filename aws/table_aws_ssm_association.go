@@ -154,6 +154,12 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "schedule_offset",
+				Description: "Number of days to wait after the scheduled day to run an association.",
+				Hydrate:     getAwsSSMAssociation,
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "overview",
 				Description: "Information about the association.",
 				Type:        proto.ColumnType_JSON,
@@ -181,6 +187,25 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Name:        "targets",
 				Description: "A cron expression that specifies a schedule when the association runs.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "alarm_configuration",
+				Description: "The details for the CloudWatch alarm you want to apply to an automation or command.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMAssociation,
+				Transform:   transform.FromField("AlarmConfiguration.Alarms"),
+			},
+			{
+				Name:        "triggered_alarms",
+				Description: "The CloudWatch alarm that was invoked during the association.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMAssociation,
+			},
+			{
+				Name:        "calendar_names",
+				Description: "The names or Amazon Resource Names (ARNs) of the Change Calendar type documents your associations are gated under.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMAssociation,
 			},
 			{
 				Name:        "target_locations",

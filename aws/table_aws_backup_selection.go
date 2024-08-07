@@ -95,6 +95,20 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 				Hydrate:     getBackupSelection,
 				Transform:   transform.FromField("BackupSelection.Resources"),
 			},
+			{
+				Name:        "conditions",
+				Description: "A list of conditions that you define to assign resources to your backup plans using tags.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBackupSelection,
+				Transform:   transform.FromField("BackupSelection.Conditions"),
+			},
+			{
+				Name:        "not_resources",
+				Description: "A list of Amazon Resource Names (ARNs) to exclude from a backup plan.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBackupSelection,
+				Transform:   transform.FromField("BackupSelection.NotResources"),
+			},
 
 			// Steampipe standard columns
 			{

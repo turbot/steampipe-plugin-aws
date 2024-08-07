@@ -62,6 +62,11 @@ func tableAwsGlobalAcceleratorAccelerator(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "dual_stack_dns_name",
+				Description: "The Domain Name System (DNS) name that Global Accelerator creates that points to a dual-stack accelerator's four static IP addresses: two IPv4 addresses and two IPv6 addresses.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "enabled",
 				Description: "Indicates whether the accelerator is enabled.",
 				Type:        proto.ColumnType_BOOL,
@@ -92,6 +97,11 @@ func tableAwsGlobalAcceleratorAccelerator(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getGlobalAcceleratorAcceleratorTags,
 				Transform:   transform.FromField("Tags"),
+			},
+			{
+				Name:        "events",
+				Description: "A history of changes that you make to an accelerator in Global Accelerator.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "accelerator_attributes",

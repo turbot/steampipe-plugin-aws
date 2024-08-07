@@ -32,11 +32,32 @@ func tableAwsBackupProtectedResource(_ context.Context) *plugin.Table {
 			Hydrate: listAwsBackupProtectedResources,
 			Tags:    map[string]string{"service": "backup", "action": "ListProtectedResources"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsBackupProtectedResource,
+				Tags: map[string]string{"service": "backup", "action": "DescribeProtectedResource"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "resource_name",
+				Description: "This is the non-unique name of the resource that belongs to the specified backup.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "resource_arn",
 				Description: "An Amazon Resource Name (ARN) that uniquely identifies a resource.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "last_backup_vault_arn",
+				Description: "This is the ARN (Amazon Resource Name) of the backup vault that contains the most recent backup recovery point.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "last_recovery_point_arn",
+				Description: "This is the ARN (Amazon Resource Name) of the most recent recovery point.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -48,6 +69,24 @@ func tableAwsBackupProtectedResource(_ context.Context) *plugin.Table {
 				Name:        "last_backup_time",
 				Description: "The date and time a resource was last backed up.",
 				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "latest_restore_execution_time_minutes",
+				Description: "This is the time in minutes the most recent restore job took to complete.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getAwsBackupProtectedResource,
+			},
+			{
+				Name:        "latest_restore_job_creation_date",
+				Description: "This is the creation date of the most recent restore job.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getAwsBackupProtectedResource,
+			},
+			{
+				Name:        "latest_restore_recovery_point_creation_date",
+				Description: "This is the date the most recent recovery point was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getAwsBackupProtectedResource,
 			},
 
 			// Steampipe standard columns

@@ -57,6 +57,17 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "agent_version",
+				Description: "The version of the DRS agent installed on the source server.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_network_id",
+				Description: "ID of the Source Network which is protecting this Source Server's network.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SourceNetworkID"),
+			},
+			{
 				Name:        "source_properties",
 				Description: "The source properties of the Source Server.",
 				Type:        proto.ColumnType_JSON,
@@ -170,7 +181,7 @@ func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin
 		}
 	}
 
-	input.MaxResults = &maxItems
+	input.MaxResults = aws.Int32(maxItems)
 	sourceServerID := d.EqualsQualString("source_server_id")
 	stagingAccountID := d.EqualsQualString("staging_account_id")
 	hardwareID := d.EqualsQualString("hardware_id")

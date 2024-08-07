@@ -75,9 +75,34 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("StackStatus"),
 			},
 			{
+				Name:        "stack_status_reason",
+				Description: "Success/failure message associated with the stack status.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "change_set_id",
+				Description: "The unique ID of the change set.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "detailed_status",
+				Description: "The detailed status of the resource or stack.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "creation_time",
 				Description: "The time at which the stack was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "deletion_time",
+				Description: "The time the stack was deleted.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "retain_except_on_create",
+				Description: "When set to true , newly created resources are deleted when the operation rolls back.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "disable_rollback",
@@ -114,6 +139,11 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "description",
 				Description: "A user-defined description associated with the stack.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "timeout_in_minutes",
+				Description: "The amount of time within which stack creation should complete.",
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "notification_arns",

@@ -83,6 +83,22 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "storage_type",
+				Description: "The storage type associated with the DB cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "global_cluster_identifier",
+				Description: "Contains a user-supplied global database cluster identifier. This identifier is the unique key that identifies a global database.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "io_optimized_next_allowed_modification_time",
+				Description: "The next time you can modify the DB cluster to use the iopt1 storage type.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("IOOptimizedNextAllowedModificationTime").Transform(transform.NullIfZeroValue),
+			},
+			{
 				Name:        "copy_tags_to_snapshot",
 				Description: "If set to true, tags are copied to any snapshot of the DB cluster that is created.",
 				Type:        proto.ColumnType_BOOL,
@@ -200,6 +216,17 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 				Name:        "associated_roles",
 				Description: "Provides a list of the Amazon Identity and Access Management (IAM) roles.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "pending_modified_values",
+				Description: "This data type is used as a response element in the ModifyDBCluster operation and contains changes that will be applied during the next maintenance window.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "serverless_v2_scaling_configuration",
+				Description: "Shows the scaling configuration for a Neptune Serverless DB cluster.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ServerlessV2ScalingConfiguration"),
 			},
 			{
 				Name:        "availability_zones",

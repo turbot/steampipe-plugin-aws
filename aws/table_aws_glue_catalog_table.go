@@ -62,6 +62,11 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "version_id",
+				Description: "The ID of the table version.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "created_by",
 				Description: "The person or entity who created the table.",
 				Type:        proto.ColumnType_STRING,
@@ -124,6 +129,11 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 			{
 				Name:        "partition_keys",
 				Description: "A list of columns by which the table is partitioned.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "federated_table",
+				Description: "A FederatedTable structure that references an entity outside the Glue Data Catalog.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
