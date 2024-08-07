@@ -8,7 +8,7 @@ _Bug fixes_
 
 - Enhanced the `aws_auditmanager_control` table to list controls by type and fixed the get config error `get call returned 2 results`. ([#2254](https://github.com/turbot/steampipe-plugin-aws/pull/2254))
 - Updated docs for `aws_appautoscaling_policy` and `aws_appautoscaling_target` table to add info on required quals. ([#2247](https://github.com/turbot/steampipe-plugin-aws/pull/2247))
-- Fixed the `aws_kms_key_rotation` table to not throw an `AccessDeniedException` despite the `ignore_error_codes` configuration in the connection config. ([#2253](https://github.com/turbot/steampipe-plugin-aws/pull/2253))
+- Fixed the `aws_kms_key_rotation` table to correctly return `nil` whenever an `AccessDeniedException` error is returned by the API. ([#2253](https://github.com/turbot/steampipe-plugin-aws/pull/2253))
 
 ## v0.144.0 [2024-07-10]
 
