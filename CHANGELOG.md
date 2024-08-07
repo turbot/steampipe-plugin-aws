@@ -1,3 +1,16 @@
+## v0.145.0 [2024-08-07]
+
+_Enhancements_
+
+- Added `location_type` column as an optional qual to the `aws_ec2_instance_availability` table and 6 new columns to the `aws_ec2_instance_type` table. ([#2078](https://github.com/turbot/steampipe-plugin-aws/pull/2078))
+- Updated docs for `aws_appautoscaling_policy` and `aws_appautoscaling_target` table to add info on required quals. ([#2247](https://github.com/turbot/steampipe-plugin-aws/pull/2247))
+- Added `type` column as an optional qual to the `aws_auditmanager_control` table. ([#2254](https://github.com/turbot/steampipe-plugin-aws/pull/2254))
+
+_Bug fixes_
+
+- Fixed the `aws_auditmanager_control` table to correctly return data instead of get config error `get call returned 2 results`. ([#2254](https://github.com/turbot/steampipe-plugin-aws/pull/2254))
+- Fixed the `aws_kms_key_rotation` table to correctly return `nil` whenever an `AccessDeniedException` error is returned by the API. ([#2253](https://github.com/turbot/steampipe-plugin-aws/pull/2253))
+
 ## v0.144.0 [2024-07-10]
 
 _Enhancements_
@@ -102,7 +115,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the broken Postgres 14, Postgres 15 and SQLite x86_64 binaries for Darwin operating systems. 
+- Fixed the broken Postgres 14, Postgres 15 and SQLite x86_64 binaries for Darwin operating systems.
 - Fixed intermittent FDW crashes when certain postgres errors resulted in a signal 16 being raised. ([#455](https://github.com/turbot/steampipe-postgres-fdw/pull/455))
 
 ## v0.136.1 [2024-04-23]
