@@ -14,7 +14,7 @@ The `aws_lightsail_bucket` table in Steampipe provides detailed information abou
 ## Examples
 
 ### Basic info
-Get overview of the buckets
+Get an overview of the buckets.
 
 ```sql+postgres
 select
