@@ -67,11 +67,6 @@ func tableAwsLightsailBucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "location",
-				Description: "An object that describes the location of the bucket, such as the Amazon Web Services Region and Availability Zone.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "object_versioning",
 				Description: "Indicates whether object versioning is enabled for the bucket. The following options can be configured: Enabled, Suspended, NeverEnabled.",
 				Type:        proto.ColumnType_STRING,
@@ -90,6 +85,11 @@ func tableAwsLightsailBucket(_ context.Context) *plugin.Table {
 				Name:        "url",
 				Description: "The URL of the bucket.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "location",
+				Description: "An object that describes the location of the bucket, such as the Amazon Web Services Region and Availability Zone.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "readonly_access_accounts",
@@ -117,6 +117,7 @@ func tableAwsLightsailBucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
+
 			// Steampipe standard columns
 			{
 				Name:        "title",
