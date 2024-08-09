@@ -1,10 +1,6 @@
-Here's the Steampipe table documentation for the `aws_lightsail_bucket` table, following the format you've provided:
-
 ---
-
 title: "Steampipe Table: aws_lightsail_bucket - Query AWS Lightsail Buckets using SQL"
 description: "Allows users to query AWS Lightsail Buckets and retrieve detailed information such as bucket configuration, access rules, tags, and more."
-
 ---
 
 # Table: aws_lightsail_bucket - Query AWS Lightsail Buckets using SQL
