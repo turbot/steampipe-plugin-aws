@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/lightsail/types"
 
@@ -21,7 +22,10 @@ func tableAwsLightsailBucket(_ context.Context) *plugin.Table {
 		Description: "AWS Lightsail Bucket",
 		List: &plugin.ListConfig{
 			Hydrate: listLightsailBuckets,
-			Tags:    map[string]string{"service": "lightsail", "action": "GetBuckets"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "name", Require: plugin.Optional},
+			},
+			Tags: map[string]string{"service": "lightsail", "action": "GetBuckets"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(lightsailv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -73,11 +77,6 @@ func tableAwsLightsailBucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "readonly_access_accounts",
-				Description: "An array of strings that specify the Amazon Web Services account IDs that have read-only access to the bucket.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "resource_type",
 				Description: "The Lightsail resource type of the bucket.",
 				Type:        proto.ColumnType_STRING,
@@ -91,6 +90,11 @@ func tableAwsLightsailBucket(_ context.Context) *plugin.Table {
 				Name:        "url",
 				Description: "The URL of the bucket.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "readonly_access_accounts",
+				Description: "An array of strings that specify the Amazon Web Services account IDs that have read-only access to the bucket.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "access_log_config",
@@ -151,7 +155,13 @@ func listLightsailBuckets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, nil
 	}
 
-	input := &lightsail.GetBucketsInput{}
+	input := &lightsail.GetBucketsInput{
+		IncludeConnectedResources: aws.Bool(true),
+	}
+
+	if d.EqualsQualString("name") != "" {
+		input.BucketName = aws.String(d.EqualsQualString("name"))
+	}
 
 	// List call
 	for {
