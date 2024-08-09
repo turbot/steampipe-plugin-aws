@@ -41,7 +41,7 @@ func tableAwsLightsailBucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "created_at",
-				Description: "The timestamp when the distribution was created.",
+				Description: "The timestamp when the bucket was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
