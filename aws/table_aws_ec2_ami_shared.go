@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -29,11 +30,13 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeImages"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "owner_id", Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "owner_ids", Require: plugin.Optional, CacheMatch: "exact"},
 				{Name: "architecture", Require: plugin.Optional},
 				{Name: "description", Require: plugin.Optional},
 				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "hypervisor", Require: plugin.Optional},
 				{Name: "image_id", Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "image_ids", Require: plugin.Optional, CacheMatch: "exact", Operators: []string{"="}},
 				{Name: "image_type", Require: plugin.Optional},
 				{Name: "public", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "kernel_id", Require: plugin.Optional},
@@ -171,6 +174,18 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "image_ids",
+				Description: "The ID of the AMIs in the form of array of strings.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromQual("image_ids"),
+			},
+			{
+				Name:        "owner_ids",
+				Description: "The AWS account IDs of the image owners.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromQual("owner_ids"),
+			},
+			{
 				Name:        "block_device_mappings",
 				Description: "Any block device mapping entries.",
 				Type:        proto.ColumnType_JSON,
@@ -216,10 +231,22 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	owner_id := d.EqualsQuals["owner_id"].GetStringValue()
 	image_id := d.EqualsQuals["image_id"].GetStringValue()
+	image_ids := d.EqualsQuals["image_ids"].GetJsonbValue()
+	owner_ids := d.EqualsQuals["owner_ids"].GetJsonbValue()
+
 
 	// check if owner_id and image_id is empty
-	if owner_id == "" && image_id == "" {
-		return nil, errors.New("please provide either owner_id or image_id")
+	if owner_id == "" && image_id == "" && image_ids == "" {
+		return nil, errors.New("please provide either owner_id, image_id or image_ids")
+	}
+
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
 	}
 
 	// Create Session
@@ -237,6 +264,22 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if image_id != "" {
 		input.ImageIds = []string{image_id}
 	}
+	if image_ids != "" {
+		var imageIds []string
+		err := json.Unmarshal([]byte(image_ids), &imageIds)
+		if err != nil {
+			return nil, errors.New("unable to parse the 'image_ids' query parameter the value must be in the format '[\"ami-000165ee3e0c1d6c7\", \"ami-0002ab43c99ec70ec\"]'")
+		}
+		input.ImageIds = imageIds
+	}
+	if owner_ids != "" {
+		var ownerIds []string
+		err := json.Unmarshal([]byte(owner_ids), &ownerIds)
+		if err != nil {
+			return nil, errors.New("unable to parse the 'image_ids' query parameter the value must be in the format '[\"123456789089\", \"345345678567\"]'")
+		}
+		input.Owners = ownerIds
+	}
 
 	filters := buildSharedAmisWithOwnerFilter(d.Quals, ctx, d, h)
 
@@ -244,23 +287,41 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		input.Filters = filters
 	}
 
-	// apply rate limiting
-	d.WaitForListRateLimit(ctx)
+	paginator := ec2.NewDescribeImagesPaginator(svc, input, func(o *ec2.DescribeImagesPaginatorOptions) {
+		// api error InvalidParameterCombination: The parameter imageIdsSet cannot be used with the parameter maxResults
+		if len(input.ImageIds) <= 0 {
+			o.Limit = maxLimit
+		}
+		o.StopOnDuplicateToken = true
+	})
 
-	// There is no MaxResult property in param, through which we can limit the number of results
-	resp, err := svc.DescribeImages(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_ami_shared.listAmisByOwner", "api_error", err)
-		return nil, err
-	}
-	for _, image := range resp.Images {
-		d.StreamListItem(ctx, image)
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
 
-		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.RowsRemaining(ctx) == 0 {
-			return nil, nil
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_instance.listEc2Instance", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.Images {
+
+			d.StreamListItem(ctx, item)
+			// Check if context has been cancelled or if the limit has been hit (if specified)
+			// if there is a limit, it will return the number of rows required to reach this limit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
+
 	return nil, err
 }
 
