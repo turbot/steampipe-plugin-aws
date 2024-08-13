@@ -66,7 +66,17 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "backup_progress_in_mega-bytes",
+				Name:        "master_password_secret_arn",
+				Description: "The Amazon Resource Name (ARN) for the cluster's admin user credentials secret.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "master_password_secret_kms_key_id",
+				Description: "The ID of the Key Management Service (KMS) key used to encrypt and store the cluster's admin credentials secret.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "backup_progress_in_mega_bytes",
 				Description: "The number of megabytes that have been transferred to the snapshot backup.",
 				Type:        proto.ColumnType_DOUBLE,
 			},

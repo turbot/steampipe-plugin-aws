@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/drs"
 	"github.com/aws/aws-sdk-go-v2/service/drs/types"
 
@@ -47,6 +48,16 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 				Description: "The source server ID that this recovery instance is associated with.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SourceServerID"),
+			},
+			{
+				Name:        "agent_version",
+				Description: "The version of the DRS agent installed on the recovery instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "origin_availability_zone",
+				Description: "AWS availability zone associated with the recovery instance.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "ec2_instance_id",
@@ -151,7 +162,7 @@ func listAwsDRSRecoveryInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 		}
 	}
 
-	input.MaxResults = &maxItems
+	input.MaxResults = aws.Int32(maxItems)
 	sourceServerID := d.EqualsQualString("source_server_id")
 	recoveryInstanceId := d.EqualsQualString("recovery_instance_id")
 

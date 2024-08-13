@@ -106,6 +106,11 @@ func tableAwsSSMManagedInstancePatchState(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "install_override_list",
+				Description: "An https URL or an Amazon Simple Storage Service (Amazon S3) path-style URL to a list of patches to be installed.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "other_non_compliant_count",
 				Description: "The number of patches per node that are specified as other than Critical or Security but aren't compliant with the patch baseline. The status of these managed nodes is NON_COMPLIANT.",
 				Type:        proto.ColumnType_INT,

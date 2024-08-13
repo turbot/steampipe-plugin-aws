@@ -82,6 +82,12 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCodeDeployDeploymentConfig,
 			},
+			{
+				Name:        "zonal_config",
+				Description: "Information about a zonal configuration.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCodeDeployDeploymentConfig,
+			},
 
 			// Steampipe standard columns
 			{

@@ -202,7 +202,7 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	input := &wellarchitected.ListAnswersInput{
-		MaxResults: &maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	// Create session
@@ -309,7 +309,7 @@ func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugi
 		WorkloadId: aws.String(workloadId),
 	}
 	if milestoneNumber != 0 {
-		params.MilestoneNumber = &milestoneNumber
+		*params.MilestoneNumber = milestoneNumber
 	}
 
 	// Create Session

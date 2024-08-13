@@ -53,6 +53,18 @@ func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Group.GroupId"),
 			},
+			{
+				Name:        "description",
+				Description: "A string containing a description of the specified group.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Group.Description"),
+			},
+			{
+				Name:        "external_ids",
+				Description: "A list of ExternalId objects that contains the identifiers issued to this resource by an external identity provider.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Group.ExternalIds"),
+			},
 
 			// Standard columns for all tables
 			{

@@ -158,6 +158,33 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSageMakerTrainingJob,
 			},
 			{
+				Name:        "enable_infra_check",
+				Description: "Enables an infrastructure health check.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAwsSageMakerTrainingJob,
+				Transform:   transform.FromField("InfraCheckConfig.EnableInfraCheck"),
+			},
+			{
+				Name:        "enable_remote_debug",
+				Description: "If set to True, enables remote debugging.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAwsSageMakerTrainingJob,
+				Transform:   transform.FromField("InfraCheckConfig.EnableRemoteDebug"),
+			},
+			{
+				Name:        "maximum_retry_attempts",
+				Description: "The number of times to retry the job.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getAwsSageMakerTrainingJob,
+				Transform:   transform.FromField("RetryStrategy.MaximumRetryAttempts"),
+			},
+			{
+				Name:        "warm_pool_status",
+				Description: "The status of the warm pool associated with the training job.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSageMakerTrainingJob,
+			},
+			{
 				Name:        "algorithm_specification",
 				Description: "Information about the algorithm used for training, and algorithm metadata.",
 				Type:        proto.ColumnType_JSON,

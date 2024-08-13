@@ -66,6 +66,21 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "composite_member_identifier",
+				Description: "This is the identifier of a resource within a composite group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "parent_recovery_point_arn",
+				Description: "This is the Amazon Resource Name (ARN) of the parent (composite) recovery point.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "resource_name",
+				Description: "This is the non-unique name of the resource that belongs to the specified backup.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "recovery_point_arn",
 				Description: "An ARN that uniquely identifies a recovery point.",
 				Type:        proto.ColumnType_STRING,
@@ -115,6 +130,11 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 				Description: "A Boolean value that is returned as TRUE if the specified recovery point is encrypted, or FALSE if the recovery point is not encrypted.",
 				Type:        proto.ColumnType_BOOL,
 				Default:     false,
+			},
+			{
+				Name:        "is_parent",
+				Description: "This is a boolean value indicating this is a parent (composite) recovery point.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "last_restore_time",

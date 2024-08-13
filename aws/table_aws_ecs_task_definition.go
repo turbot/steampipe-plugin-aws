@@ -136,6 +136,20 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("TaskDefinition.RegisteredBy"),
 			},
 			{
+				Name:        "deregistered_at",
+				Description: "The Unix timestamp for the time when the task definition was deregistered.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.DeregisteredAt").Transform(transform.UnixToTimestamp).Transform(transform.NullIfZeroValue),
+			},
+			{
+				Name:        "ephemeral_storage_size_in_gib",
+				Description: "The total amount, in GiB, of ephemeral storage to set for the task. The minimum supported value is 21 GiB and the maximum supported value is 200 GiB.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.EphemeralStorage.SizeInGiB"),
+			},
+			{
 				Name:        "container_definitions",
 				Description: "A list of container definitions in JSON format that describe the different containers that make up your task.",
 				Type:        proto.ColumnType_JSON,
@@ -148,6 +162,13 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("TaskDefinition.Compatibilities"),
+			},
+			{
+				Name:        "runtime_platform",
+				Description: "The operating system that your task definitions are running on.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.RuntimePlatform"),
 			},
 			{
 				Name:        "inference_accelerators",

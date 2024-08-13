@@ -165,6 +165,32 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("SourceDBSnapshotIdentifier"),
 			},
 			{
+				Name:        "db_system_id",
+				Description: "The Oracle system identifier (SID), which is the name of the Oracle database instance that manages your database files. The Oracle SID is also the name of your CDB.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("DBSystemId"),
+			},
+			{
+				Name:        "dedicated_log_volume",
+				Description: "Indicates whether the DB instance has a dedicated log volume (DLV) enabled.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "multi_tenant",
+				Description: "Indicates whether the snapshot is of a DB instance using the multi-tenant configuration (TRUE) or the single-tenant configuration (FALSE).",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "snapshot_database_time",
+				Description: "The timestamp of the most recent transaction applied to the database that you're backing up.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "snapshot_target",
+				Description: "Specifies where manual snapshots are stored: Amazon Web Services Outposts or the Amazon Web Services Region.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "source_region",
 				Description: "The AWS Region that the DB snapshot was created in or copied from.",
 				Type:        proto.ColumnType_STRING,

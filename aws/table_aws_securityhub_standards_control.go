@@ -145,7 +145,7 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	input := &securityhub.DescribeStandardsControlsInput{
-		MaxResults:               &maxLimit,
+		MaxResults:               aws.Int32(maxLimit),
 		StandardsSubscriptionArn: aws.String(standardsSubscriptionArn),
 	}
 

@@ -90,6 +90,16 @@ func tableAwsAppsyncGraphQLApi(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "query_depth_limit",
+				Description: "The maximum depth a query can have in a single request.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "resolver_count_limit",
+				Description: "The maximum number of resolvers that can be invoked in a single request.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "xray_enabled",
 				Description: "A flag indicating whether to use X-Ray tracing for this GraphqlApi.",
 				Type:        proto.ColumnType_BOOL,
@@ -128,6 +138,16 @@ func tableAwsAppsyncGraphQLApi(_ context.Context) *plugin.Table {
 			{
 				Name:        "user_pool_config",
 				Description: "The Amazon Cognito user pool configuration.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "enhanced_metrics_config",
+				Description: "The enhancedMetricsConfig object.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "introspection_config",
+				Description: "Sets the value of the GraphQL API to enable ( ENABLED ) or disable ( DISABLED ) introspection. If no value is provided, the introspection configuration will be set to ENABLED by default.",
 				Type:        proto.ColumnType_JSON,
 			},
 

@@ -109,12 +109,6 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "max_results",
-				Description: "The maximum number of repository results returned by DescribeRepositories.",
-				Hydrate:     getAwsEcrRepositories,
-				Type:        proto.ColumnType_INT,
-			},
-			{
 				Name:        "encryption_configuration",
 				Description: "The encryption configuration for the repository.",
 				Hydrate:     getAwsEcrRepositories,

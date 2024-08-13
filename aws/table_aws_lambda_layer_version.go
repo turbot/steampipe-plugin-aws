@@ -255,7 +255,7 @@ func getLambdaLayerVersion(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Build the params
 	params := &lambda.GetLayerVersionInput{
 		LayerName:     aws.String(layerName),
-		VersionNumber: &version,
+		VersionNumber: aws.Int64(version),
 	}
 
 	// Get call
@@ -295,7 +295,7 @@ func getLambdaLayerVersionPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 	// Build the params
 	params := &lambda.GetLayerVersionPolicyInput{
 		LayerName:     aws.String(layerName),
-		VersionNumber: &version,
+		VersionNumber: aws.Int64(version),
 	}
 
 	// Get call

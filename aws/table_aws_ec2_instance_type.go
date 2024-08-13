@@ -89,6 +89,18 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Hydrate:     describeInstanceType,
 			},
 			{
+				Name:        "nitro_enclaves_support",
+				Description: "Indicates whether Nitro Enclaves is supported.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "nitro_tpm_support",
+				Description: "Indicates whether NitroTPM is supported.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     describeInstanceType,
+			},
+			{
 				Name:        "hibernation_supported",
 				Description: "Indicates whether On-Demand hibernation is supported.",
 				Type:        proto.ColumnType_BOOL,
@@ -188,6 +200,24 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 			{
 				Name:        "inference_accelerator_info",
 				Description: "Describes the Inference accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "instance_storage_info",
+				Description: "Describes the instance storage for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "media_accelerator_info",
+				Description: "Describes the media accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "neuron_info",
+				Description: "Describes the Neuron accelerator settings for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
 			},

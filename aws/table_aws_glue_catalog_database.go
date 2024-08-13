@@ -65,6 +65,11 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "federated_database",
+				Description: "A FederatedDatabase structure that references an entity outside the Glue Data Catalog.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "parameters",
 				Description: "These key-value pairs define parameters and properties of the database.",
 				Type:        proto.ColumnType_JSON,

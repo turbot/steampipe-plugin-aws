@@ -79,6 +79,12 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Authorizer.IdentityValidationExpression"),
 			},
 			{
+				Name:        "authorizer_result_ttl_in_seconds",
+				Description: "The TTL in seconds of cached authorizer results.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Authorizer.AuthorizerResultTtlInSeconds"),
+			},
+			{
 				Name:        "identity_source",
 				Description: "The identity source for which authorization is requested",
 				Type:        proto.ColumnType_STRING,

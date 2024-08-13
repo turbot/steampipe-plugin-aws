@@ -65,6 +65,21 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("SnapshotType"),
 			},
 			{
+				Name:        "db_cluster_resource_id",
+				Description: "The resource ID of the DB cluster that this DB cluster snapshot was created from.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "engine_mode",
+				Description: "The engine mode of the database engine for this DB cluster snapshot.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "snapshot_type",
+				Description: "The type of the DB cluster snapshot.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "status",
 				Description: "Specifies the status of this DB Cluster Snapshot.",
 				Type:        proto.ColumnType_STRING,
