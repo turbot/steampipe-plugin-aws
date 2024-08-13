@@ -139,7 +139,7 @@ with instances as (
 ),
 all_image_ids as (
   select
-    json_agg(image_id)::jsonb AS image_ids  -- Cast to jsonb
+    json_agg(image_id)::jsonb as image_ids  -- Cast to jsonb
   from
     instances
 ),
