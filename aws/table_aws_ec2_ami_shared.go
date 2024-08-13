@@ -30,7 +30,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeImages"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "owner_id", Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "owner_ids", Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "owner_ids", Require: plugin.Optional, CacheMatch: "exact", Operators: []string{"="}},
 				{Name: "architecture", Require: plugin.Optional},
 				{Name: "description", Require: plugin.Optional},
 				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},

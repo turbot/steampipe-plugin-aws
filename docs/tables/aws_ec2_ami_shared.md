@@ -14,7 +14,7 @@ The `aws_ec2_ami_shared` table in Steampipe provides you with information about 
 **Important Notes**
 - You must specify an Owner ID or Image ID in the `where` clause (`where owner_id='`), (`where image_id='`).
 - The `aws_ec2_ami_shared` table can list any image but you must specify `owner_id` or `image_id`.
-- To optimize the query timing and API call the optional query parameter `owner_ids` or `image_ids` to perform a batch operation.
+- To optimize query timing and API calls, use the optional query parameters `owner_ids` or `image_ids` to perform batch operations.
 - If you want to list all of the images in your account then you can use the `aws_ec2_ami` table.
 
 ## Examples
