@@ -191,12 +191,6 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "ok_actions",
-				Description: "An array of MetricDataQuery structures, used in an alarm based on a metric math expression.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("OKActions"),
-			},
-			{
-				Name:        "ok_actions",
 				Description: "The actions to execute when this alarm transitions to the OK state from any other state. Each action is specified as an Amazon Resource Name (ARN).",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("OKActions"),

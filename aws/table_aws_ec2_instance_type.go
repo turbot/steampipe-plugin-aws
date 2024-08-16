@@ -107,18 +107,6 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Hydrate:     describeInstanceType,
 			},
 			{
-				Name:        "nitro_enclaves_support",
-				Description: "Indicates whether instance storage is supported.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeInstanceType,
-			},
-			{
-				Name:        "nitro_tpm_support",
-				Description: "Indicates whether NitroTPM is supported.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeInstanceType,
-			},
-			{
 				Name:        "hypervisor",
 				Description: "The hypervisor for the instance type.",
 				Type:        proto.ColumnType_STRING,
