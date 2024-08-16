@@ -385,6 +385,8 @@ github.com/aws/aws-sdk-go-v2/service/macie2 v1.38.4 h1:vmRWTDp/kRzYgluqj42luIRiZ
 github.com/aws/aws-sdk-go-v2/service/macie2 v1.38.4/go.mod h1:rj5sn6clCUe3u7dnNdWiZUHZleZTVJuHEkT0FmITHCQ=
 github.com/aws/aws-sdk-go-v2/service/mediastore v1.20.4 h1:MVHY8LFLuacF+GllRBoawYPLhDzO/3Fx4KtqNSC9cY8=
 github.com/aws/aws-sdk-go-v2/service/mediastore v1.20.4/go.mod h1:2lauJoSWWAIPdtyeDKO0skzTrx2H+5o3QcJtOjGFyuA=
+github.com/aws/aws-sdk-go-v2/service/memorydb v1.19.8 h1:JN9jMMywo9TZcQ+oeJh7UC9mIVMPWLghS2hZcoubHyw=
+github.com/aws/aws-sdk-go-v2/service/memorydb v1.19.8/go.mod h1:LLpb6yNl8lNCOMZPHZccWq7Mbe7DrhpFitcvFgHx8VY=
 github.com/aws/aws-sdk-go-v2/service/mgn v1.28.0 h1:cJ6w/M7xmn0QgeAPccDJHn4TYCT1XPD383sx4I05I90=
 github.com/aws/aws-sdk-go-v2/service/mgn v1.28.0/go.mod h1:BqmTIulfOMz6dQynMuAeGTTkn/qeirdXEJfk2gPoN5w=
 github.com/aws/aws-sdk-go-v2/service/mq v1.22.4 h1:Mpui5x0E69qpCFieZXqrycLMOBkCJue3uZdZuKEA0MQ=
@@ -479,8 +481,8 @@ github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4 h1:OuFs453KXWTLBkem
 github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4/go.mod h1:MRT/P9Cwn+7xCCVpD1sTvUESiWMAc9hA+FooRsW5fe8=
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4 h1:SvHYikdxmnyptMebU3zFfXbfU96SHzdUX+KXqa6pjYE=
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4/go.mod h1:1XK49PATLHBd7mpKqO91GqRuV7bEsmyQ8Lslvn3fFj4=
-github.com/aws/smithy-go v1.20.2 h1:tbp628ireGtzcHDDmLT/6ADHidqnwgF57XOXZe6tp4Q=
-github.com/aws/smithy-go v1.20.2/go.mod h1:krry+ya/rV9RDcV/Q16kpu6ypI4K2czasz0NC3qS14E=
+github.com/aws/smithy-go v1.20.4 h1:2HK1zBdPgRbjFOHlfeQZfpC4r72MOb9bZkiFwggKO+4=
+github.com/aws/smithy-go v1.20.4/go.mod h1:irrKGvNn1InZwb2d7fkIRNucdfwR8R+Ts3wxYa/cJHg=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=

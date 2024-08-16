@@ -92,6 +92,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore"
+	"github.com/aws/aws-sdk-go-v2/service/memorydb"
 	"github.com/aws/aws-sdk-go-v2/service/mgn"
 	"github.com/aws/aws-sdk-go-v2/service/mq"
 	"github.com/aws/aws-sdk-go-v2/service/neptune"
@@ -179,6 +180,7 @@ import (
 	lightsailEndpoint "github.com/aws/aws-sdk-go/service/lightsail"
 	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
 	mediastoreEndpoint "github.com/aws/aws-sdk-go/service/mediastore"
+	memoryDBEndpoint "github.com/aws/aws-sdk-go/service/memorydb"
 	mgnEndpoint "github.com/aws/aws-sdk-go/service/mgn"
 	mqEndpoint "github.com/aws/aws-sdk-go/service/mq"
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
@@ -991,6 +993,17 @@ func MediaStoreClient(ctx context.Context, d *plugin.QueryData) (*mediastore.Cli
 		return nil, nil
 	}
 	return mediastore.NewFromConfig(*cfg), nil
+}
+
+func MemoryDBClient(ctx context.Context, d *plugin.QueryData) (*memorydb.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, memoryDBEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return memorydb.NewFromConfig(*cfg), nil
 }
 
 func MGNClient(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
