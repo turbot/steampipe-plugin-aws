@@ -393,6 +393,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_pipes_pipe":                                               tableAwsPipes(ctx),
 			"aws_pricing_product":                                          tableAwsPricingProduct(ctx),
 			"aws_pricing_service_attribute":                                tableAwsPricingServiceAttribute(ctx),
+			"aws_qldb_ledger":                                              tableAwsQLDBLedger(ctx),
+			"aws_qldb_stream":                                              tableAwsQLDBStream(ctx),
 			"aws_ram_principal_association":                                tableAwsRAMPrincipalAssociation(ctx),
 			"aws_ram_resource_association":                                 tableAwsRAMResourceAssociation(ctx),
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),

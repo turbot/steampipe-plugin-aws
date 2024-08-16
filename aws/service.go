@@ -102,6 +102,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pipes"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/service/qldb"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
@@ -186,6 +187,7 @@ import (
 	pinpointEndpoint "github.com/aws/aws-sdk-go/service/pinpoint"
 	pipesEndpoint "github.com/aws/aws-sdk-go/service/pipes"
 	pricingEndpoint "github.com/aws/aws-sdk-go/service/pricing"
+	qldbEndpoint "github.com/aws/aws-sdk-go/service/qldb"
 	rdsEndpoint "github.com/aws/aws-sdk-go/service/rds"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	resourceexplorer2Endpoint "github.com/aws/aws-sdk-go/service/resourceexplorer2"
@@ -1131,6 +1133,17 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	}
 
 	return pricing.NewFromConfig(*cfg), nil
+}
+
+func QLDBClient(ctx context.Context, d *plugin.QueryData) (*qldb.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, qldbEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return qldb.NewFromConfig(*cfg), nil
 }
 
 func RAMClient(ctx context.Context, d *plugin.QueryData) (*ram.Client, error) {
