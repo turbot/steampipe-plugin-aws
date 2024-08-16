@@ -314,7 +314,7 @@ func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	if item.MetricAlarms != nil && len(item.MetricAlarms) > 0 {
+	if len(item.MetricAlarms) > 0 {
 		return item.MetricAlarms[0], nil
 	}
 
