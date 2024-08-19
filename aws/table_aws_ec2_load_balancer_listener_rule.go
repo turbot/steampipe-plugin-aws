@@ -69,11 +69,6 @@ func tableAwsEc2ApplicationLoadBalancerListenerRule(_ context.Context) *plugin.T
 				Description: "The conditions. Each rule can include zero or one of the following conditions: http-request-method , host-header , path-pattern , and source-ip , and zero or more of the following conditions: http-header and query-string.",
 				Type:        proto.ColumnType_JSON,
 			},
-			{
-				Name:        "default_actions",
-				Description: "The default actions for the listener.",
-				Type:        proto.ColumnType_JSON,
-			},
 		}),
 	}
 }
