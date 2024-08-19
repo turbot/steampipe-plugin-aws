@@ -284,7 +284,7 @@ func getElastiCacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
-	if op.ReplicationGroups != nil && len(op.ReplicationGroups) > 0 {
+	if op != nil && len(op.ReplicationGroups) > 0 {
 		return op.ReplicationGroups[0], nil
 	}
 	return nil, nil

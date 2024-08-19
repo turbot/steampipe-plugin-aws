@@ -180,7 +180,7 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 		plugin.Logger(ctx).Error("aws_inspector_assessment_target.getInspectorAssessmentTarget", "api_error", err)
 		return nil, err
 	}
-	if data.AssessmentTargets != nil && len(data.AssessmentTargets) > 0 {
+	if data != nil && len(data.AssessmentTargets) > 0 {
 		return data.AssessmentTargets[0], nil
 	}
 	return nil, nil

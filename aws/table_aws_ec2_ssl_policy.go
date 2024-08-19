@@ -165,7 +165,7 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			return nil, err
 		}
 
-		if op.SslPolicies != nil && len(op.SslPolicies) > 0 {
+		if len(op.SslPolicies) > 0 {
 			return op.SslPolicies[0], nil
 		}
 	}

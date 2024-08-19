@@ -296,7 +296,7 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	if op.DBClusterSnapshots != nil && len(op.DBClusterSnapshots) > 0 {
+	if op != nil && len(op.DBClusterSnapshots) > 0 {
 		snapshot := op.DBClusterSnapshots[0]
 		if isSuppportedRDSEngine(*snapshot.Engine) {
 			return snapshot, nil

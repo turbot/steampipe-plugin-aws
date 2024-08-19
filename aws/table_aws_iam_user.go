@@ -530,7 +530,7 @@ func getUserInlinePolicy(ctx context.Context, policyName *string, userName *stri
 
 func handleEmptyUserMfaStatus(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*iam.ListMFADevicesOutput)
-	if data.MFADevices != nil && len(data.MFADevices) > 0 {
+	if data != nil && len(data.MFADevices) > 0 {
 		return true, nil
 	}
 

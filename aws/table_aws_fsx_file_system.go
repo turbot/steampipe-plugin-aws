@@ -261,7 +261,7 @@ func getFsxFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		return nil, err
 	}
 
-	if op.FileSystems != nil && len(op.FileSystems) > 0 {
+	if op != nil && len(op.FileSystems) > 0 {
 		return op.FileSystems[0], nil
 	}
 	return nil, nil

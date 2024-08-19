@@ -204,7 +204,7 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	if op.SecurityGroups != nil && len(op.SecurityGroups) > 0 {
+	if op != nil && len(op.SecurityGroups) > 0 {
 		return op.SecurityGroups[0], nil
 	}
 	return nil, nil

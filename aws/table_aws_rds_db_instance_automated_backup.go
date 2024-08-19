@@ -304,7 +304,7 @@ func getRDSDBInstanceAutomatedBackup(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
-	if op.DBInstanceAutomatedBackups != nil && len(op.DBInstanceAutomatedBackups) > 0 {
+	if op != nil && len(op.DBInstanceAutomatedBackups) > 0 {
 		return op.DBInstanceAutomatedBackups[0], nil
 	}
 	return nil, nil

@@ -255,7 +255,7 @@ func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h 
 		plugin.Logger(ctx).Error("aws_inspector_assessment_template.listInspectorAssessmentTemplates", "api_error", err)
 		return nil, err
 	}
-	if data.AssessmentTemplates != nil && len(data.AssessmentTemplates) > 0 {
+	if data != nil && len(data.AssessmentTemplates) > 0 {
 		return &data.AssessmentTemplates[0], nil
 	}
 	return nil, nil

@@ -259,7 +259,7 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, err
 	}
 
-	if op.Clusters != nil && len(op.Clusters) > 0 {
+	if op != nil && len(op.Clusters) > 0 {
 		return op.Clusters[0], nil
 	}
 

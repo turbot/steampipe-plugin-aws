@@ -168,7 +168,7 @@ func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
-	if op.InternetGateways != nil && len(op.InternetGateways) > 0 {
+	if op != nil && len(op.InternetGateways) > 0 {
 		h.Item = op.InternetGateways[0]
 		return op.InternetGateways[0], nil
 	}

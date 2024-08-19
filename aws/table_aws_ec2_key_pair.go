@@ -156,7 +156,7 @@ func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
-	if op.KeyPairs != nil && len(op.KeyPairs) > 0 {
+	if len(op.KeyPairs) > 0 {
 		return op.KeyPairs[0], nil
 	}
 	return nil, nil

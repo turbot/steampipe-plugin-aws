@@ -266,7 +266,7 @@ func TestConvertPolicy(t *testing.T) {
 func prettyPrint(src interface{}) {
 	pretty, err := json.MarshalIndent(src, "", "  ")
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 	fmt.Printf("\n %s\n", string(pretty))
 
