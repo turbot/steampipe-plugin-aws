@@ -1,10 +1,6 @@
-Here’s a sample Steampipe table documentation for the `aws_ec2_load_balancer_listener_rule` table:
-
 ---
-
 title: "Steampipe Table: aws_ec2_load_balancer_listener_rule - Query AWS EC2 Load Balancer Listener Rules using SQL"
 description: "Allows users to query AWS EC2 Load Balancer Listener Rules, providing detailed information on rule actions, conditions, and priority."
-
 ---
 
 # Table: aws_ec2_load_balancer_listener_rule - Query AWS EC2 Load Balancer Listener Rules using SQL
