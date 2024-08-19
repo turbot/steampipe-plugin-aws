@@ -185,7 +185,7 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	if op.DBSubnetGroups != nil && len(op.DBSubnetGroups) > 0 {
+	if op != nil && len(op.DBSubnetGroups) > 0 {
 		return op.DBSubnetGroups[0], nil
 	}
 	return nil, nil

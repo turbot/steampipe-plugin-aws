@@ -315,7 +315,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
-	if op.Projects != nil && len(op.Projects) > 0 {
+	if len(op.Projects) > 0 {
 		return op.Projects[0], nil
 	}
 	return nil, nil

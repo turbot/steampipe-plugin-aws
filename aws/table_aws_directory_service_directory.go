@@ -349,7 +349,7 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
-	if op.DirectoryDescriptions != nil && len(op.DirectoryDescriptions) > 0 {
+	if len(op.DirectoryDescriptions) > 0 {
 		return op.DirectoryDescriptions[0], nil
 	}
 	return nil, nil

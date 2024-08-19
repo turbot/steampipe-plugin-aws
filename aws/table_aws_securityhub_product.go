@@ -194,7 +194,7 @@ func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-	if op.Products != nil && len(op.Products) > 0 {
+	if op != nil && len(op.Products) > 0 {
 		return op.Products[0], nil
 	}
 

@@ -342,7 +342,7 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		return nil, err
 	}
 
-	if op.DBSnapshots != nil && len(op.DBSnapshots) > 0 {
+	if op != nil && len(op.DBSnapshots) > 0 {
 		snapshot := op.DBSnapshots[0]
 		if isSuppportedRDSEngine(*snapshot.Engine) {
 			return snapshot, nil

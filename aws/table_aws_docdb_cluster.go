@@ -332,7 +332,7 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	if op.DBClusters != nil && len(op.DBClusters) > 0 {
+	if len(op.DBClusters) > 0 {
 		cluster := op.DBClusters[0]
 		if *cluster.Engine == "docdb" {
 			return cluster, nil

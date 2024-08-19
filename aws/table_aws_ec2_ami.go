@@ -313,7 +313,7 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 		return nil, err
 	}
 
-	if op.Images != nil && len(op.Images) > 0 {
+	if len(op.Images) > 0 {
 		return op.Images[0], nil
 	}
 	return nil, nil

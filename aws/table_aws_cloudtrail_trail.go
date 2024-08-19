@@ -319,7 +319,7 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	if item.TrailList != nil && len(item.TrailList) > 0 {
+	if len(item.TrailList) > 0 {
 		return item.TrailList[0], nil
 	}
 
@@ -493,7 +493,7 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
-	if resp.ResourceTagList != nil && len(resp.ResourceTagList) > 0 {
+	if len(resp.ResourceTagList) > 0 {
 		return resp.ResourceTagList[0].TagsList, nil
 	}
 

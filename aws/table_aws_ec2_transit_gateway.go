@@ -260,7 +260,7 @@ func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	if op.TransitGateways != nil && len(op.TransitGateways) > 0 {
+	if  len(op.TransitGateways) > 0 {
 		return op.TransitGateways[0], nil
 	}
 	return nil, nil

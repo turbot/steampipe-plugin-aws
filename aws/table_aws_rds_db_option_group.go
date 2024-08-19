@@ -218,7 +218,7 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	if op.OptionGroupsList != nil && len(op.OptionGroupsList) > 0 {
+	if op != nil && len(op.OptionGroupsList) > 0 {
 		return op.OptionGroupsList[0], nil
 	}
 	return nil, nil

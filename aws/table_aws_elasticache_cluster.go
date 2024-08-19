@@ -86,11 +86,6 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "auth_token_last_modified_date",
-				Description: "The date the auth token was last modified.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
 				Name:        "ip_discovery",
 				Description: "The network type associated with the cluster, either ipv4 | ipv6.",
 				Type:        proto.ColumnType_STRING,
@@ -109,11 +104,6 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Name:        "preferred_outpost_arn",
 				Description: "The outpost ARN in which the cache cluster is created.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "replication_group_log_delivery_enabled",
-				Description: "A boolean value indicating whether log delivery is enabled for the replication group.",
-				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "cache_subnet_group_name",
@@ -176,29 +166,9 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "ip_discovery",
-				Description: "The network type associated with the cluster, either ipv4 or ipv6.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "network_type",
-				Description: "Must be either ipv4, ipv6, or dual_stack.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "preferred_outpost_arn",
-				Description: "The outpost ARN in which the cache cluster is created.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "replication_group_log_delivery_enabled",
 				Description: "A boolean value indicating whether log delivery is enabled for the replication group.",
 				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "transit_encryption_mode",
-				Description: "A setting that allows you to migrate your clients to use in-transit encryption, with no downtime.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "cache_parameter_group",
@@ -208,16 +178,6 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "cache_nodes",
 				Description: "A list of cache nodes that are members of the cluster.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "cache_security_groups",
-				Description: "A list of cache security group elements, composed of name and status sub-elements.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "log_delivery_configurations",
-				Description: "Returns the destination, format and type of the logs.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -238,11 +198,6 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "configuration_endpoint",
 				Description: "Represents a Memcached cluster endpoint which can be used by an application to connect to any node in the cluster.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "cache_nodes",
-				Description: "A list of cache nodes that are members of the cluster.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

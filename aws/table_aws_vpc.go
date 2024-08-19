@@ -217,7 +217,7 @@ func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (in
 		return nil, err
 	}
 
-	if op.Vpcs != nil && len(op.Vpcs) > 0 {
+	if op != nil && len(op.Vpcs) > 0 {
 		return op.Vpcs[0], nil
 	}
 	return nil, nil

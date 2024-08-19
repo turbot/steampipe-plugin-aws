@@ -232,7 +232,7 @@ func getElasticBeanstalkApplicationVersion(ctx context.Context, d *plugin.QueryD
 		return nil, err
 	}
 
-	if data.ApplicationVersions != nil && len(data.ApplicationVersions) > 0 {
+	if data != nil && len(data.ApplicationVersions) > 0 {
 		return data.ApplicationVersions[0], nil
 	}
 

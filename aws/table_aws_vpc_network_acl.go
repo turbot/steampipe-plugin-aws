@@ -195,7 +195,7 @@ func getVpcNetworkACL(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		return nil, err
 	}
 
-	if op.NetworkAcls != nil && len(op.NetworkAcls) > 0 {
+	if op != nil && len(op.NetworkAcls) > 0 {
 		return op.NetworkAcls[0], nil
 	}
 	return nil, nil
