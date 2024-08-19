@@ -276,7 +276,7 @@ func getEc2CapacityReservation(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	if op.CapacityReservations != nil && len(op.CapacityReservations) > 0 {
+	if len(op.CapacityReservations) > 0 {
 		return op.CapacityReservations[0], nil
 	}
 	return nil, nil
