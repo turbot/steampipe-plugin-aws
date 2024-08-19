@@ -76,6 +76,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/inspector2 v1.24.4
 	github.com/aws/aws-sdk-go-v2/service/iot v1.53.3
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.31.2
+	github.com/aws/aws-sdk-go-v2/service/keyspaces v1.10.8
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.27.4
 	github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.25.2
 	github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.23.4
@@ -85,6 +86,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.37.0
 	github.com/aws/aws-sdk-go-v2/service/macie2 v1.38.4
 	github.com/aws/aws-sdk-go-v2/service/mediastore v1.20.4
+	github.com/aws/aws-sdk-go-v2/service/memorydb v1.19.8
 	github.com/aws/aws-sdk-go-v2/service/mgn v1.28.0
 	github.com/aws/aws-sdk-go-v2/service/mq v1.22.4
 	github.com/aws/aws-sdk-go-v2/service/neptune v1.31.6
@@ -144,7 +146,6 @@ require (
 require golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 
 require (
-	github.com/aws/aws-sdk-go-v2/service/keyspaces v1.10.8 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.47.0 // indirect
