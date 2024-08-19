@@ -85,6 +85,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.37.0
 	github.com/aws/aws-sdk-go-v2/service/macie2 v1.38.4
 	github.com/aws/aws-sdk-go-v2/service/mediastore v1.20.4
+	github.com/aws/aws-sdk-go-v2/service/memorydb v1.19.8
 	github.com/aws/aws-sdk-go-v2/service/mgn v1.28.0
 	github.com/aws/aws-sdk-go-v2/service/mq v1.22.4
 	github.com/aws/aws-sdk-go-v2/service/neptune v1.31.6
@@ -129,7 +130,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.48.2
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4
-	github.com/aws/smithy-go v1.20.2
+	github.com/aws/smithy-go v1.20.4
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/goccy/go-yaml v1.11.3
 	github.com/golang/protobuf v1.5.4
