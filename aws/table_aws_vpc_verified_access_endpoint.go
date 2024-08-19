@@ -250,7 +250,7 @@ func getVpcVerifiedAccessEndpoint(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
-	if op.VerifiedAccessEndpoints != nil && len(op.VerifiedAccessEndpoints) > 0 {
+	if op != nil && len(op.VerifiedAccessEndpoints) > 0 {
 		return op.VerifiedAccessEndpoints[0], nil
 	}
 	return nil, nil

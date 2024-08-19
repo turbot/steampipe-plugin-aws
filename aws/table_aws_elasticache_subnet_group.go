@@ -158,7 +158,7 @@ func getElastiCacheSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	if op.CacheSubnetGroups != nil && len(op.CacheSubnetGroups) > 0 {
+	if op != nil && len(op.CacheSubnetGroups) > 0 {
 		return op.CacheSubnetGroups[0], nil
 	}
 	return nil, nil

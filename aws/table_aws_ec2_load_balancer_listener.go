@@ -232,7 +232,7 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	if op.Listeners != nil && len(op.Listeners) > 0 {
+	if len(op.Listeners) > 0 {
 		return op.Listeners[0], nil
 	}
 	return nil, nil

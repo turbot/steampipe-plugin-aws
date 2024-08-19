@@ -267,7 +267,7 @@ func getNeptuneDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-	if op.DBClusterSnapshots != nil && len(op.DBClusterSnapshots) > 0 {
+	if op != nil && len(op.DBClusterSnapshots) > 0 {
 		snapshot := op.DBClusterSnapshots[0]
 		if *snapshot.Engine == "neptune" {
 			return snapshot, nil

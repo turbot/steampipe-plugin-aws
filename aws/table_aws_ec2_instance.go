@@ -621,7 +621,7 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	if len(op.Reservations) > 0 {
-		if op.Reservations[0].Instances != nil && len(op.Reservations[0].Instances) > 0 {
+		if len(op.Reservations[0].Instances) > 0 {
 			return op.Reservations[0].Instances[0], nil
 		}
 	}

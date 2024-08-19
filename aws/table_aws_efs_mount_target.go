@@ -211,7 +211,7 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	if op.MountTargets != nil && len(op.MountTargets) > 0 {
+	if op != nil && len(op.MountTargets) > 0 {
 		return op.MountTargets[0], nil
 	}
 
