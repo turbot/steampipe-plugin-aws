@@ -13,7 +13,7 @@ The `aws_memorydb_cluster` table enables DevOps engineers and cloud administrato
 
 ## Examples
 
-### Basic Cluster Information
+### Basic cluster information
 Retrieve basic information about your AWS MemoryDB clusters, including their name, ARN, status, and node type. This can be useful for getting an overview of the clusters deployed in your AWS account.
 
 ```sql+postgres
@@ -40,7 +40,7 @@ from
   aws_memorydb_cluster;
 ```
 
-### List Clusters with Auto Minor Version Upgrade Enabled
+### List clusters with auto-minor version upgrade enabled
 Identify clusters that have automatic minor version upgrades enabled, which can be useful for understanding how your clusters are being maintained and ensuring they are kept up to date.
 
 ```sql+postgres
@@ -65,7 +65,7 @@ where
   auto_minor_version_upgrade = 1;
 ```
 
-### List Multi-AZ Clusters
+### List multi-AZ clusters
 Fetch a list of clusters that are configured with Multi-AZ for high availability. This can help in identifying which clusters have enhanced availability features enabled.
 
 ```sql+postgres
@@ -90,7 +90,7 @@ where
   availability_mode = 'multiaz';
 ```
 
-### List Clusters with Encryption in Transit Disabled
+### List clusters with encryption in transit disabled
 Find clusters where encryption in transit is not enabled, which may indicate potential security risks that need to be addressed.
 
 ```sql+postgres
@@ -115,7 +115,7 @@ where
   tls_enabled = 0;
 ```
 
-### Clusters by Maintenance Window
+### Clusters by maintenance window
 Retrieve clusters along with their scheduled maintenance windows, which is useful for planning updates and understanding potential downtime.
 
 ```sql+postgres
@@ -136,7 +136,7 @@ from
   aws_memorydb_cluster;
 ```
 
-### List Clusters with Specific Node Type
+### List clusters with specific node type
 Query clusters that are using a particular node type, allowing you to evaluate the resource allocations and performance characteristics across your MemoryDB clusters.
 
 ```sql+postgres
@@ -161,7 +161,7 @@ where
   node_type = 'db.r6gd.xlarge';
 ```
 
-### List Clusters with Shard Details
+### List clusters with shard details
 Retrieve detailed information about the shards within each cluster, including shard configuration and number of shards. This can help in understanding the distribution of data and load across your clusters.
 
 ```sql+postgres
@@ -184,7 +184,7 @@ from
   aws_memorydb_cluster;
 ```
 
-### Clusters with Pending Updates
+### Clusters with pending updates
 Identify clusters that have pending updates, which may require attention to ensure the clusters are up-to-date and running optimally.
 
 ```sql+postgres
@@ -209,7 +209,7 @@ where
   json_array_length(pending_updates) > 0;
 ```
 
-### List Clusters with Snapshot Retention Details
+### List clusters with snapshot retention details
 Gather information on the snapshot retention settings of your clusters to ensure that your data backup policies are being properly enforced.
 
 ```sql+postgres
