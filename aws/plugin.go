@@ -220,7 +220,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_classic_load_balancer":                                tableAwsEc2ClassicLoadBalancer(ctx),
 			"aws_ec2_client_vpn_endpoint":                                  tableAwsEC2ClientVPNEndpoint(ctx),
 			"aws_ec2_gateway_load_balancer":                                tableAwsEc2GatewayLoadBalancer(ctx),
-			"aws_ec2_load_balancer_listener_rule": tableAwsEc2ApplicationLoadBalancerListenerRule(ctx),
+			"aws_ec2_load_balancer_listener_rule":                          tableAwsEc2ApplicationLoadBalancerListenerRule(ctx),
 			"aws_ec2_instance":                                             tableAwsEc2Instance(ctx),
 			"aws_ec2_instance_availability":                                tableAwsInstanceAvailability(ctx),
 			"aws_ec2_instance_metric_cpu_utilization":                      tableAwsEc2InstanceMetricCpuUtilization(ctx),
