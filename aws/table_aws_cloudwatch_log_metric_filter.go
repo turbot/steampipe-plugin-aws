@@ -235,7 +235,7 @@ func getCloudwatchLogMetricFilterAkas(ctx context.Context, d *plugin.QueryData, 
 func logMetricTransformationsData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	metricFilterData := d.HydrateItem.(types.MetricFilter)
 
-	if metricFilterData.MetricTransformations != nil && len(metricFilterData.MetricTransformations) > 0 {
+	if len(metricFilterData.MetricTransformations) > 0 {
 		if d.Param.(string) == "MetricName" {
 			return metricFilterData.MetricTransformations[0].MetricName, nil
 		} else if d.Param.(string) == "MetricNamespace" {

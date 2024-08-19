@@ -335,7 +335,7 @@ func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	if op.ReplicationInstances != nil && len(op.ReplicationInstances) > 0 {
+	if len(op.ReplicationInstances) > 0 {
 		return op.ReplicationInstances[0], nil
 	}
 	return nil, nil
