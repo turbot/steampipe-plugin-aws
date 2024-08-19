@@ -93,11 +93,6 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsEc2KeyPairAkas,
 				Transform:   transform.FromValue(),
 			},
-			{
-				Name:        "create_time",
-				Description: "The time that the keypair was created or imported",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
 		}),
 	}
 }
@@ -161,7 +156,7 @@ func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
-	if op.KeyPairs != nil && len(op.KeyPairs) > 0 {
+	if len(op.KeyPairs) > 0 {
 		return op.KeyPairs[0], nil
 	}
 	return nil, nil

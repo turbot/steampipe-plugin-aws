@@ -261,7 +261,7 @@ func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	if op.LoadBalancers != nil && len(op.LoadBalancers) > 0 {
+	if len(op.LoadBalancers) > 0 {
 		return op.LoadBalancers[0], nil
 	}
 	return nil, nil
@@ -312,7 +312,7 @@ func getAwsEc2NetworkLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
-	if loadBalancerData.TagDescriptions != nil && len(loadBalancerData.TagDescriptions) > 0 {
+	if len(loadBalancerData.TagDescriptions) > 0 {
 		return loadBalancerData.TagDescriptions[0].Tags, nil
 	}
 

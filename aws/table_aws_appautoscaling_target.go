@@ -195,7 +195,7 @@ func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData
 		plugin.Logger(ctx).Error("aws_appautoscaling_target.getAwsApplicationAutoScalingTarget", "api_error", err)
 		return nil, err
 	}
-	if op.ScalableTargets != nil && len(op.ScalableTargets) > 0 {
+	if len(op.ScalableTargets) > 0 {
 		return op.ScalableTargets[0], nil
 	}
 

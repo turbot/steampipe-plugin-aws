@@ -189,7 +189,7 @@ func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		return nil, err
 	}
 
-	if op.RouteTables != nil && len(op.RouteTables) > 0 {
+	if op != nil && len(op.RouteTables) > 0 {
 		return op.RouteTables[0], nil
 	}
 	return nil, nil
