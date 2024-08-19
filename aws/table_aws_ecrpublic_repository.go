@@ -231,7 +231,7 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plug
 		plugin.Logger(ctx).Error("aws_ecrpublic_repository.getAwsEcrpublicRepository", "api_error", err)
 		return nil, err
 	}
-	if data.Repositories != nil && len(data.Repositories) > 0 {
+	if len(data.Repositories) > 0 {
 		return data.Repositories[0], nil
 	}
 

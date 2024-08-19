@@ -240,7 +240,7 @@ func getVpcEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 
-	if item.VpcEndpoints != nil && len(item.VpcEndpoints) > 0 {
+	if item != nil && len(item.VpcEndpoints) > 0 {
 		return item.VpcEndpoints[0], nil
 	}
 

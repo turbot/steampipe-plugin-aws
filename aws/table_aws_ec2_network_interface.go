@@ -384,7 +384,7 @@ func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
-	if op.NetworkInterfaces != nil && len(op.NetworkInterfaces) > 0 {
+	if len(op.NetworkInterfaces) > 0 {
 		return op.NetworkInterfaces[0], nil
 	}
 	return nil, nil
