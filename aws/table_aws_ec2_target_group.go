@@ -327,7 +327,7 @@ func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 func targetGroupTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*elasticloadbalancingv2.DescribeTagsOutput)
 	var turbotTagsMap map[string]string
-	if en(data.TagDescriptions) > 0 {
+	if len(data.TagDescriptions) > 0 {
 		if data.TagDescriptions[0].Tags != nil {
 			turbotTagsMap = map[string]string{}
 			for _, i := range data.TagDescriptions[0].Tags {
