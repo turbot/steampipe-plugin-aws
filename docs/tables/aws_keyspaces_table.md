@@ -11,6 +11,9 @@ Amazon Keyspaces (for Apache Cassandra) is a scalable, highly available, and man
 
 The `aws_keyspaces_table` table enables cloud administrators and DevOps engineers to gather detailed insights into their Keyspaces tables. You can query various aspects of the table, such as its creation timestamp, throughput capacity, encryption, and status. This table is particularly useful for monitoring table performance, ensuring security compliance, and managing table configurations.
 
+**Important Notes**
+- You **_must_** specify `keyspace_name` in a `where` clause in order to use this table.
+
 ## Examples
 
 ### Basic table information
@@ -24,7 +27,9 @@ select
   creation_timestamp,
   region
 from
-  aws_keyspaces_table;
+  aws_keyspaces_table
+where
+  keyspace_name = 'myKey';
 ```
 
 ```sql+sqlite
@@ -35,7 +40,9 @@ select
   creation_timestamp,
   region
 from
-  aws_keyspaces_table;
+  aws_keyspaces_table
+where
+  keyspace_name = 'myKey';
 ```
 
 ### List active tables
@@ -49,7 +56,8 @@ select
 from
   aws_keyspaces_table
 where
-  status = 'ACTIVE';
+  keyspace_name = 'myKey'
+  and status = 'ACTIVE';
 ```
 
 ```sql+sqlite
@@ -60,7 +68,8 @@ select
 from
   aws_keyspaces_table
 where
-  status = 'ACTIVE';
+  keyspace_name = 'myKey'
+  and status = 'ACTIVE';
 ```
 
 ### List tables with specific encryption settings
@@ -75,7 +84,8 @@ select
 from
   aws_keyspaces_table
 where
-  encryption_specification_type = 'AWS_OWNED_KMS_KEY';
+  keyspace_name = 'myKey'
+  and encryption_specification_type = 'AWS_OWNED_KMS_KEY';
 ```
 
 ```sql+sqlite
@@ -87,7 +97,8 @@ select
 from
   aws_keyspaces_table
 where
-  encryption_specification_type = 'AWS_OWNED_KMS_KEY';
+  keyspace_name = 'myKey'
+  and encryption_specification_type = 'AWS_OWNED_KMS_KEY';
 ```
 
 ### List tables by creation date
@@ -100,6 +111,8 @@ select
   creation_timestamp
 from
   aws_keyspaces_table
+where
+  keyspace_name = 'myKey'
 order by
   creation_timestamp desc;
 ```
@@ -111,6 +124,8 @@ select
   creation_timestamp
 from
   aws_keyspaces_table
+where
+  keyspace_name = 'myKey'
 order by
   creation_timestamp desc;
 ```
@@ -127,7 +142,8 @@ select
 from
   aws_keyspaces_table
 where
-  default_time_to_live is not null;
+  keyspace_name = 'myKey'
+  and default_time_to_live is not null;
 ```
 
 ```sql+sqlite
@@ -139,7 +155,8 @@ select
 from
   aws_keyspaces_table
 where
-  default_time_to_live is not null;
+  keyspace_name = 'myKey'
+  and default_time_to_live is not null;
 ```
 
 ### Get table schema definitions
@@ -151,7 +168,9 @@ select
   arn,
   schema_definition
 from
-  aws_keyspaces_table;
+  aws_keyspaces_table
+where
+  keyspace_name = 'myKey';
 ```
 
 ```sql+sqlite
@@ -160,7 +179,9 @@ select
   arn,
   schema_definition
 from
-  aws_keyspaces_table;
+  aws_keyspaces_table
+where
+  keyspace_name = 'myKey';
 ```
 
 ### List tables with Point-in-Time Recovery (PITR) enabled
@@ -174,7 +195,8 @@ select
 from
   aws_keyspaces_table
 where
-  point_in_time_recovery ->> 'status' = 'ENABLED';
+  keyspace_name = 'myKey'
+  and (point_in_time_recovery ->> 'status') = 'ENABLED';
 ```
 
 ```sql+sqlite
@@ -185,5 +207,6 @@ select
 from
   aws_keyspaces_table
 where
-  json_extract(point_in_time_recovery, '$.status') = 'ENABLED';
+  keyspace_name = 'myKey'
+  and json_extract(point_in_time_recovery, '$.status') = 'ENABLED';
 ```
