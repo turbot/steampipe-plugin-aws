@@ -351,6 +351,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iot_thing":                                                tableAwsIoTThing(ctx),
 			"aws_iot_thing_group":                                          tableAwsIoTThingGroup(ctx),
 			"aws_iot_thing_type":                                           tableAwsIoTThingType(ctx),
+			"aws_keyspaces_table":                                          tableAwsKeyspacesTable(ctx),
 			"aws_kinesis_consumer":                                         tableAwsKinesisConsumer(ctx),
 			"aws_kinesis_firehose_delivery_stream":                         tableAwsKinesisFirehoseDeliveryStream(ctx),
 			"aws_kinesis_stream":                                           tableAwsKinesisStream(ctx),

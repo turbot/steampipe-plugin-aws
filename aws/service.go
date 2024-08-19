@@ -83,6 +83,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 	"github.com/aws/aws-sdk-go-v2/service/iot"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/keyspaces"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
@@ -172,6 +173,7 @@ import (
 	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
 	iotEndpoint "github.com/aws/aws-sdk-go/service/iot"
 	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
+	keyspacesEndpoint "github.com/aws/aws-sdk-go/service/keyspaces"
 	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
@@ -898,6 +900,17 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 		return nil, nil
 	}
 	return kafka.NewFromConfig(*cfg), nil
+}
+
+func KeyspacesClient(ctx context.Context, d *plugin.QueryData) (*keyspaces.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, keyspacesEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return keyspaces.NewFromConfig(*cfg), nil
 }
 
 func KinesisClient(ctx context.Context, d *plugin.QueryData) (*kinesis.Client, error) {
