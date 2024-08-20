@@ -124,6 +124,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.25.5
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.10
 	github.com/aws/aws-sdk-go-v2/service/support v1.21.4
+	github.com/aws/aws-sdk-go-v2/service/timestreamwrite v1.25.9
 	github.com/aws/aws-sdk-go-v2/service/transfer v1.45.0
 	github.com/aws/aws-sdk-go-v2/service/waf v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/wafregional v1.21.4
@@ -170,7 +171,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.9 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.9.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.9.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssmincidents v1.30.4

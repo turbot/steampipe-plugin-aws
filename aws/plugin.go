@@ -509,6 +509,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ssoadmin_permission_set":                                  tableAwsSsoAdminPermissionSet(ctx),
 			"aws_sts_caller_identity":                                      tableAwsSTSCallerIdentity(ctx),
 			"aws_tagging_resource":                                         tableAwsTaggingResource(ctx),
+			"aws_timestreamwrite_database":                                 tableAwsTimestreamwriteDatabase(ctx),
+			"aws_timestreamwrite_table":                                    tableAwsTimestreamwriteTable(ctx),
 			"aws_transfer_server":                                          tableAwsTransferServer(ctx),
 			"aws_transfer_user":                                            tableAwsTransferUser(ctx),
 			"aws_trusted_advisor_check_summary":                            tableAwsTrustedAdvisorCheckSummary(ctx),
