@@ -17,7 +17,7 @@ import (
 func tableAwsKeyspacesTable(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_keyspaces_table",
-		Description: "AWS Keyspace Table",
+		Description: "AWS Keyspaces Table",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"keyspace_name", "table_name"}),
 			Hydrate:    getKeyspacesTable,
