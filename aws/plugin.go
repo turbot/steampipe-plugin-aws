@@ -95,6 +95,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gatewayv2_integration":                                tableAwsAPIGatewayV2Integration(ctx),
 			"aws_api_gatewayv2_route":                                      tableAwsAPIGatewayV2Route(ctx),
 			"aws_api_gatewayv2_stage":                                      tableAwsAPIGatewayV2Stage(ctx),
+			"aws_app_runner_service":                                       tableAwsAppRunnerService(ctx),
 			"aws_appautoscaling_policy":                                    tableAwsAppAutoScalingPolicy(ctx),
 			"aws_appautoscaling_target":                                    tableAwsAppAutoScalingTarget(ctx),
 			"aws_appconfig_application":                                    tableAwsAppConfigApplication(ctx),

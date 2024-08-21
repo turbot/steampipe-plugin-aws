@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/apprunner"
 	"github.com/aws/aws-sdk-go-v2/service/appstream"
 	"github.com/aws/aws-sdk-go-v2/service/appsync"
 	"github.com/aws/aws-sdk-go-v2/service/athena"
@@ -149,6 +150,7 @@ import (
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
+	appRunnerEndpoint "github.com/aws/aws-sdk-go/service/apprunner"
 	appsyncv2Endpoint "github.com/aws/aws-sdk-go/service/appsync"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
@@ -311,6 +313,17 @@ func ApplicationAutoScalingClient(ctx context.Context, d *plugin.QueryData) (*ap
 		return nil, err
 	}
 	return applicationautoscaling.NewFromConfig(*cfg), nil
+}
+
+func AppRunnerClient(ctx context.Context, d *plugin.QueryData) (*apprunner.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, appRunnerEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return apprunner.NewFromConfig(*cfg), nil
 }
 
 func AppStreamClient(ctx context.Context, d *plugin.QueryData) (*appstream.Client, error) {
