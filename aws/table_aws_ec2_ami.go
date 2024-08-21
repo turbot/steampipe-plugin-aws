@@ -258,6 +258,17 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 	input := &ec2.DescribeImagesInput{}
 
+	input.IncludeDisabled = new(bool)
+	disabledState := "disabled"
+	state := getQualsValueByColumn(d.Quals, "state", "string")
+	if val, ok := state.(string); ok {
+		*input.IncludeDisabled = val == disabledState
+	} else if val, ok := state.([]string); ok {
+		for _, v := range val {
+			*input.IncludeDisabled = v == disabledState
+		}
+	}
+
 	filters := buildAmisWithOwnerFilter(input, d.Quals, ctx, d, h)
 	if len(filters) != 0 {
 		input.Filters = filters
