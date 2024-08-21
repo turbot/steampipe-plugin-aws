@@ -55,6 +55,7 @@ data "aws_region" "alternate" {
 resource "aws_ebs_volume" "my_volume" {
   availability_zone = "us-east-1a"
   size              = 8
+  encrypted         = true
   tags = {
     Name = "turbot-volume-test"
   }
