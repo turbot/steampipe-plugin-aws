@@ -139,3 +139,38 @@ where
   listener_arn = 'arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-load-balancer/50dc6c495c0c9188/70d7923f8398b272'
   and is_default = 1;
 ```
+
+### Get all rules for listeners
+Retrieve detailed information about the rules associated with AWS EC2 load balancer listeners.
+
+```sql+postgres
+select
+  r.arn,
+  r.listener_arn,
+  l.load_balancer_arn,
+  l.protocol as listener_protocol,
+  l.ssl_policy,
+  r.priority,
+  r.is_default,
+  r.actions,
+  r.conditions
+from
+  aws_ec2_load_balancer_listener_rule as r
+  join aws_ec2_load_balancer_listener as l on r.listener_arn = l.arn;
+```
+
+```sql+sqlite
+select
+  r.arn,
+  r.listener_arn,
+  l.load_balancer_arn,
+  l.protocol as listener_protocol,
+  l.ssl_policy,
+  r.priority,
+  r.is_default,
+  r.actions,
+  r.conditions
+from
+  aws_ec2_load_balancer_listener_rule as r
+  join aws_ec2_load_balancer_listener as l on r.listener_arn = l.arn;
+```
