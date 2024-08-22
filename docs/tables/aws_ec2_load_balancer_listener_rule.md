@@ -174,3 +174,46 @@ from
   aws_ec2_load_balancer_listener_rule as r
   join aws_ec2_load_balancer_listener as l on r.listener_arn = l.arn;
 ```
+
+### Get listener rules for application load balancers
+Retrieve detailed information about the rules associated with AWS EC2 Application load balancer listeners.
+
+```sql+postgres
+select
+  r.arn,
+  r.listener_arn,
+  l.load_balancer_arn,
+  l.protocol as listener_protocol,
+  l.ssl_policy,
+  a.canonical_hosted_zone_id,
+  a.dns_name,
+  a.ip_address_type,
+  r.priority,
+  r.is_default,
+  r.actions,
+  r.conditions
+from
+  aws_ec2_load_balancer_listener_rule as r
+  join aws_ec2_load_balancer_listener as l on r.listener_arn = l.arn
+  join aws_ec2_application_load_balancer as a on l.load_balancer_arn = a.arn;
+```
+
+```sql+sqlite
+ select
+  r.arn,
+  r.listener_arn,
+  l.load_balancer_arn,
+  l.protocol as listener_protocol,
+  l.ssl_policy,
+  a.canonical_hosted_zone_id,
+  a.dns_name,
+  a.ip_address_type,
+  r.priority,
+  r.is_default,
+  r.actions,
+  r.conditions
+from
+  aws_ec2_load_balancer_listener_rule as r
+  join aws_ec2_load_balancer_listener as l on r.listener_arn = l.arn
+  join aws_ec2_application_load_balancer as a on l.load_balancer_arn = a.arn;
+```
