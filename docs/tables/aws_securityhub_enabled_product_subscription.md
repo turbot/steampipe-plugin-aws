@@ -64,7 +64,7 @@ select
 from
   aws_securityhub_enabled_product_subscription s,
   aws_securityhub_product p,
-  json_each(p.product_subscription_resource_policy->'Statement') as m
+  json_each(p.product_subscription_resource_policy, '$.Statement') as m
 where
   json_extract(m.value, '$.Resource') = s.arn;
 ```
