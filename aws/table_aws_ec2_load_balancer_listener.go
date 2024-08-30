@@ -32,6 +32,9 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2LoadBalancers,
 			Hydrate:       listEc2LoadBalancerListeners,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "load_balancer_arn", Require: plugin.Optional},
+			},
 			Tags:          map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancers"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elbv2v1.EndpointsID),
@@ -154,8 +157,14 @@ func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// LIST FUNCTION
 
 func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	loadBalancerArn := d.EqualsQualString("load_balancer_arn")
 	// Get the details of load balancer
 	loadBalancerDetails := h.Item.(types.LoadBalancer)
+
+	// Minimize API call based on provided load balancer ARN
+	if loadBalancerArn != "" && loadBalancerArn != *loadBalancerDetails.LoadBalancerArn {
+		return nil, nil
+	}
 
 	// Create Session
 	svc, err := ELBV2Client(ctx, d)
