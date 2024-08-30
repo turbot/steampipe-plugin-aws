@@ -145,6 +145,17 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "current_instance_boot_mode",
+				Description: "The boot mode that is used to boot the instance at launch or start.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "ipv6_address",
+				Description: "The IPv6 address assigned to the instance.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Ipv6Address"),
+			},
+			{
 				Name:        "capacity_reservation_id",
 				Description: "The ID of the Capacity Reservation.",
 				Type:        proto.ColumnType_STRING,
@@ -429,6 +440,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "state_reason",
+				Description: "The reason for the most recent state transition.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "launch_template_data",
 				Description: "The configuration data of the specified instance.",
 				Hydrate:     getEc2LaunchTemplateData,
@@ -604,8 +620,8 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 
-	if op.Reservations != nil && len(op.Reservations) > 0 {
-		if op.Reservations[0].Instances != nil && len(op.Reservations[0].Instances) > 0 {
+	if len(op.Reservations) > 0 {
+		if len(op.Reservations[0].Instances) > 0 {
 			return op.Reservations[0].Instances[0], nil
 		}
 	}

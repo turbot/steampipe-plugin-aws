@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
@@ -22,7 +23,7 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "source_server_id", Require: plugin.Optional},
 				{Name: "staging_account_id", Require: plugin.Optional},
-				{Name: "hardware_id", Require: plugin.Optional},
+				{Name: "hardware_id", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				// UninitializedAccountException - This error comes up when default replication settings are not set for a particular region.
@@ -54,6 +55,17 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Name:        "recovery_instance_id",
 				Description: "The ID of the Recovery Instance associated with this Source Server.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "agent_version",
+				Description: "The version of the DRS agent installed on the source server.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_network_id",
+				Description: "ID of the Source Network which is protecting this Source Server's network.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SourceNetworkID"),
 			},
 			{
 				Name:        "source_properties",
@@ -169,7 +181,7 @@ func listAwsDRSSourceServers(ctx context.Context, d *plugin.QueryData, _ *plugin
 		}
 	}
 
-	input.MaxResults = &maxItems
+	input.MaxResults = aws.Int32(maxItems)
 	sourceServerID := d.EqualsQualString("source_server_id")
 	stagingAccountID := d.EqualsQualString("staging_account_id")
 	hardwareID := d.EqualsQualString("hardware_id")

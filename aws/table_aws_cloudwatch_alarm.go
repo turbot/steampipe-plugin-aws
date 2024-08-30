@@ -65,6 +65,11 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "evaluation_state",
+				Description: "If the value of this field is PARTIAL_DATA , the alarm is being evaluated based on only partial data. This happens if the query used for the alarm returns more than 10,000 metrics.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "actions_enabled",
 				Description: "Indicates whether actions should be executed during any changes to the alarm state.",
 				Type:        proto.ColumnType_BOOL,
@@ -132,6 +137,11 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 			{
 				Name:        "state_updated_timestamp",
 				Description: "The time stamp of the last update to the alarm state.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "state_transitioned_timestamp",
+				Description: "The date and time that the alarm's StateValue most recently changed.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -304,7 +314,7 @@ func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	if item.MetricAlarms != nil && len(item.MetricAlarms) > 0 {
+	if len(item.MetricAlarms) > 0 {
 		return item.MetricAlarms[0], nil
 	}
 

@@ -203,7 +203,7 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
-	if data.AccessPoints != nil && len(data.AccessPoints) > 0 {
+	if data != nil && len(data.AccessPoints) > 0 {
 		return data.AccessPoints[0], nil
 	}
 	return nil, nil

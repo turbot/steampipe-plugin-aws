@@ -187,7 +187,7 @@ func fetchWellArchitectedCheckSummaries(ctx context.Context, d *plugin.QueryData
 		}
 
 		input := &wellarchitected.ListCheckSummariesInput{
-			MaxResults: &maxLimit,
+			MaxResults: aws.Int32(maxLimit),
 			LensArn:    aws.String(*answer.LensArn),
 			PillarId:   aws.String(*answer.PillarId),
 			QuestionId: aws.String(*answer.QuestionId),

@@ -149,6 +149,11 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "storage_type",
+				Description: "Storage type associated with your cluster Storage type associated with the cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "port",
 				Description: "Specifies the port that the database engine is listening on.",
 				Type:        proto.ColumnType_INT,
@@ -327,7 +332,7 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	if op.DBClusters != nil && len(op.DBClusters) > 0 {
+	if len(op.DBClusters) > 0 {
 		cluster := op.DBClusters[0]
 		if *cluster.Engine == "docdb" {
 			return cluster, nil

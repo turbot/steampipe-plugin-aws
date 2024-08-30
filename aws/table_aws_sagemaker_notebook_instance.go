@@ -140,6 +140,12 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSageMakerNotebookInstance,
 			},
 			{
+				Name:        "platform_identifier",
+				Description: "The platform identifier of the notebook instance runtime environment.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSageMakerNotebookInstance,
+			},
+			{
 				Name:        "volume_size_in_gb",
 				Description: "The size, in GB, of the ML storage volume attached to the notebook instance.",
 				Type:        proto.ColumnType_INT,

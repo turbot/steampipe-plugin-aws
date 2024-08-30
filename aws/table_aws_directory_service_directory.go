@@ -162,6 +162,11 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "os_version",
+				Description: "The operating system (OS) version of the directory.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "connect_settings",
 				Description: "A DirectoryConnectSettingsDescription object that contains additional information about an AD Connector directory.",
 				Type:        proto.ColumnType_JSON,
@@ -344,7 +349,7 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
-	if op.DirectoryDescriptions != nil && len(op.DirectoryDescriptions) > 0 {
+	if len(op.DirectoryDescriptions) > 0 {
 		return op.DirectoryDescriptions[0], nil
 	}
 	return nil, nil

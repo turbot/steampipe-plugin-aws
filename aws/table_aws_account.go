@@ -183,7 +183,7 @@ func getOrganizationDetails(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func accountDataToTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	accountInfo := d.HydrateItem.(*accountData)
 
-	if accountInfo.Aliases != nil && len(accountInfo.Aliases) > 0 {
+	if len(accountInfo.Aliases) > 0 {
 		return accountInfo.Aliases[0], nil
 	}
 

@@ -81,7 +81,7 @@ resource "aws_lambda_function" "named_test_resource" {
   function_name = var.resource_name
   role          = aws_iam_role.aws_lambda_function.arn
   handler       = "test.test"
-  runtime       = "python3.7"
+  runtime       = "python3.12"
   filename      = "${path.cwd}/../../test.zip"
   tags = {
     name = var.resource_name

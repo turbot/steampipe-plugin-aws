@@ -550,7 +550,7 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		return nil, err
 	}
 
-	if op.DBInstances != nil && len(op.DBInstances) > 0 {
+	if op != nil && len(op.DBInstances) > 0 {
 		instance := op.DBInstances[0]
 		if isSuppportedRDSEngine(*instance.Engine) {
 			return instance, nil

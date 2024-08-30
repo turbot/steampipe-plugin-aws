@@ -122,6 +122,18 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSageMakerDomain,
 			},
 			{
+				Name:        "single_sign_on_application_arn",
+				Description: "The ARN of the application managed by SageMaker in IAM Identity Center.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSageMakerDomain,
+			},
+			{
+				Name:        "vpc_id",
+				Description: "The ID of the Amazon Virtual Private Cloud (VPC) that the domain uses for communication.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSageMakerDomain,
+			},
+			{
 				Name:        "status",
 				Description: "The domain's status.",
 				Type:        proto.ColumnType_STRING,
@@ -147,6 +159,12 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 			{
 				Name:        "domain_settings",
 				Description: "A collection of domain settings.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSageMakerDomain,
+			},
+			{
+				Name:        "default_space_settings",
+				Description: "The default settings used to create a space.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSageMakerDomain,
 			},

@@ -77,6 +77,11 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 				Description: "The default actions for the listener.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "mutual_authentication",
+				Description: "The mutual authentication configuration information.",
+				Type:        proto.ColumnType_JSON,
+			},
 
 			// Standard columns
 			{
@@ -227,7 +232,7 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	if op.Listeners != nil && len(op.Listeners) > 0 {
+	if len(op.Listeners) > 0 {
 		return op.Listeners[0], nil
 	}
 	return nil, nil

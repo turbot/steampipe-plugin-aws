@@ -80,6 +80,21 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "preferred_instance_type",
+				Description: "The Amazon EC2 instance type.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "resolver_endpoint_type",
+				Description: "The Resolver endpoint IP address type.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "outpost_arn",
+				Description: "The ARN (Amazon Resource Name) for the Outpost.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "direction",
 				Description: "Indicates whether the Resolver endpoint allows inbound or outbound DNS queries.",
 				Type:        proto.ColumnType_STRING,
@@ -119,6 +134,11 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 			{
 				Name:        "security_group_ids",
 				Description: "The ID of one or more security groups that control access to this VPC.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "protocols",
+				Description: "Protocols used for the endpoint.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

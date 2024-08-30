@@ -185,7 +185,7 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
-	if op.DBParameterGroups != nil && len(op.DBParameterGroups) > 0 {
+	if op != nil && len(op.DBParameterGroups) > 0 {
 		return op.DBParameterGroups[0], nil
 	}
 	return nil, nil

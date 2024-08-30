@@ -203,7 +203,7 @@ func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
-	if op.TransitGatewayRouteTables != nil && len(op.TransitGatewayRouteTables) > 0 {
+	if len(op.TransitGatewayRouteTables) > 0 {
 		return op.TransitGatewayRouteTables[0], nil
 	}
 	return nil, nil

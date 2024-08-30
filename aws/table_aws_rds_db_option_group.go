@@ -78,6 +78,16 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "source_account_id",
+				Description: "Specifies the Amazon Web Services account ID for the option group from which this option group is copied.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_option_group",
+				Description: "Specifies the name of the option group from which this option group is copied.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "vpc_id",
 				Description: "Indicates the ID of the VPC, option group can be applied.",
 				Type:        proto.ColumnType_STRING,
@@ -208,7 +218,7 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	if op.OptionGroupsList != nil && len(op.OptionGroupsList) > 0 {
+	if op != nil && len(op.OptionGroupsList) > 0 {
 		return op.OptionGroupsList[0], nil
 	}
 	return nil, nil

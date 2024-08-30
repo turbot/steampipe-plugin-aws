@@ -152,7 +152,7 @@ func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h
 		return nil, err
 	}
 
-	if op.EgressOnlyInternetGateways != nil && len(op.EgressOnlyInternetGateways) > 0 {
+	if op != nil && len(op.EgressOnlyInternetGateways) > 0 {
 		h.Item = op.EgressOnlyInternetGateways[0]
 		return op.EgressOnlyInternetGateways[0], nil
 	}

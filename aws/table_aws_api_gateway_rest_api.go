@@ -52,6 +52,11 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Id"),
 			},
 			{
+				Name:        "root_resource_id",
+				Description: "The API's root resource ID.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "version",
 				Description: "A version identifier for the API",
 				Type:        proto.ColumnType_STRING,

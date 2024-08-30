@@ -77,7 +77,7 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("EntityArn").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("EntityArn").Transform(transform.NullIfZeroValue).Transform(transform.EnsureStringArray),
 			},
 		}),
 	}

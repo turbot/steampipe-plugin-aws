@@ -13,6 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsSSMDocument(_ context.Context) *plugin.Table {
@@ -33,7 +34,7 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "ssm", "action": "ListDocuments"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "document_type", Require: plugin.Optional},
-				{Name: "owner_type", Require: plugin.Optional},
+				{Name: "owner_type", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
@@ -48,6 +49,11 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "display_name",
+				Description: "The friendly name of the SSM document.",
+				Type:        proto.ColumnType_STRING,
+			},
 			{
 				Name:        "name",
 				Description: "The name of the Systems Manager document.",
@@ -154,6 +160,18 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			{
 				Name:        "parameters",
 				Description: "A description of the parameters for a document.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "category",
+				Description: "The classification of a document to help you identify and categorize its use.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "category_enum",
+				Description: "The value that identifies a document's category.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocument,
 			},

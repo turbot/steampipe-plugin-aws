@@ -253,7 +253,7 @@ func getEc2ReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
-	if op.ReservedInstances != nil && len(op.ReservedInstances) > 0 {
+	if len(op.ReservedInstances) > 0 {
 		return op.ReservedInstances[0], nil
 	}
 	return nil, nil

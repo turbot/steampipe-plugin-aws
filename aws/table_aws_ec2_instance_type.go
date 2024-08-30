@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -20,7 +22,9 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_instance_type",
 		Description: "AWS EC2 Instance Type",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("instance_type"),
+			// We must have to include the region in the query parameter to make the gate API call.
+			// Otherwise we will get an Error: get call returned 9 results - the key column is not globally unique (SQLSTATE HV000)
+			KeyColumns: plugin.AllColumns([]string{"instance_type", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInstanceType"}),
 			},
@@ -29,6 +33,9 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsInstanceTypesOfferings,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "instance_type", Require: plugin.Optional, Operators: []string{"="}},
+			},
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
@@ -37,7 +44,8 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceTypes"},
 			},
 		},
-		Columns: []*plugin.Column{
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
+		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_type",
 				Description: "The instance type. For more information, see [ Instance Types ](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html) in the Amazon Elastic Compute Cloud User Guide.",
@@ -78,6 +86,18 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Name:        "free_tier_eligible",
 				Description: "Indicates whether the instance type is eligible for the free tier.",
 				Type:        proto.ColumnType_BOOL,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "nitro_enclaves_support",
+				Description: "Indicates whether Nitro Enclaves is supported.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "nitro_tpm_support",
+				Description: "Indicates whether NitroTPM is supported.",
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     describeInstanceType,
 			},
 			{
@@ -160,6 +180,48 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Hydrate:     describeInstanceType,
 			},
 			{
+				Name:        "fpga_info",
+				Description: "Describes the FPGA accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "inference_accelerator_info",
+				Description: "Describes the Inference accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "instance_storage_info",
+				Description: "Describes the instance storage for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "media_accelerator_info",
+				Description: "Describes the media accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "neuron_info",
+				Description: "Describes the Neuron accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "nitro_tpm_info",
+				Description: "Describes the supported NitroTPM versions for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "supported_boot_modes",
+				Description: "The supported boot modes.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
@@ -173,35 +235,17 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Hydrate:     instanceTypeDataToAkas,
 				Transform:   transform.FromValue(),
 			},
-		},
+		}),
 	}
 }
 
 //// LIST FUNCTION
 
 func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// get the primary region for aws based on its partition
-
-	commonData, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	region := "us-east-1"
-	if commonColumnData.Partition == "aws-us-gov" {
-		region = "us-gov-east-1"
-	} else if commonColumnData.Partition == "aws-cn" {
-		region = "cn-north-1"
-	} else if commonColumnData.Partition == "aws-iso" {
-		region = "us-iso-east-1"
-	} else if commonColumnData.Partition == "aws-iso-b" {
-		region = "us-isob-east-1"
-	}
+	region := d.EqualsQualString(matrixKeyRegion)
 
 	// Create Session
-	svc, err := EC2ClientForRegion(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.listAwsInstanceTypesOfferings", "connection_error", err)
 		return nil, err
@@ -232,6 +276,10 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 
 	var filters []types.Filter
 	filters = append(filters, types.Filter{Name: aws.String("location"), Values: []string{region}})
+	if d.EqualsQualString("instance_type") != "" {
+		filters = append(filters, types.Filter{Name: aws.String("instance-type"), Values: []string{d.EqualsQualString("instance_type")}})
+	}
+
 	input.Filters = filters
 
 	paginator := ec2.NewDescribeInstanceTypeOfferingsPaginator(svc, input, func(o *ec2.DescribeInstanceTypeOfferingsPaginatorOptions) {
@@ -274,23 +322,8 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		instanceType = types.InstanceType(d.EqualsQuals["instance_type"].GetStringValue())
 	}
 
-	// get the primary region for aws based on its partition
-
-	commonData, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	region := "us-east-1"
-	if commonColumnData.Partition == "aws-us-gov" {
-		region = "us-gov-east-1"
-	} else if commonColumnData.Partition == "aws-cn" {
-		region = "cn-north-1"
-	}
-
 	// Create Session
-	svc, err := EC2ClientForRegion(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_type.describeInstanceType", "connection_error", err)
 		return nil, err

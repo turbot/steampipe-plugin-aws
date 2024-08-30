@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 
@@ -105,7 +106,7 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 	}
 
 	input := &securityhub.ListFindingAggregatorsInput{
-		MaxResults: &maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 	// List Call
 	paginator := securityhub.NewListFindingAggregatorsPaginator(svc, input, func(o *securityhub.ListFindingAggregatorsPaginatorOptions) {

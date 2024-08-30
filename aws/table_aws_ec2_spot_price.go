@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -30,8 +31,8 @@ func tableAwsEc2SpotPrice(_ context.Context) *plugin.Table {
 				{Name: "availability_zone", Require: plugin.Optional},
 				{Name: "instance_type", Require: plugin.Optional},
 				{Name: "product_description", Require: plugin.Optional},
-				{Name: "start_time", Require: plugin.Optional},
-				{Name: "end_time", Require: plugin.Optional},
+				{Name: "start_time", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "end_time", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),

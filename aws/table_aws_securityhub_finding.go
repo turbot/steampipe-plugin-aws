@@ -141,6 +141,16 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "processed_at",
+				Description: "An ISO8601-formatted timestamp that indicates when Security Hub received a finding and begins to process it.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "sample",
+				Description: "Indicates whether the finding is a sample finding.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "verification_state",
 				Description: "Indicates the veracity of a finding.",
 				Type:        proto.ColumnType_STRING,
@@ -218,6 +228,21 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "generator_details",
+				Description: "Provides metadata for the Amazon CodeGuru detector associated with a finding.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "threats",
+				Description: "Details about the threat detected in a security finding and the file paths that were affected by the threat.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "types",
+				Description: "One or more finding types in the format of namespace/category/classifier that classify a finding. Valid namespace values are: Software and Configuration Checks | TTPs | Effects | Unusual Behaviors | Sensitive Data Identifications.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "remediation",
 				Description: "A data type that describes the remediation options for a finding.",
 				Type:        proto.ColumnType_JSON,
@@ -292,7 +317,7 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	input := &securityhub.GetFindingsInput{
-		MaxResults: &maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	findingsFilter := buildListFindingsParam(d.Quals)
