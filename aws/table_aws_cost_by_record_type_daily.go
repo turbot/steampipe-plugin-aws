@@ -6,6 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsCostByRecordTypeDaily(_ context.Context) *plugin.Table {
@@ -19,13 +20,13 @@ func tableAwsCostByRecordTypeDaily(_ context.Context) *plugin.Table {
 					Name:       "period_start",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
-					CacheMatch: "exact",
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 				{
 					Name:       "period_end",
 					Require:    plugin.Optional,
 					Operators:  []string{">", ">=", "=", "<", "<="},
-					CacheMatch: "exact",
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 			Tags: map[string]string{"service": "ce", "action": "GetCostAndUsage"},
