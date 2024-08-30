@@ -51,16 +51,11 @@ data "aws_region" "alternate" {
   provider = aws.alternate
 }
 
-data "null_data_source" "resource" {
-  inputs = {
-    scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
-  }
-}
-
 # Create AWS > EBS > Volume
 resource "aws_ebs_volume" "my_volume" {
   availability_zone = "us-east-1a"
   size              = 8
+  encrypted         = true
   tags = {
     Name = "turbot-volume-test"
   }
@@ -100,18 +95,9 @@ resource "aws_ami_launch_permission" "deny_access" {
   account_id = var.trusted_accounts_deny
 }
 
-data "template_file" "resource_aka" {
-  template = "arn:$${partition}:ec2:$${region}:$${account_id}:image/${aws_ami.named_test_resource.id}"
-  vars = {
-    partition  = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region     = data.aws_region.primary.name
-  }
-}
-
 output "resource_aka" {
   depends_on = [aws_ami.named_test_resource]
-  value      = data.template_file.resource_aka.rendered
+  value      = "arn:${data.aws_partition.current.partition}:ec2:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:image/${aws_ami.named_test_resource.id}"
 }
 
 output "account_id" {
