@@ -11,6 +11,8 @@ The `aws_application_signals_service_level_objective` table in Steampipe provide
 
 ## Examples
 
+### Basic info
+
 ```sql+postgres
 select
   arn,
@@ -20,6 +22,8 @@ select
 from
   aws_application_signals_service_level_objective
 ```
+
+### List service level objectives with select service level indicator details
 
 ```sql+postgres
 select
