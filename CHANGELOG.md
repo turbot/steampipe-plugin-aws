@@ -1,3 +1,25 @@
+## v0.146.0 [2024-09-03]
+
+_What's new?_
+
+- New tables added
+  - [aws_app_runner_service](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_app_runner_service) ([#2279](https://github.com/turbot/steampipe-plugin-aws/pull/2279))
+  - [aws_ec2_load_balancer_listener_rule](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_load_balancer_listener_rule) ([#2272](https://github.com/turbot/steampipe-plugin-aws/pull/2272))
+  - [aws_lightsail_bucket](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lightsail_bucket) ([#2258](https://github.com/turbot/steampipe-plugin-aws/pull/2258))
+  - [aws_memorydb_cluster](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_memorydb_cluster) ([#2268](https://github.com/turbot/steampipe-plugin-aws/pull/2268))
+  - [aws_securityhub_enabled_product_subscription](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_securityhub_enabled_product_subscription) ([#2281](https://github.com/turbot/steampipe-plugin-aws/pull/2281))
+  - [aws_timestreamwrite_database](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_timestreamwrite_database) ([#2269](https://github.com/turbot/steampipe-plugin-aws/pull/2269))
+  - [aws_timestreamwrite_table](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_timestreamwrite_table) ([#2269](https://github.com/turbot/steampipe-plugin-aws/pull/2269))
+
+_Enhancements_
+
+- Updated the `aws_ec2_ami` table to correctly return disabled AMIs on passing `disabled` value to the `state` optional qual (`where state = 'disabled'`). ([#2277](https://github.com/turbot/steampipe-plugin-aws/pull/2277))
+
+_Dependencies_
+
+- Recompiled plugin with Go version `1.22`. ([#2283](https://github.com/turbot/steampipe-plugin-aws/pull/2283))
+- Recompiled plugin with [steampipe-plugin-sdk v5.10.4](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5104-2024-08-29) that fixes logging in the plugin export tool. ([#2286](https://github.com/turbot/steampipe-plugin-aws/pull/2286))
+
 ## v0.145.0 [2024-08-07]
 
 _Enhancements_
