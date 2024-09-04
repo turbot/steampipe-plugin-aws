@@ -165,7 +165,7 @@ func getApplicationSignalsServiceLevelObjective(ctx context.Context, d *plugin.Q
 		return nil, nil
 	}
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "client_error", err)
+plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "client_error", err)
 		return nil, err
 	}
 
