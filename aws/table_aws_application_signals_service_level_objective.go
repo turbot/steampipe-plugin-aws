@@ -175,7 +175,7 @@ func getApplicationSignalsServiceLevelObjective(ctx context.Context, d *plugin.Q
 
 	item, err := svc.GetServiceLevelObjective(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "api_error", err)
+plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "api_error", err)
 		return nil, err
 	}
 
