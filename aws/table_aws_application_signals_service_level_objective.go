@@ -85,6 +85,11 @@ func tableAwsApplicationSignalsServiceLevelObjective(_ context.Context) *plugin.
 
 func listApplicationSignalsServiceLevelObjectives(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	svc, err := ApplicationSignalsClient(ctx, d)
+	
+	// Unsupported region check
+	if svc == nil {
+	         return nil, nil
+	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.listApplicationSignalsServiceLevelObjectives", "client_error", err)
 		return nil, err
