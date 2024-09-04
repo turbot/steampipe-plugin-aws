@@ -100,11 +100,7 @@ func listApplicationSignalsServiceLevelObjectives(ctx context.Context, d *plugin
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			if limit < 1 {
-				maxItems = int32(1)
-			} else {
-				maxItems = int32(limit)
-			}
+			maxItems = int32(limit)
 		}
 	}
 
