@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/applicationsignals"
-	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -20,20 +19,20 @@ func tableAwsApplicationSignalsServiceLevelObjective(_ context.Context) *plugin.
 		Description: "AWS Application Signals Service Level Objective",
 		Get: &plugin.GetConfig{
 			Hydrate:    getApplicationSignalsServiceLevelObjective,
-			Tags:       map[string]string{"service": "application_signals", "action": "GetApplicationSignalsServiceLevelObjective"},
+			Tags:       map[string]string{"service": "application-signals", "action": "GetApplicationSignalsServiceLevelObjective"},
 			KeyColumns: plugin.AllColumns([]string{"arn", "name"}),
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listApplicationSignalsServiceLevelObjectives,
-			Tags:    map[string]string{"service": "application_signals", "action": "ListApplicationSignalsServiceLevelObjectives"},
+			Tags:    map[string]string{"service": "application-signals", "action": "ListApplicationSignalsServiceLevelObjectives"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getApplicationSignalsServiceLevelObjective,
-				Tags: map[string]string{"service": "application_signals", "action": "GetApplicationSignalsServiceLevelObjective"},
+				Tags: map[string]string{"service": "application-signals", "action": "GetApplicationSignalsServiceLevelObjective"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix("application-signals"),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -85,10 +84,10 @@ func tableAwsApplicationSignalsServiceLevelObjective(_ context.Context) *plugin.
 
 func listApplicationSignalsServiceLevelObjectives(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	svc, err := ApplicationSignalsClient(ctx, d)
-	
+
 	// Unsupported region check
 	if svc == nil {
-	         return nil, nil
+		return nil, nil
 	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.listApplicationSignalsServiceLevelObjectives", "client_error", err)
@@ -160,6 +159,11 @@ func getApplicationSignalsServiceLevelObjective(ctx context.Context, d *plugin.Q
 
 	// Get client
 	svc, err := ApplicationSignalsClient(ctx, d)
+
+	// Unsupported region check
+	if svc == nil {
+		return nil, nil
+	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "client_error", err)
 		return nil, err

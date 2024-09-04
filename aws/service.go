@@ -317,9 +317,12 @@ func ApplicationAutoScalingClient(ctx context.Context, d *plugin.QueryData) (*ap
 }
 
 func ApplicationSignalsClient(ctx context.Context, d *plugin.QueryData) (*applicationsignals.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "application-signals")
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return applicationsignals.NewFromConfig(*cfg), nil
 }
