@@ -20,7 +20,17 @@ select
   attainment_goal,
   goal,
 from
-  aws_application_signals_service_level_objective
+  aws_application_signals_service_level_objective;
+```
+
+```sql+sqlite
+select
+  arn,
+  name,
+  attainment_goal,
+  goal,
+from
+  aws_application_signals_service_level_objective;
 ```
 
 ### List service level objectives with select service level indicator details
@@ -31,6 +41,17 @@ select
   name,
   sli::json -> 'ComparisonOperator' as "Must Be",
   sli::json -> 'MetricThreshold' as "Threshold"
+  region
+from
+  aws_application_signals_service_level_objective;
+```
+
+```sql+sqlite
+select
+  arn,
+  name,
+  json_extract(sli, '$.ComparisonOperator') as "Must Be",
+  json_extract(sli, '$.MetricThreshold') as "Threshold"
   region
 from
   aws_application_signals_service_level_objective
