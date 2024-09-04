@@ -6,7 +6,7 @@ toolchain go1.22.6
 
 require (
 	github.com/aws/aws-sdk-go v1.51.19
-	github.com/aws/aws-sdk-go-v2 v1.27.0
+	github.com/aws/aws-sdk-go-v2 v1.30.4
 	github.com/aws/aws-sdk-go-v2/config v1.27.16
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.16
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.21
@@ -19,6 +19,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/appconfig v1.29.2
 	github.com/aws/aws-sdk-go-v2/service/applicationautoscaling v1.27.4
+	github.com/aws/aws-sdk-go-v2/service/applicationsignals v1.3.1
 	github.com/aws/aws-sdk-go-v2/service/apprunner v1.28.8
 	github.com/aws/aws-sdk-go-v2/service/appstream v1.34.4
 	github.com/aws/aws-sdk-go-v2/service/appsync v1.31.4
