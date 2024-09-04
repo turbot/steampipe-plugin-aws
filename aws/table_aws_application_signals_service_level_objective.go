@@ -155,6 +155,11 @@ func getApplicationSignalsServiceLevelObjective(ctx context.Context, d *plugin.Q
 
 	// Get client
 	svc, err := ApplicationSignalsClient(ctx, d)
+	
+	// Unsupported region check
+	if svc == nil {
+	     return nil, nil
+	}
 
 	// Unsupported region check
 	if svc == nil {
