@@ -1,3 +1,15 @@
+## v0.147.0 [2024-09-13]
+
+_Enhancements_
+
+- Added the `event_region` column to the `aws_health_event` table. ([#2293](https://github.com/turbot/steampipe-plugin-aws/pull/2293))
+- Added the `location_type` column to the  `aws_ec2_instance_type` table. ([#2294](https://github.com/turbot/steampipe-plugin-aws/pull/2294))
+
+_Bug fixes_
+
+- Removed unnecessary hydration of the `instance_type` column in `aws_ec2_instance_type` table. ([#2294](https://github.com/turbot/steampipe-plugin-aws/pull/2294))
+- Fixed an issue where credentials from import foreign schema were lost after restarting session in the Posgres FDW extensions of the plugin. ([#2275](https://github.com/turbot/steampipe-plugin-aws/issues/2275))
+
 ## v0.146.0 [2024-09-03]
 
 _What's new?_

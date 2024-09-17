@@ -36,7 +36,7 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "instance_type", Require: plugin.Optional, Operators: []string{"="}},
 			},
-			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
+			Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
@@ -50,7 +50,6 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Name:        "instance_type",
 				Description: "The instance type. For more information, see [ Instance Types ](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html) in the Amazon Elastic Compute Cloud User Guide.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeInstanceType,
 			},
 			{
 				Name:        "auto_recovery_supported",
@@ -123,6 +122,11 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Description: "Describes the Amazon EBS settings for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "location_type",
+				Description: "Type of the location, for example: region, availability-zone, etc.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "memory_info",
