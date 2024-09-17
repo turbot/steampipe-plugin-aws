@@ -5,8 +5,8 @@ go 1.22.4
 toolchain go1.22.6
 
 require (
-	github.com/aws/aws-sdk-go v1.51.19
-	github.com/aws/aws-sdk-go-v2 v1.30.4
+	github.com/aws/aws-sdk-go v1.53.20
+	github.com/aws/aws-sdk-go-v2 v1.30.5
 	github.com/aws/aws-sdk-go-v2/config v1.27.16
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.16
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.21
@@ -19,7 +19,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/appconfig v1.29.2
 	github.com/aws/aws-sdk-go-v2/service/applicationautoscaling v1.27.4
-	github.com/aws/aws-sdk-go-v2/service/applicationsignals v1.3.1
 	github.com/aws/aws-sdk-go-v2/service/apprunner v1.28.8
 	github.com/aws/aws-sdk-go-v2/service/appstream v1.34.4
 	github.com/aws/aws-sdk-go-v2/service/appsync v1.31.4
@@ -148,6 +147,7 @@ require (
 require golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 
 require (
+	github.com/aws/aws-sdk-go-v2/service/applicationsignals v1.4.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.47.0 // indirect
@@ -167,8 +167,8 @@ require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.16 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.16 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.17 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.17 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect

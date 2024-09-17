@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/applicationsignals"
+	applicationsignalsv1 "github.com/aws/aws-sdk-go/service/applicationsignals"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -32,7 +33,7 @@ func tableAwsApplicationSignalsServiceLevelObjective(_ context.Context) *plugin.
 				Tags: map[string]string{"service": "application-signals", "action": "GetApplicationSignalsServiceLevelObjective"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix("application-signals"),
+		GetMatrixItemFunc: SupportedRegionMatrix(applicationsignalsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -119,7 +120,7 @@ func listApplicationSignalsServiceLevelObjectives(ctx context.Context, d *plugin
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.listApplicationSignalsServiceLevelObjectives", "api_error", err)
+			plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.listApplicationSignalsServiceLevelObjectives", "api_error", err)
 			return nil, err
 		}
 
@@ -155,10 +156,10 @@ func getApplicationSignalsServiceLevelObjective(ctx context.Context, d *plugin.Q
 
 	// Get client
 	svc, err := ApplicationSignalsClient(ctx, d)
-	
+
 	// Unsupported region check
 	if svc == nil {
-	     return nil, nil
+		return nil, nil
 	}
 
 	// Unsupported region check
@@ -166,7 +167,7 @@ func getApplicationSignalsServiceLevelObjective(ctx context.Context, d *plugin.Q
 		return nil, nil
 	}
 	if err != nil {
-plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "client_error", err)
+		plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "client_error", err)
 		return nil, err
 	}
 
@@ -176,7 +177,7 @@ plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApp
 
 	item, err := svc.GetServiceLevelObjective(ctx, params)
 	if err != nil {
-plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "api_error", err)
+		plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "api_error", err)
 		return nil, err
 	}
 
