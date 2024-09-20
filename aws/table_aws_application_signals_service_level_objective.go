@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/applicationsignals"
-	applicationsignalsv1 "github.com/aws/aws-sdk-go/service/applicationsignals"
+	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/applicationsignals/types"
@@ -21,12 +21,16 @@ func tableAwsApplicationSignalsServiceLevelObjective(_ context.Context) *plugin.
 		Description: "AWS Application Signals Service Level Objective",
 		Get: &plugin.GetConfig{
 			Hydrate:    getApplicationSignalsServiceLevelObjective,
-			Tags:       map[string]string{"service": "application-signals", "action": "GetApplicationSignalsServiceLevelObjective"},
-			KeyColumns: plugin.AllColumns([]string{"arn", "name"}),
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
+			Tags: map[string]string{"service": "application-signals", "action": "GetApplicationSignalsServiceLevelObjective"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listApplicationSignalsServiceLevelObjectives,
-			Tags:    map[string]string{"service": "application-signals", "action": "ListApplicationSignalsServiceLevelObjectives"},
+			Hydrate:    listApplicationSignalsServiceLevelObjectives,
+			KeyColumns: plugin.OptionalColumns([]string{"operation_name"}),
+			Tags:       map[string]string{"service": "application-signals", "action": "ListApplicationSignalsServiceLevelObjectives"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
@@ -34,7 +38,9 @@ func tableAwsApplicationSignalsServiceLevelObjective(_ context.Context) *plugin.
 				Tags: map[string]string{"service": "application-signals", "action": "GetApplicationSignalsServiceLevelObjective"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(applicationsignalsv1.EndpointsID),
+		// AWS Doesn't treat it as a separate service it is under CloudWatch service but the API package is different.
+		// https://aws.amazon.com/about-aws/whats-new/2024/06/amazon-cloudwatch-application-signals-application-monitoring/
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -45,6 +51,22 @@ func tableAwsApplicationSignalsServiceLevelObjective(_ context.Context) *plugin.
 				Name:        "name",
 				Description: "The name of the service level objective.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "operation_name",
+				Description: " If this service level objective is specific to a single operation, this field displays the name of that operation.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "created_time",
+				Description: "The date and time that this SLO was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "evaluation_type",
+				Description: "Displays whether this is a period-based SLO or a request-based SLO.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getApplicationSignalsServiceLevelObjective,
 			},
 			{
 				Name:        "attainment_goal",
@@ -65,13 +87,20 @@ func tableAwsApplicationSignalsServiceLevelObjective(_ context.Context) *plugin.
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getApplicationSignalsServiceLevelObjective,
 			},
+			{
+				Name:        "request_based_sli",
+				Description: "A structure containing information about the performance metric that this SLO monitors, if this is a period-based SLO.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getApplicationSignalsServiceLevelObjective,
+			},
+
 			//// Steampipe Standard Columns
-			//{
-			//	Name:        "tags",
-			//	Description: resourceInterfaceDescription("tags"),
-			//	Type:        proto.ColumnType_JSON,
-			//	Hydrate:     getLogGroupTagging,
-			//},
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name"),
+			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
@@ -110,6 +139,10 @@ func listApplicationSignalsServiceLevelObjectives(ctx context.Context, d *plugin
 		MaxResults: &maxItems,
 	}
 
+	if d.EqualsQualString("operation_name") != "" {
+		input.OperationName = aws.String(d.EqualsQualString("operation_name"))
+	}
+
 	paginator := applicationsignals.NewListServiceLevelObjectivesPaginator(svc, input, func(o *applicationsignals.ListServiceLevelObjectivesPaginatorOptions) {
 		o.Limit = maxItems
 		o.StopOnDuplicateToken = true
@@ -141,6 +174,7 @@ func listApplicationSignalsServiceLevelObjectives(ctx context.Context, d *plugin
 //// HYDRATE FUNCTIONS
 
 func getApplicationSignalsServiceLevelObjective(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
 	arn := ""
 
 	if h.Item != nil {
@@ -155,6 +189,11 @@ func getApplicationSignalsServiceLevelObjective(ctx context.Context, d *plugin.Q
 		return nil, nil
 	}
 
+	// Restrict API call for other regions
+	if len(strings.Split(arn, ":")) > 3 && strings.Split(arn, ":")[3] != region {
+		return nil, nil
+	}
+
 	// Get client
 	svc, err := ApplicationSignalsClient(ctx, d)
 
@@ -163,10 +202,6 @@ func getApplicationSignalsServiceLevelObjective(ctx context.Context, d *plugin.Q
 		return nil, nil
 	}
 
-	// Unsupported region check
-	if svc == nil {
-		return nil, nil
-	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_application_signals_service_level_objective.getApplicationSignalsServiceLevelObjective", "client_error", err)
 		return nil, err
