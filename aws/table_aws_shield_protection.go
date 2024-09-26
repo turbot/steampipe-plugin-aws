@@ -144,23 +144,27 @@ func getAwsShieldProtection(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, nil
 	}
 
-	var protectionID string
+	var protectionId string
 	if h.Item != nil {
 		protection := h.Item.(types.Protection)
-		protectionID = *protection.Id
+		protectionId = *protection.Id
 	} else {
-		protectionID = d.EqualsQualString("id")
+		protectionId = d.EqualsQualString("id")
 	}
 
 	params := &shield.DescribeProtectionInput{
-		ProtectionId: aws.String(protectionID),
+		ProtectionId: aws.String(protectionId),
 	}
 
-	op, err := svc.DescribeProtection(ctx, params)
+	data, err := svc.DescribeProtection(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_shield_protection.getAwsProtection", "api_error", err)
 		return nil, err
 	}
 
-	return op, nil
+	if data != nil {
+		return data.Protection, nil
+	}
+
+	return nil, nil
 }
