@@ -125,6 +125,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/shield"
 	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
@@ -1492,6 +1493,20 @@ func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client,
 		return nil, err
 	}
 	return sfn.NewFromConfig(*cfg), nil
+}
+
+func ShieldClient(ctx context.Context, d *plugin.QueryData) (*shield.Client, error) {
+	// Shield is a global service with a single DNS endpoint
+	// (shield.us-east-1.amazonaws.com). It is only available in the
+	// us-east-1 region. It doesn't resolve if we use client region,
+	// and it's not using the default region, so we have no
+	// choice but to hard code it here.
+	// https://docs.aws.amazon.com/general/latest/gr/shield.html
+	cfg, err := getClient(ctx, d, "us-east-1")
+	if err != nil {
+		return nil, err
+	}
+	return shield.NewFromConfig(*cfg), nil
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
