@@ -19,7 +19,7 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 		Name:        "aws_shield_protection",
 		Description: "AWS Shield Protection",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("id"),
+			KeyColumns: plugin.AnyColumn([]string{"resource_arn", "id"}),
 			Hydrate:    getAwsShieldProtection,
 			Tags:       map[string]string{"service": "shield", "action": "DescribeProtection"},
 		},
@@ -145,15 +145,28 @@ func getAwsShieldProtection(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	var protectionId string
+	var resourceArn string
+
 	if h.Item != nil {
 		protection := h.Item.(types.Protection)
 		protectionId = *protection.Id
+		resourceArn = *protection.ResourceArn
 	} else {
 		protectionId = d.EqualsQualString("id")
+		resourceArn = d.EqualsQualString("resource_arn")
 	}
 
-	params := &shield.DescribeProtectionInput{
-		ProtectionId: aws.String(protectionId),
+	var params *shield.DescribeProtectionInput
+	if protectionId != "" {
+		params = &shield.DescribeProtectionInput{
+			ProtectionId: aws.String(protectionId),
+		}
+	} else if resourceArn != "" {
+		params = &shield.DescribeProtectionInput{
+			ResourceArn: aws.String(resourceArn),
+		}
+	} else {
+		return nil, nil
 	}
 
 	data, err := svc.DescribeProtection(ctx, params)
