@@ -25,6 +25,7 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsShieldProtections,
+			KeyColumns: plugin.OptionalColumns([]string{"name", "resource_arn", "resource_type"}),
 			Tags:    map[string]string{"service": "shield", "action": "ListProtections"},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -64,6 +65,12 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ApplicationLayerAutomaticResponseConfiguration"),
 			},
+			{
+				Name:        "resource_type",
+				Description: "The type of protected resource whose protections you want to retrieve.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("resource_type"),
+			},
 			// Steampipe standard columns
 			{
 				Name:        "title",
@@ -102,7 +109,30 @@ func listAwsShieldProtections(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	input := &shield.ListProtectionsInput{
 		MaxResults: aws.Int32(queryResultLimit),
+		InclusionFilters: &types.InclusionProtectionFilters{},
 	}
+
+	if d.Quals["name"] != nil {
+		for _, q := range d.Quals["name"].Quals {
+			input.InclusionFilters.ProtectionNames = []string{}
+			input.InclusionFilters.ProtectionNames = append(input.InclusionFilters.ProtectionNames, q.Value.GetStringValue())
+		}
+	}
+
+	if d.Quals["resource_arn"] != nil {
+		for _, q := range d.Quals["resource_arn"].Quals {
+			input.InclusionFilters.ResourceArns = []string{}
+			input.InclusionFilters.ResourceArns = append(input.InclusionFilters.ResourceArns, q.Value.GetStringValue())
+		}
+	}
+
+	if d.Quals["resource_type"] != nil {
+		for _, q := range d.Quals["resource_type"].Quals {
+			input.InclusionFilters.ResourceTypes = []types.ProtectedResourceType{}
+			input.InclusionFilters.ResourceTypes = append(input.InclusionFilters.ResourceTypes, types.ProtectedResourceType(q.Value.GetStringValue()))
+		}
+	}
+
 	paginator := shield.NewListProtectionsPaginator(svc, input, func(o *shield.ListProtectionsPaginatorOptions) {
 		o.Limit = queryResultLimit
 		o.StopOnDuplicateToken = true
