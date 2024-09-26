@@ -1496,13 +1496,7 @@ func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client,
 }
 
 func ShieldClient(ctx context.Context, d *plugin.QueryData) (*shield.Client, error) {
-	// Shield is a global service with a single DNS endpoint
-	// (shield.us-east-1.amazonaws.com). It is only available in the
-	// us-east-1 region. It doesn't resolve if we use client region,
-	// and it's not using the default region, so we have no
-	// choice but to hard code it here.
-	// https://docs.aws.amazon.com/general/latest/gr/shield.html
-	cfg, err := getClient(ctx, d, "us-east-1")
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
