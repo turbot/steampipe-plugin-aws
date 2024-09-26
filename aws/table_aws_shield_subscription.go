@@ -80,7 +80,7 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Subscription.SubscriptionArn").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("Subscription.SubscriptionArn").Transform(arnToAkas),
 			},
 		}),
 	}
