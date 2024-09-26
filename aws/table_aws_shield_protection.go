@@ -201,7 +201,7 @@ func getAwsShieldProtection(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	data, err := svc.DescribeProtection(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_shield_protection.getAwsProtection", "api_error", err)
+		plugin.Logger(ctx).Error("aws_shield_protection.getAwsShieldProtection", "api_error", err)
 		return nil, err
 	}
 
