@@ -9,7 +9,7 @@ AWS Shield Advanced Protections are safeguards provided by AWS to protect AWS re
 
 ## Table Usage Guide
 
-The `aws_shield_protection` table in Steampipe allows you to query AWS Shield Advanced Protections and retrieve detailed information about each protection's settings. This table provides you with insights into the protections that are currently active in your AWS environment, including the ARN of the resource that is protected and the automatic application layer DDoS mitigation setting. You can use this table to monitor the status of your AWS Shield Advanced Protections and ensure that your resources are protected against DDoS attacks.
+The `aws_shield_protection` table in Steampipe allows you to query AWS Shield Advanced Protections and retrieve detailed information about each protection's settings. This table provides you with insights into the protections that are currently active in your AWS environment, including the ARN of the resource that is protected and the automatic application layer DDoS mitigation setting. You can use this table to monitor the status of your AWS Shield Advanced Protections and ensure that your resources are protected against DDoS attacks. For more information about the individual fields, please refer to the [AWS Shield Advanced API documentation](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_DescribeProtection.html#API_DescribeProtection_ResponseSyntax).
 
 ## Examples
 
