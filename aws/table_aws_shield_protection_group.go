@@ -26,7 +26,7 @@ func tableAwsShieldProtectionGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsShieldProtectionGroups,
 			KeyColumns: plugin.OptionalColumns([]string{"protection_group_id", "pattern", "resource_type", "aggregation"}),
-			Tags:    map[string]string{"service": "shield", "action": "ListProtectionGroupss"},
+			Tags:    map[string]string{"service": "shield", "action": "ListProtectionGroups"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
