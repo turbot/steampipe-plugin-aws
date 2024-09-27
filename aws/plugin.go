@@ -490,6 +490,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_sfn_state_machine_execution":                              tableAwsStepFunctionsStateMachineExecution(ctx),
 			"aws_sfn_state_machine_execution_history":                      tableAwsStepFunctionsStateMachineExecutionHistory(ctx),
 			"aws_shield_protection":										tableAwsShieldProtection(ctx),
+			"aws_shield_protection_group":									tableAwsShieldProtectionGroup(ctx),
 			"aws_shield_drt_access":										tableAwsShieldDRTAccess(ctx),
 			"aws_shield_emergency_contact":									tableAwsShieldEmergencyContact(ctx),
 			"aws_shield_subscription":										tableAwsShieldSubscription(ctx),
