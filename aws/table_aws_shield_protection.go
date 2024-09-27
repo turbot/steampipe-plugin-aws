@@ -28,6 +28,12 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.OptionalColumns([]string{"name", "resource_arn", "resource_type"}),
 			Tags:    map[string]string{"service": "shield", "action": "ListProtections"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listTagsForShieldProtection,
+				Tags: map[string]string{"service": "shield", "action": "ListTagsForResource"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -71,6 +77,13 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("resource_type"),
 			},
+			{
+				Name:        "tags_src",
+				Description: "The list of tags associated with the protection.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listTagsForShieldProtection,
+				Transform:   transform.FromField("Tags"),
+			},
 			// Steampipe standard columns
 			{
 				Name:        "title",
@@ -83,6 +96,13 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ProtectionArn").Transform(arnToAkas),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listTagsForShieldProtection,
+				Transform:   transform.From(handleShieldProtectionTurbotTags),
 			},
 		}),
 	}
@@ -210,4 +230,43 @@ func getAwsShieldProtection(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	return nil, nil
+}
+
+func listTagsForShieldProtection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	protectionArn := h.Item.(types.Protection).ProtectionArn
+
+	// Get client
+	svc, err := ShieldClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_shield_protection.listTagsForShieldProtection", "get_client_error", err)
+		return nil, err
+	}
+
+	// Build param
+	param := &shield.ListTagsForResourceInput{
+		ResourceARN: protectionArn,
+	}
+
+	protectionTags, err := svc.ListTagsForResource(ctx, param)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_shield_protection.listTagsForShieldProtection", "api_error", err)
+		return nil, err
+	}
+	return protectionTags, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func handleShieldProtectionTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	tags := d.HydrateItem.(*shield.ListTagsForResourceOutput)
+	if len(tags.Tags) == 0 {
+		return nil, nil
+	}
+
+	turbotTagsMap := map[string]string{}
+	for _, i := range tags.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return turbotTagsMap, nil
 }
