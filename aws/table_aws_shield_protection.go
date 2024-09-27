@@ -170,7 +170,7 @@ func listAwsShieldProtections(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 
 		for _, items := range output.Protections {
-			d.StreamListItem(ctx, items)
+			d.StreamListItem(ctx, &items)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
@@ -198,7 +198,7 @@ func getAwsShieldProtection(ctx context.Context, d *plugin.QueryData, h *plugin.
 	var resourceArn string
 
 	if h.Item != nil {
-		protection := h.Item.(types.Protection)
+		protection := h.Item.(*types.Protection)
 		protectionId = *protection.Id
 		resourceArn = *protection.ResourceArn
 	} else {
@@ -233,7 +233,7 @@ func getAwsShieldProtection(ctx context.Context, d *plugin.QueryData, h *plugin.
 }
 
 func listTagsForShieldProtection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	protectionArn := h.Item.(types.Protection).ProtectionArn
+	protectionArn := h.Item.(*types.Protection).ProtectionArn
 
 	// Get client
 	svc, err := ShieldClient(ctx, d)

@@ -56,8 +56,8 @@ func tableAwsShieldProtectionGroup(_ context.Context) *plugin.Table {
 			{
 				Name:        "resource_type",
 				Description: "The resource type to include in the protection group. All protected resources of this type are included in the protection group.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("HealthCheckIds").Transform(transform.EnsureStringArray),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ResourceType").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "arn",
@@ -171,7 +171,7 @@ func listAwsShieldProtectionGroups(ctx context.Context, d *plugin.QueryData, _ *
 		}
 
 		for _, items := range output.ProtectionGroups {
-			d.StreamListItem(ctx, items)
+			d.StreamListItem(ctx, &items)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
@@ -196,7 +196,6 @@ func getAwsShieldProtectionGroup(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	var protectionGroupId string
-
 	if h.Item != nil {
 		protectionGroupId = *h.Item.(*types.ProtectionGroup).ProtectionGroupId
 	} else {
@@ -226,7 +225,7 @@ func getAwsShieldProtectionGroup(ctx context.Context, d *plugin.QueryData, h *pl
 }
 
 func listTagsForShieldProtectionGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	protectionGroupArn := h.Item.(types.ProtectionGroup).ProtectionGroupArn
+	protectionGroupArn := h.Item.(*types.ProtectionGroup).ProtectionGroupArn
 
 	// Get client
 	svc, err := ShieldClient(ctx, d)

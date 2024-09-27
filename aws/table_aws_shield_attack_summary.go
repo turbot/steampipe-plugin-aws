@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/shield"
+	"github.com/aws/aws-sdk-go-v2/service/shield/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -97,6 +98,8 @@ func listAwsShieldAttackSummaries(ctx context.Context, d *plugin.QueryData, _ *p
 	if d.Quals["start_time"] != nil {
 		for _, q := range d.Quals["start_time"].Quals {
 			timestamp := q.Value.GetTimestampValue().AsTime()
+			input.StartTime = &types.TimeRange{}
+
 			input.StartTime.FromInclusive = aws.Time(timestamp)
 			input.StartTime.ToExclusive = aws.Time(timestamp)
 		}
@@ -105,6 +108,8 @@ func listAwsShieldAttackSummaries(ctx context.Context, d *plugin.QueryData, _ *p
 	if d.Quals["end_time"] != nil {
 		for _, q := range d.Quals["end_time"].Quals {
 			timestamp := q.Value.GetTimestampValue().AsTime()
+			input.EndTime = &types.TimeRange{}
+
 			input.EndTime.FromInclusive = aws.Time(timestamp)
 			input.EndTime.ToExclusive = aws.Time(timestamp)
 		}
@@ -127,7 +132,7 @@ func listAwsShieldAttackSummaries(ctx context.Context, d *plugin.QueryData, _ *p
 		}
 
 		for _, items := range output.AttackSummaries {
-			d.StreamListItem(ctx, items)
+			d.StreamListItem(ctx, &items)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil

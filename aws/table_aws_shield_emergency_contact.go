@@ -65,12 +65,11 @@ func listAwsShieldEmergencyContact(ctx context.Context, d *plugin.QueryData, _ *
 	}
 
 	for _, contact := range data.EmergencyContactList {
-		f := types.EmergencyContact{
-			EmailAddress:         contact.EmailAddress,
-			PhoneNumber:          contact.PhoneNumber,
-			ContactNotes:         contact.ContactNotes,
-		}
-		d.StreamListItem(ctx, f)
+		d.StreamListItem(ctx, &types.EmergencyContact{
+			EmailAddress:	contact.EmailAddress,
+			PhoneNumber:	contact.PhoneNumber,
+			ContactNotes:	contact.ContactNotes,
+		})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
 		if d.RowsRemaining(ctx) == 0 {

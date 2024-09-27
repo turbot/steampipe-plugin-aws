@@ -43,20 +43,20 @@ func tableAwsShieldAttackStatistic(_ context.Context) *plugin.Table {
 			{
 				Name:        "max",
 				Description: "The maximum attack volume observed in the observation time range for the given unit.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_DOUBLE,
 				Transform:   transform.FromField("Max"),
 			},
 			{
 				Name:        "attack_count",
 				Description: "The number of attacks detected during the time period. This is always present, but might be zero.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 				Transform:   transform.FromField("AttackCount"),
 			},
 		}),
 	}
 }
 
-type statistic struct {
+type attackStatistic struct {
 	StartTime time.Time
     EndTime time.Time
 	Unit string
@@ -101,15 +101,13 @@ func listAwsShieldAttackStatistic(ctx context.Context, d *plugin.QueryData, _ *p
 			max = stat.AttackVolume.RequestsPerSecond.Max
 		}
 
-		f := statistic{
+		d.StreamListItem(ctx, &attackStatistic{
 			StartTime:   *data.TimeRange.FromInclusive,
 			EndTime:   	 *data.TimeRange.ToExclusive,
 			Unit:        unit,
 			Max:         max,
 			AttackCount: stat.AttackCount,
-		}
-		plugin.Logger(ctx).Info("streaming statistic")
-		d.StreamListItem(ctx, f)
+		})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
 		if d.RowsRemaining(ctx) == 0 {

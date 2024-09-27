@@ -53,7 +53,7 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "proactive_engagement_status",
-				Description: "If the Shield Response Team (SRT) will use email and phone to notify contacts about escalations to the SRT and to initiate proactive customer support.",
+				Description: "Status of the proactive engagement of the Shield Response Team (SRT). Indicates if the Shield Response Team (SRT) will use the Shield emergency contact data to notify them about DDoS attacks.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Subscription.ProactiveEngagementStatus"),
 			},
