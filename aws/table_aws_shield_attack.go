@@ -82,6 +82,8 @@ func tableAwsShieldAttack(_ context.Context) *plugin.Table {
 	}
 }
 
+//// HYDRATE FUNCTIONS
+
 func listAwsShieldAttack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := ShieldClient(ctx, d)
