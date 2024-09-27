@@ -493,6 +493,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_shield_drt_access":										tableAwsShieldDRTAccess(ctx),
 			"aws_shield_emergency_contact":									tableAwsShieldEmergencyContact(ctx),
 			"aws_shield_subscription":										tableAwsShieldSubscription(ctx),
+			"aws_shield_attack_statistic":									tableAwsShieldAttackStatistic(ctx),
 			"aws_simspaceweaver_simulation":                                tableAwsSimSpaceWeaverSimulation(ctx),
 			"aws_sns_subscription":                                         tableAwsSnsSubscription(ctx),
 			"aws_sns_topic":                                                tableAwsSnsTopic(ctx),
