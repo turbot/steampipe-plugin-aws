@@ -19,7 +19,7 @@ func tableAwsShieldProtectionGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_shield_protection_group",
 		Description: "AWS Shield Protection Group",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"protection_group_id"}),
+			KeyColumns: plugin.SingleColumn("protection_group_id"),
 			Hydrate:    getAwsShieldProtectionGroup,
 			Tags:       map[string]string{"service": "shield", "action": "DescribeProtectionGroup"},
 		},
