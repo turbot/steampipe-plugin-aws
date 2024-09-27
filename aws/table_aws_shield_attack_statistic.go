@@ -88,20 +88,15 @@ func listAwsShieldAttackStatistic(ctx context.Context, d *plugin.QueryData, _ *p
 		var unit string
 		var max float64
 
-		plugin.Logger(ctx).Info("fooooooooooooooooo")
-		if stat.AttackVolume == nil {
-			plugin.Logger(ctx).Info("No attack volume")
-			return nil, nil
+		if stat.AttackCount == 0 {
+			continue
 		} else if stat.AttackVolume.BitsPerSecond != nil {
-			plugin.Logger(ctx).Info("bitspersecond")
 			unit = "BitsPerSecond"
 			max = stat.AttackVolume.BitsPerSecond.Max
 		} else if stat.AttackVolume.PacketsPerSecond != nil {
-			plugin.Logger(ctx).Info("packetspersecond")
 			unit = "PacketsPerSecond"
 			max = stat.AttackVolume.PacketsPerSecond.Max
 		} else if stat.AttackVolume.RequestsPerSecond != nil {
-			plugin.Logger(ctx).Info("requestspersecond")
 			unit = "RequestsPerSecond"
 			max = stat.AttackVolume.RequestsPerSecond.Max
 		}
