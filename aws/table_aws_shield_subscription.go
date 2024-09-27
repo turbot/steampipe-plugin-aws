@@ -20,7 +20,20 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 			Hydrate: listAwsShieldSubscription,
 			Tags:    map[string]string{"service": "shield", "action": "DescribeSubscription"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsShieldSubscriptionState,
+				Tags: map[string]string{"service": "shield", "action": "GetSubscriptionState"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "state",
+				Description: "The current state the subscription.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsShieldSubscriptionState,
+				Transform:   transform.FromField("SubscriptionState"),
+			},
 			{
 				Name:        "start_time",
 				Description: "The start time of the subscription.",
@@ -109,6 +122,33 @@ func listAwsShieldSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 	}
 
 	d.StreamListItem(ctx, data)
+
+	return nil, nil
+}
+
+func getAwsShieldSubscriptionState(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// Create session
+	svc, err := ShieldClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_shield_subscription.getAwsShieldSubscriptionState", "connection_error", err)
+		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	data, err := svc.GetSubscriptionState(ctx, &shield.GetSubscriptionStateInput{})
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_shield_subscription.getAwsShieldSubscriptionState", "api_error", err)
+		return nil, err
+	}
+
+	if data != nil {
+		return data, nil
+	}
 
 	return nil, nil
 }
