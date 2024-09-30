@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/shield"
-	"github.com/aws/aws-sdk-go-v2/service/shield/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -22,6 +21,12 @@ func tableAwsShieldEmergencyContact(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "shield", "action": "DescribeEmergencyContactSettings"},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "priority",
+				Description: "The priority of the contact in the emergency contact list.",
+				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("Priority"),
+			},
 			{
 				Name:        "email_address",
 				Description: "The email address for the contact.",
@@ -42,6 +47,13 @@ func tableAwsShieldEmergencyContact(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+type emergencyContact struct {
+	Priority int
+	EmailAddress *string
+    PhoneNumber *string
+	ContactNotes *string
 }
 
 //// HYDRATE FUNCTIONS
@@ -66,8 +78,9 @@ func listAwsShieldEmergencyContact(ctx context.Context, d *plugin.QueryData, _ *
 		return nil, err
 	}
 
-	for _, contact := range data.EmergencyContactList {
-		d.StreamListItem(ctx, &types.EmergencyContact{
+	for i, contact := range data.EmergencyContactList {
+		d.StreamListItem(ctx, &emergencyContact{
+			Priority:		i,
 			EmailAddress:	contact.EmailAddress,
 			PhoneNumber:	contact.PhoneNumber,
 			ContactNotes:	contact.ContactNotes,
