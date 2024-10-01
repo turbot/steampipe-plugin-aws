@@ -17,7 +17,7 @@ The `aws_shield_subscription` table in Steampipe allows you to query the current
 
 ```sql+postgres
 select
-  state,
+  subscription_state,
   start_time,
   end_time,
   auto_renew,
@@ -28,7 +28,7 @@ from
 
 ```sql+sqlite
 select
-  state,
+  subscription_state,
   start_time,
   end_time,
   auto_renew,
@@ -41,7 +41,7 @@ from
 
 ```sql+postgres
 select
-  state,
+  subscription_state,
   proactive_engagement_status
 from
   aws_shield_subscription
@@ -52,7 +52,7 @@ where
 
 ```sql+sqlite
 select
-  state,
+  subscription_state,
   proactive_engagement_status
 from
   aws_shield_subscription

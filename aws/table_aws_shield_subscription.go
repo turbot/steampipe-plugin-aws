@@ -31,11 +31,10 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "state",
+				Name:        "subscription_state",
 				Description: "The current state the subscription.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsShieldSubscriptionState,
-				Transform:   transform.FromField("SubscriptionState"),
 			},
 			{
 				Name:        "start_time",
