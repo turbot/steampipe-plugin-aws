@@ -9,7 +9,7 @@ AWS Shield is a DDoS protection service from AWS. AWS Shield Advanced provide yo
 
 ## Table Usage Guide
 
-The `aws_shield_attack` table in Steampipe allows you to query AWS Shield Advanced for more details about a DDoS event it was able to detect. This table requires you to specify the `attack_id` of the attack in the WHERE statement of your SQL query for which you want to retrieve information about. For more information about the different columns and their values of this table, please refer to the [official AWS documentation](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_DescribeAttack.html#API_DescribeAttack_ResponseSyntax).
+The `aws_shield_attack` table in Steampipe allows you to query AWS Shield Advanced for more details about a DDoS event it was able to detect. For more information about the different columns and their values of this table, please refer to the AWS Shield Advanced documentation of the [ListAttacks](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_ListAttacks.html#API_ListAttacks_ResponseSyntax) and [DescribeAttack](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_DescribeAttack.html#API_DescribeAttack_ResponseSyntax) API.
 
 ## Examples
 
@@ -25,8 +25,6 @@ select
   mitigations
 from
   aws_shield_attack
-where
-  attack_id = '5dc752eb-96b1-4a9a-8bca-cd3a1096dd56'
 ```
 
 ```sql+sqlite
@@ -39,6 +37,4 @@ select
   mitigations
 from
   aws_shield_attack
-where
-  attack_id = '5dc752eb-96b1-4a9a-8bca-cd3a1096dd56'
 ```
