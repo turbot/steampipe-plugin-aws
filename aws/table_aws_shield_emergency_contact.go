@@ -19,7 +19,7 @@ func tableAwsShieldEmergencyContact(_ context.Context) *plugin.Table {
 			Hydrate: listAwsShieldEmergencyContact,
 			Tags:    map[string]string{"service": "shield", "action": "DescribeEmergencyContactSettings"},
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "priority",
 				Description: "The priority of the contact in the emergency contact list.",

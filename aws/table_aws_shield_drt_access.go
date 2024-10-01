@@ -23,7 +23,7 @@ func tableAwsShieldDRTAccess(_ context.Context) *plugin.Table {
 			},
 			Tags:    map[string]string{"service": "shield", "action": "DescribeDRTAccess"},
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) of the role the SRT used to access your AWS account.",

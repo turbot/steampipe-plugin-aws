@@ -29,7 +29,7 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "shield", "action": "GetSubscriptionState"},
 			},
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "subscription_state",
 				Description: "The current state the subscription.",

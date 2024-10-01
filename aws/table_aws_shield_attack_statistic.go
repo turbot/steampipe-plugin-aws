@@ -20,7 +20,7 @@ func tableAwsShieldAttackStatistic(_ context.Context) *plugin.Table {
 			Hydrate: listAwsShieldAttackStatistic,
 			Tags:    map[string]string{"service": "shield", "action": "DescribeAttackStatistics"},
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "start_time",
 				Description: "The start time of observation time range (should be always one year ago).",

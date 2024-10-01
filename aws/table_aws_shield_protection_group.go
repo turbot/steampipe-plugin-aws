@@ -40,7 +40,7 @@ func tableAwsShieldProtectionGroup(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "shield", "action": "ListTagsForResource"},
 			},
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "protection_group_id",
 				Description: "The name of the protection group.",
