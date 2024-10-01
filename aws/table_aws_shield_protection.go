@@ -21,11 +21,17 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"resource_arn", "id"}),
 			Hydrate:    getAwsShieldProtection,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 			Tags:       map[string]string{"service": "shield", "action": "DescribeProtection"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsShieldProtections,
 			KeyColumns: plugin.OptionalColumns([]string{"name", "resource_arn", "resource_type"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 			Tags:    map[string]string{"service": "shield", "action": "ListProtections"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
@@ -39,19 +45,16 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 				Name:        "id",
 				Description: "The unique identifier (ID) of the protection.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Id"),
 			},
 			{
 				Name:        "name",
 				Description: "The name of the protection.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "resource_arn",
 				Description: "The ARN (Amazon Resource Name) of the Amazon Web Services resource that is protected.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ResourceArn"),
 			},
 			{
 				Name:        "health_check_ids",
@@ -69,7 +72,6 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 				Name:        "application_layer_automatic_response_configuration",
 				Description: "The automatic application layer DDoS mitigation settings for the protection. This configuration determines whether Shield Advanced automatically manages rules in the web ACL in order to respond to application layer events that Shield Advanced determines to be DDoS attacks.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ApplicationLayerAutomaticResponseConfiguration"),
 			},
 			{
 				Name:        "resource_type",

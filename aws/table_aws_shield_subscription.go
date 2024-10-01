@@ -18,6 +18,9 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 		Description: "AWS Shield Subscription",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsShieldSubscription,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 			Tags:    map[string]string{"service": "shield", "action": "DescribeSubscription"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
@@ -38,62 +41,56 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 				Name:        "start_time",
 				Description: "The start time of the subscription.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("Subscription.StartTime"),
 			},
 			{
 				Name:        "end_time",
 				Description: "The date and time your subscription will end.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("Subscription.EndTime"),
 			},
 			{
 				Name:        "time_commitment_in_seconds",
 				Description: "The length, in seconds, of the Shield Advanced subscription for the account.",
 				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromField("Subscription.TimeCommitmentInSeconds"),
 			},
 			{
 				Name:        "auto_renew",
 				Description: "If ENABLED, the subscription will be automatically renewed at the end of the existing subscription period.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Subscription.AutoRenew"),
 			},
 			{
 				Name:        "limits",
 				Description: "Specifies how many protections of a given type you can create.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Subscription.Limits"),
 			},
 			{
 				Name:        "proactive_engagement_status",
 				Description: "Status of the proactive engagement of the Shield Response Team (SRT). Indicates if the Shield Response Team (SRT) will use the Shield emergency contact data to notify them about DDoS attacks.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Subscription.ProactiveEngagementStatus").Transform(transform.NullIfZeroValue),
+				Transform:   transform.FromField("ProactiveEngagementStatus").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "subscription_limits",
 				Description: "The configured limits for your subscription.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Subscription.SubscriptionLimits"),
 			},
 			{
 				Name:        "arn",
 				Description: "The ARN (Amazon Resource Name) of the subscription.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Subscription.SubscriptionArn"),
+				Transform:   transform.FromField("SubscriptionArn"),
 			},
 			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Subscription.SubscriptionArn"),
+				Transform:   transform.FromField("SubscriptionArn"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Subscription.SubscriptionArn").Transform(arnToAkas),
+				Transform:   transform.FromField("SubscriptionArn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -121,7 +118,7 @@ func listAwsShieldSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	d.StreamListItem(ctx, data)
+	d.StreamListItem(ctx, data.Subscription)
 
 	return nil, nil
 }

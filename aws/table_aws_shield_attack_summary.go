@@ -28,31 +28,26 @@ func tableAwsShieldAttackSummary(_ context.Context) *plugin.Table {
 				Name:        "attack_id",
 				Description: "The unique identifier (ID) of the attack.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AttackId"),
 			},
 			{
 				Name:        "resource_arn",
 				Description: "The ARN (Amazon Resource Name) of the Amazon Web Services resource that was attacked.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ResourceArn"),
 			},
 			{
 				Name:        "start_time",
 				Description: "The start time of the attack.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("StartTime"),
 			},
 			{
 				Name:        "end_time",
 				Description: "The end time of the attack.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("EndTime"),
 			},
 			{
 				Name:        "attack_vectors",
 				Description: "The list of attacks for the time period.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("AttackVectors"),
 			},
 			// Steampipe standard columns
 			{

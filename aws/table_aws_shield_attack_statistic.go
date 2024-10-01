@@ -8,7 +8,6 @@ import (
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -26,31 +25,26 @@ func tableAwsShieldAttackStatistic(_ context.Context) *plugin.Table {
 				Name:        "start_time",
 				Description: "The start time of observation time range (should be always one year ago).",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("StartTime"),
 			},
 			{
 				Name:        "end_time",
 				Description: "The end time of the observation time range (should be always the current date).",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("EndTime"),
 			},
 			{
 				Name:        "unit",
 				Description: "Unit of the attack statistic.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Unit"),
 			},
 			{
 				Name:        "max",
 				Description: "The maximum attack volume observed in the observation time range for the given unit.",
 				Type:        proto.ColumnType_DOUBLE,
-				Transform:   transform.FromField("Max"),
 			},
 			{
 				Name:        "attack_count",
 				Description: "The number of attacks detected during the time period. This is always present, but might be zero.",
 				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromField("AttackCount"),
 			},
 		}),
 	}

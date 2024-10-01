@@ -7,7 +7,6 @@ import (
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -25,25 +24,21 @@ func tableAwsShieldEmergencyContact(_ context.Context) *plugin.Table {
 				Name:        "priority",
 				Description: "The priority of the contact in the emergency contact list.",
 				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromField("Priority"),
 			},
 			{
 				Name:        "email_address",
 				Description: "The email address for the contact.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("EmailAddress"),
 			},
 			{
 				Name:        "phone_number",
 				Description: "The phone number for the contact.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("PhoneNumber"),
 			},
 			{
-				Name:        "ContactNotes",
+				Name:        "contact_notes",
 				Description: "Additional notes regarding the contact.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ContactNotes"),
 			},
 		}),
 	}

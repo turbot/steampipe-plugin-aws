@@ -21,11 +21,17 @@ func tableAwsShieldProtectionGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("protection_group_id"),
 			Hydrate:    getAwsShieldProtectionGroup,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 			Tags:       map[string]string{"service": "shield", "action": "DescribeProtectionGroup"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsShieldProtectionGroups,
 			KeyColumns: plugin.OptionalColumns([]string{"protection_group_id", "pattern", "resource_type", "aggregation"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 			Tags:    map[string]string{"service": "shield", "action": "ListProtectionGroups"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
@@ -39,19 +45,16 @@ func tableAwsShieldProtectionGroup(_ context.Context) *plugin.Table {
 				Name:        "protection_group_id",
 				Description: "The name of the protection group.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ProtectionGroupId"),
 			},
 			{
 				Name:        "aggregation",
 				Description: "Defines how Shield combines resource data for the group in order to detect, mitigate, and report events.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Aggregation"),
 			},
 			{
 				Name:        "pattern",
 				Description: "The criteria to use to choose the protected resources for inclusion in the group.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Pattern"),
 			},
 			{
 				Name:        "resource_type",

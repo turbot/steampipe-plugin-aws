@@ -33,43 +33,36 @@ func tableAwsShieldAttack(_ context.Context) *plugin.Table {
 				Name:        "resource_arn",
 				Description: "The ARN (Amazon Resource Name) of the resource that was attacked.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ResourceArn"),
 			},
 			{
 				Name:        "sub_resources",
 				Description: "If applicable, additional detail about the resource being attacked, for example, IP address or URL.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("SubResources"),
 			},
 			{
 				Name:        "start_time",
 				Description: "The time the attack started.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("StartTime"),
 			},
 			{
 				Name:        "end_time",
 				Description: "The time the attack ended.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("EndTime"),
 			},
 			{
 				Name:        "attack_counters",
 				Description: "List of counters that describe the attack for the specified time period.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("AttackCounters"),
 			},
 			{
 				Name:        "attack_properties",
 				Description: "The array of objects that provide details of the Shield event.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("AttackProperties"),
 			},
 			{
 				Name:        "mitigations",
 				Description: "List of mitigation actions taken for the attack.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Mitigations"),
 			},
 			// Steampipe standard columns
 			{

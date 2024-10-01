@@ -18,6 +18,9 @@ func tableAwsShieldDRTAccess(_ context.Context) *plugin.Table {
 		Description: "AWS Shield DRT Access",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsShieldDRTAccess,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 			Tags:    map[string]string{"service": "shield", "action": "DescribeDRTAccess"},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -25,7 +28,6 @@ func tableAwsShieldDRTAccess(_ context.Context) *plugin.Table {
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) of the role the SRT used to access your AWS account.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("RoleArn"),
 			},
 			{
 				Name:        "log_bucket_list",
