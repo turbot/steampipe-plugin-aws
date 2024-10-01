@@ -22,7 +22,7 @@ func tableAwsShieldAttack(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("attack_id"),
 			Tags:    map[string]string{"service": "shield", "action": "DescribeAttack"},
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "attack_id",
 				Description: "The unique identifier (ID) for the attack.",

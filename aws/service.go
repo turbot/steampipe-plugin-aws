@@ -1500,6 +1500,10 @@ func ShieldClient(ctx context.Context, d *plugin.QueryData) (*shield.Client, err
 	if err != nil {
 		return nil, err
 	}
+	
+	if cfg == nil {
+		return nil, nil
+	}
 	return shield.NewFromConfig(*cfg), nil
 }
 
