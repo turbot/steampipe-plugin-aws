@@ -154,10 +154,15 @@ func getTimeRange(quals quals.QualSlice) *types.TimeRange {
 		var fromInclusive time.Time
 		var toExclusive time.Time
 
+		// https://aws.amazon.com/about-aws/whats-new/2016/12/introducing-aws-shield/
+		introductionDateOfShield := time.Date(2016, time.December, 1, 0, 0, 0, 0, time.UTC)
+
 		switch operator {
 			case "=":
-				fromInclusive = timestamp
-				toExclusive = timestamp.Add(time.Second * 1)
+				return &types.TimeRange{
+					FromInclusive: aws.Time(timestamp),
+					ToExclusive: aws.Time(timestamp.Add(time.Second * 1)),
+				}
 			case ">":
 				fromInclusive = timestamp.Add(time.Second * 1)
 				toExclusive = time.Now()
@@ -165,10 +170,10 @@ func getTimeRange(quals quals.QualSlice) *types.TimeRange {
 				fromInclusive = timestamp
 				toExclusive = time.Now()
 			case "<":
-				fromInclusive = time.Unix(0, 0)
+				fromInclusive = introductionDateOfShield
 				toExclusive = timestamp
 			case "<=":
-				fromInclusive = time.Unix(0, 0)
+				fromInclusive = introductionDateOfShield
 				toExclusive = timestamp.Add(time.Second * 1)
 		}
 
