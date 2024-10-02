@@ -258,8 +258,8 @@ func listAttacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	}
 
 	if d.Quals["resource_arn"] != nil {
+		input.ResourceArns = []string{}
 		for _, q := range d.Quals["resource_arn"].Quals {
-			input.ResourceArns = []string{}
 			input.ResourceArns = append(input.ResourceArns, q.Value.GetStringValue())
 		}
 	}
