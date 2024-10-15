@@ -52,7 +52,7 @@ func tableAwsShieldAttackStatistic(_ context.Context) *plugin.Table {
 
 type attackStatistic struct {
 	StartTime time.Time
-    EndTime time.Time
+	EndTime time.Time
 	Unit string
 	Max float64
 	AttackCount int64
@@ -99,7 +99,7 @@ func listAwsShieldAttackStatistic(ctx context.Context, d *plugin.QueryData, _ *p
 
 		d.StreamListItem(ctx, &attackStatistic{
 			StartTime:   *data.TimeRange.FromInclusive,
-			EndTime:   	 *data.TimeRange.ToExclusive,
+			EndTime:     *data.TimeRange.ToExclusive,
 			Unit:        unit,
 			Max:         max,
 			AttackCount: stat.AttackCount,

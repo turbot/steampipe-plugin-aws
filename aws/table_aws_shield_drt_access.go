@@ -17,11 +17,11 @@ func tableAwsShieldDRTAccess(_ context.Context) *plugin.Table {
 		Name:        "aws_shield_drt_access",
 		Description: "AWS Shield DRT Access",
 		List: &plugin.ListConfig{
-			Hydrate: listAwsShieldDRTAccess,
+			Hydrate:      listAwsShieldDRTAccess,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Tags:    map[string]string{"service": "shield", "action": "DescribeDRTAccess"},
+			Tags:         map[string]string{"service": "shield", "action": "DescribeDRTAccess"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{

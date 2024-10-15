@@ -19,20 +19,20 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 		Name:        "aws_shield_protection",
 		Description: "AWS Shield Protection",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"resource_arn", "id"}),
-			Hydrate:    getAwsShieldProtection,
+			KeyColumns:   plugin.AnyColumn([]string{"resource_arn", "id"}),
+			Hydrate:      getAwsShieldProtection,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Tags:       map[string]string{"service": "shield", "action": "DescribeProtection"},
+			Tags:         map[string]string{"service": "shield", "action": "DescribeProtection"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsShieldProtections,
-			KeyColumns: plugin.OptionalColumns([]string{"name", "resource_arn", "resource_type"}),
+			Hydrate:      listAwsShieldProtections,
+			KeyColumns:   plugin.OptionalColumns([]string{"name", "resource_arn", "resource_type"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Tags:    map[string]string{"service": "shield", "action": "ListProtections"},
+			Tags:         map[string]string{"service": "shield", "action": "ListProtections"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{

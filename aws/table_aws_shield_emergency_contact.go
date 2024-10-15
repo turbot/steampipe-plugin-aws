@@ -16,11 +16,11 @@ func tableAwsShieldEmergencyContact(_ context.Context) *plugin.Table {
 		Name:        "aws_shield_emergency_contact",
 		Description: "AWS Shield Emergency Contact",
 		List: &plugin.ListConfig{
-			Hydrate: listAwsShieldEmergencyContact,
+			Hydrate:      listAwsShieldEmergencyContact,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Tags:    map[string]string{"service": "shield", "action": "DescribeEmergencyContactSettings"},
+			Tags:         map[string]string{"service": "shield", "action": "DescribeEmergencyContactSettings"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -91,6 +91,6 @@ func listAwsShieldEmergencyContact(ctx context.Context, d *plugin.QueryData, _ *
 type emergencyContact struct {
 	Priority int
 	EmailAddress *string
-    PhoneNumber *string
+	PhoneNumber *string
 	ContactNotes *string
 }

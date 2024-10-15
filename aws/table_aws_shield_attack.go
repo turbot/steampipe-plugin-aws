@@ -22,12 +22,12 @@ func tableAwsShieldAttack(_ context.Context) *plugin.Table {
 		Name:        "aws_shield_attack",
 		Description: "AWS Shield Attack",
 		Get: &plugin.GetConfig{
-			Hydrate:	getAttack,
+			Hydrate:    getAttack,
 			KeyColumns: plugin.SingleColumn("attack_id"),
-			Tags:		map[string]string{"service": "shield", "action": "DescribeAttack"},
+			Tags:       map[string]string{"service": "shield", "action": "DescribeAttack"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: 	listAttacks,
+			Hydrate:    listAttacks,
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "resource_arn",
@@ -45,7 +45,7 @@ func tableAwsShieldAttack(_ context.Context) *plugin.Table {
 					Operators: []string{"=", ">", ">=", "<", "<="},
 				},
 			},
-			Tags:    	map[string]string{"service": "shield", "action": "ListAttacks"},
+			Tags:       map[string]string{"service": "shield", "action": "ListAttacks"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -76,25 +76,25 @@ func tableAwsShieldAttack(_ context.Context) *plugin.Table {
 			{
 				Name:        "sub_resources",
 				Description: "If applicable, additional detail about the resource being attacked, for example, IP address or URL.",
-				Hydrate:	 getAttack,
+				Hydrate:     getAttack,
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "attack_counters",
 				Description: "List of counters that describe the attack for the specified time period.",
-				Hydrate:	 getAttack,
+				Hydrate:     getAttack,
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "attack_properties",
 				Description: "The array of objects that provide details of the Shield event.",
-				Hydrate:	 getAttack,
+				Hydrate:     getAttack,
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "mitigations",
 				Description: "List of mitigation actions taken for the attack.",
-				Hydrate:	 getAttack,
+				Hydrate:     getAttack,
 				Type:        proto.ColumnType_JSON,
 			},
 			// Steampipe standard columns

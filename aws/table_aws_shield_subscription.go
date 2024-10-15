@@ -17,11 +17,11 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 		Name:        "aws_shield_subscription",
 		Description: "AWS Shield Subscription",
 		List: &plugin.ListConfig{
-			Hydrate: listAwsShieldSubscription,
+			Hydrate:      listAwsShieldSubscription,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Tags:    map[string]string{"service": "shield", "action": "DescribeSubscription"},
+			Tags:         map[string]string{"service": "shield", "action": "DescribeSubscription"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
