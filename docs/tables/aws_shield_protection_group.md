@@ -19,8 +19,8 @@ The `aws_shield_protection` table in Steampipe allows you to query AWS Shield Ad
 select
   protection_group_id,
   aggregation,
-  resource_type,
-  members
+  pattern,
+  resource_type
 from
   aws_shield_protection;
 ```
@@ -29,8 +29,36 @@ from
 select
   protection_group_id,
   aggregation,
-  resource_type,
-  members
+  pattern,
+  resource_type
 from
   aws_shield_protection;
+```
+
+### List all members of protection groups with the pattern `ARBITRARY`
+
+```sql+postgres
+select
+  protection_group_id,
+  member
+from
+  aws_shield_protection,
+  jsonb_array_elements_text(members) as member
+where
+  pattern = 'ARBITRARY'
+order by
+  protection_group_id;
+```
+
+```sql+sqlite
+select
+  protection_group_id,
+  member
+from
+  aws_shield_protection,
+  json_each(members) as member
+where
+  pattern = 'ARBITRARY'
+order by
+  protection_group_id;
 ```

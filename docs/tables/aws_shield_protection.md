@@ -11,6 +11,8 @@ AWS Shield Advanced Protections are safeguards provided by AWS to protect AWS re
 
 The `aws_shield_protection` table in Steampipe allows you to query AWS Shield Advanced Protections and retrieve detailed information about each protection's settings. This table provides you with insights into the protections that are currently active in your AWS environment, including the ARN of the resource that is protected and the automatic application layer DDoS mitigation setting. You can use this table to monitor the status of your AWS Shield Advanced Protections and ensure that your resources are protected against DDoS attacks. For more information about the individual fields, please refer to the [AWS Shield Advanced API documentation](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_DescribeProtection.html#API_DescribeProtection_ResponseSyntax).
 
+**Note:** The column `resource_type` only has a value when it was part of the where clause. For a list of valid values for filtering by `resource_type`, please refer to the [AWS documentation](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_InclusionProtectionFilters.html#AWSShield-Type-InclusionProtectionFilters-ResourceTypes).
+
 ## Examples
 
 ### Basic info
@@ -55,4 +57,50 @@ from
   aws_shield_protection
 where
   health_check_ids is null;
+```
+
+### List Protections for Route 53 Hosted Zones
+
+```sql+postgres
+select
+  name,
+  resource_arn
+from
+  aws_shield_protection
+where
+  resource_type = 'ROUTE_53_HOSTED_ZONE';
+```
+
+```sql+sqlite
+select
+  name,
+  resource_arn
+from
+  aws_shield_protection
+where
+  resource_type = 'ROUTE_53_HOSTED_ZONE';
+```
+
+### Identify Protections with automatic Application Layer DDoS Mitigation enabled
+
+```sql+postgres
+select
+  title,
+  resource_arn
+from
+  aws_shield_protection
+where
+  application_layer_automatic_response_configuration ->> 'Status' = 'ENABLED'
+  and application_layer_automatic_response_configuration -> 'Action' -> 'Block' is not null;
+```
+
+```sql+sqlite
+select
+  title,
+  resource_arn
+from
+  aws_shield_protection
+where
+  application_layer_automatic_response_configuration ->> 'Status' = 'ENABLED'
+  and application_layer_automatic_response_configuration -> 'Action' -> 'Block' is not null;
 ```

@@ -18,15 +18,15 @@ The `aws_shield_drt_access` table in Steampipe allows you to query the AWS Shiel
 ```sql+postgres
 select
   role_arn,
-  jsonb_pretty(log_bucket_list) as log_bucket_list
+  log_bucket_list
 from
-  aws_shield_protection;
+  aws_shield_drt_access;
 ```
 
 ```sql+sqlite
 select
   role_arn,
-  json_pretty(log_bucket_list) as log_bucket_list
+  log_bucket_list
 from
-  aws_shield_protection;
+  aws_shield_drt_access;
 ```
