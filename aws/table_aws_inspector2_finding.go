@@ -34,6 +34,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				{Name: "first_observed_at", Operators: []string{"<=", ">="}, Require: plugin.Optional},
 				{Name: "fix_available", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "inspector_score", Operators: []string{"<=", ">="}, Require: plugin.Optional},
+				{Name: "epss_score", Operators: []string{"<=", ">="}, Require: plugin.Optional},
 				{Name: "last_observed_at", Operators: []string{"<=", ">="}, Require: plugin.Optional},
 				{Name: "severity", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "component_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
@@ -102,7 +103,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "type",
-				Description: "The type of the finding. Valid values are: NETWORK_REACHABILITY | PACKAGE_VULNERABILITY.",
+				Description: "The type of the finding. Valid values are: NETWORK_REACHABILITY | PACKAGE_VULNERABILITY | CODE_VULNERABILITY.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -302,6 +303,12 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				Description: "The ID given to this vulnerability.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("PackageVulnerabilityDetails.VulnerabilityId"),
+			},
+			{
+				Name:        "epss_score",
+				Description: "The finding's EPSS score.",
+				Type:        proto.ColumnType_DOUBLE,
+				Transform:   transform.FromField("Epss.Score"),
 			},
 			{
 				Name:        "exploitability_details",
@@ -663,6 +670,12 @@ var findingNumberFilters = []numberFilterField{
 		columnName: "inspector_score",
 		filterField: func(f *types.FilterCriteria) *[]types.NumberFilter {
 			return &(f.InspectorScore)
+		},
+	},
+	{
+		columnName: "epss_score",
+		filterField: func(f *types.FilterCriteria) *[]types.NumberFilter {
+			return &(f.EpssScore)
 		},
 	},
 }
