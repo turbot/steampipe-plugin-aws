@@ -57,15 +57,16 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "limits",
-				Description: "Specifies how many protections of a given type you can create.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "proactive_engagement_status",
 				Description: "Status of the proactive engagement of the Shield Response Team (SRT). Indicates if the Shield Response Team (SRT) will use the Shield emergency contact data to notify them about DDoS attacks.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ProactiveEngagementStatus").Transform(transform.NullIfZeroValue),
+			},
+			{
+				Name:        "arn",
+				Description: "The ARN (Amazon Resource Name) of the subscription.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SubscriptionArn"),
 			},
 			{
 				Name:        "subscription_limits",
@@ -73,10 +74,9 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "arn",
-				Description: "The ARN (Amazon Resource Name) of the subscription.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("SubscriptionArn"),
+				Name:        "limits",
+				Description: "Specifies how many protections of a given type you can create.",
+				Type:        proto.ColumnType_JSON,
 			},
 			// Steampipe standard columns
 			{

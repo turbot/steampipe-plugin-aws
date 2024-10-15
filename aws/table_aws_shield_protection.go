@@ -57,21 +57,10 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "health_check_ids",
-				Description: "The unique identifier (ID) for the Route 53 health check that's associated with the protection.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("HealthCheckIds").Transform(transform.EnsureStringArray),
-			},
-			{
 				Name:        "arn",
 				Description: "The ARN (Amazon Resource Name) of the protection.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ProtectionArn"),
-			},
-			{
-				Name:        "application_layer_automatic_response_configuration",
-				Description: "The automatic application layer DDoS mitigation settings for the protection. This configuration determines whether Shield Advanced automatically manages rules in the web ACL in order to respond to application layer events that Shield Advanced determines to be DDoS attacks.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "resource_type",
@@ -85,6 +74,17 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForShieldProtection,
 				Transform:   transform.FromField("Tags"),
+			},
+			{
+				Name:        "health_check_ids",
+				Description: "The unique identifier (ID) for the Route 53 health check that's associated with the protection.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("HealthCheckIds").Transform(transform.EnsureStringArray),
+			},
+			{
+				Name:        "application_layer_automatic_response_configuration",
+				Description: "The automatic application layer DDoS mitigation settings for the protection. This configuration determines whether Shield Advanced automatically manages rules in the web ACL in order to respond to application layer events that Shield Advanced determines to be DDoS attacks.",
+				Type:        proto.ColumnType_JSON,
 			},
 			// Steampipe standard columns
 			{

@@ -108,6 +108,124 @@ func tableAwsShieldAttack(_ context.Context) *plugin.Table {
 	}
 }
 
+//// HYDRATE FUNCTIONS
+
+func listAttacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// Create session
+	svc, err := ShieldClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_shield_attack.listAttacks", "connection_error", err)
+		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Limiting the results
+	queryResultLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		queryResultLimit = min(queryResultLimit, int32(*d.QueryContext.Limit))
+	}
+
+	input := &shield.ListAttacksInput{
+		MaxResults: aws.Int32(queryResultLimit),
+	}
+
+	if d.Quals["resource_arn"] != nil {
+		input.ResourceArns = []string{}
+		for _, q := range d.Quals["resource_arn"].Quals {
+			input.ResourceArns = append(input.ResourceArns, q.Value.GetStringValue())
+		}
+	}
+
+	if d.Quals["start_time"] != nil {
+		input.StartTime = getTimeRange(d.Quals["start_time"].Quals)
+	}
+
+	if d.Quals["end_time"] != nil {
+		input.EndTime = getTimeRange(d.Quals["end_time"].Quals)
+	}
+
+	paginator := shield.NewListAttacksPaginator(svc, input, func(o *shield.ListAttacksPaginatorOptions) {
+		o.Limit = queryResultLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_shield_attack.listAttacks", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.AttackSummaries {
+			d.StreamListItem(ctx, &items)
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	return nil, nil
+}
+
+func getAttack(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var attackId string
+	if h.Item != nil {
+		attackId = *h.Item.(*types.AttackSummary).AttackId
+	} else {
+		attackId = d.EqualsQualString("attack_id")
+	}
+
+	if attackId == "" {
+		return nil, nil
+	}
+
+	// Create session
+	svc, err := ShieldClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_shield_attack.getAttack", "connection_error", err)
+		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	data, err := svc.DescribeAttack(ctx, &shield.DescribeAttackInput{
+		AttackId: aws.String(attackId),
+	})
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_shield_attack.getAttack", "api_error", err)
+		return nil, err
+	}
+
+	if data.Attack != nil {
+		return &AttackExtended{
+			AttackVectors: getAttackVectors(*data),
+			AttackCounters: data.Attack.AttackCounters,
+			AttackId: data.Attack.AttackId,
+			AttackProperties: data.Attack.AttackProperties,
+			EndTime: data.Attack.EndTime,
+			Mitigations: data.Attack.Mitigations,
+			ResourceArn: data.Attack.ResourceArn,
+			StartTime: data.Attack.StartTime,
+			SubResources: data.Attack.SubResources,
+		}, nil
+	}
+
+	return nil, nil
+}
+
 //// HELPER FUNCTIONS
 
 type AttackExtended struct {
@@ -185,122 +303,4 @@ func getTimeRange(quals quals.QualSlice) *types.TimeRange {
 		FromInclusive: aws.Time(slices.MaxFunc(fromInclusives, time.Time.Compare)),
 		ToExclusive: aws.Time(slices.MinFunc(toExclusives, time.Time.Compare)),
 	}
-}
-
-//// HYDRATE FUNCTIONS
-
-func getAttack(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var attackId string
-	if h.Item != nil {
-		attackId = *h.Item.(*types.AttackSummary).AttackId
-	} else {
-		attackId = d.EqualsQualString("attack_id")
-	}
-
-	if attackId == "" {
-		return nil, nil
-	}
-
-	// Create session
-	svc, err := ShieldClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_shield_attack.getAttack", "connection_error", err)
-		return nil, err
-	}
-
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
-	data, err := svc.DescribeAttack(ctx, &shield.DescribeAttackInput{
-		AttackId: aws.String(attackId),
-	})
-
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_shield_attack.getAttack", "api_error", err)
-		return nil, err
-	}
-
-	if data.Attack != nil {
-		return &AttackExtended{
-			AttackVectors: getAttackVectors(*data),
-			AttackCounters: data.Attack.AttackCounters,
-			AttackId: data.Attack.AttackId,
-			AttackProperties: data.Attack.AttackProperties,
-			EndTime: data.Attack.EndTime,
-			Mitigations: data.Attack.Mitigations,
-			ResourceArn: data.Attack.ResourceArn,
-			StartTime: data.Attack.StartTime,
-			SubResources: data.Attack.SubResources,
-		}, nil
-	}
-
-	return nil, nil
-}
-
-func listAttacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := ShieldClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_shield_attack.listAttacks", "connection_error", err)
-		return nil, err
-	}
-
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
-	// Limiting the results
-	queryResultLimit := int32(1000)
-	if d.QueryContext.Limit != nil {
-		queryResultLimit = min(queryResultLimit, int32(*d.QueryContext.Limit))
-	}
-
-	input := &shield.ListAttacksInput{
-		MaxResults: aws.Int32(queryResultLimit),
-	}
-
-	if d.Quals["resource_arn"] != nil {
-		input.ResourceArns = []string{}
-		for _, q := range d.Quals["resource_arn"].Quals {
-			input.ResourceArns = append(input.ResourceArns, q.Value.GetStringValue())
-		}
-	}
-
-	if d.Quals["start_time"] != nil {
-		input.StartTime = getTimeRange(d.Quals["start_time"].Quals)
-	}
-
-	if d.Quals["end_time"] != nil {
-		input.EndTime = getTimeRange(d.Quals["end_time"].Quals)
-	}
-
-	paginator := shield.NewListAttacksPaginator(svc, input, func(o *shield.ListAttacksPaginatorOptions) {
-		o.Limit = queryResultLimit
-		o.StopOnDuplicateToken = true
-	})
-
-	// List call
-	for paginator.HasMorePages() {
-		// apply rate limiting
-		d.WaitForListRateLimit(ctx)
-
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_shield_attack.listAttacks", "api_error", err)
-			return nil, err
-		}
-
-		for _, items := range output.AttackSummaries {
-			d.StreamListItem(ctx, &items)
-			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
-			}
-		}
-	}
-
-	return nil, nil
 }
