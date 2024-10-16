@@ -450,9 +450,13 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFin
 					// For the query "select * from aws_securityhub_finding where created_at <= current_timestamp - interval '31d'", we are setting the end time based on the query parameter.
 					// The query doesn't explicitly mention a start date for the creation time.
 					// AWS retains Security Hub findings updated within the last 90 days, regardless of when they were created.
-					// There is no strict limit for the creation start time, but we have set it to the last five years. The API will return an error if we will not set the Start anf End time all together.
-					// Based on our testing, a five-year window seems to be an optimal period.
-					dateFilter.Start = aws.String(st.AddDate(-5, 0, 0).Format(timeFormat))
+					// There is no strict limit for the creation start time, but we have set it to the date when AWS introduced SecurityHub. The API will return an error if we will not set the Start anf End time all together.
+					findingIntroduceTime := "2018-11-27T00:00:00Z"
+					t, err := time.Parse(timeFormat, findingIntroduceTime)
+					if err != nil {
+						panic("failed to parse the introduced securityhub findings time")
+					}
+					dateFilter.Start = aws.String(t.Format(timeFormat))
 				}
 
 			}
