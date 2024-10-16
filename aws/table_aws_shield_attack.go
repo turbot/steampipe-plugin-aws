@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"slices"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/quals"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
@@ -33,16 +31,6 @@ func tableAwsShieldAttack(_ context.Context) *plugin.Table {
 					Name:    "resource_arn",
 					Require: plugin.Optional,
 					Operators: []string{"="},
-				},
-				{
-					Name:    "start_time",
-					Require: plugin.Optional,
-					Operators: []string{"=", ">", ">=", "<", "<="},
-				},
-				{
-					Name:    "end_time",
-					Require: plugin.Optional,
-					Operators: []string{"=", ">", ">=", "<", "<="},
 				},
 			},
 			Tags:       map[string]string{"service": "shield", "action": "ListAttacks"},
@@ -138,14 +126,6 @@ func listAttacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		for _, q := range d.Quals["resource_arn"].Quals {
 			input.ResourceArns = append(input.ResourceArns, q.Value.GetStringValue())
 		}
-	}
-
-	if d.Quals["start_time"] != nil {
-		input.StartTime = getTimeRange(d.Quals["start_time"].Quals)
-	}
-
-	if d.Quals["end_time"] != nil {
-		input.EndTime = getTimeRange(d.Quals["end_time"].Quals)
 	}
 
 	paginator := shield.NewListAttacksPaginator(svc, input, func(o *shield.ListAttacksPaginatorOptions) {
@@ -259,48 +239,4 @@ func getAttackVectors(attack shield.DescribeAttackOutput) ([]types.AttackVectorD
 	}
 
 	return attackVectors
-}
-
-func getTimeRange(quals quals.QualSlice) *types.TimeRange {
-	fromInclusives := []time.Time{}
-	toExclusives := []time.Time{}
-
-	for _, q := range quals {
-		operator := q.Operator
-		timestamp := q.Value.GetTimestampValue().AsTime()
-
-		var fromInclusive time.Time
-		var toExclusive time.Time
-
-		// https://aws.amazon.com/about-aws/whats-new/2016/12/introducing-aws-shield/
-		introductionDateOfShield := time.Date(2016, time.December, 1, 0, 0, 0, 0, time.UTC)
-
-		switch operator {
-			case "=":
-				return &types.TimeRange{
-					FromInclusive: aws.Time(timestamp),
-					ToExclusive: aws.Time(timestamp.Add(time.Second * 1)),
-				}
-			case ">":
-				fromInclusive = timestamp.Add(time.Second * 1)
-				toExclusive = time.Now()
-			case ">=":
-				fromInclusive = timestamp
-				toExclusive = time.Now()
-			case "<":
-				fromInclusive = introductionDateOfShield
-				toExclusive = timestamp
-			case "<=":
-				fromInclusive = introductionDateOfShield
-				toExclusive = timestamp.Add(time.Second * 1)
-		}
-
-		fromInclusives = append(fromInclusives, fromInclusive)
-		toExclusives = append(toExclusives, toExclusive)
-	}
-
-	return &types.TimeRange{
-		FromInclusive: aws.Time(slices.MaxFunc(fromInclusives, time.Time.Compare)),
-		ToExclusive: aws.Time(slices.MinFunc(toExclusives, time.Time.Compare)),
-	}
 }
