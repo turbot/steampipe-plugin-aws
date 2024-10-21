@@ -86,13 +86,6 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 				Description: "The statusReason provides more details about the current status of the analyzer.",
 				Type:        proto.ColumnType_STRING,
 			},
-			{
-				Name:        "findings",
-				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use table aws_accessanalyzer_finding instead. A list of findings retrieved from the analyzer that match the filter criteria specified, if any.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAccessAnalyzerFindings,
-				Transform:   transform.FromValue(),
-			},
 
 			// Steampipe standard columns
 			{

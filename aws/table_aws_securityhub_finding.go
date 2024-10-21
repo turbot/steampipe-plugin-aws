@@ -156,11 +156,6 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "workflow_state",
-				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The workflow state of a finding.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "workflow_status",
 				Description: "The workflow status of a finding. Possible values are NEW, NOTIFIED, SUPPRESSED, RESOLVED.",
 				Type:        proto.ColumnType_STRING,
