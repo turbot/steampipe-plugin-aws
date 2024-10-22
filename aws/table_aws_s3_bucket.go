@@ -689,7 +689,7 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	params := &s3.GetBucketTaggingInput{Bucket: bucketName}
 
-	bucketTags, _ := svc.GetBucketTagging(ctx, params)
+	bucketTags, err := svc.GetBucketTagging(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketTagging", "api_error", err)
 		return nil, err
@@ -711,7 +711,7 @@ func getBucketWebsite(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	params := &s3.GetBucketWebsiteInput{Bucket: bucketName}
 
-	bucketwebsites, _ := svc.GetBucketWebsite(ctx, params)
+	bucketwebsites, err := svc.GetBucketWebsite(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketWebsite", "api_error", err)
 		return nil, err
