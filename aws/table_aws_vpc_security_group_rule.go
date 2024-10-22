@@ -257,35 +257,6 @@ func getSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return nil, nil
 }
 
-func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	sgRule := h.Item.(types.SecurityGroupRule)
-
-	// Build the params
-	params := &ec2.DescribeSecurityGroupsInput{
-		GroupIds: []string{*sgRule.GroupId},
-	}
-
-	// get service
-	svc, err := EC2Client(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getSecurityGroupDetails", "connection_error", err)
-		return nil, err
-	}
-
-	op, err := svc.DescribeSecurityGroups(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_vpc_security_group_rule.getSecurityGroupDetails", "api_error", err)
-		return nil, err
-	}
-
-	if len(op.SecurityGroups) > 0 {
-		return op.SecurityGroups[0], nil
-	}
-
-	return nil, nil
-}
-
 func getReferencedSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	sgRule := h.Item.(types.SecurityGroupRule)
 	if sgRule.ReferencedGroupInfo == nil {
