@@ -1,3 +1,33 @@
+## v1.0.0 [2024-10-22]
+
+There are no significant changes in this plugin version; it has been released to align with [Steampipe's v1.0.0](https://steampipe.io/changelog/steampipe-cli-v1-0-0) release. This plugin adheres to [semantic versioning](https://semver.org/#semantic-versioning-specification-semver), ensuring backward compatibility within each major version.
+
+_Breaking changes_
+
+- The following deprecated columns have now been removed from the tables: ([#2323](https://github.com/turbot/steampipe-plugin-aws/pull/2323))
+  - Removed the `workflow_state` column from the `aws_securityhub_finding` table.
+  - Removed the `image_details` and `image_scanning_findings` columns from the `aws_ecr_repository` table.
+  - Removed the `verification_token` column from the `aws_ses_email_identity` table.
+  - The following columns of `aws_vpc_security_group_rule` table have been removed to stay consistent with the API response data:
+    - `cidr_ip` (replaced by `cidr_ipv4`)
+    - `group_name`
+    - `owner_id` (replaced by `group_owner_id`)
+    - `pair_group_id` (replaced by `referenced_group_id`)
+    - `pair_group_name`
+    - `pair_peering_status` (replaced by `referenced_peering_status`)
+    - `pair_user_id` (replaced by `referenced_user_id`)
+    - `pair_vpc_id` (replaced by `referenced_vpc_id`)
+    - `pair_vpc_peering_connection_id` (replaced by `referenced_vpc_peering_connection_id`)
+    - `vpc_id`
+
+_Enhancements_
+
+- Added `stream_mode_details` column to `aws_kinesis_stream` table. ([#2320](https://github.com/turbot/steampipe-plugin-aws/pull/2320)) (Thanks [@kaushikkishore](https://github.com/kaushikkishore) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the `GetConfig` of the `aws_servicequotas_service_quota` table to correctly return data instead of an error by adding `region` as a required qual. ([#2314](https://github.com/turbot/steampipe-plugin-aws/pull/2314))
+
 ## v0.147.0 [2024-09-13]
 
 _Enhancements_
