@@ -54,13 +54,6 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("VerificationStatus"),
 			},
 			{
-				Name:        "verification_token",
-				Description: "The verification token for a domain identity.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getSESIdentityVerificationAttributes,
-				Transform:   transform.FromField("VerificationToken"),
-			},
-			{
 				Name:        "dkim_attributes",
 				Description: "The DKIM attributes for an email address or a domain.",
 				Type:        proto.ColumnType_JSON,
