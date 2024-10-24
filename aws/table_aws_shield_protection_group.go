@@ -105,7 +105,7 @@ func tableAwsShieldProtectionGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// HYDRATE FUNCTIONS
+//// LIST FUNCTIONS
 
 func listAwsShieldProtectionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
@@ -186,6 +186,8 @@ func listAwsShieldProtectionGroups(ctx context.Context, d *plugin.QueryData, _ *
 
 	return nil, nil
 }
+
+//// HYDRATE FUNCTIONS
 
 func getAwsShieldProtectionGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session

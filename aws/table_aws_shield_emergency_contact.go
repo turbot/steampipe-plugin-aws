@@ -47,7 +47,7 @@ func tableAwsShieldEmergencyContact(_ context.Context) *plugin.Table {
 	}
 }
 
-//// HYDRATE FUNCTIONS
+//// LIST FUNCTIONS
 
 func listAwsShieldEmergencyContact(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session

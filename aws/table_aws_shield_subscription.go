@@ -95,7 +95,7 @@ func tableAwsShieldSubscription(_ context.Context) *plugin.Table {
 	}
 }
 
-//// HYDRATE FUNCTIONS
+//// LIST FUNCTIONS
 
 func listAwsShieldSubscription(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
@@ -121,6 +121,8 @@ func listAwsShieldSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	return nil, nil
 }
+
+//// HYDRATE FUNCTIONS
 
 func getAwsShieldSubscriptionState(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session

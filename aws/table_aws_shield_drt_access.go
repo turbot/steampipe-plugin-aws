@@ -39,7 +39,7 @@ func tableAwsShieldDRTAccess(_ context.Context) *plugin.Table {
 	}
 }
 
-//// HYDRATE FUNCTIONS
+//// LIST FUNCTIONS
 
 func listAwsShieldDRTAccess(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session

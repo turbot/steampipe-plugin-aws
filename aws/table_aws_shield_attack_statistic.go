@@ -58,7 +58,7 @@ type attackStatistic struct {
 	AttackCount int64
 }
 
-//// HYDRATE FUNCTIONS
+//// LIST FUNCTIONS
 
 func listAwsShieldAttackStatistic(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
