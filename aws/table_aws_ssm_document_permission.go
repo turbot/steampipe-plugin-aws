@@ -23,6 +23,11 @@ func tableAwsSSMDocumentPermission(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "document_name", Require: plugin.Required},
 			},
+			// Getting InvalidDocument error if document is not avaiable in any specific region
+			// Error: aws: operation error SSM: DescribeDocumentPermission, https response error StatusCode: 400, RequestID: fece9f20-9b41-40d9-abd3-933c1c1e4345, InvalidDocument: Document with name ssm_doc_test_delete does not exist. (SQLSTATE HV000)
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidDocument"}),
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
