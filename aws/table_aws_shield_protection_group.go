@@ -72,7 +72,7 @@ func tableAwsShieldProtectionGroup(_ context.Context) *plugin.Table {
 				Name:        "members",
 				Description: "The ARNs (Amazon Resource Names) of the resources that are included in the protection group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Members").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("Members"),
 			},
 			{
 				Name:        "tags_src",
@@ -92,7 +92,7 @@ func tableAwsShieldProtectionGroup(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ProtectionGroupArn").Transform(arnToAkas),
+				Transform:   transform.FromField("ProtectionGroupArn").Transform(transform.EnsureStringArray),
 			},
 			{
 				Name:        "tags",
@@ -121,7 +121,7 @@ func listAwsShieldProtectionGroups(ctx context.Context, d *plugin.QueryData, _ *
 	}
 
 	// Limiting the results
-	queryResultLimit := int32(1000)
+	queryResultLimit := int32(10000)
 	if d.QueryContext.Limit != nil {
 		queryResultLimit = min(queryResultLimit, int32(*d.QueryContext.Limit))
 	}

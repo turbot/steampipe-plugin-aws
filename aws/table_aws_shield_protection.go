@@ -79,7 +79,7 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 				Name:        "health_check_ids",
 				Description: "The unique identifier (ID) for the Route 53 health check that's associated with the protection.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("HealthCheckIds").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("HealthCheckIds"),
 			},
 			{
 				Name:        "application_layer_automatic_response_configuration",
@@ -97,7 +97,7 @@ func tableAwsShieldProtection(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ProtectionArn").Transform(arnToAkas),
+				Transform:   transform.FromField("ProtectionArn").Transform(transform.EnsureStringArray),
 			},
 			{
 				Name:        "tags",
@@ -126,7 +126,7 @@ func listAwsShieldProtections(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// Limiting the results
-	queryResultLimit := int32(1000)
+	queryResultLimit := int32(10000)
 	if d.QueryContext.Limit != nil {
 		queryResultLimit = min(queryResultLimit, int32(*d.QueryContext.Limit))
 	}

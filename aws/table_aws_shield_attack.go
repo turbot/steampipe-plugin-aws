@@ -96,7 +96,7 @@ func tableAwsShieldAttack(_ context.Context) *plugin.Table {
 	}
 }
 
-//// HYDRATE FUNCTIONS
+//// LIST FUNCTION
 
 func listAttacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
@@ -155,6 +155,8 @@ func listAttacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 	return nil, nil
 }
+
+//// HYDRATE FUNCTIONS
 
 func getAttack(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var attackId string
