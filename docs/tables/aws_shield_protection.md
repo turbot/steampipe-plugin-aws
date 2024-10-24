@@ -104,3 +104,35 @@ where
   application_layer_automatic_response_configuration ->> 'Status' = 'ENABLED'
   and application_layer_automatic_response_configuration -> 'Action' -> 'Block' is not null;
 ```
+
+### Check if all Shield protected CloudFront distributions are protected by Shield's automatic Application-Layer-DDoS-Mitigation
+
+```sql+postgres
+select
+  protection.name as protection_name,
+  distribution.arn,
+  distribution.aliases ->> 'Items' as aliases,
+  web_acl_id is not null as has_web_acl,
+  protection.application_layer_automatic_response_configuration ->> 'Status' = 'ENABLED' as auto_mitigation_enabled
+from
+  aws_shield_protection as protection
+join
+  aws_cloudfront_distribution as distribution
+on
+  protection.resource_arn = distribution.arn;
+```
+
+```sql+sqlite
+select
+  protection.name as protection_name,
+  distribution.arn,
+  distribution.aliases ->> 'Items' as aliases,
+  web_acl_id is not null as has_web_acl,
+  protection.application_layer_automatic_response_configuration ->> 'Status' = 'ENABLED' as auto_mitigation_enabled
+from
+  aws_shield_protection as protection
+join
+  aws_cloudfront_distribution as distribution
+on
+  protection.resource_arn = distribution.arn;
+```
