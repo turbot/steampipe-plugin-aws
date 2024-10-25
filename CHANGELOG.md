@@ -11,18 +11,16 @@ _Breaking changes_
     - `image_details` (replaced by `aws_ecr_image` table)
     - `image_scanning_findings` (replaced by `aws_ecr_image_scan_finding` table)
   - `aws_ecrpublic_repository`:
-    - `image_details`
+    - `image_details` (replaced by `aws_ecr_image` table)
   - `aws_glue_job`:
     - `allocated_capacity` (replaced by `max_capacity` column)
   - `aws_securityhub_finding`:
-    - `workflow_state`
-  - `aws_ses_domain_identity`:
-    - `verification_token`
+    - `workflow_state` (replaced by `workflow_status` column)
   - `aws_ses_email_identity`:
     - `verification_token`
   - `aws_ssm_document`:
-    - `account_ids`
-    - `account_sharing_info_list`
+    - `account_ids` (replaced by `aws_ssm_document_permission` table)
+    - `account_sharing_info_list` (replaced by `aws_ssm_document_permission` table)
   - `aws_vpc_security_group_rule`:
     - `cidr_ip` (replaced by `cidr_ipv4` column)
     - `group_name`
