@@ -1,3 +1,9 @@
+## v1.0.1 [2024-10-25]
+
+_Bug fixes_
+
+- Added `verification_token` column to`aws_ses_domain_identity` table which was accidentally removed in v1.0.0.
+
 ## v1.0.0 [2024-10-22]
 
 There are no significant changes in this plugin version; it has been released to align with [Steampipe's v1.0.0](https://steampipe.io/changelog/steampipe-cli-v1-0-0) release. This plugin adheres to [semantic versioning](https://semver.org/#semantic-versioning-specification-semver), ensuring backward compatibility within each major version.
