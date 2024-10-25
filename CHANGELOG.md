@@ -4,20 +4,35 @@ There are no significant changes in this plugin version; it has been released to
 
 _Breaking changes_
 
-- The following deprecated columns have now been removed from the tables: ([#2323](https://github.com/turbot/steampipe-plugin-aws/pull/2323))
-  - Removed the `workflow_state` column from the `aws_securityhub_finding` table.
-  - Removed the `image_details` and `image_scanning_findings` columns from the `aws_ecr_repository` table.
-  - Removed the `verification_token` column from the `aws_ses_email_identity` table.
-  - The following columns of `aws_vpc_security_group_rule` table have been removed to stay consistent with the API response data:
-    - `cidr_ip` (replaced by `cidr_ipv4`)
+- The following tables have had deprecated columns removed: ([#2323](https://github.com/turbot/steampipe-plugin-aws/pull/2323))
+  - `aws_accessanalyzer_analyzer`:
+    - `findings` (replaced by `aws_accessanalyzer_finding` table)
+  - `aws_ecr_repository`:
+    - `image_details` (replaced by `aws_ecr_image` table)
+    - `image_scanning_findings` (replaced by `aws_ecr_image_scan_finding` table)
+  - `aws_ecrpublic_repository`:
+    - `image_details`
+  - `aws_glue_job`:
+    - `allocated_capacity` (replaced by `max_capacity` column)
+  - `aws_securityhub_finding`:
+    - `workflow_state`
+  - `aws_ses_domain_identity`:
+    - `verification_token`
+  - `aws_ses_email_identity`:
+    - `verification_token`
+  - `aws_ssm_document`:
+    - `account_ids`
+    - `account_sharing_info_list`
+  - `aws_vpc_security_group_rule`:
+    - `cidr_ip` (replaced by `cidr_ipv4` column)
     - `group_name`
-    - `owner_id` (replaced by `group_owner_id`)
-    - `pair_group_id` (replaced by `referenced_group_id`)
+    - `owner_id` (replaced by `group_owner_id` column)
+    - `pair_group_id` (replaced by `referenced_group_id` column)
     - `pair_group_name`
-    - `pair_peering_status` (replaced by `referenced_peering_status`)
-    - `pair_user_id` (replaced by `referenced_user_id`)
-    - `pair_vpc_id` (replaced by `referenced_vpc_id`)
-    - `pair_vpc_peering_connection_id` (replaced by `referenced_vpc_peering_connection_id`)
+    - `pair_peering_status` (replaced by `referenced_peering_status` column)
+    - `pair_user_id` (replaced by `referenced_user_id` column)
+    - `pair_vpc_id` (replaced by `referenced_vpc_id` column)
+    - `pair_vpc_peering_connection_id` (replaced by `referenced_vpc_peering_connection_id` column)
     - `vpc_id`
 
 _Enhancements_
