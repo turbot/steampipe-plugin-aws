@@ -22,7 +22,7 @@ select
   pattern,
   resource_type
 from
-  aws_shield_protection;
+  aws_shield_protection_group;
 ```
 
 ```sql+sqlite
@@ -32,7 +32,7 @@ select
   pattern,
   resource_type
 from
-  aws_shield_protection;
+  aws_shield_protection_group;
 ```
 
 ### List all members of protection groups with the pattern `ARBITRARY`
@@ -42,7 +42,7 @@ select
   protection_group_id,
   member
 from
-  aws_shield_protection,
+  aws_shield_protection_group,
   jsonb_array_elements_text(members) as member
 where
   pattern = 'ARBITRARY'
@@ -55,7 +55,7 @@ select
   protection_group_id,
   member
 from
-  aws_shield_protection,
+  aws_shield_protection_group,
   json_each(members) as member
 where
   pattern = 'ARBITRARY'
