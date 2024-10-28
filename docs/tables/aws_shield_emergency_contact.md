@@ -19,7 +19,7 @@ The `aws_shield_emergency_contact` table in Steampipe allows you to query the AW
 select
   email_address,
   phone_number,
-  note
+  contact_notes
 from
   aws_shield_emergency_contact;
 ```
@@ -28,7 +28,7 @@ from
 select
   email_address,
   phone_number,
-  note
+  contact_notes
 from
   aws_shield_emergency_contact;
 ```
