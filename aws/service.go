@@ -125,6 +125,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/shield"
 	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
@@ -1492,6 +1493,18 @@ func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client,
 		return nil, err
 	}
 	return sfn.NewFromConfig(*cfg), nil
+}
+
+func ShieldClient(ctx context.Context, d *plugin.QueryData) (*shield.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	
+	if cfg == nil {
+		return nil, nil
+	}
+	return shield.NewFromConfig(*cfg), nil
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {

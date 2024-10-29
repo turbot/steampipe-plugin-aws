@@ -147,6 +147,7 @@ require (
 require golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 
 require (
+	github.com/aws/aws-sdk-go-v2/service/shield v1.25.7 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.47.0 // indirect
