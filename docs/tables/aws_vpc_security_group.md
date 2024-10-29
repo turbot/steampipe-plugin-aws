@@ -59,13 +59,13 @@ select
   sgr.ip_protocol,
   sgr.from_port,
   sgr.to_port,
-  cidr_ip
+  cidr_ipv4
 from
   aws_vpc_security_group as sg
-  join aws_vpc_security_group_rule as sgr on sg.group_name = sgr.group_name
+  join aws_vpc_security_group_rule as sgr on sg.group_id = sgr.group_id
 where
   sgr.type = 'ingress'
-  and sgr.cidr_ip = '0.0.0.0/0'
+  and sgr.cidr_ipv4 = '0.0.0.0/0'
   and (
     (
       sgr.ip_protocol = '-1' -- all traffic
@@ -90,13 +90,13 @@ select
   sgr.ip_protocol,
   sgr.from_port,
   sgr.to_port,
-  cidr_ip
+  cidr_ipv4
 from
   aws_vpc_security_group as sg
-  join aws_vpc_security_group_rule as sgr on sg.group_name = sgr.group_name
+  join aws_vpc_security_group_rule as sgr on sg.group_id = sgr.group_id
 where
   sgr.type = 'ingress'
-  and sgr.cidr_ip = '0.0.0.0/0'
+  and sgr.cidr_ipv4 = '0.0.0.0/0'
   and (
     (
       sgr.ip_protocol = '-1' -- all traffic

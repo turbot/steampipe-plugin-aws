@@ -34,7 +34,6 @@ from
   aws_rds_db_subnet_group;
 ```
 
-
 ### Subnets info of each subnet in subnet group
 Determine the status and location details of each subnet within a subnet group in your AWS RDS, to understand their availability and configuration. This information can be crucial for managing your database's network performance and security.
 
@@ -61,7 +60,6 @@ from
   aws_rds_db_subnet_group,
   json_each(subnets) as subnet;
 ```
-
 
 ### List of subnet group without application tag key
 Discover the segments that lack the 'application' tag key in your AWS RDS subnet groups. This can be useful in identifying potential areas for better resource tagging and management.
