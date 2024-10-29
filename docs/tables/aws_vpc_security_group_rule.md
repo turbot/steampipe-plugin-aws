@@ -114,8 +114,7 @@ select
   r.to_port,
   r.cidr_ipv4,
   r.group_id,
-  sg.group_name,
-  sg.vpc_id 
+  sg.group_name
 from
   aws_vpc_security_group_rule as r,
   aws_vpc_security_group as sg 
@@ -131,8 +130,7 @@ select
   r.to_port,
   r.cidr_ipv4,
   r.group_id,
-  sg.group_name,
-  sg.vpc_id 
+  sg.group_name
 from
   aws_vpc_security_group_rule as r
 join
