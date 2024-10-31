@@ -243,6 +243,8 @@ github.com/aws/aws-sdk-go-v2/service/appconfig v1.29.2 h1:Nm1Pqug23c/Ib+/FgwYpFZ
 github.com/aws/aws-sdk-go-v2/service/appconfig v1.29.2/go.mod h1:Z4uxjsQCQYIZQYOf5js8AN9B5ZCFfwRkEHuiihgjHWs=
 github.com/aws/aws-sdk-go-v2/service/applicationautoscaling v1.27.4 h1:QGG9y+wEdP5KpTbcvpi8ETAoMq0zB6UJdqJ3JmVu/Wc=
 github.com/aws/aws-sdk-go-v2/service/applicationautoscaling v1.27.4/go.mod h1:g7O+8ghAn49ysZShSpeOxIRiI0/BgPoqHwZFNKnykco=
+github.com/aws/aws-sdk-go-v2/service/apprunner v1.28.8 h1:vTSRA431Gi6tQcUDfCTF1PwnLvw7M+7SoMWb0FRvKAY=
+github.com/aws/aws-sdk-go-v2/service/apprunner v1.28.8/go.mod h1:0ClIRoMxROYgDXb/kSvAsZSO41p4j9p4xkquAFzNEjM=
 github.com/aws/aws-sdk-go-v2/service/appstream v1.34.4 h1:chEtg7jpLbd+wzNEZR5Y7if5S3+zCL4HO892dk4JRHI=
 github.com/aws/aws-sdk-go-v2/service/appstream v1.34.4/go.mod h1:ornvkYF5+PhIhj13BZGWGlZyltIkYqfoPtmAnOdSORA=
 github.com/aws/aws-sdk-go-v2/service/appsync v1.31.4 h1:E6Lgar42LVTsQPOQ+1UDjItIliPnm2/R8jnBA6fo6Gg=
@@ -449,6 +451,8 @@ github.com/aws/aws-sdk-go-v2/service/ses v1.22.4 h1:MNU3UWV47ylAAdlU+VxuyItYfuGG
 github.com/aws/aws-sdk-go-v2/service/ses v1.22.4/go.mod h1:M/ZQn5uXL4BP1qolIWrlN2SeoUFngJtU/oCwR4WOfZU=
 github.com/aws/aws-sdk-go-v2/service/sfn v1.26.4 h1:LM5AENhJDUd3fHP5NI8hk1jR+Io54/TmEQCWkRmfJE8=
 github.com/aws/aws-sdk-go-v2/service/sfn v1.26.4/go.mod h1:YYRs4t+xgLXx9lBMW8Rs6wF61RtEOFrKa8hNMgq6DvI=
+github.com/aws/aws-sdk-go-v2/service/shield v1.25.7 h1:enkVyQ39Z6Lz4SHLfr0IHnhSjxAOvL+AzR0/QPoEHwo=
+github.com/aws/aws-sdk-go-v2/service/shield v1.25.7/go.mod h1:f7CoPXas/zt/E9pwJ8bFas7WHz8e+PjQV0FXGH7zMuA=
 github.com/aws/aws-sdk-go-v2/service/simspaceweaver v1.10.4 h1:3Van6iPm54SieS9apXtUDo8FutYJKdK2qniZ8vnE9jg=
 github.com/aws/aws-sdk-go-v2/service/simspaceweaver v1.10.4/go.mod h1:epFVpwUgd/c80/2fR2Zd7WDDctrJfXfxBvhreA5PJYo=
 github.com/aws/aws-sdk-go-v2/service/sns v1.29.4 h1:VhW/J21SPH9bNmk1IYdZtzqA6//N2PB5Py5RexNmLVg=
@@ -853,8 +857,8 @@ github.com/tkrajina/go-reflector v0.5.6 h1:hKQ0gyocG7vgMD2M3dRlYN6WBBOmdoOzJ6njQ
 github.com/tkrajina/go-reflector v0.5.6/go.mod h1:ECbqLgccecY5kPmPmXg1MrHW585yMcDkVl6IvJe64T4=
 github.com/turbot/go-kit v0.10.0-rc.0 h1:kd+jp2ibbIV33Hc8SsMAN410Dl9Pz6SJ40axbKUlSoA=
 github.com/turbot/go-kit v0.10.0-rc.0/go.mod h1:fFQqR59I5z5JeeBLfK1PjSifn4Oprs3NiQx0CxeSJxs=
-github.com/turbot/steampipe-plugin-sdk/v5 v5.10.3 h1:3OCvnD0/u2RzNOgd0aBiWJrp/uk5Qjv6ZUt2gF2Xi9g=
-github.com/turbot/steampipe-plugin-sdk/v5 v5.10.3/go.mod h1:zmq31p/5iizn78nJ3k7np4owfuZL+EsZlb7gGMZl6cY=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.10.4 h1:h2Ye0ksL6KN6w2wh1O3mgKthLnyl4QPsTpUj47bRbvc=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.10.4/go.mod h1:FzW+0aq4x1PoCkklCRx43dMrhxk7SYeWVHUb3pNFtFc=
 github.com/ulikunitz/xz v0.5.10 h1:t92gobL9l3HE202wg3rlk19F6X+JOxl9BBrCCMYEYd8=
 github.com/ulikunitz/xz v0.5.10/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

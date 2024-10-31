@@ -115,13 +115,6 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "image_details",
-				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use the aws_ecr_image table instead. A list of ImageDetail objects that contain data about the image.",
-				Hydrate:     getAwsEcrDescribeImages,
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "repository_scanning_configuration",
 				Description: "Gets the scanning configuration for one or more repositories.",
 				Hydrate:     getAwsEcrRepositoryScanningConfiguration,
@@ -132,13 +125,6 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Name:        "image_scanning_configuration",
 				Description: "The image scanning configuration for a repository.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "image_scanning_findings",
-				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use the aws_ecr_image_scan_finding table instead. Scan findings for an image.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEcrDescribeImageScanningFindings,
-				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "lifecycle_policy",

@@ -43,7 +43,6 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				{Name: "record_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "title", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "verification_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
-				{Name: "workflow_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "workflow_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "source_account_id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
@@ -153,11 +152,6 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 			{
 				Name:        "verification_state",
 				Description: "Indicates the veracity of a finding.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "workflow_state",
-				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The workflow state of a finding.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
