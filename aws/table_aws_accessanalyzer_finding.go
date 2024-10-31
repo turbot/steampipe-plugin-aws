@@ -2,11 +2,10 @@ package aws
 
 import (
 	"context"
-	"errors"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types"
-	"github.com/aws/smithy-go"
 
 	accessanalyzerv1 "github.com/aws/aws-sdk-go/service/accessanalyzer"
 
@@ -47,11 +46,27 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 				{
+					Name:    "error",
+					Require: plugin.Optional,
+				},
+				{
 					Name:    "id",
 					Require: plugin.Optional,
 				},
 				{
+					Name:    "is_public",
+					Require: plugin.Optional,
+				},
+				{
 					Name:    "resource",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "resource_owner_account",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "resource_type",
 					Require: plugin.Optional,
 				},
 				{
@@ -219,12 +234,6 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		output, err := paginator.NextPage(ctx)
 
 		if err != nil {
-			var ae smithy.APIError
-			if errors.As(err, &ae) {
-				if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
-					return nil, nil
-				}
-			}
 			plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFindings", "api_error", err)
 			return nil, err
 		}
@@ -285,12 +294,6 @@ func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugi
 	data, err := svc.GetFinding(ctx, params)
 
 	if err != nil {
-		var ae smithy.APIError
-		if errors.As(err, &ae) {
-			if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
-				return nil, nil
-			}
-		}
 		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.getAccessAnalyzerFinding", "api_error", err)
 		return nil, err
 	}
@@ -299,12 +302,30 @@ func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugi
 }
 
 func setFilterCriteria(d *plugin.QueryData, input *accessanalyzer.ListFindingsInput) {
-	params := []string{"id", "status", "resource"}
+	params := []string{"id", "status", "resource", "error"}
 	for _, param := range params {
 		if d.Quals[param] != nil {
 			input.Filter[param] = types.Criterion{
 				Eq: []string{d.EqualsQualString(param)},
 			}
+		}
+	}
+
+	if d.Quals["resource_owner_account"] != nil {
+		input.Filter["resourceOwnerAccount"] = types.Criterion{
+			Eq: []string{d.EqualsQualString("resource_owner_account")},
+		}
+	}
+
+	if d.Quals["resource_type"] != nil {
+		input.Filter["resourceType"] = types.Criterion{
+			Eq: []string{d.EqualsQualString("resource_type")},
+		}
+	}
+
+	if d.EqualsQuals["is_public"] != nil {
+		input.Filter["isPublic"] = types.Criterion{
+			Eq: []string{strconv.FormatBool(d.EqualsQuals["is_public"].GetBoolValue())},
 		}
 	}
 }
