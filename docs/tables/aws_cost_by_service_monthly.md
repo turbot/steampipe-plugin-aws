@@ -183,7 +183,7 @@ with cost_data as (
     service,
     period_start,
     unblended_cost_amount as this_month,
-    lag(unblended_cost_amount,1) over(partition by service order by period_start desc) as previous_month
+    lag(unblended_cost_amount, -1) over(partition by service order by period_start desc) as previous_month
   from
     aws_cost_by_service_monthly
 )
@@ -210,7 +210,7 @@ with cost_data as (
     service,
     period_start,
     unblended_cost_amount as this_month,
-    lag(unblended_cost_amount,1) over(partition by service order by period_start desc) as previous_month
+    lag(unblended_cost_amount, -1) over(partition by service order by period_start desc) as previous_month
   from
     aws_cost_by_service_monthly
 )
