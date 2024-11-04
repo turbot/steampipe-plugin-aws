@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types"
+	"github.com/aws/smithy-go"
 
 	accessanalyzerv1 "github.com/aws/aws-sdk-go/service/accessanalyzer"
 
@@ -234,6 +236,12 @@ func listAccessAnalyzersFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		output, err := paginator.NextPage(ctx)
 
 		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_accessanalyzer_finding.listAccessAnalyzersFindings", "api_error", err)
 			return nil, err
 		}
@@ -294,6 +302,12 @@ func getAccessAnalyzerFinding(ctx context.Context, d *plugin.QueryData, h *plugi
 	data, err := svc.GetFinding(ctx, params)
 
 	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" || ae.ErrorCode() == "ValidationException" {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("aws_accessanalyzer_finding.getAccessAnalyzerFinding", "api_error", err)
 		return nil, err
 	}
