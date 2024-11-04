@@ -61,7 +61,18 @@ func tableAwsCostAndUsage(_ context.Context) *plugin.Table {
 					Description: "Valid values are AZ, INSTANCE_TYPE, LINKED_ACCOUNT, OPERATION, PURCHASE_TYPE, SERVICE, USAGE_TYPE, PLATFORM, TENANCY, RECORD_TYPE, LEGAL_ENTITY_NAME, DEPLOYMENT_OPTION, DATABASE_ENGINE, CACHE_ENGINE, INSTANCE_TYPE_FAMILY, REGION, BILLING_ENTITY, RESERVATION_ID, SAVINGS_PLANS_TYPE, SAVINGS_PLAN_ARN, OPERATING_SYSTEM",
 					Type:        proto.ColumnType_STRING,
 				},
-
+				{
+					Name:        "search_start_time",
+					Description: "[Deprecated] The beginning of the time period.",
+					Type:        proto.ColumnType_TIMESTAMP,
+					Hydrate:     hydrateCostAndUsageQuals,
+				},
+				{
+					Name:        "search_end_time",
+					Description: "[Deprecated] The end of the time period.",
+					Type:        proto.ColumnType_TIMESTAMP,
+					Hydrate:     hydrateCostAndUsageQuals,
+				},
 				// Quals columns - to filter the lookups
 				{
 					Name:        "granularity",
@@ -218,7 +229,6 @@ func getSearchStartTImeAndSearchEndTime(keyQuals *plugin.QueryData, granularity 
 				if st == "" {
 					st = t
 				}
-				// et = t
 			case "<", "<=":
 				if et == "" {
 					et = t
