@@ -1,4 +1,4 @@
-## v1.2.0 [2024-10-25]
+## v1.2.0 [2024-11-04]
 
 _What's new?_
 
@@ -19,7 +19,7 @@ _Bug fixes_
 
 - Fixed the `aws_ssm_document_permission` table to correctly return `nil` whenever `InvalidDocument` error is returned by the API. ([#2326](https://github.com/turbot/steampipe-plugin-aws/pull/2326))
 - Fixed error handling for `aws_iam_user` and `aws_s3_bucket` tables. ([#2324](https://github.com/turbot/steampipe-plugin-aws/pull/2324)) (Thanks [@danielgrittner](https://github.com/danielgrittner) for the contribution!)
-- Updated SQL queries to exclude removed table columns. ([#2328](https://github.com/turbot/steampipe-plugin-aws/pull/2328)) 
+- Updated SQL queries to exclude removed table columns. ([#2328](https://github.com/turbot/steampipe-plugin-aws/pull/2328))
 
 ## v1.0.1 [2024-10-25]
 
