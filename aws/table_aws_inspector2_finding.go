@@ -850,9 +850,9 @@ func buildNumberFilters(d *plugin.QueryData, filter *types.FilterCriteria) {
 				val := aws.Float64(q.Value.GetDoubleValue())
 				var f types.NumberFilter
 				switch q.Operator {
-				case "<=":
-					f = types.NumberFilter{LowerInclusive: val}
 				case ">=":
+					f = types.NumberFilter{LowerInclusive: val}
+				case "<=":
 					f = types.NumberFilter{UpperInclusive: val}
 				}
 				*field = append(*field, f)
@@ -869,9 +869,9 @@ func buildDateFilters(d *plugin.QueryData, filter *types.FilterCriteria) {
 				val := aws.Time(q.Value.GetTimestampValue().AsTime())
 				var f types.DateFilter
 				switch q.Operator {
-				case "<=":
-					f = types.DateFilter{StartInclusive: val}
 				case ">=":
+					f = types.DateFilter{StartInclusive: val}
+				case "<=":
 					f = types.DateFilter{EndInclusive: val}
 				}
 				*field = append(*field, f)
