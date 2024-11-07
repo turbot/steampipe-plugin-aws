@@ -23,9 +23,15 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			Hydrate: listS3Buckets,
 			Tags:    map[string]string{"service": "s3", "action": "ListBucket"},
 		},
+
 		// Note: No Get for S3 buckets, since it must list all the buckets
 		// anyway just to get the creation_date which is only available via the
 		// list call.
+
+		// Using IgnoreConfig in the Hydrate function has been observed to increase query execution time significantly.
+		// Therefore, we have opted not to use IgnoreConfig in Hydrate calls to maintain optimal performance.
+		// Example: For the query "select * from aws_s3_bucket where region = 'us-east-2'",
+		// using IgnoreConfig results in a slower execution time of 87.2 seconds, while handling errors manually reduces the time to 25.0 seconds.
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getBucketRegion,
@@ -691,6 +697,12 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	bucketTags, err := svc.GetBucketTagging(ctx, params)
 	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "NoSuchTagSet" {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketTagging", "api_error", err)
 		return nil, err
 	}
@@ -713,6 +725,12 @@ func getBucketWebsite(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	bucketwebsites, err := svc.GetBucketWebsite(ctx, params)
 	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "NoSuchWebsiteConfiguration" {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketWebsite", "api_error", err)
 		return nil, err
 	}
