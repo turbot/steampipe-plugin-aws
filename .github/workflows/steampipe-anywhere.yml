@@ -13,5 +13,5 @@ on:
 
 jobs:
   anywhere_publish_workflow:
-    uses: turbot/steampipe-workflows/.github/workflows/steampipe-anywhere-aws.yml@main
+    uses: turbot/steampipe-workflows/.github/workflows/steampipe-anywhere-aws.yml@update-file-size
     secrets: inherit
