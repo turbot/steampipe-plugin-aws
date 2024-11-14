@@ -2,7 +2,7 @@
 
 _Enhancements_
 
-- Added `multi_region` and `multi_region_configuration` column to `aws_kms_key` table. ([#2338](https://github.com/turbot/steampipe-plugin-aws/pull/2338)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Added `multi_region` and `multi_region_configuration` columns to `aws_kms_key` table. ([#2338](https://github.com/turbot/steampipe-plugin-aws/pull/2338)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
 
 _Bug fixes_
 
