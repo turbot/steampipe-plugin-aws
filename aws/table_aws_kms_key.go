@@ -183,6 +183,20 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsKmsKeyTagging,
 			},
+			{
+				Name:        "multi_region",
+				Description: "Specifies whether the CMK is KMS key is a multi-Region (true) or regional (false) key.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAwsKmsKeyData,
+				Transform:   transform.FromField("KeyMetadata.MultiRegion"),
+			},
+			{
+				Name:        "multi_region_configuration",
+				Description: "Lists the primary and replica keys in same multi-Region key.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsKmsKeyData,
+				Transform:   transform.FromField("KeyMetadata.MultiRegionConfiguration"),
+			},
 
 			/// Standard columns for all tables
 			{
