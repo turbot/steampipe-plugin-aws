@@ -1,3 +1,13 @@
+## v1.3.0 [2024-11-14]
+
+_Enhancements_
+
+- Added `multi_region` and `multi_region_configuration` columns to `aws_kms_key` table. ([#2338](https://github.com/turbot/steampipe-plugin-aws/pull/2338)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the comparison operator `(<= or >=)` for number and date filter in `aws_inspector2_finding` table. ([#2332](https://github.com/turbot/steampipe-plugin-aws/pull/2332)) (Thanks [@dbermuehler](https://github.com/dbermuehler) for the contribution!)
+
 ## v1.2.0 [2024-11-04]
 
 _What's new?_
