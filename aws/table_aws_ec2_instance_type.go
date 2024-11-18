@@ -300,7 +300,6 @@ func fetchInstanceTypeOfferings(ctx context.Context, d *plugin.QueryData, svc *e
 
 // Helper function to filter instance types by a pattern like t2-*, m5-*, etc.
 func filterInstanceTypesByPattern(ctx context.Context, instanceTypes []types.InstanceType, pattern string) []types.InstanceType {
-	plugin.Logger(ctx).Error("Pattern =>>>", pattern)
 	if pattern == "" {
 		return instanceTypes
 	}
