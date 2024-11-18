@@ -299,7 +299,7 @@ func fetchInstanceTypeOfferings(ctx context.Context, d *plugin.QueryData, svc *e
 }
 
 // Helper function to filter instance types by a pattern like t2-*, m5-*, etc.
-func filterInstanceTypesByPattern(ctx context.Context, instanceTypes []types.InstanceType, pattern string) []types.InstanceType {
+func filterInstanceTypesByPattern(_ context.Context, instanceTypes []types.InstanceType, pattern string) []types.InstanceType {
 	if pattern == "" {
 		return instanceTypes
 	}
@@ -317,9 +317,7 @@ func filterInstanceTypesByPattern(ctx context.Context, instanceTypes []types.Ins
 	re := regexp.MustCompile(pattern)
 
 	for _, instanceType := range instanceTypes {
-
 		if re.MatchString(string(instanceType)) {
-			plugin.Logger(ctx).Error("Pattern matched with =>>>", instanceType)
 			matchedInstanceTypes = append(matchedInstanceTypes, instanceType)
 		}
 	}
@@ -330,6 +328,9 @@ func filterInstanceTypesByPattern(ctx context.Context, instanceTypes []types.Ins
 // Helper function to batch describe instance types in groups of 100
 func batchDescribeInstanceTypes(ctx context.Context, d *plugin.QueryData, instanceTypes []types.InstanceType, region string) error {
 	batchSize := 100
+	if d.QueryContext.Limit != nil && *d.QueryContext.Limit > 0 && *d.QueryContext.Limit < 100 {
+		batchSize = int(*d.QueryContext.Limit)
+	}
 	for i := 0; i < len(instanceTypes); i += batchSize {
 		end := i + batchSize
 		if end > len(instanceTypes) {
