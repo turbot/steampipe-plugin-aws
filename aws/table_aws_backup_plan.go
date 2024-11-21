@@ -227,10 +227,7 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func getAwsBackupPlanTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	arn := backupPlanArn(h.Item)
 
-	// Define the regex pattern for the recovery point ARN
-	pattern := `arn:aws:backup:[a-z0-9\-]+:[0-9]{12}:backup-plan:.*`
-
-	return getAwsBackupResourceTags(ctx, d, arn, pattern)
+	return getAwsBackupResourceTags(ctx, d, arn)
 }
 
 func backupPlanArn(item interface{}) string {

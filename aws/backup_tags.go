@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"errors"
-	"regexp"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
@@ -11,14 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
-func getAwsBackupResourceTags(ctx context.Context, d *plugin.QueryData, arn string, pattern string) (interface{}, error) { // Create a regular expression object
-	re := regexp.MustCompile(pattern)
-
-	// Only return the tags associated with the resovery point
-	if !re.MatchString(arn) {
-		return nil, nil
-	}
-
+func getAwsBackupResourceTags(ctx context.Context, d *plugin.QueryData, arn string) (interface{}, error) {
 	// Create Session
 	svc, err := BackupClient(ctx, d)
 	if err != nil {
@@ -35,12 +27,15 @@ func getAwsBackupResourceTags(ctx context.Context, d *plugin.QueryData, arn stri
 	}
 
 	op, err := svc.ListTags(ctx, params)
+	plugin.Logger(ctx).Debug("backup_tags.getAwsBackupResourceTags", "ListTagsOutput", op)
 	if err != nil {
-
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
+			plugin.Logger(ctx).Debug("backup_tags.getAwsBackupResourceTags", "smithy.APIError", ae)
 			if ae.ErrorCode() == "ResourceNotFoundException" {
-				return &backup.ListTagsOutput{}, nil
+				return &backup.ListTagsOutput{
+					Tags: map[string]string{},
+				}, nil
 			}
 		}
 		plugin.Logger(ctx).Error("backup_tags.getAwsBackupResourceTags", "api_error", err)
@@ -48,7 +43,7 @@ func getAwsBackupResourceTags(ctx context.Context, d *plugin.QueryData, arn stri
 	}
 
 	if op.Tags == nil {
-		return nil, nil
+		op.Tags = map[string]string{}
 	}
 
 	return op, nil

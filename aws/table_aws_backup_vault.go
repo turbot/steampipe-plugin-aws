@@ -296,10 +296,7 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 func getAwsBackupVaultTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	arn := vaultArn(h.Item)
 
-	// Define the regex pattern for the backup vault ARN
-	pattern := `arn:aws:backup:[a-z0-9\-]+:[0-9]{12}:backup-vault:.*`
-
-	return getAwsBackupResourceTags(ctx, d, arn, pattern)
+	return getAwsBackupResourceTags(ctx, d, arn)
 }
 
 func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
