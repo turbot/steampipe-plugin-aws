@@ -54,8 +54,6 @@ order by
   period_start;
 ```
 
-
-
 ### Min, Max, and average monthly unblended_cost_amount by region
 Explore which AWS regions have the lowest, highest, and average monthly costs, providing a clear understanding of your AWS expenditure. This can help in budgeting and identifying regions that may be costing more than expected.
 
@@ -117,7 +115,6 @@ order by
   average desc
 limit 10;
 ```
-
 
 ### Top 10 most expensive region (by total monthly unblended_cost_amount)
 This query helps to pinpoint the top 10 most costly regions in terms of total monthly unblended cost. It is useful for gaining insights into where the majority of your AWS costs are coming from, allowing for more informed budgeting and cost management decisions.
