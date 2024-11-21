@@ -259,10 +259,6 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultNotification", "connection_error", err)
 		return nil, err
 	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
 
 	if svc == nil {
 		// Unsupported region, return no data
