@@ -1,3 +1,19 @@
+## v1.4.0 [2024-11-22]
+
+_What's new?_
+
+- New tables added
+  - [aws_cost_by_region_monthly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_region_monthly) ([#2310](https://github.com/turbot/steampipe-plugin-aws/pull/2310)) (Thanks [@razbne](https://github.com/razbne) for the contribution!)
+
+_Enhancements_
+
+- Added `error`, `is_public`, `resource_owner_account` and `resource_type` optional quals for `aws_accessanalyzer_finding` table. ([#2331](https://github.com/turbot/steampipe-plugin-aws/pull/2331)) (Thanks [@dbermuehler](https://github.com/dbermuehler) for the contribution!)
+- Updated the `aws_s3_object` table to use the `HeadObject` API to retrieve object metadata. ([#2312](https://github.com/turbot/steampipe-plugin-aws/pull/2312)) (Thanks [@JonMerlevede](https://github.com/JonMerlevede) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the `aws_s3_bucket` table to correctly return data by ignoring the not found error in `getBucketTagging` and `getBucketWebsite` hydrate functions. ([#2335](https://github.com/turbot/steampipe-plugin-aws/pull/2335))
+
 ## v1.3.0 [2024-11-14]
 
 _Enhancements_
