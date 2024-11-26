@@ -14,6 +14,7 @@ type awsIamAccountSummary struct {
 	AccessKeysPerUserQuota            int32
 	AccountAccessKeysPresent          int32
 	AccountMFAEnabled                 bool
+	AccountPasswordPresent            int32
 	AccountSigningCertificatesPresent int32
 	AssumeRolePolicySizeQuota         int32
 	AttachedPoliciesPerGroupQuota     int32
@@ -71,6 +72,11 @@ func tableAwsIamAccountSummary(_ context.Context) *plugin.Table {
 				Description: "Specifies whether MFA is enabled for the account.",
 				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("AccountMFAEnabled"),
+			},
+			{
+				Name:        "account_password_present",
+				Description: "Specifies the number of account passwords present.",
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "account_signing_certificates_present",
@@ -245,6 +251,7 @@ func listAccountSummary(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		AccessKeysPerUserQuota:            summaryMap["AccessKeysPerUserQuota"],
 		AccountAccessKeysPresent:          summaryMap["AccountAccessKeysPresent"],
 		AccountMFAEnabled:                 summaryMap["AccountMFAEnabled"] == int32(1),
+		AccountPasswordPresent:            summaryMap["AccountPasswordPresent"],
 		AccountSigningCertificatesPresent: summaryMap["AccountSigningCertificatesPresent"],
 		AssumeRolePolicySizeQuota:         summaryMap["AssumeRolePolicySizeQuota"],
 		AttachedPoliciesPerGroupQuota:     summaryMap["AttachedPoliciesPerGroupQuota"],
