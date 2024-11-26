@@ -146,6 +146,11 @@ func tableAwsNeptuneDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "storage_type",
+				Description: "The storage type associated with the DB cluster snapshot.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "availability_zones",
 				Description: "Provides the list of EC2 Availability Zones that instances in the DB cluster snapshot can be restored in.",
 				Type:        proto.ColumnType_JSON,
@@ -262,7 +267,7 @@ func getNeptuneDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-	if op.DBClusterSnapshots != nil && len(op.DBClusterSnapshots) > 0 {
+	if op != nil && len(op.DBClusterSnapshots) > 0 {
 		snapshot := op.DBClusterSnapshots[0]
 		if *snapshot.Engine == "neptune" {
 			return snapshot, nil

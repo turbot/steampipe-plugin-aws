@@ -88,6 +88,22 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "availability_zone_id",
+				Description: "The unique and consistent identifier of the Availability Zone in which the file system is located, and is valid only for One Zone file systems.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "availability_zone_name",
+				Description: "Describes the Amazon Web Services Availability Zone in which the file system is located, and is valid only for One Zone file systems.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "replication_overwrite_protection",
+				Description: "The status of the file system's replication overwrite protection.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("FileSystemProtection.ReplicationOverwriteProtection"),
+			},
+			{
 				Name:        "number_of_mount_targets",
 				Description: "The current number of mount targets that the file system has.",
 				Type:        proto.ColumnType_INT,
@@ -255,7 +271,7 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	if op.FileSystems != nil && len(op.FileSystems) > 0 {
+	if op != nil && len(op.FileSystems) > 0 {
 		return op.FileSystems[0], nil
 	}
 

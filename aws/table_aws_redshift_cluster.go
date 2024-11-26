@@ -138,6 +138,52 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "custom_domain_certificate_arn",
+				Description: "The certificate Amazon Resource Name (ARN) for the custom domain name.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "total_storage_capacity_in_mega_bytes",
+				Description: "The total storage capacity of the cluster in megabytes.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "custom_domain_name",
+				Description: "The custom domain name associated with the cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "default_iam_role_arn",
+				Description: "The Amazon Resource Name (ARN) for the IAM role set as default for the cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "master_password_secret_arn",
+				Description: "The Amazon Resource Name (ARN) for the cluster's admin user credentials secret.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "master_password_secret_kms_key_id",
+				Description: "The ID of the Key Management Service (KMS) key used to encrypt and store the cluster's admin credentials secret.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "custom_domain_certificate_expiry_date",
+				Description: "The expiration date for the certificate associated with the custom domain name.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("CustomDomainCertificateExpiryDate").Transform(transform.NullIfZeroValue),
+			},
+			{
+				Name:        "aqua_configuration",
+				Description: "This field is retired. Amazon Redshift automatically determines whether to use AQUA (Advanced Query Accelerator).",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "reserved_node_exchange_status",
+				Description: "The status of the reserved-node exchange request. Statuses include in-progress and requested.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "data_transfer_progress",
 				Description: "Describes the status of a cluster while it is in the process of resizing with an incremental resize.",
 				Type:        proto.ColumnType_JSON,

@@ -127,6 +127,18 @@ func tableAwsPipes(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsPipe,
 			},
 			{
+				Name:        "log_configuration",
+				Description: "The logging configuration settings for the pipe.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsPipe,
+			},
+			{
+				Name:        "source_parameters",
+				Description: "The parameters required to set up a source for your pipe.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsPipe,
+			},
+			{
 				Name:        "target_parameters",
 				Description: "The parameters required to set up a target for your pipe.",
 				Type:        proto.ColumnType_JSON,

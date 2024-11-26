@@ -209,7 +209,7 @@ func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	if op.VpnConnections != nil && len(op.VpnConnections) > 0 {
+	if op != nil && len(op.VpnConnections) > 0 {
 		return op.VpnConnections[0], nil
 	}
 	return nil, nil

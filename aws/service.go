@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/apprunner"
 	"github.com/aws/aws-sdk-go-v2/service/appstream"
 	"github.com/aws/aws-sdk-go-v2/service/appsync"
 	"github.com/aws/aws-sdk-go-v2/service/athena"
@@ -92,6 +93,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore"
+	"github.com/aws/aws-sdk-go-v2/service/memorydb"
 	"github.com/aws/aws-sdk-go-v2/service/mgn"
 	"github.com/aws/aws-sdk-go-v2/service/mq"
 	"github.com/aws/aws-sdk-go-v2/service/neptune"
@@ -123,6 +125,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/shield"
 	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
@@ -131,6 +134,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go-v2/service/support"
+	"github.com/aws/aws-sdk-go-v2/service/timestreamwrite"
 	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
@@ -147,6 +151,7 @@ import (
 
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
+	appRunnerEndpoint "github.com/aws/aws-sdk-go/service/apprunner"
 	appsyncv2Endpoint "github.com/aws/aws-sdk-go/service/appsync"
 	auditmanagerEndpoint "github.com/aws/aws-sdk-go/service/auditmanager"
 	backupEndpoint "github.com/aws/aws-sdk-go/service/backup"
@@ -179,6 +184,7 @@ import (
 	lightsailEndpoint "github.com/aws/aws-sdk-go/service/lightsail"
 	macie2Endpoint "github.com/aws/aws-sdk-go/service/macie2"
 	mediastoreEndpoint "github.com/aws/aws-sdk-go/service/mediastore"
+	memoryDBEndpoint "github.com/aws/aws-sdk-go/service/memorydb"
 	mgnEndpoint "github.com/aws/aws-sdk-go/service/mgn"
 	mqEndpoint "github.com/aws/aws-sdk-go/service/mq"
 	networkfirewallEndpoint "github.com/aws/aws-sdk-go/service/networkfirewall"
@@ -200,6 +206,7 @@ import (
 	ssmEndpoint "github.com/aws/aws-sdk-go/service/ssm"
 	ssmIncidentsEndpoint "github.com/aws/aws-sdk-go/service/ssmincidents"
 	ssoEndpoint "github.com/aws/aws-sdk-go/service/sso"
+	timestreamwriteEndpoint "github.com/aws/aws-sdk-go/service/timestreamwrite"
 	transferEndpoint "github.com/aws/aws-sdk-go/service/transfer"
 	wafregionalEndpoint "github.com/aws/aws-sdk-go/service/wafregional"
 	wafv2Endpoint "github.com/aws/aws-sdk-go/service/wafv2"
@@ -307,6 +314,17 @@ func ApplicationAutoScalingClient(ctx context.Context, d *plugin.QueryData) (*ap
 		return nil, err
 	}
 	return applicationautoscaling.NewFromConfig(*cfg), nil
+}
+
+func AppRunnerClient(ctx context.Context, d *plugin.QueryData) (*apprunner.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, appRunnerEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return apprunner.NewFromConfig(*cfg), nil
 }
 
 func AppStreamClient(ctx context.Context, d *plugin.QueryData) (*appstream.Client, error) {
@@ -993,6 +1011,17 @@ func MediaStoreClient(ctx context.Context, d *plugin.QueryData) (*mediastore.Cli
 	return mediastore.NewFromConfig(*cfg), nil
 }
 
+func MemoryDBClient(ctx context.Context, d *plugin.QueryData) (*memorydb.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, memoryDBEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return memorydb.NewFromConfig(*cfg), nil
+}
+
 func MGNClient(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, mgnEndpoint.EndpointsID)
 	if err != nil {
@@ -1466,6 +1495,18 @@ func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client,
 	return sfn.NewFromConfig(*cfg), nil
 }
 
+func ShieldClient(ctx context.Context, d *plugin.QueryData) (*shield.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	
+	if cfg == nil {
+		return nil, nil
+	}
+	return shield.NewFromConfig(*cfg), nil
+}
+
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -1549,6 +1590,17 @@ func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client,
 		return nil, nil
 	}
 	return transfer.NewFromConfig(*cfg), nil
+}
+
+func TimestreamwriteClient(ctx context.Context, d *plugin.QueryData) (*timestreamwrite.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, timestreamwriteEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return timestreamwrite.NewFromConfig(*cfg), nil
 }
 
 func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {

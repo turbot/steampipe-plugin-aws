@@ -82,6 +82,12 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				Hydrate:     getSageMakerApp,
 			},
 			{
+				Name:        "space_name",
+				Description: "The name of the space. If this value is not set, then UserProfileName must be set.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getSageMakerApp,
+			},
+			{
 				Name:        "last_health_check_timestamp",
 				Description: "The timestamp of the last health check.",
 				Type:        proto.ColumnType_TIMESTAMP,

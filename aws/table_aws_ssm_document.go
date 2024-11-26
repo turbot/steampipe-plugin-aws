@@ -50,21 +50,14 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "name",
-				Description: "The name of the Systems Manager document.",
+				Name:        "display_name",
+				Description: "The friendly name of the SSM document.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "account_ids",
-				Description: "[DEPRECATED] The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMDocumentPermissionDetail,
-			},
-			{
-				Name:        "account_sharing_info_list",
-				Description: "[DEPRECATED] A list of AWS accounts where the current document is shared and the version shared with each account.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMDocumentPermissionDetail,
+				Name:        "name",
+				Description: "The name of the Systems Manager document.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "arn",
@@ -155,6 +148,18 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 			{
 				Name:        "parameters",
 				Description: "A description of the parameters for a document.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "category",
+				Description: "The classification of a document to help you identify and categorize its use.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "category_enum",
+				Description: "The value that identifies a document's category.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMDocument,
 			},

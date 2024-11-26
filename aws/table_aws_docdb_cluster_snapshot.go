@@ -290,7 +290,7 @@ func getDocDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	if op.DBClusterSnapshots != nil && len(op.DBClusterSnapshots) > 0 {
+	if len(op.DBClusterSnapshots) > 0 {
 		return op.DBClusterSnapshots[0], nil
 	}
 	return nil, nil

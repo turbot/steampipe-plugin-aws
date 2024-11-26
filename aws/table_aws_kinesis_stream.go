@@ -132,6 +132,13 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("StreamDescription.EnhancedMonitoring"),
 			},
 			{
+				Name:        "stream_mode_details",
+				Description: "Represents the current mode of the stream.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeStream,
+				Transform:   transform.FromField("StreamDescription.StreamModeDetails"),
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with the stream.",
 				Type:        proto.ColumnType_JSON,

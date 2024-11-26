@@ -132,7 +132,7 @@ func listS3ObjectVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	input := &s3.ListObjectVersionsInput{
 		Bucket:  aws.String(bucketName),
-		MaxKeys: &maxItems,
+		MaxKeys: aws.Int32(maxItems),
 	}
 
 	if d.EqualsQualString("key") != "" {

@@ -24,8 +24,10 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
 		},
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"service_code", "quota_code"}),
+			// By design, the Get config is expected to return a single row, regardless of regions.
+			// To prevent the error "get call returned 23 results - the key column is not globally unique," we have included the "region" in the key columns.
 			Hydrate:    getServiceQuota,
+			KeyColumns: plugin.AllColumns([]string{"service_code", "quota_code", "region"}),
 			Tags:       map[string]string{"service": "servicequotas", "action": "GetServiceQuota"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchResourceException"}),
@@ -91,6 +93,11 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "quota_applied_at_level",
+				Description: "Specifies at which level of granularity that the quota value is applied.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "value",
 				Description: "The quota value.",
 				Type:        proto.ColumnType_INT,
@@ -115,6 +122,11 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 			{
 				Name:        "usage_metric",
 				Description: "Information about the measurement.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "quota_context",
+				Description: "The context for this service quota.",
 				Type:        proto.ColumnType_JSON,
 			},
 

@@ -1,0 +1,7 @@
+[
+	{
+		"arn": "{{ output.resource_aka.value }}",
+		"database_name": "{{ resourceName }}",
+		"table_name": "{{ resourceName }}"
+	}
+]

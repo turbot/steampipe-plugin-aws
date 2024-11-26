@@ -36,7 +36,7 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "instance_type", Require: plugin.Optional, Operators: []string{"="}},
 			},
-			Tags:    map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
+			Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
@@ -50,7 +50,6 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Name:        "instance_type",
 				Description: "The instance type. For more information, see [ Instance Types ](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html) in the Amazon Elastic Compute Cloud User Guide.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     describeInstanceType,
 			},
 			{
 				Name:        "auto_recovery_supported",
@@ -89,14 +88,8 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Hydrate:     describeInstanceType,
 			},
 			{
-				Name:        "hibernation_supported",
-				Description: "Indicates whether On-Demand hibernation is supported.",
-				Type:        proto.ColumnType_BOOL,
-				Hydrate:     describeInstanceType,
-			},
-			{
 				Name:        "nitro_enclaves_support",
-				Description: "Indicates whether instance storage is supported.",
+				Description: "Indicates whether Nitro Enclaves is supported.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     describeInstanceType,
 			},
@@ -104,6 +97,12 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Name:        "nitro_tpm_support",
 				Description: "Indicates whether NitroTPM is supported.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "hibernation_supported",
+				Description: "Indicates whether On-Demand hibernation is supported.",
+				Type:        proto.ColumnType_BOOL,
 				Hydrate:     describeInstanceType,
 			},
 			{
@@ -123,6 +122,11 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Description: "Describes the Amazon EBS settings for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "location_type",
+				Description: "Type of the location, for example: region, availability-zone, etc.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "memory_info",
@@ -188,6 +192,24 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 			{
 				Name:        "inference_accelerator_info",
 				Description: "Describes the Inference accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "instance_storage_info",
+				Description: "Describes the instance storage for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "media_accelerator_info",
+				Description: "Describes the media accelerator settings for the instance type.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     describeInstanceType,
+			},
+			{
+				Name:        "neuron_info",
+				Description: "Describes the Neuron accelerator settings for the instance type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeInstanceType,
 			},

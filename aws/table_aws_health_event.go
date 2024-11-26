@@ -41,6 +41,12 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "event_region",
+				Description: "The Amazon Web Services Region name of the event.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Region"),
+			},
+			{
 				Name:        "availability_zone",
 				Description: "The Amazon Web Services Availability Zone of the event.",
 				Type:        proto.ColumnType_STRING,

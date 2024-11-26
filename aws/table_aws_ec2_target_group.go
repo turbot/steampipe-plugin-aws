@@ -86,6 +86,16 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "protocol_version",
+				Description: "The protocol version. The possible values are GRPC , HTTP1 , and HTTP2 .",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "ip_address_type",
+				Description: "The type of IP address used for this target group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "matcher_http_code",
 				Description: "The HTTP codes to use when checking for a successful response from a target.",
 				Type:        proto.ColumnType_STRING,
@@ -258,7 +268,7 @@ func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
-	if op.TargetGroups != nil && len(op.TargetGroups) > 0 {
+	if len(op.TargetGroups) > 0 {
 		return op.TargetGroups[0], nil
 	}
 	return nil, nil
@@ -317,7 +327,7 @@ func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 func targetGroupTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*elasticloadbalancingv2.DescribeTagsOutput)
 	var turbotTagsMap map[string]string
-	if data.TagDescriptions != nil && len(data.TagDescriptions) > 0 {
+	if len(data.TagDescriptions) > 0 {
 		if data.TagDescriptions[0].Tags != nil {
 			turbotTagsMap = map[string]string{}
 			for _, i := range data.TagDescriptions[0].Tags {
@@ -331,7 +341,7 @@ func targetGroupTagsToTurbotTags(_ context.Context, d *transform.TransformData) 
 
 func targetGroupRawTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*elasticloadbalancingv2.DescribeTagsOutput)
-	if data.TagDescriptions != nil && len(data.TagDescriptions) > 0 {
+	if len(data.TagDescriptions) > 0 {
 		if data.TagDescriptions[0].Tags != nil {
 			return data.TagDescriptions[0].Tags, nil
 		}

@@ -59,6 +59,11 @@ func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 				Description: "A list of subnets associated with the cache subnet group.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "supported_network_types",
+				Description: "Either ipv4 | ipv6 | dual_stack . IPv6 is supported for workloads using Redis engine version 6.2 onward or Memcached engine version 1.6.6 on all instances built on the Nitro system.",
+				Type:        proto.ColumnType_JSON,
+			},
 
 			// Standard columns
 			{
@@ -153,7 +158,7 @@ func getElastiCacheSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	if op.CacheSubnetGroups != nil && len(op.CacheSubnetGroups) > 0 {
+	if op != nil && len(op.CacheSubnetGroups) > 0 {
 		return op.CacheSubnetGroups[0], nil
 	}
 	return nil, nil

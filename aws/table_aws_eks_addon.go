@@ -65,6 +65,24 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 				Hydrate:     getEksAddon,
 			},
 			{
+				Name:        "configuration_values",
+				Description: "The configuration values that you provided.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksAddon,
+			},
+			{
+				Name:        "owner",
+				Description: "The owner of the add-on.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksAddon,
+			},
+			{
+				Name:        "publisher",
+				Description: "The publisher of the add-on.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksAddon,
+			},
+			{
 				Name:        "status",
 				Description: "The status of the add-on.",
 				Type:        proto.ColumnType_STRING,
@@ -86,6 +104,12 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 				Name:        "service_account_role_arn",
 				Description: "The Amazon Resource Name (ARN) of the IAM role that is bound to the Kubernetes service account used by the add-on.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksAddon,
+			},
+			{
+				Name:        "marketplace_information",
+				Description: "TInformation about an Amazon EKS add-on from the Amazon Web Services Marketplace.",
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEksAddon,
 			},
 			{

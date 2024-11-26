@@ -241,7 +241,7 @@ func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
-	if item.FlowLogs != nil && len(item.FlowLogs) > 0 {
+	if item != nil && len(item.FlowLogs) > 0 {
 		return item.FlowLogs[0], nil
 	}
 

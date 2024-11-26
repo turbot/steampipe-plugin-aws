@@ -58,6 +58,11 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "default_policy",
+				Description: "The type of default policy.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "date_created",
 				Description: "The local date and time when the lifecycle policy was created.",
 				Type:        proto.ColumnType_TIMESTAMP,

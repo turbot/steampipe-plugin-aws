@@ -222,7 +222,7 @@ func getVpcEip(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
-	if op.Addresses != nil && len(op.Addresses) > 0 {
+	if op != nil && len(op.Addresses) > 0 {
 		return op.Addresses[0], nil
 	}
 	return nil, nil

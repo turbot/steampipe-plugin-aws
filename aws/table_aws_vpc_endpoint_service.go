@@ -224,7 +224,7 @@ func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-	if op.ServiceDetails != nil && len(op.ServiceDetails) > 0 {
+	if op != nil && len(op.ServiceDetails) > 0 {
 		return op.ServiceDetails[0], nil
 	}
 	return nil, nil
@@ -299,7 +299,7 @@ func getVpcEndpointConnections(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 
-	if op.VpcEndpointConnections != nil && len(op.VpcEndpointConnections) > 0 {
+	if op != nil && len(op.VpcEndpointConnections) > 0 {
 		return op, nil
 	}
 

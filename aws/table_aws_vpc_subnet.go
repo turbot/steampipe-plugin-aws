@@ -253,7 +253,7 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		return nil, err
 	}
 
-	if op.Subnets != nil && len(op.Subnets) > 0 {
+	if op != nil && len(op.Subnets) > 0 {
 		return op.Subnets[0], nil
 	}
 	return nil, nil

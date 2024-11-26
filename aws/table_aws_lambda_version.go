@@ -63,6 +63,28 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("FunctionArn"),
 			},
 			{
+				Name:        "package_type",
+				Description: "The type of deployment package. Set to Image for container image and set Zip for .zip file archive.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "signing_job_arn",
+				Description: "The ARN of the signing job.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "target_arn",
+				Description: "The Amazon Resource Name (ARN) of an Amazon SQS queue or Amazon SNS topic.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("DeadLetterConfig.TargetArn"),
+			},
+			{
+				Name:        "kms_key_arn",
+				Description: "The KMS key that's used to encrypt the function's environment variables.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("KMSKeyArn"),
+			},
+			{
 				Name:        "master_arn",
 				Description: "For Lambda@Edge functions, the ARN of the master function.",
 				Type:        proto.ColumnType_STRING,
@@ -139,19 +161,8 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("VpcConfig.VpcId"),
 			},
 			{
-				Name:        "kms_key_arn",
-				Description: "The KMS key that's used to encrypt the function's environment variables.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("KMSKeyArn"),
-			},
-			{
 				Name:        "role",
 				Description: "The function's execution role.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "signing_job_arn",
-				Description: "The ARN of the signing job.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -180,6 +191,22 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				Description: "The environment variables that are accessible from function code during execution.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Environment.Variables"),
+			},
+			{
+				Name:        "runtime_version_config",
+				Description: "The ARN of the runtime and any errors that occured.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "environment_error",
+				Description: "Error messages for environment variables that couldn't be applied.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Environment.Error"),
+			},
+			{
+				Name:        "logging_config",
+				Description: "The function's Amazon CloudWatch Logs configuration settings.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "policy",
@@ -229,16 +256,6 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 			{
 				Name:        "layers",
 				Description: "The function's layers.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "logging_config",
-				Description: "The function's Amazon CloudWatch Logs configuration settings.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "runtime_version_config",
-				Description: "The ARN of the runtime and any errors that occurred.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
@@ -80,9 +81,30 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "boot_mode",
+				Description: "The boot mode of the image.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_instance_id",
+				Description: "The ID of the instance that the AMI was created from if the AMI was created using CreateImage.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "tpm_support",
+				Description: "If the image is configured for NitroTPM support, the value is v2.0.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "creation_date",
 				Description: "The date and time when the image was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "deprecation_time",
+				Description: "The date and time to deprecate the AMI.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("DeprecationTime").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "architecture",
@@ -182,6 +204,11 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "state_reason",
+				Description: "The reason for the state change.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "launch_permissions",
 				Description: "The users and groups that have the permissions for creating instances from the AMI.",
 				Type:        proto.ColumnType_JSON,
@@ -230,7 +257,22 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 		return nil, err
 	}
 
-	input := &ec2.DescribeImagesInput{}
+	input := &ec2.DescribeImagesInput{
+		// Default API behaviour is setting this to false
+		IncludeDisabled: aws.Bool(false),
+	}
+
+	disabledState := "disabled"
+	if d.EqualsQuals["state"] != nil {
+		state := getQualsValueByColumn(d.Quals, "state", "string")
+		if val, ok := state.(string); ok {
+			*input.IncludeDisabled = val == disabledState
+		} else if val, ok := state.([]string); ok {
+			for _, v := range val {
+				*input.IncludeDisabled = v == disabledState
+			}
+		}
+	}
 
 	filters := buildAmisWithOwnerFilter(input, d.Quals, ctx, d, h)
 	if len(filters) != 0 {
@@ -287,7 +329,7 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 		return nil, err
 	}
 
-	if op.Images != nil && len(op.Images) > 0 {
+	if len(op.Images) > 0 {
 		return op.Images[0], nil
 	}
 	return nil, nil

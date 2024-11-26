@@ -71,6 +71,26 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "lock_date",
+				Description: "The date and time when Backup Vault Lock configuration cannot be changed or deleted.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "locked",
+				Description: "A Boolean that indicates whether Backup Vault Lock is currently protecting the backup vault. True means that Vault Lock causes delete or update operations on the recovery points stored in the vault to fail.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "max_retention_days",
+				Description: "The Backup Vault Lock setting that specifies the maximum retention period that the vault retains its recovery points.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "min_retention_days",
+				Description: "The Backup Vault Lock setting that specifies the minimum retention period that the vault retains its recovery points.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "creator_request_id",
 				Description: "An unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.",
 				Type:        proto.ColumnType_STRING,
@@ -239,10 +259,6 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultNotification", "connection_error", err)
 		return nil, err
 	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
 
 	if svc == nil {
 		// Unsupported region, return no data
@@ -274,36 +290,9 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 }
 
 func getAwsBackupVaultTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Create Session
-	svc, err := BackupClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultTags", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
 	arn := vaultArn(h.Item)
 
-	params := &backup.ListTagsInput{
-		ResourceArn: aws.String(arn),
-	}
-
-	op, err := svc.ListTags(ctx, params)
-	if err != nil {
-
-		var ae smithy.APIError
-		if errors.As(err, &ae) {
-			if ae.ErrorCode() == "ResourceNotFoundException" {
-				return &backup.ListTagsOutput{}, nil
-			}
-		}
-		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultTags", "api_error", err)
-		return nil, err
-	}
-	return op, nil
+	return getAwsBackupResourceTags(ctx, d, arn)
 }
 
 func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

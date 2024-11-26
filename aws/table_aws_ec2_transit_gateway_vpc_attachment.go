@@ -214,7 +214,7 @@ func getEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
-	if op.TransitGatewayAttachments != nil && len(op.TransitGatewayAttachments) > 0 {
+	if len(op.TransitGatewayAttachments) > 0 {
 		return op.TransitGatewayAttachments[0], nil
 	}
 	return nil, nil
