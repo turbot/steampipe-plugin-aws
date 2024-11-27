@@ -27,9 +27,10 @@ func tableAwsKeyspacesTable(ctx context.Context) *plugin.Table {
 			Tags: map[string]string{"service": "keyspaces", "action": "GetTable"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listKeyspacesTables,
+			ParentHydrate: listKeyspacesKeyspaces, // Call parent hydrate
+			Hydrate:       listKeyspacesTables,   // Child list function
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "keyspace_name", Require: plugin.Required},
+				{Name: "keyspace_name", Require: plugin.Optional},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
@@ -157,8 +158,17 @@ func tableAwsKeyspacesTable(ctx context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listKeyspacesTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	keyspaceName := d.EqualsQualString("keyspace_name")
+func listKeyspacesTables(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var keySpaceName string
+	if h.Item != nil {
+		keySpaceName = *h.Item.(types.KeyspaceSummary).KeyspaceName
+	}
+	
+	if keySpaceName != "" && d.EqualsQualString("keyspace_name") != "" {
+		if d.EqualsQualString("keyspace_name") != keySpaceName {
+			return nil, nil
+		}
+	}
 
 	// Create Session
 	svc, err := KeyspacesClient(ctx, d)
@@ -185,7 +195,7 @@ func listKeyspacesTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 	input := &keyspaces.ListTablesInput{
 		MaxResults:   &maxItems,
-		KeyspaceName: &keyspaceName,
+		KeyspaceName: &keySpaceName,
 	}
 
 	// pagination not supported for ListTables API
