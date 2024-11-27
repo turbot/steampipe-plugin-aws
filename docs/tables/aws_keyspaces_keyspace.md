@@ -1,5 +1,3 @@
-Here’s the .md version of the aws_keyspaces_keyspace table documentation:
-
 ---
 title: "Steampipe Table: aws_keyspaces_keyspace - Query AWS Keyspaces Keyspaces using SQL"
 description: "Allows users to query AWS Keyspaces keyspaces, providing detailed information on replication strategies, creation timestamps, and regions."
@@ -37,7 +35,6 @@ from
 ```
 
 ### List keyspaces by region
-
 Retrieve a list of keyspaces grouped by their region. This is useful for understanding your keyspaces distribution across AWS regions.
 
 ```sql+postgres
@@ -63,7 +60,6 @@ order by
 ```
 
 ### Identify keyspaces with specific replication strategy
-
 Find keyspaces using a specific replication strategy, which can help ensure compliance with replication policies.
 
 ```sql+postgres
@@ -89,7 +85,6 @@ where
 ```
 
 ### List keyspaces with their replication regions
-
 Retrieve a list of keyspaces along with their replication regions to understand where data is being replicated.
 
 ```sql+postgres
@@ -108,30 +103,4 @@ select
   replication_regions
 from
   aws_keyspaces_keyspace;
-```
-
-### Identify recently created keyspaces
-
-Fetch a list of keyspaces ordered by their creation timestamp to identify the most recently created keyspaces.
-
-```sql+postgres
-select
-  keyspace_name,
-  arn,
-  creation_timestamp
-from
-  aws_keyspaces_keyspace
-order by
-  creation_timestamp desc;
-```
-
-```sql+sqlite
-select
-  keyspace_name,
-  arn,
-  creation_timestamp
-from
-  aws_keyspaces_keyspace
-order by
-  creation_timestamp desc;
 ```
