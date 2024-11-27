@@ -28,12 +28,9 @@ func tableAwsKeyspacesTable(ctx context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listKeyspacesKeyspaces, // Call parent hydrate
-			Hydrate:       listKeyspacesTables,   // Child list function
+			Hydrate:       listKeyspacesTables,    // Child list function
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "keyspace_name", Require: plugin.Optional},
-			},
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Tags: map[string]string{"service": "keyspaces", "action": "ListTables"},
 		},
@@ -163,11 +160,10 @@ func listKeyspacesTables(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if h.Item != nil {
 		keySpaceName = *h.Item.(types.KeyspaceSummary).KeyspaceName
 	}
-	
-	if keySpaceName != "" && d.EqualsQualString("keyspace_name") != "" {
-		if d.EqualsQualString("keyspace_name") != keySpaceName {
-			return nil, nil
-		}
+
+	// Limit API call with given Keyspace Name
+	if d.EqualsQualString("keyspace_name") != "" && d.EqualsQualString("keyspace_name") != keySpaceName {
+		return nil, nil
 	}
 
 	// Create Session
@@ -198,29 +194,28 @@ func listKeyspacesTables(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		KeyspaceName: &keySpaceName,
 	}
 
-	// pagination not supported for ListTables API
-	for {
+	paginator := keyspaces.NewListTablesPaginator(svc, input, func(o *keyspaces.ListTablesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
-		result, err := svc.ListTables(ctx, input)
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_keyspaces_table.listKeyspacesTables", "api_error", err)
 			return nil, err
 		}
 
-		for _, op := range result.Tables {
-			d.StreamListItem(ctx, op)
+		for _, keyspace := range output.Tables {
+			d.StreamListItem(ctx, keyspace)
 
-			// Context can be cancelled due to manual cancellation or the limit has been hit
+			// Stop processing if context is canceled or limit is reached
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
-		}
-
-		if result.NextToken != nil {
-			input.NextToken = result.NextToken
-		} else {
-			break
 		}
 	}
 

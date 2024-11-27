@@ -39,20 +39,21 @@ func tableAwsKeyspacesKeyspace(ctx context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The ARN of the keyspace.",
+				Description: "The unique identifier of the keyspace in the format of an Amazon Resource Name (ARN).",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ResourceArn"),
 			},
 			{
 				Name:        "replication_strategy",
-				Description: "The replication strategy of the keyspace.",
+				Description: "Returns the replication strategy of the keyspace. The options are SINGLE_REGION or MULTI_REGION .",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "replication_regions",
-				Description: "The replication regions of the keyspace.",
+				Description: "If the replication strategy of the keyspace is MULTI_REGION, a list of replication regions is returned.",
 				Type:        proto.ColumnType_JSON,
 			},
+
 			/// Steampipe standard columns
 			{
 				Name:        "title",
@@ -98,30 +99,28 @@ func listKeyspacesKeyspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		MaxResults: &maxItems,
 	}
 
-	// Fetch keyspaces
-	for {
+	paginator := keyspaces.NewListKeyspacesPaginator(svc, input, func(o *keyspaces.ListKeyspacesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
-		result, err := svc.ListKeyspaces(ctx, input)
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_keyspaces_keyspace.listKeyspacesKeyspaces", "api_error", err)
 			return nil, err
 		}
 
-		for _, keyspace := range result.Keyspaces {
+		for _, keyspace := range output.Keyspaces {
 			d.StreamListItem(ctx, keyspace)
 
 			// Stop processing if context is canceled or limit is reached
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
-		}
-
-		// Pagination
-		if result.NextToken != nil {
-			input.NextToken = result.NextToken
-		} else {
-			break
 		}
 	}
 
