@@ -34,13 +34,13 @@ func tableAwsKeyspacesTable(ctx context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "keyspaces", "action": "ListTables"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(keyspacesv1.EndpointsID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getKeyspacesTable,
 				Tags: map[string]string{"service": "keyspaces", "action": "GetTable"},
 			},
 		},
+		GetMatrixItemFunc: SupportedRegionMatrix(keyspacesv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "keyspace_name",
