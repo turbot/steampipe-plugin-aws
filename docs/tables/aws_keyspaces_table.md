@@ -27,9 +27,7 @@ select
   creation_timestamp,
   region
 from
-  aws_keyspaces_table
-where
-  keyspace_name = 'myKey';
+  aws_keyspaces_table;
 ```
 
 ```sql+sqlite
@@ -40,9 +38,7 @@ select
   creation_timestamp,
   region
 from
-  aws_keyspaces_table
-where
-  keyspace_name = 'myKey';
+  aws_keyspaces_table;
 ```
 
 ### List active tables
@@ -56,8 +52,7 @@ select
 from
   aws_keyspaces_table
 where
-  keyspace_name = 'myKey'
-  and status = 'ACTIVE';
+  status = 'ACTIVE';
 ```
 
 ```sql+sqlite
@@ -68,8 +63,7 @@ select
 from
   aws_keyspaces_table
 where
-  keyspace_name = 'myKey'
-  and status = 'ACTIVE';
+  status = 'ACTIVE';
 ```
 
 ### List tables with specific encryption settings
@@ -84,8 +78,7 @@ select
 from
   aws_keyspaces_table
 where
-  keyspace_name = 'myKey'
-  and encryption_specification_type = 'AWS_OWNED_KMS_KEY';
+  encryption_specification_type = 'AWS_OWNED_KMS_KEY';
 ```
 
 ```sql+sqlite
@@ -97,8 +90,7 @@ select
 from
   aws_keyspaces_table
 where
-  keyspace_name = 'myKey'
-  and encryption_specification_type = 'AWS_OWNED_KMS_KEY';
+  encryption_specification_type = 'AWS_OWNED_KMS_KEY';
 ```
 
 ### List tables by creation date
@@ -111,8 +103,6 @@ select
   creation_timestamp
 from
   aws_keyspaces_table
-where
-  keyspace_name = 'myKey'
 order by
   creation_timestamp desc;
 ```
@@ -124,8 +114,6 @@ select
   creation_timestamp
 from
   aws_keyspaces_table
-where
-  keyspace_name = 'myKey'
 order by
   creation_timestamp desc;
 ```
@@ -142,8 +130,7 @@ select
 from
   aws_keyspaces_table
 where
-  keyspace_name = 'myKey'
-  and default_time_to_live is not null;
+  default_time_to_live is not null;
 ```
 
 ```sql+sqlite
@@ -155,8 +142,7 @@ select
 from
   aws_keyspaces_table
 where
-  keyspace_name = 'myKey'
-  and default_time_to_live is not null;
+  default_time_to_live is not null;
 ```
 
 ### Get table schema definitions
@@ -195,8 +181,7 @@ select
 from
   aws_keyspaces_table
 where
-  keyspace_name = 'myKey'
-  and (point_in_time_recovery ->> 'status') = 'ENABLED';
+  (point_in_time_recovery ->> 'status') = 'ENABLED';
 ```
 
 ```sql+sqlite
@@ -207,6 +192,5 @@ select
 from
   aws_keyspaces_table
 where
-  keyspace_name = 'myKey'
-  and json_extract(point_in_time_recovery, '$.status') = 'ENABLED';
+  json_extract(point_in_time_recovery, '$.status') = 'ENABLED';
 ```
