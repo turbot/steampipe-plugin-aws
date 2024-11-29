@@ -44,7 +44,7 @@ from
   aws_config_delivery_channel;
 ```
 
-### List delivery channels with no SNS topic
+### List delivery channels without SNS topic configured
 Identify delivery channels that do not have an SNS topic configured for notifications. This can help ensure you have proper alerting mechanisms in place.
 
 ```sql+postgres
@@ -82,7 +82,7 @@ select
 from
   aws_config_delivery_channel
 where
-  status ->> 'LastStatus' = 'FAILURE';
+  (status ->> 'LastStatus') = 'FAILURE';
 ```
 
 ```sql+sqlite
