@@ -19,16 +19,17 @@ func tableAwsConfigDeliveryChannel(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_config_delivery_channel",
 		Description: "AWS Config Delivery Channel",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
+		List: &plugin.ListConfig{
+			Hydrate: listConfigDeliveryChannels,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},		
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchDeliveryChannelException"}),
 			},
-			Hydrate: getConfigDeliveryChannel,
-			Tags:    map[string]string{"service": "config", "action": "DescribeDeliveryChannels"},
-		},
-		List: &plugin.ListConfig{
-			Hydrate: listConfigDeliveryChannels,
 			Tags:    map[string]string{"service": "config", "action": "DescribeDeliveryChannels"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
@@ -37,13 +38,6 @@ func tableAwsConfigDeliveryChannel(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the delivery channel.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) of the delivery channel.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsDeliveryChannelARN,
-				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "s3_bucket_name",
@@ -82,12 +76,13 @@ func tableAwsConfigDeliveryChannel(_ context.Context) *plugin.Table {
 				Hydrate:     getConfigDeliveryChannelStatus,
 				Transform:   transform.FromValue(),
 			},
-			// Standard columns
+
+			// Steampipe standard columns
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsDeliveryChannelARN,
+				Hydrate:     getAwsDeliveryChannelAkas,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 			{
@@ -112,6 +107,12 @@ func listConfigDeliveryChannels(ctx context.Context, d *plugin.QueryData, _ *plu
 
 	input := &configservice.DescribeDeliveryChannelsInput{}
 
+	// Additonal Filter
+	equalQuals := d.EqualsQuals
+	if equalQuals["name"] != nil {
+		input.DeliveryChannelNames = []string{equalQuals["name"].GetStringValue()}
+	}
+
 	op, err := svc.DescribeDeliveryChannels(ctx, input)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_config_delivery_channel.listConfigDeliveryChannels", "api_error", err)
@@ -133,33 +134,6 @@ func listConfigDeliveryChannels(ctx context.Context, d *plugin.QueryData, _ *plu
 }
 
 //// HYDRATE FUNCTIONS
-
-func getConfigDeliveryChannel(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	name := d.EqualsQuals["name"].GetStringValue()
-
-	// Create session
-	svc, err := ConfigClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_delivery_channel.getConfigDeliveryChannel", "get_client_error", err)
-		return nil, err
-	}
-
-	params := &configservice.DescribeDeliveryChannelsInput{
-		DeliveryChannelNames: []string{name},
-	}
-
-	op, err := svc.DescribeDeliveryChannels(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_delivery_channel.getConfigDeliveryChannel", "api_error", err)
-		return nil, err
-	}
-
-	if op != nil && len(op.DeliveryChannels) > 0 {
-		return op.DeliveryChannels[0], nil
-	}
-
-	return nil, nil
-}
 
 func getConfigDeliveryChannelStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	deliveryChannel := h.Item.(types.DeliveryChannel)
@@ -188,14 +162,14 @@ func getConfigDeliveryChannelStatus(ctx context.Context, d *plugin.QueryData, h 
 	return status.DeliveryChannelsStatus[0], nil
 }
 
-func getAwsDeliveryChannelARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsDeliveryChannelAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.EqualsQualString(matrixKeyRegion)
 
 	deliveryChannel := h.Item.(types.DeliveryChannel)
 
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_delivery_channel.getAwsDeliveryChannelARN", "api_error", err)
+		plugin.Logger(ctx).Error("aws_config_delivery_channel.getAwsDeliveryChannelAkas", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
