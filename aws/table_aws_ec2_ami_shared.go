@@ -17,6 +17,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -29,14 +30,14 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 			Hydrate: listAmisByOwner,
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeImages"},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "owner_id", Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "owner_ids", Require: plugin.Optional, CacheMatch: "exact", Operators: []string{"="}},
+				{Name: "owner_id", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "owner_ids", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact, Operators: []string{"="}},
 				{Name: "architecture", Require: plugin.Optional},
 				{Name: "description", Require: plugin.Optional},
 				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "hypervisor", Require: plugin.Optional},
-				{Name: "image_id", Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "image_ids", Require: plugin.Optional, CacheMatch: "exact", Operators: []string{"="}},
+				{Name: "image_id", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "image_ids", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact, Operators: []string{"="}},
 				{Name: "image_type", Require: plugin.Optional},
 				{Name: "public", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "kernel_id", Require: plugin.Optional},
