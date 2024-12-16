@@ -314,23 +314,9 @@ func buildCostOptimizationHubRecommendationInputFromQuals(quals plugin.KeyColumn
 	for _, columnName := range filterQuals {
 		if quals[columnName] != nil {
 			switch columnName {
-			case "implementation_effort":
-				value := getQualsValueByColumn(quals, columnName, "string")
-				param.ImplementationEfforts = []types.ImplementationEffort{types.ImplementationEffort(value.(string))}
-			case "action_type":
-				value := getQualsValueByColumn(quals, columnName, "string")
-				param.ActionTypes = []types.ActionType{types.ActionType(value.(string))}
-			case "current_resource_type", "recommended_resource_type":
-				value := getQualsValueByColumn(quals, columnName, "string")
-				param.ResourceTypes = []types.ResourceType{types.ResourceType(value.(string))}
 			case "restart_needed", "rollback_possible":
 				value := getQualsValueByColumn(quals, columnName, "boolean")
-				var val bool
-				if value.(string) == "true" {
-					val = true
-				} else {
-					val = false
-				}
+				val := value.(string) == "true"
 				if columnName == "restart_needed" {
 					param.RestartNeeded = &val
 				}
@@ -350,6 +336,12 @@ func buildCostOptimizationHubRecommendationInputFromQuals(quals plugin.KeyColumn
 					param.ResourceArns = []string{fmt.Sprint(value)}
 				case "resource_id":
 					param.ResourceIds = []string{fmt.Sprint(value)}
+				case "implementation_effort":
+					param.ImplementationEfforts = []types.ImplementationEffort{types.ImplementationEffort(value.(string))}
+				case "action_type":
+					param.ActionTypes = []types.ActionType{types.ActionType(value.(string))}
+				case "current_resource_type", "recommended_resource_type":
+					param.ResourceTypes = []types.ResourceType{types.ResourceType(value.(string))}
 				}
 			}
 		}
