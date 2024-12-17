@@ -227,7 +227,6 @@ func listCostOptimizationHubRecommendations(ctx context.Context, d *plugin.Query
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
 			maxLimit = limit
-			maxLimit = limit
 		}
 	}
 
