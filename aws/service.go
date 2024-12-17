@@ -116,6 +116,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/service/scheduler"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securitylake"
@@ -197,6 +198,7 @@ import (
 	resourceexplorer2Endpoint "github.com/aws/aws-sdk-go/service/resourceexplorer2"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
+	schedulerEndpoint "github.com/aws/aws-sdk-go/service/scheduler"
 	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
 	securitylakeEndpoint "github.com/aws/aws-sdk-go/service/securitylake"
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
@@ -1381,6 +1383,17 @@ func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Clien
 	return sagemaker.NewFromConfig(*cfg), nil
 }
 
+func SchedulerClient(ctx context.Context, d *plugin.QueryData) (*scheduler.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, schedulerEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return scheduler.NewFromConfig(*cfg), nil
+}
+
 func SecretsManagerClient(ctx context.Context, d *plugin.QueryData) (*secretsmanager.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -1500,7 +1513,7 @@ func ShieldClient(ctx context.Context, d *plugin.QueryData) (*shield.Client, err
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if cfg == nil {
 		return nil, nil
 	}
