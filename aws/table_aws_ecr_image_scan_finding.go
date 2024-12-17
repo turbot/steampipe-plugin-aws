@@ -33,7 +33,8 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 			// image_digest as it's more common/friendly to use.
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "repository_name", Require: plugin.Required},
-				{Name: "image_tag", Require: plugin.Required},
+				{Name: "image_tag", Require: plugin.AnyOf},
+				{Name: "image_digest", Require: plugin.AnyOf},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
@@ -125,8 +126,8 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	imageTag := d.EqualsQuals["image_tag"]
+	imageDigest := d.EqualsQuals["image_digest"]
 	repositoryName := d.EqualsQuals["repository_name"]
-	
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -140,10 +141,26 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 	input := &ecr.DescribeImageScanFindingsInput{
 		MaxResults:     aws.Int32(maxLimit),
 		RepositoryName: aws.String(repositoryName.GetStringValue()),
-		ImageId: &types.ImageIdentifier{
-			ImageTag: aws.String(imageTag.GetStringValue()),
-		},
 	}
+
+	imageInfo := &types.ImageIdentifier{}
+
+	// Ideally, both image_tag and image_digest could be used.
+	// However, they cannot be passed together simultaneously.
+	// 1. If ImageTag is provided, it takes precedence and is used as the input parameter.
+	// 2. If both ImageTag and ImageDigest are provided, ImageTag will be prioritized to keep the existing table behavior unchanged.
+	// 3. If only ImageDigest is provided, the ImageDigest value will be used as the input parameter.
+	if imageTag != nil {
+		imageInfo.ImageTag = aws.String(imageTag.GetStringValue())
+	}
+	if imageTag != nil && imageDigest != nil {
+		imageInfo.ImageTag = aws.String(imageTag.GetStringValue())
+	}
+	if imageTag == nil && imageDigest != nil {
+		imageInfo.ImageDigest = aws.String(imageDigest.GetStringValue())
+	}
+
+	input.ImageId = imageInfo
 
 	paginator := ecr.NewDescribeImageScanFindingsPaginator(svc, input, func(o *ecr.DescribeImageScanFindingsPaginatorOptions) {
 		o.Limit = maxLimit
