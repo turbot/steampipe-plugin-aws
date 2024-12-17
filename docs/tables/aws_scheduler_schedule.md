@@ -167,8 +167,6 @@ where
   name = 'my-schedule';
 ```
 
----
-
 ### Fetch schedules created in the last 30 days
 Identify newly created schedules within the past month for auditing or review.
 
