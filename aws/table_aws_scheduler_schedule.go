@@ -167,6 +167,9 @@ func listAwsSchedulerSchedules(ctx context.Context, d *plugin.QueryData, h *plug
 	if d.EqualsQuals["group_name"] != nil {
 		params.GroupName = aws.String(d.EqualsQuals["group_name"].GetStringValue())
 	}
+	if d.EqualsQuals["state"] != nil {
+		params.State = types.ScheduleState(d.EqualsQuals["state"].GetStringValue())
+	}
 
 	paginator := scheduler.NewListSchedulesPaginator(svc, params, func(o *scheduler.ListSchedulesPaginatorOptions) {
 		o.Limit = maxLimit
