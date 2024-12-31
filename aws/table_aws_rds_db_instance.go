@@ -46,6 +46,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			{
 				Func: getRDSDBInstanceCertificate,
 				Tags: map[string]string{"service": "rds", "action": "DescribeCertificates"},
+				// Certificate "rds-ca-2019" not found due to discontinuation, Amazon RDS and Amazon Aurora Expire in 2024.
+				// AWS announcement ref: https://aws.amazon.com/blogs/aws/rotate-your-ssl-tls-certificates-now-amazon-rds-and-amazon-aurora-expire-in-2024/
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CertificateNotFound"}),
+				},
 			},
 			{
 				Func: getRDSDBInstanceProcessorFeatures,
