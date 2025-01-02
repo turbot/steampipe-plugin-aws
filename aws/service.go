@@ -50,6 +50,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costoptimizationhub"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
@@ -571,6 +572,15 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	}
 	return costexplorer.NewFromConfig(*cfg), nil
 }
+
+func CostOptimizationHubClient(ctx context.Context, d *plugin.QueryData) (*costoptimizationhub.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return costoptimizationhub.NewFromConfig(*cfg), nil
+}
+
 
 func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
