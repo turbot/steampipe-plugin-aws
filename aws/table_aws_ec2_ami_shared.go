@@ -316,7 +316,7 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	paginator := ec2.NewDescribeImagesPaginator(svc, input, func(o *ec2.DescribeImagesPaginatorOptions) {
 		// api error InvalidParameterCombination: The parameter imageIdsSet cannot be used with the parameter maxResults
-		if len(input.ImageIds) <= 0 {
+		if len(input.ImageIds) = 0 {
 			o.Limit = maxLimit
 		}
 		o.StopOnDuplicateToken = true
