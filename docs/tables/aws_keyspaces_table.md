@@ -11,9 +11,6 @@ Amazon Keyspaces (for Apache Cassandra) is a scalable, highly available, and man
 
 The `aws_keyspaces_table` table enables cloud administrators and DevOps engineers to gather detailed insights into their Keyspaces tables. You can query various aspects of the table, such as its creation timestamp, throughput capacity, encryption, and status. This table is particularly useful for monitoring table performance, ensuring security compliance, and managing table configurations.
 
-**Important Notes**
-- You **_must_** specify `keyspace_name` in a `where` clause in order to use this table.
-
 ## Examples
 
 ### Basic table information
