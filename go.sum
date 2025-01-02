@@ -371,6 +371,8 @@ github.com/aws/aws-sdk-go-v2/service/iot v1.53.3 h1:d9R8dezHswXV9am8Sz+1HOsCas1/
 github.com/aws/aws-sdk-go-v2/service/iot v1.53.3/go.mod h1:7rtIbAvSP5Nbc1f7sbeWa+uMV+T6khOkWAh6VHsbOZI=
 github.com/aws/aws-sdk-go-v2/service/kafka v1.31.2 h1:jODSVa9LbXmZKRLy4KLFHCfhKlCGzU8FPOClKTqrh9U=
 github.com/aws/aws-sdk-go-v2/service/kafka v1.31.2/go.mod h1:ofW8A+AyFHi/MMYwYI5YkJ5h2JWCCtyHR/P7UQONcyc=
+github.com/aws/aws-sdk-go-v2/service/keyspaces v1.10.8 h1:GVvpQbXfUVPnpydvOt+CfZPaZgLcGyJoJRSefunMuIo=
+github.com/aws/aws-sdk-go-v2/service/keyspaces v1.10.8/go.mod h1:ROjezftKq0KTWdrXyweta/WkqytcwIIB4/8u1f5qM6A=
 github.com/aws/aws-sdk-go-v2/service/kinesis v1.27.4 h1:Oe8awBiS/iitcsRJB5+DHa3iCxoA0KwJJf0JNrYMINY=
 github.com/aws/aws-sdk-go-v2/service/kinesis v1.27.4/go.mod h1:RCZCSFbieSgNG1RKegO26opXV4EXyef/vNBVJsUyHuw=
 github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.25.2 h1:U3w0gmiIoXKn3TVR8vQTcLGRlPyAW5mcQGBqdVqUeQo=
