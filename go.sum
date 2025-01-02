@@ -433,6 +433,8 @@ github.com/aws/aws-sdk-go-v2/service/s3control v1.44.4 h1:9QdyZyzWTzZxr3uvVMVgN8
 github.com/aws/aws-sdk-go-v2/service/s3control v1.44.4/go.mod h1:xywJi2/waU8+fglbs5ASVHKr5y7OAYsEBOyQwgQgTIc=
 github.com/aws/aws-sdk-go-v2/service/sagemaker v1.135.0 h1:xr65PMo/RO3CDaYz2/U4W+cadzWzB+2b7AW7em3OHos=
 github.com/aws/aws-sdk-go-v2/service/sagemaker v1.135.0/go.mod h1:7Tsdas9MqLqQ8xZM34242+vVz928Jdg8/HJnMXYoIUM=
+github.com/aws/aws-sdk-go-v2/service/scheduler v1.8.8 h1:0JlMMgtgydlichQOArHBRgkAo/ycJ/aF3nMreMRxmv0=
+github.com/aws/aws-sdk-go-v2/service/scheduler v1.8.8/go.mod h1:XIhMBVV65pl4sdT0SB6CnI/F3AUQ7yPNRdaCVG47ZHo=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.6 h1:TIOEjw0i2yyhmhRry3Oeu9YtiiHWISZ6j/irS1W3gX4=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.6/go.mod h1:3Ba++UwWd154xtP4FRX5pUK3Gt4up5sDHCve6kVfE+g=
 github.com/aws/aws-sdk-go-v2/service/securityhub v1.47.2 h1:Nl3VUaEtpoCkIL0BKc5xM2UmIAGvwSC+yPpPdbe5P/s=
@@ -487,8 +489,8 @@ github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4 h1:OuFs453KXWTLBkem
 github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4/go.mod h1:MRT/P9Cwn+7xCCVpD1sTvUESiWMAc9hA+FooRsW5fe8=
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4 h1:SvHYikdxmnyptMebU3zFfXbfU96SHzdUX+KXqa6pjYE=
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4/go.mod h1:1XK49PATLHBd7mpKqO91GqRuV7bEsmyQ8Lslvn3fFj4=
-github.com/aws/smithy-go v1.20.4 h1:2HK1zBdPgRbjFOHlfeQZfpC4r72MOb9bZkiFwggKO+4=
-github.com/aws/smithy-go v1.20.4/go.mod h1:irrKGvNn1InZwb2d7fkIRNucdfwR8R+Ts3wxYa/cJHg=
+github.com/aws/smithy-go v1.22.1 h1:/HPHZQ0g7f4eUeK6HKglFz8uwVfZKgoI25rb/J+dnro=
+github.com/aws/smithy-go v1.22.1/go.mod h1:irrKGvNn1InZwb2d7fkIRNucdfwR8R+Ts3wxYa/cJHg=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
