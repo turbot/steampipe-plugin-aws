@@ -61,7 +61,7 @@ func tableAwsCloudtrailLookupEvent(_ context.Context) *plugin.Table {
 			{
 				Name:        "read_only",
 				Description: "Information about whether the event is a write event or a read event.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "access_key_id",
@@ -108,8 +108,13 @@ func tableAwsCloudtrailLookupEvent(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "cloud_trail_event",
+				Name:        "cloudtrail_event",
 				Description: "A JSON string that contains a representation of the event returned.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "cloud_trail_event",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use the cloudtrail_event column instead. A JSON string that contains a representation of the event returned.",
 				Type:        proto.ColumnType_JSON,
 			},
 
@@ -197,7 +202,12 @@ func buildCloudtrailLookupEventFilter(ctx context.Context, quals plugin.KeyColum
 	var lookupAttributes []types.LookupAttribute
 	for columnName, attributeKey := range attributeKeyMap {
 		if quals[columnName] != nil {
-			value := getQualsValueByColumn(quals, columnName, "string")
+			var value interface{}
+			if columnName == "read_only" {
+				value = getQualsValueByColumn(quals, columnName, "bool")
+			} else {
+				value = getQualsValueByColumn(quals, columnName, "string")
+			}
 			lookupAttribute := types.LookupAttribute{
 				AttributeKey:   attributeKey,
 				AttributeValue: aws.String(value.(string)),
@@ -211,6 +221,7 @@ func buildCloudtrailLookupEventFilter(ctx context.Context, quals plugin.KeyColum
 		value := getQualsValueByColumn(quals, "start_time", "time")
 		input.StartTime = aws.Time(value.(time.Time))
 	}
+
 	if quals["end_time"] != nil {
 		value := getQualsValueByColumn(quals, "end_time", "time")
 		input.EndTime = aws.Time(value.(time.Time))
