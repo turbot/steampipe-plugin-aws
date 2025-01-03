@@ -1,3 +1,26 @@
+## v1.5.0 [2025-01-03]
+
+_What's new?_
+
+- New tables added
+  - [aws_costoptimizationhub_recommendation](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_costoptimizationhub_recommendation) ([#2355](https://github.com/turbot/steampipe-plugin-aws/pull/2355))
+  - [aws_scheduler_schedule](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_scheduler_schedule) ([#2359](https://github.com/turbot/steampipe-plugin-aws/pull/2359))
+  - [aws_keyspaces_keyspace](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_keyspaces_keyspace) ([#2271](https://github.com/turbot/steampipe-plugin-aws/pull/2271))
+  - [aws_keyspaces_table](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_keyspaces_table) ([#2271](https://github.com/turbot/steampipe-plugin-aws/pull/2271))
+  - [aws_config_delivery_channel](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_config_delivery_channel) ([#2343](https://github.com/turbot/steampipe-plugin-aws/pull/2343))
+
+_Enhancements_
+
+- Added `instance_type_pattern` column as an optional qual to the `aws_ec2_instance_type` table. ([#2301](https://github.com/turbot/steampipe-plugin-aws/pull/2301))
+- Added `image_digest` column as an optional qual to the `aws_ecr_image_scan_finding` table. ([#2357](https://github.com/turbot/steampipe-plugin-aws/pull/2357))
+- Added `created_at` and `updated_at` columns as optional quals to the `aws_securityhub_finding` table. ([#2298](https://github.com/turbot/steampipe-plugin-aws/pull/2298))
+- Added `account_password_present` column to `aws_iam_account_summary` table. ([#2346](https://github.com/turbot/steampipe-plugin-aws/pull/2346))
+- Add `tags` column to `aws_backup_plan table`. ([#2336](https://github.com/turbot/steampipe-plugin-aws/pull/2336)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the `aws_rds_db_instance` table to correctly return data instead of an error by ignoring the `CertificateNotFound` error code. ([#2363](https://github.com/turbot/steampipe-plugin-aws/pull/2363))
+
 ## v1.4.0 [2024-11-22]
 
 _What's new?_
