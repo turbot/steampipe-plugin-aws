@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
 
-	ecrv1 "github.com/aws/aws-sdk-go/service/ecr"
+	ecrEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -37,7 +37,7 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 				{Name: "image_digest", Require: plugin.AnyOf},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ecrEndpoint.API_ECRServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

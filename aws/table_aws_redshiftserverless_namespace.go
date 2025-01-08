@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless/types"
 
-	redshiftserverlessv1 "github.com/aws/aws-sdk-go/service/redshiftserverless"
+	redshiftserverlessEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -35,7 +35,7 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "redshift-serverless", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(redshiftserverlessv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftserverlessEndpoint.REDSHIFT_SERVERLESSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "namespace_name",

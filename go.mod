@@ -5,7 +5,6 @@ go 1.22.4
 toolchain go1.22.6
 
 require (
-	github.com/aws/aws-sdk-go v1.51.19
 	github.com/aws/aws-sdk-go-v2 v1.27.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.16
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.16
@@ -151,7 +150,9 @@ require (
 require golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 
 require (
+	github.com/aws/aws-sdk-go v1.44.122 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/hashicorp/go-getter v1.7.5 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.47.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
@@ -209,7 +210,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-getter v1.7.5 // indirect
 	github.com/hashicorp/go-plugin v1.6.0 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect

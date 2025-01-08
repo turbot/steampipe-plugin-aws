@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/efs"
 	"github.com/aws/aws-sdk-go-v2/service/efs/types"
 
-	efsv1 "github.com/aws/aws-sdk-go/service/efs"
+	efsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/aws/smithy-go"
 
@@ -43,7 +43,7 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "elasticfilesystem", "action": "DescribeFileSystemPolicy"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(efsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(efsEndpoint.ELASTICFILESYSTEMServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

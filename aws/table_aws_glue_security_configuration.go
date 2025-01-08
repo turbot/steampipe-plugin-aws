@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/glue/types"
 
-	gluev1 "github.com/aws/aws-sdk-go/service/glue"
+	glueEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -32,7 +32,7 @@ func tableAwsGlueSecurityConfiguration(_ context.Context) *plugin.Table {
 			Hydrate: listGlueSecurityConfigurations,
 			Tags:    map[string]string{"service": "glue", "action": "GetSecurityConfigurations"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(glueEndpoint.GLUEServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

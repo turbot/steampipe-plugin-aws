@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/networkfirewall"
 	"github.com/aws/aws-sdk-go-v2/service/networkfirewall/types"
 
-	networkfirewallv1 "github.com/aws/aws-sdk-go/service/networkfirewall"
+	networkfirewallEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -46,7 +46,7 @@ func tableAwsNetworkFirewallFirewall(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "network-firewall", "action": "DescribeLoggingConfiguration"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(networkfirewallEndpoint.NETWORK_FIREWALLServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

@@ -9,8 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
 	"github.com/mitchellh/mapstructure"
 
-	apigatewayv1 "github.com/aws/aws-sdk-go/service/apigateway"
-
+	apigatewayEndpointId "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -41,7 +40,7 @@ func tableAwsAPIGatewayMethod(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "apigateway", "action": "GetResources"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.APIGATEWAYServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "rest_api_id",

@@ -5,8 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
-
-	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
+	cognitoidentityEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -26,13 +25,13 @@ func tableAwsConfigDeliveryChannel(_ context.Context) *plugin.Table {
 					Name:    "name",
 					Require: plugin.Optional,
 				},
-			},		
+			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchDeliveryChannelException"}),
 			},
-			Tags:    map[string]string{"service": "config", "action": "DescribeDeliveryChannels"},
+			Tags: map[string]string{"service": "config", "action": "DescribeDeliveryChannels"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.CONFIGServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

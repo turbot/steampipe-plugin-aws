@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
 
-	ecsv1 "github.com/aws/aws-sdk-go/service/ecs"
+	ecsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -53,7 +53,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ecs", "action": "GetTaskProtection"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ecsEndpoint.ECSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "task_arn",

@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 
-	sesv1 "github.com/aws/aws-sdk-go/service/ses"
+	sesEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -32,7 +32,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ses", "action": "GetIdentityNotificationAttributes"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sesv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(sesEndpoint.EMAILServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity",

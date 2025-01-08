@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
-	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
+	dynamodbEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/aws/smithy-go"
 
@@ -61,7 +61,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dynamodb", "action": "DescribeKinesisStreamingDestination"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbEndpoint.DYNAMODBServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
