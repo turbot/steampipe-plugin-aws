@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	eksv1 "github.com/aws/aws-sdk-go/service/eks"
+	eksEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -33,7 +33,7 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "eks", "action": "DescribeAddonConfiguration"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(eksv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(eksEndpoint.EKSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "addon_name",

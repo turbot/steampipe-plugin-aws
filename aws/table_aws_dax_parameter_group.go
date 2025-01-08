@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 
-	daxv1 "github.com/aws/aws-sdk-go/service/dax"
+	daxEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -32,7 +32,7 @@ func tableAwsDaxParameterGroup(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(daxv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(daxEndpoint.DAXServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "parameter_group_name",

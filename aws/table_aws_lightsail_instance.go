@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lightsail"
 	"github.com/aws/aws-sdk-go-v2/service/lightsail/types"
 
-	lightsailv1 "github.com/aws/aws-sdk-go/service/lightsail"
+	lightsailEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -38,7 +38,7 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "lightsail", "action": "GetInstance"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lightsailv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(lightsailEndpoint.LIGHTSAILServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

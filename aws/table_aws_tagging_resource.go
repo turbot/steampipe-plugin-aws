@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi/types"
 
-	resourcegroupstaggingapiv1 "github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
+	resourcegroupstaggingapiEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -30,7 +30,7 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 			Hydrate: listTaggingResources,
 			Tags:    map[string]string{"service": "tag", "action": "GetResources"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(resourcegroupstaggingapiv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(resourcegroupstaggingapiEndpoint.TAGGINGServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/acmpca"
 	"github.com/aws/aws-sdk-go-v2/service/acmpca/types"
 
-	acmpcav1 "github.com/aws/aws-sdk-go/service/acmpca"
+	acmpcaEndpointId "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -43,7 +43,7 @@ func tableAwsAcmPcaCertificateAuthority(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "acm-pca", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(acmpcav1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(acmpcaEndpointId.ACM_PCAServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

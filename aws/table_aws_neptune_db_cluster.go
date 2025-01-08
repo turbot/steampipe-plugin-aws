@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/neptune"
 	"github.com/aws/aws-sdk-go-v2/service/neptune/types"
 
-	neptunev1 "github.com/aws/aws-sdk-go/service/neptune"
+	rdsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -38,7 +38,7 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "neptune", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(neptunev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.RDSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",

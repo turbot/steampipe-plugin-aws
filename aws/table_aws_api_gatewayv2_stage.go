@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 
-	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
+	apigatewayv2EndpointId "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -34,7 +34,7 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 			Hydrate:       listAPIGatewayV2Stages,
 			Tags:          map[string]string{"service": "apigateway", "action": "GetStages"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2EndpointId.APIGATEWAYServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stage_name",

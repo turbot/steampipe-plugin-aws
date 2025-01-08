@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 
-	ecrv1 "github.com/aws/aws-sdk-go/service/ecr"
+	ecrEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -21,7 +21,7 @@ func tableAwsEcrRegistryScanningConfiguration(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: getEcrRegistryScanningConfiguration,
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ecrEndpoint.API_ECRServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "registry_id",

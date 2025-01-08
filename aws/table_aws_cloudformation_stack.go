@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	go_kit "github.com/turbot/go-kit/types"
 
-	cloudformationv1 "github.com/aws/aws-sdk-go/service/cloudformation"
+	cloudformationEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/goccy/go-yaml"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -54,7 +54,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackResources"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationEndpoint.CLOUDFORMATIONServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

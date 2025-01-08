@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice/types"
 	"github.com/aws/smithy-go"
 
-	directoryservicev1 "github.com/aws/aws-sdk-go/service/directoryservice"
+	directoryserviceEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -51,7 +51,7 @@ func tableAwsDirectoryServiceCertificate(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ds", "action": "DescribeCertificate"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(directoryservicev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(directoryserviceEndpoint.DSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "directory_id",
