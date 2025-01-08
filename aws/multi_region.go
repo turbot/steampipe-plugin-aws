@@ -69,12 +69,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
-	cloudwatchv1 "github.com/aws/aws-sdk-go/service/cloudwatch"
-
-	"github.com/aws/aws-sdk-go/aws/endpoints"
+	cloudwatchEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/turbot/steampipe-plugin-sdk/v5/logging"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -99,7 +97,7 @@ func AllRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]int
 // _metric_ tables must all be limited to the CloudWatch service regions.
 // This is a convenience function for them to use.
 func CloudWatchRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
-	return SupportedRegionMatrixWithExclusions(cloudwatchv1.EndpointsID, []string{})(ctx, d)
+	return SupportedRegionMatrixWithExclusions(cloudwatchEndpoint.MONITORINGServiceID, []string{})(ctx, d)
 }
 
 // Return a matrix of regions supported by serviceID, which will then be
@@ -109,7 +107,6 @@ func CloudWatchRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[str
 func SupportedRegionMatrix(serviceID string) func(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
 	return SupportedRegionMatrixWithExclusions(serviceID, []string{})
 }
-
 
 // This function is used in the GetMatrixItemFunc implementations within the table definitions.
 // GetMatrixItemFunc is designed to accept a single return type `[]map[string]interface{}`.
@@ -309,7 +306,7 @@ func listRegionsForServiceCacheKey(ctx context.Context, d *plugin.QueryData, h *
 func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	var partitionName string
-	var partition endpoints.Partition
+	var partition awsSupportedEndpoints.Partition
 
 	// Service ID is passed through the hydrate data
 	serviceID := h.Item.(string)
@@ -327,16 +324,16 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 
 	// Get AWS partition based on the partition name
 	switch partitionName {
-	case endpoints.AwsPartitionID:
-		partition = endpoints.AwsPartition()
-	case endpoints.AwsCnPartitionID:
-		partition = endpoints.AwsCnPartition()
-	case endpoints.AwsIsoPartitionID:
-		partition = endpoints.AwsIsoPartition()
-	case endpoints.AwsUsGovPartitionID:
-		partition = endpoints.AwsUsGovPartition()
-	case endpoints.AwsIsoBPartitionID:
-		partition = endpoints.AwsIsoBPartition()
+	case awsSupportedEndpoints.AWSPartition.ID:
+		partition = awsSupportedEndpoints.AWSPartition
+	case awsSupportedEndpoints.AWS_CNPartition.ID:
+		partition = awsSupportedEndpoints.AWS_CNPartition
+	case awsSupportedEndpoints.AWS_ISOPartition.ID:
+		partition = awsSupportedEndpoints.AWS_ISOPartition
+	case awsSupportedEndpoints.AWS_US_GOVPartition.ID:
+		partition = awsSupportedEndpoints.AWS_US_GOVPartition
+	case awsSupportedEndpoints.AWS_ISO_EPartition.ID:
+		partition = awsSupportedEndpoints.AWS_ISO_EPartition
 	default:
 		err := fmt.Errorf("listRegionsForServiceUncached:: '%s' is an invalid partition", partitionName)
 		plugin.Logger(ctx).Error("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "invalid_partition_error", err)
@@ -348,7 +345,7 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 	// Get the list of the service regions based on the service ID.  Ultimately,
 	// this is using data from
 	// https://github.com/aws/aws-sdk-go/blob/main/models/endpoints/endpoints.json
-	services := partition.Services()
+	services := partition.Services
 	serviceInfo, ok := services[serviceID]
 	if !ok {
 		err := fmt.Errorf("listRegionsForServiceUncached called with invalid service ID: %s", serviceID)
@@ -356,9 +353,11 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 
-	regions := serviceInfo.Regions()
-	for rs := range regions {
-		regionsForService = append(regionsForService, rs)
+	// regions := serviceInfo.
+	for rs, _ := range serviceInfo.Endpoints {
+		if partition.RegionRegex.Match([]byte(rs)) {
+			regionsForService = append(regionsForService, rs)
+		}
 	}
 
 	plugin.Logger(ctx).Debug("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "partition", partition, "serviceID", serviceID, "regionsForService", regionsForService)

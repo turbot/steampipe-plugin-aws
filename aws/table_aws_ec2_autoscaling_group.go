@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 
-	autoscalingv1 "github.com/aws/aws-sdk-go/service/autoscaling"
+	autoscalingEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -37,7 +37,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "autoscaling", "action": "DescribePolicies"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(autoscalingv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(autoscalingEndpoint.AUTOSCALINGServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

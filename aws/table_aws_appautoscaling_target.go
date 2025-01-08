@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling/types"
 
-	applicationautoscalingv1 "github.com/aws/aws-sdk-go/service/applicationautoscaling"
+	applicationautoscalingEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -42,7 +42,7 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(applicationautoscalingv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(applicationautoscalingEndpoint.APPLICATION_AUTOSCALINGServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_namespace",

@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 
-	inspector2v1 "github.com/aws/aws-sdk-go/service/inspector2"
+	inspector2Endpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -37,7 +37,7 @@ func tableAwsInspector2CoverageStatistics(_ context.Context) *plugin.Table {
 			Hydrate: listInspector2CoverageStatistics,
 			Tags:    map[string]string{"service": "inspector2", "action": "ListCoverageStatistics"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(inspector2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(inspector2Endpoint.INSPECTOR2ServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "total_counts",

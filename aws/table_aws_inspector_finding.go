@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
 
-	inspectorv1 "github.com/aws/aws-sdk-go/service/inspector"
+	inspectorEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -37,7 +37,7 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "inspector", "action": "DescribeFindings"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(inspectorv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(inspectorEndpoint.INSPECTORServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 
-	lambdav1 "github.com/aws/aws-sdk-go/service/lambda"
+	lambdaEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/aws/smithy-go"
 
@@ -38,7 +38,7 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 				{Name: "layer_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.LAMBDAServiceID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getLambdaLayerVersionPolicy,

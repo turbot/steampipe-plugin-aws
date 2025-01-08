@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk/types"
 
-	elasticbeanstalkv1 "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	elasticbeanstalkEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/aws/smithy-go"
 
@@ -53,7 +53,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "elasticache", "action": "DescribeEnvironmentManagedActions"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkEndpoint.ELASTICBEANSTALKServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "environment_name",

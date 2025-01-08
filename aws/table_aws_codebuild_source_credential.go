@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild/types"
 
-	codebuildv1 "github.com/aws/aws-sdk-go/service/codebuild"
+	codebuildEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -25,7 +25,7 @@ func tableAwsCodeBuildSourceCredential(_ context.Context) *plugin.Table {
 			Hydrate: listCodeBuildSourceCredentials,
 			Tags:    map[string]string{"service": "codebuild", "action": "ListSourceCredentials"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codebuildv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codebuildEndpoint.CODEBUILDServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 
-	ssoadminv1 "github.com/aws/aws-sdk-go/service/ssoadmin"
+	ssoadminEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -37,7 +37,7 @@ func tableAwsSsoAdminPermissionSet(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sso", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.SSOServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

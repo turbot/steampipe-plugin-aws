@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/firehose"
 	"github.com/aws/aws-sdk-go-v2/service/firehose/types"
 
-	kinesisv1 "github.com/aws/aws-sdk-go/service/kinesis"
+	kinesisEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -35,7 +35,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				{Name: "delivery_stream_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kinesisv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kinesisEndpoint.KINESISServiceID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: describeFirehoseDeliveryStream,

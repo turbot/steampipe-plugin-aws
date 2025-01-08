@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/macie2/types"
 
-	macie2v1 "github.com/aws/aws-sdk-go/service/macie2"
+	macie2Endpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -44,7 +44,7 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "macie2", "action": "DescribeClassificationJob"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(macie2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(macie2Endpoint.MACIE2ServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

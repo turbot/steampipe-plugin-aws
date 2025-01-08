@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 
-	ssoadminv1 "github.com/aws/aws-sdk-go/service/ssoadmin"
+	ssoadminEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -29,7 +29,7 @@ func tableAwsSsoAdminAccountAssignment(_ context.Context) *plugin.Table {
 			Hydrate: listSsoAdminAccountAssignments,
 			Tags:    map[string]string{"service": "sso", "action": "ListAccountAssignments"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.SSOServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "target_account_id",

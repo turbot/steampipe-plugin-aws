@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 
-	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
+	securityhubEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -29,7 +29,7 @@ func tableAwsSecurityHubStandardsControl(_ context.Context) *plugin.Table {
 			Hydrate:       listSecurityHubStandardsControls,
 			Tags:          map[string]string{"service": "securityhub", "action": "DescribeStandardsControls"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.SECURITYHUBServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "control_id",

@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
 
-	ecrpublicv1 "github.com/aws/aws-sdk-go/service/ecrpublic"
+	ecrpublicEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -50,7 +50,7 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ecr-public", "action": "DescribeImages"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecrpublicv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ecrpublicEndpoint.API_ECR_PUBLICServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/memorydb"
 
-	memorydbv1 "github.com/aws/aws-sdk-go/service/memorydb"
+	memorydbEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -29,7 +29,7 @@ func tableAwsMemoryDBCluster(_ context.Context) *plugin.Table {
 				{Name: "name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(memorydbv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(memorydbEndpoint.MEMORY_DBServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

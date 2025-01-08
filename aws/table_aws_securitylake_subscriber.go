@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securitylake"
 
-	securitylakev1 "github.com/aws/aws-sdk-go/service/securitylake"
+	securitylakeEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -31,7 +31,7 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 			Hydrate: listSecurityLakeSubscribers,
 			Tags:    map[string]string{"service": "securitylake", "action": "ListSubscribers"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securitylakev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securitylakeEndpoint.SECURITYLAKEServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subscriber_name",

@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint/types"
 
-	pinpointv1 "github.com/aws/aws-sdk-go/service/pinpoint"
+	pinpointEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -39,7 +39,7 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "mobiletargeting", "action": "GetApplicationSettings"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(pinpointv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(pinpointEndpoint.PINPOINTServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
