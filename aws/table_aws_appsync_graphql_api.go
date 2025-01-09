@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/appsync"
 	"github.com/aws/aws-sdk-go-v2/service/appsync/types"
 
-	appsyncv1 "github.com/aws/aws-sdk-go/service/appsync"
+	appsyncEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -36,7 +36,7 @@ func tableAwsAppsyncGraphQLApi(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(appsyncv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(appsyncEndpoint.APPSYNCServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 
 			{

@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 	"github.com/aws/smithy-go"
 
-	kmsv1 "github.com/aws/aws-sdk-go/service/kms"
+	kmsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -43,7 +43,7 @@ func tableAwsKmsKeyRotation(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kmsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kmsEndpoint.KMSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "key_id",

@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudsearch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudsearch/types"
 
-	cloudsearchv1 "github.com/aws/aws-sdk-go/service/cloudsearch"
+	cloudsearchEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -35,7 +35,7 @@ func tableAwsCloudSearchDomain(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudsearch", "action": "DescribeDomains"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudsearchv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudsearchEndpoint.CLOUDSEARCHServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",

@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pipes"
 	"github.com/aws/aws-sdk-go-v2/service/pipes/types"
 
-	pipesv1 "github.com/aws/aws-sdk-go/service/pipes"
+	pipesEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -43,7 +43,7 @@ func tableAwsPipes(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "pipes", "action": "DescribePipe"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(pipesv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(pipesEndpoint.PIPESServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

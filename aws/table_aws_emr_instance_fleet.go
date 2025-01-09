@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 	"github.com/aws/aws-sdk-go-v2/service/emr/types"
 
-	emrv1 "github.com/aws/aws-sdk-go/service/emr"
+	emrEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/aws/smithy-go"
 
@@ -30,7 +30,7 @@ func tableAwsEmrInstanceFleet(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequestException"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.ELASTICMAPREDUCEServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

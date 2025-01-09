@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 
-	lambdav1 "github.com/aws/aws-sdk-go/service/lambda"
+	lambdaEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/aws/smithy-go"
 
@@ -31,7 +31,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 			Hydrate: listAwsLambdaFunctions,
 			Tags:    map[string]string{"service": "lambda", "action": "ListFunctions"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.LAMBDAServiceID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getAwsLambdaFunction,

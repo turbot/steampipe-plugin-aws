@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
 	"github.com/aws/smithy-go"
 
-	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
+	wellarchitectedEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -39,7 +39,7 @@ func tableAwsWellArchitectedLensReviewImprovement(_ context.Context) *plugin.Tab
 				{Name: "pillar_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.WELLARCHITECTEDServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "lens_alias",

@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/timestreamwrite"
 
-	timestreamwritev1 "github.com/aws/aws-sdk-go/service/timestreamwrite"
+	timestreamwriteEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -30,7 +30,7 @@ func tableAwsTimestreamwriteDatabase(_ context.Context) *plugin.Table {
 			Hydrate: listAwsTimestreamwriteDatabases,
 			Tags:    map[string]string{"service": "timestream-write", "action": "ListDatabases"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(timestreamwritev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(timestreamwriteEndpoint.INGEST_TIMESTREAMServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "database_name",

@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 
-	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
+	rdsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -57,7 +57,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "rds", "action": "DescribeOrderableDBInstanceOptions"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.RDSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_instance_identifier",

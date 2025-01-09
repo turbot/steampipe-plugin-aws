@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver/types"
 
-	simspaceweaverv1 "github.com/aws/aws-sdk-go/service/simspaceweaver"
+	simspaceweaverEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -42,7 +42,7 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "simspaceweaver", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(simspaceweaverv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(simspaceweaverEndpoint.SIMSPACEWEAVERServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

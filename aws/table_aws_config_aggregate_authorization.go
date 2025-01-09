@@ -6,8 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
 
-	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
-
+	cognitoidentityEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -27,7 +26,7 @@ func tableAwsConfigAggregateAuthorization(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "config", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.COGNITO_IDENTITYServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

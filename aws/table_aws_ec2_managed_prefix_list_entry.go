@@ -3,11 +3,10 @@ package aws
 import (
 	"context"
 
+	ec2Endpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
-
-	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -32,7 +31,7 @@ func tableAwsEc2ManagedPrefixListEntry(_ context.Context) *plugin.Table {
 				{Name: "prefix_list_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "prefix_list_id",

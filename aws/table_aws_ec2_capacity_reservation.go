@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+	ec2Endpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -45,7 +45,7 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				{Name: "instance_match_criteria", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "capacity_reservation_id",

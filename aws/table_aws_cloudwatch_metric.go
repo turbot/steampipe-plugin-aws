@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 
-	cloudwatchv1 "github.com/aws/aws-sdk-go/service/cloudwatch"
+	monitoringEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -45,7 +45,7 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(monitoringEndpoint.MONITORINGServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "metric_name",

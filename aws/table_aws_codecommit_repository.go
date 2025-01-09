@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codecommit"
 	"github.com/aws/aws-sdk-go-v2/service/codecommit/types"
 
-	codecommitv1 "github.com/aws/aws-sdk-go/service/codecommit"
+	codecommitEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -33,7 +33,7 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "codecommit", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codecommitv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codecommitEndpoint.CODECOMMITServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

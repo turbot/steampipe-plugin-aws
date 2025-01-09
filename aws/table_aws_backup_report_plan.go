@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
 
-	backupv1 "github.com/aws/aws-sdk-go/service/backup"
+	backupEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -31,7 +31,7 @@ func tableAwsBackupReportPlan(_ context.Context) *plugin.Table {
 			Hydrate: listAwsBackupReportPlans,
 			Tags:    map[string]string{"service": "backup", "action": "ListReportPlans"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.BACKUPServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

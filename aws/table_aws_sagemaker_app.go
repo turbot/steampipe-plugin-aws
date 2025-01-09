@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 
-	sagemakerv1 "github.com/aws/aws-sdk-go/service/sagemaker"
+	sagemakerEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -45,7 +45,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sagemaker", "action": "DescribeApp"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerEndpoint.API_SAGEMAKERServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

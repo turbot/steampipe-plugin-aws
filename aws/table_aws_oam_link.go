@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/oam"
 	"github.com/aws/aws-sdk-go-v2/service/oam/types"
 
-	oamv1 "github.com/aws/aws-sdk-go/service/oam"
+	oamEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -36,7 +36,7 @@ func tableAwsOAMLink(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "oam", "action": "GetLink"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(oamv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(oamEndpoint.OAMServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

@@ -7,8 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 
-	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-
+	cloudwatchEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -46,7 +45,7 @@ func tableAwsVpcFlowLogEvent(_ context.Context) *plugin.Table {
 			Tags:       map[string]string{"service": "logs", "action": "FilterLogEvents"},
 			KeyColumns: tableAwsVpcFlowLogEventListKeyColumns(),
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchEndpoint.LOGSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			// Top columns
 			{Name: "log_group_name", Type: proto.ColumnType_STRING, Transform: transform.FromQual("log_group_name"), Description: "The name of the log group to which this event belongs."},

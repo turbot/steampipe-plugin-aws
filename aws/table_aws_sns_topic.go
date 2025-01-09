@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 
-	snsv1 "github.com/aws/aws-sdk-go/service/sns"
+	snsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/go-kit/types"
 
@@ -43,7 +43,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sns", "action": "GetTopicAttributes"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(snsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(snsEndpoint.SNSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "topic_arn",

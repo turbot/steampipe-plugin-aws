@@ -7,7 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 
-	healthv1 "github.com/aws/aws-sdk-go/service/health"
+	healthEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/health"
@@ -33,7 +33,7 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 				{Name: "last_updated_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<=", "="}},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(healthv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(healthEndpoint.HEALTHServiceID),
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",

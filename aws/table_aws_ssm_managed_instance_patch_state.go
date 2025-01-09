@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
+	ssmEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -28,7 +28,7 @@ func tableAwsSSMManagedInstancePatchState(_ context.Context) *plugin.Table {
 				{Name: "instance_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmEndpoint.SSMServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_id",

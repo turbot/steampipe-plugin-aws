@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	sqsTypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
 
-	sqsv1 "github.com/aws/aws-sdk-go/service/sqs"
+	sqsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -46,7 +46,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sqsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(sqsEndpoint.SQSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "queue_url",

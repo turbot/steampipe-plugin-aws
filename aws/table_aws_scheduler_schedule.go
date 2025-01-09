@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/scheduler"
 	"github.com/aws/aws-sdk-go-v2/service/scheduler/types"
 
-	schedulerv1 "github.com/aws/aws-sdk-go/service/scheduler"
+	schedulerEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -37,7 +37,7 @@ func tableAwsSchedulerSchedule(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "scheduler", "action": "ListSchedules"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(schedulerv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(schedulerEndpoint.SCHEDULERServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

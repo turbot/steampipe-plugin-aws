@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/types"
 
-	elbv1 "github.com/aws/aws-sdk-go/service/elb"
+	elbEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -42,7 +42,7 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elbv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elbEndpoint.ELASTICLOADBALANCINGServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

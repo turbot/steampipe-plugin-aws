@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/appstream"
 	"github.com/aws/aws-sdk-go-v2/service/appstream/types"
-	appstreamv1 "github.com/aws/aws-sdk-go/service/appstream"
+	appstreamEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -39,7 +39,7 @@ func tableAwsAppStreamFleet(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "appstream", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(appstreamv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(appstreamEndpoint.APPSTREAM2ServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

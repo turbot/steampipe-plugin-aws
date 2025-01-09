@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo/types"
 
-	kinesisv1 "github.com/aws/aws-sdk-go/service/kinesis"
+	kinesisEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -32,7 +32,7 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 			Hydrate: listKinesisVideoStreams,
 			Tags:    map[string]string{"service": "kinesisvideo", "action": "ListStreams"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kinesisv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kinesisEndpoint.KINESISServiceID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: listKinesisVideoStreamTags,

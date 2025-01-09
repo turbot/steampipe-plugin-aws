@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline/types"
 
-	codepipelinev1 "github.com/aws/aws-sdk-go/service/codepipeline"
+	codepipelineEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -42,7 +42,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "codepipeline", "action": "GetPipeline"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codepipelinev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codepipelineEndpoint.CODEPIPELINEServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

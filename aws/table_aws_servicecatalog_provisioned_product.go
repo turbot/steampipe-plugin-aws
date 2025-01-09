@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/servicecatalog"
 	"github.com/aws/aws-sdk-go-v2/service/servicecatalog/types"
 
-	servicecatalogv1 "github.com/aws/aws-sdk-go/service/servicecatalog"
+	servicecatalogEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -79,7 +79,7 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "servicecatalog", "action": "DescribeProvisionedProduct"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogEndpoint.SERVICECATALOGServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

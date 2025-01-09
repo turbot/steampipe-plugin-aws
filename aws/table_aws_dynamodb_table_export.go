@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
-	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
+	dynamodbEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -37,7 +37,7 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dynamodb", "action": "DescribeExport"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbEndpoint.DYNAMODBServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

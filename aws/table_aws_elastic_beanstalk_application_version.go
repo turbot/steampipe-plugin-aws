@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
 
-	elasticbeanstalkv1 "github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	elasticbeanstalkEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -49,7 +49,7 @@ func tableAwsElasticBeanstalkApplicationVersion(_ context.Context) *plugin.Table
 				Tags: map[string]string{"service": "elasticbeanstalk", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkEndpoint.ELASTICBEANSTALKServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "application_name",

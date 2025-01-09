@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 
-	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
+	rdsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -40,7 +40,7 @@ func tableAwsRDSDBInstanceAutomatedBackup(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.RDSServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_instance_identifier",

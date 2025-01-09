@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
 
-	secretsmanagerv1 "github.com/aws/aws-sdk-go/service/secretsmanager"
+	secretsmanagerEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -43,7 +43,7 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sagemaker", "action": "DescribeSecret"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(secretsmanagerv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(secretsmanagerEndpoint.SECRETSMANAGERServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 	"github.com/aws/aws-sdk-go-v2/service/emr/types"
 
-	emrv1 "github.com/aws/aws-sdk-go/service/emr"
+	emrEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -30,7 +30,7 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 				{Name: "instance_group_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.ELASTICMAPREDUCEServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

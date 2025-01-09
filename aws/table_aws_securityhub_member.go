@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 
-	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
+	securityhubEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -34,7 +34,7 @@ func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "BadRequestException"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.SECURITYHUBServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "member_account_id",

@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty/types"
 
-	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
+	guarddutyEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -51,7 +51,7 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "guardduty", "action": "DescribePublishingDestination"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyEndpoint.GUARDDUTYServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "destination_id",

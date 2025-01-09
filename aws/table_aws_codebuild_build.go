@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 
-	codebuildv1 "github.com/aws/aws-sdk-go/service/codebuild"
+	codebuildEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -26,7 +26,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codebuildv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codebuildEndpoint.CODEBUILDServiceID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
