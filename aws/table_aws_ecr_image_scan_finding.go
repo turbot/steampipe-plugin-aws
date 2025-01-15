@@ -2,11 +2,13 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	"github.com/aws/smithy-go"
 
 	ecrv1 "github.com/aws/aws-sdk-go/service/ecr"
 
@@ -22,8 +24,9 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 		Name:        "aws_ecr_image_scan_finding",
 		Description: "AWS ECR Image Scan Finding",
 		List: &plugin.ListConfig{
-			Hydrate: listAwsEcrImageScanFindings,
-			Tags:    map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
+			ParentHydrate: listAwsEcrImageTags,
+			Hydrate:       listAwsEcrImageScanFindings,
+			Tags:          map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
 			},
@@ -33,8 +36,8 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 			// image_digest as it's more common/friendly to use.
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "repository_name", Require: plugin.Required},
-				{Name: "image_tag", Require: plugin.AnyOf},
-				{Name: "image_digest", Require: plugin.AnyOf},
+				{Name: "image_tag", Require: plugin.Optional},
+				{Name: "image_digest", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
@@ -118,7 +121,9 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 }
 
 // // LIST FUNCTION
-func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	repositoryTag := h.Item.(*RepositoryImage)
+
 	// Create Session
 	svc, err := ECRClient(ctx, d)
 	if err != nil {
@@ -128,6 +133,13 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 	imageTag := d.EqualsQuals["image_tag"]
 	imageDigest := d.EqualsQuals["image_digest"]
 	repositoryName := d.EqualsQuals["repository_name"]
+
+	if imageTag != nil && imageTag.GetStringValue() != *repositoryTag.ImageTag {
+		return nil, nil
+	}
+	if repositoryName != nil && repositoryName.GetStringValue() != *repositoryTag.RepositoryName {
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -140,10 +152,12 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	input := &ecr.DescribeImageScanFindingsInput{
 		MaxResults:     aws.Int32(maxLimit),
-		RepositoryName: aws.String(repositoryName.GetStringValue()),
+		RepositoryName: repositoryTag.RepositoryName,
 	}
 
-	imageInfo := &types.ImageIdentifier{}
+	imageInfo := &types.ImageIdentifier{
+		ImageTag: repositoryTag.ImageTag,
+	}
 
 	// Ideally, both image_tag and image_digest could be used.
 	// However, they cannot be passed together simultaneously.
@@ -158,6 +172,7 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 	if imageTag == nil && imageDigest != nil {
 		imageInfo.ImageDigest = aws.String(imageDigest.GetStringValue())
+		imageInfo.ImageTag = nil
 	}
 
 	input.ImageId = imageInfo
@@ -182,7 +197,14 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 		d.WaitForListRateLimit(ctx)
 
 		output, err := paginator.NextPage(ctx)
+		// In the case of parent hydrate use, the ignore error config in the list config is not functioning, so we need to handle the error here.
 		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "ScanNotFoundException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_ecr_image_scan_finding.listAwsEcrImageScanFindings", "api_error", err)
 			return nil, err
 		}
@@ -215,4 +237,64 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	return nil, err
+}
+
+//// Parent Hydrate
+
+type RepositoryImage struct {
+	RepositoryName *string
+	ImageTag       *string
+}
+
+// To preserve the existing table behavior (fetching findings based on image tags), we have retained the parent function.
+// Making `image_tags` an optional or `anyof` qualifier alters the query plan for complex join queries, causing query execution errors.
+// This issue is detailed here: https://github.com/turbot/steampipe-plugin-aws/issues/2367
+func listAwsEcrImageTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	repoName := d.EqualsQuals["repository_name"].GetStringValue()
+
+	// Limiting the results
+	maxLimit := int32(100)
+
+	// Create Session
+	svc, err := ECRClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImageTags", "connection_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &ecr.DescribeImagesInput{
+		RepositoryName: &repoName,
+		MaxResults:     aws.Int32(maxLimit),
+	}
+
+	paginator := ecr.NewDescribeImagesPaginator(svc, params, func(o *ecr.DescribeImagesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImageTags", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.ImageDetails {
+			for _, tags := range items.ImageTags {
+				imageDetails := &RepositoryImage{
+					RepositoryName: items.RepositoryName,
+					ImageTag:       &tags,
+				}
+				d.StreamListItem(ctx, imageDetails)
+			}
+		}
+	}
+
+	return nil, nil
 }
