@@ -41,6 +41,10 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Func: getKafkaClusterOperation,
 				Tags: map[string]string{"service": "kafka", "action": "DescribeClusterOperation"},
 			},
+            {
+                Func: getKafkaClusterBootstrapBrokers,
+                Tags: map[string]string{"service": "kafka", "action": "GetBootstrapBrokers"},
+            },
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kafkav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -94,6 +98,20 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getKafkaClusterOperation,
 				Transform:   transform.FromValue(),
 			},
+            {
+                Name:        "bootstrap_broker_string",
+                Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for use with Apache Kafka clients.",
+                Type:        proto.ColumnType_STRING,
+                Hydrate:     getKafkaClusterBootstrapBrokers,
+                Transform:   transform.FromField("BootstrapBrokerString"),
+            },
+            {
+                Name:        "bootstrap_broker_tls",
+                Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for TLS authentication.",
+                Type:        proto.ColumnType_STRING,
+                Hydrate:     getKafkaClusterBootstrapBrokers,
+                Transform:   transform.FromField("BootstrapBrokerStringTls"),
+            },
 			{
 				Name:        "provisioned",
 				Description: "Information about the provisioned cluster.",
@@ -301,6 +319,38 @@ func getKafkaClusterConfiguration(ctx context.Context, d *plugin.QueryData, h *p
 	op, err := svc.DescribeConfiguration(ctx, params)
 	if err != nil {
 		logger.Error("aws_kafka_cluster.getKafkaClusterConfiguration", "api_error", err)
+		return nil, err
+	}
+
+	return op, nil
+}
+
+func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	cluster := h.Item.(types.Cluster)
+
+	clusterArn := aws.ToString(cluster.ClusterArn)
+    if clusterArn == "" {
+        logger.Error("clusterArn is null")
+        return nil, nil
+    }
+
+	svc, err := KafkaClient(ctx, d)
+	if err != nil {
+		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "service_creation_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
+	}
+
+	params := &kafka.GetBootstrapBrokersInput{
+		ClusterArn: &clusterArn,
+	}
+
+	op, err := svc.GetBootstrapBrokers(ctx, params)
+	if err != nil {
+		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "api_error", err)
 		return nil, err
 	}
 
