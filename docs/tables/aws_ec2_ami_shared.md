@@ -120,6 +120,24 @@ where
   ami.owner_id = '137112412989';
 ```
 
+### Retrieve details of multiple shared AMIs in a single query
+Fetches metadata of multiple shared AMIs, including their state, visibility, and creation details, to streamline AMI management.
+
+```sql+postgres
+select 
+  name,
+  image_id,
+  state,
+  image_location,
+  creation_date,
+  public,
+  root_device_name 
+from 
+  aws_ec2_ami_shared
+where
+  image_ids = '["ami-08df646e18b182346", "ami-04c5f154a6c2fec00",]';
+```
+
 ### Batch API operation, ensuring AMIs are from trusted sources
 Any AWS customer can publish an Amazon Machine Image (AMI) for other AWS customers to launch instances from. AWS only vets a handful of images in the AWS Marketplace, there is no guarantee that other publicly shared AMIs are free of vulnerabilities or malicious code. While it's common for vendors to share their software as an AMI, it's also possible someone in your organization has launched an instance from a compromised image.
 
