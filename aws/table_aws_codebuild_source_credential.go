@@ -65,8 +65,8 @@ func tableAwsCodeBuildSourceCredential(_ context.Context) *plugin.Table {
 func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := CodeBuildClient(ctx, d)
-	plugin.Logger(ctx).Error("aws_codebuild_source_credential.listCodeBuildSourceCredentials", "connection_error", err)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codebuild_source_credential.listCodeBuildSourceCredentials", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {

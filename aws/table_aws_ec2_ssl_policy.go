@@ -79,8 +79,8 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// Create Session
 	svc, err := ELBV2Client(ctx, d)
-	plugin.Logger(ctx).Error("aws_ec2_ssl_policy.listEc2SslPolicies", "connection_error", err)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_ssl_policy.listEc2SslPolicies", "connection_error", err)
 		return nil, err
 	}
 
