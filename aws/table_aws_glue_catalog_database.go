@@ -88,6 +88,12 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Name"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTagsForGlueCatalogDatabase,
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -190,6 +196,36 @@ func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	return *data.Database, nil
+}
+
+func getTagsForGlueResource(ctx context.Context, d *plugin.QueryData, arn string) (interface{}, error) {
+	// Create session
+	svc, err := GlueClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getTagsForGlueCatalogDatabase", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	// Build param
+	param := &glue.GetTagsInput{
+		ResourceArn: aws.String(arn),
+	}
+
+	tags, err := svc.GetTags(ctx, param)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getTagsForGlueCatalogDatabase", "api_error", err)
+		return nil, err
+	}
+	return tags, nil
+}
+
+func getTagsForGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	akas, _ := getGlueCatalogDatabaseAkas(ctx, d, h)
+	return getTagsForGlueResource(ctx, d, akas.([]string)[0])
 }
 
 func getGlueCatalogDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
