@@ -41,10 +41,10 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Func: getKafkaClusterOperation,
 				Tags: map[string]string{"service": "kafka", "action": "DescribeClusterOperation"},
 			},
-            {
-                Func: getKafkaClusterBootstrapBrokers,
-                Tags: map[string]string{"service": "kafka", "action": "GetBootstrapBrokers"},
-            },
+			{
+				Func: getKafkaClusterBootstrapBrokers,
+				Tags: map[string]string{"service": "kafka", "action": "GetBootstrapBrokers"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(kafkav1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -98,20 +98,18 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getKafkaClusterOperation,
 				Transform:   transform.FromValue(),
 			},
-            {
-                Name:        "bootstrap_broker_string",
-                Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for use with Apache Kafka clients.",
-                Type:        proto.ColumnType_STRING,
-                Hydrate:     getKafkaClusterBootstrapBrokers,
-                Transform:   transform.FromField("BootstrapBrokerString"),
-            },
-            {
-                Name:        "bootstrap_broker_tls",
-                Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for TLS authentication.",
-                Type:        proto.ColumnType_STRING,
-                Hydrate:     getKafkaClusterBootstrapBrokers,
-                Transform:   transform.FromField("BootstrapBrokerStringTls"),
-            },
+			{
+				Name:        "bootstrap_broker_string",
+				Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for use with Apache Kafka clients.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getKafkaClusterBootstrapBrokers,
+			},
+			{
+				Name:        "bootstrap_broker_tls",
+				Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for TLS authentication.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getKafkaClusterBootstrapBrokers,
+			},
 			{
 				Name:        "provisioned",
 				Description: "Information about the provisioned cluster.",
@@ -330,10 +328,9 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 	cluster := h.Item.(types.Cluster)
 
 	clusterArn := aws.ToString(cluster.ClusterArn)
-    if clusterArn == "" {
-        logger.Error("clusterArn is null")
-        return nil, nil
-    }
+	if clusterArn == "" {
+		return nil, nil
+	}
 
 	svc, err := KafkaClient(ctx, d)
 	if err != nil {
