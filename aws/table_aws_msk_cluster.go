@@ -105,7 +105,7 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getKafkaClusterBootstrapBrokers,
 			},
 			{
-				Name:        "bootstrap_broker_tls",
+				Name:        "bootstrap_broker_string_tls",
 				Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for TLS authentication.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getKafkaClusterBootstrapBrokers,
