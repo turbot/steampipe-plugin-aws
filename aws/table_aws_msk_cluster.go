@@ -328,6 +328,7 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 	cluster := h.Item.(types.Cluster)
 
 	clusterArn := aws.ToString(cluster.ClusterArn)
+	// Empty check
 	if clusterArn == "" {
 		return nil, nil
 	}
@@ -337,6 +338,8 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "service_creation_error", err)
 		return nil, err
 	}
+
+	// Unsupported region, return no data
 	if svc == nil {
 		return nil, nil
 	}
