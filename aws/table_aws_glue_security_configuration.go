@@ -71,12 +71,6 @@ func tableAwsGlueSecurityConfiguration(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Name"),
 			},
 			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getTagsForGlueSecurityConfiguration,
-			},
-			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -168,11 +162,6 @@ func getGlueSecurityConfiguration(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 	return *data.SecurityConfiguration, nil
-}
-
-func getTagsForGlueSecurityConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	arn, _ := getGlueSecurityConfigurationArn(ctx, d, h)
-	return getTagsForGlueResource(ctx, d, arn.(string))
 }
 
 func getGlueSecurityConfigurationArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
