@@ -201,7 +201,7 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		if err != nil {
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
-				if ae.ErrorCode() == "ScanNotFoundException" {
+				if ae.ErrorCode() == "ScanNotFoundException" || ae.ErrorCode() == "RepositoryNotFoundException" || ae.ErrorCode() == "ImageNotFoundException" {
 					return nil, nil
 				}
 			}
@@ -281,6 +281,12 @@ func listAwsEcrImageTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "RepositoryNotFoundException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImageTags", "api_error", err)
 			return nil, err
 		}
