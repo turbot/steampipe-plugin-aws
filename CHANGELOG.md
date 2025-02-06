@@ -1,3 +1,11 @@
+## v1.6.0 [2025-02-06]
+
+_Enhancements_
+
+- Added columns `bootstrap_broker_string` and `bootstrap_broker_string_tls` to the `aws_msk_cluster` table. ([#2390](https://github.com/turbot/steampipe-plugin-aws/pull/2390)) (Thanks [@insummersnow](https://github.com/insummersnow) for the contribution!)
+- Added pagination in the `aws_ec2_ami_shared` table. ([#2260](https://github.com/turbot/steampipe-plugin-aws/pull/2260))
+- Added columns `owner_ids` and `image_ids` to the `aws_ec2_ami_shared` table. ([#2260](https://github.com/turbot/steampipe-plugin-aws/pull/2260))
+
 ## v1.5.0 [2025-01-03]
 
 _What's new?_
