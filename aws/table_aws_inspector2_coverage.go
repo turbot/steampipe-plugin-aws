@@ -41,7 +41,7 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 			},
 		},
 
-		GetMatrixItemFunc: SupportedRegionMatrix(inspector2Endpoint.INSPECTOR2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(inspector2Endpoint.AWS_INSPECTOR2_SERVICE_ID),
 
 		// We *do not* use the common columns, because the account_id/region of
 		// the default columns come from the call, *not* from the retutned data.

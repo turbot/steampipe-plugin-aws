@@ -38,7 +38,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpc_id",

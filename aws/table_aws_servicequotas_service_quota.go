@@ -50,7 +50,7 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "servicequotas", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(servicequotasEndpoint.SERVICEQUOTASServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(servicequotasEndpoint.AWS_SERVICEQUOTAS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "quota_name",

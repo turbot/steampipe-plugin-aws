@@ -37,7 +37,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "autoscaling", "action": "DescribePolicies"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(autoscalingEndpoint.AUTOSCALINGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(autoscalingEndpoint.AWS_AUTOSCALING_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

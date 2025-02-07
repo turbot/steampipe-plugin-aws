@@ -29,7 +29,7 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(inspectorEndpoint.INSPECTORServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(inspectorEndpoint.AWS_INSPECTOR_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

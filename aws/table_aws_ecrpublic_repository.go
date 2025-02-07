@@ -50,7 +50,7 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ecr-public", "action": "DescribeImages"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecrpublicEndpoint.API_ECR_PUBLICServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ecrpublicEndpoint.AWS_API_ECR_PUBLIC_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

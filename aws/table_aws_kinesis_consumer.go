@@ -35,7 +35,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 			Hydrate:       listKinesisConsumers,
 			Tags:          map[string]string{"service": "kinesis", "action": "ListStreamConsumers"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kinesisEndpoint.KINESISServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kinesisEndpoint.AWS_KINESIS_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getAwsKinesisConsumer,

@@ -32,7 +32,7 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 			Hydrate: listRedshiftSubnetGroups,
 			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSubnetGroups"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(redshiftEndpoint.REDSHIFTServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftEndpoint.AWS_REDSHIFT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_subnet_group_name",

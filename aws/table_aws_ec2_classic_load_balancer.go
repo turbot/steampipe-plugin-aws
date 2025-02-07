@@ -42,7 +42,7 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elbEndpoint.ELASTICLOADBALANCINGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elbEndpoint.AWS_ELASTICLOADBALANCING_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

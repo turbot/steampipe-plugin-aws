@@ -37,7 +37,7 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 			Hydrate: listKmsKeys,
 			Tags:    map[string]string{"service": "kms", "action": "ListKeys"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kmsEndpoint.KMSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kmsEndpoint.AWS_KMS_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getAwsKmsKeyData,

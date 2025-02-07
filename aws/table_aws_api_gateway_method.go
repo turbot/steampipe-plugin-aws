@@ -40,7 +40,7 @@ func tableAwsAPIGatewayMethod(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "apigateway", "action": "GetResources"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.APIGATEWAYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "rest_api_id",

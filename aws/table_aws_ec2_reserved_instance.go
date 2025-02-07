@@ -53,7 +53,7 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ec2", "action": "DescribeReservedInstancesModifications"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "reserved_instance_id",

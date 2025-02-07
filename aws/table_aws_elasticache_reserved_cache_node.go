@@ -38,7 +38,7 @@ func tableAwsElastiCacheReservedCacheNode(_ context.Context) *plugin.Table {
 				{Name: "reserved_cache_nodes_offering_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.ELASTICACHEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.AWS_ELASTICACHE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "reserved_cache_node_id",

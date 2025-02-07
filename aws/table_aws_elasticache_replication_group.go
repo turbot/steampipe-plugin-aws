@@ -31,7 +31,7 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 			Hydrate: listElastiCacheReplicationGroups,
 			Tags:    map[string]string{"service": "elasticache", "action": "DescribeReplicationGroups"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.ELASTICACHEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.AWS_ELASTICACHE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_group_id",

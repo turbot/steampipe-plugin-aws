@@ -4,641 +4,641 @@ package awsSupportedEndpoints
 
 // Service constants
 
-const COMPUTE_OPTIMIZERServiceID = "compute-optimizer"
+const AWS_FMS_SERVICE_ID = "fms"
 
-const BATCHServiceID = "batch"
+const AWS_EMR_CONTAINERS_SERVICE_ID = "emr-containers"
 
-const TRANSCRIBESTREAMINGServiceID = "transcribestreaming"
+const AWS_APPLICATION_AUTOSCALING_SERVICE_ID = "application-autoscaling"
 
-const DYNAMODBServiceID = "dynamodb"
+const AWS_LICENSE_MANAGER_USER_SUBSCRIPTIONS_SERVICE_ID = "license-manager-user-subscriptions"
 
-const GLOBALACCELERATORServiceID = "globalaccelerator"
+const AWS_MTURK_REQUESTER_SERVICE_ID = "mturk-requester"
 
-const API_SAGEMAKERServiceID = "api.sagemaker"
+const AWS_HEALTH_SERVICE_ID = "health"
 
-const SIGNERServiceID = "signer"
+const AWS_INTERNETMONITOR_SERVICE_ID = "internetmonitor"
 
-const BACKUPServiceID = "backup"
+const AWS_AOSS_SERVICE_ID = "aoss"
 
-const IOTEVENTSServiceID = "iotevents"
+const AWS_VOICEID_SERVICE_ID = "voiceid"
 
-const ORGANIZATIONSServiceID = "organizations"
+const AWS_APPMESH_SERVICE_ID = "appmesh"
 
-const FRAUDDETECTORServiceID = "frauddetector"
+const AWS_COGNITO_SYNC_SERVICE_ID = "cognito-sync"
 
-const BILLINGCONDUCTORServiceID = "billingconductor"
+const AWS_IMPORTEXPORT_SERVICE_ID = "importexport"
 
-const IOTTWINMAKERServiceID = "iottwinmaker"
+const AWS_DAX_SERVICE_ID = "dax"
 
-const IMPORTEXPORTServiceID = "importexport"
+const AWS_ROUTE53_RECOVERY_CONTROL_CONFIG_SERVICE_ID = "route53-recovery-control-config"
 
-const PIServiceID = "pi"
+const AWS_MQ_SERVICE_ID = "mq"
 
-const AIRFLOWServiceID = "airflow"
+const AWS_OSIS_SERVICE_ID = "osis"
 
-const MEDIACONNECTServiceID = "mediaconnect"
+const AWS_APPCONFIG_SERVICE_ID = "appconfig"
 
-const TAGGINGServiceID = "tagging"
+const AWS_COMPREHENDMEDICAL_SERVICE_ID = "comprehendmedical"
 
-const APPSTREAM2ServiceID = "appstream2"
+const AWS_VERIFIEDPERMISSIONS_SERVICE_ID = "verifiedpermissions"
 
-const SNOWBALLServiceID = "snowball"
+const AWS_COMPREHEND_SERVICE_ID = "comprehend"
 
-const MODELS_LEXServiceID = "models.lex"
+const AWS_TRUSTEDADVISOR_SERVICE_ID = "trustedadvisor"
 
-const DATA_JOBS_IOTServiceID = "data.jobs.iot"
+const AWS_SSM_SERVICE_ID = "ssm"
 
-const XRAYServiceID = "xray"
+const AWS_DATABREW_SERVICE_ID = "databrew"
 
-const LOOKOUTVISIONServiceID = "lookoutvision"
+const AWS_CLOUDTRAIL_DATA_SERVICE_ID = "cloudtrail-data"
 
-const DATA_MEDIASTOREServiceID = "data.mediastore"
+const AWS_LICENSE_MANAGER_SERVICE_ID = "license-manager"
 
-const CONNECT_CAMPAIGNSServiceID = "connect-campaigns"
+const AWS_SSM_SAP_SERVICE_ID = "ssm-sap"
 
-const IVSREALTIMEServiceID = "ivsrealtime"
+const AWS_M2_SERVICE_ID = "m2"
 
-const ELASTICACHEServiceID = "elasticache"
+const AWS_OPSWORKS_SERVICE_ID = "opsworks"
 
-const LICENSE_MANAGER_USER_SUBSCRIPTIONSServiceID = "license-manager-user-subscriptions"
+const AWS_BACKUP_SERVICE_ID = "backup"
 
-const APPMESHServiceID = "appmesh"
+const AWS_CLOUDFORMATION_SERVICE_ID = "cloudformation"
 
-const CEServiceID = "ce"
+const AWS_IOTSECUREDTUNNELING_SERVICE_ID = "iotsecuredtunneling"
 
-const ELASTICFILESYSTEMServiceID = "elasticfilesystem"
+const AWS_DYNAMODB_SERVICE_ID = "dynamodb"
 
-const S3_OUTPOSTSServiceID = "s3-outposts"
+const AWS_SNOWBALL_SERVICE_ID = "snowball"
 
-const SECURITYLAKEServiceID = "securitylake"
+const AWS_DRS_SERVICE_ID = "drs"
 
-const MACHINELEARNINGServiceID = "machinelearning"
+const AWS_MEDIAPACKAGEV2_SERVICE_ID = "mediapackagev2"
 
-const KENDRA_RANKINGServiceID = "kendra-ranking"
+const AWS_LOOKOUTMETRICS_SERVICE_ID = "lookoutmetrics"
 
-const CODECATALYSTServiceID = "codecatalyst"
+const AWS_DIRECTCONNECT_SERVICE_ID = "directconnect"
 
-const EKSServiceID = "eks"
+const AWS_IOTWIRELESS_SERVICE_ID = "iotwireless"
 
-const AMPLIFYBACKENDServiceID = "amplifybackend"
+const AWS_MGN_SERVICE_ID = "mgn"
 
-const METERING_MARKETPLACEServiceID = "metering.marketplace"
+const AWS_BILLINGCONDUCTOR_SERVICE_ID = "billingconductor"
 
-const ATHENAServiceID = "athena"
+const AWS_SSO_SERVICE_ID = "sso"
 
-const GREENGRASSServiceID = "greengrass"
+const AWS_AGREEMENT_MARKETPLACE_SERVICE_ID = "agreement-marketplace"
 
-const SUPPORTAPPServiceID = "supportapp"
+const AWS_FSX_SERVICE_ID = "fsx"
 
-const SSM_CONTACTSServiceID = "ssm-contacts"
+const AWS_ELASTICTRANSCODER_SERVICE_ID = "elastictranscoder"
 
-const WORKDOCSServiceID = "workdocs"
+const AWS_RESOURCE_GROUPS_SERVICE_ID = "resource-groups"
 
-const FINSPACE_APIServiceID = "finspace-api"
+const AWS_CODECOMMIT_SERVICE_ID = "codecommit"
 
-const LAKEFORMATIONServiceID = "lakeformation"
+const AWS_SESSION_QLDB_SERVICE_ID = "session.qldb"
 
-const PIPESServiceID = "pipes"
+const AWS_OUTPOSTS_SERVICE_ID = "outposts"
 
-const ENTITLEMENT_MARKETPLACEServiceID = "entitlement.marketplace"
+const AWS_AMPLIFYUIBUILDER_SERVICE_ID = "amplifyuibuilder"
 
-const APPFLOWServiceID = "appflow"
+const AWS_DLM_SERVICE_ID = "dlm"
 
-const AMPLIFYServiceID = "amplify"
+const AWS_API_DETECTIVE_SERVICE_ID = "api.detective"
 
-const LOOKOUTEQUIPMENTServiceID = "lookoutequipment"
+const AWS_IOTTWINMAKER_SERVICE_ID = "iottwinmaker"
 
-const HEALTHServiceID = "health"
+const AWS_ROUTE53_SERVICE_ID = "route53"
 
-const WISDOMServiceID = "wisdom"
+const AWS_AUDITMANAGER_SERVICE_ID = "auditmanager"
 
-const COMPREHENDMEDICALServiceID = "comprehendmedical"
+const AWS_LAKEFORMATION_SERVICE_ID = "lakeformation"
 
-const DSServiceID = "ds"
+const AWS_DMS_SERVICE_ID = "dms"
 
-const SESSION_QLDBServiceID = "session.qldb"
+const AWS_MOBILEANALYTICS_SERVICE_ID = "mobileanalytics"
 
-const RDS_DATAServiceID = "rds-data"
+const AWS_IOTANALYTICS_SERVICE_ID = "iotanalytics"
 
-const CHIMEServiceID = "chime"
+const AWS_SQS_SERVICE_ID = "sqs"
 
-const EKS_AUTHServiceID = "eks-auth"
+const AWS_SECURITYHUB_SERVICE_ID = "securityhub"
 
-const MIGRATIONHUB_STRATEGYServiceID = "migrationhub-strategy"
+const AWS_ACM_PCA_SERVICE_ID = "acm-pca"
 
-const OIDCServiceID = "oidc"
+const AWS_ES_SERVICE_ID = "es"
 
-const ACM_PCAServiceID = "acm-pca"
+const AWS_MANAGEDBLOCKCHAIN_SERVICE_ID = "managedblockchain"
 
-const IDENTITY_CHIMEServiceID = "identity-chime"
+const AWS_LAMBDA_SERVICE_ID = "lambda"
 
-const ROUTE53RESOLVERServiceID = "route53resolver"
+const AWS_ARC_ZONAL_SHIFT_SERVICE_ID = "arc-zonal-shift"
 
-const CODESTAR_NOTIFICATIONSServiceID = "codestar-notifications"
+const AWS_API_SAGEMAKER_SERVICE_ID = "api.sagemaker"
 
-const EDGE_SAGEMAKERServiceID = "edge.sagemaker"
+const AWS_IVSREALTIME_SERVICE_ID = "ivsrealtime"
 
-const TRUSTEDADVISORServiceID = "trustedadvisor"
+const AWS_API_IOTWIRELESS_SERVICE_ID = "api.iotwireless"
 
-const ELASTICMAPREDUCEServiceID = "elasticmapreduce"
+const AWS_MEDIAPACKAGE_VOD_SERVICE_ID = "mediapackage-vod"
 
-const IOTFLEETWISEServiceID = "iotfleetwise"
+const AWS_ELASTICMAPREDUCE_SERVICE_ID = "elasticmapreduce"
 
-const ELASTICLOADBALANCINGServiceID = "elasticloadbalancing"
+const AWS_POLLY_SERVICE_ID = "polly"
 
-const MEMORY_DBServiceID = "memory-db"
+const AWS_TRANSCRIBESTREAMING_SERVICE_ID = "transcribestreaming"
 
-const API_FLEETHUB_IOTServiceID = "api.fleethub.iot"
+const AWS_KINESIS_SERVICE_ID = "kinesis"
 
-const DEVICEFARMServiceID = "devicefarm"
+const AWS_CONTROLTOWER_SERVICE_ID = "controltower"
 
-const MEDIASTOREServiceID = "mediastore"
+const AWS_RDS_SERVICE_ID = "rds"
 
-const QLDBServiceID = "qldb"
+const AWS_MACIE2_SERVICE_ID = "macie2"
 
-const INSPECTORServiceID = "inspector"
+const AWS_FORECAST_SERVICE_ID = "forecast"
 
-const OMICSServiceID = "omics"
+const AWS_CONTACT_LENS_SERVICE_ID = "contact-lens"
 
-const ACCOUNTServiceID = "account"
+const AWS_GROUNDSTATION_SERVICE_ID = "groundstation"
 
-const RUMServiceID = "rum"
+const AWS_KINESISVIDEO_SERVICE_ID = "kinesisvideo"
 
-const AOSSServiceID = "aoss"
+const AWS_SCHEDULER_SERVICE_ID = "scheduler"
 
-const SERVICECATALOGServiceID = "servicecatalog"
+const AWS_GEO_SERVICE_ID = "geo"
 
-const API_TUNNELING_IOTServiceID = "api.tunneling.iot"
+const AWS_QBUSINESS_SERVICE_ID = "qbusiness"
 
-const GRAFANAServiceID = "grafana"
+const AWS_STORAGEGATEWAY_SERVICE_ID = "storagegateway"
 
-const KAFKAServiceID = "kafka"
+const AWS_EC2_SERVICE_ID = "ec2"
 
-const MEDIAPACKAGEServiceID = "mediapackage"
+const AWS_CODEARTIFACT_SERVICE_ID = "codeartifact"
 
-const IDENTITYSTOREServiceID = "identitystore"
+const AWS_APS_SERVICE_ID = "aps"
 
-const EC2ServiceID = "ec2"
+const AWS_GAMELIFT_SERVICE_ID = "gamelift"
 
-const RBINServiceID = "rbin"
+const AWS_NETWORKMANAGER_SERVICE_ID = "networkmanager"
 
-const APPLICATION_AUTOSCALINGServiceID = "application-autoscaling"
+const AWS_CODEBUILD_SERVICE_ID = "codebuild"
 
-const VERIFIEDPERMISSIONSServiceID = "verifiedpermissions"
+const AWS_WAF_SERVICE_ID = "waf"
 
-const NEPTUNEServiceID = "neptune"
+const AWS_APPSYNC_SERVICE_ID = "appsync"
 
-const EVIDENTLYServiceID = "evidently"
+const AWS_EMAIL_SERVICE_ID = "email"
 
-const DATAEXCHANGEServiceID = "dataexchange"
+const AWS_DISCOVERY_SERVICE_ID = "discovery"
 
-const DATASYNCServiceID = "datasync"
+const AWS_SUPPORTAPP_SERVICE_ID = "supportapp"
 
-const ROBOMAKERServiceID = "robomaker"
+const AWS_RDS_DATA_SERVICE_ID = "rds-data"
 
-const DAXServiceID = "dax"
+const AWS_SNS_SERVICE_ID = "sns"
 
-const LOOKOUTMETRICSServiceID = "lookoutmetrics"
+const AWS_BUDGETS_SERVICE_ID = "budgets"
 
-const FIREHOSEServiceID = "firehose"
+const AWS_CLOUD9_SERVICE_ID = "cloud9"
 
-const APSServiceID = "aps"
+const AWS_CODECATALYST_SERVICE_ID = "codecatalyst"
 
-const FORECASTQUERYServiceID = "forecastquery"
+const AWS_CASES_SERVICE_ID = "cases"
 
-const IVSCHATServiceID = "ivschat"
+const AWS_APIGATEWAY_SERVICE_ID = "apigateway"
 
-const INSPECTOR2ServiceID = "inspector2"
+const AWS_PORTAL_SSO_SERVICE_ID = "portal.sso"
 
-const RESILIENCEHUBServiceID = "resiliencehub"
+const AWS_ELASTICLOADBALANCING_SERVICE_ID = "elasticloadbalancing"
 
-const OPSWORKSServiceID = "opsworks"
+const AWS_APPTEST_SERVICE_ID = "apptest"
 
-const CODEBUILDServiceID = "codebuild"
+const AWS_ELASTICACHE_SERVICE_ID = "elasticache"
 
-const INGEST_TIMESTREAMServiceID = "ingest.timestream"
+const AWS_APPLICATIONINSIGHTS_SERVICE_ID = "applicationinsights"
 
-const SSOServiceID = "sso"
+const AWS_CLOUDTRAIL_SERVICE_ID = "cloudtrail"
 
-const LOGSServiceID = "logs"
+const AWS_SMS_SERVICE_ID = "sms"
 
-const COMPREHENDServiceID = "comprehend"
+const AWS_IAM_SERVICE_ID = "iam"
 
-const PROTONServiceID = "proton"
+const AWS_KINESISANALYTICS_SERVICE_ID = "kinesisanalytics"
 
-const AUTOSCALINGServiceID = "autoscaling"
+const AWS_CODESTAR_NOTIFICATIONS_SERVICE_ID = "codestar-notifications"
 
-const APIGATEWAYServiceID = "apigateway"
+const AWS_ELASTICFILESYSTEM_SERVICE_ID = "elasticfilesystem"
 
-const EVENTSServiceID = "events"
+const AWS_LOOKOUTEQUIPMENT_SERVICE_ID = "lookoutequipment"
 
-const MEDIALIVEServiceID = "medialive"
+const AWS_DOCDB_SERVICE_ID = "docdb"
 
-const RESOURCE_EXPLORER_2ServiceID = "resource-explorer-2"
+const AWS_MACHINELEARNING_SERVICE_ID = "machinelearning"
 
-const MANAGEDBLOCKCHAINServiceID = "managedblockchain"
+const AWS_SSM_CONTACTS_SERVICE_ID = "ssm-contacts"
 
-const CATALOG_MARKETPLACEServiceID = "catalog.marketplace"
+const AWS_TAGGING_SERVICE_ID = "tagging"
 
-const MEDIACONVERTServiceID = "mediaconvert"
+const AWS_ACCOUNT_SERVICE_ID = "account"
 
-const SYNTHETICSServiceID = "synthetics"
+const AWS_S3_CONTROL_SERVICE_ID = "s3-control"
 
-const ECSServiceID = "ecs"
+const AWS_SERVICEQUOTAS_SERVICE_ID = "servicequotas"
 
-const ROUTE53_RECOVERY_CONTROL_CONFIGServiceID = "route53-recovery-control-config"
+const AWS_TAX_SERVICE_ID = "tax"
 
-const CODEARTIFACTServiceID = "codeartifact"
+const AWS_ATHENA_SERVICE_ID = "athena"
 
-const MESSAGING_CHIMEServiceID = "messaging-chime"
+const AWS_ROBOMAKER_SERVICE_ID = "robomaker"
 
-const AUDITMANAGERServiceID = "auditmanager"
+const AWS_SWF_SERVICE_ID = "swf"
 
-const APPRUNNERServiceID = "apprunner"
+const AWS_MEDIASTORE_SERVICE_ID = "mediastore"
 
-const CASESServiceID = "cases"
+const AWS_API_TUNNELING_IOT_SERVICE_ID = "api.tunneling.iot"
 
-const MEDIAPACKAGE_VODServiceID = "mediapackage-vod"
+const AWS_STATES_SERVICE_ID = "states"
 
-const DATAPIPELINEServiceID = "datapipeline"
+const AWS_DATA_JOBS_IOT_SERVICE_ID = "data.jobs.iot"
 
-const SSM_SAPServiceID = "ssm-sap"
+const AWS_DS_SERVICE_ID = "ds"
 
-const BUDGETSServiceID = "budgets"
+const AWS_KAFKACONNECT_SERVICE_ID = "kafkaconnect"
 
-const KMSServiceID = "kms"
+const AWS_TRANSLATE_SERVICE_ID = "translate"
 
-const QUICKSIGHTServiceID = "quicksight"
+const AWS_EKS_AUTH_SERVICE_ID = "eks-auth"
 
-const IAMServiceID = "iam"
+const AWS_SCHEMAS_SERVICE_ID = "schemas"
 
-const NOTIFICATIONS_CONTACTSServiceID = "notifications-contacts"
+const AWS_PERSONALIZE_SERVICE_ID = "personalize"
 
-const SECRETSMANAGERServiceID = "secretsmanager"
+const AWS_STS_SERVICE_ID = "sts"
 
-const GROUNDSTATIONServiceID = "groundstation"
+const AWS_OAM_SERVICE_ID = "oam"
 
-const KAFKACONNECTServiceID = "kafkaconnect"
+const AWS_TRANSFER_SERVICE_ID = "transfer"
 
-const CODEGURU_REVIEWERServiceID = "codeguru-reviewer"
+const AWS_TRANSCRIBE_SERVICE_ID = "transcribe"
 
-const CLOUDTRAILServiceID = "cloudtrail"
+const AWS_FORECASTQUERY_SERVICE_ID = "forecastquery"
 
-const ARC_ZONAL_SHIFTServiceID = "arc-zonal-shift"
+const AWS_RBIN_SERVICE_ID = "rbin"
 
-const AUTOSCALING_PLANSServiceID = "autoscaling-plans"
+const AWS_LIGHTSAIL_SERVICE_ID = "lightsail"
 
-const DATABREWServiceID = "databrew"
+const AWS_MIGRATIONHUB_ORCHESTRATOR_SERVICE_ID = "migrationhub-orchestrator"
 
-const IOTANALYTICSServiceID = "iotanalytics"
+const AWS_AMPLIFYBACKEND_SERVICE_ID = "amplifybackend"
 
-const THINCLIENTServiceID = "thinclient"
+const AWS_RUNTIME_V2_LEX_SERVICE_ID = "runtime-v2-lex"
 
-const API_DETECTIVEServiceID = "api.detective"
+const AWS_DATAPIPELINE_SERVICE_ID = "datapipeline"
 
-const KINESISServiceID = "kinesis"
+const AWS_API_PRICING_SERVICE_ID = "api.pricing"
 
-const CONTROLTOWERServiceID = "controltower"
+const AWS_AMPLIFY_SERVICE_ID = "amplify"
 
-const SERVICEQUOTASServiceID = "servicequotas"
+const AWS_XRAY_SERVICE_ID = "xray"
 
-const API_ELASTIC_INFERENCEServiceID = "api.elastic-inference"
+const AWS_METERING_MARKETPLACE_SERVICE_ID = "metering.marketplace"
 
-const BEDROCKServiceID = "bedrock"
+const AWS_PIPES_SERVICE_ID = "pipes"
 
-const NETWORKMANAGERServiceID = "networkmanager"
+const AWS_API_IOTDEVICEADVISOR_SERVICE_ID = "api.iotdeviceadvisor"
 
-const SSM_INCIDENTSServiceID = "ssm-incidents"
+const AWS_AUTOSCALING_SERVICE_ID = "autoscaling"
 
-const SAVINGSPLANSServiceID = "savingsplans"
+const AWS_TNB_SERVICE_ID = "tnb"
 
-const PERSONALIZEServiceID = "personalize"
+const AWS_WISDOM_SERVICE_ID = "wisdom"
 
-const REDSHIFT_SERVERLESSServiceID = "redshift-serverless"
+const AWS_INSPECTOR_SERVICE_ID = "inspector"
 
-const EMR_SERVERLESSServiceID = "emr-serverless"
+const AWS_METRICS_SAGEMAKER_SERVICE_ID = "metrics.sagemaker"
 
-const FSXServiceID = "fsx"
+const AWS_STREAMS_DYNAMODB_SERVICE_ID = "streams.dynamodb"
 
-const FORECASTServiceID = "forecast"
+const AWS_API_ECR_SERVICE_ID = "api.ecr"
 
-const RESOURCE_GROUPSServiceID = "resource-groups"
+const AWS_SAGEMAKER_GEOSPATIAL_SERVICE_ID = "sagemaker-geospatial"
 
-const APPSYNCServiceID = "appsync"
+const AWS_PROFILE_SERVICE_ID = "profile"
 
-const TNBServiceID = "tnb"
+const AWS_GLOBALACCELERATOR_SERVICE_ID = "globalaccelerator"
 
-const PARTICIPANT_CONNECTServiceID = "participant.connect"
-
-const CLOUDFRONTServiceID = "cloudfront"
-
-const API_ECR_PUBLICServiceID = "api.ecr-public"
-
-const STREAMS_DYNAMODBServiceID = "streams.dynamodb"
-
-const STORAGEGATEWAYServiceID = "storagegateway"
-
-const KENDRAServiceID = "kendra"
-
-const BRAKETServiceID = "braket"
-
-const API_IOTWIRELESSServiceID = "api.iotwireless"
-
-const MGHServiceID = "mgh"
-
-const CLOUDHSMServiceID = "cloudhsm"
-
-const IOTSECUREDTUNNELINGServiceID = "iotsecuredtunneling"
-
-const TRANSLATEServiceID = "translate"
-
-const RAMServiceID = "ram"
-
-const API_MEDIATAILORServiceID = "api.mediatailor"
-
-const NOTIFICATIONSServiceID = "notifications"
-
-const HEALTHLAKEServiceID = "healthlake"
-
-const CLOUDHSMV2ServiceID = "cloudhsmv2"
-
-const QBUSINESSServiceID = "qbusiness"
-
-const MTURK_REQUESTERServiceID = "mturk-requester"
-
-const APPCONFIGDATAServiceID = "appconfigdata"
-
-const MQServiceID = "mq"
-
-const KINESISANALYTICSServiceID = "kinesisanalytics"
-
-const GEOServiceID = "geo"
-
-const APPTESTServiceID = "apptest"
-
-const COGNITO_SYNCServiceID = "cognito-sync"
-
-const GAMELIFTServiceID = "gamelift"
-
-const GLUEServiceID = "glue"
-
-const ACCESS_ANALYZERServiceID = "access-analyzer"
-
-const IOTWIRELESSServiceID = "iotwireless"
-
-const MEETINGS_CHIMEServiceID = "meetings-chime"
-
-const DATA_ATS_IOTServiceID = "data-ats.iot"
-
-const APP_INTEGRATIONSServiceID = "app-integrations"
-
-const WORKMAILServiceID = "workmail"
-
-const IOTTHINGSGRAPHServiceID = "iotthingsgraph"
-
-const SAGEMAKER_GEOSPATIALServiceID = "sagemaker-geospatial"
-
-const WELLARCHITECTEDServiceID = "wellarchitected"
-
-const SWFServiceID = "swf"
-
-const RUNTIME_LEXServiceID = "runtime.lex"
-
-const DEVOPS_GURUServiceID = "devops-guru"
-
-const COST_OPTIMIZATION_HUBServiceID = "cost-optimization-hub"
-
-const CLOUDFORMATIONServiceID = "cloudformation"
-
-const METRICS_SAGEMAKERServiceID = "metrics.sagemaker"
-
-const DLMServiceID = "dlm"
-
-const DATAZONEServiceID = "datazone"
-
-const CONFIGServiceID = "config"
-
-const STSServiceID = "sts"
-
-const REDSHIFTServiceID = "redshift"
-
-const ELASTICTRANSCODERServiceID = "elastictranscoder"
-
-const LAMBDAServiceID = "lambda"
-
-const CONTACT_LENSServiceID = "contact-lens"
-
-const WAF_REGIONALServiceID = "waf-regional"
-
-const ESServiceID = "es"
-
-const CONNECTServiceID = "connect"
-
-const SNSServiceID = "sns"
-
-const ACMServiceID = "acm"
-
-const INTERNETMONITORServiceID = "internetmonitor"
-
-const SECURITYHUBServiceID = "securityhub"
-
-const CLOUDCONTROLAPIServiceID = "cloudcontrolapi"
-
-const MEDIA_PIPELINES_CHIMEServiceID = "media-pipelines-chime"
-
-const PRIVATE_NETWORKSServiceID = "private-networks"
-
-const REKOGNITIONServiceID = "rekognition"
-
-const VOICE_CHIMEServiceID = "voice-chime"
-
-const OUTPOSTSServiceID = "outposts"
-
-const STATESServiceID = "states"
-
-const COGNITO_IDPServiceID = "cognito-idp"
-
-const CURServiceID = "cur"
-
-const DIRECTCONNECTServiceID = "directconnect"
-
-const MONITORINGServiceID = "monitoring"
-
-const SCHEDULERServiceID = "scheduler"
-
-const EMR_CONTAINERSServiceID = "emr-containers"
-
-const OPSWORKS_CMServiceID = "opsworks-cm"
-
-const CODECOMMITServiceID = "codecommit"
-
-const TAXServiceID = "tax"
-
-const PORTAL_SSOServiceID = "portal.sso"
-
-const EMAILServiceID = "email"
-
-const RDSServiceID = "rds"
-
-const TRANSFERServiceID = "transfer"
-
-const BACKUP_GATEWAYServiceID = "backup-gateway"
-
-const IVSServiceID = "ivs"
-
-const MARKETPLACECOMMERCEANALYTICSServiceID = "marketplacecommerceanalytics"
-
-const MODELS_V2_LEXServiceID = "models-v2-lex"
-
-const SSM_QUICKSETUPServiceID = "ssm-quicksetup"
-
-const SDBServiceID = "sdb"
-
-const MGNServiceID = "mgn"
-
-const IOTServiceID = "iot"
-
-const VOICEIDServiceID = "voiceid"
-
-const IOTEVENTSDATAServiceID = "ioteventsdata"
-
-const IOTSITEWISEServiceID = "iotsitewise"
-
-const SHIELDServiceID = "shield"
-
-const TEXTRACTServiceID = "textract"
-
-const APPLICATIONINSIGHTSServiceID = "applicationinsights"
-
-const DRSServiceID = "drs"
-
-const M2ServiceID = "m2"
-
-const MANAGEDBLOCKCHAIN_QUERYServiceID = "managedblockchain-query"
-
-const SERVICECATALOG_APPREGISTRYServiceID = "servicecatalog-appregistry"
-
-const CODESTAR_CONNECTIONSServiceID = "codestar-connections"
-
-const CLOUD9ServiceID = "cloud9"
-
-const LICENSE_MANAGERServiceID = "license-manager"
-
-const SQSServiceID = "sqs"
-
-const OSISServiceID = "osis"
-
-const POLLYServiceID = "polly"
-
-const EBSServiceID = "ebs"
-
-const ROUTE53DOMAINSServiceID = "route53domains"
-
-const SMSServiceID = "sms"
-
-const CASSANDRAServiceID = "cassandra"
-
-const APPCONFIGServiceID = "appconfig"
-
-const SERVERLESSREPOServiceID = "serverlessrepo"
-
-const GLACIERServiceID = "glacier"
-
-const TRANSCRIBEServiceID = "transcribe"
-
-const DOCDBServiceID = "docdb"
-
-const VPC_LATTICEServiceID = "vpc-lattice"
-
-const CLOUDSEARCHServiceID = "cloudsearch"
-
-const SMS_VOICEServiceID = "sms-voice"
-
-const OAMServiceID = "oam"
-
-const API_IOTDEVICEADVISORServiceID = "api.iotdeviceadvisor"
-
-const WAFV2ServiceID = "wafv2"
-
-const SSMServiceID = "ssm"
-
-const RUNTIME_V2_LEXServiceID = "runtime-v2-lex"
-
-const KINESISVIDEOServiceID = "kinesisvideo"
-
-const DMSServiceID = "dms"
-
-const CODEDEPLOYServiceID = "codedeploy"
-
-const LIGHTSAILServiceID = "lightsail"
-
-const SERVICEDISCOVERYServiceID = "servicediscovery"
-
-const SUPPORTServiceID = "support"
-
-const DISCOVERYServiceID = "discovery"
-
-const PROFILEServiceID = "profile"
-
-const LICENSE_MANAGER_LINUX_SUBSCRIPTIONSServiceID = "license-manager-linux-subscriptions"
-
-const ROUTE53ServiceID = "route53"
-
-const API_ECRServiceID = "api.ecr"
-
-const COGNITO_IDENTITYServiceID = "cognito-identity"
-
-const API_PRICINGServiceID = "api.pricing"
-
-const SCHEMASServiceID = "schemas"
-
-const ELASTICBEANSTALKServiceID = "elasticbeanstalk"
-
-const CLOUDTRAIL_DATAServiceID = "cloudtrail-data"
-
-const MIGRATIONHUB_ORCHESTRATORServiceID = "migrationhub-orchestrator"
-
-const WORKSPACES_WEBServiceID = "workspaces-web"
-
-const SIMSPACEWEAVERServiceID = "simspaceweaver"
-
-const WAFServiceID = "waf"
-
-const AGREEMENT_MARKETPLACEServiceID = "agreement-marketplace"
-
-const PINPOINTServiceID = "pinpoint"
-
-const MOBILEANALYTICSServiceID = "mobileanalytics"
+const AWS_ORGANIZATIONS_SERVICE_ID = "organizations"
 
 const GUARDDUTYServiceID = "guardduty"
 
-const AMPLIFYUIBUILDERServiceID = "amplifyuibuilder"
+const AWS_EVENTS_SERVICE_ID = "events"
 
-const FMSServiceID = "fms"
+const AWS_MIGRATIONHUB_STRATEGY_SERVICE_ID = "migrationhub-strategy"
 
-const MEDIAPACKAGEV2ServiceID = "mediapackagev2"
+const AWS_BRAKET_SERVICE_ID = "braket"
 
-const WORKSPACESServiceID = "workspaces"
+const AWS_GLUE_SERVICE_ID = "glue"
 
-const S3ServiceID = "s3"
+const AWS_AIRFLOW_SERVICE_ID = "airflow"
 
-const MACIE2ServiceID = "macie2"
+const AWS_DATA_ATS_IOT_SERVICE_ID = "data-ats.iot"
 
-const DATA_IOTServiceID = "data.iot"
+const AWS_CODESTAR_CONNECTIONS_SERVICE_ID = "codestar-connections"
 
-const FINSPACEServiceID = "finspace"
+const AWS_GREENGRASS_SERVICE_ID = "greengrass"
 
-const RUNTIME_SAGEMAKERServiceID = "runtime.sagemaker"
+const AWS_ROLESANYWHERE_SERVICE_ID = "rolesanywhere"
 
-const CLOUDDIRECTORYServiceID = "clouddirectory"
+const AWS_DATASYNC_SERVICE_ID = "datasync"
 
-const CODEPIPELINEServiceID = "codepipeline"
+const AWS_CODEPIPELINE_SERVICE_ID = "codepipeline"
 
-const S3_CONTROLServiceID = "s3-control"
+const AWS_CONNECT_SERVICE_ID = "connect"
 
-const CLEANROOMSServiceID = "cleanrooms"
+const AWS_MEDIAPACKAGE_SERVICE_ID = "mediapackage"
 
-const NETWORK_FIREWALLServiceID = "network-firewall"
+const AWS_WAF_REGIONAL_SERVICE_ID = "waf-regional"
 
-const ROLESANYWHEREServiceID = "rolesanywhere"
+const AWS_CLOUDFRONT_SERVICE_ID = "cloudfront"
+
+const AWS_WORKDOCS_SERVICE_ID = "workdocs"
+
+const AWS_MEDIACONVERT_SERVICE_ID = "mediaconvert"
+
+const AWS_FINSPACE_SERVICE_ID = "finspace"
+
+const AWS_RUNTIME_LEX_SERVICE_ID = "runtime.lex"
+
+const AWS_IOTTHINGSGRAPH_SERVICE_ID = "iotthingsgraph"
+
+const AWS_WAFV2_SERVICE_ID = "wafv2"
+
+const AWS_NOTIFICATIONS_CONTACTS_SERVICE_ID = "notifications-contacts"
+
+const AWS_RESILIENCEHUB_SERVICE_ID = "resiliencehub"
+
+const AWS_EBS_SERVICE_ID = "ebs"
+
+const AWS_API_FLEETHUB_IOT_SERVICE_ID = "api.fleethub.iot"
+
+const AWS_EKS_SERVICE_ID = "eks"
+
+const AWS_SECURITYLAKE_SERVICE_ID = "securitylake"
+
+const AWS_WORKSPACES_WEB_SERVICE_ID = "workspaces-web"
+
+const AWS_CLOUDHSMV2_SERVICE_ID = "cloudhsmv2"
+
+const AWS_CUR_SERVICE_ID = "cur"
+
+const AWS_WORKSPACES_SERVICE_ID = "workspaces"
+
+const AWS_VOICE_CHIME_SERVICE_ID = "voice-chime"
+
+const AWS_APPSTREAM2_SERVICE_ID = "appstream2"
+
+const AWS_COST_OPTIMIZATION_HUB_SERVICE_ID = "cost-optimization-hub"
+
+const AWS_KENDRA_RANKING_SERVICE_ID = "kendra-ranking"
+
+const AWS_CLOUDHSM_SERVICE_ID = "cloudhsm"
+
+const AWS_SIMSPACEWEAVER_SERVICE_ID = "simspaceweaver"
+
+const AWS_S3_SERVICE_ID = "s3"
+
+const AWS_LOGS_SERVICE_ID = "logs"
+
+const AWS_CONFIG_SERVICE_ID = "config"
+
+const AWS_MEDIACONNECT_SERVICE_ID = "mediaconnect"
+
+const AWS_IOTEVENTS_SERVICE_ID = "iotevents"
+
+const AWS_BACKUP_GATEWAY_SERVICE_ID = "backup-gateway"
+
+const AWS_FRAUDDETECTOR_SERVICE_ID = "frauddetector"
+
+const AWS_THINCLIENT_SERVICE_ID = "thinclient"
+
+const AWS_RAM_SERVICE_ID = "ram"
+
+const AWS_RUNTIME_SAGEMAKER_SERVICE_ID = "runtime.sagemaker"
+
+const AWS_QLDB_SERVICE_ID = "qldb"
+
+const AWS_API_ELASTIC_INFERENCE_SERVICE_ID = "api.elastic-inference"
+
+const AWS_PARTICIPANT_CONNECT_SERVICE_ID = "participant.connect"
+
+const AWS_REDSHIFT_SERVERLESS_SERVICE_ID = "redshift-serverless"
+
+const AWS_SERVICECATALOG_SERVICE_ID = "servicecatalog"
+
+const AWS_MODELS_LEX_SERVICE_ID = "models.lex"
+
+const AWS_MESSAGING_CHIME_SERVICE_ID = "messaging-chime"
+
+const AWS_KMS_SERVICE_ID = "kms"
+
+const AWS_SDB_SERVICE_ID = "sdb"
+
+const AWS_APPRUNNER_SERVICE_ID = "apprunner"
+
+const AWS_SIGNER_SERVICE_ID = "signer"
+
+const AWS_MEMORY_DB_SERVICE_ID = "memory-db"
+
+const AWS_VPC_LATTICE_SERVICE_ID = "vpc-lattice"
+
+const AWS_CHIME_SERVICE_ID = "chime"
+
+const AWS_MANAGEDBLOCKCHAIN_QUERY_SERVICE_ID = "managedblockchain-query"
+
+const AWS_PINPOINT_SERVICE_ID = "pinpoint"
+
+const AWS_DATA_IOT_SERVICE_ID = "data.iot"
+
+const AWS_MEDIA_PIPELINES_CHIME_SERVICE_ID = "media-pipelines-chime"
+
+const AWS_SSM_INCIDENTS_SERVICE_ID = "ssm-incidents"
+
+const AWS_KAFKA_SERVICE_ID = "kafka"
+
+const AWS_CODEGURU_REVIEWER_SERVICE_ID = "codeguru-reviewer"
+
+const AWS_IOTEVENTSDATA_SERVICE_ID = "ioteventsdata"
+
+const AWS_CLOUDDIRECTORY_SERVICE_ID = "clouddirectory"
+
+const AWS_INSPECTOR2_SERVICE_ID = "inspector2"
+
+const AWS_GLACIER_SERVICE_ID = "glacier"
+
+const AWS_COGNITO_IDP_SERVICE_ID = "cognito-idp"
+
+const AWS_ENTITLEMENT_MARKETPLACE_SERVICE_ID = "entitlement.marketplace"
+
+const AWS_SYNTHETICS_SERVICE_ID = "synthetics"
+
+const AWS_OPSWORKS_CM_SERVICE_ID = "opsworks-cm"
+
+const AWS_CONNECT_CAMPAIGNS_SERVICE_ID = "connect-campaigns"
+
+const AWS_PI_SERVICE_ID = "pi"
+
+const AWS_IVS_SERVICE_ID = "ivs"
+
+const AWS_HEALTHLAKE_SERVICE_ID = "healthlake"
+
+const AWS_EDGE_SAGEMAKER_SERVICE_ID = "edge.sagemaker"
+
+const AWS_SUPPORT_SERVICE_ID = "support"
+
+const AWS_SMS_VOICE_SERVICE_ID = "sms-voice"
+
+const AWS_ROUTE53RESOLVER_SERVICE_ID = "route53resolver"
+
+const AWS_OIDC_SERVICE_ID = "oidc"
+
+const AWS_INGEST_TIMESTREAM_SERVICE_ID = "ingest.timestream"
+
+const AWS_SSM_QUICKSETUP_SERVICE_ID = "ssm-quicksetup"
+
+const AWS_IVSCHAT_SERVICE_ID = "ivschat"
+
+const AWS_CATALOG_MARKETPLACE_SERVICE_ID = "catalog.marketplace"
+
+const AWS_FIREHOSE_SERVICE_ID = "firehose"
+
+const AWS_ACM_SERVICE_ID = "acm"
+
+const AWS_CODEDEPLOY_SERVICE_ID = "codedeploy"
+
+const AWS_CLOUDCONTROLAPI_SERVICE_ID = "cloudcontrolapi"
+
+const AWS_NOTIFICATIONS_SERVICE_ID = "notifications"
+
+const AWS_PROTON_SERVICE_ID = "proton"
+
+const AWS_NEPTUNE_SERVICE_ID = "neptune"
+
+const AWS_WELLARCHITECTED_SERVICE_ID = "wellarchitected"
+
+const AWS_LOOKOUTVISION_SERVICE_ID = "lookoutvision"
+
+const AWS_REDSHIFT_SERVICE_ID = "redshift"
+
+const AWS_IDENTITY_CHIME_SERVICE_ID = "identity-chime"
+
+const AWS_MARKETPLACECOMMERCEANALYTICS_SERVICE_ID = "marketplacecommerceanalytics"
+
+const AWS_APPFLOW_SERVICE_ID = "appflow"
+
+const AWS_MEETINGS_CHIME_SERVICE_ID = "meetings-chime"
+
+const AWS_S3_OUTPOSTS_SERVICE_ID = "s3-outposts"
+
+const AWS_MODELS_V2_LEX_SERVICE_ID = "models-v2-lex"
+
+const AWS_DATAEXCHANGE_SERVICE_ID = "dataexchange"
+
+const AWS_IOT_SERVICE_ID = "iot"
+
+const AWS_CLOUDSEARCH_SERVICE_ID = "cloudsearch"
+
+const AWS_SAVINGSPLANS_SERVICE_ID = "savingsplans"
+
+const AWS_DEVICEFARM_SERVICE_ID = "devicefarm"
+
+const AWS_ECS_SERVICE_ID = "ecs"
+
+const AWS_MONITORING_SERVICE_ID = "monitoring"
+
+const AWS_DEVOPS_GURU_SERVICE_ID = "devops-guru"
+
+const AWS_IOTSITEWISE_SERVICE_ID = "iotsitewise"
+
+const AWS_AUTOSCALING_PLANS_SERVICE_ID = "autoscaling-plans"
+
+const AWS_LICENSE_MANAGER_LINUX_SUBSCRIPTIONS_SERVICE_ID = "license-manager-linux-subscriptions"
+
+const AWS_BEDROCK_SERVICE_ID = "bedrock"
+
+const AWS_API_MEDIATAILOR_SERVICE_ID = "api.mediatailor"
+
+const AWS_APPCONFIGDATA_SERVICE_ID = "appconfigdata"
+
+const AWS_NETWORK_FIREWALL_SERVICE_ID = "network-firewall"
+
+const AWS_DATA_MEDIASTORE_SERVICE_ID = "data.mediastore"
+
+const AWS_ROUTE53DOMAINS_SERVICE_ID = "route53domains"
+
+const AWS_TEXTRACT_SERVICE_ID = "textract"
+
+const AWS_COGNITO_IDENTITY_SERVICE_ID = "cognito-identity"
+
+const AWS_SERVICEDISCOVERY_SERVICE_ID = "servicediscovery"
+
+const AWS_ELASTICBEANSTALK_SERVICE_ID = "elasticbeanstalk"
+
+const AWS_CASSANDRA_SERVICE_ID = "cassandra"
+
+const AWS_QUICKSIGHT_SERVICE_ID = "quicksight"
+
+const AWS_GRAFANA_SERVICE_ID = "grafana"
+
+const AWS_PRIVATE_NETWORKS_SERVICE_ID = "private-networks"
+
+const AWS_API_ECR_PUBLIC_SERVICE_ID = "api.ecr-public"
+
+const AWS_BATCH_SERVICE_ID = "batch"
+
+const AWS_SERVERLESSREPO_SERVICE_ID = "serverlessrepo"
+
+const AWS_OMICS_SERVICE_ID = "omics"
+
+const AWS_EMR_SERVERLESS_SERVICE_ID = "emr-serverless"
+
+const AWS_SHIELD_SERVICE_ID = "shield"
+
+const AWS_EVIDENTLY_SERVICE_ID = "evidently"
+
+const AWS_IDENTITYSTORE_SERVICE_ID = "identitystore"
+
+const AWS_SERVICECATALOG_APPREGISTRY_SERVICE_ID = "servicecatalog-appregistry"
+
+const AWS_WORKMAIL_SERVICE_ID = "workmail"
+
+const AWS_COMPUTE_OPTIMIZER_SERVICE_ID = "compute-optimizer"
+
+const AWS_DATAZONE_SERVICE_ID = "datazone"
+
+const AWS_ACCESS_ANALYZER_SERVICE_ID = "access-analyzer"
+
+const AWS_CLEANROOMS_SERVICE_ID = "cleanrooms"
+
+const AWS_REKOGNITION_SERVICE_ID = "rekognition"
+
+const AWS_SECRETSMANAGER_SERVICE_ID = "secretsmanager"
+
+const AWS_MGH_SERVICE_ID = "mgh"
+
+const AWS_KENDRA_SERVICE_ID = "kendra"
+
+const AWS_IOTFLEETWISE_SERVICE_ID = "iotfleetwise"
+
+const AWS_MEDIALIVE_SERVICE_ID = "medialive"
+
+const AWS_APP_INTEGRATIONS_SERVICE_ID = "app-integrations"
+
+const AWS_FINSPACE_API_SERVICE_ID = "finspace-api"
+
+const AWS_RESOURCE_EXPLORER_2_SERVICE_ID = "resource-explorer-2"
+
+const AWS_RUM_SERVICE_ID = "rum"
+
+const AWS_CE_SERVICE_ID = "ce"
 

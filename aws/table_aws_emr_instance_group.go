@@ -27,7 +27,7 @@ func tableAwsEmrInstanceGroup(_ context.Context) *plugin.Table {
 			Hydrate:       listEmrInstanceGroups,
 			Tags:          map[string]string{"service": "elasticmapreduce", "action": "ListInstanceGroups"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.ELASTICMAPREDUCEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.AWS_ELASTICMAPREDUCE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

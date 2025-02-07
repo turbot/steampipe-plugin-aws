@@ -24,7 +24,7 @@ func tableAwsSecurityhubEnabledProductSubscription(_ context.Context) *plugin.Ta
 			Hydrate: listSecurityHubEnabledProductSubscriptions,
 			Tags:    map[string]string{"service": "securityhub", "action": "ListEnabledProductsForImport"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.SECURITYHUBServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.AWS_SECURITYHUB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

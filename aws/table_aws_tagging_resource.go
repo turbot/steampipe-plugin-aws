@@ -30,7 +30,7 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 			Hydrate: listTaggingResources,
 			Tags:    map[string]string{"service": "tag", "action": "GetResources"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(resourcegroupstaggingapiEndpoint.TAGGINGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(resourcegroupstaggingapiEndpoint.AWS_TAGGING_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

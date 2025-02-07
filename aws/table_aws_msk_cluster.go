@@ -46,7 +46,7 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "kafka", "action": "GetBootstrapBrokers"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kafkaEndpoint.KAFKAServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kafkaEndpoint.AWS_KAFKA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

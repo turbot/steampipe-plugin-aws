@@ -30,7 +30,7 @@ func tableAwsTimestreamwriteDatabase(_ context.Context) *plugin.Table {
 			Hydrate: listAwsTimestreamwriteDatabases,
 			Tags:    map[string]string{"service": "timestream-write", "action": "ListDatabases"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(timestreamwriteEndpoint.INGEST_TIMESTREAMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(timestreamwriteEndpoint.AWS_INGEST_TIMESTREAM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "database_name",

@@ -37,7 +37,7 @@ func tableAwsSchedulerSchedule(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "scheduler", "action": "ListSchedules"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(schedulerEndpoint.SCHEDULERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(schedulerEndpoint.AWS_SCHEDULER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

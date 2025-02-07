@@ -43,7 +43,7 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "workspaces", "action": "DescribeTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(workspacesEndpoint.WORKSPACESServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(workspacesEndpoint.AWS_WORKSPACES_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workspace_id",

@@ -28,7 +28,7 @@ func tableAwsSSMManagedInstancePatchState(_ context.Context) *plugin.Table {
 				{Name: "instance_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmEndpoint.SSMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmEndpoint.AWS_SSM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_id",

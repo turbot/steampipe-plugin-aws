@@ -25,7 +25,7 @@ func tableAwsCodeBuildSourceCredential(_ context.Context) *plugin.Table {
 			Hydrate: listCodeBuildSourceCredentials,
 			Tags:    map[string]string{"service": "codebuild", "action": "ListSourceCredentials"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codebuildEndpoint.CODEBUILDServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codebuildEndpoint.AWS_CODEBUILD_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

@@ -38,7 +38,7 @@ func tableAwsBackupLegalHold(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "backup", "action": "GetLegalHold"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.BACKUPServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.AWS_BACKUP_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "legal_hold_id",

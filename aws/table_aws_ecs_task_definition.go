@@ -43,7 +43,7 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ecs", "action": "DescribeTaskDefinition"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecsEndpoint.ECSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ecsEndpoint.AWS_ECS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "task_definition_arn",

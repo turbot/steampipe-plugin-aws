@@ -26,7 +26,7 @@ func tableAwsCodeBuildBuild(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codebuildEndpoint.CODEBUILDServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codebuildEndpoint.AWS_CODEBUILD_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

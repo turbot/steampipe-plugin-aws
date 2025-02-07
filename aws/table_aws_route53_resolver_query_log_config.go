@@ -28,7 +28,7 @@ func tableAwsRoute53ResolverQueryLogConfig(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(route53resolverEndpoint.ROUTE53RESOLVERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(route53resolverEndpoint.AWS_ROUTE53RESOLVER_SERVICE_ID),
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "creator_request_id", Require: plugin.Optional},

@@ -40,7 +40,7 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ec2", "action": "DescribeVpcEndpointConnections"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",

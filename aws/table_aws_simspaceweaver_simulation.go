@@ -42,7 +42,7 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "simspaceweaver", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(simspaceweaverEndpoint.SIMSPACEWEAVERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(simspaceweaverEndpoint.AWS_SIMSPACEWEAVER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

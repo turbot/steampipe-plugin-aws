@@ -42,7 +42,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "auditmanager", "action": "GetControl"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerEndpoint.AUDITMANAGERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerEndpoint.AWS_AUDITMANAGER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

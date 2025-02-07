@@ -38,7 +38,7 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 				{Name: "file_system_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(efsEndpoint.ELASTICFILESYSTEMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(efsEndpoint.AWS_ELASTICFILESYSTEM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

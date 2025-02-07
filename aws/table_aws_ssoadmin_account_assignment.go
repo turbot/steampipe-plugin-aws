@@ -29,7 +29,7 @@ func tableAwsSsoAdminAccountAssignment(_ context.Context) *plugin.Table {
 			Hydrate: listSsoAdminAccountAssignments,
 			Tags:    map[string]string{"service": "sso", "action": "ListAccountAssignments"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.SSOServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.AWS_SSO_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "target_account_id",

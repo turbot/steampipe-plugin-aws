@@ -68,7 +68,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				{Name: "vulnerable_package", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(inspector2Endpoint.INSPECTOR2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(inspector2Endpoint.AWS_INSPECTOR2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				// Technically, this would be "aws_account_id", but "aws" is

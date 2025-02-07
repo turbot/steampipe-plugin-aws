@@ -38,7 +38,7 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "codeartifact", "action": "BatchGetProjects"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codebuildEndpoint.CODEBUILDServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codebuildEndpoint.AWS_CODEBUILD_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

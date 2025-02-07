@@ -70,7 +70,7 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "launch_template_name",

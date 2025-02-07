@@ -35,7 +35,7 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.ELASTICMAPREDUCEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.AWS_ELASTICMAPREDUCE_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getEmrCluster,

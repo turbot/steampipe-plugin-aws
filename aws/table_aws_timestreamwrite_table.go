@@ -36,7 +36,7 @@ func tableAwsTimestreamwriteTable(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "timestream-write", "action": "ListTables"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(timestreamwriteEndpoint.INGEST_TIMESTREAMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(timestreamwriteEndpoint.AWS_INGEST_TIMESTREAM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "table_name",

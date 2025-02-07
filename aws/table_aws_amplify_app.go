@@ -31,7 +31,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 			Hydrate: listAmplifyApps,
 			Tags:    map[string]string{"service": "amplify", "action": "ListApps"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(amplifyEndpointId.AMPLIFYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(amplifyEndpointId.AWS_AMPLIFY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "app_id",

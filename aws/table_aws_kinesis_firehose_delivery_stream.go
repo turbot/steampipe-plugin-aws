@@ -35,7 +35,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				{Name: "delivery_stream_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kinesisEndpoint.KINESISServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kinesisEndpoint.AWS_KINESIS_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: describeFirehoseDeliveryStream,

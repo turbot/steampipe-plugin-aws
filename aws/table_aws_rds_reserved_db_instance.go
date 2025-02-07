@@ -43,7 +43,7 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.RDSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "reserved_db_instance_id",

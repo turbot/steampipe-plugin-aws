@@ -45,7 +45,7 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				{Name: "instance_match_criteria", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "capacity_reservation_id",

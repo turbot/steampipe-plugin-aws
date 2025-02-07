@@ -31,7 +31,7 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 			Hydrate: listSecurityHubs,
 			Tags:    map[string]string{"service": "securityhub", "action": "DescribeHub"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.SECURITYHUBServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.AWS_SECURITYHUB_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getSecurityHubAdministratorAccount,
@@ -67,7 +67,7 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 			},
 
 			/// Steampie Standard Columns
-			
+
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),

@@ -40,7 +40,7 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "elasticfilesystem", "action": "DescribeMountTargetSecurityGroups"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(efsEndpoint.ELASTICFILESYSTEMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(efsEndpoint.AWS_ELASTICFILESYSTEM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "mount_target_id",

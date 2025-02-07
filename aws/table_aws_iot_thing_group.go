@@ -44,7 +44,7 @@ func tableAwsIoTThingGroup(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "iot", "action": "DescribeThingGroup"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(iotEndpoint.IOTServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(iotEndpoint.AWS_IOT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "group_name",

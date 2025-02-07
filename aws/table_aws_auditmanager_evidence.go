@@ -41,7 +41,7 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 			Hydrate:       listAuditManagerEvidences,
 			Tags:          map[string]string{"service": "auditmanager", "action": "GetEvidenceByEvidenceFolder"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerEndpoint.AUDITMANAGERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerEndpoint.AWS_AUDITMANAGER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

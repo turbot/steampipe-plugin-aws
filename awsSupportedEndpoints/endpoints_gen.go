@@ -83,6 +83,8 @@ var AWSPartition = Partition{
 		
 		"ap-southeast-5": {ID: "ap-southeast-5", Description: "Asia Pacific (Malaysia)"},
 		
+		"ap-southeast-7": {ID: "ap-southeast-7", Description: "Asia Pacific (Thailand)"},
+		
 		"ca-central-1": {ID: "ca-central-1", Description: "Canada (Central)"},
 		
 		"ca-west-1": {ID: "ca-west-1", Description: "Canada West (Calgary)"},
@@ -108,6 +110,8 @@ var AWSPartition = Partition{
 		"me-central-1": {ID: "me-central-1", Description: "Middle East (UAE)"},
 		
 		"me-south-1": {ID: "me-south-1", Description: "Middle East (Bahrain)"},
+		
+		"mx-central-1": {ID: "mx-central-1", Description: "Mexico (Central)"},
 		
 		"sa-east-1": {ID: "sa-east-1", Description: "South America (Sao Paulo)"},
 		
@@ -192,6 +196,12 @@ var AWSPartition = Partition{
 				},
 				
 				"ap-southeast-5": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-7": {
 					Hostname: "",
 					
 					
@@ -306,6 +316,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -431,6 +447,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -516,6 +538,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -653,6 +681,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -762,6 +796,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -1361,6 +1401,12 @@ var AWSPartition = Partition{
 		"aoss": {
 			Endpoints: map[string]Endpoint{
 				
+				"ap-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ap-northeast-1": {
 					Hostname: "",
 					
@@ -1404,6 +1450,12 @@ var AWSPartition = Partition{
 				},
 				
 				"eu-central-2": {
+					Hostname: "",
+					
+					
+				},
+				
+				"eu-north-1": {
 					Hostname: "",
 					
 					
@@ -1691,6 +1743,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "api.ecr.ap-southeast-7.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "ap-southeast-7"},
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "api.ecr.ca-central-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "ca-central-1"},
@@ -1838,6 +1896,12 @@ var AWSPartition = Partition{
 				"me-south-1": {
 					Hostname: "api.ecr.me-south-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "me-south-1"},
+					
+				},
+				
+				"mx-central-1": {
+					Hostname: "api.ecr.mx-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "mx-central-1"},
 					
 				},
 				
@@ -2333,6 +2397,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-5": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -2693,6 +2763,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -2802,6 +2878,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -2981,6 +3063,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -3054,6 +3142,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -3167,6 +3261,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -3240,6 +3340,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -3479,6 +3585,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -3552,6 +3664,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -4523,6 +4641,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -4596,6 +4720,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -5033,6 +5163,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -5142,6 +5278,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -5393,6 +5535,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -5466,6 +5614,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -5711,6 +5865,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -5808,6 +5968,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -6304,6 +6470,12 @@ var AWSPartition = Partition{
 		
 		"cassandra": {
 			Endpoints: map[string]Endpoint{
+				
+				"af-south-1": {
+					Hostname: "",
+					
+					
+				},
 				
 				"ap-east-1": {
 					Hostname: "",
@@ -7079,6 +7251,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -7152,6 +7330,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -7541,6 +7725,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -7638,6 +7828,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -8381,6 +8577,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -8454,6 +8656,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -9545,6 +9753,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"fips-ca-central-1": {
+					Hostname: "comprehend-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "ca-central-1"},
+					Deprecated: true,
+				},
+				
 				"fips-us-east-1": {
 					Hostname: "comprehend-fips.us-east-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "us-east-1"},
@@ -9905,6 +10119,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -10002,6 +10222,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -11321,6 +11547,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -11435,6 +11667,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"mx-central-1": {
+					Hostname: "",
+					
+					
+				},
+				
 				"sa-east-1": {
 					Hostname: "",
 					
@@ -11521,6 +11759,12 @@ var AWSPartition = Partition{
 				
 				"ap-southeast-5": {
 					Hostname: "datazone.ap-southeast-5.api.aws",
+					
+					
+				},
+				
+				"ap-southeast-7": {
+					Hostname: "datazone.ap-southeast-7.api.aws",
 					
 					
 				},
@@ -11939,6 +12183,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -12048,6 +12298,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -12209,6 +12465,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -12282,6 +12544,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -12395,6 +12663,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -12480,6 +12754,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -13127,6 +13407,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -13218,6 +13504,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -13355,6 +13647,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -13469,6 +13767,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"mx-central-1": {
+					Hostname: "",
+					
+					
+				},
+				
 				"sa-east-1": {
 					Hostname: "",
 					
@@ -13572,6 +13876,12 @@ var AWSPartition = Partition{
 				},
 				
 				"ap-southeast-5": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-7": {
 					Hostname: "",
 					
 					
@@ -13691,6 +14001,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"mx-central-1": {
+					Hostname: "",
+					
+					
+				},
+				
 				"sa-east-1": {
 					Hostname: "",
 					
@@ -13799,6 +14115,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -13896,6 +14218,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -14051,6 +14379,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -14148,6 +14482,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -14261,6 +14601,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "eks-auth.ap-southeast-7.api.aws",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "eks-auth.ca-central-1.api.aws",
 					
@@ -14335,6 +14681,12 @@ var AWSPartition = Partition{
 				
 				"me-south-1": {
 					Hostname: "eks-auth.me-south-1.api.aws",
+					
+					
+				},
+				
+				"mx-central-1": {
+					Hostname: "eks-auth.mx-central-1.api.aws",
 					
 					
 				},
@@ -14447,6 +14799,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -14526,6 +14884,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -14831,6 +15195,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -14963,6 +15333,12 @@ var AWSPartition = Partition{
 					Deprecated: true,
 				},
 				
+				"fips-ap-southeast-7": {
+					Hostname: "elasticfilesystem-fips.ap-southeast-7.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "ap-southeast-7"},
+					Deprecated: true,
+				},
+				
 				"fips-ca-central-1": {
 					Hostname: "elasticfilesystem-fips.ca-central-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "ca-central-1"},
@@ -15041,6 +15417,12 @@ var AWSPartition = Partition{
 					Deprecated: true,
 				},
 				
+				"fips-mx-central-1": {
+					Hostname: "elasticfilesystem-fips.mx-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "mx-central-1"},
+					Deprecated: true,
+				},
+				
 				"fips-sa-east-1": {
 					Hostname: "elasticfilesystem-fips.sa-east-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "sa-east-1"},
@@ -15084,6 +15466,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -15197,6 +15585,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -15294,6 +15688,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -15402,6 +15802,12 @@ var AWSPartition = Partition{
 				},
 				
 				"ap-southeast-5": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-7": {
 					Hostname: "",
 					
 					
@@ -15516,6 +15922,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -16241,6 +16653,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -16320,6 +16738,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -16457,6 +16881,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -16554,6 +16984,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -18725,6 +19161,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-5": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -19044,6 +19486,12 @@ var AWSPartition = Partition{
 				},
 				
 				"ap-southeast-4": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-5": {
 					Hostname: "",
 					
 					
@@ -19607,6 +20055,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "internetmonitor.ap-southeast-7.api.aws",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "internetmonitor.ca-central-1.api.aws",
 					
@@ -19681,6 +20135,12 @@ var AWSPartition = Partition{
 				
 				"me-south-1": {
 					Hostname: "internetmonitor.me-south-1.api.aws",
+					
+					
+				},
+				
+				"mx-central-1": {
+					Hostname: "internetmonitor.mx-central-1.api.aws",
 					
 					
 				},
@@ -21305,6 +21765,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "kendra-ranking.ap-southeast-7.api.aws",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "kendra-ranking.ca-central-1.api.aws",
 					
@@ -21367,6 +21833,12 @@ var AWSPartition = Partition{
 				
 				"me-south-1": {
 					Hostname: "kendra-ranking.me-south-1.api.aws",
+					
+					
+				},
+				
+				"mx-central-1": {
+					Hostname: "kendra-ranking.mx-central-1.api.aws",
 					
 					
 				},
@@ -21479,6 +21951,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -21576,6 +22054,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -22091,6 +22575,18 @@ var AWSPartition = Partition{
 					Deprecated: true,
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-7-fips": {
+					Hostname: "kms-fips.ap-southeast-7.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "ap-southeast-7"},
+					Deprecated: true,
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -22244,6 +22740,18 @@ var AWSPartition = Partition{
 				"me-south-1-fips": {
 					Hostname: "kms-fips.me-south-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "me-south-1"},
+					Deprecated: true,
+				},
+				
+				"mx-central-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1-fips": {
+					Hostname: "kms-fips.mx-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "mx-central-1"},
 					Deprecated: true,
 				},
 				
@@ -22595,6 +23103,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -22697,6 +23211,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"mx-central-1": {
+					Hostname: "",
+					
+					
+				},
+				
 				"sa-east-1": {
 					Hostname: "",
 					
@@ -22794,6 +23314,12 @@ var AWSPartition = Partition{
 				},
 				
 				"ap-southeast-4": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-5": {
 					Hostname: "",
 					
 					
@@ -23513,6 +24039,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -23622,6 +24154,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -26345,6 +26883,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -26442,6 +26986,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -27131,6 +27681,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "notifications.ap-southeast-7.api.aws",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "notifications.ca-central-1.api.aws",
 					
@@ -27205,6 +27761,12 @@ var AWSPartition = Partition{
 				
 				"me-south-1": {
 					Hostname: "notifications.me-south-1.api.aws",
+					
+					
+				},
+				
+				"mx-central-1": {
+					Hostname: "notifications.mx-central-1.api.aws",
 					
 					
 				},
@@ -27329,6 +27891,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -27402,6 +27970,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -28325,6 +28899,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -28434,6 +29014,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -29321,6 +29907,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "qbusiness.ap-southeast-7.api.aws",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "qbusiness.ca-central-1.api.aws",
 					
@@ -29395,6 +29987,12 @@ var AWSPartition = Partition{
 				
 				"me-south-1": {
 					Hostname: "qbusiness.me-south-1.api.aws",
+					
+					
+				},
+				
+				"mx-central-1": {
+					Hostname: "qbusiness.mx-central-1.api.aws",
 					
 					
 				},
@@ -29573,12 +30171,6 @@ var AWSPartition = Partition{
 					
 				},
 				
-				"api": {
-					Hostname: "",
-					
-					
-				},
-				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -29729,6 +30321,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -29843,6 +30441,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"mx-central-1": {
+					Hostname: "",
+					
+					
+				},
+				
 				"sa-east-1": {
 					Hostname: "",
 					
@@ -29946,6 +30550,12 @@ var AWSPartition = Partition{
 				},
 				
 				"ap-southeast-5": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-7": {
 					Hostname: "",
 					
 					
@@ -30065,6 +30675,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"mx-central-1": {
+					Hostname: "",
+					
+					
+				},
+				
 				"sa-east-1": {
 					Hostname: "",
 					
@@ -30173,6 +30789,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -30258,6 +30880,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -30581,6 +31209,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -30690,6 +31324,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -31499,6 +32139,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -31596,6 +32242,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -31751,6 +32403,18 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-5": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -31848,6 +32512,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -32003,6 +32673,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -32088,6 +32764,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -32729,6 +33411,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"aws-global": {
 					Hostname: "s3.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "us-east-1"},
@@ -32844,6 +33532,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -33755,6 +34449,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -33840,6 +34540,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -34871,6 +35577,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -34956,6 +35668,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -35093,6 +35811,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -35166,6 +35890,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -35981,6 +36711,18 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"fips-af-south-1": {
+					Hostname: "snowball-fips.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "af-south-1"},
+					Deprecated: true,
+				},
+				
+				"fips-ap-east-1": {
+					Hostname: "snowball-fips.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "ap-east-1"},
+					Deprecated: true,
+				},
+				
 				"fips-ap-northeast-1": {
 					Hostname: "snowball-fips.ap-northeast-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "ap-northeast-1"},
@@ -36017,6 +36759,12 @@ var AWSPartition = Partition{
 					Deprecated: true,
 				},
 				
+				"fips-ap-southeast-3": {
+					Hostname: "snowball-fips.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "ap-southeast-3"},
+					Deprecated: true,
+				},
+				
 				"fips-ca-central-1": {
 					Hostname: "snowball-fips.ca-central-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "ca-central-1"},
@@ -36026,6 +36774,18 @@ var AWSPartition = Partition{
 				"fips-eu-central-1": {
 					Hostname: "snowball-fips.eu-central-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "eu-central-1"},
+					Deprecated: true,
+				},
+				
+				"fips-eu-north-1": {
+					Hostname: "snowball-fips.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "eu-north-1"},
+					Deprecated: true,
+				},
+				
+				"fips-eu-south-1": {
+					Hostname: "snowball-fips.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "eu-south-1"},
 					Deprecated: true,
 				},
 				
@@ -36044,6 +36804,18 @@ var AWSPartition = Partition{
 				"fips-eu-west-3": {
 					Hostname: "snowball-fips.eu-west-3.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "eu-west-3"},
+					Deprecated: true,
+				},
+				
+				"fips-il-central-1": {
+					Hostname: "snowball-fips.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "il-central-1"},
+					Deprecated: true,
+				},
+				
+				"fips-me-central-1": {
+					Hostname: "snowball-fips.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "me-central-1"},
 					Deprecated: true,
 				},
 				
@@ -36197,6 +36969,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -36300,6 +37078,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -36413,6 +37197,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -36473,6 +37263,18 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"fips-ca-central-1": {
+					Hostname: "sqs-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "ca-central-1"},
+					Deprecated: true,
+				},
+				
+				"fips-ca-west-1": {
+					Hostname: "sqs-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{Region: "ca-west-1"},
+					Deprecated: true,
+				},
+				
 				"fips-us-east-1": {
 					Hostname: "sqs-fips.us-east-1.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "us-east-1"},
@@ -36510,6 +37312,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -36618,6 +37426,12 @@ var AWSPartition = Partition{
 				},
 				
 				"ap-southeast-5": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-7": {
 					Hostname: "",
 					
 					
@@ -36732,6 +37546,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -37619,6 +38439,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -37716,6 +38542,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -38051,6 +38883,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -38130,6 +38968,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -38243,6 +39087,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"aws-global": {
 					Hostname: "sts.amazonaws.com",
 					CredentialScope: &CredentialScope{Region: "us-east-1"},
@@ -38322,6 +39172,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -38495,6 +39351,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -38609,6 +39471,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"mx-central-1": {
+					Hostname: "",
+					
+					
+				},
+				
 				"sa-east-1": {
 					Hostname: "",
 					
@@ -38712,6 +39580,12 @@ var AWSPartition = Partition{
 				},
 				
 				"ap-southeast-5": {
+					Hostname: "",
+					
+					
+				},
+				
+				"ap-southeast-7": {
 					Hostname: "",
 					
 					
@@ -38831,6 +39705,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"mx-central-1": {
+					Hostname: "",
+					
+					
+				},
+				
 				"sa-east-1": {
 					Hostname: "",
 					
@@ -38939,6 +39819,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -39012,6 +39898,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -41795,6 +42687,12 @@ var AWSPartition = Partition{
 					
 				},
 				
+				"ap-southeast-7": {
+					Hostname: "",
+					
+					
+				},
+				
 				"ca-central-1": {
 					Hostname: "",
 					
@@ -41892,6 +42790,12 @@ var AWSPartition = Partition{
 				},
 				
 				"me-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"mx-central-1": {
 					Hostname: "",
 					
 					
@@ -48077,12 +48981,6 @@ var AWS_US_GOVPartition = Partition{
 		"quicksight": {
 			Endpoints: map[string]Endpoint{
 				
-				"api": {
-					Hostname: "",
-					
-					
-				},
-				
 				"us-gov-west-1": {
 					Hostname: "",
 					
@@ -49838,6 +50736,24 @@ var AWS_ISOPartition = Partition{
 			},
 		},
 		
+		"budgets": {
+			Endpoints: map[string]Endpoint{
+				
+				"aws-iso-global": {
+					Hostname: "budgets.c2s.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-iso-east-1"},
+					
+				},
+				
+				"us-iso-east-1": {
+					Hostname: "budgets.c2s.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-iso-east-1"},
+					
+				},
+				
+			},
+		},
+		
 		"cloudcontrolapi": {
 			Endpoints: map[string]Endpoint{
 				
@@ -51191,6 +52107,12 @@ var AWS_ISOPartition = Partition{
 					
 				},
 				
+				"us-iso-east-1-fips": {
+					Hostname: "translate-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-iso-east-1"},
+					Deprecated: true,
+				},
+				
 			},
 		},
 		
@@ -52257,8 +53179,1572 @@ var AWS_ISO_FPartition = Partition{
 	RegionRegex: regexp.MustCompile(`^us\-isof\-\w+\-\d+$`),
 	Regions: map[string]Region{
 		
+		"us-isof-east-1": {ID: "us-isof-east-1", Description: "US ISOF EAST"},
+		
+		"us-isof-south-1": {ID: "us-isof-south-1", Description: "US ISOF SOUTH"},
+		
 	},
 	Services: map[string]Service{
+		
+		"access-analyzer": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"acm": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"acm-pca": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"api.ecr": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "api.ecr.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-east-1"},
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "api.ecr.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					
+				},
+				
+			},
+		},
+		
+		"api.pricing": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"api.sagemaker": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"appconfig": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"appconfigdata": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"application-autoscaling": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"arc-zonal-shift": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"athena": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"autoscaling": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"backup": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"batch": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"budgets": {
+			Endpoints: map[string]Endpoint{
+				
+				"aws-iso-f-global": {
+					Hostname: "budgets.global.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "budgets.global.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					
+				},
+				
+			},
+		},
+		
+		"cloudformation": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"cloudtrail": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"codebuild": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"codedeploy": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"codepipeline": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"comprehend": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"compute-optimizer": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-south-1": {
+					Hostname: "compute-optimizer.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					
+				},
+				
+			},
+		},
+		
+		"config": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"cost-optimization-hub": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-south-1": {
+					Hostname: "cost-optimization-hub.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					
+				},
+				
+			},
+		},
+		
+		"directconnect": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"dlm": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"dms": {
+			Endpoints: map[string]Endpoint{
+				
+				"dms": {
+					Hostname: "",
+					CredentialScope: &CredentialScope{Region: "us-isof-east-1"},
+					Deprecated: true,
+				},
+				
+				"dms-fips": {
+					Hostname: "dms.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-east-1"},
+					Deprecated: true,
+				},
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-east-1-fips": {
+					Hostname: "dms.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-east-1"},
+					Deprecated: true,
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1-fips": {
+					Hostname: "dms.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					Deprecated: true,
+				},
+				
+			},
+		},
+		
+		"ds": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"dynamodb": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"ebs": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"ec2": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"ecs": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"eks": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"elasticache": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"elasticfilesystem": {
+			Endpoints: map[string]Endpoint{
+				
+				"fips-us-isof-east-1": {
+					Hostname: "elasticfilesystem-fips.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-east-1"},
+					Deprecated: true,
+				},
+				
+				"fips-us-isof-south-1": {
+					Hostname: "elasticfilesystem-fips.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					Deprecated: true,
+				},
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"elasticloadbalancing": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"elasticmapreduce": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"es": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"events": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"firehose": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"fsx": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"glue": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"guardduty": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"iam": {
+			Endpoints: map[string]Endpoint{
+				
+				"aws-iso-f-global": {
+					Hostname: "iam.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					
+				},
+				
+			},
+		},
+		
+		"kinesis": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"kms": {
+			Endpoints: map[string]Endpoint{
+				
+				"ProdFips": {
+					Hostname: "kms-fips.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-east-1"},
+					Deprecated: true,
+				},
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-east-1-fips": {
+					Hostname: "kms-fips.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-east-1"},
+					Deprecated: true,
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1-fips": {
+					Hostname: "kms-fips.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					Deprecated: true,
+				},
+				
+			},
+		},
+		
+		"lakeformation": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"lambda": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"license-manager": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"logs": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"metrics.sagemaker": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"monitoring": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"oam": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"organizations": {
+			Endpoints: map[string]Endpoint{
+				
+				"aws-iso-f-global": {
+					Hostname: "organizations.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					
+				},
+				
+			},
+		},
+		
+		"pi": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"pipes": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"quicksight": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"ram": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"rbin": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"rds": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"redshift": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"redshift-serverless": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"rekognition": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"resource-groups": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"route53": {
+			Endpoints: map[string]Endpoint{
+				
+				"aws-iso-f-global": {
+					Hostname: "route53.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					
+				},
+				
+			},
+		},
+		
+		"route53resolver": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"s3": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"savingsplans": {
+			Endpoints: map[string]Endpoint{
+				
+				"aws-iso-f-global": {
+					Hostname: "savingsplans.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{Region: "us-isof-south-1"},
+					
+				},
+				
+			},
+		},
+		
+		"scheduler": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"secretsmanager": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"servicediscovery": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"servicequotas": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"sns": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"sqs": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"ssm": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"states": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"streams.dynamodb": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"sts": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"swf": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"synthetics": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"tagging": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"textract": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"transcribe": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"transcribestreaming": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"translate": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
+		
+		"xray": {
+			Endpoints: map[string]Endpoint{
+				
+				"us-isof-east-1": {
+					Hostname: "",
+					
+					
+				},
+				
+				"us-isof-south-1": {
+					Hostname: "",
+					
+					
+				},
+				
+			},
+		},
 		
 	},
 }

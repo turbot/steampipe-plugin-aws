@@ -40,7 +40,7 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "backup", "action": "GetBackupSelection"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.BACKUPServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.AWS_BACKUP_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "selection_name",

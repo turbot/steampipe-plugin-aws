@@ -21,7 +21,7 @@ func tableAwsGlueDataCatalogEncryptionSettings(_ context.Context) *plugin.Table 
 			Hydrate: listGlueDataCatalogEncryptionSettings,
 			Tags:    map[string]string{"service": "glue", "action": "GetDataCatalogEncryptionSettings"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(glueEndpoint.GLUEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(glueEndpoint.AWS_GLUE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "encryption_at_rest",

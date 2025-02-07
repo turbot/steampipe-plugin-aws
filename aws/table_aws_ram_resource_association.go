@@ -29,7 +29,7 @@ func tableAwsRAMResourceAssociation(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ram", "action": "ListResourceSharePermissions"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ramEndpoint.RAMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ramEndpoint.AWS_RAM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "resource_share_name",

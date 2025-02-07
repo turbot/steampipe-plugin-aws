@@ -34,7 +34,7 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 			Hydrate:       listRestAPIAuthorizers,
 			Tags:          map[string]string{"service": "apigateway", "action": "GetAuthorizers"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.APIGATEWAYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

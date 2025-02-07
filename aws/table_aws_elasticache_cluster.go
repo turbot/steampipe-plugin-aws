@@ -42,7 +42,7 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 			},
 		},
 
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.ELASTICACHEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.AWS_ELASTICACHE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_cluster_id",

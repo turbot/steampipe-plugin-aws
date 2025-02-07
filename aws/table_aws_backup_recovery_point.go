@@ -59,7 +59,7 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "backup", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.BACKUPServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.AWS_BACKUP_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "backup_vault_name",

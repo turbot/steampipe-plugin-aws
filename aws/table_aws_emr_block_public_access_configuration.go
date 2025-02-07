@@ -22,7 +22,7 @@ func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table 
 			Hydrate: listBlockPublicAccessConfigurations,
 			Tags:    map[string]string{"service": "elasticmapreduce", "action": "GetBlockPublicAccessConfiguration"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.ELASTICMAPREDUCEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.AWS_ELASTICMAPREDUCE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "block_public_security_group_rules",

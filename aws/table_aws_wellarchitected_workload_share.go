@@ -31,7 +31,7 @@ func tableAwsWellArchitectedWorkloadShare(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.WELLARCHITECTEDServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.AWS_WELLARCHITECTED_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workload_id",

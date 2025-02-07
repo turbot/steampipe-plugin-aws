@@ -50,7 +50,7 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "route53resolver", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(route53resolverEndpoint.ROUTE53RESOLVERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(route53resolverEndpoint.AWS_ROUTE53RESOLVER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

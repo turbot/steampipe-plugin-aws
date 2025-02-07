@@ -30,7 +30,7 @@ func tableAwsDRSRecoveryInstance(_ context.Context) *plugin.Table {
 			Hydrate: listAwsDRSRecoveryInstances,
 			Tags:    map[string]string{"service": "drs", "action": "DescribeRecoveryInstances"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(drsEndpoint.DRSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(drsEndpoint.AWS_DRS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "recovery_instance_id",

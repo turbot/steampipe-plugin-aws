@@ -19,7 +19,7 @@ func tableAwsCloudwatchLogResourcePolicy(_ context.Context) *plugin.Table {
 			Hydrate: listCloudwatchLogResourcePolicies,
 			Tags:    map[string]string{"service": "logs", "action": "DescribeResourcePolicies"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchEndpoint.LOGSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchEndpoint.AWS_LOGS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "policy_name",

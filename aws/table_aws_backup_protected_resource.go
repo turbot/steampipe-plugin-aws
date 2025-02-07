@@ -38,7 +38,7 @@ func tableAwsBackupProtectedResource(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "backup", "action": "DescribeProtectedResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.BACKUPServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.AWS_BACKUP_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "resource_name",

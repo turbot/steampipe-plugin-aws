@@ -33,7 +33,7 @@ func tableAwsAppRunnerService(_ context.Context) *plugin.Table {
 			Hydrate: listAwsAppRunnerServices,
 			Tags:    map[string]string{"service": "apprunner", "action": "ListServices"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apprunnerEndpointId.APPRUNNERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apprunnerEndpointId.AWS_APPRUNNER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",

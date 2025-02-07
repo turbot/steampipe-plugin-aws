@@ -33,7 +33,7 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 				{Name: "last_updated_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<=", "="}},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(healthEndpoint.HEALTHServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(healthEndpoint.AWS_HEALTH_SERVICE_ID),
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",

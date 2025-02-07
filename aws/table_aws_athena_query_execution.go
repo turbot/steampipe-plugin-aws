@@ -41,7 +41,7 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "athena", "action": "GetQueryExecution"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(athenaEndpoint.ATHENAServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(athenaEndpoint.AWS_ATHENA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

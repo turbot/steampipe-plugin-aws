@@ -42,7 +42,7 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 				{Name: "service_code", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(servicequotasEndpoint.SERVICEQUOTASServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(servicequotasEndpoint.AWS_SERVICEQUOTAS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "quota_name",

@@ -34,7 +34,7 @@ func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "BadRequestException"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.SECURITYHUBServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.AWS_SECURITYHUB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "member_account_id",

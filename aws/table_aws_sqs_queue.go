@@ -46,7 +46,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sqsEndpoint.SQSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(sqsEndpoint.AWS_SQS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "queue_url",

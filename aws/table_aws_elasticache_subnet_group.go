@@ -31,7 +31,7 @@ func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 			Hydrate: listElastiCacheSubnetGroups,
 			Tags:    map[string]string{"service": "elasticache", "action": "DescribeCacheSubnetGroups"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.ELASTICACHEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.AWS_ELASTICACHE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_subnet_group_name",

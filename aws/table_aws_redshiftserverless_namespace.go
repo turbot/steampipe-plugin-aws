@@ -35,7 +35,7 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "redshift-serverless", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(redshiftserverlessEndpoint.REDSHIFT_SERVERLESSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftserverlessEndpoint.AWS_REDSHIFT_SERVERLESS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "namespace_name",

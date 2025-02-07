@@ -38,7 +38,7 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "glue", "action": "GetCrawler"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(glueEndpoint.GLUEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(glueEndpoint.AWS_GLUE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

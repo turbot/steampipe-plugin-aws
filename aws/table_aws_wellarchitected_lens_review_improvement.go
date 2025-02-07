@@ -39,7 +39,7 @@ func tableAwsWellArchitectedLensReviewImprovement(_ context.Context) *plugin.Tab
 				{Name: "pillar_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.WELLARCHITECTEDServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.AWS_WELLARCHITECTED_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "lens_alias",

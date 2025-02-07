@@ -36,7 +36,7 @@ func tableAwsOAMSink(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "oam", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(oamEndpoint.OAMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(oamEndpoint.AWS_OAM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

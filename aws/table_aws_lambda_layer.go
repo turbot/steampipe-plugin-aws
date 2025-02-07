@@ -20,7 +20,7 @@ func tableAwsLambdaLayer(_ context.Context) *plugin.Table {
 			Hydrate: listLambdaLayers,
 			Tags:    map[string]string{"service": "lambda", "action": "ListLayers"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.LAMBDAServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.AWS_LAMBDA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "layer_name",

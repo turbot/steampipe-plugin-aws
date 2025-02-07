@@ -32,7 +32,7 @@ func tableAwsDirectoryServiceLogSubscription(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(directoryserviceEndpoint.DSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(directoryserviceEndpoint.AWS_DS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "directory_id",

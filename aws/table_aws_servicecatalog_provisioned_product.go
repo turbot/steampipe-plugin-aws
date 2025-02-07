@@ -79,7 +79,7 @@ func tableAwsServicecatalogProvisionedProduct(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "servicecatalog", "action": "DescribeProvisionedProduct"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogEndpoint.SERVICECATALOGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogEndpoint.AWS_SERVICECATALOG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

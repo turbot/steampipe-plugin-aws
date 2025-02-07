@@ -35,7 +35,7 @@ func tableAwsAppConfigApplication(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "appconfig", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(appconfigEndpoint.APPCONFIGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(appconfigEndpoint.AWS_APPCONFIG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

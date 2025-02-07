@@ -42,7 +42,7 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(applicationautoscalingEndpoint.APPLICATION_AUTOSCALINGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(applicationautoscalingEndpoint.AWS_APPLICATION_AUTOSCALING_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_namespace",

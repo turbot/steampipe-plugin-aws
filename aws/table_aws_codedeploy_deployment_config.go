@@ -38,7 +38,7 @@ func tableAwsCodeDeployDeploymentConfig(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "codedeploy", "action": "GetDeploymentConfig"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codedeployEndpoint.CODEDEPLOYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codedeployEndpoint.AWS_CODEDEPLOY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

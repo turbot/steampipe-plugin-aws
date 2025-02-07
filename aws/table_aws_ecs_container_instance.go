@@ -23,7 +23,7 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 			Hydrate:       listEcsContainerInstances,
 			Tags:          map[string]string{"service": "ecs", "action": "ListContainerInstances"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecsEndpoint.ECSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ecsEndpoint.AWS_ECS_SERVICE_ID),
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",

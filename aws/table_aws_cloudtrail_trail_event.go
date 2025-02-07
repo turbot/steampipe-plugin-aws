@@ -33,7 +33,7 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsEndpoint.LOGSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsEndpoint.AWS_LOGS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			// Top columns
 			{Name: "filter", Type: proto.ColumnType_STRING, Transform: transform.FromQual("filter"), Description: "The cloudwatch filter pattern for the search."},

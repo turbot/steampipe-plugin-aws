@@ -39,7 +39,7 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "mobiletargeting", "action": "GetApplicationSettings"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(pinpointEndpoint.PINPOINTServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(pinpointEndpoint.AWS_PINPOINT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

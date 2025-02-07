@@ -35,7 +35,7 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 				{Name: "transport_protocol", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "client_vpn_endpoint_id",

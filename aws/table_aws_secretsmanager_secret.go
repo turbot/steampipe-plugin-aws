@@ -43,7 +43,7 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sagemaker", "action": "DescribeSecret"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(secretsmanagerEndpoint.SECRETSMANAGERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(secretsmanagerEndpoint.AWS_SECRETSMANAGER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

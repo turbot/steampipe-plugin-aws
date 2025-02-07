@@ -31,7 +31,7 @@ func tableAwsWafRegionalRuleGroup(_ context.Context) *plugin.Table {
 			Hydrate: listWafRegionalRuleGroups,
 			Tags:    map[string]string{"service": "waf-regional", "action": "ListRuleGroups"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wafregionalEndpoint.WAF_REGIONALServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(wafregionalEndpoint.AWS_WAF_REGIONAL_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getWafRegionalRuleGroup,

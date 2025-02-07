@@ -31,7 +31,7 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 			Hydrate: listRedshiftEventSubscriptions,
 			Tags:    map[string]string{"service": "redshift", "action": "DescribeEventSubscriptions"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(redshiftEndpoint.REDSHIFTServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftEndpoint.AWS_REDSHIFT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cust_subscription_id",

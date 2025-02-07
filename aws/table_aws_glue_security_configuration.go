@@ -32,7 +32,7 @@ func tableAwsGlueSecurityConfiguration(_ context.Context) *plugin.Table {
 			Hydrate: listGlueSecurityConfigurations,
 			Tags:    map[string]string{"service": "glue", "action": "GetSecurityConfigurations"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(glueEndpoint.GLUEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(glueEndpoint.AWS_GLUE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

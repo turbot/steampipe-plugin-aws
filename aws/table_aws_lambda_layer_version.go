@@ -38,7 +38,7 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 				{Name: "layer_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.LAMBDAServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.AWS_LAMBDA_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getLambdaLayerVersionPolicy,

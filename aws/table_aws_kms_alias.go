@@ -25,7 +25,7 @@ func tableAwsKmsAlias(ctx context.Context) *plugin.Table {
 			Hydrate:       listKmsAliases,
 			Tags:          map[string]string{"service": "kms", "action": "ListAliases"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kmsEndpoint.KMSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kmsEndpoint.AWS_KMS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "alias_name",

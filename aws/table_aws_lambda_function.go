@@ -31,7 +31,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 			Hydrate: listAwsLambdaFunctions,
 			Tags:    map[string]string{"service": "lambda", "action": "ListFunctions"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.LAMBDAServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.AWS_LAMBDA_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getAwsLambdaFunction,

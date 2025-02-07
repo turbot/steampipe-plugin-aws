@@ -44,7 +44,7 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudwatch", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchEndpoint.LOGSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchEndpoint.AWS_LOGS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

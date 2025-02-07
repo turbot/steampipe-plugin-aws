@@ -56,7 +56,7 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudtrail", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailEndpoint.CLOUDTRAILServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailEndpoint.AWS_CLOUDTRAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

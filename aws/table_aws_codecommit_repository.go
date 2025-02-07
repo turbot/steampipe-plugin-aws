@@ -33,7 +33,7 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "codecommit", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codecommitEndpoint.CODECOMMITServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codecommitEndpoint.AWS_CODECOMMIT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

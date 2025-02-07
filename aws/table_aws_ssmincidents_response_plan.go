@@ -38,7 +38,7 @@ func tableAwsSSMIncidentsResponseaPlan(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ssm-incidents", "action": "GetResponsePlan"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmincidentsEndpoint.SSM_INCIDENTSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmincidentsEndpoint.AWS_SSM_INCIDENTS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

@@ -42,7 +42,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "redshift", "action": "DescribeScheduledActions"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(redshiftEndpoint.REDSHIFTServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftEndpoint.AWS_REDSHIFT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_identifier",

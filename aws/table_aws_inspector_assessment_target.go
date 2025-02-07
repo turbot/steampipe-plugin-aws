@@ -29,7 +29,7 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 			Hydrate: listInspectorAssessmentTargets,
 			Tags:    map[string]string{"service": "inspector", "action": "ListAssessmentTargets"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(inspectorEndpoint.INSPECTORServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(inspectorEndpoint.AWS_INSPECTOR_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

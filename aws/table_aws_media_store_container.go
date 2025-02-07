@@ -47,7 +47,7 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "mediastore", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(mediastoreEndpoint.MEDIASTOREServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(mediastoreEndpoint.AWS_MEDIASTORE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

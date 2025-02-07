@@ -41,7 +41,7 @@ func tableAwsRDSDBProxy(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "rds", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.RDSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_proxy_name",

@@ -29,7 +29,7 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 			Hydrate: listVpcEgressOnlyInternetGateways,
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeEgressOnlyInternetGateways"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

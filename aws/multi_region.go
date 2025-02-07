@@ -97,7 +97,7 @@ func AllRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]int
 // _metric_ tables must all be limited to the CloudWatch service regions.
 // This is a convenience function for them to use.
 func CloudWatchRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
-	return SupportedRegionMatrixWithExclusions(cloudwatchEndpoint.MONITORINGServiceID, []string{})(ctx, d)
+	return SupportedRegionMatrixWithExclusions(cloudwatchEndpoint.AWS_MONITORING_SERVICE_ID, []string{})(ctx, d)
 }
 
 // Return a matrix of regions supported by serviceID, which will then be

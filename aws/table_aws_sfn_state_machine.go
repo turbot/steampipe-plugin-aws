@@ -39,7 +39,7 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "states", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sfnEndpoint.STATESServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(sfnEndpoint.AWS_STATES_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

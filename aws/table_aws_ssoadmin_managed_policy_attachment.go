@@ -25,7 +25,7 @@ func tableAwsSsoAdminManagedPolicyAttachment(_ context.Context) *plugin.Table {
 			Hydrate:    listSsoAdminManagedPolicyAttachments,
 			Tags:       map[string]string{"service": "sso", "action": "ListManagedPoliciesInPermissionSet"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.SSOServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.AWS_SSO_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "permission_set_arn",

@@ -28,7 +28,7 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 			Hydrate: listAwsEc2LaunchConfigurations,
 			Tags:    map[string]string{"service": "autoscaling", "action": "DescribeLaunchConfigurations"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

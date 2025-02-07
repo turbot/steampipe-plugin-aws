@@ -53,7 +53,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "elasticache", "action": "DescribeEnvironmentManagedActions"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkEndpoint.ELASTICBEANSTALKServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkEndpoint.AWS_ELASTICBEANSTALK_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "environment_name",

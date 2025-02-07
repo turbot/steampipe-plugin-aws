@@ -35,7 +35,7 @@ func tableAwsMGNApplication(_ context.Context) *plugin.Table {
 				{Name: "is_archived", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(mgnEndpoint.MGNServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(mgnEndpoint.AWS_MGN_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

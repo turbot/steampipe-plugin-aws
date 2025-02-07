@@ -44,7 +44,7 @@ func tableAwsCloudFormationStackSet(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackSet"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationEndpoint.CLOUDFORMATIONServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationEndpoint.AWS_CLOUDFORMATION_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stack_set_id",

@@ -20,7 +20,7 @@ func tableAwsKeyspacesKeyspace(ctx context.Context) *plugin.Table {
 		Description: "AWS Keyspaces Keyspace",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("keyspace_name"), // Identify the keyspace by its name
-			Hydrate:    getKeyspacesKeyspace,                // Get function
+			Hydrate:    getKeyspacesKeyspace,                 // Get function
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -30,7 +30,7 @@ func tableAwsKeyspacesKeyspace(ctx context.Context) *plugin.Table {
 			Hydrate: listKeyspacesKeyspaces, // Parent hydrate function
 			Tags:    map[string]string{"service": "keyspaces", "action": "ListKeyspaces"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(keyspacesEndpoint.CASSANDRAServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(keyspacesEndpoint.AWS_CASSANDRA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "keyspace_name",

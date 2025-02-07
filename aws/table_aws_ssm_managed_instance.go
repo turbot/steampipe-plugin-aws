@@ -33,7 +33,7 @@ func tableAwsSSMManagedInstance(_ context.Context) *plugin.Table {
 				{Name: "association_status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmEndpoint.SSMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmEndpoint.AWS_SSM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

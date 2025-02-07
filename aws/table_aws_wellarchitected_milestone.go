@@ -43,7 +43,7 @@ func tableAwsWellArchitectedMilestone(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "wellarchitected", "action": "GetMilestone"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.WELLARCHITECTEDServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.AWS_WELLARCHITECTED_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "milestone_name",

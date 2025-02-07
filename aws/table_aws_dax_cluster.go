@@ -48,7 +48,7 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dax", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(daxEndpoint.DAXServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(daxEndpoint.AWS_DAX_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_name",

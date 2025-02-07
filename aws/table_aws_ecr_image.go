@@ -29,7 +29,7 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 				{Name: "registry_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecrEndpoint.API_ECRServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ecrEndpoint.AWS_API_ECR_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

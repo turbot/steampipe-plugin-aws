@@ -32,7 +32,7 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceTypeOfferings"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_type",

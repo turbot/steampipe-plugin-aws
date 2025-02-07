@@ -43,7 +43,7 @@ func tableAwsAcmPcaCertificateAuthority(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "acm-pca", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(acmpcaEndpointId.ACM_PCAServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(acmpcaEndpointId.AWS_ACM_PCA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

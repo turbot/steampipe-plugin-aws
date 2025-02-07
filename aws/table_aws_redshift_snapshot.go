@@ -38,7 +38,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				{Name: "snapshot_create_time", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(redshiftEndpoint.REDSHIFTServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(redshiftEndpoint.AWS_REDSHIFT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_identifier",

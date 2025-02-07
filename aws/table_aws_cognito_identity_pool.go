@@ -35,7 +35,7 @@ func tableAwsCognitoIdentityPool(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cognito-identity", "action": "DescribeIdentityPool"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.COGNITO_IDENTITYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.AWS_COGNITO_IDENTITY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity_pool_id",

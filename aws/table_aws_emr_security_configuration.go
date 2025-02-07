@@ -40,7 +40,7 @@ func tableAwsEmrSecurityConfiguration(_ context.Context) *plugin.Table {
 				Tags:    map[string]string{"service": "elasticmapreduce", "action": "DescribeSecurityConfiguration"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.ELASTICMAPREDUCEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(emrEndpoint.AWS_ELASTICMAPREDUCE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

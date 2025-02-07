@@ -29,7 +29,7 @@ func tableAwsSSMDocumentPermission(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidDocument"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmEndpoint.SSMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmEndpoint.AWS_SSM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "document_name",

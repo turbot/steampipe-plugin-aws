@@ -31,7 +31,7 @@ func tableAwsServicecatalogPortfolio(_ context.Context) *plugin.Table {
 			Hydrate: listServiceCatalogPortfolios,
 			Tags:    map[string]string{"service": "servicecatalog", "action": "ListPortfolios"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogEndpoint.SERVICECATALOGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogEndpoint.AWS_SERVICECATALOG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "display_name",

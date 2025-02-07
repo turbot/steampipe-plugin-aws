@@ -51,7 +51,7 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshotAttributes"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.RDSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_snapshot_identifier",

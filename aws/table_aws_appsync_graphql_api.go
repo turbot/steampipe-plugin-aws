@@ -36,7 +36,7 @@ func tableAwsAppsyncGraphQLApi(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(appsyncEndpoint.APPSYNCServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(appsyncEndpoint.AWS_APPSYNC_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 
 			{

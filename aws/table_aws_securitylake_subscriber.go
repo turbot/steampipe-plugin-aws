@@ -31,7 +31,7 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 			Hydrate: listSecurityLakeSubscribers,
 			Tags:    map[string]string{"service": "securitylake", "action": "ListSubscribers"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securitylakeEndpoint.SECURITYLAKEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securitylakeEndpoint.AWS_SECURITYLAKE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subscriber_name",

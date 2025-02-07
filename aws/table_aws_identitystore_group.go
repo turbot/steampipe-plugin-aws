@@ -34,7 +34,7 @@ func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(identitystoreEndpoint.IDENTITYSTOREServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(identitystoreEndpoint.AWS_IDENTITYSTORE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity_store_id",

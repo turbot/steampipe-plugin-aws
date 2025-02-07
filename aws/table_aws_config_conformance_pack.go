@@ -33,7 +33,7 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.CONFIGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.AWS_CONFIG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

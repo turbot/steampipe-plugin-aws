@@ -39,7 +39,7 @@ func tableAwsWellArchitectedLens(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "wellarchitected", "action": "GetLens"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.WELLARCHITECTEDServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.AWS_WELLARCHITECTED_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "lens_name",

@@ -29,7 +29,7 @@ func tableAwsBackupJob(_ context.Context) *plugin.Table {
 			Hydrate: listAwsBackupJobs,
 			Tags:    map[string]string{"service": "backup", "action": "ListBackupJobs"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.BACKUPServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(backupEndpoint.AWS_BACKUP_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "job_id",

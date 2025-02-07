@@ -57,7 +57,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ds", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(directoryserviceEndpoint.DSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(directoryserviceEndpoint.AWS_DS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

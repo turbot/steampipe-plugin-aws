@@ -33,7 +33,7 @@ func tableAwsDaxSubnetGroup(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(daxEndpoint.DAXServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(daxEndpoint.AWS_DAX_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subnet_group_name",

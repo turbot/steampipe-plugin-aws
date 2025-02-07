@@ -38,7 +38,7 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "elasticbeanstalk", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkEndpoint.ELASTICBEANSTALKServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticbeanstalkEndpoint.AWS_ELASTICBEANSTALK_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

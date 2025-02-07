@@ -48,7 +48,7 @@ func tableAwsServiceDiscoveryService(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "servicediscovery", "action": "GetService"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(servicediscoveryEndpoint.SERVICEDISCOVERYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(servicediscoveryEndpoint.AWS_SERVICEDISCOVERY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

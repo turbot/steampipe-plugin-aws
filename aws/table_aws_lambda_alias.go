@@ -40,7 +40,7 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 				{Name: "function_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.LAMBDAServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(lambdaEndpoint.AWS_LAMBDA_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getLambdaAliasPolicy,

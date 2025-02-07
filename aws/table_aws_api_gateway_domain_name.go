@@ -31,7 +31,7 @@ func tableAwsAPIGatewayDomainName(_ context.Context) *plugin.Table {
 			Hydrate: listApiGatewayDomainNames,
 			Tags:    map[string]string{"service": "apigateway", "action": "GetDomainNames"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.APIGATEWAYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",

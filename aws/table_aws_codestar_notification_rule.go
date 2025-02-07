@@ -40,7 +40,7 @@ func tableAwsCodestarNotificationRule(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "codestar-notifications", "action": "ListNotificationRules"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codestarEndpoint.CODESTAR_NOTIFICATIONSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codestarEndpoint.AWS_CODESTAR_NOTIFICATIONS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

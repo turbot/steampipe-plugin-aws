@@ -40,7 +40,7 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "es", "action": "DescribeElasticsearchDomain"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticsearchserviceEndpoint.ESServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticsearchserviceEndpoint.AWS_ES_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",

@@ -31,7 +31,7 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 			Hydrate: listUsagePlans,
 			Tags:    map[string]string{"service": "apigateway", "action": "GetUsagePlans"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.APIGATEWAYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

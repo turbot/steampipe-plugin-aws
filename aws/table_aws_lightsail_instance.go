@@ -41,7 +41,7 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "lightsail", "action": "GetInstance"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lightsailEndpoint.LIGHTSAILServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(lightsailEndpoint.AWS_LIGHTSAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

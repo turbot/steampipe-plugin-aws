@@ -38,7 +38,7 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 				Tags: map[string]string{"service": "wellarchitected", "action": "GetConsolidatedReport"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.WELLARCHITECTEDServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedEndpoint.AWS_WELLARCHITECTED_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workload_name",

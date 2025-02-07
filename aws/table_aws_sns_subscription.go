@@ -42,7 +42,7 @@ func tableAwsSnsSubscription(_ context.Context) *plugin.Table {
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(snsEndpoint.SNSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(snsEndpoint.AWS_SNS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subscription_arn",
@@ -123,7 +123,7 @@ func tableAwsSnsSubscription(_ context.Context) *plugin.Table {
 				Hydrate:     getSubscriptionAttributes,
 				Transform:   transform.FromField("Attributes.FilterPolicy").Transform(transform.UnmarshalYAML),
 			},
-// Steampipe standard columns
+			// Steampipe standard columns
 
 			{
 				Name:        "title",

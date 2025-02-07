@@ -38,7 +38,7 @@ func tableAwsFMSPolicy(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "fms", "action": "GetPolicy"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(fmsEndpoint.FMSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(fmsEndpoint.AWS_FMS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "policy_name",

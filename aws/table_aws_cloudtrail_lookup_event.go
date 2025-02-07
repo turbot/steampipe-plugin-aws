@@ -40,7 +40,7 @@ func tableAwsCloudtrailLookupEvent(_ context.Context) *plugin.Table {
 				{Name: "access_key_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailEndpoint.CLOUDTRAILServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailEndpoint.AWS_CLOUDTRAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "event_id",

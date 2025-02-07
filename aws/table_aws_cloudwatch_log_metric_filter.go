@@ -47,7 +47,7 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchEndpoint.LOGSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchEndpoint.AWS_LOGS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

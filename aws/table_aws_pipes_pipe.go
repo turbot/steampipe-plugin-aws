@@ -43,7 +43,7 @@ func tableAwsPipes(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "pipes", "action": "DescribePipe"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(pipesEndpoint.PIPESServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(pipesEndpoint.AWS_PIPES_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

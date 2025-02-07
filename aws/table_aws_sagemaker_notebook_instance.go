@@ -47,7 +47,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sagemaker", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerEndpoint.API_SAGEMAKERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerEndpoint.AWS_API_SAGEMAKER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -42,7 +42,7 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudformation", "action": "GetResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudcontrolapiEnspoint.CLOUDCONTROLAPIServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudcontrolapiEnspoint.AWS_CLOUDCONTROLAPI_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "type_name",

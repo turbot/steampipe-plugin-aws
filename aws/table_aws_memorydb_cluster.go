@@ -29,7 +29,7 @@ func tableAwsMemoryDBCluster(_ context.Context) *plugin.Table {
 				{Name: "name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(memorydbEndpoint.MEMORY_DBServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(memorydbEndpoint.AWS_MEMORY_DB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

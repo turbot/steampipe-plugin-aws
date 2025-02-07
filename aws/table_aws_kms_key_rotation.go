@@ -43,7 +43,7 @@ func tableAwsKmsKeyRotation(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kmsEndpoint.KMSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kmsEndpoint.AWS_KMS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "key_id",
@@ -146,7 +146,7 @@ func listKmsKeyRotations(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			ignoreCodes := GetConfig(d.Connection).IgnoreErrorCodes
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
-				if helpers.StringSliceContains(ignoreCodes, ae.ErrorCode()){
+				if helpers.StringSliceContains(ignoreCodes, ae.ErrorCode()) {
 					return nil, nil
 				}
 			}

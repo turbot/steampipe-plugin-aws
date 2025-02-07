@@ -56,7 +56,7 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dms", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(databasemigrationserviceEndpoint.DMSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(databasemigrationserviceEndpoint.AWS_DLM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_instance_identifier",

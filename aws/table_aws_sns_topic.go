@@ -43,7 +43,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sns", "action": "GetTopicAttributes"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(snsEndpoint.SNSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(snsEndpoint.AWS_SNS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "topic_arn",

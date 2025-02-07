@@ -59,7 +59,7 @@ func tableAwsCloudWatchMetricStatisticDataPoint(_ context.Context) *plugin.Table
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(monitoringEndpoint.MONITORINGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(monitoringEndpoint.AWS_MONITORING_SERVICE_ID),
 		Columns: awsRegionalColumns(cwMetricColumns([]*plugin.Column{
 			{
 				Name:        "label",

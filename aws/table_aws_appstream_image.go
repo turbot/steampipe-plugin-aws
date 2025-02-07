@@ -41,7 +41,7 @@ func tableAwsAppStreamImage(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "appstream", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(appstreamEndpoint.APPSTREAM2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(appstreamEndpoint.AWS_APPSTREAM2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

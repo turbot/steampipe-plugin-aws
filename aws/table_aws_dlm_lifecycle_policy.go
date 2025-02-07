@@ -38,7 +38,7 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dlm", "action": "GetLifecyclePolicy"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(dlmEndpoint.DLMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(dlmEndpoint.AWS_DLM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "policy_id",

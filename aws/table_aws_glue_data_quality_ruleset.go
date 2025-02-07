@@ -49,7 +49,7 @@ func tableAwsGlueDataQualityRuleset(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "glue", "action": "GetDataQualityRuleset"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(glueEndpoint.GLUEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(glueEndpoint.AWS_GLUE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -47,7 +47,7 @@ func tableAwsTransferUser(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "transfer", "action": "DescribeUser"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(transferEndpoint.TRANSFERServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(transferEndpoint.AWS_TRANSFER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

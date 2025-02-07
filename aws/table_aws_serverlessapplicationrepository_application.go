@@ -43,7 +43,7 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 				Tags: map[string]string{"service": "serverlessrepo", "action": "GetApplication"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(serverlessapplicationrepositoryEndpoint.SERVERLESSREPOServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(serverlessapplicationrepositoryEndpoint.AWS_SERVERLESSREPO_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

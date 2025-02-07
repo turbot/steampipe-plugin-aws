@@ -26,7 +26,7 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 			Hydrate: listSecurityHubStandardsSubcriptions,
 			Tags:    map[string]string{"service": "securityhub", "action": "GetEnabledStandards"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.SECURITYHUBServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.AWS_SECURITYHUB_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: GetEnabledStandards,

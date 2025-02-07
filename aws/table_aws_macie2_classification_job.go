@@ -44,7 +44,7 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "macie2", "action": "DescribeClassificationJob"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(macie2Endpoint.MACIE2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(macie2Endpoint.AWS_MACIE2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

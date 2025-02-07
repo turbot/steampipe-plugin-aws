@@ -19,7 +19,7 @@ func tableAwsConfigRetentionConfiguration(_ context.Context) *plugin.Table {
 			Hydrate: listConfigRetentionConfigurations,
 			Tags:    map[string]string{"service": "config", "action": "DescribeRetentionConfigurations"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.CONFIGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.AWS_CONFIG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

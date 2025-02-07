@@ -32,7 +32,7 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 			Hydrate: listKinesisVideoStreams,
 			Tags:    map[string]string{"service": "kinesisvideo", "action": "ListStreams"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kinesisEndpoint.KINESISServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kinesisEndpoint.AWS_KINESIS_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: listKinesisVideoStreamTags,

@@ -42,7 +42,7 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "eks", "action": "DescribeIdentityProviderConfig"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(eksEndpoint.EKSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(eksEndpoint.AWS_EKS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

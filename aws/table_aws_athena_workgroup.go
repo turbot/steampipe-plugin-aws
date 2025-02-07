@@ -33,7 +33,7 @@ func tableAwsAthenaWorkGroup(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "athena", "action": "GetWorkGroup"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(athenaEndpoint.ATHENAServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(athenaEndpoint.AWS_ATHENA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

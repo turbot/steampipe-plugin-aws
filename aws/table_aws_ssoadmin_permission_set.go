@@ -37,7 +37,7 @@ func tableAwsSsoAdminPermissionSet(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sso", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.SSOServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.AWS_SSO_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

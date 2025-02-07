@@ -33,7 +33,7 @@ func tableAwsRDSDBEventSubscription(_ context.Context) *plugin.Table {
 			Hydrate: listRDSDBEventSubscriptions,
 			Tags:    map[string]string{"service": "rds", "action": "DescribeEventSubscriptions"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.RDSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cust_subscription_id",

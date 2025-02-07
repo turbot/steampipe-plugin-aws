@@ -32,7 +32,7 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 			Hydrate: listFsxFileSystems,
 			Tags:    map[string]string{"service": "fsx", "action": "DescribeFileSystems"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(fsxEndpoint.FSXServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(fsxEndpoint.AWS_FSX_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "file_system_id",

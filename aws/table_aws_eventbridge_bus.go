@@ -38,7 +38,7 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "events", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(eventbridgeEndpoint.EVENTSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(eventbridgeEndpoint.AWS_EVENTS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

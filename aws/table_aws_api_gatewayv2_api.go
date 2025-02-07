@@ -33,7 +33,7 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 			Hydrate: listAPIGatewayV2API,
 			Tags:    map[string]string{"service": "apigateway", "action": "GetApis"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2EndpointId.APIGATEWAYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2EndpointId.AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

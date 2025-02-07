@@ -44,7 +44,7 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "rds", "action": "DescribeDBSnapshotAttributes"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.RDSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_snapshot_identifier",

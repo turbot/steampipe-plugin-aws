@@ -31,7 +31,7 @@ func tableAwsConfigDeliveryChannel(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "config", "action": "DescribeDeliveryChannels"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.CONFIGServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.AWS_CONFIG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -55,7 +55,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ec2", "action": "DescribeVolumeAttribute"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "volume_id",

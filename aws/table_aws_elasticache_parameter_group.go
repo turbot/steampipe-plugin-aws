@@ -31,7 +31,7 @@ func tableAwsElastiCacheParameterGroup(_ context.Context) *plugin.Table {
 			Hydrate: listElastiCacheParameterGroup,
 			Tags:    map[string]string{"service": "elasticache", "action": "DescribeCacheParameterGroups"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.ELASTICACHEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticacheEndpoint.AWS_ELASTICACHE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_parameter_group_name",

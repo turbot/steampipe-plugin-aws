@@ -46,7 +46,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(snsEndpoint.SNSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(snsEndpoint.AWS_SNS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subscription_arn",

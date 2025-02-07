@@ -28,7 +28,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 			Tags:          map[string]string{"service": "states", "action": "ListExecutions"},
 			ParentHydrate: listStepFunctionsStateMachines,
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sfnEndpoint.STATESServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(sfnEndpoint.AWS_STATES_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

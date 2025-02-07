@@ -85,9 +85,9 @@ func Generate() error {
 		return fmt.Errorf("error parsing JSON: %w", err)
 	}
 
-	templateData := TemplateData{Partitions: endpoints.Partitions}
+	templateData := &TemplateData{Partitions: endpoints.Partitions}
 	outputFile := "awsSupportedEndpoints/endpoints_gen.go"
-	if err := generateGoFile(outputFile, templateData); err != nil {
+	if err := generateGoFile(outputFile, *templateData); err != nil {
 		return fmt.Errorf("error generating Go file: %w", err)
 	}
 
@@ -109,10 +109,10 @@ func GenerateServiceID() error {
 
 	// Extract unique service keys
 	serviceKeys := extractUniqueServiceKeys(endpoints)
-	templateData := ServiceIDTemplateData{ServiceKeys: serviceKeys}
+	templateData := &ServiceIDTemplateData{ServiceKeys: serviceKeys}
 	outputFile := "awsSupportedEndpoints/service_id_gen.go"
 
-	if err := generateGoFileForServiceID(outputFile, templateData); err != nil {
+	if err := generateGoFileForServiceID(outputFile, *templateData); err != nil {
 		return fmt.Errorf("error generating service ID file: %w", err)
 	}
 
@@ -242,7 +242,7 @@ package awsSupportedEndpoints
 
 // Service constants
 {{range .ServiceKeys}}
-const {{toConstant .}}ServiceID = "{{.}}"
+const AWS_{{toConstant .}}_SERVICE_ID = "{{.}}"
 {{end}}
 `
 	return renderTemplate(filename, tmpl, data)

@@ -31,7 +31,7 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 			Hydrate: listAwsDRSJobs,
 			Tags:    map[string]string{"service": "drs", "action": "DescribeJobs"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(drsEndpoint.DRSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(drsEndpoint.AWS_DRS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "job_id",

@@ -38,7 +38,7 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "drs", "action": "GetLaunchConfiguration"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(drsEndpoint.DRSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(drsEndpoint.AWS_DRS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "source_server_id",

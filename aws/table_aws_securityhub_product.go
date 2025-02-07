@@ -32,7 +32,7 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 			Hydrate: listSecurityHubProducts,
 			Tags:    map[string]string{"service": "securityhub", "action": "DescribeProducts"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.SECURITYHUBServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.AWS_SECURITYHUB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

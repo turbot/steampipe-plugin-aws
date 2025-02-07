@@ -69,7 +69,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ecr", "action": "BatchGetRepositoryScanningConfiguration"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecrEndpoint.API_ECRServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ecrEndpoint.AWS_API_ECR_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

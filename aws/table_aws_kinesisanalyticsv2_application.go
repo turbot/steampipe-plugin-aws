@@ -32,7 +32,7 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 			Hydrate: listKinesisAnalyticsV2Applications,
 			Tags:    map[string]string{"service": "kinesisanalytics", "action": "ListApplications"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kinesisanalyticsv2Endpoint.KINESISANALYTICSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(kinesisanalyticsv2Endpoint.AWS_KINESISANALYTICS_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getKinesisAnalyticsV2Application,

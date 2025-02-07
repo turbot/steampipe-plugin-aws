@@ -39,7 +39,7 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 			Hydrate:       listAPIGatewayV2Integrations,
 			Tags:          map[string]string{"service": "apigateway", "action": "GetIntegrations"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2EndpointId.APIGATEWAYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2EndpointId.AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "integration_id",

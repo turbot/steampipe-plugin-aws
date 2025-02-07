@@ -21,7 +21,7 @@ func tableAwsSsoAdminInstance(_ context.Context) *plugin.Table {
 			Hydrate: listSsoAdminInstances,
 			Tags:    map[string]string{"service": "sso", "action": "ListInstances"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.SSOServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssoadminEndpoint.AWS_SSO_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

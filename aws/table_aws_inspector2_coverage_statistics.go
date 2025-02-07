@@ -37,7 +37,7 @@ func tableAwsInspector2CoverageStatistics(_ context.Context) *plugin.Table {
 			Hydrate: listInspector2CoverageStatistics,
 			Tags:    map[string]string{"service": "inspector2", "action": "ListCoverageStatistics"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(inspector2Endpoint.INSPECTOR2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(inspector2Endpoint.AWS_INSPECTOR2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "total_counts",

@@ -61,7 +61,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dynamodb", "action": "DescribeKinesisStreamingDestination"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbEndpoint.DYNAMODBServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbEndpoint.AWS_DYNAMODB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

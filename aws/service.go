@@ -264,7 +264,7 @@ func ACMPCAClient(ctx context.Context, d *plugin.QueryData) (*acmpca.Client, err
 }
 
 func AmplifyClient(ctx context.Context, d *plugin.QueryData) (*amplify.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, amplifyEndpoint.AMPLIFYServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, amplifyEndpoint.AWS_AMPLIFY_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +295,7 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 		"eu-south-2",     // Spain
 		"il-central-1",   // Israel (Tel Aviv)
 	}
-	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, apigatewayv2Endpoint.APIGATEWAYServiceID, excludeRegions)
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, apigatewayv2Endpoint.AWS_APIGATEWAY_SERVICE_ID, excludeRegions)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +322,7 @@ func ApplicationAutoScalingClient(ctx context.Context, d *plugin.QueryData) (*ap
 }
 
 func AppRunnerClient(ctx context.Context, d *plugin.QueryData) (*apprunner.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, appRunnerEndpoint.APPRUNNERServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, appRunnerEndpoint.AWS_APPRUNNER_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func AppStreamClient(ctx context.Context, d *plugin.QueryData) (*appstream.Clien
 }
 
 func AppSyncClient(ctx context.Context, d *plugin.QueryData) (*appsync.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, appsyncv2Endpoint.APPSYNCServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, appsyncv2Endpoint.AWS_APPSYNC_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +360,7 @@ func AthenaClient(ctx context.Context, d *plugin.QueryData) (*athena.Client, err
 }
 
 func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, auditmanagerEndpoint.AUDITMANAGERServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, auditmanagerEndpoint.AWS_AUDITMANAGER_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +379,7 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 }
 
 func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, backupEndpoint.BACKUPServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, backupEndpoint.AWS_BACKUP_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -406,7 +406,7 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 }
 
 func CodeCommitClient(ctx context.Context, d *plugin.QueryData) (*codecommit.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, codecommitEndpoint.CODECOMMITServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codecommitEndpoint.AWS_CODECOMMIT_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +438,7 @@ func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Cli
 }
 
 func CloudSearchClient(ctx context.Context, d *plugin.QueryData) (*cloudsearch.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, cloudsearchEndpoint.CLOUDSEARCHServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cloudsearchEndpoint.AWS_CLOUDSEARCH_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -484,7 +484,7 @@ func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch
 }
 
 func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, codeartifactEndpoint.CODEARTIFACTServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codeartifactEndpoint.AWS_CODEARTIFACT_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -495,7 +495,7 @@ func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact
 }
 
 func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, codebuildEndpoint.CODEBUILDServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codebuildEndpoint.AWS_CODEBUILD_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -514,7 +514,7 @@ func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Cli
 }
 
 func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, codepipelineEndpoint.CODEPIPELINEServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, codepipelineEndpoint.AWS_CODEPIPELINE_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -533,7 +533,7 @@ func CodeStarNotificationsClient(ctx context.Context, d *plugin.QueryData) (*cod
 }
 
 func CognitoIdentityClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentity.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityEndpoint.COGNITO_IDENTITYServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityEndpoint.AWS_COGNITO_IDENTITY_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -544,7 +544,7 @@ func CognitoIdentityClient(ctx context.Context, d *plugin.QueryData) (*cognitoid
 }
 
 func CognitoIdentityProviderClient(ctx context.Context, d *plugin.QueryData) (*cognitoidentityprovider.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityproviderEndpoint.COGNITO_IDPServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, cognitoidentityproviderEndpoint.AWS_COGNITO_IDP_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -593,7 +593,7 @@ func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databas
 }
 
 func DAXClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, daxEndpoint.DAXServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, daxEndpoint.AWS_DAX_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -604,7 +604,7 @@ func DAXClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
 }
 
 func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*directoryservice.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, directoryserviceEndpoint.DSServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, directoryserviceEndpoint.AWS_DS_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -615,7 +615,7 @@ func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*director
 }
 
 func DLMClient(ctx context.Context, d *plugin.QueryData) (*dlm.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, dlmEndpoint.DLMServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, dlmEndpoint.AWS_DLM_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -634,7 +634,7 @@ func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error
 }
 
 func DRSClient(ctx context.Context, d *plugin.QueryData) (*drs.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, drsEndpoint.DRSServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, drsEndpoint.AWS_DRS_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -645,7 +645,7 @@ func DRSClient(ctx context.Context, d *plugin.QueryData) (*drs.Client, error) {
 }
 
 func DynamoDBClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, dynamodbEndpoint.DYNAMODBServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, dynamodbEndpoint.AWS_DYNAMODB_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -717,7 +717,7 @@ func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 }
 
 func EKSClient(ctx context.Context, d *plugin.QueryData) (*eks.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, eksEndpoint.EKSServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, eksEndpoint.AWS_EKS_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -736,7 +736,7 @@ func ElastiCacheClient(ctx context.Context, d *plugin.QueryData) (*elasticache.C
 }
 
 func ElasticBeanstalkClient(ctx context.Context, d *plugin.QueryData) (*elasticbeanstalk.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, elasticbeanstalkEndpoint.ELASTICBEANSTALKServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, elasticbeanstalkEndpoint.AWS_ELASTICBEANSTALK_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -771,7 +771,7 @@ func ElasticsearchClient(ctx context.Context, d *plugin.QueryData) (*elasticsear
 }
 
 func EMRClient(ctx context.Context, d *plugin.QueryData) (*emr.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, emrEndpoint.ELASTICMAPREDUCEServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, emrEndpoint.AWS_ELASTICMAPREDUCE_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -782,7 +782,7 @@ func EMRClient(ctx context.Context, d *plugin.QueryData) (*emr.Client, error) {
 }
 
 func EventBridgeClient(ctx context.Context, d *plugin.QueryData) (*eventbridge.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, eventbridgeEndpoint.EVENTSServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, eventbridgeEndpoint.AWS_EVENTS_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -809,7 +809,7 @@ func FMSClient(ctx context.Context, d *plugin.QueryData) (*fms.Client, error) {
 }
 
 func FSxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, fsxEndpoint.FSXServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, fsxEndpoint.AWS_FSX_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -820,7 +820,7 @@ func FSxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
 }
 
 func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, glacierEndpoint.GLACIERServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, glacierEndpoint.AWS_GLACIER_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -889,7 +889,7 @@ func IdentityStoreClient(ctx context.Context, d *plugin.QueryData) (*identitysto
 }
 
 func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspectorEndpoint.INSPECTORServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspectorEndpoint.AWS_INSPECTOR_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -900,7 +900,7 @@ func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Clien
 }
 
 func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspector2Endpoint.INSPECTOR2ServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, inspector2Endpoint.AWS_INSPECTOR2_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -911,7 +911,7 @@ func Inspector2Client(ctx context.Context, d *plugin.QueryData) (*inspector2.Cli
 }
 
 func IoTClient(ctx context.Context, d *plugin.QueryData) (*iot.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, iotEndpoint.IOTServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, iotEndpoint.AWS_IOT_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -922,7 +922,7 @@ func IoTClient(ctx context.Context, d *plugin.QueryData) (*iot.Client, error) {
 }
 
 func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, kafkaEndpoint.KAFKAServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kafkaEndpoint.AWS_KAFKA_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -933,7 +933,7 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 }
 
 func KeyspacesClient(ctx context.Context, d *plugin.QueryData) (*keyspaces.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, keyspacesEndpoint.CASSANDRAServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, keyspacesEndpoint.AWS_CASSANDRA_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -952,7 +952,7 @@ func KinesisClient(ctx context.Context, d *plugin.QueryData) (*kinesis.Client, e
 }
 
 func KinesisAnalyticsV2Client(ctx context.Context, d *plugin.QueryData) (*kinesisanalyticsv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, kinesisanalyticsv2Endpoint.KINESISANALYTICSServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kinesisanalyticsv2Endpoint.AWS_KINESISANALYTICS_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -963,7 +963,7 @@ func KinesisAnalyticsV2Client(ctx context.Context, d *plugin.QueryData) (*kinesi
 }
 
 func KinesisVideoClient(ctx context.Context, d *plugin.QueryData) (*kinesisvideo.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, kinesisvideoEndpoint.KINESISVIDEOServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kinesisvideoEndpoint.AWS_KINESISVIDEO_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -974,7 +974,7 @@ func KinesisVideoClient(ctx context.Context, d *plugin.QueryData) (*kinesisvideo
 }
 
 func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, kmsEndpoint.KMSServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, kmsEndpoint.AWS_KMS_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -985,7 +985,7 @@ func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
 }
 
 func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, lambdaEndpoint.LAMBDAServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, lambdaEndpoint.AWS_LAMBDA_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1004,7 +1004,7 @@ func LakeFormationClient(ctx context.Context, d *plugin.QueryData) (*lakeformati
 }
 
 func LightsailClient(ctx context.Context, d *plugin.QueryData) (*lightsail.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, lightsailEndpoint.LIGHTSAILServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, lightsailEndpoint.AWS_LIGHTSAIL_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1015,7 +1015,7 @@ func LightsailClient(ctx context.Context, d *plugin.QueryData) (*lightsail.Clien
 }
 
 func Macie2Client(ctx context.Context, d *plugin.QueryData) (*macie2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, macie2Endpoint.MACIE2ServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, macie2Endpoint.AWS_MACIE2_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1026,7 +1026,7 @@ func Macie2Client(ctx context.Context, d *plugin.QueryData) (*macie2.Client, err
 }
 
 func MediaStoreClient(ctx context.Context, d *plugin.QueryData) (*mediastore.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, mediastoreEndpoint.MEDIASTOREServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, mediastoreEndpoint.AWS_MEDIASTORE_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1037,7 +1037,7 @@ func MediaStoreClient(ctx context.Context, d *plugin.QueryData) (*mediastore.Cli
 }
 
 func MemoryDBClient(ctx context.Context, d *plugin.QueryData) (*memorydb.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, memoryDBEndpoint.MEMORY_DBServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, memoryDBEndpoint.AWS_MEMORY_DB_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1048,7 +1048,7 @@ func MemoryDBClient(ctx context.Context, d *plugin.QueryData) (*memorydb.Client,
 }
 
 func MGNClient(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, mgnEndpoint.MGNServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, mgnEndpoint.AWS_MGN_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1059,7 +1059,7 @@ func MGNClient(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
 }
 
 func MQClient(ctx context.Context, d *plugin.QueryData) (*mq.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, mqEndpoint.MQServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, mqEndpoint.AWS_MQ_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1078,7 +1078,7 @@ func NeptuneClient(ctx context.Context, d *plugin.QueryData) (*neptune.Client, e
 }
 
 func NetworkFirewallClient(ctx context.Context, d *plugin.QueryData) (*networkfirewall.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, networkfirewallEndpoint.NETWORK_FIREWALLServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, networkfirewallEndpoint.AWS_NETWORK_FIREWALL_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1089,7 +1089,7 @@ func NetworkFirewallClient(ctx context.Context, d *plugin.QueryData) (*networkfi
 }
 
 func OAMClient(ctx context.Context, d *plugin.QueryData) (*oam.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, oamEndpoint.OAMServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, oamEndpoint.AWS_OAM_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1122,7 +1122,7 @@ func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organization
 }
 
 func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, pinpointEndpoint.PINPOINTServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, pinpointEndpoint.AWS_PINPOINT_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1133,7 +1133,7 @@ func PinpointClient(ctx context.Context, d *plugin.QueryData) (*pinpoint.Client,
 }
 
 func PipesClient(ctx context.Context, d *plugin.QueryData) (*pipes.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, pipesEndpoint.PIPESServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, pipesEndpoint.AWS_PIPES_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1155,7 +1155,7 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	// it can and otherwise falls back to the default region us-east-1.
 
 	// Get Pricing API supported regions
-	pricingAPISupportedRegions, err := listRegionsForService(ctx, d, pricingEndpoint.API_PRICINGServiceID)
+	pricingAPISupportedRegions, err := listRegionsForService(ctx, d, pricingEndpoint.AWS_API_PRICING_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1224,7 +1224,7 @@ func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.C
 	}
 	excludeRegions = append(excludeRegions, awsChinaRegions()...)
 	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
-	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.RDSServiceID, excludeRegions)
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.AWS_RDS_SERVICE_ID, excludeRegions)
 	if err != nil {
 		return nil, err
 	}
@@ -1249,7 +1249,7 @@ func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, er
 	}
 	excludeRegions = append(excludeRegions, awsChinaRegions()...)
 	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
-	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.RDSServiceID, excludeRegions)
+	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.AWS_RDS_SERVICE_ID, excludeRegions)
 	if err != nil {
 		return nil, err
 	}
@@ -1268,7 +1268,7 @@ func RedshiftClient(ctx context.Context, d *plugin.QueryData) (*redshift.Client,
 }
 
 func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, redshiftserverlessEndpoint.REDSHIFT_SERVERLESSServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, redshiftserverlessEndpoint.AWS_REDSHIFT_SERVERLESS_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1290,7 +1290,7 @@ func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region str
 	}
 
 	// Get the list of supported regions for the service
-	resourceExplorerRegions, err := listRegionsForService(ctx, d, resourceexplorer2Endpoint.RESOURCE_EXPLORER_2ServiceID)
+	resourceExplorerRegions, err := listRegionsForService(ctx, d, resourceexplorer2Endpoint.AWS_RESOURCE_EXPLORER_2_SERVICE_ID)
 	if err != nil {
 		return nil, fmt.Errorf("ResourceExplorerClient: failed to get supported regions")
 	}
@@ -1343,7 +1343,7 @@ func Route53DomainsClient(ctx context.Context, d *plugin.QueryData) (*route53dom
 }
 
 func Route53ResolverClient(ctx context.Context, d *plugin.QueryData) (*route53resolver.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, route53resolverEndpoint.ROUTE53RESOLVERServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, route53resolverEndpoint.AWS_ROUTE53RESOLVER_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1396,7 +1396,7 @@ func S3ControlMultiRegionAccessClient(ctx context.Context, d *plugin.QueryData) 
 }
 
 func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, sagemakerEndpoint.API_SAGEMAKERServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, sagemakerEndpoint.AWS_API_SAGEMAKER_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1407,7 +1407,7 @@ func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Clien
 }
 
 func SchedulerClient(ctx context.Context, d *plugin.QueryData) (*scheduler.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, schedulerEndpoint.SCHEDULERServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, schedulerEndpoint.AWS_SCHEDULER_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1426,7 +1426,7 @@ func SecretsManagerClient(ctx context.Context, d *plugin.QueryData) (*secretsman
 }
 
 func SecurityHubClient(ctx context.Context, d *plugin.QueryData) (*securityhub.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.SECURITYHUBServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.AWS_SECURITYHUB_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1439,7 +1439,7 @@ func SecurityHubClient(ctx context.Context, d *plugin.QueryData) (*securityhub.C
 // Added for using middleware for migrating table "aws_securityhub_member"
 // See https://github.com/aws/aws-sdk-go-v2/issues/1884#issuecomment-1278567756 for more info
 func SecurityHubClientConfig(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.SECURITYHUBServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securityhubEndpoint.AWS_SECURITYHUB_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1450,7 +1450,7 @@ func SecurityHubClientConfig(ctx context.Context, d *plugin.QueryData) (*aws.Con
 }
 
 func SecurityLakeClient(ctx context.Context, d *plugin.QueryData) (*securitylake.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, securitylakeEndpoint.SECURITYLAKEServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, securitylakeEndpoint.AWS_SECURITYLAKE_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1461,7 +1461,7 @@ func SecurityLakeClient(ctx context.Context, d *plugin.QueryData) (*securitylake
 }
 
 func SESClient(ctx context.Context, d *plugin.QueryData) (*ses.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, sesEndpoint.EMAILServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, sesEndpoint.AWS_EMAIL_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1472,7 +1472,7 @@ func SESClient(ctx context.Context, d *plugin.QueryData) (*ses.Client, error) {
 }
 
 func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, serverlessrepoEndpoint.SERVERLESSREPOServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, serverlessrepoEndpoint.AWS_SERVERLESSREPO_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1502,7 +1502,7 @@ func ServiceDiscoveryClient(ctx context.Context, d *plugin.QueryData) (*serviced
 }
 
 func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequotas.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, servicequotasEndpoint.SERVICEQUOTASServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, servicequotasEndpoint.AWS_SERVICEQUOTAS_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1513,7 +1513,7 @@ func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequot
 }
 
 func SimSpaceWeaverClient(ctx context.Context, d *plugin.QueryData) (*simspaceweaver.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, simspaceWeaverEndpoint.SIMSPACEWEAVERServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, simspaceWeaverEndpoint.AWS_SIMSPACEWEAVER_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1552,7 +1552,7 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 }
 
 func SSMClient(ctx context.Context, d *plugin.QueryData) (*ssm.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmEndpoint.SSMServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmEndpoint.AWS_SSM_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1563,7 +1563,7 @@ func SSMClient(ctx context.Context, d *plugin.QueryData) (*ssm.Client, error) {
 }
 
 func SSMIncidentsClient(ctx context.Context, d *plugin.QueryData) (*ssmincidents.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmIncidentsEndpoint.SSM_INCIDENTSServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssmIncidentsEndpoint.AWS_SSM_INCIDENTS_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1592,7 +1592,7 @@ func STSClient(ctx context.Context, d *plugin.QueryData) (*sts.Client, error) {
 }
 
 func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssoEndpoint.PORTAL_SSOServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ssoEndpoint.AWS_PORTAL_SSO_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1618,7 +1618,7 @@ func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, e
 
 func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {
 	// AWS Transfer Family
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, transferEndpoint.TRANSFERServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, transferEndpoint.AWS_TRANSFER_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1629,7 +1629,7 @@ func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client,
 }
 
 func TimestreamwriteClient(ctx context.Context, d *plugin.QueryData) (*timestreamwrite.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, timestreamwriteEndpoint.INGEST_TIMESTREAMServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, timestreamwriteEndpoint.AWS_INGEST_TIMESTREAM_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1653,7 +1653,7 @@ func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
 }
 
 func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafregionalEndpoint.WAF_REGIONALServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wafregionalEndpoint.AWS_WAF_REGIONAL_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1672,7 +1672,7 @@ func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv
 	if region == "global" {
 		cfg, err = getClient(ctx, d, "us-east-1")
 	} else {
-		cfg, err = getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.WAFV2ServiceID)
+		cfg, err = getClientForQuerySupportedRegion(ctx, d, wafv2Endpoint.AWS_WAFV2_SERVICE_ID)
 	}
 	if err != nil {
 		return nil, err
@@ -1684,7 +1684,7 @@ func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv
 }
 
 func WellArchitectedClient(ctx context.Context, d *plugin.QueryData) (*wellarchitected.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, wellarchitectedEndpoint.WELLARCHITECTEDServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, wellarchitectedEndpoint.AWS_WELLARCHITECTED_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1695,7 +1695,7 @@ func WellArchitectedClient(ctx context.Context, d *plugin.QueryData) (*wellarchi
 }
 
 func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, workspacesEndpoint.WORKSPACESServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, workspacesEndpoint.AWS_WORKSPACES_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}

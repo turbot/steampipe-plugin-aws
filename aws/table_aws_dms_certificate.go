@@ -44,7 +44,7 @@ func tableAwsDmsCertificate(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dms", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(databasemigrationserviceEndpoint.DMSServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(databasemigrationserviceEndpoint.AWS_DLM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "certificate_identifier",

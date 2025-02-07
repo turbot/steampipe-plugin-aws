@@ -29,7 +29,7 @@ func tableAwsSecurityHubStandardsControl(_ context.Context) *plugin.Table {
 			Hydrate:       listSecurityHubStandardsControls,
 			Tags:          map[string]string{"service": "securityhub", "action": "DescribeStandardsControls"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.SECURITYHUBServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.AWS_SECURITYHUB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "control_id",

@@ -38,7 +38,7 @@ func tableAwsMQBroker(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "mq", "action": "DescribeBroker"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(mqEndpoint.MQServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(mqEndpoint.AWS_MQ_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "broker_name",

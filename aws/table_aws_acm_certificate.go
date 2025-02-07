@@ -60,7 +60,7 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "acm", "action": "ListTagsForCertificate"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(acmEndpointId.ACMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(acmEndpointId.AWS_ACM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "certificate_arn",

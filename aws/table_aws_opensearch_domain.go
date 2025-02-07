@@ -40,7 +40,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				Depends: []plugin.HydrateFunc{getOpenSearchDomain},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(opensearchserviceEndpoint.ESServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(opensearchserviceEndpoint.AWS_ES_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",

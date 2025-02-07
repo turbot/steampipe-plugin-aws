@@ -34,7 +34,7 @@ func tableAwsEc2SpotPrice(_ context.Context) *plugin.Table {
 				{Name: "end_time", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.EC2ServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{Name: "availability_zone", Description: "The Availability Zone.", Type: proto.ColumnType_STRING},
 			{Name: "instance_type", Description: "The instance type.", Type: proto.ColumnType_STRING},

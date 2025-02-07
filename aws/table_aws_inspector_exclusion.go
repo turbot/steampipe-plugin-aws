@@ -33,7 +33,7 @@ func tableAwsInspectorExclusion(_ context.Context) *plugin.Table {
 				{Name: "assessment_run_arn", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(inspectorEndpoint.INSPECTORServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(inspectorEndpoint.AWS_INSPECTOR_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

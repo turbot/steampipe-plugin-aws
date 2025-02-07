@@ -47,7 +47,7 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ssm", "action": "DescribeDocument"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmEndpoint.SSMServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(ssmEndpoint.AWS_SSM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "display_name",

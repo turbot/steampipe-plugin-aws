@@ -45,7 +45,7 @@ func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationEndpoint.CLOUDFORMATIONServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationEndpoint.AWS_CLOUDFORMATION_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "logical_resource_id",

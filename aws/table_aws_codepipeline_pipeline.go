@@ -42,7 +42,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "codepipeline", "action": "GetPipeline"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codepipelineEndpoint.CODEPIPELINEServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(codepipelineEndpoint.AWS_CODEPIPELINE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

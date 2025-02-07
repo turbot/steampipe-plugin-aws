@@ -34,7 +34,7 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 			Hydrate:       listAPIGatewayV2Stages,
 			Tags:          map[string]string{"service": "apigateway", "action": "GetStages"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2EndpointId.APIGATEWAYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2EndpointId.AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stage_name",
