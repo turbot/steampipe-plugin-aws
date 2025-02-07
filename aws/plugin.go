@@ -86,6 +86,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gateway_api_key":                                      tableAwsAPIGatewayAPIKey(ctx),
 			"aws_api_gateway_authorizer":                                   tableAwsAPIGatewayAuthorizer(ctx),
 			"aws_api_gateway_domain_name":                                  tableAwsAPIGatewayDomainName(ctx),
+			"aws_application_signals_service_level_objective":              tableAwsApplicationSignalsServiceLevelObjective(ctx),
 			"aws_api_gateway_method":                                       tableAwsAPIGatewayMethod(ctx),
 			"aws_api_gateway_rest_api":                                     tableAwsAPIGatewayRestAPI(ctx),
 			"aws_api_gateway_stage":                                        tableAwsAPIGatewayStage(ctx),

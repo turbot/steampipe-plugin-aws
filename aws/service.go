@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/applicationsignals"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -272,6 +273,17 @@ func AmplifyClient(ctx context.Context, d *plugin.QueryData) (*amplify.Client, e
 		return nil, nil
 	}
 	return amplify.NewFromConfig(*cfg), nil
+}
+
+func ApplicationSignalsClient(ctx context.Context, d *plugin.QueryData) (*applicationsignals.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return applicationsignals.NewFromConfig(*cfg), nil
 }
 
 func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Client, error) {
