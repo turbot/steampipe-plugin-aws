@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
@@ -43,9 +44,10 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				{Name: "record_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "title", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "verification_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
-				{Name: "workflow_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "workflow_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "source_account_id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "created_at", Require: plugin.Optional, Operators: []string{"=", ">=", ">", "<=", "<"}},
+				{Name: "updated_at", Require: plugin.Optional, Operators: []string{"=", ">=", ">", "<=", "<"}},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
@@ -153,11 +155,6 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 			{
 				Name:        "verification_state",
 				Description: "Indicates the veracity of a finding.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "workflow_state",
-				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The workflow state of a finding.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -412,8 +409,59 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func buildListFindingsParam(quals plugin.KeyColumnQualMap) *types.AwsSecurityFindingFilters {
 	securityFindingsFilter := &types.AwsSecurityFindingFilters{}
 	strFilter := types.StringFilter{}
+	dateFilter := types.DateFilter{}
+	timeFormat := "2006-01-02T15:04:05Z"
 
 	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state", "workflow_status", "source_account_id"}
+
+	timeColumns := []string{"created_at", "updated_at"}
+
+	for _, t := range timeColumns {
+		if quals[t] == nil {
+			continue
+		}
+		for _, q := range quals[t].Quals {
+			value := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
+			if value == "" {
+				continue
+			}
+
+			switch q.Operator {
+			case "=", ">=", ">":
+				dateFilter.Start = &value
+				dateFilter.End = aws.String(time.Now().Format(timeFormat))
+			case "<", "<=":
+				dateFilter.End = &value
+				st, err := time.Parse(timeFormat, value)
+				if err != nil {
+					panic("failed to parsing provided value " + value + " for " + t)
+				}
+				if t == "updated_at" {
+					// Default to past 90 days.
+					// https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-findings.html
+					dateFilter.Start = aws.String(st.AddDate(0, 0, -90).Format(timeFormat))
+				} else {
+					// For the query "select * from aws_securityhub_finding where created_at <= current_timestamp - interval '31d'", we are setting the end time based on the query parameter.
+					// The query doesn't explicitly mention a start date for the creation time.
+					// AWS retains Security Hub findings updated within the last 90 days, regardless of when they were created.
+					// There is no strict limit for the creation start time, but we have set it to the date when AWS introduced SecurityHub. The API will return an error if we will not set the Start anf End time all together.
+					findingIntroduceTime := "2018-11-27T00:00:00Z"
+					t, err := time.Parse(timeFormat, findingIntroduceTime)
+					if err != nil {
+						panic("failed to parse the introduced securityhub findings time")
+					}
+					dateFilter.Start = aws.String(t.Format(timeFormat))
+				}
+
+			}
+		}
+		switch t {
+		case "created_at":
+			securityFindingsFilter.CreatedAt = []types.DateFilter{dateFilter}
+		case "updated_at":
+			securityFindingsFilter.UpdatedAt = []types.DateFilter{dateFilter}
+		}
+	}
 
 	for _, s := range strColumns {
 		if quals[s] == nil {

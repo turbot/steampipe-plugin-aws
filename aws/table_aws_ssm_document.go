@@ -60,18 +60,6 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "account_ids",
-				Description: "[DEPRECATED] The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMDocumentPermissionDetail,
-			},
-			{
-				Name:        "account_sharing_info_list",
-				Description: "[DEPRECATED] A list of AWS accounts where the current document is shared and the version shared with each account.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMDocumentPermissionDetail,
-			},
-			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the document.",
 				Type:        proto.ColumnType_STRING,

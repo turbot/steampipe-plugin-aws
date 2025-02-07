@@ -14,7 +14,8 @@ env:
 
 jobs:
   build-deploy:
-    runs-on: ubuntu_8_core
+    runs-on:
+      group: large-runners
     permissions:
       packages: write
     steps:

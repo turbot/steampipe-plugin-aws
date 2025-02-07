@@ -11,6 +11,12 @@ The AWS EC2 Instance Type is a component of Amazon's Elastic Compute Cloud (EC2)
 
 The `aws_ec2_instance_type` table in Steampipe provides you with information about EC2 instance types within AWS Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query instance type-specific details, including its name, current generation, vCPU, memory, storage, and network performance. You can utilize this table to gather insights on instance types, such as their capabilities, performance, and associated metadata. The schema outlines the various attributes of the EC2 instance type for you, including the instance type, current generation, vCPU, memory, storage, and network performance.
 
+**Important Notes**
+- This table supports the optional quals `instance_type` and `instance_type_pattern`.
+- Queries with optional quals are optimised to use additional filtering provided by the AWS API function.
+- To filter by a specific `instance_type`, you need to include it in the WHERE clause, such as `where instance_type = 't2.small'`, to retrieve a single instance type.
+- If you want to fetch instance types using a wildcard pattern, you can use `instance_type_pattern` in the WHERE clause, like `where instance_type_pattern = 't2*'`.
+
 ## Examples
 
 ### List of instance types which supports dedicated host

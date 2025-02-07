@@ -39,6 +39,11 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Tags:    map[string]string{"service": "s3", "action": "GetObject"},
 			},
 			{
+				Func:    headS3Object,
+				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
+				Tags:    map[string]string{"service": "s3", "action": "HeadObject"},
+			},
+			{
 				Func:    getS3ObjectAttributes,
 				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
 				Tags:    map[string]string{"service": "s3", "action": "GetObjectAttributes"},
@@ -88,14 +93,14 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Description: "The version ID of the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("VersionId"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "accept_ranges",
 				Description: "Indicates that a range of bytes was specified.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("AcceptRanges"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "body",
@@ -109,98 +114,98 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Description: "Indicates whether the object uses an S3 Bucket Key for server-side encryption with Amazon Web Services KMS (SSE-KMS)",
 				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("BucketKeyEnabled"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "cache_control",
 				Description: "Specifies caching behavior along the request/reply chain.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("CacheControl"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "checksum_crc32",
 				Description: "The base64-encoded, 32-bit CRC32 checksum of the object. This will only be present if it was uploaded with the object. With multipart uploads, this may not be a checksum value of the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ChecksumCRC32"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "checksum_crc32c",
 				Description: "The base64-encoded, 32-bit CRC32C checksum of the object. This will only be present if it was uploaded with the object. With multipart uploads, this may not be a checksum value of the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ChecksumCRC32C"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "checksum_sha1",
 				Description: "The base64-encoded, 160-bit SHA-1 digest of the object. This will only be present if it was uploaded with the object. With multipart uploads, this may not be a checksum value of the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ChecksumSHA1"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "checksum_sha256",
 				Description: "The base64-encoded, 256-bit SHA-256 digest of the object. This will only be present if it was uploaded with the object. With multipart uploads, this may not be a checksum value of the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ChecksumSHA256"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "content_disposition",
 				Description: "Specifies presentational information for the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContentDisposition"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "content_encoding",
 				Description: "Specifies what content encodings have been applied to the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContentEncoding"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "content_language",
 				Description: "The language the content is in.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContentLanguage"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "content_length",
 				Description: "Size of the body in bytes.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContentLength"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "content_range",
 				Description: "The portion of the object returned in the response.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContentRange"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "content_type",
 				Description: "A standard MIME type describing the format of the object data.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContentType"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "delete_marker",
 				Description: "Specifies whether the object retrieved was (true) or was not (false) a delete marker.",
 				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("DeleteMarker"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "expiration",
 				Description: "If the object expiration is configured (see PUT Bucket lifecycle), the response includes this header. It includes the expiry-date and rule-id key-value pairs providing object expiration information. The value of the rule-id is URL-encoded.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Expiration"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "expires",
@@ -213,27 +218,28 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Description: "The entity tag of the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ETag"),
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "object_lock_legal_hold_status",
 				Description: "Like a retention period, a legal hold prevents an object version from being overwritten or deleted. A legal hold remains in effect until removed.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ObjectLockLegalHoldStatus"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "object_lock_mode",
 				Description: "The Object Lock mode currently in place for this object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ObjectLockMode"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "object_lock_retain_until_date",
 				Description: "The date and time when this object's Object Lock will expire.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("ObjectLockRetainUntilDate"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "prefix",
@@ -246,28 +252,28 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Description: "Amazon S3 can return this if your request involves a bucket that is either a source or destination in a replication rule.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ReplicationStatus"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "request_charged",
 				Description: "If present, indicates that the requester was successfully charged for the request.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("RequestCharged"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "restore",
 				Description: "Provides information about object restoration action and expiration time of the restored object copy.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Restore"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "server_side_encryption",
 				Description: "The server-side encryption algorithm used when storing this object in Amazon S3.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ServerSideEncryption"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "size",
@@ -279,35 +285,35 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header confirming the encryption algorithm used.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SSECustomerAlgorithm"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "sse_customer_key_md5",
 				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header to provide round-trip message integrity verification of the customer-provided encryption key.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SSECustomerKeyMD5"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "sse_kms_key_id",
 				Description: "If present, specifies the ID of the Amazon Web Services Key Management Service(Amazon Web Services KMS) symmetric customer managed key that was used for the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SSEKMSKeyId"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "tag_count",
 				Description: "The number of tags, if any, on the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("TagCount"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "website_redirection_location",
 				Description: "If the bucket is configured as a website, redirects requests for this object  to another object in the same bucket or to an external URL.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("WebsiteRedirectLocation"),
-				Hydrate:     getS3Object,
+				Hydrate:     headS3Object,
 			},
 			{
 				Name:        "acl",
@@ -498,6 +504,49 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_s3_object.getS3Object", "api_error", err)
+		return nil, err
+	}
+
+	return object, nil
+}
+
+func headS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	bucketRegion := ""
+
+	// Bucket location will be nil if getBucketLocationForObjects returned an error but
+	// was ignored through ignore_error_codes config arg
+	res := h.HydrateResults["getBucketRegionForObjects"]
+	if res != nil {
+		bucketRegion = res.(string)
+	}
+
+	// Bucket region empty check
+	if bucketRegion == "" {
+		return nil, nil
+	}
+
+	// Create client
+	svc, err := S3Client(ctx, d, bucketRegion)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_object.headS3Object", "client_error", err)
+		return nil, err
+	}
+
+	key := h.Item.(types.Object).Key
+
+	params := &s3.HeadObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    key,
+	}
+
+	object, err := svc.HeadObject(ctx, params)
+	if err != nil {
+		// if the key is unavailable in the provided bucket
+		if strings.Contains(err.Error(), "NoSuchKey") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("aws_s3_object.headS3Object", "api_error", err)
 		return nil, err
 	}
 

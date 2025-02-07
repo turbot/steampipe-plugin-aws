@@ -259,10 +259,6 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultNotification", "connection_error", err)
 		return nil, err
 	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
 
 	if svc == nil {
 		// Unsupported region, return no data
@@ -294,36 +290,9 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 }
 
 func getAwsBackupVaultTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Create Session
-	svc, err := BackupClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultTags", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
 	arn := vaultArn(h.Item)
 
-	params := &backup.ListTagsInput{
-		ResourceArn: aws.String(arn),
-	}
-
-	op, err := svc.ListTags(ctx, params)
-	if err != nil {
-
-		var ae smithy.APIError
-		if errors.As(err, &ae) {
-			if ae.ErrorCode() == "ResourceNotFoundException" {
-				return &backup.ListTagsOutput{}, nil
-			}
-		}
-		plugin.Logger(ctx).Error("aws_backup_vault.getAwsBackupVaultTags", "api_error", err)
-		return nil, err
-	}
-	return op, nil
+	return getAwsBackupResourceTags(ctx, d, arn)
 }
 
 func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

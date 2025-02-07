@@ -51,6 +51,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costoptimizationhub"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
@@ -85,6 +86,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 	"github.com/aws/aws-sdk-go-v2/service/iot"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/keyspaces"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
@@ -117,6 +119,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/service/scheduler"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securitylake"
@@ -126,6 +129,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/shield"
 	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
@@ -177,6 +181,7 @@ import (
 	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
 	iotEndpoint "github.com/aws/aws-sdk-go/service/iot"
 	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
+	keyspacesEndpoint "github.com/aws/aws-sdk-go/service/keyspaces"
 	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
@@ -197,6 +202,7 @@ import (
 	resourceexplorer2Endpoint "github.com/aws/aws-sdk-go/service/resourceexplorer2"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
+	schedulerEndpoint "github.com/aws/aws-sdk-go/service/scheduler"
 	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
 	securitylakeEndpoint "github.com/aws/aws-sdk-go/service/securitylake"
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
@@ -581,6 +587,15 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	return costexplorer.NewFromConfig(*cfg), nil
 }
 
+func CostOptimizationHubClient(ctx context.Context, d *plugin.QueryData) (*costoptimizationhub.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return costoptimizationhub.NewFromConfig(*cfg), nil
+}
+
+
 func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -927,6 +942,17 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 		return nil, nil
 	}
 	return kafka.NewFromConfig(*cfg), nil
+}
+
+func KeyspacesClient(ctx context.Context, d *plugin.QueryData) (*keyspaces.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, keyspacesEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return keyspaces.NewFromConfig(*cfg), nil
 }
 
 func KinesisClient(ctx context.Context, d *plugin.QueryData) (*kinesis.Client, error) {
@@ -1392,6 +1418,17 @@ func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Clien
 	return sagemaker.NewFromConfig(*cfg), nil
 }
 
+func SchedulerClient(ctx context.Context, d *plugin.QueryData) (*scheduler.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, schedulerEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return scheduler.NewFromConfig(*cfg), nil
+}
+
 func SecretsManagerClient(ctx context.Context, d *plugin.QueryData) (*secretsmanager.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -1504,6 +1541,18 @@ func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client,
 		return nil, err
 	}
 	return sfn.NewFromConfig(*cfg), nil
+}
+
+func ShieldClient(ctx context.Context, d *plugin.QueryData) (*shield.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg == nil {
+		return nil, nil
+	}
+	return shield.NewFromConfig(*cfg), nil
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {

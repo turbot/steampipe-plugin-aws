@@ -79,12 +79,6 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "image_details",
-				Description: "A list of ImageDetail objects that contain data about the image.",
-				Hydrate:     getAwsEcrpublicDescribeImages,
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "policy",
 				Description: "The JSON repository policy text associated with the repository.",
 				Hydrate:     getAwsEcrpublicRepositoryPolicy,
