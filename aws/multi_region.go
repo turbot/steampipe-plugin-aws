@@ -354,7 +354,7 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// regions := serviceInfo.
-	for rs, _ := range serviceInfo.Endpoints {
+	for rs := range serviceInfo.Endpoints {
 		if partition.RegionRegex.Match([]byte(rs)) {
 			regionsForService = append(regionsForService, rs)
 		}
