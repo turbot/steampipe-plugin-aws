@@ -158,6 +158,12 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Name"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTagsForGlueCrawler,
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -260,6 +266,11 @@ func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	return *data.Crawler, nil
+}
+
+func getTagsForGlueCrawler(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	arn, _ := getGlueCrawlerArn(ctx, d, h)
+	return getTagsForGlueResource(ctx, d, arn.(string))
 }
 
 func getGlueCrawlerArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
