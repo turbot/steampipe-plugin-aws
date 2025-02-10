@@ -67,17 +67,11 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Func:    getS3ObjectACL,
 				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
 				Tags:    map[string]string{"service": "s3", "action": "GetObjectAcl"},
-				IgnoreConfig: &plugin.IgnoreConfig{
-					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequest"}),
-				},
 			},
 			{
 				Func:    getS3ObjectTagging,
 				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
 				Tags:    map[string]string{"service": "s3", "action": "GetObjectTagging"},
-				IgnoreConfig: &plugin.IgnoreConfig{
-					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequest"}),
-				},
 			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
