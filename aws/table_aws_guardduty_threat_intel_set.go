@@ -48,7 +48,7 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "guardduty", "action": "GetThreatIntelSet"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyEndpoint.GUARDDUTYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyEndpoint.AWS_GUARDDUTY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

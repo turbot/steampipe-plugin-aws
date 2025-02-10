@@ -27,52 +27,17 @@ It then **parses the JSON**, extracts relevant data, and generates two Go files:
 cd steampipe-plugin-aws
 ```
 
-#### **2. Updated `main.go` Content with:**
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/turbot/steampipe-plugin-aws/awsEndpointGenerator"
-)
-
-func main() {
-	if err := awsEndpointGenerator.Generate(); err != nil {
-		fmt.Printf("Error generating Service supported endpoint file: %v\n", err)
-	}
-
-	if err := awsEndpointGenerator.GenerateServiceID(); err != nil {
-		fmt.Printf("Error generating Service IDs file: %v\n", err)
-	}
-}
-```
-
-
-### **3. Install Dependencies**
+### **2. Install Dependencies**
 Ensure Go modules are up to date:
 ```sh
 go mod tidy
 ```
 
----
+### **3. Run the Endpoint Generator script**
 
-## **Usage**
-### **1. Generate AWS Service Endpoints**
-To fetch endpoint data and generate the Go file:
 ```sh
-go run main.go
+./scripts/awsEndpointGenerator/generate_aws_endpoint.sh
 ```
-This will:
-- Fetch and parse the **AWS endpoints JSON**.
-- Generate **Go files** containing AWS-supported endpoints.
-
-### **2. Generate AWS Service ID Constants**
-To create a Go file containing **service ID constants**:
-```sh
-go run main.go
-```
-This generates `service_id_gen.go` and `endpoints_gen.go`, which helps in mapping AWS service names and endpoint details for all the AWS service.
 
 ---
 

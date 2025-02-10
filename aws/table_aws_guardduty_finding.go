@@ -35,7 +35,7 @@ func tableAwsGuardDutyFinding(_ context.Context) *plugin.Table {
 				{Name: "type", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyEndpoint.GUARDDUTYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyEndpoint.AWS_GUARDDUTY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

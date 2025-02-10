@@ -46,7 +46,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "guardduty", "action": "GetAdministratorAccount"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyEndpoint.GUARDDUTYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyEndpoint.AWS_GUARDDUTY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "detector_id",

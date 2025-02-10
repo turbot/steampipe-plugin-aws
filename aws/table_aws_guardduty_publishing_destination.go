@@ -51,7 +51,7 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "guardduty", "action": "DescribePublishingDestination"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyEndpoint.GUARDDUTYServiceID),
+		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyEndpoint.AWS_GUARDDUTY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "destination_id",
