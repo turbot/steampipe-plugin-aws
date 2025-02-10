@@ -27,7 +27,13 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				{Name: "bucket_name", Require: plugin.Required, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "prefix", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequest"}),
+			},
 		},
+
+		// If The object was stored using a form of Server Side Encryption, we will experience InvalidRequest error.
+		// Error: aws: operation error S3: GetObjectAttributes, https response error StatusCode: 400, RequestID: QHYFJR9C3NSGZD6K, HostID: [REDACTED], api error InvalidRequest: The object was stored using a form of Server Side Encryption. The correct parameters must be provided to retrieve the object.
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getBucketRegionForObjects,
@@ -37,26 +43,41 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Func:    getS3Object,
 				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
 				Tags:    map[string]string{"service": "s3", "action": "GetObject"},
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequest"}),
+				},
 			},
 			{
 				Func:    headS3Object,
 				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
 				Tags:    map[string]string{"service": "s3", "action": "HeadObject"},
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"BadRequest"}),
+				},
 			},
 			{
 				Func:    getS3ObjectAttributes,
 				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
 				Tags:    map[string]string{"service": "s3", "action": "GetObjectAttributes"},
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequest"}),
+				},
 			},
 			{
 				Func:    getS3ObjectACL,
 				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
 				Tags:    map[string]string{"service": "s3", "action": "GetObjectAcl"},
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequest"}),
+				},
 			},
 			{
 				Func:    getS3ObjectTagging,
 				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
 				Tags:    map[string]string{"service": "s3", "action": "GetObjectTagging"},
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidRequest"}),
+				},
 			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
