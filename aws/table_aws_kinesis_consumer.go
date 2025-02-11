@@ -143,6 +143,8 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// In the case of parent hydrate the ignore config seems to not work for the child table. So we need to handle it manually.
+			// Steampipe SDK issue ref: https://github.com/turbot/steampipe-plugin-sdk/issues/544
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
 				if ae.ErrorCode() == "ResourceNotFoundException" {
