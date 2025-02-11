@@ -237,9 +237,17 @@ var {{toConstant .ID}}Partition = Partition{
 			Endpoints: map[string]Endpoint{
 				{{- range $endpointKey, $endpoint := $service.Endpoints }}
 				"{{$endpointKey}}": {
-					{{- if $endpoint.Hostname }}Hostname: "{{$endpoint.Hostname}}",{{- end }}
-					{{- if $endpoint.CredentialScope }}CredentialScope: &CredentialScope{Region: "{{$endpoint.CredentialScope.Region}}"},{{- end }}
-					{{- if $endpoint.Deprecated }}Deprecated: true,{{- end }}
+					{{- if $endpoint.Hostname }}
+					Hostname: "{{$endpoint.Hostname}}",
+					{{- end }}
+					{{- if $endpoint.CredentialScope }}
+					CredentialScope: &CredentialScope{
+					  Region: "{{$endpoint.CredentialScope.Region}}",
+					},
+					{{- end }}
+					{{- if $endpoint.Deprecated }}
+					Deprecated: true,
+					{{- end }}
 					{{- if $endpoint.Variants }}
 					Variants: []Variant{
 						{{- range $variant := $endpoint.Variants }}
@@ -255,7 +263,6 @@ var {{toConstant .ID}}Partition = Partition{
 							},
 							{{- end }}
 						},
-
 						{{- end }}
 					},
 					{{- end }}

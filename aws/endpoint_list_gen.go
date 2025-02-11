@@ -158,25 +158,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "access-analyzer-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "access-analyzer-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "access-analyzer-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "access-analyzer-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "access-analyzer-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "access-analyzer-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "access-analyzer-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "access-analyzer-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "access-analyzer-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "access-analyzer-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "access-analyzer-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "access-analyzer-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -221,7 +257,12 @@ var AWSPartition = Partition{
 		},
 		"account": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "account.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "account.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"acm": {
@@ -249,7 +290,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "acm-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "acm-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -260,20 +307,26 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Hostname: "acm-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"eu-central-1":   {},
-				"eu-central-2":   {},
-				"eu-north-1":     {},
-				"eu-south-1":     {},
-				"eu-south-2":     {},
-				"eu-west-1":      {},
-				"eu-west-2":      {},
-				"eu-west-3":      {},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"ca-west-1-fips": {
+					Hostname: "acm-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -284,7 +337,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "acm-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "acm-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -295,7 +354,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "acm-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "acm-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -306,7 +371,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "acm-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "acm-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -317,7 +388,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "acm-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "acm-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"acm-pca": {
@@ -355,25 +432,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "acm-pca-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "acm-pca-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "acm-pca-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "acm-pca-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "acm-pca-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "acm-pca-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "acm-pca-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "acm-pca-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "acm-pca-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "acm-pca-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "acm-pca-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "acm-pca-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -564,16 +677,22 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "api.detective-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"il-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"ca-central-1-fips": {
+					Hostname: "api.detective-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"il-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -584,7 +703,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "api.detective-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "api.detective-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -595,7 +720,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "api.detective-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "api.detective-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -606,7 +737,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "api.detective-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "api.detective-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -617,12 +754,22 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "api.detective-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "api.detective-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"api.ecr": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1": {Hostname: "api.ecr.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"},
+				"af-south-1": {
+					Hostname: "api.ecr.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.af-south-1.api.aws",
@@ -632,7 +779,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-east-1": {Hostname: "api.ecr.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"},
+				"ap-east-1": {
+					Hostname: "api.ecr.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-east-1.api.aws",
@@ -642,7 +793,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-1": {Hostname: "api.ecr.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"},
+				"ap-northeast-1": {
+					Hostname: "api.ecr.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-northeast-1.api.aws",
@@ -652,7 +807,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-2": {Hostname: "api.ecr.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"},
+				"ap-northeast-2": {
+					Hostname: "api.ecr.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-northeast-2.api.aws",
@@ -662,7 +821,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-3": {Hostname: "api.ecr.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"},
+				"ap-northeast-3": {
+					Hostname: "api.ecr.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-northeast-3.api.aws",
@@ -672,7 +835,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-1": {Hostname: "api.ecr.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"},
+				"ap-south-1": {
+					Hostname: "api.ecr.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-south-1.api.aws",
@@ -682,7 +849,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-2": {Hostname: "api.ecr.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"},
+				"ap-south-2": {
+					Hostname: "api.ecr.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-south-2.api.aws",
@@ -692,7 +863,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-1": {Hostname: "api.ecr.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"},
+				"ap-southeast-1": {
+					Hostname: "api.ecr.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-southeast-1.api.aws",
@@ -702,7 +877,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-2": {Hostname: "api.ecr.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"},
+				"ap-southeast-2": {
+					Hostname: "api.ecr.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-southeast-2.api.aws",
@@ -712,7 +891,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-3": {Hostname: "api.ecr.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"},
+				"ap-southeast-3": {
+					Hostname: "api.ecr.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-southeast-3.api.aws",
@@ -722,7 +905,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-4": {Hostname: "api.ecr.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"},
+				"ap-southeast-4": {
+					Hostname: "api.ecr.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-southeast-4.api.aws",
@@ -732,7 +919,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-5": {Hostname: "api.ecr.ap-southeast-5.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-5"},
+				"ap-southeast-5": {
+					Hostname: "api.ecr.ap-southeast-5.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-5",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-southeast-5.api.aws",
@@ -742,7 +933,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-7": {Hostname: "api.ecr.ap-southeast-7.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-7"},
+				"ap-southeast-7": {
+					Hostname: "api.ecr.ap-southeast-7.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-7",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ap-southeast-7.api.aws",
@@ -752,7 +947,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1": {Hostname: "api.ecr.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"},
+				"ca-central-1": {
+					Hostname: "api.ecr.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ca-central-1.api.aws",
@@ -762,7 +961,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1": {Hostname: "api.ecr.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"},
+				"ca-west-1": {
+					Hostname: "api.ecr.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.ca-west-1.api.aws",
@@ -772,7 +975,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"dkr-us-east-1": {CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true,
+				"dkr-us-east-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-east-1.amazonaws.com",
@@ -782,7 +989,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"dkr-us-east-2": {CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true,
+				"dkr-us-east-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-east-2.amazonaws.com",
@@ -792,7 +1003,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"dkr-us-west-1": {CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true,
+				"dkr-us-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-west-1.amazonaws.com",
@@ -802,7 +1017,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"dkr-us-west-2": {CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true,
+				"dkr-us-west-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-west-2.amazonaws.com",
@@ -812,7 +1031,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1": {Hostname: "api.ecr.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"},
+				"eu-central-1": {
+					Hostname: "api.ecr.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.eu-central-1.api.aws",
@@ -822,7 +1045,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-2": {Hostname: "api.ecr.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"},
+				"eu-central-2": {
+					Hostname: "api.ecr.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.eu-central-2.api.aws",
@@ -832,7 +1059,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-north-1": {Hostname: "api.ecr.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"},
+				"eu-north-1": {
+					Hostname: "api.ecr.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.eu-north-1.api.aws",
@@ -842,7 +1073,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-1": {Hostname: "api.ecr.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"},
+				"eu-south-1": {
+					Hostname: "api.ecr.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.eu-south-1.api.aws",
@@ -852,7 +1087,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-2": {Hostname: "api.ecr.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"},
+				"eu-south-2": {
+					Hostname: "api.ecr.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.eu-south-2.api.aws",
@@ -862,7 +1101,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-1": {Hostname: "api.ecr.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"},
+				"eu-west-1": {
+					Hostname: "api.ecr.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.eu-west-1.api.aws",
@@ -872,7 +1115,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-2": {Hostname: "api.ecr.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"},
+				"eu-west-2": {
+					Hostname: "api.ecr.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.eu-west-2.api.aws",
@@ -882,7 +1129,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-3": {Hostname: "api.ecr.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"},
+				"eu-west-3": {
+					Hostname: "api.ecr.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.eu-west-3.api.aws",
@@ -892,15 +1143,67 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-dkr-us-east-1": {Hostname: "ecr-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-dkr-us-east-2": {Hostname: "ecr-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-dkr-us-west-1": {Hostname: "ecr-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-dkr-us-west-2": {Hostname: "ecr-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"fips-us-east-1":     {Hostname: "ecr-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":     {Hostname: "ecr-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":     {Hostname: "ecr-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":     {Hostname: "ecr-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1": {Hostname: "api.ecr.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"},
+				"fips-dkr-us-east-1": {
+					Hostname: "ecr-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-dkr-us-east-2": {
+					Hostname: "ecr-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-dkr-us-west-1": {
+					Hostname: "ecr-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-dkr-us-west-2": {
+					Hostname: "ecr-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "ecr-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ecr-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ecr-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ecr-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {
+					Hostname: "api.ecr.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.il-central-1.api.aws",
@@ -910,7 +1213,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-central-1": {Hostname: "api.ecr.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"},
+				"me-central-1": {
+					Hostname: "api.ecr.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.me-central-1.api.aws",
@@ -920,7 +1227,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-south-1": {Hostname: "api.ecr.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"},
+				"me-south-1": {
+					Hostname: "api.ecr.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.me-south-1.api.aws",
@@ -930,7 +1241,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"mx-central-1": {Hostname: "api.ecr.mx-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "mx-central-1"},
+				"mx-central-1": {
+					Hostname: "api.ecr.mx-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "mx-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.mx-central-1.api.aws",
@@ -940,7 +1255,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"sa-east-1": {Hostname: "api.ecr.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"},
+				"sa-east-1": {
+					Hostname: "api.ecr.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.sa-east-1.api.aws",
@@ -950,7 +1269,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1": {Hostname: "api.ecr.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"us-east-1": {
+					Hostname: "api.ecr.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-east-1.amazonaws.com",
@@ -973,7 +1296,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2": {Hostname: "api.ecr.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"},
+				"us-east-2": {
+					Hostname: "api.ecr.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-east-2.amazonaws.com",
@@ -996,7 +1323,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1": {Hostname: "api.ecr.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"},
+				"us-west-1": {
+					Hostname: "api.ecr.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-west-1.amazonaws.com",
@@ -1019,7 +1350,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2": {Hostname: "api.ecr.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"},
+				"us-west-2": {
+					Hostname: "api.ecr.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-west-2.amazonaws.com",
@@ -1046,7 +1381,11 @@ var AWSPartition = Partition{
 		},
 		"api.ecr-public": {
 			Endpoints: map[string]Endpoint{
-				"us-east-1": {Hostname: "api.ecr-public.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"us-east-1": {
+					Hostname: "api.ecr-public.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr-public.us-east-1.api.aws",
@@ -1056,17 +1395,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2": {Hostname: "api.ecr-public.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"us-west-2": {
+					Hostname: "api.ecr-public.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"api.elastic-inference": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1": {Hostname: "api.elastic-inference.ap-northeast-1.amazonaws.com"},
-				"ap-northeast-2": {Hostname: "api.elastic-inference.ap-northeast-2.amazonaws.com"},
-				"eu-west-1":      {Hostname: "api.elastic-inference.eu-west-1.amazonaws.com"},
-				"us-east-1":      {Hostname: "api.elastic-inference.us-east-1.amazonaws.com"},
-				"us-east-2":      {Hostname: "api.elastic-inference.us-east-2.amazonaws.com"},
-				"us-west-2":      {Hostname: "api.elastic-inference.us-west-2.amazonaws.com"},
+				"ap-northeast-1": {
+					Hostname: "api.elastic-inference.ap-northeast-1.amazonaws.com",
+				},
+				"ap-northeast-2": {
+					Hostname: "api.elastic-inference.ap-northeast-2.amazonaws.com",
+				},
+				"eu-west-1": {
+					Hostname: "api.elastic-inference.eu-west-1.amazonaws.com",
+				},
+				"us-east-1": {
+					Hostname: "api.elastic-inference.us-east-1.amazonaws.com",
+				},
+				"us-east-2": {
+					Hostname: "api.elastic-inference.us-east-2.amazonaws.com",
+				},
+				"us-west-2": {
+					Hostname: "api.elastic-inference.us-west-2.amazonaws.com",
+				},
 			},
 		},
 		"api.fleethub.iot": {
@@ -1086,14 +1442,38 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "api.fleethub.iot-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "api.fleethub.iot-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "api.fleethub.iot-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "api.fleethub.iot-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "api.fleethub.iot-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "api.fleethub.iot-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "api.fleethub.iot-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "api.fleethub.iot-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -1128,21 +1508,76 @@ var AWSPartition = Partition{
 		},
 		"api.iotdeviceadvisor": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1": {Hostname: "api.iotdeviceadvisor.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"eu-west-1":      {Hostname: "api.iotdeviceadvisor.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"us-east-1":      {Hostname: "api.iotdeviceadvisor.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"us-west-2":      {Hostname: "api.iotdeviceadvisor.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"ap-northeast-1": {
+					Hostname: "api.iotdeviceadvisor.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "api.iotdeviceadvisor.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"us-east-1": {
+					Hostname: "api.iotdeviceadvisor.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"us-west-2": {
+					Hostname: "api.iotdeviceadvisor.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"api.iotwireless": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1": {Hostname: "api.iotwireless.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"ap-southeast-2": {Hostname: "api.iotwireless.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"eu-central-1":   {Hostname: "api.iotwireless.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"eu-west-1":      {Hostname: "api.iotwireless.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"sa-east-1":      {Hostname: "api.iotwireless.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}},
-				"us-east-1":      {Hostname: "api.iotwireless.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"us-west-2":      {Hostname: "api.iotwireless.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"ap-northeast-1": {
+					Hostname: "api.iotwireless.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"ap-southeast-2": {
+					Hostname: "api.iotwireless.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"eu-central-1": {
+					Hostname: "api.iotwireless.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "api.iotwireless.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"sa-east-1": {
+					Hostname: "api.iotwireless.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+				},
+				"us-east-1": {
+					Hostname: "api.iotwireless.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"us-west-2": {
+					Hostname: "api.iotwireless.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"api.mediatailor": {
@@ -1213,7 +1648,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "api-fips.sagemaker.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "api-fips.sagemaker.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -1224,7 +1665,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "api-fips.sagemaker.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "api-fips.sagemaker.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -1235,7 +1682,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "api-fips.sagemaker.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "api-fips.sagemaker.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -1246,7 +1699,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "api-fips.sagemaker.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "api-fips.sagemaker.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"api.tunneling.iot": {
@@ -1384,11 +1843,41 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "api.tunneling.iot-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "api.tunneling.iot-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "api.tunneling.iot-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "api.tunneling.iot-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "api.tunneling.iot-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "api.tunneling.iot-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "api.tunneling.iot-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "api.tunneling.iot-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "api.tunneling.iot-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "api.tunneling.iot-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"me-central-1": {
 					Variants: []Variant{
 						{
@@ -1548,25 +2037,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "apigateway-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "apigateway-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "apigateway-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "apigateway-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "apigateway-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "apigateway-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "apigateway-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "apigateway-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "apigateway-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "apigateway-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "apigateway-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "apigateway-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -1708,11 +2233,35 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "appflow-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "appflow-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "appflow-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "appflow-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "appflow-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "appflow-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "appflow-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "appflow-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -1939,7 +2488,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "appmesh-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "appmesh-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"eu-central-1": {
 					Variants: []Variant{
 						{
@@ -2073,7 +2628,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "appmesh-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "appmesh-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -2097,7 +2658,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "appmesh-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "appmesh-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -2121,7 +2688,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "appmesh-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "appmesh-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -2145,7 +2718,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "appmesh-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "appmesh-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"apprunner": {
@@ -2158,9 +2737,27 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "apprunner-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "apprunner-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "apprunner-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "apprunner-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "apprunner-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "apprunner-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -2204,8 +2801,14 @@ var AWSPartition = Partition{
 				"eu-central-1":   {},
 				"eu-west-1":      {},
 				"eu-west-2":      {},
-				"fips":           {Hostname: "appstream2-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"sa-east-1":      {},
+				"fips": {
+					Hostname: "appstream2-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -2216,8 +2819,14 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "appstream2-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"us-east-2":      {},
+				"us-east-1-fips": {
+					Hostname: "appstream2-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-east-2": {},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -2228,7 +2837,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "appstream2-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "appstream2-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"appsync": {
@@ -2267,8 +2882,10 @@ var AWSPartition = Partition{
 			Endpoints: map[string]Endpoint{
 				"ap-southeast-2": {},
 				"eu-central-1":   {},
-				"fips-us-east-1": {Deprecated: true},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -2694,12 +3311,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "athena-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "athena-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "athena-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "athena-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "athena-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "athena-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "athena-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "athena-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "athena-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "athena-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "athena-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "athena-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -2854,7 +3507,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "auditmanager-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "auditmanager-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -2865,7 +3524,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "auditmanager-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "auditmanager-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -2876,7 +3541,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "auditmanager-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "auditmanager-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -2887,7 +3558,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "auditmanager-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "auditmanager-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"autoscaling": {
@@ -2925,25 +3602,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "autoscaling-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "autoscaling-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "autoscaling-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "autoscaling-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "autoscaling-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "autoscaling-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "autoscaling-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "autoscaling-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "autoscaling-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "autoscaling-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "autoscaling-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "autoscaling-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -3098,15 +3811,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "fips.batch.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "fips.batch.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "fips.batch.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "fips.batch.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "fips.batch.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "fips.batch.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "fips.batch.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "fips.batch.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -3151,64 +3888,259 @@ var AWSPartition = Partition{
 		},
 		"bedrock": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1":                    {},
-				"ap-northeast-2":                    {},
-				"ap-south-1":                        {},
-				"ap-southeast-1":                    {},
-				"ap-southeast-2":                    {},
-				"bedrock-ap-northeast-1":            {Hostname: "bedrock.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"bedrock-ap-northeast-2":            {Hostname: "bedrock.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"bedrock-ap-south-1":                {Hostname: "bedrock.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"bedrock-ap-southeast-1":            {Hostname: "bedrock.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"bedrock-ap-southeast-2":            {Hostname: "bedrock.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"bedrock-ca-central-1":              {Hostname: "bedrock.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"bedrock-eu-central-1":              {Hostname: "bedrock.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"bedrock-eu-central-2":              {Hostname: "bedrock.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}},
-				"bedrock-eu-west-1":                 {Hostname: "bedrock.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"bedrock-eu-west-2":                 {Hostname: "bedrock.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"bedrock-eu-west-3":                 {Hostname: "bedrock.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}},
-				"bedrock-fips-ca-central-1":         {Hostname: "bedrock-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"bedrock-fips-us-east-1":            {Hostname: "bedrock-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"bedrock-fips-us-east-2":            {Hostname: "bedrock-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"bedrock-fips-us-west-2":            {Hostname: "bedrock-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
-				"bedrock-runtime-ap-northeast-1":    {Hostname: "bedrock-runtime.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"bedrock-runtime-ap-northeast-2":    {Hostname: "bedrock-runtime.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"bedrock-runtime-ap-south-1":        {Hostname: "bedrock-runtime.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"bedrock-runtime-ap-southeast-1":    {Hostname: "bedrock-runtime.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"bedrock-runtime-ap-southeast-2":    {Hostname: "bedrock-runtime.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"bedrock-runtime-ca-central-1":      {Hostname: "bedrock-runtime.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"bedrock-runtime-eu-central-1":      {Hostname: "bedrock-runtime.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"bedrock-runtime-eu-central-2":      {Hostname: "bedrock-runtime.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}},
-				"bedrock-runtime-eu-west-1":         {Hostname: "bedrock-runtime.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"bedrock-runtime-eu-west-2":         {Hostname: "bedrock-runtime.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"bedrock-runtime-eu-west-3":         {Hostname: "bedrock-runtime.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}},
-				"bedrock-runtime-fips-ca-central-1": {Hostname: "bedrock-runtime-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"bedrock-runtime-fips-us-east-1":    {Hostname: "bedrock-runtime-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"bedrock-runtime-fips-us-east-2":    {Hostname: "bedrock-runtime-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"bedrock-runtime-fips-us-west-2":    {Hostname: "bedrock-runtime-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
-				"bedrock-runtime-sa-east-1":         {Hostname: "bedrock-runtime.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}},
-				"bedrock-runtime-us-east-1":         {Hostname: "bedrock-runtime.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"bedrock-runtime-us-east-2":         {Hostname: "bedrock-runtime.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"bedrock-runtime-us-west-2":         {Hostname: "bedrock-runtime.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
-				"bedrock-sa-east-1":                 {Hostname: "bedrock.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}},
-				"bedrock-us-east-1":                 {Hostname: "bedrock.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"bedrock-us-east-2":                 {Hostname: "bedrock.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"bedrock-us-west-2":                 {Hostname: "bedrock.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
-				"ca-central-1":                      {},
-				"eu-central-1":                      {},
-				"eu-central-2":                      {},
-				"eu-west-1":                         {},
-				"eu-west-2":                         {},
-				"eu-west-3":                         {},
-				"sa-east-1":                         {},
-				"us-east-1":                         {},
-				"us-east-2":                         {},
-				"us-west-2":                         {},
+				"ap-northeast-1": {},
+				"ap-northeast-2": {},
+				"ap-south-1":     {},
+				"ap-southeast-1": {},
+				"ap-southeast-2": {},
+				"bedrock-ap-northeast-1": {
+					Hostname: "bedrock.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"bedrock-ap-northeast-2": {
+					Hostname: "bedrock.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"bedrock-ap-south-1": {
+					Hostname: "bedrock.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"bedrock-ap-southeast-1": {
+					Hostname: "bedrock.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"bedrock-ap-southeast-2": {
+					Hostname: "bedrock.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"bedrock-ca-central-1": {
+					Hostname: "bedrock.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"bedrock-eu-central-1": {
+					Hostname: "bedrock.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"bedrock-eu-central-2": {
+					Hostname: "bedrock.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+				},
+				"bedrock-eu-west-1": {
+					Hostname: "bedrock.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"bedrock-eu-west-2": {
+					Hostname: "bedrock.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"bedrock-eu-west-3": {
+					Hostname: "bedrock.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+				},
+				"bedrock-fips-ca-central-1": {
+					Hostname: "bedrock-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"bedrock-fips-us-east-1": {
+					Hostname: "bedrock-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"bedrock-fips-us-east-2": {
+					Hostname: "bedrock-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"bedrock-fips-us-west-2": {
+					Hostname: "bedrock-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
+				"bedrock-runtime-ap-northeast-1": {
+					Hostname: "bedrock-runtime.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"bedrock-runtime-ap-northeast-2": {
+					Hostname: "bedrock-runtime.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"bedrock-runtime-ap-south-1": {
+					Hostname: "bedrock-runtime.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"bedrock-runtime-ap-southeast-1": {
+					Hostname: "bedrock-runtime.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"bedrock-runtime-ap-southeast-2": {
+					Hostname: "bedrock-runtime.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"bedrock-runtime-ca-central-1": {
+					Hostname: "bedrock-runtime.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"bedrock-runtime-eu-central-1": {
+					Hostname: "bedrock-runtime.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"bedrock-runtime-eu-central-2": {
+					Hostname: "bedrock-runtime.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+				},
+				"bedrock-runtime-eu-west-1": {
+					Hostname: "bedrock-runtime.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"bedrock-runtime-eu-west-2": {
+					Hostname: "bedrock-runtime.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"bedrock-runtime-eu-west-3": {
+					Hostname: "bedrock-runtime.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+				},
+				"bedrock-runtime-fips-ca-central-1": {
+					Hostname: "bedrock-runtime-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"bedrock-runtime-fips-us-east-1": {
+					Hostname: "bedrock-runtime-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"bedrock-runtime-fips-us-east-2": {
+					Hostname: "bedrock-runtime-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"bedrock-runtime-fips-us-west-2": {
+					Hostname: "bedrock-runtime-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
+				"bedrock-runtime-sa-east-1": {
+					Hostname: "bedrock-runtime.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+				},
+				"bedrock-runtime-us-east-1": {
+					Hostname: "bedrock-runtime.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"bedrock-runtime-us-east-2": {
+					Hostname: "bedrock-runtime.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"bedrock-runtime-us-west-2": {
+					Hostname: "bedrock-runtime.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
+				"bedrock-sa-east-1": {
+					Hostname: "bedrock.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+				},
+				"bedrock-us-east-1": {
+					Hostname: "bedrock.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"bedrock-us-east-2": {
+					Hostname: "bedrock.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"bedrock-us-west-2": {
+					Hostname: "bedrock.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
+				"ca-central-1": {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"sa-east-1":    {},
+				"us-east-1":    {},
+				"us-east-2":    {},
+				"us-west-2":    {},
 			},
 		},
 		"billingconductor": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "billingconductor.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "billingconductor.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"braket": {
@@ -3267,7 +4199,12 @@ var AWSPartition = Partition{
 		},
 		"budgets": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "budgets.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "budgets.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"cases": {
@@ -3279,8 +4216,12 @@ var AWSPartition = Partition{
 				"ca-central-1":   {},
 				"eu-central-1":   {},
 				"eu-west-2":      {},
-				"fips-us-east-1": {Deprecated: true},
-				"fips-us-west-2": {Deprecated: true},
+				"fips-us-east-1": {
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -3316,10 +4257,22 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "cassandra-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "cassandra-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "cassandra-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "cassandra-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"me-south-1": {},
+				"sa-east-1":  {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -3351,12 +4304,22 @@ var AWSPartition = Partition{
 		},
 		"ce": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "ce.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "ce.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"chime": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "chime.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "chime.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"cleanrooms": {
@@ -3369,9 +4332,27 @@ var AWSPartition = Partition{
 				"eu-north-1":     {},
 				"eu-west-1":      {},
 				"eu-west-2":      {},
-				"fips-us-east-1": {Hostname: "cleanrooms-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "cleanrooms-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "cleanrooms-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "cleanrooms-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "cleanrooms-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "cleanrooms-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -3554,11 +4535,41 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "cloud9-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "cloud9-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "cloud9-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "cloud9-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "cloud9-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "cloud9-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "cloud9-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "cloud9-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "cloud9-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "cloud9-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -3924,12 +4935,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "cloudcontrolapi-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "cloudcontrolapi-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "cloudcontrolapi-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "cloudcontrolapi-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "cloudcontrolapi-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "cloudcontrolapi-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "cloudcontrolapi-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "cloudcontrolapi-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "cloudcontrolapi-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "cloudcontrolapi-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "cloudcontrolapi-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "cloudcontrolapi-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -4117,7 +5164,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "cloudformation-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "cloudformation-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -4128,7 +5181,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "cloudformation-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "cloudformation-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -4139,7 +5198,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "cloudformation-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "cloudformation-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -4150,12 +5215,23 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "cloudformation-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "cloudformation-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"cloudfront": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "cloudfront.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "cloudfront.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"cloudhsm": {
@@ -4466,15 +5542,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "cloudtrail-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "cloudtrail-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "cloudtrail-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "cloudtrail-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "cloudtrail-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "cloudtrail-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "cloudtrail-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "cloudtrail-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -4597,7 +5697,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "codebuild-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "codebuild-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -4608,7 +5714,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "codebuild-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "codebuild-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -4619,7 +5731,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "codebuild-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "codebuild-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -4630,12 +5748,20 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "codebuild-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "codebuild-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"codecatalyst": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "codecatalyst.global.api.aws"},
+				"aws-global": {
+					Hostname: "codecatalyst.global.api.aws",
+				},
 			},
 		},
 		"codecommit": {
@@ -4660,18 +5786,30 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "codecommit-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips":              {Hostname: "codecommit-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"ca-central-1-fips": {
+					Hostname: "codecommit-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips": {
+					Hostname: "codecommit-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -4682,7 +5820,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "codecommit-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "codecommit-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -4693,7 +5837,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "codecommit-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "codecommit-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -4704,7 +5854,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "codecommit-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "codecommit-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -4715,7 +5871,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "codecommit-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "codecommit-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"codedeploy": {
@@ -4758,7 +5920,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "codedeploy-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "codedeploy-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -4769,7 +5937,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "codedeploy-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "codedeploy-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -4780,7 +5954,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "codedeploy-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "codedeploy-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -4791,7 +5971,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "codedeploy-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "codedeploy-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"codeguru-reviewer": {
@@ -4831,23 +6017,53 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "codepipeline-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "codepipeline-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "codepipeline-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "codepipeline-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "codepipeline-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "codepipeline-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "codepipeline-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "codepipeline-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "codepipeline-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "codepipeline-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -5145,10 +6361,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "cognito-identity-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "cognito-identity-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "cognito-identity-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "cognito-identity-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "cognito-identity-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "cognito-identity-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "cognito-identity-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "cognito-identity-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -5495,10 +6735,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "cognito-idp-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "cognito-idp-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "cognito-idp-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "cognito-idp-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "cognito-idp-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "cognito-idp-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "cognito-idp-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "cognito-idp-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -5665,13 +6929,37 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "comprehend-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "comprehend-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "comprehend-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "comprehend-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-central-1": {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "comprehend-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "comprehend-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "comprehend-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "comprehend-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -5717,12 +7005,36 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "comprehendmedical-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "comprehendmedical-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "comprehendmedical-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "comprehendmedical-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-west-1": {},
+				"eu-west-2": {},
+				"fips-ca-central-1": {
+					Hostname: "comprehendmedical-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "comprehendmedical-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "comprehendmedical-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "comprehendmedical-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -5757,34 +7069,174 @@ var AWSPartition = Partition{
 		},
 		"compute-optimizer": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1":     {Hostname: "compute-optimizer.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}},
-				"ap-east-1":      {Hostname: "compute-optimizer.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}},
-				"ap-northeast-1": {Hostname: "compute-optimizer.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"ap-northeast-2": {Hostname: "compute-optimizer.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"ap-northeast-3": {Hostname: "compute-optimizer.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"}},
-				"ap-south-1":     {Hostname: "compute-optimizer.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"ap-south-2":     {Hostname: "compute-optimizer.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"}},
-				"ap-southeast-1": {Hostname: "compute-optimizer.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"ap-southeast-2": {Hostname: "compute-optimizer.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"ap-southeast-3": {Hostname: "compute-optimizer.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"}},
-				"ap-southeast-4": {Hostname: "compute-optimizer.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"}},
-				"ca-central-1":   {Hostname: "compute-optimizer.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"eu-central-1":   {Hostname: "compute-optimizer.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"eu-central-2":   {Hostname: "compute-optimizer.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}},
-				"eu-north-1":     {Hostname: "compute-optimizer.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}},
-				"eu-south-1":     {Hostname: "compute-optimizer.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}},
-				"eu-south-2":     {Hostname: "compute-optimizer.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"}},
-				"eu-west-1":      {Hostname: "compute-optimizer.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"eu-west-2":      {Hostname: "compute-optimizer.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"eu-west-3":      {Hostname: "compute-optimizer.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}},
-				"il-central-1":   {Hostname: "compute-optimizer.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"}},
-				"me-central-1":   {Hostname: "compute-optimizer.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"}},
-				"me-south-1":     {Hostname: "compute-optimizer.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}},
-				"sa-east-1":      {Hostname: "compute-optimizer.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}},
-				"us-east-1":      {Hostname: "compute-optimizer.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"us-east-2":      {Hostname: "compute-optimizer.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"us-west-1":      {Hostname: "compute-optimizer.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}},
-				"us-west-2":      {Hostname: "compute-optimizer.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"af-south-1": {
+					Hostname: "compute-optimizer.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+				},
+				"ap-east-1": {
+					Hostname: "compute-optimizer.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+				},
+				"ap-northeast-1": {
+					Hostname: "compute-optimizer.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"ap-northeast-2": {
+					Hostname: "compute-optimizer.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"ap-northeast-3": {
+					Hostname: "compute-optimizer.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
+				},
+				"ap-south-1": {
+					Hostname: "compute-optimizer.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"ap-south-2": {
+					Hostname: "compute-optimizer.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
+				},
+				"ap-southeast-1": {
+					Hostname: "compute-optimizer.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"ap-southeast-2": {
+					Hostname: "compute-optimizer.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"ap-southeast-3": {
+					Hostname: "compute-optimizer.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
+				},
+				"ap-southeast-4": {
+					Hostname: "compute-optimizer.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
+				},
+				"ca-central-1": {
+					Hostname: "compute-optimizer.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"eu-central-1": {
+					Hostname: "compute-optimizer.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"eu-central-2": {
+					Hostname: "compute-optimizer.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+				},
+				"eu-north-1": {
+					Hostname: "compute-optimizer.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+				},
+				"eu-south-1": {
+					Hostname: "compute-optimizer.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+				},
+				"eu-south-2": {
+					Hostname: "compute-optimizer.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "compute-optimizer.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"eu-west-2": {
+					Hostname: "compute-optimizer.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"eu-west-3": {
+					Hostname: "compute-optimizer.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+				},
+				"il-central-1": {
+					Hostname: "compute-optimizer.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
+				},
+				"me-central-1": {
+					Hostname: "compute-optimizer.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
+				},
+				"me-south-1": {
+					Hostname: "compute-optimizer.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+				},
+				"sa-east-1": {
+					Hostname: "compute-optimizer.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+				},
+				"us-east-1": {
+					Hostname: "compute-optimizer.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"us-east-2": {
+					Hostname: "compute-optimizer.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"us-west-1": {
+					Hostname: "compute-optimizer.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+				},
+				"us-west-2": {
+					Hostname: "compute-optimizer.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"config": {
@@ -5812,15 +7264,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "config-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "config-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "config-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "config-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "config-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "config-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "config-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "config-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -5880,11 +7356,29 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "connect-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "connect-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "connect-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-central-1": {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "connect-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "connect-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "connect-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -5914,8 +7408,20 @@ var AWSPartition = Partition{
 				"ca-central-1":   {},
 				"eu-central-1":   {},
 				"eu-west-2":      {},
-				"fips-us-east-1": {Hostname: "connect-campaigns-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "connect-campaigns-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "connect-campaigns-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "connect-campaigns-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -5976,7 +7482,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "controltower-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "controltower-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -5987,19 +7499,25 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Hostname: "controltower-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"eu-central-1":   {},
-				"eu-central-2":   {},
-				"eu-north-1":     {},
-				"eu-south-1":     {},
-				"eu-south-2":     {},
-				"eu-west-1":      {},
-				"eu-west-2":      {},
-				"eu-west-3":      {},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"ca-west-1-fips": {
+					Hostname: "controltower-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -6010,7 +7528,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "controltower-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "controltower-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -6021,7 +7545,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "controltower-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "controltower-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -6032,7 +7562,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "controltower-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "controltower-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -6043,12 +7579,23 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "controltower-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "controltower-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"cost-optimization-hub": {
 			Endpoints: map[string]Endpoint{
-				"us-east-1": {Hostname: "cost-optimization-hub.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"us-east-1": {
+					Hostname: "cost-optimization-hub.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"cur": {
@@ -6074,19 +7621,49 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "data.iot-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "data.iot-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "data.iot-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "data.iot-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "data.iot-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "data.iot-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "data.iot-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "data.iot-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "data.iot-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "data.iot-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -6147,18 +7724,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "data.iot-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "data.iot-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "data.iot-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "data.iot-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "data.iot-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "data.iot-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "data.iot-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "data.iot-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "data.iot-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "data.iot-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"me-south-1": {},
+				"sa-east-1":  {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -6219,18 +7826,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "data.jobs.iot-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "data.jobs.iot-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "data.jobs.iot-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "data.jobs.iot-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "data.jobs.iot-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "data.jobs.iot-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "data.jobs.iot-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "data.jobs.iot-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "data.jobs.iot-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "data.jobs.iot-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"me-south-1": {},
+				"sa-east-1":  {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -6302,11 +7939,35 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "databrew-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "databrew-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "databrew-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "databrew-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "databrew-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "databrew-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "databrew-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "databrew-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -6631,12 +8292,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "datasync-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "datasync-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "datasync-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "datasync-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "datasync-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "datasync-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "datasync-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "datasync-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "datasync-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "datasync-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "datasync-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "datasync-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -6783,17 +8480,38 @@ var AWSPartition = Partition{
 		},
 		"datazone": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1": {Hostname: "datazone.ap-northeast-1.api.aws"},
-				"ap-northeast-2": {Hostname: "datazone.ap-northeast-2.api.aws"},
-				"ap-northeast-3": {Hostname: "datazone.ap-northeast-3.api.aws"},
-				"ap-south-2":     {Hostname: "datazone.ap-south-2.api.aws"},
-				"ap-southeast-1": {Hostname: "datazone.ap-southeast-1.api.aws"},
-				"ap-southeast-2": {Hostname: "datazone.ap-southeast-2.api.aws"},
-				"ap-southeast-3": {Hostname: "datazone.ap-southeast-3.api.aws"},
-				"ap-southeast-4": {Hostname: "datazone.ap-southeast-4.api.aws"},
-				"ap-southeast-5": {Hostname: "datazone.ap-southeast-5.api.aws"},
-				"ap-southeast-7": {Hostname: "datazone.ap-southeast-7.api.aws"},
-				"ca-central-1": {Hostname: "datazone.ca-central-1.api.aws",
+				"ap-northeast-1": {
+					Hostname: "datazone.ap-northeast-1.api.aws",
+				},
+				"ap-northeast-2": {
+					Hostname: "datazone.ap-northeast-2.api.aws",
+				},
+				"ap-northeast-3": {
+					Hostname: "datazone.ap-northeast-3.api.aws",
+				},
+				"ap-south-2": {
+					Hostname: "datazone.ap-south-2.api.aws",
+				},
+				"ap-southeast-1": {
+					Hostname: "datazone.ap-southeast-1.api.aws",
+				},
+				"ap-southeast-2": {
+					Hostname: "datazone.ap-southeast-2.api.aws",
+				},
+				"ap-southeast-3": {
+					Hostname: "datazone.ap-southeast-3.api.aws",
+				},
+				"ap-southeast-4": {
+					Hostname: "datazone.ap-southeast-4.api.aws",
+				},
+				"ap-southeast-5": {
+					Hostname: "datazone.ap-southeast-5.api.aws",
+				},
+				"ap-southeast-7": {
+					Hostname: "datazone.ap-southeast-7.api.aws",
+				},
+				"ca-central-1": {
+					Hostname: "datazone.ca-central-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "datazone-fips.ca-central-1.amazonaws.com",
@@ -6803,18 +8521,41 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1":    {Hostname: "datazone.ca-west-1.api.aws"},
-				"eu-central-1": {Hostname: "datazone.eu-central-1.api.aws"},
-				"eu-north-1":   {Hostname: "datazone.eu-north-1.api.aws"},
-				"eu-south-1":   {Hostname: "datazone.eu-south-1.api.aws"},
-				"eu-west-1":    {Hostname: "datazone.eu-west-1.api.aws"},
-				"eu-west-2":    {Hostname: "datazone.eu-west-2.api.aws"},
-				"eu-west-3":    {Hostname: "datazone.eu-west-3.api.aws"},
-				"il-central-1": {Hostname: "datazone.il-central-1.api.aws"},
-				"me-central-1": {Hostname: "datazone.me-central-1.api.aws"},
-				"me-south-1":   {Hostname: "datazone.me-south-1.api.aws"},
-				"sa-east-1":    {Hostname: "datazone.sa-east-1.api.aws"},
-				"us-east-1": {Hostname: "datazone.us-east-1.api.aws",
+				"ca-west-1": {
+					Hostname: "datazone.ca-west-1.api.aws",
+				},
+				"eu-central-1": {
+					Hostname: "datazone.eu-central-1.api.aws",
+				},
+				"eu-north-1": {
+					Hostname: "datazone.eu-north-1.api.aws",
+				},
+				"eu-south-1": {
+					Hostname: "datazone.eu-south-1.api.aws",
+				},
+				"eu-west-1": {
+					Hostname: "datazone.eu-west-1.api.aws",
+				},
+				"eu-west-2": {
+					Hostname: "datazone.eu-west-2.api.aws",
+				},
+				"eu-west-3": {
+					Hostname: "datazone.eu-west-3.api.aws",
+				},
+				"il-central-1": {
+					Hostname: "datazone.il-central-1.api.aws",
+				},
+				"me-central-1": {
+					Hostname: "datazone.me-central-1.api.aws",
+				},
+				"me-south-1": {
+					Hostname: "datazone.me-south-1.api.aws",
+				},
+				"sa-east-1": {
+					Hostname: "datazone.sa-east-1.api.aws",
+				},
+				"us-east-1": {
+					Hostname: "datazone.us-east-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "datazone-fips.us-east-1.amazonaws.com",
@@ -6824,7 +8565,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2": {Hostname: "datazone.us-east-2.api.aws",
+				"us-east-2": {
+					Hostname: "datazone.us-east-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "datazone-fips.us-east-2.amazonaws.com",
@@ -6834,8 +8576,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1": {Hostname: "datazone.us-west-1.api.aws"},
-				"us-west-2": {Hostname: "datazone.us-west-2.api.aws",
+				"us-west-1": {
+					Hostname: "datazone.us-west-1.api.aws",
+				},
+				"us-west-2": {
+					Hostname: "datazone.us-west-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "datazone-fips.us-west-2.amazonaws.com",
@@ -6888,17 +8633,47 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "devops-guru-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "devops-guru-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "devops-guru-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "devops-guru-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "devops-guru-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "devops-guru-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "devops-guru-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "devops-guru-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "devops-guru-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "devops-guru-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -6976,25 +8751,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "directconnect-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "directconnect-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "directconnect-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "directconnect-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "directconnect-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "directconnect-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "directconnect-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "directconnect-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "directconnect-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "directconnect-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "directconnect-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "directconnect-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -7431,7 +9242,11 @@ var AWSPartition = Partition{
 				"ap-southeast-7": {},
 				"ca-central-1":   {},
 				"ca-west-1":      {},
-				"dms": {CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true,
+				"dms": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "dms-fips.us-west-1.amazonaws.com",
@@ -7441,7 +9256,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"dms-fips":     {Hostname: "dms-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"dms-fips": {
+					Hostname: "dms-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"eu-central-1": {},
 				"eu-central-2": {},
 				"eu-north-1":   {},
@@ -7465,7 +9286,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "dms-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "dms-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -7476,7 +9303,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "dms-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "dms-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -7487,7 +9320,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "dms-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "dms-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -7498,25 +9337,101 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "dms-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "dms-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"docdb": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1": {Hostname: "rds.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"ap-northeast-2": {Hostname: "rds.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"ap-south-1":     {Hostname: "rds.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"ap-southeast-1": {Hostname: "rds.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"ap-southeast-2": {Hostname: "rds.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"ca-central-1":   {Hostname: "rds.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"eu-central-1":   {Hostname: "rds.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"eu-west-1":      {Hostname: "rds.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"eu-west-2":      {Hostname: "rds.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"eu-west-3":      {Hostname: "rds.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}},
-				"sa-east-1":      {Hostname: "rds.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}},
-				"us-east-1":      {Hostname: "rds.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"us-east-2":      {Hostname: "rds.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"us-west-2":      {Hostname: "rds.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"ap-northeast-1": {
+					Hostname: "rds.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"ap-northeast-2": {
+					Hostname: "rds.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"ap-south-1": {
+					Hostname: "rds.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"ap-southeast-1": {
+					Hostname: "rds.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"ap-southeast-2": {
+					Hostname: "rds.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"ca-central-1": {
+					Hostname: "rds.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"eu-central-1": {
+					Hostname: "rds.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "rds.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"eu-west-2": {
+					Hostname: "rds.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"eu-west-3": {
+					Hostname: "rds.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+				},
+				"sa-east-1": {
+					Hostname: "rds.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+				},
+				"us-east-1": {
+					Hostname: "rds.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"us-east-2": {
+					Hostname: "rds.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"us-west-2": {
+					Hostname: "rds.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"drs": {
@@ -7541,14 +9456,38 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "drs-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "drs-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "drs-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "drs-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "drs-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "drs-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "drs-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "drs-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -7625,24 +9564,60 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "ds-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "ds-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "ds-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "ds-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "ds-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "ds-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "ds-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "ds-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "ds-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ds-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ds-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ds-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -7710,7 +9685,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "dynamodb-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "dynamodb-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -7721,21 +9702,32 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Hostname: "dynamodb-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"eu-central-1":   {},
-				"eu-central-2":   {},
-				"eu-north-1":     {},
-				"eu-south-1":     {},
-				"eu-south-2":     {},
-				"eu-west-1":      {},
-				"eu-west-2":      {},
-				"eu-west-3":      {},
-				"il-central-1":   {},
-				"local":          {Hostname: "localhost:8000", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"ca-west-1-fips": {
+					Hostname: "dynamodb-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"il-central-1": {},
+				"local": {
+					Hostname: "localhost:8000",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -7746,7 +9738,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "dynamodb-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "dynamodb-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -7757,7 +9755,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "dynamodb-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "dynamodb-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -7768,7 +9772,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "dynamodb-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "dynamodb-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -7779,7 +9789,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "dynamodb-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "dynamodb-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"ebs": {
@@ -7817,25 +9833,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "ebs-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "ebs-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "ebs-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "ebs-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "ebs-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "ebs-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "ebs-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "ebs-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "ebs-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ebs-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ebs-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ebs-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -8044,14 +10096,50 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "ec2-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "ec2-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "ec2-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "ec2-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "ec2-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "ec2-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
+				"fips-ca-central-1": {
+					Hostname: "ec2-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "ec2-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "ec2-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ec2-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ec2-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ec2-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
 				"me-south-1": {
 					Variants: []Variant{
 						{
@@ -8164,15 +10252,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "ecs-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "ecs-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "ecs-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "ecs-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "ecs-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ecs-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ecs-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ecs-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -8250,15 +10362,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "fips.eks.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "fips.eks.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "fips.eks.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "fips.eks.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "fips.eks.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "fips.eks.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "fips.eks.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "fips.eks.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -8303,38 +10439,102 @@ var AWSPartition = Partition{
 		},
 		"eks-auth": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1":     {Hostname: "eks-auth.af-south-1.api.aws"},
-				"ap-east-1":      {Hostname: "eks-auth.ap-east-1.api.aws"},
-				"ap-northeast-1": {Hostname: "eks-auth.ap-northeast-1.api.aws"},
-				"ap-northeast-2": {Hostname: "eks-auth.ap-northeast-2.api.aws"},
-				"ap-northeast-3": {Hostname: "eks-auth.ap-northeast-3.api.aws"},
-				"ap-south-1":     {Hostname: "eks-auth.ap-south-1.api.aws"},
-				"ap-south-2":     {Hostname: "eks-auth.ap-south-2.api.aws"},
-				"ap-southeast-1": {Hostname: "eks-auth.ap-southeast-1.api.aws"},
-				"ap-southeast-2": {Hostname: "eks-auth.ap-southeast-2.api.aws"},
-				"ap-southeast-3": {Hostname: "eks-auth.ap-southeast-3.api.aws"},
-				"ap-southeast-4": {Hostname: "eks-auth.ap-southeast-4.api.aws"},
-				"ap-southeast-5": {Hostname: "eks-auth.ap-southeast-5.api.aws"},
-				"ap-southeast-7": {Hostname: "eks-auth.ap-southeast-7.api.aws"},
-				"ca-central-1":   {Hostname: "eks-auth.ca-central-1.api.aws"},
-				"ca-west-1":      {Hostname: "eks-auth.ca-west-1.api.aws"},
-				"eu-central-1":   {Hostname: "eks-auth.eu-central-1.api.aws"},
-				"eu-central-2":   {Hostname: "eks-auth.eu-central-2.api.aws"},
-				"eu-north-1":     {Hostname: "eks-auth.eu-north-1.api.aws"},
-				"eu-south-1":     {Hostname: "eks-auth.eu-south-1.api.aws"},
-				"eu-south-2":     {Hostname: "eks-auth.eu-south-2.api.aws"},
-				"eu-west-1":      {Hostname: "eks-auth.eu-west-1.api.aws"},
-				"eu-west-2":      {Hostname: "eks-auth.eu-west-2.api.aws"},
-				"eu-west-3":      {Hostname: "eks-auth.eu-west-3.api.aws"},
-				"il-central-1":   {Hostname: "eks-auth.il-central-1.api.aws"},
-				"me-central-1":   {Hostname: "eks-auth.me-central-1.api.aws"},
-				"me-south-1":     {Hostname: "eks-auth.me-south-1.api.aws"},
-				"mx-central-1":   {Hostname: "eks-auth.mx-central-1.api.aws"},
-				"sa-east-1":      {Hostname: "eks-auth.sa-east-1.api.aws"},
-				"us-east-1":      {Hostname: "eks-auth.us-east-1.api.aws"},
-				"us-east-2":      {Hostname: "eks-auth.us-east-2.api.aws"},
-				"us-west-1":      {Hostname: "eks-auth.us-west-1.api.aws"},
-				"us-west-2":      {Hostname: "eks-auth.us-west-2.api.aws"},
+				"af-south-1": {
+					Hostname: "eks-auth.af-south-1.api.aws",
+				},
+				"ap-east-1": {
+					Hostname: "eks-auth.ap-east-1.api.aws",
+				},
+				"ap-northeast-1": {
+					Hostname: "eks-auth.ap-northeast-1.api.aws",
+				},
+				"ap-northeast-2": {
+					Hostname: "eks-auth.ap-northeast-2.api.aws",
+				},
+				"ap-northeast-3": {
+					Hostname: "eks-auth.ap-northeast-3.api.aws",
+				},
+				"ap-south-1": {
+					Hostname: "eks-auth.ap-south-1.api.aws",
+				},
+				"ap-south-2": {
+					Hostname: "eks-auth.ap-south-2.api.aws",
+				},
+				"ap-southeast-1": {
+					Hostname: "eks-auth.ap-southeast-1.api.aws",
+				},
+				"ap-southeast-2": {
+					Hostname: "eks-auth.ap-southeast-2.api.aws",
+				},
+				"ap-southeast-3": {
+					Hostname: "eks-auth.ap-southeast-3.api.aws",
+				},
+				"ap-southeast-4": {
+					Hostname: "eks-auth.ap-southeast-4.api.aws",
+				},
+				"ap-southeast-5": {
+					Hostname: "eks-auth.ap-southeast-5.api.aws",
+				},
+				"ap-southeast-7": {
+					Hostname: "eks-auth.ap-southeast-7.api.aws",
+				},
+				"ca-central-1": {
+					Hostname: "eks-auth.ca-central-1.api.aws",
+				},
+				"ca-west-1": {
+					Hostname: "eks-auth.ca-west-1.api.aws",
+				},
+				"eu-central-1": {
+					Hostname: "eks-auth.eu-central-1.api.aws",
+				},
+				"eu-central-2": {
+					Hostname: "eks-auth.eu-central-2.api.aws",
+				},
+				"eu-north-1": {
+					Hostname: "eks-auth.eu-north-1.api.aws",
+				},
+				"eu-south-1": {
+					Hostname: "eks-auth.eu-south-1.api.aws",
+				},
+				"eu-south-2": {
+					Hostname: "eks-auth.eu-south-2.api.aws",
+				},
+				"eu-west-1": {
+					Hostname: "eks-auth.eu-west-1.api.aws",
+				},
+				"eu-west-2": {
+					Hostname: "eks-auth.eu-west-2.api.aws",
+				},
+				"eu-west-3": {
+					Hostname: "eks-auth.eu-west-3.api.aws",
+				},
+				"il-central-1": {
+					Hostname: "eks-auth.il-central-1.api.aws",
+				},
+				"me-central-1": {
+					Hostname: "eks-auth.me-central-1.api.aws",
+				},
+				"me-south-1": {
+					Hostname: "eks-auth.me-south-1.api.aws",
+				},
+				"mx-central-1": {
+					Hostname: "eks-auth.mx-central-1.api.aws",
+				},
+				"sa-east-1": {
+					Hostname: "eks-auth.sa-east-1.api.aws",
+				},
+				"us-east-1": {
+					Hostname: "eks-auth.us-east-1.api.aws",
+				},
+				"us-east-2": {
+					Hostname: "eks-auth.us-east-2.api.aws",
+				},
+				"us-west-1": {
+					Hostname: "eks-auth.us-west-1.api.aws",
+				},
+				"us-west-2": {
+					Hostname: "eks-auth.us-west-2.api.aws",
+				},
 			},
 		},
 		"elasticache": {
@@ -8362,12 +10562,18 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips":           {Hostname: "elasticache-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips": {
+					Hostname: "elasticache-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -8378,7 +10584,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "elasticache-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "elasticache-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -8389,7 +10601,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "elasticache-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "elasticache-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -8400,7 +10618,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "elasticache-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "elasticache-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -8411,7 +10635,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "elasticache-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "elasticache-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"elasticbeanstalk": {
@@ -8576,10 +10806,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "elasticbeanstalk-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "elasticbeanstalk-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "elasticbeanstalk-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "elasticbeanstalk-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "elasticbeanstalk-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "elasticbeanstalk-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "elasticbeanstalk-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "elasticbeanstalk-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -8936,38 +11190,230 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-af-south-1":     {Hostname: "elasticfilesystem-fips.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}, Deprecated: true},
-				"fips-ap-east-1":      {Hostname: "elasticfilesystem-fips.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}, Deprecated: true},
-				"fips-ap-northeast-1": {Hostname: "elasticfilesystem-fips.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}, Deprecated: true},
-				"fips-ap-northeast-2": {Hostname: "elasticfilesystem-fips.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}, Deprecated: true},
-				"fips-ap-northeast-3": {Hostname: "elasticfilesystem-fips.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"}, Deprecated: true},
-				"fips-ap-south-1":     {Hostname: "elasticfilesystem-fips.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}, Deprecated: true},
-				"fips-ap-south-2":     {Hostname: "elasticfilesystem-fips.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"}, Deprecated: true},
-				"fips-ap-southeast-1": {Hostname: "elasticfilesystem-fips.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}, Deprecated: true},
-				"fips-ap-southeast-2": {Hostname: "elasticfilesystem-fips.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}, Deprecated: true},
-				"fips-ap-southeast-3": {Hostname: "elasticfilesystem-fips.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"}, Deprecated: true},
-				"fips-ap-southeast-4": {Hostname: "elasticfilesystem-fips.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"}, Deprecated: true},
-				"fips-ap-southeast-5": {Hostname: "elasticfilesystem-fips.ap-southeast-5.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-5"}, Deprecated: true},
-				"fips-ap-southeast-7": {Hostname: "elasticfilesystem-fips.ap-southeast-7.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-7"}, Deprecated: true},
-				"fips-ca-central-1":   {Hostname: "elasticfilesystem-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":      {Hostname: "elasticfilesystem-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-eu-central-1":   {Hostname: "elasticfilesystem-fips.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}, Deprecated: true},
-				"fips-eu-central-2":   {Hostname: "elasticfilesystem-fips.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}, Deprecated: true},
-				"fips-eu-north-1":     {Hostname: "elasticfilesystem-fips.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}, Deprecated: true},
-				"fips-eu-south-1":     {Hostname: "elasticfilesystem-fips.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}, Deprecated: true},
-				"fips-eu-south-2":     {Hostname: "elasticfilesystem-fips.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"}, Deprecated: true},
-				"fips-eu-west-1":      {Hostname: "elasticfilesystem-fips.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}, Deprecated: true},
-				"fips-eu-west-2":      {Hostname: "elasticfilesystem-fips.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}, Deprecated: true},
-				"fips-eu-west-3":      {Hostname: "elasticfilesystem-fips.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}, Deprecated: true},
-				"fips-il-central-1":   {Hostname: "elasticfilesystem-fips.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"}, Deprecated: true},
-				"fips-me-central-1":   {Hostname: "elasticfilesystem-fips.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"}, Deprecated: true},
-				"fips-me-south-1":     {Hostname: "elasticfilesystem-fips.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}, Deprecated: true},
-				"fips-mx-central-1":   {Hostname: "elasticfilesystem-fips.mx-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "mx-central-1"}, Deprecated: true},
-				"fips-sa-east-1":      {Hostname: "elasticfilesystem-fips.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}, Deprecated: true},
-				"fips-us-east-1":      {Hostname: "elasticfilesystem-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":      {Hostname: "elasticfilesystem-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":      {Hostname: "elasticfilesystem-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":      {Hostname: "elasticfilesystem-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-af-south-1": {
+					Hostname: "elasticfilesystem-fips.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-east-1": {
+					Hostname: "elasticfilesystem-fips.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-1": {
+					Hostname: "elasticfilesystem-fips.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-2": {
+					Hostname: "elasticfilesystem-fips.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-3": {
+					Hostname: "elasticfilesystem-fips.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-south-1": {
+					Hostname: "elasticfilesystem-fips.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-south-2": {
+					Hostname: "elasticfilesystem-fips.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-1": {
+					Hostname: "elasticfilesystem-fips.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-2": {
+					Hostname: "elasticfilesystem-fips.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-3": {
+					Hostname: "elasticfilesystem-fips.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-4": {
+					Hostname: "elasticfilesystem-fips.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-5": {
+					Hostname: "elasticfilesystem-fips.ap-southeast-5.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-5",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-7": {
+					Hostname: "elasticfilesystem-fips.ap-southeast-7.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-7",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-central-1": {
+					Hostname: "elasticfilesystem-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "elasticfilesystem-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-central-1": {
+					Hostname: "elasticfilesystem-fips.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-central-2": {
+					Hostname: "elasticfilesystem-fips.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-north-1": {
+					Hostname: "elasticfilesystem-fips.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-south-1": {
+					Hostname: "elasticfilesystem-fips.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-south-2": {
+					Hostname: "elasticfilesystem-fips.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-1": {
+					Hostname: "elasticfilesystem-fips.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-2": {
+					Hostname: "elasticfilesystem-fips.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-3": {
+					Hostname: "elasticfilesystem-fips.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+					Deprecated: true,
+				},
+				"fips-il-central-1": {
+					Hostname: "elasticfilesystem-fips.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-me-central-1": {
+					Hostname: "elasticfilesystem-fips.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-me-south-1": {
+					Hostname: "elasticfilesystem-fips.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-mx-central-1": {
+					Hostname: "elasticfilesystem-fips.mx-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "mx-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-sa-east-1": {
+					Hostname: "elasticfilesystem-fips.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "elasticfilesystem-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "elasticfilesystem-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "elasticfilesystem-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "elasticfilesystem-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -9085,15 +11531,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "elasticloadbalancing-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "elasticloadbalancing-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "elasticloadbalancing-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "elasticloadbalancing-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "elasticloadbalancing-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "elasticloadbalancing-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "elasticloadbalancing-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "elasticloadbalancing-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -9171,25 +11641,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "elasticmapreduce-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "elasticmapreduce-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "elasticmapreduce-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "elasticmapreduce-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "elasticmapreduce-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "elasticmapreduce-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "elasticmapreduce-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "elasticmapreduce-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "elasticmapreduce-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "elasticmapreduce-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "elasticmapreduce-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "elasticmapreduce-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -9270,20 +11776,50 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "email-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "email-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "email-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "email-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "email-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "email-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "email-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "email-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "email-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "email-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -9348,23 +11884,53 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "emr-containers-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "emr-containers-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "emr-containers-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "emr-containers-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "emr-containers-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "emr-containers-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "emr-containers-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "emr-containers-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "emr-containers-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "emr-containers-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -9428,21 +11994,51 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "emr-serverless-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "emr-serverless-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "emr-serverless-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "emr-serverless-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "emr-serverless-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "emr-serverless-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "emr-serverless-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "emr-serverless-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "emr-serverless-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "emr-serverless-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -9722,7 +12318,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips": {Hostname: "es-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"fips": {
+					Hostname: "es-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -9789,7 +12391,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "es-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "es-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -9806,7 +12414,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "es-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "es-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -9823,7 +12437,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "es-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "es-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -9840,7 +12460,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "es-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "es-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"events": {
@@ -9868,15 +12494,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "events-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "events-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "events-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "events-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "events-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "events-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "events-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "events-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -9921,15 +12571,33 @@ var AWSPartition = Partition{
 		},
 		"evidently": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1": {Hostname: "evidently.ap-northeast-1.amazonaws.com"},
-				"ap-southeast-1": {Hostname: "evidently.ap-southeast-1.amazonaws.com"},
-				"ap-southeast-2": {Hostname: "evidently.ap-southeast-2.amazonaws.com"},
-				"eu-central-1":   {Hostname: "evidently.eu-central-1.amazonaws.com"},
-				"eu-north-1":     {Hostname: "evidently.eu-north-1.amazonaws.com"},
-				"eu-west-1":      {Hostname: "evidently.eu-west-1.amazonaws.com"},
-				"us-east-1":      {Hostname: "evidently.us-east-1.amazonaws.com"},
-				"us-east-2":      {Hostname: "evidently.us-east-2.amazonaws.com"},
-				"us-west-2":      {Hostname: "evidently.us-west-2.amazonaws.com"},
+				"ap-northeast-1": {
+					Hostname: "evidently.ap-northeast-1.amazonaws.com",
+				},
+				"ap-southeast-1": {
+					Hostname: "evidently.ap-southeast-1.amazonaws.com",
+				},
+				"ap-southeast-2": {
+					Hostname: "evidently.ap-southeast-2.amazonaws.com",
+				},
+				"eu-central-1": {
+					Hostname: "evidently.eu-central-1.amazonaws.com",
+				},
+				"eu-north-1": {
+					Hostname: "evidently.eu-north-1.amazonaws.com",
+				},
+				"eu-west-1": {
+					Hostname: "evidently.eu-west-1.amazonaws.com",
+				},
+				"us-east-1": {
+					Hostname: "evidently.us-east-1.amazonaws.com",
+				},
+				"us-east-2": {
+					Hostname: "evidently.us-east-2.amazonaws.com",
+				},
+				"us-west-2": {
+					Hostname: "evidently.us-west-2.amazonaws.com",
+				},
 			},
 		},
 		"finspace": {
@@ -10168,10 +12836,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "firehose-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "firehose-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "firehose-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "firehose-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "firehose-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "firehose-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "firehose-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "firehose-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -10456,28 +13148,148 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-af-south-1":     {Hostname: "fms-fips.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}, Deprecated: true},
-				"fips-ap-east-1":      {Hostname: "fms-fips.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}, Deprecated: true},
-				"fips-ap-northeast-1": {Hostname: "fms-fips.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}, Deprecated: true},
-				"fips-ap-northeast-2": {Hostname: "fms-fips.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}, Deprecated: true},
-				"fips-ap-south-1":     {Hostname: "fms-fips.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}, Deprecated: true},
-				"fips-ap-southeast-1": {Hostname: "fms-fips.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}, Deprecated: true},
-				"fips-ap-southeast-2": {Hostname: "fms-fips.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}, Deprecated: true},
-				"fips-ca-central-1":   {Hostname: "fms-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":      {Hostname: "fms-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-eu-central-1":   {Hostname: "fms-fips.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}, Deprecated: true},
-				"fips-eu-south-1":     {Hostname: "fms-fips.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}, Deprecated: true},
-				"fips-eu-west-1":      {Hostname: "fms-fips.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}, Deprecated: true},
-				"fips-eu-west-2":      {Hostname: "fms-fips.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}, Deprecated: true},
-				"fips-eu-west-3":      {Hostname: "fms-fips.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}, Deprecated: true},
-				"fips-me-south-1":     {Hostname: "fms-fips.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}, Deprecated: true},
-				"fips-sa-east-1":      {Hostname: "fms-fips.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}, Deprecated: true},
-				"fips-us-east-1":      {Hostname: "fms-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":      {Hostname: "fms-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":      {Hostname: "fms-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":      {Hostname: "fms-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":        {},
-				"me-central-1":        {},
+				"fips-af-south-1": {
+					Hostname: "fms-fips.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-east-1": {
+					Hostname: "fms-fips.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-1": {
+					Hostname: "fms-fips.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-2": {
+					Hostname: "fms-fips.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-south-1": {
+					Hostname: "fms-fips.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-1": {
+					Hostname: "fms-fips.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-2": {
+					Hostname: "fms-fips.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-central-1": {
+					Hostname: "fms-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "fms-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-central-1": {
+					Hostname: "fms-fips.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-south-1": {
+					Hostname: "fms-fips.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-1": {
+					Hostname: "fms-fips.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-2": {
+					Hostname: "fms-fips.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-3": {
+					Hostname: "fms-fips.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+					Deprecated: true,
+				},
+				"fips-me-south-1": {
+					Hostname: "fms-fips.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-sa-east-1": {
+					Hostname: "fms-fips.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "fms-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "fms-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "fms-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "fms-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
 				"me-south-1": {
 					Variants: []Variant{
 						{
@@ -10549,9 +13361,27 @@ var AWSPartition = Partition{
 				"ap-southeast-2": {},
 				"eu-central-1":   {},
 				"eu-west-1":      {},
-				"fips-us-east-1": {Hostname: "forecast-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "forecast-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "forecast-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "forecast-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "forecast-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "forecast-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -10593,9 +13423,27 @@ var AWSPartition = Partition{
 				"ap-southeast-2": {},
 				"eu-central-1":   {},
 				"eu-west-1":      {},
-				"fips-us-east-1": {Hostname: "forecastquery-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "forecastquery-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "forecastquery-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "forecastquery-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "forecastquery-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "forecastquery-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -10672,30 +13520,106 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":           {},
-				"eu-central-2":           {},
-				"eu-north-1":             {},
-				"eu-south-1":             {},
-				"eu-south-2":             {},
-				"eu-west-1":              {},
-				"eu-west-2":              {},
-				"eu-west-3":              {},
-				"fips-ca-central-1":      {Hostname: "fsx-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":         {Hostname: "fsx-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-prod-ca-central-1": {Hostname: "fsx-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-prod-ca-west-1":    {Hostname: "fsx-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-prod-us-east-1":    {Hostname: "fsx-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-prod-us-east-2":    {Hostname: "fsx-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-prod-us-west-1":    {Hostname: "fsx-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-prod-us-west-2":    {Hostname: "fsx-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"fips-us-east-1":         {Hostname: "fsx-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":         {Hostname: "fsx-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":         {Hostname: "fsx-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":         {Hostname: "fsx-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":           {},
-				"me-central-1":           {},
-				"me-south-1":             {},
-				"prod-ca-central-1": {CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true,
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "fsx-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "fsx-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-prod-ca-central-1": {
+					Hostname: "fsx-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-prod-ca-west-1": {
+					Hostname: "fsx-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-prod-us-east-1": {
+					Hostname: "fsx-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-prod-us-east-2": {
+					Hostname: "fsx-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-prod-us-west-1": {
+					Hostname: "fsx-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-prod-us-west-2": {
+					Hostname: "fsx-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "fsx-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "fsx-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "fsx-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "fsx-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"prod-ca-central-1": {
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "fsx-fips.ca-central-1.amazonaws.com",
@@ -10705,7 +13629,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"prod-ca-west-1": {CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true,
+				"prod-ca-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "fsx-fips.ca-west-1.amazonaws.com",
@@ -10715,7 +13643,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"prod-us-east-1": {CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true,
+				"prod-us-east-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "fsx-fips.us-east-1.amazonaws.com",
@@ -10725,7 +13657,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"prod-us-east-2": {CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true,
+				"prod-us-east-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "fsx-fips.us-east-2.amazonaws.com",
@@ -10735,7 +13671,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"prod-us-west-1": {CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true,
+				"prod-us-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "fsx-fips.us-west-1.amazonaws.com",
@@ -10745,7 +13685,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"prod-us-west-2": {CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true,
+				"prod-us-west-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "fsx-fips.us-west-2.amazonaws.com",
@@ -10863,19 +13807,49 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "glacier-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "glacier-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "glacier-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "glacier-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "glacier-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "glacier-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "glacier-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "glacier-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "glacier-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "glacier-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"me-south-1": {},
+				"sa-east-1":  {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -10920,7 +13894,12 @@ var AWSPartition = Partition{
 		},
 		"globalaccelerator": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-west-2": {Hostname: "globalaccelerator-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"fips-us-west-2": {
+					Hostname: "globalaccelerator-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"glue": {
@@ -11145,10 +14124,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "glue-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "glue-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "glue-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "glue-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "glue-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "glue-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "glue-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "glue-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -11285,16 +14288,66 @@ var AWSPartition = Partition{
 		},
 		"grafana": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1": {Hostname: "grafana.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"ap-northeast-2": {Hostname: "grafana.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"ap-southeast-1": {Hostname: "grafana.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"ap-southeast-2": {Hostname: "grafana.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"eu-central-1":   {Hostname: "grafana.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"eu-west-1":      {Hostname: "grafana.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"eu-west-2":      {Hostname: "grafana.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"us-east-1":      {Hostname: "grafana.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"us-east-2":      {Hostname: "grafana.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"us-west-2":      {Hostname: "grafana.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"ap-northeast-1": {
+					Hostname: "grafana.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"ap-northeast-2": {
+					Hostname: "grafana.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"ap-southeast-1": {
+					Hostname: "grafana.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"ap-southeast-2": {
+					Hostname: "grafana.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"eu-central-1": {
+					Hostname: "grafana.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "grafana.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"eu-west-2": {
+					Hostname: "grafana.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"us-east-1": {
+					Hostname: "grafana.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"us-east-2": {
+					Hostname: "grafana.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"us-west-2": {
+					Hostname: "grafana.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"greengrass": {
@@ -11314,13 +14367,37 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "greengrass-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "greengrass-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "greengrass-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "greengrass-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-central-1": {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "greengrass-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "greengrass-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "greengrass-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "greengrass-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -11418,9 +14495,27 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "groundstation-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "groundstation-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "groundstation-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "groundstation-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "groundstation-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "groundstation-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"me-south-1": {
 					Variants: []Variant{
 						{
@@ -11545,7 +14640,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "guardduty-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "guardduty-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -11556,7 +14657,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "guardduty-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "guardduty-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -11567,7 +14674,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "guardduty-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "guardduty-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -11578,14 +14691,35 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "guardduty-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "guardduty-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"health": {
 			Endpoints: map[string]Endpoint{
-				"aws-global":     {Hostname: "global.health.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"fips-us-east-2": {Hostname: "health-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"us-east-2": {CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true,
+				"aws-global": {
+					Hostname: "global.health.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"fips-us-east-2": {
+					Hostname: "health-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"us-east-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "health-fips.us-east-2.amazonaws.com",
@@ -11609,7 +14743,11 @@ var AWSPartition = Partition{
 		},
 		"iam": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "iam.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"aws-global": {
+					Hostname: "iam.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "iam-fips.amazonaws.com",
@@ -11619,8 +14757,18 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"aws-global-fips": {Hostname: "iam-fips.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"iam": {CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true,
+				"aws-global-fips": {
+					Hostname: "iam-fips.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"iam": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "iam-fips.amazonaws.com",
@@ -11630,7 +14778,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"iam-fips": {Hostname: "iam-fips.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"iam-fips": {
+					Hostname: "iam-fips.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"identity-chime": {
@@ -11646,7 +14800,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "identity-chime-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "identity-chime-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"identitystore": {
@@ -11685,20 +14845,47 @@ var AWSPartition = Partition{
 		},
 		"importexport": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "importexport.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "importexport.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"ingest.timestream": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1":        {},
-				"ap-south-1":            {},
-				"ap-southeast-2":        {},
-				"eu-central-1":          {},
-				"eu-west-1":             {},
-				"ingest-fips-us-east-1": {Hostname: "ingest.timestream-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"ingest-fips-us-east-2": {Hostname: "ingest.timestream-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"ingest-fips-us-west-2": {Hostname: "ingest.timestream-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"ingest-us-east-1": {CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true,
+				"ap-northeast-1": {},
+				"ap-south-1":     {},
+				"ap-southeast-2": {},
+				"eu-central-1":   {},
+				"eu-west-1":      {},
+				"ingest-fips-us-east-1": {
+					Hostname: "ingest.timestream-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"ingest-fips-us-east-2": {
+					Hostname: "ingest.timestream-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"ingest-fips-us-west-2": {
+					Hostname: "ingest.timestream-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"ingest-us-east-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "ingest.timestream-fips.us-east-1.amazonaws.com",
@@ -11708,7 +14895,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ingest-us-east-2": {CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true,
+				"ingest-us-east-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "ingest.timestream-fips.us-east-2.amazonaws.com",
@@ -11718,7 +14909,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ingest-us-west-2": {CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true,
+				"ingest-us-west-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "ingest.timestream-fips.us-west-2.amazonaws.com",
@@ -11743,10 +14938,34 @@ var AWSPartition = Partition{
 				"eu-north-1":     {},
 				"eu-west-1":      {},
 				"eu-west-2":      {},
-				"fips-us-east-1": {Hostname: "inspector-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "inspector-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "inspector-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "inspector-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "inspector-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "inspector-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "inspector-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "inspector-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -11808,12 +15027,36 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "inspector2-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "inspector2-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "inspector2-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "inspector2-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "inspector2-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "inspector2-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "inspector2-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "inspector2-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"me-south-1": {},
+				"sa-east-1":  {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -11858,7 +15101,8 @@ var AWSPartition = Partition{
 		},
 		"internetmonitor": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1": {Hostname: "internetmonitor.af-south-1.api.aws",
+				"af-south-1": {
+					Hostname: "internetmonitor.af-south-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.af-south-1.api.aws",
@@ -11868,7 +15112,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-east-1": {Hostname: "internetmonitor.ap-east-1.api.aws",
+				"ap-east-1": {
+					Hostname: "internetmonitor.ap-east-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-east-1.api.aws",
@@ -11878,7 +15123,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-1": {Hostname: "internetmonitor.ap-northeast-1.api.aws",
+				"ap-northeast-1": {
+					Hostname: "internetmonitor.ap-northeast-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-northeast-1.api.aws",
@@ -11888,7 +15134,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-2": {Hostname: "internetmonitor.ap-northeast-2.api.aws",
+				"ap-northeast-2": {
+					Hostname: "internetmonitor.ap-northeast-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-northeast-2.api.aws",
@@ -11898,7 +15145,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-3": {Hostname: "internetmonitor.ap-northeast-3.api.aws",
+				"ap-northeast-3": {
+					Hostname: "internetmonitor.ap-northeast-3.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-northeast-3.api.aws",
@@ -11908,7 +15156,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-1": {Hostname: "internetmonitor.ap-south-1.api.aws",
+				"ap-south-1": {
+					Hostname: "internetmonitor.ap-south-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-south-1.api.aws",
@@ -11918,7 +15167,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-2": {Hostname: "internetmonitor.ap-south-2.api.aws",
+				"ap-south-2": {
+					Hostname: "internetmonitor.ap-south-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-south-2.api.aws",
@@ -11928,7 +15178,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-1": {Hostname: "internetmonitor.ap-southeast-1.api.aws",
+				"ap-southeast-1": {
+					Hostname: "internetmonitor.ap-southeast-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-southeast-1.api.aws",
@@ -11938,7 +15189,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-2": {Hostname: "internetmonitor.ap-southeast-2.api.aws",
+				"ap-southeast-2": {
+					Hostname: "internetmonitor.ap-southeast-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-southeast-2.api.aws",
@@ -11948,7 +15200,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-3": {Hostname: "internetmonitor.ap-southeast-3.api.aws",
+				"ap-southeast-3": {
+					Hostname: "internetmonitor.ap-southeast-3.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-southeast-3.api.aws",
@@ -11958,7 +15211,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-4": {Hostname: "internetmonitor.ap-southeast-4.api.aws",
+				"ap-southeast-4": {
+					Hostname: "internetmonitor.ap-southeast-4.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.ap-southeast-4.api.aws",
@@ -11968,9 +15222,14 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-5": {Hostname: "internetmonitor.ap-southeast-5.api.aws"},
-				"ap-southeast-7": {Hostname: "internetmonitor.ap-southeast-7.api.aws"},
-				"ca-central-1": {Hostname: "internetmonitor.ca-central-1.api.aws",
+				"ap-southeast-5": {
+					Hostname: "internetmonitor.ap-southeast-5.api.aws",
+				},
+				"ap-southeast-7": {
+					Hostname: "internetmonitor.ap-southeast-7.api.aws",
+				},
+				"ca-central-1": {
+					Hostname: "internetmonitor.ca-central-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor-fips.ca-central-1.amazonaws.com",
@@ -11993,8 +15252,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1": {Hostname: "internetmonitor.ca-west-1.api.aws"},
-				"eu-central-1": {Hostname: "internetmonitor.eu-central-1.api.aws",
+				"ca-west-1": {
+					Hostname: "internetmonitor.ca-west-1.api.aws",
+				},
+				"eu-central-1": {
+					Hostname: "internetmonitor.eu-central-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.eu-central-1.api.aws",
@@ -12004,7 +15266,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-2": {Hostname: "internetmonitor.eu-central-2.api.aws",
+				"eu-central-2": {
+					Hostname: "internetmonitor.eu-central-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.eu-central-2.api.aws",
@@ -12014,7 +15277,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-north-1": {Hostname: "internetmonitor.eu-north-1.api.aws",
+				"eu-north-1": {
+					Hostname: "internetmonitor.eu-north-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.eu-north-1.api.aws",
@@ -12024,7 +15288,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-1": {Hostname: "internetmonitor.eu-south-1.api.aws",
+				"eu-south-1": {
+					Hostname: "internetmonitor.eu-south-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.eu-south-1.api.aws",
@@ -12034,7 +15299,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-2": {Hostname: "internetmonitor.eu-south-2.api.aws",
+				"eu-south-2": {
+					Hostname: "internetmonitor.eu-south-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.eu-south-2.api.aws",
@@ -12044,7 +15310,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-1": {Hostname: "internetmonitor.eu-west-1.api.aws",
+				"eu-west-1": {
+					Hostname: "internetmonitor.eu-west-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.eu-west-1.api.aws",
@@ -12054,7 +15321,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-2": {Hostname: "internetmonitor.eu-west-2.api.aws",
+				"eu-west-2": {
+					Hostname: "internetmonitor.eu-west-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.eu-west-2.api.aws",
@@ -12064,7 +15332,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-3": {Hostname: "internetmonitor.eu-west-3.api.aws",
+				"eu-west-3": {
+					Hostname: "internetmonitor.eu-west-3.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.eu-west-3.api.aws",
@@ -12074,8 +15343,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"il-central-1": {Hostname: "internetmonitor.il-central-1.api.aws"},
-				"me-central-1": {Hostname: "internetmonitor.me-central-1.api.aws",
+				"il-central-1": {
+					Hostname: "internetmonitor.il-central-1.api.aws",
+				},
+				"me-central-1": {
+					Hostname: "internetmonitor.me-central-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.me-central-1.api.aws",
@@ -12085,7 +15357,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-south-1": {Hostname: "internetmonitor.me-south-1.api.aws",
+				"me-south-1": {
+					Hostname: "internetmonitor.me-south-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.me-south-1.api.aws",
@@ -12095,8 +15368,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"mx-central-1": {Hostname: "internetmonitor.mx-central-1.api.aws"},
-				"sa-east-1": {Hostname: "internetmonitor.sa-east-1.api.aws",
+				"mx-central-1": {
+					Hostname: "internetmonitor.mx-central-1.api.aws",
+				},
+				"sa-east-1": {
+					Hostname: "internetmonitor.sa-east-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor.sa-east-1.api.aws",
@@ -12106,7 +15382,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1": {Hostname: "internetmonitor.us-east-1.api.aws",
+				"us-east-1": {
+					Hostname: "internetmonitor.us-east-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor-fips.us-east-1.amazonaws.com",
@@ -12129,7 +15406,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2": {Hostname: "internetmonitor.us-east-2.api.aws",
+				"us-east-2": {
+					Hostname: "internetmonitor.us-east-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor-fips.us-east-2.amazonaws.com",
@@ -12152,7 +15430,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1": {Hostname: "internetmonitor.us-west-1.api.aws",
+				"us-west-1": {
+					Hostname: "internetmonitor.us-west-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor-fips.us-west-1.amazonaws.com",
@@ -12175,7 +15454,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2": {Hostname: "internetmonitor.us-west-2.api.aws",
+				"us-west-2": {
+					Hostname: "internetmonitor.us-west-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "internetmonitor-fips.us-west-2.amazonaws.com",
@@ -12218,19 +15498,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "iot-fips.ca-central-1.amazonaws.com", Deprecated: true},
-				"fips-us-east-1":    {Hostname: "iot-fips.us-east-1.amazonaws.com", Deprecated: true},
-				"fips-us-east-2":    {Hostname: "iot-fips.us-east-2.amazonaws.com", Deprecated: true},
-				"fips-us-west-1":    {Hostname: "iot-fips.us-west-1.amazonaws.com", Deprecated: true},
-				"fips-us-west-2":    {Hostname: "iot-fips.us-west-2.amazonaws.com", Deprecated: true},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname:   "iot-fips.ca-central-1.amazonaws.com",
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname:   "iot-fips.us-east-1.amazonaws.com",
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname:   "iot-fips.us-east-2.amazonaws.com",
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname:   "iot-fips.us-west-1.amazonaws.com",
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname:   "iot-fips.us-west-2.amazonaws.com",
+					Deprecated: true,
+				},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -12302,13 +15597,37 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "iotevents-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "iotevents-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "iotevents-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "iotevents-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-central-1": {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "iotevents-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "iotevents-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "iotevents-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "iotevents-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -12343,12 +15662,41 @@ var AWSPartition = Partition{
 		},
 		"ioteventsdata": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1": {Hostname: "data.iotevents.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"ap-northeast-2": {Hostname: "data.iotevents.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"ap-south-1":     {Hostname: "data.iotevents.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"ap-southeast-1": {Hostname: "data.iotevents.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"ap-southeast-2": {Hostname: "data.iotevents.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"ca-central-1": {Hostname: "data.iotevents.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"},
+				"ap-northeast-1": {
+					Hostname: "data.iotevents.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"ap-northeast-2": {
+					Hostname: "data.iotevents.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"ap-south-1": {
+					Hostname: "data.iotevents.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"ap-southeast-1": {
+					Hostname: "data.iotevents.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"ap-southeast-2": {
+					Hostname: "data.iotevents.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"ca-central-1": {
+					Hostname: "data.iotevents.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "data.iotevents-fips.ca-central-1.amazonaws.com",
@@ -12358,14 +15706,57 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {Hostname: "data.iotevents.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"eu-west-1":         {Hostname: "data.iotevents.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"eu-west-2":         {Hostname: "data.iotevents.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"fips-ca-central-1": {Hostname: "data.iotevents-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "data.iotevents-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "data.iotevents-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "data.iotevents-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"us-east-1": {Hostname: "data.iotevents.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"eu-central-1": {
+					Hostname: "data.iotevents.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "data.iotevents.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"eu-west-2": {
+					Hostname: "data.iotevents.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"fips-ca-central-1": {
+					Hostname: "data.iotevents-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "data.iotevents-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "data.iotevents-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "data.iotevents-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"us-east-1": {
+					Hostname: "data.iotevents.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "data.iotevents-fips.us-east-1.amazonaws.com",
@@ -12375,7 +15766,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2": {Hostname: "data.iotevents.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"},
+				"us-east-2": {
+					Hostname: "data.iotevents.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "data.iotevents-fips.us-east-2.amazonaws.com",
@@ -12385,7 +15780,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2": {Hostname: "data.iotevents.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"},
+				"us-west-2": {
+					Hostname: "data.iotevents.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "data.iotevents-fips.us-west-2.amazonaws.com",
@@ -12446,18 +15845,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "api.tunneling.iot-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "api.tunneling.iot-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "api.tunneling.iot-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "api.tunneling.iot-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "api.tunneling.iot-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "api.tunneling.iot-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "api.tunneling.iot-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "api.tunneling.iot-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "api.tunneling.iot-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "api.tunneling.iot-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"me-south-1": {},
+				"sa-east-1":  {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -12517,12 +15946,36 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-1":         {},
-				"fips-ca-central-1": {Hostname: "iotsitewise-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "iotsitewise-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "iotsitewise-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "iotsitewise-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-central-1": {},
+				"eu-west-1":    {},
+				"fips-ca-central-1": {
+					Hostname: "iotsitewise-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "iotsitewise-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "iotsitewise-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "iotsitewise-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -12567,37 +16020,159 @@ var AWSPartition = Partition{
 		},
 		"iottwinmaker": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1":      {},
-				"ap-northeast-2":      {},
-				"ap-south-1":          {},
-				"ap-southeast-1":      {},
-				"ap-southeast-2":      {},
-				"api-ap-northeast-1":  {Hostname: "api.iottwinmaker.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"api-ap-northeast-2":  {Hostname: "api.iottwinmaker.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"api-ap-south-1":      {Hostname: "api.iottwinmaker.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"api-ap-southeast-1":  {Hostname: "api.iottwinmaker.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"api-ap-southeast-2":  {Hostname: "api.iottwinmaker.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"api-eu-central-1":    {Hostname: "api.iottwinmaker.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"api-eu-west-1":       {Hostname: "api.iottwinmaker.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"api-us-east-1":       {Hostname: "api.iottwinmaker.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"api-us-west-2":       {Hostname: "api.iottwinmaker.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
-				"data-ap-northeast-1": {Hostname: "data.iottwinmaker.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"data-ap-northeast-2": {Hostname: "data.iottwinmaker.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"data-ap-south-1":     {Hostname: "data.iottwinmaker.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"data-ap-southeast-1": {Hostname: "data.iottwinmaker.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"data-ap-southeast-2": {Hostname: "data.iottwinmaker.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"data-eu-central-1":   {Hostname: "data.iottwinmaker.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"data-eu-west-1":      {Hostname: "data.iottwinmaker.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"data-us-east-1":      {Hostname: "data.iottwinmaker.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"data-us-west-2":      {Hostname: "data.iottwinmaker.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
-				"eu-central-1":        {},
-				"eu-west-1":           {},
-				"fips-api-us-east-1":  {Hostname: "api.iottwinmaker-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"fips-api-us-west-2":  {Hostname: "api.iottwinmaker-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
-				"fips-data-us-east-1": {Hostname: "data.iottwinmaker-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"fips-data-us-west-2": {Hostname: "data.iottwinmaker-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
-				"fips-us-east-1":      {Hostname: "iottwinmaker-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2":      {Hostname: "iottwinmaker-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"ap-northeast-1": {},
+				"ap-northeast-2": {},
+				"ap-south-1":     {},
+				"ap-southeast-1": {},
+				"ap-southeast-2": {},
+				"api-ap-northeast-1": {
+					Hostname: "api.iottwinmaker.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"api-ap-northeast-2": {
+					Hostname: "api.iottwinmaker.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"api-ap-south-1": {
+					Hostname: "api.iottwinmaker.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"api-ap-southeast-1": {
+					Hostname: "api.iottwinmaker.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"api-ap-southeast-2": {
+					Hostname: "api.iottwinmaker.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"api-eu-central-1": {
+					Hostname: "api.iottwinmaker.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"api-eu-west-1": {
+					Hostname: "api.iottwinmaker.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"api-us-east-1": {
+					Hostname: "api.iottwinmaker.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"api-us-west-2": {
+					Hostname: "api.iottwinmaker.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
+				"data-ap-northeast-1": {
+					Hostname: "data.iottwinmaker.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"data-ap-northeast-2": {
+					Hostname: "data.iottwinmaker.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"data-ap-south-1": {
+					Hostname: "data.iottwinmaker.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"data-ap-southeast-1": {
+					Hostname: "data.iottwinmaker.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"data-ap-southeast-2": {
+					Hostname: "data.iottwinmaker.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"data-eu-central-1": {
+					Hostname: "data.iottwinmaker.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"data-eu-west-1": {
+					Hostname: "data.iottwinmaker.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"data-us-east-1": {
+					Hostname: "data.iottwinmaker.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"data-us-west-2": {
+					Hostname: "data.iottwinmaker.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
+				"eu-central-1": {},
+				"eu-west-1":    {},
+				"fips-api-us-east-1": {
+					Hostname: "api.iottwinmaker-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"fips-api-us-west-2": {
+					Hostname: "api.iottwinmaker-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
+				"fips-data-us-east-1": {
+					Hostname: "data.iottwinmaker-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"fips-data-us-west-2": {
+					Hostname: "data.iottwinmaker-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
+				"fips-us-east-1": {
+					Hostname: "iottwinmaker-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "iottwinmaker-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -12622,11 +16197,36 @@ var AWSPartition = Partition{
 		},
 		"iotwireless": {
 			Endpoints: map[string]Endpoint{
-				"ap-northeast-1": {Hostname: "api.iotwireless.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"ap-southeast-2": {Hostname: "api.iotwireless.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"eu-west-1":      {Hostname: "api.iotwireless.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"us-east-1":      {Hostname: "api.iotwireless.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"us-west-2":      {Hostname: "api.iotwireless.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"ap-northeast-1": {
+					Hostname: "api.iotwireless.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"ap-southeast-2": {
+					Hostname: "api.iotwireless.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "api.iotwireless.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"us-east-1": {
+					Hostname: "api.iotwireless.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"us-west-2": {
+					Hostname: "api.iotwireless.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"ivs": {
@@ -12696,24 +16296,60 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "kafka-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "kafka-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "kafka-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "kafka-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "kafka-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "kafka-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "kafka-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "kafka-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "kafka-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "kafka-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "kafka-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "kafka-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -12792,12 +16428,36 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "kendra-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "kendra-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "kendra-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "kendra-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-west-1": {},
+				"eu-west-2": {},
+				"fips-ca-central-1": {
+					Hostname: "kendra-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "kendra-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "kendra-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "kendra-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -12832,20 +16492,47 @@ var AWSPartition = Partition{
 		},
 		"kendra-ranking": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1":     {Hostname: "kendra-ranking.af-south-1.api.aws"},
-				"ap-east-1":      {Hostname: "kendra-ranking.ap-east-1.api.aws"},
-				"ap-northeast-1": {Hostname: "kendra-ranking.ap-northeast-1.api.aws"},
-				"ap-northeast-2": {Hostname: "kendra-ranking.ap-northeast-2.api.aws"},
-				"ap-northeast-3": {Hostname: "kendra-ranking.ap-northeast-3.api.aws"},
-				"ap-south-1":     {Hostname: "kendra-ranking.ap-south-1.api.aws"},
-				"ap-south-2":     {Hostname: "kendra-ranking.ap-south-2.api.aws"},
-				"ap-southeast-1": {Hostname: "kendra-ranking.ap-southeast-1.api.aws"},
-				"ap-southeast-2": {Hostname: "kendra-ranking.ap-southeast-2.api.aws"},
-				"ap-southeast-3": {Hostname: "kendra-ranking.ap-southeast-3.api.aws"},
-				"ap-southeast-4": {Hostname: "kendra-ranking.ap-southeast-4.api.aws"},
-				"ap-southeast-5": {Hostname: "kendra-ranking.ap-southeast-5.api.aws"},
-				"ap-southeast-7": {Hostname: "kendra-ranking.ap-southeast-7.api.aws"},
-				"ca-central-1": {Hostname: "kendra-ranking.ca-central-1.api.aws",
+				"af-south-1": {
+					Hostname: "kendra-ranking.af-south-1.api.aws",
+				},
+				"ap-east-1": {
+					Hostname: "kendra-ranking.ap-east-1.api.aws",
+				},
+				"ap-northeast-1": {
+					Hostname: "kendra-ranking.ap-northeast-1.api.aws",
+				},
+				"ap-northeast-2": {
+					Hostname: "kendra-ranking.ap-northeast-2.api.aws",
+				},
+				"ap-northeast-3": {
+					Hostname: "kendra-ranking.ap-northeast-3.api.aws",
+				},
+				"ap-south-1": {
+					Hostname: "kendra-ranking.ap-south-1.api.aws",
+				},
+				"ap-south-2": {
+					Hostname: "kendra-ranking.ap-south-2.api.aws",
+				},
+				"ap-southeast-1": {
+					Hostname: "kendra-ranking.ap-southeast-1.api.aws",
+				},
+				"ap-southeast-2": {
+					Hostname: "kendra-ranking.ap-southeast-2.api.aws",
+				},
+				"ap-southeast-3": {
+					Hostname: "kendra-ranking.ap-southeast-3.api.aws",
+				},
+				"ap-southeast-4": {
+					Hostname: "kendra-ranking.ap-southeast-4.api.aws",
+				},
+				"ap-southeast-5": {
+					Hostname: "kendra-ranking.ap-southeast-5.api.aws",
+				},
+				"ap-southeast-7": {
+					Hostname: "kendra-ranking.ap-southeast-7.api.aws",
+				},
+				"ca-central-1": {
+					Hostname: "kendra-ranking.ca-central-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "kendra-ranking-fips.ca-central-1.api.aws",
@@ -12855,19 +16542,44 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1":    {Hostname: "kendra-ranking.ca-west-1.api.aws"},
-				"eu-central-2": {Hostname: "kendra-ranking.eu-central-2.api.aws"},
-				"eu-north-1":   {Hostname: "kendra-ranking.eu-north-1.api.aws"},
-				"eu-south-1":   {Hostname: "kendra-ranking.eu-south-1.api.aws"},
-				"eu-south-2":   {Hostname: "kendra-ranking.eu-south-2.api.aws"},
-				"eu-west-1":    {Hostname: "kendra-ranking.eu-west-1.api.aws"},
-				"eu-west-3":    {Hostname: "kendra-ranking.eu-west-3.api.aws"},
-				"il-central-1": {Hostname: "kendra-ranking.il-central-1.api.aws"},
-				"me-central-1": {Hostname: "kendra-ranking.me-central-1.api.aws"},
-				"me-south-1":   {Hostname: "kendra-ranking.me-south-1.api.aws"},
-				"mx-central-1": {Hostname: "kendra-ranking.mx-central-1.api.aws"},
-				"sa-east-1":    {Hostname: "kendra-ranking.sa-east-1.api.aws"},
-				"us-east-1": {Hostname: "kendra-ranking.us-east-1.api.aws",
+				"ca-west-1": {
+					Hostname: "kendra-ranking.ca-west-1.api.aws",
+				},
+				"eu-central-2": {
+					Hostname: "kendra-ranking.eu-central-2.api.aws",
+				},
+				"eu-north-1": {
+					Hostname: "kendra-ranking.eu-north-1.api.aws",
+				},
+				"eu-south-1": {
+					Hostname: "kendra-ranking.eu-south-1.api.aws",
+				},
+				"eu-south-2": {
+					Hostname: "kendra-ranking.eu-south-2.api.aws",
+				},
+				"eu-west-1": {
+					Hostname: "kendra-ranking.eu-west-1.api.aws",
+				},
+				"eu-west-3": {
+					Hostname: "kendra-ranking.eu-west-3.api.aws",
+				},
+				"il-central-1": {
+					Hostname: "kendra-ranking.il-central-1.api.aws",
+				},
+				"me-central-1": {
+					Hostname: "kendra-ranking.me-central-1.api.aws",
+				},
+				"me-south-1": {
+					Hostname: "kendra-ranking.me-south-1.api.aws",
+				},
+				"mx-central-1": {
+					Hostname: "kendra-ranking.mx-central-1.api.aws",
+				},
+				"sa-east-1": {
+					Hostname: "kendra-ranking.sa-east-1.api.aws",
+				},
+				"us-east-1": {
+					Hostname: "kendra-ranking.us-east-1.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "kendra-ranking-fips.us-east-1.api.aws",
@@ -12877,7 +16589,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2": {Hostname: "kendra-ranking.us-east-2.api.aws",
+				"us-east-2": {
+					Hostname: "kendra-ranking.us-east-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "kendra-ranking-fips.us-east-2.api.aws",
@@ -12887,8 +16600,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1": {Hostname: "kendra-ranking.us-west-1.api.aws"},
-				"us-west-2": {Hostname: "kendra-ranking.us-west-2.api.aws",
+				"us-west-1": {
+					Hostname: "kendra-ranking.us-west-1.api.aws",
+				},
+				"us-west-2": {
+					Hostname: "kendra-ranking.us-west-2.api.aws",
 					Variants: []Variant{
 						{
 							Hostname: "kendra-ranking-fips.us-west-2.api.aws",
@@ -12925,15 +16641,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "kinesis-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "kinesis-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "kinesis-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "kinesis-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "kinesis-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "kinesis-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "kinesis-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "kinesis-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -13010,24 +16750,60 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "kinesisanalytics-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "kinesisanalytics-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "kinesisanalytics-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "kinesisanalytics-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "kinesisanalytics-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "kinesisanalytics-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "kinesisanalytics-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "kinesisanalytics-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "kinesisanalytics-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "kinesisanalytics-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "kinesisanalytics-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "kinesisanalytics-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -13092,7 +16868,13 @@ var AWSPartition = Partition{
 		},
 		"kms": {
 			Endpoints: map[string]Endpoint{
-				"ProdFips": {Hostname: "kms-fips.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}, Deprecated: true},
+				"ProdFips": {
+					Hostname: "kms-fips.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+					Deprecated: true,
+				},
 				"af-south-1": {
 					Variants: []Variant{
 						{
@@ -13103,7 +16885,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"af-south-1-fips": {Hostname: "kms-fips.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}, Deprecated: true},
+				"af-south-1-fips": {
+					Hostname: "kms-fips.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+					Deprecated: true,
+				},
 				"ap-east-1": {
 					Variants: []Variant{
 						{
@@ -13114,7 +16902,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-east-1-fips": {Hostname: "kms-fips.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}, Deprecated: true},
+				"ap-east-1-fips": {
+					Hostname: "kms-fips.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+					Deprecated: true,
+				},
 				"ap-northeast-1": {
 					Variants: []Variant{
 						{
@@ -13125,7 +16919,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-1-fips": {Hostname: "kms-fips.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}, Deprecated: true},
+				"ap-northeast-1-fips": {
+					Hostname: "kms-fips.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+					Deprecated: true,
+				},
 				"ap-northeast-2": {
 					Variants: []Variant{
 						{
@@ -13136,7 +16936,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-2-fips": {Hostname: "kms-fips.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}, Deprecated: true},
+				"ap-northeast-2-fips": {
+					Hostname: "kms-fips.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+					Deprecated: true,
+				},
 				"ap-northeast-3": {
 					Variants: []Variant{
 						{
@@ -13147,7 +16953,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-3-fips": {Hostname: "kms-fips.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"}, Deprecated: true},
+				"ap-northeast-3-fips": {
+					Hostname: "kms-fips.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
+					Deprecated: true,
+				},
 				"ap-south-1": {
 					Variants: []Variant{
 						{
@@ -13158,7 +16970,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-1-fips": {Hostname: "kms-fips.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}, Deprecated: true},
+				"ap-south-1-fips": {
+					Hostname: "kms-fips.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+					Deprecated: true,
+				},
 				"ap-south-2": {
 					Variants: []Variant{
 						{
@@ -13169,7 +16987,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-2-fips": {Hostname: "kms-fips.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"}, Deprecated: true},
+				"ap-south-2-fips": {
+					Hostname: "kms-fips.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
+					Deprecated: true,
+				},
 				"ap-southeast-1": {
 					Variants: []Variant{
 						{
@@ -13180,7 +17004,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-1-fips": {Hostname: "kms-fips.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}, Deprecated: true},
+				"ap-southeast-1-fips": {
+					Hostname: "kms-fips.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+					Deprecated: true,
+				},
 				"ap-southeast-2": {
 					Variants: []Variant{
 						{
@@ -13191,7 +17021,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-2-fips": {Hostname: "kms-fips.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}, Deprecated: true},
+				"ap-southeast-2-fips": {
+					Hostname: "kms-fips.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+					Deprecated: true,
+				},
 				"ap-southeast-3": {
 					Variants: []Variant{
 						{
@@ -13202,7 +17038,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-3-fips": {Hostname: "kms-fips.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"}, Deprecated: true},
+				"ap-southeast-3-fips": {
+					Hostname: "kms-fips.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
+					Deprecated: true,
+				},
 				"ap-southeast-4": {
 					Variants: []Variant{
 						{
@@ -13213,7 +17055,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-4-fips": {Hostname: "kms-fips.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"}, Deprecated: true},
+				"ap-southeast-4-fips": {
+					Hostname: "kms-fips.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
+					Deprecated: true,
+				},
 				"ap-southeast-5": {
 					Variants: []Variant{
 						{
@@ -13224,7 +17072,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-5-fips": {Hostname: "kms-fips.ap-southeast-5.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-5"}, Deprecated: true},
+				"ap-southeast-5-fips": {
+					Hostname: "kms-fips.ap-southeast-5.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-5",
+					},
+					Deprecated: true,
+				},
 				"ap-southeast-7": {
 					Variants: []Variant{
 						{
@@ -13235,7 +17089,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-7-fips": {Hostname: "kms-fips.ap-southeast-7.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-7"}, Deprecated: true},
+				"ap-southeast-7-fips": {
+					Hostname: "kms-fips.ap-southeast-7.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-7",
+					},
+					Deprecated: true,
+				},
 				"ca-central-1": {
 					Variants: []Variant{
 						{
@@ -13246,7 +17106,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "kms-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "kms-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -13257,7 +17123,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Hostname: "kms-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
+				"ca-west-1-fips": {
+					Hostname: "kms-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
 				"eu-central-1": {
 					Variants: []Variant{
 						{
@@ -13268,7 +17140,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1-fips": {Hostname: "kms-fips.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}, Deprecated: true},
+				"eu-central-1-fips": {
+					Hostname: "kms-fips.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+					Deprecated: true,
+				},
 				"eu-central-2": {
 					Variants: []Variant{
 						{
@@ -13279,7 +17157,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-2-fips": {Hostname: "kms-fips.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}, Deprecated: true},
+				"eu-central-2-fips": {
+					Hostname: "kms-fips.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+					Deprecated: true,
+				},
 				"eu-north-1": {
 					Variants: []Variant{
 						{
@@ -13290,7 +17174,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-north-1-fips": {Hostname: "kms-fips.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}, Deprecated: true},
+				"eu-north-1-fips": {
+					Hostname: "kms-fips.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+					Deprecated: true,
+				},
 				"eu-south-1": {
 					Variants: []Variant{
 						{
@@ -13301,7 +17191,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-1-fips": {Hostname: "kms-fips.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}, Deprecated: true},
+				"eu-south-1-fips": {
+					Hostname: "kms-fips.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+					Deprecated: true,
+				},
 				"eu-south-2": {
 					Variants: []Variant{
 						{
@@ -13312,7 +17208,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-2-fips": {Hostname: "kms-fips.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"}, Deprecated: true},
+				"eu-south-2-fips": {
+					Hostname: "kms-fips.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
+					Deprecated: true,
+				},
 				"eu-west-1": {
 					Variants: []Variant{
 						{
@@ -13323,7 +17225,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-1-fips": {Hostname: "kms-fips.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}, Deprecated: true},
+				"eu-west-1-fips": {
+					Hostname: "kms-fips.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+					Deprecated: true,
+				},
 				"eu-west-2": {
 					Variants: []Variant{
 						{
@@ -13334,7 +17242,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-2-fips": {Hostname: "kms-fips.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}, Deprecated: true},
+				"eu-west-2-fips": {
+					Hostname: "kms-fips.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+					Deprecated: true,
+				},
 				"eu-west-3": {
 					Variants: []Variant{
 						{
@@ -13345,7 +17259,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-3-fips": {Hostname: "kms-fips.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}, Deprecated: true},
+				"eu-west-3-fips": {
+					Hostname: "kms-fips.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -13356,7 +17276,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"il-central-1-fips": {Hostname: "kms-fips.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"}, Deprecated: true},
+				"il-central-1-fips": {
+					Hostname: "kms-fips.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
+					Deprecated: true,
+				},
 				"me-central-1": {
 					Variants: []Variant{
 						{
@@ -13367,7 +17293,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-central-1-fips": {Hostname: "kms-fips.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"}, Deprecated: true},
+				"me-central-1-fips": {
+					Hostname: "kms-fips.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
+					Deprecated: true,
+				},
 				"me-south-1": {
 					Variants: []Variant{
 						{
@@ -13378,7 +17310,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-south-1-fips": {Hostname: "kms-fips.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}, Deprecated: true},
+				"me-south-1-fips": {
+					Hostname: "kms-fips.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+					Deprecated: true,
+				},
 				"mx-central-1": {
 					Variants: []Variant{
 						{
@@ -13389,7 +17327,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"mx-central-1-fips": {Hostname: "kms-fips.mx-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "mx-central-1"}, Deprecated: true},
+				"mx-central-1-fips": {
+					Hostname: "kms-fips.mx-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "mx-central-1",
+					},
+					Deprecated: true,
+				},
 				"sa-east-1": {
 					Variants: []Variant{
 						{
@@ -13400,7 +17344,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"sa-east-1-fips": {Hostname: "kms-fips.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}, Deprecated: true},
+				"sa-east-1-fips": {
+					Hostname: "kms-fips.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -13411,7 +17361,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "kms-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "kms-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -13422,7 +17378,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "kms-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "kms-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -13433,7 +17395,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "kms-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "kms-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -13444,7 +17412,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "kms-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "kms-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"lakeformation": {
@@ -13669,10 +17643,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "lakeformation-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "lakeformation-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "lakeformation-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "lakeformation-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "lakeformation-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "lakeformation-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "lakeformation-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "lakeformation-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -14039,10 +18037,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "lambda-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "lambda-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "lambda-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "lambda-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "lambda-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "lambda-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "lambda-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "lambda-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -14183,14 +18205,38 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "license-manager-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "license-manager-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "license-manager-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "license-manager-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "license-manager-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "license-manager-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "license-manager-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "license-manager-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -14257,14 +18303,38 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "license-manager-linux-subscriptions-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "license-manager-linux-subscriptions-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "license-manager-linux-subscriptions-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "license-manager-linux-subscriptions-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "license-manager-linux-subscriptions-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "license-manager-linux-subscriptions-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "license-manager-linux-subscriptions-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "license-manager-linux-subscriptions-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -14330,14 +18400,38 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "license-manager-user-subscriptions-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "license-manager-user-subscriptions-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "license-manager-user-subscriptions-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "license-manager-user-subscriptions-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "license-manager-user-subscriptions-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "license-manager-user-subscriptions-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "license-manager-user-subscriptions-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "license-manager-user-subscriptions-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -14642,12 +18736,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "logs-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "logs-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "logs-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "logs-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "logs-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "logs-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "logs-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "logs-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "logs-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "logs-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "logs-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "logs-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -14813,20 +18943,30 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Deprecated: true},
-				"fips-us-east-1":    {Deprecated: true},
-				"fips-us-east-2":    {Deprecated: true},
-				"fips-us-west-1":    {Deprecated: true},
-				"fips-us-west-2":    {Deprecated: true},
-				"il-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -15023,10 +19163,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "macie2-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "macie2-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "macie2-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "macie2-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "macie2-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "macie2-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "macie2-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "macie2-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -15191,7 +19355,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "media-pipelines-chime-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "media-pipelines-chime-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -15202,7 +19372,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "media-pipelines-chime-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "media-pipelines-chime-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"mediaconnect": {
@@ -15386,11 +19562,41 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "mediaconvert-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "mediaconvert-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "mediaconvert-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "mediaconvert-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "mediaconvert-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "mediaconvert-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "mediaconvert-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "mediaconvert-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "mediaconvert-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "mediaconvert-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"me-central-1": {
 					Variants: []Variant{
 						{
@@ -15521,11 +19727,29 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "medialive-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "medialive-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "medialive-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"me-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "medialive-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "medialive-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "medialive-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"me-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -15659,10 +19883,16 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "meetings-chime-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"eu-central-1":      {},
-				"eu-west-2":         {},
-				"il-central-1":      {},
+				"ca-central-1-fips": {
+					Hostname: "meetings-chime-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-west-2":    {},
+				"il-central-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -15673,7 +19903,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "meetings-chime-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "meetings-chime-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -15684,7 +19920,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "meetings-chime-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "meetings-chime-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"memory-db": {
@@ -15703,12 +19945,17 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips":           {Hostname: "memory-db-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}},
-				"sa-east-1":      {},
-				"us-east-1":      {},
-				"us-east-2":      {},
-				"us-west-1":      {},
-				"us-west-2":      {},
+				"fips": {
+					Hostname: "memory-db-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+				},
+				"sa-east-1": {},
+				"us-east-1": {},
+				"us-east-2": {},
+				"us-west-1": {},
+				"us-west-2": {},
 			},
 		},
 		"messaging-chime": {
@@ -15724,7 +19971,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "messaging-chime-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "messaging-chime-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"metering.marketplace": {
@@ -15783,7 +20036,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "metrics-fips.sagemaker.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "metrics-fips.sagemaker.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -15794,19 +20053,25 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Hostname: "metrics-fips.sagemaker.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"eu-central-1":   {},
-				"eu-central-2":   {},
-				"eu-north-1":     {},
-				"eu-south-1":     {},
-				"eu-south-2":     {},
-				"eu-west-1":      {},
-				"eu-west-2":      {},
-				"eu-west-3":      {},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"ca-west-1-fips": {
+					Hostname: "metrics-fips.sagemaker.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -15817,7 +20082,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "metrics-fips.sagemaker.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "metrics-fips.sagemaker.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -15828,7 +20099,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "metrics-fips.sagemaker.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "metrics-fips.sagemaker.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -15839,7 +20116,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "metrics-fips.sagemaker.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "metrics-fips.sagemaker.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -15850,7 +20133,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "metrics-fips.sagemaker.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "metrics-fips.sagemaker.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"mgh": {
@@ -15886,14 +20175,38 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "mgn-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "mgn-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "mgn-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "mgn-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "mgn-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "mgn-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "mgn-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "mgn-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -15996,7 +20309,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "models-fips.lex.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "models-fips.lex.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -16007,7 +20326,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "models-fips.lex.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "models-fips.lex.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"monitoring": {
@@ -16035,15 +20360,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "monitoring-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "monitoring-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "monitoring-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "monitoring-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "monitoring-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "monitoring-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "monitoring-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "monitoring-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -16110,14 +20459,38 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "mq-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "mq-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "mq-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "mq-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "mq-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "mq-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "mq-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "mq-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -16162,30 +20535,122 @@ var AWSPartition = Partition{
 		},
 		"mturk-requester": {
 			Endpoints: map[string]Endpoint{
-				"sandbox":   {Hostname: "mturk-requester-sandbox.us-east-1.amazonaws.com"},
+				"sandbox": {
+					Hostname: "mturk-requester-sandbox.us-east-1.amazonaws.com",
+				},
 				"us-east-1": {},
 			},
 		},
 		"neptune": {
 			Endpoints: map[string]Endpoint{
-				"ap-east-1":      {Hostname: "rds.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}},
-				"ap-northeast-1": {Hostname: "rds.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"ap-northeast-2": {Hostname: "rds.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"ap-south-1":     {Hostname: "rds.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"ap-southeast-1": {Hostname: "rds.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"ap-southeast-2": {Hostname: "rds.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"ca-central-1":   {Hostname: "rds.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"eu-central-1":   {Hostname: "rds.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"eu-north-1":     {Hostname: "rds.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}},
-				"eu-west-1":      {Hostname: "rds.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"eu-west-2":      {Hostname: "rds.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"eu-west-3":      {Hostname: "rds.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}},
-				"me-south-1":     {Hostname: "rds.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}},
-				"sa-east-1":      {Hostname: "rds.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}},
-				"us-east-1":      {Hostname: "rds.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"us-east-2":      {Hostname: "rds.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"us-west-1":      {Hostname: "rds.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}},
-				"us-west-2":      {Hostname: "rds.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"ap-east-1": {
+					Hostname: "rds.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+				},
+				"ap-northeast-1": {
+					Hostname: "rds.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"ap-northeast-2": {
+					Hostname: "rds.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"ap-south-1": {
+					Hostname: "rds.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"ap-southeast-1": {
+					Hostname: "rds.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"ap-southeast-2": {
+					Hostname: "rds.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"ca-central-1": {
+					Hostname: "rds.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"eu-central-1": {
+					Hostname: "rds.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"eu-north-1": {
+					Hostname: "rds.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "rds.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"eu-west-2": {
+					Hostname: "rds.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"eu-west-3": {
+					Hostname: "rds.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+				},
+				"me-south-1": {
+					Hostname: "rds.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+				},
+				"sa-east-1": {
+					Hostname: "rds.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+				},
+				"us-east-1": {
+					Hostname: "rds.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"us-east-2": {
+					Hostname: "rds.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"us-west-1": {
+					Hostname: "rds.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+				},
+				"us-west-2": {
+					Hostname: "rds.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"network-firewall": {
@@ -16212,24 +20677,54 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1":         {},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "network-firewall-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "network-firewall-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "network-firewall-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "network-firewall-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "network-firewall-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"ca-west-1":    {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "network-firewall-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "network-firewall-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "network-firewall-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "network-firewall-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "network-firewall-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -16274,7 +20769,11 @@ var AWSPartition = Partition{
 		},
 		"networkmanager": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "networkmanager.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"},
+				"aws-global": {
+					Hostname: "networkmanager.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "networkmanager-fips.us-west-2.amazonaws.com",
@@ -16284,48 +20783,123 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-aws-global": {Hostname: "networkmanager-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-aws-global": {
+					Hostname: "networkmanager-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"notifications": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1":     {Hostname: "notifications.af-south-1.api.aws"},
-				"ap-east-1":      {Hostname: "notifications.ap-east-1.api.aws"},
-				"ap-northeast-1": {Hostname: "notifications.ap-northeast-1.api.aws"},
-				"ap-northeast-2": {Hostname: "notifications.ap-northeast-2.api.aws"},
-				"ap-northeast-3": {Hostname: "notifications.ap-northeast-3.api.aws"},
-				"ap-south-1":     {Hostname: "notifications.ap-south-1.api.aws"},
-				"ap-south-2":     {Hostname: "notifications.ap-south-2.api.aws"},
-				"ap-southeast-1": {Hostname: "notifications.ap-southeast-1.api.aws"},
-				"ap-southeast-2": {Hostname: "notifications.ap-southeast-2.api.aws"},
-				"ap-southeast-3": {Hostname: "notifications.ap-southeast-3.api.aws"},
-				"ap-southeast-4": {Hostname: "notifications.ap-southeast-4.api.aws"},
-				"ap-southeast-5": {Hostname: "notifications.ap-southeast-5.api.aws"},
-				"ap-southeast-7": {Hostname: "notifications.ap-southeast-7.api.aws"},
-				"ca-central-1":   {Hostname: "notifications.ca-central-1.api.aws"},
-				"ca-west-1":      {Hostname: "notifications.ca-west-1.api.aws"},
-				"eu-central-1":   {Hostname: "notifications.eu-central-1.api.aws"},
-				"eu-central-2":   {Hostname: "notifications.eu-central-2.api.aws"},
-				"eu-north-1":     {Hostname: "notifications.eu-north-1.api.aws"},
-				"eu-south-1":     {Hostname: "notifications.eu-south-1.api.aws"},
-				"eu-south-2":     {Hostname: "notifications.eu-south-2.api.aws"},
-				"eu-west-1":      {Hostname: "notifications.eu-west-1.api.aws"},
-				"eu-west-2":      {Hostname: "notifications.eu-west-2.api.aws"},
-				"eu-west-3":      {Hostname: "notifications.eu-west-3.api.aws"},
-				"il-central-1":   {Hostname: "notifications.il-central-1.api.aws"},
-				"me-central-1":   {Hostname: "notifications.me-central-1.api.aws"},
-				"me-south-1":     {Hostname: "notifications.me-south-1.api.aws"},
-				"mx-central-1":   {Hostname: "notifications.mx-central-1.api.aws"},
-				"sa-east-1":      {Hostname: "notifications.sa-east-1.api.aws"},
-				"us-east-1":      {Hostname: "notifications.us-east-1.api.aws"},
-				"us-east-2":      {Hostname: "notifications.us-east-2.api.aws"},
-				"us-west-1":      {Hostname: "notifications.us-west-1.api.aws"},
-				"us-west-2":      {Hostname: "notifications.us-west-2.api.aws"},
+				"af-south-1": {
+					Hostname: "notifications.af-south-1.api.aws",
+				},
+				"ap-east-1": {
+					Hostname: "notifications.ap-east-1.api.aws",
+				},
+				"ap-northeast-1": {
+					Hostname: "notifications.ap-northeast-1.api.aws",
+				},
+				"ap-northeast-2": {
+					Hostname: "notifications.ap-northeast-2.api.aws",
+				},
+				"ap-northeast-3": {
+					Hostname: "notifications.ap-northeast-3.api.aws",
+				},
+				"ap-south-1": {
+					Hostname: "notifications.ap-south-1.api.aws",
+				},
+				"ap-south-2": {
+					Hostname: "notifications.ap-south-2.api.aws",
+				},
+				"ap-southeast-1": {
+					Hostname: "notifications.ap-southeast-1.api.aws",
+				},
+				"ap-southeast-2": {
+					Hostname: "notifications.ap-southeast-2.api.aws",
+				},
+				"ap-southeast-3": {
+					Hostname: "notifications.ap-southeast-3.api.aws",
+				},
+				"ap-southeast-4": {
+					Hostname: "notifications.ap-southeast-4.api.aws",
+				},
+				"ap-southeast-5": {
+					Hostname: "notifications.ap-southeast-5.api.aws",
+				},
+				"ap-southeast-7": {
+					Hostname: "notifications.ap-southeast-7.api.aws",
+				},
+				"ca-central-1": {
+					Hostname: "notifications.ca-central-1.api.aws",
+				},
+				"ca-west-1": {
+					Hostname: "notifications.ca-west-1.api.aws",
+				},
+				"eu-central-1": {
+					Hostname: "notifications.eu-central-1.api.aws",
+				},
+				"eu-central-2": {
+					Hostname: "notifications.eu-central-2.api.aws",
+				},
+				"eu-north-1": {
+					Hostname: "notifications.eu-north-1.api.aws",
+				},
+				"eu-south-1": {
+					Hostname: "notifications.eu-south-1.api.aws",
+				},
+				"eu-south-2": {
+					Hostname: "notifications.eu-south-2.api.aws",
+				},
+				"eu-west-1": {
+					Hostname: "notifications.eu-west-1.api.aws",
+				},
+				"eu-west-2": {
+					Hostname: "notifications.eu-west-2.api.aws",
+				},
+				"eu-west-3": {
+					Hostname: "notifications.eu-west-3.api.aws",
+				},
+				"il-central-1": {
+					Hostname: "notifications.il-central-1.api.aws",
+				},
+				"me-central-1": {
+					Hostname: "notifications.me-central-1.api.aws",
+				},
+				"me-south-1": {
+					Hostname: "notifications.me-south-1.api.aws",
+				},
+				"mx-central-1": {
+					Hostname: "notifications.mx-central-1.api.aws",
+				},
+				"sa-east-1": {
+					Hostname: "notifications.sa-east-1.api.aws",
+				},
+				"us-east-1": {
+					Hostname: "notifications.us-east-1.api.aws",
+				},
+				"us-east-2": {
+					Hostname: "notifications.us-east-2.api.aws",
+				},
+				"us-west-1": {
+					Hostname: "notifications.us-west-1.api.aws",
+				},
+				"us-west-2": {
+					Hostname: "notifications.us-west-2.api.aws",
+				},
 			},
 		},
 		"notifications-contacts": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "notifications-contacts.us-east-1.api.aws", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "notifications-contacts.us-east-1.api.aws",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"oam": {
@@ -16366,47 +20940,233 @@ var AWSPartition = Partition{
 		},
 		"oidc": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1":     {Hostname: "oidc.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}},
-				"ap-east-1":      {Hostname: "oidc.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}},
-				"ap-northeast-1": {Hostname: "oidc.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"ap-northeast-2": {Hostname: "oidc.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"ap-northeast-3": {Hostname: "oidc.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"}},
-				"ap-south-1":     {Hostname: "oidc.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"ap-south-2":     {Hostname: "oidc.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"}},
-				"ap-southeast-1": {Hostname: "oidc.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"ap-southeast-2": {Hostname: "oidc.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"ap-southeast-3": {Hostname: "oidc.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"}},
-				"ap-southeast-4": {Hostname: "oidc.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"}},
-				"ca-central-1":   {Hostname: "oidc.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"ca-west-1":      {Hostname: "oidc.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}},
-				"eu-central-1":   {Hostname: "oidc.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"eu-central-2":   {Hostname: "oidc.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}},
-				"eu-north-1":     {Hostname: "oidc.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}},
-				"eu-south-1":     {Hostname: "oidc.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}},
-				"eu-south-2":     {Hostname: "oidc.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"}},
-				"eu-west-1":      {Hostname: "oidc.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"eu-west-2":      {Hostname: "oidc.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"eu-west-3":      {Hostname: "oidc.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}},
-				"il-central-1":   {Hostname: "oidc.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"}},
-				"me-central-1":   {Hostname: "oidc.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"}},
-				"me-south-1":     {Hostname: "oidc.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}},
-				"sa-east-1":      {Hostname: "oidc.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}},
-				"us-east-1":      {Hostname: "oidc.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"us-east-2":      {Hostname: "oidc.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"us-west-1":      {Hostname: "oidc.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}},
-				"us-west-2":      {Hostname: "oidc.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"af-south-1": {
+					Hostname: "oidc.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+				},
+				"ap-east-1": {
+					Hostname: "oidc.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+				},
+				"ap-northeast-1": {
+					Hostname: "oidc.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"ap-northeast-2": {
+					Hostname: "oidc.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"ap-northeast-3": {
+					Hostname: "oidc.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
+				},
+				"ap-south-1": {
+					Hostname: "oidc.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"ap-south-2": {
+					Hostname: "oidc.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
+				},
+				"ap-southeast-1": {
+					Hostname: "oidc.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"ap-southeast-2": {
+					Hostname: "oidc.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"ap-southeast-3": {
+					Hostname: "oidc.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
+				},
+				"ap-southeast-4": {
+					Hostname: "oidc.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
+				},
+				"ca-central-1": {
+					Hostname: "oidc.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"ca-west-1": {
+					Hostname: "oidc.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+				},
+				"eu-central-1": {
+					Hostname: "oidc.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"eu-central-2": {
+					Hostname: "oidc.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+				},
+				"eu-north-1": {
+					Hostname: "oidc.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+				},
+				"eu-south-1": {
+					Hostname: "oidc.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+				},
+				"eu-south-2": {
+					Hostname: "oidc.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "oidc.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"eu-west-2": {
+					Hostname: "oidc.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"eu-west-3": {
+					Hostname: "oidc.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+				},
+				"il-central-1": {
+					Hostname: "oidc.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
+				},
+				"me-central-1": {
+					Hostname: "oidc.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
+				},
+				"me-south-1": {
+					Hostname: "oidc.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+				},
+				"sa-east-1": {
+					Hostname: "oidc.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+				},
+				"us-east-1": {
+					Hostname: "oidc.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"us-east-2": {
+					Hostname: "oidc.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"us-west-1": {
+					Hostname: "oidc.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+				},
+				"us-west-2": {
+					Hostname: "oidc.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"omics": {
 			Endpoints: map[string]Endpoint{
-				"ap-southeast-1": {Hostname: "omics.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"eu-central-1":   {Hostname: "omics.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"eu-west-1":      {Hostname: "omics.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"eu-west-2":      {Hostname: "omics.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"fips-us-east-1": {Hostname: "omics-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "omics-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {Hostname: "omics.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"}},
-				"us-east-1": {Hostname: "omics.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"ap-southeast-1": {
+					Hostname: "omics.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"eu-central-1": {
+					Hostname: "omics.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "omics.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"eu-west-2": {
+					Hostname: "omics.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"fips-us-east-1": {
+					Hostname: "omics-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "omics-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {
+					Hostname: "omics.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
+				},
+				"us-east-1": {
+					Hostname: "omics.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "omics-fips.us-east-1.amazonaws.com",
@@ -16416,7 +21176,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2": {Hostname: "omics.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"},
+				"us-west-2": {
+					Hostname: "omics.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "omics-fips.us-west-2.amazonaws.com",
@@ -16456,7 +21220,11 @@ var AWSPartition = Partition{
 		},
 		"organizations": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "organizations.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"aws-global": {
+					Hostname: "organizations.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "organizations-fips.us-east-1.amazonaws.com",
@@ -16466,7 +21234,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-aws-global": {Hostname: "organizations-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"fips-aws-global": {
+					Hostname: "organizations-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"osis": {
@@ -16509,22 +21283,52 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "outposts-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "outposts-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "outposts-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "outposts-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "outposts-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "outposts-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "outposts-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "outposts-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "outposts-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "outposts-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -16577,8 +21381,20 @@ var AWSPartition = Partition{
 				"ca-central-1":   {},
 				"eu-central-1":   {},
 				"eu-west-2":      {},
-				"fips-us-east-1": {Hostname: "participant.connect-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "participant.connect-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "participant.connect-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "participant.connect-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -16874,12 +21690,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "pi-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "pi-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "pi-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "pi-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "pi-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "pi-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "pi-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "pi-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "pi-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "pi-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "pi-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "pi-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -17031,7 +21883,11 @@ var AWSPartition = Partition{
 				"ap-south-1":     {},
 				"ap-southeast-1": {},
 				"ap-southeast-2": {},
-				"ca-central-1": {Hostname: "pinpoint.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"},
+				"ca-central-1": {
+					Hostname: "pinpoint.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "pinpoint-fips.ca-central-1.amazonaws.com",
@@ -17041,14 +21897,42 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "pinpoint-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "pinpoint-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "pinpoint-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "pinpoint-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"us-east-1": {Hostname: "pinpoint.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"eu-central-1": {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "pinpoint-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "pinpoint-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "pinpoint-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "pinpoint-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"us-east-1": {
+					Hostname: "pinpoint.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "pinpoint-fips.us-east-1.amazonaws.com",
@@ -17058,7 +21942,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2": {Hostname: "pinpoint.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"},
+				"us-east-2": {
+					Hostname: "pinpoint.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "pinpoint-fips.us-east-2.amazonaws.com",
@@ -17068,7 +21956,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2": {Hostname: "pinpoint.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"},
+				"us-west-2": {
+					Hostname: "pinpoint.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "pinpoint-fips.us-west-2.amazonaws.com",
@@ -17252,10 +22144,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "polly-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "polly-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "polly-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "polly-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "polly-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "polly-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "polly-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "polly-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"me-south-1": {
 					Variants: []Variant{
 						{
@@ -17372,35 +22288,180 @@ var AWSPartition = Partition{
 		},
 		"portal.sso": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1":     {Hostname: "portal.sso.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}},
-				"ap-east-1":      {Hostname: "portal.sso.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}},
-				"ap-northeast-1": {Hostname: "portal.sso.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"ap-northeast-2": {Hostname: "portal.sso.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"ap-northeast-3": {Hostname: "portal.sso.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"}},
-				"ap-south-1":     {Hostname: "portal.sso.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"ap-south-2":     {Hostname: "portal.sso.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"}},
-				"ap-southeast-1": {Hostname: "portal.sso.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"ap-southeast-2": {Hostname: "portal.sso.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"ap-southeast-3": {Hostname: "portal.sso.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"}},
-				"ap-southeast-4": {Hostname: "portal.sso.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"}},
-				"ca-central-1":   {Hostname: "portal.sso.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"ca-west-1":      {Hostname: "portal.sso.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}},
-				"eu-central-1":   {Hostname: "portal.sso.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"eu-central-2":   {Hostname: "portal.sso.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}},
-				"eu-north-1":     {Hostname: "portal.sso.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}},
-				"eu-south-1":     {Hostname: "portal.sso.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}},
-				"eu-south-2":     {Hostname: "portal.sso.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"}},
-				"eu-west-1":      {Hostname: "portal.sso.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"eu-west-2":      {Hostname: "portal.sso.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"eu-west-3":      {Hostname: "portal.sso.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}},
-				"il-central-1":   {Hostname: "portal.sso.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"}},
-				"me-central-1":   {Hostname: "portal.sso.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"}},
-				"me-south-1":     {Hostname: "portal.sso.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}},
-				"sa-east-1":      {Hostname: "portal.sso.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}},
-				"us-east-1":      {Hostname: "portal.sso.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"us-east-2":      {Hostname: "portal.sso.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"us-west-1":      {Hostname: "portal.sso.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}},
-				"us-west-2":      {Hostname: "portal.sso.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"af-south-1": {
+					Hostname: "portal.sso.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+				},
+				"ap-east-1": {
+					Hostname: "portal.sso.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+				},
+				"ap-northeast-1": {
+					Hostname: "portal.sso.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"ap-northeast-2": {
+					Hostname: "portal.sso.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"ap-northeast-3": {
+					Hostname: "portal.sso.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
+				},
+				"ap-south-1": {
+					Hostname: "portal.sso.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"ap-south-2": {
+					Hostname: "portal.sso.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
+				},
+				"ap-southeast-1": {
+					Hostname: "portal.sso.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"ap-southeast-2": {
+					Hostname: "portal.sso.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"ap-southeast-3": {
+					Hostname: "portal.sso.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
+				},
+				"ap-southeast-4": {
+					Hostname: "portal.sso.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
+				},
+				"ca-central-1": {
+					Hostname: "portal.sso.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"ca-west-1": {
+					Hostname: "portal.sso.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+				},
+				"eu-central-1": {
+					Hostname: "portal.sso.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"eu-central-2": {
+					Hostname: "portal.sso.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+				},
+				"eu-north-1": {
+					Hostname: "portal.sso.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+				},
+				"eu-south-1": {
+					Hostname: "portal.sso.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+				},
+				"eu-south-2": {
+					Hostname: "portal.sso.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
+				},
+				"eu-west-1": {
+					Hostname: "portal.sso.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"eu-west-2": {
+					Hostname: "portal.sso.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"eu-west-3": {
+					Hostname: "portal.sso.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+				},
+				"il-central-1": {
+					Hostname: "portal.sso.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
+				},
+				"me-central-1": {
+					Hostname: "portal.sso.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
+				},
+				"me-south-1": {
+					Hostname: "portal.sso.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+				},
+				"sa-east-1": {
+					Hostname: "portal.sso.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+				},
+				"us-east-1": {
+					Hostname: "portal.sso.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"us-east-2": {
+					Hostname: "portal.sso.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"us-west-1": {
+					Hostname: "portal.sso.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+				},
+				"us-west-2": {
+					Hostname: "portal.sso.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"private-networks": {
@@ -17427,11 +22488,29 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "profile-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "profile-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "profile-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-central-1": {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "profile-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "profile-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "profile-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -17471,38 +22550,102 @@ var AWSPartition = Partition{
 		},
 		"qbusiness": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1":     {Hostname: "qbusiness.af-south-1.api.aws"},
-				"ap-east-1":      {Hostname: "qbusiness.ap-east-1.api.aws"},
-				"ap-northeast-1": {Hostname: "qbusiness.ap-northeast-1.api.aws"},
-				"ap-northeast-2": {Hostname: "qbusiness.ap-northeast-2.api.aws"},
-				"ap-northeast-3": {Hostname: "qbusiness.ap-northeast-3.api.aws"},
-				"ap-south-1":     {Hostname: "qbusiness.ap-south-1.api.aws"},
-				"ap-south-2":     {Hostname: "qbusiness.ap-south-2.api.aws"},
-				"ap-southeast-1": {Hostname: "qbusiness.ap-southeast-1.api.aws"},
-				"ap-southeast-2": {Hostname: "qbusiness.ap-southeast-2.api.aws"},
-				"ap-southeast-3": {Hostname: "qbusiness.ap-southeast-3.api.aws"},
-				"ap-southeast-4": {Hostname: "qbusiness.ap-southeast-4.api.aws"},
-				"ap-southeast-5": {Hostname: "qbusiness.ap-southeast-5.api.aws"},
-				"ap-southeast-7": {Hostname: "qbusiness.ap-southeast-7.api.aws"},
-				"ca-central-1":   {Hostname: "qbusiness.ca-central-1.api.aws"},
-				"ca-west-1":      {Hostname: "qbusiness.ca-west-1.api.aws"},
-				"eu-central-1":   {Hostname: "qbusiness.eu-central-1.api.aws"},
-				"eu-central-2":   {Hostname: "qbusiness.eu-central-2.api.aws"},
-				"eu-north-1":     {Hostname: "qbusiness.eu-north-1.api.aws"},
-				"eu-south-1":     {Hostname: "qbusiness.eu-south-1.api.aws"},
-				"eu-south-2":     {Hostname: "qbusiness.eu-south-2.api.aws"},
-				"eu-west-1":      {Hostname: "qbusiness.eu-west-1.api.aws"},
-				"eu-west-2":      {Hostname: "qbusiness.eu-west-2.api.aws"},
-				"eu-west-3":      {Hostname: "qbusiness.eu-west-3.api.aws"},
-				"il-central-1":   {Hostname: "qbusiness.il-central-1.api.aws"},
-				"me-central-1":   {Hostname: "qbusiness.me-central-1.api.aws"},
-				"me-south-1":     {Hostname: "qbusiness.me-south-1.api.aws"},
-				"mx-central-1":   {Hostname: "qbusiness.mx-central-1.api.aws"},
-				"sa-east-1":      {Hostname: "qbusiness.sa-east-1.api.aws"},
-				"us-east-1":      {Hostname: "qbusiness.us-east-1.api.aws"},
-				"us-east-2":      {Hostname: "qbusiness.us-east-2.api.aws"},
-				"us-west-1":      {Hostname: "qbusiness.us-west-1.api.aws"},
-				"us-west-2":      {Hostname: "qbusiness.us-west-2.api.aws"},
+				"af-south-1": {
+					Hostname: "qbusiness.af-south-1.api.aws",
+				},
+				"ap-east-1": {
+					Hostname: "qbusiness.ap-east-1.api.aws",
+				},
+				"ap-northeast-1": {
+					Hostname: "qbusiness.ap-northeast-1.api.aws",
+				},
+				"ap-northeast-2": {
+					Hostname: "qbusiness.ap-northeast-2.api.aws",
+				},
+				"ap-northeast-3": {
+					Hostname: "qbusiness.ap-northeast-3.api.aws",
+				},
+				"ap-south-1": {
+					Hostname: "qbusiness.ap-south-1.api.aws",
+				},
+				"ap-south-2": {
+					Hostname: "qbusiness.ap-south-2.api.aws",
+				},
+				"ap-southeast-1": {
+					Hostname: "qbusiness.ap-southeast-1.api.aws",
+				},
+				"ap-southeast-2": {
+					Hostname: "qbusiness.ap-southeast-2.api.aws",
+				},
+				"ap-southeast-3": {
+					Hostname: "qbusiness.ap-southeast-3.api.aws",
+				},
+				"ap-southeast-4": {
+					Hostname: "qbusiness.ap-southeast-4.api.aws",
+				},
+				"ap-southeast-5": {
+					Hostname: "qbusiness.ap-southeast-5.api.aws",
+				},
+				"ap-southeast-7": {
+					Hostname: "qbusiness.ap-southeast-7.api.aws",
+				},
+				"ca-central-1": {
+					Hostname: "qbusiness.ca-central-1.api.aws",
+				},
+				"ca-west-1": {
+					Hostname: "qbusiness.ca-west-1.api.aws",
+				},
+				"eu-central-1": {
+					Hostname: "qbusiness.eu-central-1.api.aws",
+				},
+				"eu-central-2": {
+					Hostname: "qbusiness.eu-central-2.api.aws",
+				},
+				"eu-north-1": {
+					Hostname: "qbusiness.eu-north-1.api.aws",
+				},
+				"eu-south-1": {
+					Hostname: "qbusiness.eu-south-1.api.aws",
+				},
+				"eu-south-2": {
+					Hostname: "qbusiness.eu-south-2.api.aws",
+				},
+				"eu-west-1": {
+					Hostname: "qbusiness.eu-west-1.api.aws",
+				},
+				"eu-west-2": {
+					Hostname: "qbusiness.eu-west-2.api.aws",
+				},
+				"eu-west-3": {
+					Hostname: "qbusiness.eu-west-3.api.aws",
+				},
+				"il-central-1": {
+					Hostname: "qbusiness.il-central-1.api.aws",
+				},
+				"me-central-1": {
+					Hostname: "qbusiness.me-central-1.api.aws",
+				},
+				"me-south-1": {
+					Hostname: "qbusiness.me-south-1.api.aws",
+				},
+				"mx-central-1": {
+					Hostname: "qbusiness.mx-central-1.api.aws",
+				},
+				"sa-east-1": {
+					Hostname: "qbusiness.sa-east-1.api.aws",
+				},
+				"us-east-1": {
+					Hostname: "qbusiness.us-east-1.api.aws",
+				},
+				"us-east-2": {
+					Hostname: "qbusiness.us-east-2.api.aws",
+				},
+				"us-west-1": {
+					Hostname: "qbusiness.us-west-1.api.aws",
+				},
+				"us-west-2": {
+					Hostname: "qbusiness.us-west-2.api.aws",
+				},
 			},
 		},
 		"qldb": {
@@ -17521,13 +22664,37 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "qldb-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "qldb-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "qldb-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "qldb-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-central-1": {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "qldb-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "qldb-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "qldb-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "qldb-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -17618,25 +22785,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "ram-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "ram-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "ram-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "ram-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "ram-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "ram-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "ram-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "ram-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "ram-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ram-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ram-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ram-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -17928,12 +23131,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "rbin-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "rbin-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "rbin-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "rbin-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "rbin-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "rbin-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "rbin-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "rbin-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "rbin-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "rbin-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "rbin-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "rbin-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -18094,7 +23333,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "rds-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "rds-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -18105,26 +23350,72 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips":        {Hostname: "rds-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"eu-central-1":          {},
-				"eu-central-2":          {},
-				"eu-north-1":            {},
-				"eu-south-1":            {},
-				"eu-south-2":            {},
-				"eu-west-1":             {},
-				"eu-west-2":             {},
-				"eu-west-3":             {},
-				"il-central-1":          {},
-				"me-central-1":          {},
-				"me-south-1":            {},
-				"mx-central-1":          {},
-				"rds-fips.ca-central-1": {Hostname: "rds-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"rds-fips.ca-west-1":    {Hostname: "rds-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"rds-fips.us-east-1":    {Hostname: "rds-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"rds-fips.us-east-2":    {Hostname: "rds-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"rds-fips.us-west-1":    {Hostname: "rds-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"rds-fips.us-west-2":    {Hostname: "rds-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"rds.ca-central-1": {CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true,
+				"ca-west-1-fips": {
+					Hostname: "rds-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"rds-fips.ca-central-1": {
+					Hostname: "rds-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"rds-fips.ca-west-1": {
+					Hostname: "rds-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"rds-fips.us-east-1": {
+					Hostname: "rds-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"rds-fips.us-east-2": {
+					Hostname: "rds-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"rds-fips.us-west-1": {
+					Hostname: "rds-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"rds-fips.us-west-2": {
+					Hostname: "rds-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"rds.ca-central-1": {
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rds-fips.ca-central-1.amazonaws.com",
@@ -18134,7 +23425,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"rds.ca-west-1": {CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true,
+				"rds.ca-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rds-fips.ca-west-1.amazonaws.com",
@@ -18144,7 +23439,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"rds.us-east-1": {CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true,
+				"rds.us-east-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rds-fips.us-east-1.amazonaws.com",
@@ -18154,7 +23453,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"rds.us-east-2": {CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true,
+				"rds.us-east-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rds-fips.us-east-2.amazonaws.com",
@@ -18164,7 +23467,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"rds.us-west-1": {CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true,
+				"rds.us-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rds-fips.us-west-1.amazonaws.com",
@@ -18174,7 +23481,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"rds.us-west-2": {CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true,
+				"rds.us-west-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rds-fips.us-west-2.amazonaws.com",
@@ -18195,7 +23506,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "rds-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "rds-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -18206,7 +23523,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "rds-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "rds-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -18217,7 +23540,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "rds-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "rds-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -18228,7 +23557,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "rds-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "rds-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"rds-data": {
@@ -18243,10 +23578,34 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "rds-data-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "rds-data-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "rds-data-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "rds-data-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "rds-data-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "rds-data-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "rds-data-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "rds-data-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -18324,25 +23683,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "redshift-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "redshift-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "redshift-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "redshift-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "redshift-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "redshift-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "redshift-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "redshift-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "redshift-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "redshift-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "redshift-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "redshift-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -18404,21 +23799,51 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "redshift-serverless-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "redshift-serverless-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "redshift-serverless-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "redshift-serverless-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "redshift-serverless-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "redshift-serverless-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "redshift-serverless-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "redshift-serverless-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "redshift-serverless-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "redshift-serverless-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -18478,18 +23903,58 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips":             {Hostname: "rekognition-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"eu-central-1":                  {},
-				"eu-south-2":                    {},
-				"eu-west-1":                     {},
-				"eu-west-2":                     {},
-				"il-central-1":                  {},
-				"rekognition-fips.ca-central-1": {Hostname: "rekognition-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"rekognition-fips.us-east-1":    {Hostname: "rekognition-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"rekognition-fips.us-east-2":    {Hostname: "rekognition-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"rekognition-fips.us-west-1":    {Hostname: "rekognition-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"rekognition-fips.us-west-2":    {Hostname: "rekognition-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"rekognition.ca-central-1": {CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true,
+				"ca-central-1-fips": {
+					Hostname: "rekognition-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"il-central-1": {},
+				"rekognition-fips.ca-central-1": {
+					Hostname: "rekognition-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"rekognition-fips.us-east-1": {
+					Hostname: "rekognition-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"rekognition-fips.us-east-2": {
+					Hostname: "rekognition-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"rekognition-fips.us-west-1": {
+					Hostname: "rekognition-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"rekognition-fips.us-west-2": {
+					Hostname: "rekognition-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"rekognition.ca-central-1": {
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rekognition-fips.ca-central-1.amazonaws.com",
@@ -18499,7 +23964,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"rekognition.us-east-1": {CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true,
+				"rekognition.us-east-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rekognition-fips.us-east-1.amazonaws.com",
@@ -18509,7 +23978,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"rekognition.us-east-2": {CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true,
+				"rekognition.us-east-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rekognition-fips.us-east-2.amazonaws.com",
@@ -18519,7 +23992,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"rekognition.us-west-1": {CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true,
+				"rekognition.us-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rekognition-fips.us-west-1.amazonaws.com",
@@ -18529,7 +24006,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"rekognition.us-west-2": {CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true,
+				"rekognition.us-west-2": {
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rekognition-fips.us-west-2.amazonaws.com",
@@ -18549,7 +24030,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "rekognition-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "rekognition-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -18560,7 +24047,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "rekognition-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "rekognition-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -18571,7 +24064,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "rekognition-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "rekognition-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -18582,7 +24081,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "rekognition-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "rekognition-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"resiliencehub": {
@@ -18836,24 +24341,60 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "resource-explorer-2-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "resource-explorer-2-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "resource-explorer-2-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "resource-explorer-2-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "resource-explorer-2-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "resource-explorer-2-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "resource-explorer-2-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "resource-explorer-2-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "resource-explorer-2-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "resource-explorer-2-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "resource-explorer-2-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "resource-explorer-2-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -18949,15 +24490,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "resource-groups-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "resource-groups-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "resource-groups-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "resource-groups-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "resource-groups-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "resource-groups-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "resource-groups-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "resource-groups-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -19036,15 +24601,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "rolesanywhere-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "rolesanywhere-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "rolesanywhere-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "rolesanywhere-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "rolesanywhere-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "rolesanywhere-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "rolesanywhere-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "rolesanywhere-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -19089,7 +24678,11 @@ var AWSPartition = Partition{
 		},
 		"route53": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "route53.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"aws-global": {
+					Hostname: "route53.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "route53-fips.amazonaws.com",
@@ -19099,12 +24692,23 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-aws-global": {Hostname: "route53-fips.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"fips-aws-global": {
+					Hostname: "route53-fips.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"route53-recovery-control-config": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "route53-recovery-control-config.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"aws-global": {
+					Hostname: "route53-recovery-control-config.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"route53domains": {
@@ -19137,7 +24741,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "route53resolver-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "route53resolver-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -19148,20 +24758,26 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Hostname: "route53resolver-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"eu-central-1":   {},
-				"eu-central-2":   {},
-				"eu-north-1":     {},
-				"eu-south-1":     {},
-				"eu-south-2":     {},
-				"eu-west-1":      {},
-				"eu-west-2":      {},
-				"eu-west-3":      {},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"ca-west-1-fips": {
+					Hostname: "route53resolver-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -19172,7 +24788,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "route53resolver-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "route53resolver-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -19183,7 +24805,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "route53resolver-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "route53resolver-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -19194,7 +24822,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "route53resolver-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "route53resolver-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -19205,7 +24839,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "route53resolver-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "route53resolver-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"rum": {
@@ -19271,7 +24911,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "runtime-fips.lex.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "runtime-fips.lex.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -19282,7 +24928,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "runtime-fips.lex.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "runtime-fips.lex.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"runtime.sagemaker": {
@@ -19322,7 +24974,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "runtime-fips.sagemaker.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "runtime-fips.sagemaker.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -19333,7 +24991,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "runtime-fips.sagemaker.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "runtime-fips.sagemaker.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -19344,7 +25008,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "runtime-fips.sagemaker.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "runtime-fips.sagemaker.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -19355,7 +25025,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "runtime-fips.sagemaker.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "runtime-fips.sagemaker.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"s3": {
@@ -19380,7 +25056,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-1": {Hostname: "s3.ap-northeast-1.amazonaws.com",
+				"ap-northeast-1": {
+					Hostname: "s3.ap-northeast-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3.dualstack.ap-northeast-1.amazonaws.com",
@@ -19430,7 +25107,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-1": {Hostname: "s3.ap-southeast-1.amazonaws.com",
+				"ap-southeast-1": {
+					Hostname: "s3.ap-southeast-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3.dualstack.ap-southeast-1.amazonaws.com",
@@ -19440,7 +25118,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-2": {Hostname: "s3.ap-southeast-2.amazonaws.com",
+				"ap-southeast-2": {
+					Hostname: "s3.ap-southeast-2.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3.dualstack.ap-southeast-2.amazonaws.com",
@@ -19490,7 +25169,12 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"aws-global": {Hostname: "s3.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "s3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 				"ca-central-1": {
 					Variants: []Variant{
 						{
@@ -19587,7 +25271,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-1": {Hostname: "s3.eu-west-1.amazonaws.com",
+				"eu-west-1": {
+					Hostname: "s3.eu-west-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3.dualstack.eu-west-1.amazonaws.com",
@@ -19617,12 +25302,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "s3-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "s3-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "s3-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "s3-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "s3-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "s3-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "s3-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "s3-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "s3-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "s3-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "s3-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "s3-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -19663,8 +25384,14 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"s3-external-1": {Hostname: "s3-external-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"sa-east-1": {Hostname: "s3.sa-east-1.amazonaws.com",
+				"s3-external-1": {
+					Hostname: "s3-external-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"sa-east-1": {
+					Hostname: "s3.sa-east-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3.dualstack.sa-east-1.amazonaws.com",
@@ -19674,7 +25401,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1": {Hostname: "s3.us-east-1.amazonaws.com",
+				"us-east-1": {
+					Hostname: "s3.us-east-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3-fips.dualstack.us-east-1.amazonaws.com",
@@ -19720,7 +25448,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1": {Hostname: "s3.us-west-1.amazonaws.com",
+				"us-west-1": {
+					Hostname: "s3.us-west-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3-fips.dualstack.us-west-1.amazonaws.com",
@@ -19743,7 +25472,8 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2": {Hostname: "s3.us-west-2.amazonaws.com",
+				"us-west-2": {
+					Hostname: "s3.us-west-2.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3-fips.dualstack.us-west-2.amazonaws.com",
@@ -19770,7 +25500,11 @@ var AWSPartition = Partition{
 		},
 		"s3-control": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1": {Hostname: "s3-control.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"},
+				"af-south-1": {
+					Hostname: "s3-control.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.af-south-1.amazonaws.com",
@@ -19780,7 +25514,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-east-1": {Hostname: "s3-control.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"},
+				"ap-east-1": {
+					Hostname: "s3-control.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-east-1.amazonaws.com",
@@ -19790,7 +25528,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-1": {Hostname: "s3-control.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"},
+				"ap-northeast-1": {
+					Hostname: "s3-control.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-northeast-1.amazonaws.com",
@@ -19800,7 +25542,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-2": {Hostname: "s3-control.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"},
+				"ap-northeast-2": {
+					Hostname: "s3-control.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-northeast-2.amazonaws.com",
@@ -19810,7 +25556,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-3": {Hostname: "s3-control.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"},
+				"ap-northeast-3": {
+					Hostname: "s3-control.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-northeast-3.amazonaws.com",
@@ -19820,7 +25570,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-1": {Hostname: "s3-control.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"},
+				"ap-south-1": {
+					Hostname: "s3-control.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-south-1.amazonaws.com",
@@ -19830,7 +25584,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-2": {Hostname: "s3-control.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"},
+				"ap-south-2": {
+					Hostname: "s3-control.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-south-2.amazonaws.com",
@@ -19840,7 +25598,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-1": {Hostname: "s3-control.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"},
+				"ap-southeast-1": {
+					Hostname: "s3-control.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-southeast-1.amazonaws.com",
@@ -19850,7 +25612,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-2": {Hostname: "s3-control.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"},
+				"ap-southeast-2": {
+					Hostname: "s3-control.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-southeast-2.amazonaws.com",
@@ -19860,7 +25626,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-3": {Hostname: "s3-control.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"},
+				"ap-southeast-3": {
+					Hostname: "s3-control.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-southeast-3.amazonaws.com",
@@ -19870,7 +25640,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-4": {Hostname: "s3-control.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"},
+				"ap-southeast-4": {
+					Hostname: "s3-control.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.ap-southeast-4.amazonaws.com",
@@ -19880,7 +25654,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1": {Hostname: "s3-control.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"},
+				"ca-central-1": {
+					Hostname: "s3-control.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.ca-central-1.amazonaws.com",
@@ -19903,8 +25681,18 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "s3-control-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"ca-west-1": {Hostname: "s3-control.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"},
+				"ca-central-1-fips": {
+					Hostname: "s3-control-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"ca-west-1": {
+					Hostname: "s3-control.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.ca-west-1.amazonaws.com",
@@ -19927,8 +25715,18 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Hostname: "s3-control-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"eu-central-1": {Hostname: "s3-control.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"},
+				"ca-west-1-fips": {
+					Hostname: "s3-control-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {
+					Hostname: "s3-control.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.eu-central-1.amazonaws.com",
@@ -19938,7 +25736,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-2": {Hostname: "s3-control.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"},
+				"eu-central-2": {
+					Hostname: "s3-control.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.eu-central-2.amazonaws.com",
@@ -19948,7 +25750,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-north-1": {Hostname: "s3-control.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"},
+				"eu-north-1": {
+					Hostname: "s3-control.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.eu-north-1.amazonaws.com",
@@ -19958,7 +25764,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-1": {Hostname: "s3-control.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"},
+				"eu-south-1": {
+					Hostname: "s3-control.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.eu-south-1.amazonaws.com",
@@ -19968,7 +25778,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-2": {Hostname: "s3-control.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"},
+				"eu-south-2": {
+					Hostname: "s3-control.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.eu-south-2.amazonaws.com",
@@ -19978,7 +25792,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-1": {Hostname: "s3-control.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"},
+				"eu-west-1": {
+					Hostname: "s3-control.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.eu-west-1.amazonaws.com",
@@ -19988,7 +25806,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-2": {Hostname: "s3-control.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"},
+				"eu-west-2": {
+					Hostname: "s3-control.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.eu-west-2.amazonaws.com",
@@ -19998,7 +25820,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-3": {Hostname: "s3-control.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"},
+				"eu-west-3": {
+					Hostname: "s3-control.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.eu-west-3.amazonaws.com",
@@ -20008,7 +25834,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"il-central-1": {Hostname: "s3-control.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"},
+				"il-central-1": {
+					Hostname: "s3-control.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.il-central-1.amazonaws.com",
@@ -20018,7 +25848,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-central-1": {Hostname: "s3-control.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"},
+				"me-central-1": {
+					Hostname: "s3-control.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.me-central-1.amazonaws.com",
@@ -20028,7 +25862,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-south-1": {Hostname: "s3-control.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"},
+				"me-south-1": {
+					Hostname: "s3-control.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.me-south-1.amazonaws.com",
@@ -20038,7 +25876,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"sa-east-1": {Hostname: "s3-control.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"},
+				"sa-east-1": {
+					Hostname: "s3-control.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.sa-east-1.amazonaws.com",
@@ -20048,7 +25890,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1": {Hostname: "s3-control.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"us-east-1": {
+					Hostname: "s3-control.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.dualstack.us-east-1.amazonaws.com",
@@ -20071,8 +25917,18 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "s3-control-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"us-east-2": {Hostname: "s3-control.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"},
+				"us-east-1-fips": {
+					Hostname: "s3-control-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-east-2": {
+					Hostname: "s3-control.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.dualstack.us-east-2.amazonaws.com",
@@ -20095,8 +25951,18 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "s3-control-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"us-west-1": {Hostname: "s3-control.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"},
+				"us-east-2-fips": {
+					Hostname: "s3-control-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"us-west-1": {
+					Hostname: "s3-control.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.dualstack.us-west-1.amazonaws.com",
@@ -20119,8 +25985,18 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "s3-control-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"us-west-2": {Hostname: "s3-control.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"},
+				"us-west-1-fips": {
+					Hostname: "s3-control-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-west-2": {
+					Hostname: "s3-control.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.dualstack.us-west-2.amazonaws.com",
@@ -20143,7 +26019,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "s3-control-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "s3-control-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"s3-outposts": {
@@ -20303,11 +26185,21 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Deprecated: true},
-				"fips-us-east-1":    {Deprecated: true},
-				"fips-us-east-2":    {Deprecated: true},
-				"fips-us-west-1":    {Deprecated: true},
-				"fips-us-west-2":    {Deprecated: true},
+				"fips-ca-central-1": {
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -20424,7 +26316,12 @@ var AWSPartition = Partition{
 		},
 		"savingsplans": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "savingsplans.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "savingsplans.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"scheduler": {
@@ -20494,9 +26391,11 @@ var AWSPartition = Partition{
 				"ap-southeast-2": {},
 				"eu-west-1":      {},
 				"sa-east-1":      {},
-				"us-east-1":      {Hostname: "sdb.amazonaws.com"},
-				"us-west-1":      {},
-				"us-west-2":      {},
+				"us-east-1": {
+					Hostname: "sdb.amazonaws.com",
+				},
+				"us-west-1": {},
+				"us-west-2": {},
 			},
 		},
 		"secretsmanager": {
@@ -20638,7 +26537,9 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Deprecated: true},
+				"ca-central-1-fips": {
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -20659,7 +26560,9 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Deprecated: true},
+				"ca-west-1-fips": {
+					Deprecated: true,
+				},
 				"eu-central-1": {
 					Variants: []Variant{
 						{
@@ -20797,7 +26700,9 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Deprecated: true},
+				"us-east-1-fips": {
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -20818,7 +26723,9 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Deprecated: true},
+				"us-east-2-fips": {
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -20839,7 +26746,9 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Deprecated: true},
+				"us-west-1-fips": {
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -20860,7 +26769,9 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Deprecated: true},
+				"us-west-2-fips": {
+					Deprecated: true,
+				},
 			},
 		},
 		"securityhub": {
@@ -21085,10 +26996,34 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-us-east-1": {Hostname: "securityhub-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "securityhub-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "securityhub-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "securityhub-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "securityhub-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "securityhub-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "securityhub-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "securityhub-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -21209,11 +27144,35 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "securitylake-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "securitylake-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "securitylake-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "securitylake-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "securitylake-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "securitylake-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "securitylake-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "securitylake-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -21274,14 +27233,20 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "serverlessrepo-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"ca-central-1-fips": {
+					Hostname: "serverlessrepo-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -21292,7 +27257,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "serverlessrepo-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "serverlessrepo-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -21303,7 +27274,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "serverlessrepo-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "serverlessrepo-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -21314,7 +27291,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "serverlessrepo-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "serverlessrepo-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -21325,7 +27308,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "serverlessrepo-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "serverlessrepo-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"servicecatalog": {
@@ -21364,7 +27353,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "servicecatalog-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "servicecatalog-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -21375,7 +27370,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "servicecatalog-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "servicecatalog-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -21386,7 +27387,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "servicecatalog-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "servicecatalog-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -21397,7 +27404,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "servicecatalog-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "servicecatalog-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"servicecatalog-appregistry": {
@@ -21423,24 +27436,54 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1":         {},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "servicecatalog-appregistry-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "servicecatalog-appregistry-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "servicecatalog-appregistry-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "servicecatalog-appregistry-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "servicecatalog-appregistry-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"ca-west-1":    {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "servicecatalog-appregistry-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "servicecatalog-appregistry-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "servicecatalog-appregistry-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "servicecatalog-appregistry-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "servicecatalog-appregistry-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -21638,7 +27681,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "servicediscovery-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "servicediscovery-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -21662,7 +27711,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Hostname: "servicediscovery-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
+				"ca-west-1-fips": {
+					Hostname: "servicediscovery-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
 				"eu-central-1": {
 					Variants: []Variant{
 						{
@@ -21816,7 +27871,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "servicediscovery-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "servicediscovery-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -21840,7 +27901,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "servicediscovery-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "servicediscovery-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -21864,7 +27931,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "servicediscovery-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "servicediscovery-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -21888,7 +27961,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "servicediscovery-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "servicediscovery-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"servicequotas": {
@@ -21937,9 +28016,27 @@ var AWSPartition = Partition{
 				"eu-central-1":   {},
 				"eu-west-1":      {},
 				"eu-west-2":      {},
-				"fips-us-east-1": {Hostname: "session.qldb-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "session.qldb-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "session.qldb-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "session.qldb-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "session.qldb-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "session.qldb-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -21974,7 +28071,11 @@ var AWSPartition = Partition{
 		},
 		"shield": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "shield.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"aws-global": {
+					Hostname: "shield.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "shield-fips.us-east-1.amazonaws.com",
@@ -21984,35 +28085,85 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-aws-global": {Hostname: "shield-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"fips-aws-global": {
+					Hostname: "shield-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"signer": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1":                  {},
-				"ap-east-1":                   {},
-				"ap-northeast-1":              {},
-				"ap-northeast-2":              {},
-				"ap-south-1":                  {},
-				"ap-southeast-1":              {},
-				"ap-southeast-2":              {},
-				"ca-central-1":                {},
-				"eu-central-1":                {},
-				"eu-north-1":                  {},
-				"eu-south-1":                  {},
-				"eu-west-1":                   {},
-				"eu-west-2":                   {},
-				"eu-west-3":                   {},
-				"fips-us-east-1":              {Hostname: "signer-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":              {Hostname: "signer-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":              {Hostname: "signer-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":              {Hostname: "signer-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"fips-verification-us-east-1": {Hostname: "verification.signer-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"fips-verification-us-east-2": {Hostname: "verification.signer-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"fips-verification-us-west-1": {Hostname: "verification.signer-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}},
-				"fips-verification-us-west-2": {Hostname: "verification.signer-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
-				"me-south-1":                  {},
-				"sa-east-1":                   {},
+				"af-south-1":     {},
+				"ap-east-1":      {},
+				"ap-northeast-1": {},
+				"ap-northeast-2": {},
+				"ap-south-1":     {},
+				"ap-southeast-1": {},
+				"ap-southeast-2": {},
+				"ca-central-1":   {},
+				"eu-central-1":   {},
+				"eu-north-1":     {},
+				"eu-south-1":     {},
+				"eu-west-1":      {},
+				"eu-west-2":      {},
+				"eu-west-3":      {},
+				"fips-us-east-1": {
+					Hostname: "signer-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "signer-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "signer-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "signer-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"fips-verification-us-east-1": {
+					Hostname: "verification.signer-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"fips-verification-us-east-2": {
+					Hostname: "verification.signer-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"fips-verification-us-west-1": {
+					Hostname: "verification.signer-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+				},
+				"fips-verification-us-west-2": {
+					Hostname: "verification.signer-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
+				"me-south-1": {},
+				"sa-east-1":  {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -22053,26 +28204,126 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"verification-af-south-1":     {Hostname: "verification.signer.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}},
-				"verification-ap-east-1":      {Hostname: "verification.signer.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}},
-				"verification-ap-northeast-1": {Hostname: "verification.signer.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}},
-				"verification-ap-northeast-2": {Hostname: "verification.signer.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}},
-				"verification-ap-south-1":     {Hostname: "verification.signer.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}},
-				"verification-ap-southeast-1": {Hostname: "verification.signer.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}},
-				"verification-ap-southeast-2": {Hostname: "verification.signer.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}},
-				"verification-ca-central-1":   {Hostname: "verification.signer.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}},
-				"verification-eu-central-1":   {Hostname: "verification.signer.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}},
-				"verification-eu-north-1":     {Hostname: "verification.signer.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}},
-				"verification-eu-south-1":     {Hostname: "verification.signer.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}},
-				"verification-eu-west-1":      {Hostname: "verification.signer.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}},
-				"verification-eu-west-2":      {Hostname: "verification.signer.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}},
-				"verification-eu-west-3":      {Hostname: "verification.signer.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}},
-				"verification-me-south-1":     {Hostname: "verification.signer.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}},
-				"verification-sa-east-1":      {Hostname: "verification.signer.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}},
-				"verification-us-east-1":      {Hostname: "verification.signer.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"verification-us-east-2":      {Hostname: "verification.signer.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"verification-us-west-1":      {Hostname: "verification.signer.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}},
-				"verification-us-west-2":      {Hostname: "verification.signer.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"verification-af-south-1": {
+					Hostname: "verification.signer.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+				},
+				"verification-ap-east-1": {
+					Hostname: "verification.signer.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+				},
+				"verification-ap-northeast-1": {
+					Hostname: "verification.signer.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+				},
+				"verification-ap-northeast-2": {
+					Hostname: "verification.signer.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+				},
+				"verification-ap-south-1": {
+					Hostname: "verification.signer.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+				},
+				"verification-ap-southeast-1": {
+					Hostname: "verification.signer.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+				},
+				"verification-ap-southeast-2": {
+					Hostname: "verification.signer.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+				},
+				"verification-ca-central-1": {
+					Hostname: "verification.signer.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				"verification-eu-central-1": {
+					Hostname: "verification.signer.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+				},
+				"verification-eu-north-1": {
+					Hostname: "verification.signer.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+				},
+				"verification-eu-south-1": {
+					Hostname: "verification.signer.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+				},
+				"verification-eu-west-1": {
+					Hostname: "verification.signer.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+				},
+				"verification-eu-west-2": {
+					Hostname: "verification.signer.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+				},
+				"verification-eu-west-3": {
+					Hostname: "verification.signer.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+				},
+				"verification-me-south-1": {
+					Hostname: "verification.signer.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+				},
+				"verification-sa-east-1": {
+					Hostname: "verification.signer.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+				},
+				"verification-us-east-1": {
+					Hostname: "verification.signer.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"verification-us-east-2": {
+					Hostname: "verification.signer.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"verification-us-west-1": {
+					Hostname: "verification.signer.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+				},
+				"verification-us-west-2": {
+					Hostname: "verification.signer.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"simspaceweaver": {
@@ -22089,7 +28340,13 @@ var AWSPartition = Partition{
 		},
 		"sms": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-west-2": {Hostname: "sms-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-west-2": {
+					Hostname: "sms-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -22124,24 +28381,54 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1":         {},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "sms-voice-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "sms-voice-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "sms-voice-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "sms-voice-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "sms-voice-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"ca-west-1":    {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "sms-voice-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "sms-voice-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "sms-voice-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "sms-voice-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "sms-voice-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -22554,29 +28841,167 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-af-south-1":     {Hostname: "snowball-fips.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}, Deprecated: true},
-				"fips-ap-east-1":      {Hostname: "snowball-fips.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}, Deprecated: true},
-				"fips-ap-northeast-1": {Hostname: "snowball-fips.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}, Deprecated: true},
-				"fips-ap-northeast-2": {Hostname: "snowball-fips.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}, Deprecated: true},
-				"fips-ap-northeast-3": {Hostname: "snowball-fips.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"}, Deprecated: true},
-				"fips-ap-south-1":     {Hostname: "snowball-fips.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}, Deprecated: true},
-				"fips-ap-southeast-1": {Hostname: "snowball-fips.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}, Deprecated: true},
-				"fips-ap-southeast-2": {Hostname: "snowball-fips.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}, Deprecated: true},
-				"fips-ap-southeast-3": {Hostname: "snowball-fips.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"}, Deprecated: true},
-				"fips-ca-central-1":   {Hostname: "snowball-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-eu-central-1":   {Hostname: "snowball-fips.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}, Deprecated: true},
-				"fips-eu-north-1":     {Hostname: "snowball-fips.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}, Deprecated: true},
-				"fips-eu-south-1":     {Hostname: "snowball-fips.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}, Deprecated: true},
-				"fips-eu-west-1":      {Hostname: "snowball-fips.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}, Deprecated: true},
-				"fips-eu-west-2":      {Hostname: "snowball-fips.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}, Deprecated: true},
-				"fips-eu-west-3":      {Hostname: "snowball-fips.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}, Deprecated: true},
-				"fips-il-central-1":   {Hostname: "snowball-fips.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"}, Deprecated: true},
-				"fips-me-central-1":   {Hostname: "snowball-fips.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"}, Deprecated: true},
-				"fips-sa-east-1":      {Hostname: "snowball-fips.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}, Deprecated: true},
-				"fips-us-east-1":      {Hostname: "snowball-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":      {Hostname: "snowball-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":      {Hostname: "snowball-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":      {Hostname: "snowball-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-af-south-1": {
+					Hostname: "snowball-fips.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-east-1": {
+					Hostname: "snowball-fips.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-1": {
+					Hostname: "snowball-fips.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-2": {
+					Hostname: "snowball-fips.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-3": {
+					Hostname: "snowball-fips.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-south-1": {
+					Hostname: "snowball-fips.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-1": {
+					Hostname: "snowball-fips.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-2": {
+					Hostname: "snowball-fips.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-3": {
+					Hostname: "snowball-fips.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-central-1": {
+					Hostname: "snowball-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-central-1": {
+					Hostname: "snowball-fips.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-north-1": {
+					Hostname: "snowball-fips.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-south-1": {
+					Hostname: "snowball-fips.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-1": {
+					Hostname: "snowball-fips.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-2": {
+					Hostname: "snowball-fips.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-3": {
+					Hostname: "snowball-fips.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+					Deprecated: true,
+				},
+				"fips-il-central-1": {
+					Hostname: "snowball-fips.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-me-central-1": {
+					Hostname: "snowball-fips.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-sa-east-1": {
+					Hostname: "snowball-fips.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "snowball-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "snowball-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "snowball-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "snowball-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -22766,24 +29191,54 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":   {},
-				"eu-central-2":   {},
-				"eu-north-1":     {},
-				"eu-south-1":     {},
-				"eu-south-2":     {},
-				"eu-west-1":      {},
-				"eu-west-2":      {},
-				"eu-west-3":      {},
-				"fips-ca-west-1": {Hostname: "sns-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1": {Hostname: "sns-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "sns-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "sns-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "sns-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-west-1": {
+					Hostname: "sns-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "sns-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "sns-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "sns-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "sns-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -22861,25 +29316,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "sqs-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "sqs-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "sqs-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "sqs-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "sqs-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "sqs-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "sqs-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "sqs-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "sqs-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "sqs-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "sqs-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "sqs-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -22957,25 +29448,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "ssm-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "ssm-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "ssm-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "ssm-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "ssm-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "ssm-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "ssm-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "ssm-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "ssm-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ssm-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ssm-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ssm-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -23031,11 +29558,35 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "ssm-contacts-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "ssm-contacts-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "ssm-contacts-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "ssm-contacts-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "ssm-contacts-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ssm-contacts-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ssm-contacts-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ssm-contacts-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -23095,17 +29646,47 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "ssm-incidents-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "ssm-incidents-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "ssm-incidents-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "ssm-incidents-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "ssm-incidents-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "ssm-incidents-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "ssm-incidents-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ssm-incidents-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ssm-incidents-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ssm-incidents-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -23165,17 +29746,47 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "ssm-quicksetup-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "ssm-quicksetup-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "ssm-quicksetup-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "ssm-quicksetup-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "ssm-quicksetup-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "ssm-quicksetup-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "ssm-quicksetup-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ssm-quicksetup-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ssm-quicksetup-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ssm-quicksetup-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -23433,11 +30044,41 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "ssm-sap-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "ssm-sap-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "ssm-sap-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "ssm-sap-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "ssm-sap-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "ssm-sap-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "ssm-sap-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "ssm-sap-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "ssm-sap-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "ssm-sap-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -23630,15 +30271,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "states-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "states-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "states-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "states-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "states-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "states-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "states-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "states-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -23705,7 +30370,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "storagegateway-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
+				"ca-central-1-fips": {
+					Hostname: "storagegateway-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
 				"ca-west-1": {
 					Variants: []Variant{
 						{
@@ -23716,19 +30387,25 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1-fips": {Hostname: "storagegateway-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"eu-central-1":   {},
-				"eu-central-2":   {},
-				"eu-north-1":     {},
-				"eu-south-1":     {},
-				"eu-south-2":     {},
-				"eu-west-1":      {},
-				"eu-west-2":      {},
-				"eu-west-3":      {},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"sa-east-1":      {},
+				"ca-west-1-fips": {
+					Hostname: "storagegateway-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -23739,7 +30416,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "storagegateway-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "storagegateway-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -23750,7 +30433,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "storagegateway-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "storagegateway-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -23761,7 +30450,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "storagegateway-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "storagegateway-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -23772,7 +30467,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "storagegateway-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "storagegateway-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"streams.dynamodb": {
@@ -23801,15 +30502,20 @@ var AWSPartition = Partition{
 				"eu-west-2":      {},
 				"eu-west-3":      {},
 				"il-central-1":   {},
-				"local":          {Hostname: "localhost:8000", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
-				"us-east-1":      {},
-				"us-east-2":      {},
-				"us-west-1":      {},
-				"us-west-2":      {},
+				"local": {
+					Hostname: "localhost:8000",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
+				"us-east-1":    {},
+				"us-east-2":    {},
+				"us-west-1":    {},
+				"us-west-2":    {},
 			},
 		},
 		"sts": {
@@ -23827,22 +30533,27 @@ var AWSPartition = Partition{
 				"ap-southeast-4": {},
 				"ap-southeast-5": {},
 				"ap-southeast-7": {},
-				"aws-global":     {Hostname: "sts.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"ca-central-1":   {},
-				"ca-west-1":      {},
-				"eu-central-1":   {},
-				"eu-central-2":   {},
-				"eu-north-1":     {},
-				"eu-south-1":     {},
-				"eu-south-2":     {},
-				"eu-west-1":      {},
-				"eu-west-2":      {},
-				"eu-west-3":      {},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"aws-global": {
+					Hostname: "sts.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"ca-central-1": {},
+				"ca-west-1":    {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -23853,7 +30564,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "sts-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "sts-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -23864,7 +30581,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "sts-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "sts-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -23875,7 +30598,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "sts-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "sts-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -23886,12 +30615,23 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "sts-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "sts-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"support": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "support.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "support.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"supportapp": {
@@ -23936,25 +30676,61 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "swf-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "swf-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "swf-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "swf-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "swf-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "swf-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"mx-central-1":      {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "swf-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "swf-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "swf-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "swf-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "swf-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "swf-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -24255,12 +31031,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "synthetics-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "synthetics-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "synthetics-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "synthetics-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "synthetics-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "synthetics-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "synthetics-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "synthetics-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "synthetics-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "synthetics-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "synthetics-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "synthetics-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"il-central-1": {
 					Variants: []Variant{
 						{
@@ -24443,7 +31255,12 @@ var AWSPartition = Partition{
 		},
 		"tax": {
 			Endpoints: map[string]Endpoint{
-				"aws-global": {Hostname: "tax.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}},
+				"aws-global": {
+					Hostname: "tax.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
 			},
 		},
 		"textract": {
@@ -24561,11 +31378,41 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-ca-central-1": {Hostname: "textract-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "textract-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "textract-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "textract-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "textract-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-ca-central-1": {
+					Hostname: "textract-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "textract-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "textract-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "textract-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "textract-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -24704,18 +31551,48 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-north-1":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "fips.transcribe.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "fips.transcribe.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "fips.transcribe.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "fips.transcribe.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "fips.transcribe.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-north-1":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "fips.transcribe.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "fips.transcribe.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "fips.transcribe.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "fips.transcribe.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "fips.transcribe.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"me-south-1": {},
+				"sa-east-1":  {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -24776,14 +31653,38 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "transcribestreaming-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "transcribestreaming-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "transcribestreaming-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "transcribestreaming-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "transcribestreaming-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "transcribestreaming-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "transcribestreaming-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "transcribestreaming-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"sa-east-1": {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -24850,24 +31751,60 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "transfer-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "transfer-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "transfer-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "transfer-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "transfer-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "transfer-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "transfer-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "transfer-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "transfer-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "transfer-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "transfer-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "transfer-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -24934,7 +31871,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "translate-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "translate-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-east-2": {
 					Variants: []Variant{
 						{
@@ -24945,7 +31888,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2-fips": {Hostname: "translate-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
+				"us-east-2-fips": {
+					Hostname: "translate-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
 				"us-west-1": {
 					Variants: []Variant{
 						{
@@ -24956,7 +31905,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1-fips": {Hostname: "translate-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
+				"us-west-1-fips": {
+					Hostname: "translate-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -24967,14 +31922,35 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "translate-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "translate-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"trustedadvisor": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-east-1": {Hostname: "trustedadvisor-fips.us-east-1.api.aws", CredentialScope: &CredentialScope{Region: "us-east-1"}},
-				"fips-us-east-2": {Hostname: "trustedadvisor-fips.us-east-2.api.aws", CredentialScope: &CredentialScope{Region: "us-east-2"}},
-				"fips-us-west-2": {Hostname: "trustedadvisor-fips.us-west-2.api.aws", CredentialScope: &CredentialScope{Region: "us-west-2"}},
+				"fips-us-east-1": {
+					Hostname: "trustedadvisor-fips.us-east-1.api.aws",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+				},
+				"fips-us-east-2": {
+					Hostname: "trustedadvisor-fips.us-east-2.api.aws",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+				},
+				"fips-us-west-2": {
+					Hostname: "trustedadvisor-fips.us-west-2.api.aws",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+				},
 			},
 		},
 		"verifiedpermissions": {
@@ -25010,24 +31986,60 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-central-2":      {},
-				"eu-north-1":        {},
-				"eu-south-1":        {},
-				"eu-south-2":        {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
-				"eu-west-3":         {},
-				"fips-ca-central-1": {Hostname: "verifiedpermissions-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":    {Hostname: "verifiedpermissions-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "verifiedpermissions-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":    {Hostname: "verifiedpermissions-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":    {Hostname: "verifiedpermissions-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "verifiedpermissions-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":      {},
-				"me-central-1":      {},
-				"me-south-1":        {},
-				"sa-east-1":         {},
+				"eu-central-1": {},
+				"eu-central-2": {},
+				"eu-north-1":   {},
+				"eu-south-1":   {},
+				"eu-south-2":   {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
+				"eu-west-3":    {},
+				"fips-ca-central-1": {
+					Hostname: "verifiedpermissions-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "verifiedpermissions-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "verifiedpermissions-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "verifiedpermissions-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "verifiedpermissions-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "verifiedpermissions-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -25086,10 +32098,16 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1-fips": {Hostname: "voice-chime-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"eu-central-1":      {},
-				"eu-west-1":         {},
-				"eu-west-2":         {},
+				"ca-central-1-fips": {
+					Hostname: "voice-chime-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"eu-central-1": {},
+				"eu-west-1":    {},
+				"eu-west-2":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -25100,7 +32118,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1-fips": {Hostname: "voice-chime-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"us-east-1-fips": {
+					Hostname: "voice-chime-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-west-2": {
 					Variants: []Variant{
 						{
@@ -25111,7 +32135,13 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2-fips": {Hostname: "voice-chime-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"us-west-2-fips": {
+					Hostname: "voice-chime-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"voiceid": {
@@ -25129,11 +32159,29 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Hostname: "voiceid-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-us-east-1":    {Hostname: "voiceid-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2":    {Hostname: "voiceid-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"eu-central-1": {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Hostname: "voiceid-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "voiceid-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "voiceid-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -25190,7 +32238,11 @@ var AWSPartition = Partition{
 		},
 		"waf": {
 			Endpoints: map[string]Endpoint{
-				"aws": {CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true,
+				"aws": {
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "waf-fips.amazonaws.com",
@@ -25200,8 +32252,18 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"aws-fips": {Hostname: "waf-fips.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"aws-global": {Hostname: "waf.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"aws-fips": {
+					Hostname: "waf-fips.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"aws-global": {
+					Hostname: "waf.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-fips.amazonaws.com",
@@ -25211,12 +32273,22 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"aws-global-fips": {Hostname: "waf-fips.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
+				"aws-global-fips": {
+					Hostname: "waf-fips.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"waf-regional": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1": {Hostname: "waf-regional.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"},
+				"af-south-1": {
+					Hostname: "waf-regional.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.af-south-1.amazonaws.com",
@@ -25226,7 +32298,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-east-1": {Hostname: "waf-regional.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"},
+				"ap-east-1": {
+					Hostname: "waf-regional.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-east-1.amazonaws.com",
@@ -25236,7 +32312,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-1": {Hostname: "waf-regional.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"},
+				"ap-northeast-1": {
+					Hostname: "waf-regional.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-northeast-1.amazonaws.com",
@@ -25246,7 +32326,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-2": {Hostname: "waf-regional.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"},
+				"ap-northeast-2": {
+					Hostname: "waf-regional.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-northeast-2.amazonaws.com",
@@ -25256,7 +32340,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-3": {Hostname: "waf-regional.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"},
+				"ap-northeast-3": {
+					Hostname: "waf-regional.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-northeast-3.amazonaws.com",
@@ -25266,7 +32354,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-1": {Hostname: "waf-regional.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"},
+				"ap-south-1": {
+					Hostname: "waf-regional.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-south-1.amazonaws.com",
@@ -25276,7 +32368,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-2": {Hostname: "waf-regional.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"},
+				"ap-south-2": {
+					Hostname: "waf-regional.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-south-2.amazonaws.com",
@@ -25286,7 +32382,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-1": {Hostname: "waf-regional.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"},
+				"ap-southeast-1": {
+					Hostname: "waf-regional.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-southeast-1.amazonaws.com",
@@ -25296,7 +32396,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-2": {Hostname: "waf-regional.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"},
+				"ap-southeast-2": {
+					Hostname: "waf-regional.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-southeast-2.amazonaws.com",
@@ -25306,7 +32410,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-3": {Hostname: "waf-regional.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"},
+				"ap-southeast-3": {
+					Hostname: "waf-regional.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-southeast-3.amazonaws.com",
@@ -25316,7 +32424,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-4": {Hostname: "waf-regional.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"},
+				"ap-southeast-4": {
+					Hostname: "waf-regional.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ap-southeast-4.amazonaws.com",
@@ -25326,7 +32438,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1": {Hostname: "waf-regional.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"},
+				"ca-central-1": {
+					Hostname: "waf-regional.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.ca-central-1.amazonaws.com",
@@ -25336,7 +32452,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1": {Hostname: "waf-regional.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"},
+				"eu-central-1": {
+					Hostname: "waf-regional.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.eu-central-1.amazonaws.com",
@@ -25346,7 +32466,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-2": {Hostname: "waf-regional.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"},
+				"eu-central-2": {
+					Hostname: "waf-regional.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.eu-central-2.amazonaws.com",
@@ -25356,7 +32480,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-north-1": {Hostname: "waf-regional.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"},
+				"eu-north-1": {
+					Hostname: "waf-regional.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.eu-north-1.amazonaws.com",
@@ -25366,7 +32494,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-1": {Hostname: "waf-regional.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"},
+				"eu-south-1": {
+					Hostname: "waf-regional.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.eu-south-1.amazonaws.com",
@@ -25376,7 +32508,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-2": {Hostname: "waf-regional.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"},
+				"eu-south-2": {
+					Hostname: "waf-regional.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.eu-south-2.amazonaws.com",
@@ -25386,7 +32522,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-1": {Hostname: "waf-regional.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"},
+				"eu-west-1": {
+					Hostname: "waf-regional.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.eu-west-1.amazonaws.com",
@@ -25396,7 +32536,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-2": {Hostname: "waf-regional.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"},
+				"eu-west-2": {
+					Hostname: "waf-regional.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.eu-west-2.amazonaws.com",
@@ -25406,7 +32550,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-3": {Hostname: "waf-regional.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"},
+				"eu-west-3": {
+					Hostname: "waf-regional.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.eu-west-3.amazonaws.com",
@@ -25416,35 +32564,207 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-af-south-1":     {Hostname: "waf-regional-fips.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}, Deprecated: true},
-				"fips-ap-east-1":      {Hostname: "waf-regional-fips.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}, Deprecated: true},
-				"fips-ap-northeast-1": {Hostname: "waf-regional-fips.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}, Deprecated: true},
-				"fips-ap-northeast-2": {Hostname: "waf-regional-fips.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}, Deprecated: true},
-				"fips-ap-northeast-3": {Hostname: "waf-regional-fips.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"}, Deprecated: true},
-				"fips-ap-south-1":     {Hostname: "waf-regional-fips.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}, Deprecated: true},
-				"fips-ap-south-2":     {Hostname: "waf-regional-fips.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"}, Deprecated: true},
-				"fips-ap-southeast-1": {Hostname: "waf-regional-fips.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}, Deprecated: true},
-				"fips-ap-southeast-2": {Hostname: "waf-regional-fips.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}, Deprecated: true},
-				"fips-ap-southeast-3": {Hostname: "waf-regional-fips.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"}, Deprecated: true},
-				"fips-ap-southeast-4": {Hostname: "waf-regional-fips.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"}, Deprecated: true},
-				"fips-ca-central-1":   {Hostname: "waf-regional-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-eu-central-1":   {Hostname: "waf-regional-fips.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}, Deprecated: true},
-				"fips-eu-central-2":   {Hostname: "waf-regional-fips.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}, Deprecated: true},
-				"fips-eu-north-1":     {Hostname: "waf-regional-fips.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}, Deprecated: true},
-				"fips-eu-south-1":     {Hostname: "waf-regional-fips.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}, Deprecated: true},
-				"fips-eu-south-2":     {Hostname: "waf-regional-fips.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"}, Deprecated: true},
-				"fips-eu-west-1":      {Hostname: "waf-regional-fips.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}, Deprecated: true},
-				"fips-eu-west-2":      {Hostname: "waf-regional-fips.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}, Deprecated: true},
-				"fips-eu-west-3":      {Hostname: "waf-regional-fips.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}, Deprecated: true},
-				"fips-il-central-1":   {Hostname: "waf-regional-fips.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"}, Deprecated: true},
-				"fips-me-central-1":   {Hostname: "waf-regional-fips.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"}, Deprecated: true},
-				"fips-me-south-1":     {Hostname: "waf-regional-fips.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}, Deprecated: true},
-				"fips-sa-east-1":      {Hostname: "waf-regional-fips.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}, Deprecated: true},
-				"fips-us-east-1":      {Hostname: "waf-regional-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":      {Hostname: "waf-regional-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":      {Hostname: "waf-regional-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":      {Hostname: "waf-regional-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1": {Hostname: "waf-regional.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"},
+				"fips-af-south-1": {
+					Hostname: "waf-regional-fips.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-east-1": {
+					Hostname: "waf-regional-fips.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-1": {
+					Hostname: "waf-regional-fips.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-2": {
+					Hostname: "waf-regional-fips.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-3": {
+					Hostname: "waf-regional-fips.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-south-1": {
+					Hostname: "waf-regional-fips.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-south-2": {
+					Hostname: "waf-regional-fips.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-1": {
+					Hostname: "waf-regional-fips.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-2": {
+					Hostname: "waf-regional-fips.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-3": {
+					Hostname: "waf-regional-fips.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-4": {
+					Hostname: "waf-regional-fips.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-central-1": {
+					Hostname: "waf-regional-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-central-1": {
+					Hostname: "waf-regional-fips.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-central-2": {
+					Hostname: "waf-regional-fips.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-north-1": {
+					Hostname: "waf-regional-fips.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-south-1": {
+					Hostname: "waf-regional-fips.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-south-2": {
+					Hostname: "waf-regional-fips.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-1": {
+					Hostname: "waf-regional-fips.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-2": {
+					Hostname: "waf-regional-fips.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-3": {
+					Hostname: "waf-regional-fips.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+					Deprecated: true,
+				},
+				"fips-il-central-1": {
+					Hostname: "waf-regional-fips.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-me-central-1": {
+					Hostname: "waf-regional-fips.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-me-south-1": {
+					Hostname: "waf-regional-fips.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-sa-east-1": {
+					Hostname: "waf-regional-fips.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "waf-regional-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "waf-regional-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "waf-regional-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "waf-regional-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {
+					Hostname: "waf-regional.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.il-central-1.amazonaws.com",
@@ -25454,7 +32774,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-central-1": {Hostname: "waf-regional.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"},
+				"me-central-1": {
+					Hostname: "waf-regional.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.me-central-1.amazonaws.com",
@@ -25464,7 +32788,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-south-1": {Hostname: "waf-regional.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"},
+				"me-south-1": {
+					Hostname: "waf-regional.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.me-south-1.amazonaws.com",
@@ -25474,7 +32802,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"sa-east-1": {Hostname: "waf-regional.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"},
+				"sa-east-1": {
+					Hostname: "waf-regional.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.sa-east-1.amazonaws.com",
@@ -25484,7 +32816,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1": {Hostname: "waf-regional.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"us-east-1": {
+					Hostname: "waf-regional.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.us-east-1.amazonaws.com",
@@ -25494,7 +32830,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2": {Hostname: "waf-regional.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"},
+				"us-east-2": {
+					Hostname: "waf-regional.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.us-east-2.amazonaws.com",
@@ -25504,7 +32844,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1": {Hostname: "waf-regional.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"},
+				"us-west-1": {
+					Hostname: "waf-regional.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.us-west-1.amazonaws.com",
@@ -25514,7 +32858,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2": {Hostname: "waf-regional.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"},
+				"us-west-2": {
+					Hostname: "waf-regional.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.us-west-2.amazonaws.com",
@@ -25528,7 +32876,11 @@ var AWSPartition = Partition{
 		},
 		"wafv2": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1": {Hostname: "wafv2.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"},
+				"af-south-1": {
+					Hostname: "wafv2.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.af-south-1.amazonaws.com",
@@ -25538,7 +32890,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-east-1": {Hostname: "wafv2.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"},
+				"ap-east-1": {
+					Hostname: "wafv2.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-east-1.amazonaws.com",
@@ -25548,7 +32904,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-1": {Hostname: "wafv2.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"},
+				"ap-northeast-1": {
+					Hostname: "wafv2.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-northeast-1.amazonaws.com",
@@ -25558,7 +32918,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-2": {Hostname: "wafv2.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"},
+				"ap-northeast-2": {
+					Hostname: "wafv2.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-northeast-2.amazonaws.com",
@@ -25568,7 +32932,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-northeast-3": {Hostname: "wafv2.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"},
+				"ap-northeast-3": {
+					Hostname: "wafv2.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-northeast-3.amazonaws.com",
@@ -25578,7 +32946,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-1": {Hostname: "wafv2.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"},
+				"ap-south-1": {
+					Hostname: "wafv2.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-south-1.amazonaws.com",
@@ -25588,7 +32960,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-south-2": {Hostname: "wafv2.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"},
+				"ap-south-2": {
+					Hostname: "wafv2.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-south-2.amazonaws.com",
@@ -25598,7 +32974,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-1": {Hostname: "wafv2.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"},
+				"ap-southeast-1": {
+					Hostname: "wafv2.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-southeast-1.amazonaws.com",
@@ -25608,7 +32988,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-2": {Hostname: "wafv2.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"},
+				"ap-southeast-2": {
+					Hostname: "wafv2.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-southeast-2.amazonaws.com",
@@ -25618,7 +33002,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-3": {Hostname: "wafv2.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"},
+				"ap-southeast-3": {
+					Hostname: "wafv2.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-southeast-3.amazonaws.com",
@@ -25628,7 +33016,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-4": {Hostname: "wafv2.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"},
+				"ap-southeast-4": {
+					Hostname: "wafv2.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-southeast-4.amazonaws.com",
@@ -25638,7 +33030,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ap-southeast-5": {Hostname: "wafv2.ap-southeast-5.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-5"},
+				"ap-southeast-5": {
+					Hostname: "wafv2.ap-southeast-5.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-5",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ap-southeast-5.amazonaws.com",
@@ -25648,7 +33044,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-central-1": {Hostname: "wafv2.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"},
+				"ca-central-1": {
+					Hostname: "wafv2.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ca-central-1.amazonaws.com",
@@ -25658,7 +33058,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"ca-west-1": {Hostname: "wafv2.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"},
+				"ca-west-1": {
+					Hostname: "wafv2.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.ca-west-1.amazonaws.com",
@@ -25668,7 +33072,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1": {Hostname: "wafv2.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"},
+				"eu-central-1": {
+					Hostname: "wafv2.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.eu-central-1.amazonaws.com",
@@ -25678,7 +33086,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-2": {Hostname: "wafv2.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"},
+				"eu-central-2": {
+					Hostname: "wafv2.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.eu-central-2.amazonaws.com",
@@ -25688,7 +33100,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-north-1": {Hostname: "wafv2.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"},
+				"eu-north-1": {
+					Hostname: "wafv2.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.eu-north-1.amazonaws.com",
@@ -25698,7 +33114,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-1": {Hostname: "wafv2.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"},
+				"eu-south-1": {
+					Hostname: "wafv2.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.eu-south-1.amazonaws.com",
@@ -25708,7 +33128,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-south-2": {Hostname: "wafv2.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"},
+				"eu-south-2": {
+					Hostname: "wafv2.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.eu-south-2.amazonaws.com",
@@ -25718,7 +33142,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-1": {Hostname: "wafv2.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"},
+				"eu-west-1": {
+					Hostname: "wafv2.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.eu-west-1.amazonaws.com",
@@ -25728,7 +33156,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-2": {Hostname: "wafv2.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"},
+				"eu-west-2": {
+					Hostname: "wafv2.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.eu-west-2.amazonaws.com",
@@ -25738,7 +33170,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-west-3": {Hostname: "wafv2.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"},
+				"eu-west-3": {
+					Hostname: "wafv2.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.eu-west-3.amazonaws.com",
@@ -25748,37 +33184,221 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"fips-af-south-1":     {Hostname: "wafv2-fips.af-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "af-south-1"}, Deprecated: true},
-				"fips-ap-east-1":      {Hostname: "wafv2-fips.ap-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-east-1"}, Deprecated: true},
-				"fips-ap-northeast-1": {Hostname: "wafv2-fips.ap-northeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-1"}, Deprecated: true},
-				"fips-ap-northeast-2": {Hostname: "wafv2-fips.ap-northeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-2"}, Deprecated: true},
-				"fips-ap-northeast-3": {Hostname: "wafv2-fips.ap-northeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-northeast-3"}, Deprecated: true},
-				"fips-ap-south-1":     {Hostname: "wafv2-fips.ap-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-1"}, Deprecated: true},
-				"fips-ap-south-2":     {Hostname: "wafv2-fips.ap-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-south-2"}, Deprecated: true},
-				"fips-ap-southeast-1": {Hostname: "wafv2-fips.ap-southeast-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-1"}, Deprecated: true},
-				"fips-ap-southeast-2": {Hostname: "wafv2-fips.ap-southeast-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-2"}, Deprecated: true},
-				"fips-ap-southeast-3": {Hostname: "wafv2-fips.ap-southeast-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-3"}, Deprecated: true},
-				"fips-ap-southeast-4": {Hostname: "wafv2-fips.ap-southeast-4.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-4"}, Deprecated: true},
-				"fips-ap-southeast-5": {Hostname: "wafv2-fips.ap-southeast-5.amazonaws.com", CredentialScope: &CredentialScope{Region: "ap-southeast-5"}, Deprecated: true},
-				"fips-ca-central-1":   {Hostname: "wafv2-fips.ca-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-central-1"}, Deprecated: true},
-				"fips-ca-west-1":      {Hostname: "wafv2-fips.ca-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "ca-west-1"}, Deprecated: true},
-				"fips-eu-central-1":   {Hostname: "wafv2-fips.eu-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-1"}, Deprecated: true},
-				"fips-eu-central-2":   {Hostname: "wafv2-fips.eu-central-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-central-2"}, Deprecated: true},
-				"fips-eu-north-1":     {Hostname: "wafv2-fips.eu-north-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-north-1"}, Deprecated: true},
-				"fips-eu-south-1":     {Hostname: "wafv2-fips.eu-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-1"}, Deprecated: true},
-				"fips-eu-south-2":     {Hostname: "wafv2-fips.eu-south-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-south-2"}, Deprecated: true},
-				"fips-eu-west-1":      {Hostname: "wafv2-fips.eu-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-1"}, Deprecated: true},
-				"fips-eu-west-2":      {Hostname: "wafv2-fips.eu-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-2"}, Deprecated: true},
-				"fips-eu-west-3":      {Hostname: "wafv2-fips.eu-west-3.amazonaws.com", CredentialScope: &CredentialScope{Region: "eu-west-3"}, Deprecated: true},
-				"fips-il-central-1":   {Hostname: "wafv2-fips.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"}, Deprecated: true},
-				"fips-me-central-1":   {Hostname: "wafv2-fips.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"}, Deprecated: true},
-				"fips-me-south-1":     {Hostname: "wafv2-fips.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"}, Deprecated: true},
-				"fips-sa-east-1":      {Hostname: "wafv2-fips.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"}, Deprecated: true},
-				"fips-us-east-1":      {Hostname: "wafv2-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2":      {Hostname: "wafv2-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1":      {Hostname: "wafv2-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2":      {Hostname: "wafv2-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1": {Hostname: "wafv2.il-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "il-central-1"},
+				"fips-af-south-1": {
+					Hostname: "wafv2-fips.af-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "af-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-east-1": {
+					Hostname: "wafv2-fips.ap-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-1": {
+					Hostname: "wafv2-fips.ap-northeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-2": {
+					Hostname: "wafv2-fips.ap-northeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-northeast-3": {
+					Hostname: "wafv2-fips.ap-northeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-northeast-3",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-south-1": {
+					Hostname: "wafv2-fips.ap-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-south-2": {
+					Hostname: "wafv2-fips.ap-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-south-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-1": {
+					Hostname: "wafv2-fips.ap-southeast-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-2": {
+					Hostname: "wafv2-fips.ap-southeast-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-2",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-3": {
+					Hostname: "wafv2-fips.ap-southeast-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-3",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-4": {
+					Hostname: "wafv2-fips.ap-southeast-4.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-4",
+					},
+					Deprecated: true,
+				},
+				"fips-ap-southeast-5": {
+					Hostname: "wafv2-fips.ap-southeast-5.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ap-southeast-5",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-central-1": {
+					Hostname: "wafv2-fips.ca-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-ca-west-1": {
+					Hostname: "wafv2-fips.ca-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "ca-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-central-1": {
+					Hostname: "wafv2-fips.eu-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-central-2": {
+					Hostname: "wafv2-fips.eu-central-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-central-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-north-1": {
+					Hostname: "wafv2-fips.eu-north-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-north-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-south-1": {
+					Hostname: "wafv2-fips.eu-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-south-2": {
+					Hostname: "wafv2-fips.eu-south-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-south-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-1": {
+					Hostname: "wafv2-fips.eu-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-2": {
+					Hostname: "wafv2-fips.eu-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-2",
+					},
+					Deprecated: true,
+				},
+				"fips-eu-west-3": {
+					Hostname: "wafv2-fips.eu-west-3.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "eu-west-3",
+					},
+					Deprecated: true,
+				},
+				"fips-il-central-1": {
+					Hostname: "wafv2-fips.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-me-central-1": {
+					Hostname: "wafv2-fips.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
+					Deprecated: true,
+				},
+				"fips-me-south-1": {
+					Hostname: "wafv2-fips.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
+					Deprecated: true,
+				},
+				"fips-sa-east-1": {
+					Hostname: "wafv2-fips.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Hostname: "wafv2-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "wafv2-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "wafv2-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "wafv2-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {
+					Hostname: "wafv2.il-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "il-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.il-central-1.amazonaws.com",
@@ -25788,7 +33408,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-central-1": {Hostname: "wafv2.me-central-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-central-1"},
+				"me-central-1": {
+					Hostname: "wafv2.me-central-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-central-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.me-central-1.amazonaws.com",
@@ -25798,7 +33422,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"me-south-1": {Hostname: "wafv2.me-south-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "me-south-1"},
+				"me-south-1": {
+					Hostname: "wafv2.me-south-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "me-south-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.me-south-1.amazonaws.com",
@@ -25808,7 +33436,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"sa-east-1": {Hostname: "wafv2.sa-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "sa-east-1"},
+				"sa-east-1": {
+					Hostname: "wafv2.sa-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "sa-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.sa-east-1.amazonaws.com",
@@ -25818,7 +33450,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-1": {Hostname: "wafv2.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"},
+				"us-east-1": {
+					Hostname: "wafv2.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.us-east-1.amazonaws.com",
@@ -25828,7 +33464,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-east-2": {Hostname: "wafv2.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"},
+				"us-east-2": {
+					Hostname: "wafv2.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.us-east-2.amazonaws.com",
@@ -25838,7 +33478,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-1": {Hostname: "wafv2.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"},
+				"us-west-1": {
+					Hostname: "wafv2.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.us-west-1.amazonaws.com",
@@ -25848,7 +33492,11 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"us-west-2": {Hostname: "wafv2.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"},
+				"us-west-2": {
+					Hostname: "wafv2.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.us-west-2.amazonaws.com",
@@ -25897,11 +33545,17 @@ var AWSPartition = Partition{
 						},
 					},
 				},
-				"eu-central-1":      {},
-				"eu-west-2":         {},
-				"fips-ca-central-1": {Deprecated: true},
-				"fips-us-east-1":    {Deprecated: true},
-				"fips-us-west-2":    {Deprecated: true},
+				"eu-central-1": {},
+				"eu-west-2":    {},
+				"fips-ca-central-1": {
+					Deprecated: true,
+				},
+				"fips-us-east-1": {
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Deprecated: true,
+				},
 				"ui-ap-northeast-1": {},
 				"ui-ap-northeast-2": {},
 				"ui-ap-southeast-1": {},
@@ -25937,8 +33591,20 @@ var AWSPartition = Partition{
 				"ap-southeast-1": {},
 				"ap-southeast-2": {},
 				"eu-west-1":      {},
-				"fips-us-east-1": {Hostname: "workdocs-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "workdocs-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "workdocs-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "workdocs-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -25980,10 +33646,22 @@ var AWSPartition = Partition{
 				"eu-central-1":   {},
 				"eu-west-1":      {},
 				"eu-west-2":      {},
-				"fips-us-east-1": {Hostname: "workspaces-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "workspaces-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "workspaces-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "workspaces-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -26016,8 +33694,20 @@ var AWSPartition = Partition{
 				"eu-central-1":   {},
 				"eu-west-1":      {},
 				"eu-west-2":      {},
-				"fips-us-east-1": {Hostname: "workspaces-web-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "workspaces-web-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
+				"fips-us-east-1": {
+					Hostname: "workspaces-web-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "workspaces-web-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -26065,15 +33755,39 @@ var AWSPartition = Partition{
 				"eu-west-1":      {},
 				"eu-west-2":      {},
 				"eu-west-3":      {},
-				"fips-us-east-1": {Hostname: "xray-fips.us-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-1"}, Deprecated: true},
-				"fips-us-east-2": {Hostname: "xray-fips.us-east-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-east-2"}, Deprecated: true},
-				"fips-us-west-1": {Hostname: "xray-fips.us-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-1"}, Deprecated: true},
-				"fips-us-west-2": {Hostname: "xray-fips.us-west-2.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-west-2"}, Deprecated: true},
-				"il-central-1":   {},
-				"me-central-1":   {},
-				"me-south-1":     {},
-				"mx-central-1":   {},
-				"sa-east-1":      {},
+				"fips-us-east-1": {
+					Hostname: "xray-fips.us-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-east-2": {
+					Hostname: "xray-fips.us-east-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-east-2",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-1": {
+					Hostname: "xray-fips.us-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-west-2": {
+					Hostname: "xray-fips.us-west-2.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-west-2",
+					},
+					Deprecated: true,
+				},
+				"il-central-1": {},
+				"me-central-1": {},
+				"me-south-1":   {},
+				"mx-central-1": {},
+				"sa-east-1":    {},
 				"us-east-1": {
 					Variants: []Variant{
 						{
@@ -26139,7 +33853,12 @@ var AWS_CNPartition = Partition{
 		},
 		"account": {
 			Endpoints: map[string]Endpoint{
-				"aws-cn-global": {Hostname: "account.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"aws-cn-global": {
+					Hostname: "account.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"acm": {
@@ -26162,7 +33881,11 @@ var AWS_CNPartition = Partition{
 		},
 		"api.ecr": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1": {Hostname: "api.ecr.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"},
+				"cn-north-1": {
+					Hostname: "api.ecr.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.cn-north-1.api.amazonwebservices.com.cn",
@@ -26172,7 +33895,11 @@ var AWS_CNPartition = Partition{
 						},
 					},
 				},
-				"cn-northwest-1": {Hostname: "api.ecr.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"},
+				"cn-northwest-1": {
+					Hostname: "api.ecr.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr.cn-northwest-1.api.amazonwebservices.com.cn",
@@ -26335,7 +34062,12 @@ var AWS_CNPartition = Partition{
 		},
 		"budgets": {
 			Endpoints: map[string]Endpoint{
-				"aws-cn-global": {Hostname: "budgets.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"aws-cn-global": {
+					Hostname: "budgets.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"cassandra": {
@@ -26346,7 +34078,12 @@ var AWS_CNPartition = Partition{
 		},
 		"ce": {
 			Endpoints: map[string]Endpoint{
-				"aws-cn-global": {Hostname: "ce.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"aws-cn-global": {
+					Hostname: "ce.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"cloudcontrolapi": {
@@ -26381,7 +34118,12 @@ var AWS_CNPartition = Partition{
 		},
 		"cloudfront": {
 			Endpoints: map[string]Endpoint{
-				"aws-cn-global": {Hostname: "cloudfront.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"aws-cn-global": {
+					Hostname: "cloudfront.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"cloudtrail": {
@@ -26430,8 +34172,18 @@ var AWS_CNPartition = Partition{
 		},
 		"compute-optimizer": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "compute-optimizer.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
-				"cn-northwest-1": {Hostname: "compute-optimizer.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"cn-north-1": {
+					Hostname: "compute-optimizer.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
+				"cn-northwest-1": {
+					Hostname: "compute-optimizer.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"config": {
@@ -26447,7 +34199,9 @@ var AWS_CNPartition = Partition{
 		},
 		"data-ats.iot": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "data.ats.iot.cn-north-1.amazonaws.com.cn"},
+				"cn-north-1": {
+					Hostname: "data.ats.iot.cn-north-1.amazonaws.com.cn",
+				},
 				"cn-northwest-1": {},
 			},
 		},
@@ -26495,8 +34249,12 @@ var AWS_CNPartition = Partition{
 		},
 		"datazone": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "datazone.cn-north-1.api.amazonwebservices.com.cn"},
-				"cn-northwest-1": {Hostname: "datazone.cn-northwest-1.api.amazonwebservices.com.cn"},
+				"cn-north-1": {
+					Hostname: "datazone.cn-north-1.api.amazonwebservices.com.cn",
+				},
+				"cn-northwest-1": {
+					Hostname: "datazone.cn-northwest-1.api.amazonwebservices.com.cn",
+				},
 			},
 		},
 		"dax": {
@@ -26543,7 +34301,12 @@ var AWS_CNPartition = Partition{
 		},
 		"docdb": {
 			Endpoints: map[string]Endpoint{
-				"cn-northwest-1": {Hostname: "rds.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"cn-northwest-1": {
+					Hostname: "rds.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"ds": {
@@ -26584,8 +34347,12 @@ var AWS_CNPartition = Partition{
 		},
 		"eks-auth": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "eks-auth.cn-north-1.api.amazonwebservices.com.cn"},
-				"cn-northwest-1": {Hostname: "eks-auth.cn-northwest-1.api.amazonwebservices.com.cn"},
+				"cn-north-1": {
+					Hostname: "eks-auth.cn-north-1.api.amazonwebservices.com.cn",
+				},
+				"cn-northwest-1": {
+					Hostname: "eks-auth.cn-northwest-1.api.amazonwebservices.com.cn",
+				},
 			},
 		},
 		"elasticache": {
@@ -26640,8 +34407,20 @@ var AWS_CNPartition = Partition{
 						},
 					},
 				},
-				"fips-cn-north-1":     {Hostname: "elasticfilesystem-fips.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}, Deprecated: true},
-				"fips-cn-northwest-1": {Hostname: "elasticfilesystem-fips.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}, Deprecated: true},
+				"fips-cn-north-1": {
+					Hostname: "elasticfilesystem-fips.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+					Deprecated: true,
+				},
+				"fips-cn-northwest-1": {
+					Hostname: "elasticfilesystem-fips.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"elasticloadbalancing": {
@@ -26688,7 +34467,12 @@ var AWS_CNPartition = Partition{
 		},
 		"entitlement.marketplace": {
 			Endpoints: map[string]Endpoint{
-				"cn-northwest-1": {Hostname: "entitlement-marketplace.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"cn-northwest-1": {
+					Hostname: "entitlement-marketplace.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"es": {
@@ -26806,12 +34590,22 @@ var AWS_CNPartition = Partition{
 		},
 		"health": {
 			Endpoints: map[string]Endpoint{
-				"aws-cn-global": {Hostname: "global.health.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"aws-cn-global": {
+					Hostname: "global.health.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"iam": {
 			Endpoints: map[string]Endpoint{
-				"aws-cn-global": {Hostname: "iam.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
+				"aws-cn-global": {
+					Hostname: "iam.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
 			},
 		},
 		"identitystore": {
@@ -26828,8 +34622,12 @@ var AWS_CNPartition = Partition{
 		},
 		"internetmonitor": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "internetmonitor.cn-north-1.api.amazonwebservices.com.cn"},
-				"cn-northwest-1": {Hostname: "internetmonitor.cn-northwest-1.api.amazonwebservices.com.cn"},
+				"cn-north-1": {
+					Hostname: "internetmonitor.cn-north-1.api.amazonwebservices.com.cn",
+				},
+				"cn-northwest-1": {
+					Hostname: "internetmonitor.cn-northwest-1.api.amazonwebservices.com.cn",
+				},
 			},
 		},
 		"iot": {
@@ -26850,7 +34648,12 @@ var AWS_CNPartition = Partition{
 		},
 		"ioteventsdata": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1": {Hostname: "data.iotevents.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
+				"cn-north-1": {
+					Hostname: "data.iotevents.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
 			},
 		},
 		"iotsecuredtunneling": {
@@ -26866,9 +34669,19 @@ var AWS_CNPartition = Partition{
 		},
 		"iottwinmaker": {
 			Endpoints: map[string]Endpoint{
-				"api-cn-north-1":  {Hostname: "api.iottwinmaker.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
-				"cn-north-1":      {},
-				"data-cn-north-1": {Hostname: "data.iottwinmaker.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
+				"api-cn-north-1": {
+					Hostname: "api.iottwinmaker.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
+				"cn-north-1": {},
+				"data-cn-north-1": {
+					Hostname: "data.iottwinmaker.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
 			},
 		},
 		"kafka": {
@@ -26879,8 +34692,12 @@ var AWS_CNPartition = Partition{
 		},
 		"kendra-ranking": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "kendra-ranking.cn-north-1.api.amazonwebservices.com.cn"},
-				"cn-northwest-1": {Hostname: "kendra-ranking.cn-northwest-1.api.amazonwebservices.com.cn"},
+				"cn-north-1": {
+					Hostname: "kendra-ranking.cn-north-1.api.amazonwebservices.com.cn",
+				},
+				"cn-northwest-1": {
+					Hostname: "kendra-ranking.cn-northwest-1.api.amazonwebservices.com.cn",
+				},
 			},
 		},
 		"kinesis": {
@@ -27012,8 +34829,18 @@ var AWS_CNPartition = Partition{
 		},
 		"neptune": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "rds.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
-				"cn-northwest-1": {Hostname: "rds.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"cn-north-1": {
+					Hostname: "rds.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
+				"cn-northwest-1": {
+					Hostname: "rds.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"network-firewall": {
@@ -27024,8 +34851,12 @@ var AWS_CNPartition = Partition{
 		},
 		"notifications": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "notifications.cn-north-1.api.amazonwebservices.com.cn"},
-				"cn-northwest-1": {Hostname: "notifications.cn-northwest-1.api.amazonwebservices.com.cn"},
+				"cn-north-1": {
+					Hostname: "notifications.cn-north-1.api.amazonwebservices.com.cn",
+				},
+				"cn-northwest-1": {
+					Hostname: "notifications.cn-northwest-1.api.amazonwebservices.com.cn",
+				},
 			},
 		},
 		"oam": {
@@ -27036,13 +34867,28 @@ var AWS_CNPartition = Partition{
 		},
 		"oidc": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "oidc.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
-				"cn-northwest-1": {Hostname: "oidc.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"cn-north-1": {
+					Hostname: "oidc.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
+				"cn-northwest-1": {
+					Hostname: "oidc.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"organizations": {
 			Endpoints: map[string]Endpoint{
-				"aws-cn-global": {Hostname: "organizations.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"aws-cn-global": {
+					Hostname: "organizations.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"personalize": {
@@ -27096,14 +34942,28 @@ var AWS_CNPartition = Partition{
 		},
 		"portal.sso": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "portal.sso.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
-				"cn-northwest-1": {Hostname: "portal.sso.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"cn-north-1": {
+					Hostname: "portal.sso.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
+				"cn-northwest-1": {
+					Hostname: "portal.sso.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"qbusiness": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "qbusiness.cn-north-1.api.amazonwebservices.com.cn"},
-				"cn-northwest-1": {Hostname: "qbusiness.cn-northwest-1.api.amazonwebservices.com.cn"},
+				"cn-north-1": {
+					Hostname: "qbusiness.cn-north-1.api.amazonwebservices.com.cn",
+				},
+				"cn-northwest-1": {
+					Hostname: "qbusiness.cn-northwest-1.api.amazonwebservices.com.cn",
+				},
 			},
 		},
 		"quicksight": {
@@ -27173,7 +35033,12 @@ var AWS_CNPartition = Partition{
 		},
 		"route53": {
 			Endpoints: map[string]Endpoint{
-				"aws-cn-global": {Hostname: "route53.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"aws-cn-global": {
+					Hostname: "route53.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"route53resolver": {
@@ -27214,7 +35079,11 @@ var AWS_CNPartition = Partition{
 		},
 		"s3-control": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1": {Hostname: "s3-control.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"},
+				"cn-north-1": {
+					Hostname: "s3-control.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.cn-north-1.amazonaws.com.cn",
@@ -27224,7 +35093,11 @@ var AWS_CNPartition = Partition{
 						},
 					},
 				},
-				"cn-northwest-1": {Hostname: "s3-control.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"},
+				"cn-northwest-1": {
+					Hostname: "s3-control.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control.dualstack.cn-northwest-1.amazonaws.com.cn",
@@ -27238,8 +35111,18 @@ var AWS_CNPartition = Partition{
 		},
 		"savingsplans": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "savingsplans.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
-				"cn-northwest-1": {Hostname: "savingsplans.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"cn-north-1": {
+					Hostname: "savingsplans.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
+				"cn-northwest-1": {
+					Hostname: "savingsplans.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"schemas": {
@@ -27320,10 +35203,20 @@ var AWS_CNPartition = Partition{
 		},
 		"signer": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":                  {},
-				"cn-northwest-1":              {},
-				"verification-cn-north-1":     {Hostname: "verification.signer.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
-				"verification-cn-northwest-1": {Hostname: "verification.signer.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"cn-north-1":     {},
+				"cn-northwest-1": {},
+				"verification-cn-north-1": {
+					Hostname: "verification.signer.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
+				"verification-cn-northwest-1": {
+					Hostname: "verification.signer.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"sms": {
@@ -27353,8 +35246,20 @@ var AWS_CNPartition = Partition{
 						},
 					},
 				},
-				"fips-cn-north-1":     {Hostname: "snowball-fips.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}, Deprecated: true},
-				"fips-cn-northwest-1": {Hostname: "snowball-fips.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}, Deprecated: true},
+				"fips-cn-north-1": {
+					Hostname: "snowball-fips.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+					Deprecated: true,
+				},
+				"fips-cn-northwest-1": {
+					Hostname: "snowball-fips.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"sns": {
@@ -27425,7 +35330,12 @@ var AWS_CNPartition = Partition{
 		},
 		"support": {
 			Endpoints: map[string]Endpoint{
-				"aws-cn-global": {Hostname: "support.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
+				"aws-cn-global": {
+					Hostname: "support.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
 			},
 		},
 		"swf": {
@@ -27466,8 +35376,18 @@ var AWS_CNPartition = Partition{
 		},
 		"transcribe": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {Hostname: "cn.transcribe.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}},
-				"cn-northwest-1": {Hostname: "cn.transcribe.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}},
+				"cn-north-1": {
+					Hostname: "cn.transcribe.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+				},
+				"cn-northwest-1": {
+					Hostname: "cn.transcribe.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+				},
 			},
 		},
 		"transcribestreaming": {
@@ -27484,7 +35404,11 @@ var AWS_CNPartition = Partition{
 		},
 		"waf-regional": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1": {Hostname: "waf-regional.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"},
+				"cn-north-1": {
+					Hostname: "waf-regional.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.cn-north-1.amazonaws.com.cn",
@@ -27494,7 +35418,11 @@ var AWS_CNPartition = Partition{
 						},
 					},
 				},
-				"cn-northwest-1": {Hostname: "waf-regional.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"},
+				"cn-northwest-1": {
+					Hostname: "waf-regional.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.cn-northwest-1.amazonaws.com.cn",
@@ -27504,13 +35432,29 @@ var AWS_CNPartition = Partition{
 						},
 					},
 				},
-				"fips-cn-north-1":     {Hostname: "waf-regional-fips.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}, Deprecated: true},
-				"fips-cn-northwest-1": {Hostname: "waf-regional-fips.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}, Deprecated: true},
+				"fips-cn-north-1": {
+					Hostname: "waf-regional-fips.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+					Deprecated: true,
+				},
+				"fips-cn-northwest-1": {
+					Hostname: "waf-regional-fips.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"wafv2": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1": {Hostname: "wafv2.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"},
+				"cn-north-1": {
+					Hostname: "wafv2.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.cn-north-1.amazonaws.com.cn",
@@ -27520,7 +35464,11 @@ var AWS_CNPartition = Partition{
 						},
 					},
 				},
-				"cn-northwest-1": {Hostname: "wafv2.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"},
+				"cn-northwest-1": {
+					Hostname: "wafv2.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.cn-northwest-1.amazonaws.com.cn",
@@ -27530,8 +35478,20 @@ var AWS_CNPartition = Partition{
 						},
 					},
 				},
-				"fips-cn-north-1":     {Hostname: "wafv2-fips.cn-north-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-north-1"}, Deprecated: true},
-				"fips-cn-northwest-1": {Hostname: "wafv2-fips.cn-northwest-1.amazonaws.com.cn", CredentialScope: &CredentialScope{Region: "cn-northwest-1"}, Deprecated: true},
+				"fips-cn-north-1": {
+					Hostname: "wafv2-fips.cn-north-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-north-1",
+					},
+					Deprecated: true,
+				},
+				"fips-cn-northwest-1": {
+					Hostname: "wafv2-fips.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: &CredentialScope{
+						Region: "cn-northwest-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"workspaces": {
@@ -27562,7 +35522,11 @@ var AWS_US_GOVPartition = Partition{
 	Services: map[string]Service{
 		"access-analyzer": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "access-analyzer.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "access-analyzer.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "access-analyzer.us-gov-east-1.amazonaws.com",
@@ -27572,8 +35536,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "access-analyzer.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "access-analyzer.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-east-1-fips": {
+					Hostname: "access-analyzer.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "access-analyzer.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "access-analyzer.us-gov-west-1.amazonaws.com",
@@ -27583,19 +35557,47 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "access-analyzer.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "access-analyzer.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"acm": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "acm.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"us-gov-west-1": {Hostname: "acm.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"us-gov-east-1": {
+					Hostname: "acm.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"us-gov-west-1": {
+					Hostname: "acm.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"acm-pca": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "acm-pca.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "acm-pca.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "acm-pca.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "acm-pca.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -27636,7 +35638,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "api.detective-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "api.detective-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -27647,12 +35655,22 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "api.detective-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "api.detective-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"api.ecr": {
 			Endpoints: map[string]Endpoint{
-				"dkr-us-gov-east-1": {CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true,
+				"dkr-us-gov-east-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-gov-east-1.amazonaws.com",
@@ -27662,7 +35680,11 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"dkr-us-gov-west-1": {CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true,
+				"dkr-us-gov-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-gov-west-1.amazonaws.com",
@@ -27672,11 +35694,39 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"fips-dkr-us-gov-east-1": {Hostname: "ecr-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-dkr-us-gov-west-1": {Hostname: "ecr-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"fips-us-gov-east-1":     {Hostname: "ecr-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1":     {Hostname: "ecr-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-east-1": {Hostname: "api.ecr.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"fips-dkr-us-gov-east-1": {
+					Hostname: "ecr-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-dkr-us-gov-west-1": {
+					Hostname: "ecr-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-east-1": {
+					Hostname: "ecr-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "ecr-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-east-1": {
+					Hostname: "api.ecr.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-gov-east-1.amazonaws.com",
@@ -27699,7 +35749,11 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1": {Hostname: "api.ecr.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-west-1": {
+					Hostname: "api.ecr.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ecr-fips.us-gov-west-1.amazonaws.com",
@@ -27737,9 +35791,25 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips":           {Hostname: "api-fips.sagemaker.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-west-1-fips-secondary": {Hostname: "api.sagemaker.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-west-1-secondary": {CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true,
+				"us-gov-west-1-fips": {
+					Hostname: "api-fips.sagemaker.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1-fips-secondary": {
+					Hostname: "api.sagemaker.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1-secondary": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "api.sagemaker.us-gov-west-1.amazonaws.com",
@@ -27753,8 +35823,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"api.tunneling.iot": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "api.tunneling.iot-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "api.tunneling.iot-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "api.tunneling.iot-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "api.tunneling.iot-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -27811,8 +35893,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"appconfig": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "appconfig.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "appconfig.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "appconfig.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "appconfig.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -27837,8 +35931,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"appconfigdata": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "appconfigdata.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "appconfigdata.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "appconfigdata.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "appconfigdata.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -27863,7 +35969,8 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"application-autoscaling": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "application-autoscaling.us-gov-east-1.amazonaws.com",
+				"us-gov-east-1": {
+					Hostname: "application-autoscaling.us-gov-east-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "application-autoscaling.us-gov-east-1.amazonaws.com",
@@ -27873,8 +35980,12 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "application-autoscaling.us-gov-east-1.amazonaws.com", Deprecated: true},
-				"us-gov-west-1": {Hostname: "application-autoscaling.us-gov-west-1.amazonaws.com",
+				"us-gov-east-1-fips": {
+					Hostname:   "application-autoscaling.us-gov-east-1.amazonaws.com",
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "application-autoscaling.us-gov-west-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "application-autoscaling.us-gov-west-1.amazonaws.com",
@@ -27884,18 +35995,37 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "application-autoscaling.us-gov-west-1.amazonaws.com", Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname:   "application-autoscaling.us-gov-west-1.amazonaws.com",
+					Deprecated: true,
+				},
 			},
 		},
 		"applicationinsights": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "applicationinsights.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"us-gov-west-1": {Hostname: "applicationinsights.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"us-gov-east-1": {
+					Hostname: "applicationinsights.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"us-gov-west-1": {
+					Hostname: "applicationinsights.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"appstream2": {
 			Endpoints: map[string]Endpoint{
-				"fips": {Hostname: "appstream2-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips": {
+					Hostname: "appstream2-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -27906,7 +36036,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "appstream2-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "appstream2-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -27917,7 +36053,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "appstream2-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "appstream2-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"arc-zonal-shift": {
@@ -27928,8 +36070,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"athena": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "athena-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "athena-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "athena-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "athena-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -27996,7 +36150,10 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "autoscaling-plans.us-gov-east-1.amazonaws.com", Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname:   "autoscaling-plans.us-gov-east-1.amazonaws.com",
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28007,7 +36164,10 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "autoscaling-plans.us-gov-west-1.amazonaws.com", Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname:   "autoscaling-plans.us-gov-west-1.amazonaws.com",
+					Deprecated: true,
+				},
 			},
 		},
 		"backup": {
@@ -28024,8 +36184,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"batch": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "batch.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "batch.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "batch.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "batch.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28050,21 +36222,65 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"bedrock": {
 			Endpoints: map[string]Endpoint{
-				"bedrock-fips-us-gov-east-1":         {Hostname: "bedrock-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"bedrock-fips-us-gov-west-1":         {Hostname: "bedrock-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"bedrock-runtime-fips-us-gov-east-1": {Hostname: "bedrock-runtime-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"bedrock-runtime-fips-us-gov-west-1": {Hostname: "bedrock-runtime-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"bedrock-runtime-us-gov-east-1":      {Hostname: "bedrock-runtime.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"bedrock-runtime-us-gov-west-1":      {Hostname: "bedrock-runtime.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"bedrock-us-gov-east-1":              {Hostname: "bedrock.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"bedrock-us-gov-west-1":              {Hostname: "bedrock.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"us-gov-east-1":                      {},
-				"us-gov-west-1":                      {},
+				"bedrock-fips-us-gov-east-1": {
+					Hostname: "bedrock-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"bedrock-fips-us-gov-west-1": {
+					Hostname: "bedrock-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"bedrock-runtime-fips-us-gov-east-1": {
+					Hostname: "bedrock-runtime-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"bedrock-runtime-fips-us-gov-west-1": {
+					Hostname: "bedrock-runtime-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"bedrock-runtime-us-gov-east-1": {
+					Hostname: "bedrock-runtime.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"bedrock-runtime-us-gov-west-1": {
+					Hostname: "bedrock-runtime.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"bedrock-us-gov-east-1": {
+					Hostname: "bedrock.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"bedrock-us-gov-west-1": {
+					Hostname: "bedrock.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"us-gov-east-1": {},
+				"us-gov-west-1": {},
 			},
 		},
 		"cassandra": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "cassandra.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "cassandra.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "cassandra.us-gov-east-1.amazonaws.com",
@@ -28074,8 +36290,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "cassandra.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "cassandra.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-east-1-fips": {
+					Hostname: "cassandra.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "cassandra.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "cassandra.us-gov-west-1.amazonaws.com",
@@ -28085,13 +36311,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "cassandra.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "cassandra.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"cloudcontrolapi": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "cloudcontrolapi-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "cloudcontrolapi-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "cloudcontrolapi-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "cloudcontrolapi-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28152,12 +36396,22 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "clouddirectory.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "clouddirectory.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"cloudformation": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "cloudformation.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "cloudformation.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "cloudformation.us-gov-east-1.amazonaws.com",
@@ -28167,8 +36421,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "cloudformation.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "cloudformation.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-east-1-fips": {
+					Hostname: "cloudformation.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "cloudformation.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "cloudformation.us-gov-west-1.amazonaws.com",
@@ -28178,7 +36442,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "cloudformation.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "cloudformation.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"cloudhsm": {
@@ -28212,8 +36482,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"cloudtrail": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "cloudtrail.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "cloudtrail.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "cloudtrail.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "cloudtrail.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28248,7 +36530,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "codebuild-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "codebuild-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28259,12 +36547,24 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "codebuild-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "codebuild-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"codecommit": {
 			Endpoints: map[string]Endpoint{
-				"fips": {Hostname: "codecommit-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips": {
+					Hostname: "codecommit-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28275,7 +36575,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "codecommit-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "codecommit-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28286,7 +36592,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "codecommit-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "codecommit-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"codedeploy": {
@@ -28301,7 +36613,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "codedeploy-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "codedeploy-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28312,13 +36630,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "codedeploy-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "codedeploy-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"codepipeline": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "codepipeline-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "codepipeline-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "codepipeline-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "codepipeline-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28348,7 +36684,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"cognito-identity": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "cognito-identity-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "cognito-identity-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28376,7 +36718,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"cognito-idp": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "cognito-idp-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "cognito-idp-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28404,7 +36752,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"comprehend": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "comprehend-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "comprehend-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28419,7 +36773,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"comprehendmedical": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "comprehendmedical-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "comprehendmedical-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28434,14 +36794,36 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"compute-optimizer": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "compute-optimizer-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"us-gov-west-1": {Hostname: "compute-optimizer-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"us-gov-east-1": {
+					Hostname: "compute-optimizer-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"us-gov-west-1": {
+					Hostname: "compute-optimizer-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"config": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "config.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "config.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "config.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "config.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28466,7 +36848,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"connect": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "connect.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "connect.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28491,7 +36879,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "controltower-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "controltower-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28502,13 +36896,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "controltower-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "controltower-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"data-ats.iot": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "data.iot-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "data.iot-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "data.iot-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "data.iot-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28533,8 +36945,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"data.iot": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "data.iot-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "data.iot-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: ""}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "data.iot-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "data.iot-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28559,8 +36983,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"data.jobs.iot": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "data.jobs.iot-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "data.jobs.iot-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "data.jobs.iot-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "data.jobs.iot-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28585,7 +37021,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"databrew": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "databrew.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "databrew.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28600,8 +37042,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"datasync": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "datasync-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "datasync-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "datasync-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "datasync-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28652,14 +37106,30 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"datazone": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "datazone.us-gov-east-1.api.aws"},
-				"us-gov-west-1": {Hostname: "datazone.us-gov-west-1.api.aws"},
+				"us-gov-east-1": {
+					Hostname: "datazone.us-gov-east-1.api.aws",
+				},
+				"us-gov-west-1": {
+					Hostname: "datazone.us-gov-west-1.api.aws",
+				},
 			},
 		},
 		"directconnect": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "directconnect-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "directconnect-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "directconnect-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "directconnect-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28694,7 +37164,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "dlm.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "dlm.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28705,12 +37181,22 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "dlm.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "dlm.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"dms": {
 			Endpoints: map[string]Endpoint{
-				"dms": {CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true,
+				"dms": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "dms.us-gov-west-1.amazonaws.com",
@@ -28720,7 +37206,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"dms-fips": {Hostname: "dms.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"dms-fips": {
+					Hostname: "dms.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28731,7 +37223,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "dms.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "dms.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28742,18 +37240,41 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "dms.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "dms.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"docdb": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-west-1": {Hostname: "rds.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"us-gov-west-1": {
+					Hostname: "rds.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"drs": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "drs-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "drs-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "drs-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "drs-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28778,8 +37299,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"ds": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "ds-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "ds-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "ds-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "ds-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28814,7 +37347,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "dynamodb.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "dynamodb.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -28825,7 +37364,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "dynamodb.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "dynamodb.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"ebs": {
@@ -28836,7 +37381,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"ec2": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "ec2.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "ec2.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ec2.us-gov-east-1.api.aws",
@@ -28846,7 +37395,11 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1": {Hostname: "ec2.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-west-1": {
+					Hostname: "ec2.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ec2.us-gov-west-1.api.aws",
@@ -28860,8 +37413,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"ecs": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "ecs-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "ecs-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "ecs-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "ecs-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28886,8 +37451,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"eks": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "eks.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "eks.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "eks.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "eks.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28912,13 +37489,23 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"eks-auth": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "eks-auth.us-gov-east-1.api.aws"},
-				"us-gov-west-1": {Hostname: "eks-auth.us-gov-west-1.api.aws"},
+				"us-gov-east-1": {
+					Hostname: "eks-auth.us-gov-east-1.api.aws",
+				},
+				"us-gov-west-1": {
+					Hostname: "eks-auth.us-gov-west-1.api.aws",
+				},
 			},
 		},
 		"elasticache": {
 			Endpoints: map[string]Endpoint{
-				"fips":          {Hostname: "elasticache.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips": {
+					Hostname: "elasticache.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {},
 				"us-gov-west-1": {
 					Variants: []Variant{
@@ -28930,12 +37517,22 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "elasticache.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "elasticache.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"elasticbeanstalk": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "elasticbeanstalk.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "elasticbeanstalk.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "elasticbeanstalk.us-gov-east-1.amazonaws.com",
@@ -28951,8 +37548,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "elasticbeanstalk.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "elasticbeanstalk.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-east-1-fips": {
+					Hostname: "elasticbeanstalk.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "elasticbeanstalk.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "elasticbeanstalk.us-gov-west-1.amazonaws.com",
@@ -28968,13 +37575,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "elasticbeanstalk.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "elasticbeanstalk.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"elasticfilesystem": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "elasticfilesystem-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "elasticfilesystem-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "elasticfilesystem-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "elasticfilesystem-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -28999,8 +37624,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"elasticloadbalancing": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "elasticloadbalancing.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "elasticloadbalancing.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "elasticloadbalancing.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "elasticloadbalancing.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29025,8 +37662,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"elasticmapreduce": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "elasticmapreduce.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "elasticmapreduce.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "elasticmapreduce.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "elasticmapreduce.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29063,8 +37712,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"email": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "email-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "email-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "email-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "email-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29089,8 +37750,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"emr-containers": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "emr-containers.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "emr-containers.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "emr-containers.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "emr-containers.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29115,8 +37788,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"emr-serverless": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "emr-serverless.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "emr-serverless.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "emr-serverless.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "emr-serverless.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29141,7 +37826,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"es": {
 			Endpoints: map[string]Endpoint{
-				"fips": {Hostname: "es-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips": {
+					Hostname: "es-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29158,7 +37849,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "es-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "es-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -29175,13 +37872,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "es-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "es-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"events": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "events.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "events.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "events.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "events.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29206,8 +37921,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"firehose": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "firehose-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "firehose-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "firehose-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "firehose-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29232,8 +37959,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"fms": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "fms-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "fms-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "fms-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "fms-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29258,11 +37997,39 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"fsx": {
 			Endpoints: map[string]Endpoint{
-				"fips-prod-us-gov-east-1": {Hostname: "fsx-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-prod-us-gov-west-1": {Hostname: "fsx-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"fips-us-gov-east-1":      {Hostname: "fsx-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1":      {Hostname: "fsx-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"prod-us-gov-east-1": {CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true,
+				"fips-prod-us-gov-east-1": {
+					Hostname: "fsx-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-prod-us-gov-west-1": {
+					Hostname: "fsx-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-east-1": {
+					Hostname: "fsx-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "fsx-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"prod-us-gov-east-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "fsx-fips.us-gov-east-1.amazonaws.com",
@@ -29272,7 +38039,11 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"prod-us-gov-west-1": {CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true,
+				"prod-us-gov-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "fsx-fips.us-gov-west-1.amazonaws.com",
@@ -29306,7 +38077,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"geo": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "geo-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "geo-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -29321,8 +38098,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"glacier": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "glacier.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "glacier.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "glacier.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "glacier.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29347,8 +38136,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"glue": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "glue-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "glue-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "glue-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "glue-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29399,10 +38200,32 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"greengrass": {
 			Endpoints: map[string]Endpoint{
-				"dataplane-us-gov-east-1": {Hostname: "greengrass-ats.iot.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"dataplane-us-gov-west-1": {Hostname: "greengrass-ats.iot.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"fips-us-gov-east-1":      {Hostname: "greengrass.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1":      {Hostname: "greengrass.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"dataplane-us-gov-east-1": {
+					Hostname: "greengrass-ats.iot.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"dataplane-us-gov-west-1": {
+					Hostname: "greengrass-ats.iot.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"fips-us-gov-east-1": {
+					Hostname: "greengrass.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "greengrass.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29437,7 +38260,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "guardduty.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "guardduty.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -29448,14 +38277,35 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "guardduty.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "guardduty.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"health": {
 			Endpoints: map[string]Endpoint{
-				"aws-us-gov-global":  {Hostname: "global.health.us-gov.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"fips-us-gov-west-1": {Hostname: "health-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-west-1": {CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true,
+				"aws-us-gov-global": {
+					Hostname: "global.health.us-gov.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "health-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "health-fips.us-gov-west-1.amazonaws.com",
@@ -29469,7 +38319,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"iam": {
 			Endpoints: map[string]Endpoint{
-				"aws-us-gov-global": {Hostname: "iam.us-gov.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"aws-us-gov-global": {
+					Hostname: "iam.us-gov.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "iam.us-gov.amazonaws.com",
@@ -29479,8 +38333,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"aws-us-gov-global-fips": {Hostname: "iam.us-gov.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"iam-govcloud": {CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true,
+				"aws-us-gov-global-fips": {
+					Hostname: "iam.us-gov.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"iam-govcloud": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "iam.us-gov.amazonaws.com",
@@ -29490,13 +38354,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"iam-govcloud-fips": {Hostname: "iam.us-gov.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"iam-govcloud-fips": {
+					Hostname: "iam.us-gov.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"identitystore": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "identitystore.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "identitystore.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "identitystore.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "identitystore.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29531,13 +38413,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "ingest.timestream.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "ingest.timestream.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"inspector": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "inspector-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "inspector-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "inspector-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "inspector-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29562,8 +38462,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"inspector2": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "inspector2-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "inspector2-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "inspector2-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "inspector2-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29588,14 +38500,24 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"internetmonitor": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "internetmonitor.us-gov-east-1.api.aws"},
-				"us-gov-west-1": {Hostname: "internetmonitor.us-gov-west-1.api.aws"},
+				"us-gov-east-1": {
+					Hostname: "internetmonitor.us-gov-east-1.api.aws",
+				},
+				"us-gov-west-1": {
+					Hostname: "internetmonitor.us-gov-west-1.api.aws",
+				},
 			},
 		},
 		"iot": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "iot-fips.us-gov-east-1.amazonaws.com", Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "iot-fips.us-gov-west-1.amazonaws.com", Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname:   "iot-fips.us-gov-east-1.amazonaws.com",
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname:   "iot-fips.us-gov-west-1.amazonaws.com",
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29620,7 +38542,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"iotevents": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "iotevents-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "iotevents-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -29635,8 +38563,18 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"ioteventsdata": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "data.iotevents-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "data.iotevents.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"fips-us-gov-west-1": {
+					Hostname: "data.iotevents-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "data.iotevents.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "data.iotevents-fips.us-gov-west-1.amazonaws.com",
@@ -29650,8 +38588,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"iotsecuredtunneling": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "api.tunneling.iot-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "api.tunneling.iot-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "api.tunneling.iot-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "api.tunneling.iot-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29676,7 +38626,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"iotsitewise": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "iotsitewise-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "iotsitewise-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -29691,11 +38647,37 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"iottwinmaker": {
 			Endpoints: map[string]Endpoint{
-				"api-us-gov-west-1":       {Hostname: "api.iottwinmaker.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"data-us-gov-west-1":      {Hostname: "data.iottwinmaker.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"fips-api-us-gov-west-1":  {Hostname: "api.iottwinmaker-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"fips-data-us-gov-west-1": {Hostname: "data.iottwinmaker-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"fips-us-gov-west-1":      {Hostname: "iottwinmaker-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"api-us-gov-west-1": {
+					Hostname: "api.iottwinmaker.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"data-us-gov-west-1": {
+					Hostname: "data.iottwinmaker.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"fips-api-us-gov-west-1": {
+					Hostname: "api.iottwinmaker-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"fips-data-us-gov-west-1": {
+					Hostname: "data.iottwinmaker-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "iottwinmaker-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -29710,7 +38692,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"kafka": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "kafka.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "kafka.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "kafka.us-gov-east-1.amazonaws.com",
@@ -29720,8 +38706,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "kafka.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "kafka.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-east-1-fips": {
+					Hostname: "kafka.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "kafka.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "kafka.us-gov-west-1.amazonaws.com",
@@ -29731,12 +38727,24 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "kafka.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "kafka.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"kendra": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "kendra-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "kendra-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -29751,15 +38759,35 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"kendra-ranking": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "kendra-ranking.us-gov-east-1.api.aws"},
-				"us-gov-west-1": {Hostname: "kendra-ranking.us-gov-west-1.api.aws"},
+				"us-gov-east-1": {
+					Hostname: "kendra-ranking.us-gov-east-1.api.aws",
+				},
+				"us-gov-west-1": {
+					Hostname: "kendra-ranking.us-gov-west-1.api.aws",
+				},
 			},
 		},
 		"kinesis": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "kinesis.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "kinesis.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-east-1": {Hostname: "kinesis.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"fips-us-gov-east-1": {
+					Hostname: "kinesis.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "kinesis.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-east-1": {
+					Hostname: "kinesis.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "kinesis.us-gov-east-1.amazonaws.com",
@@ -29769,7 +38797,11 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1": {Hostname: "kinesis.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-west-1": {
+					Hostname: "kinesis.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "kinesis.us-gov-west-1.amazonaws.com",
@@ -29783,8 +38815,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"kinesisanalytics": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "kinesisanalytics-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "kinesisanalytics-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "kinesisanalytics-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "kinesisanalytics-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29809,9 +38853,25 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"kinesisvideo": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "kinesisvideo-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "kinesisvideo-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-east-1": {Hostname: "kinesisvideo-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"fips-us-gov-east-1": {
+					Hostname: "kinesisvideo-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "kinesisvideo-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-east-1": {
+					Hostname: "kinesisvideo-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "kinesisvideo-fips.us-gov-east-1.amazonaws.com",
@@ -29821,7 +38881,11 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1": {Hostname: "kinesisvideo-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-west-1": {
+					Hostname: "kinesisvideo-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "kinesisvideo-fips.us-gov-west-1.amazonaws.com",
@@ -29835,7 +38899,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"kms": {
 			Endpoints: map[string]Endpoint{
-				"ProdFips": {Hostname: "kms-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"ProdFips": {
+					Hostname: "kms-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29846,7 +38916,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "kms-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "kms-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -29857,13 +38933,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "kms-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "kms-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"lakeformation": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "lakeformation-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "lakeformation-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "lakeformation-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "lakeformation-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29914,8 +39008,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"lambda": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "lambda-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "lambda-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "lambda-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "lambda-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29952,8 +39058,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"license-manager": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "license-manager-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "license-manager-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "license-manager-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "license-manager-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -29990,8 +39108,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"logs": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "logs.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "logs.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "logs.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "logs.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30016,8 +39146,12 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"m2": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Deprecated: true},
-				"fips-us-gov-west-1": {Deprecated: true},
+				"fips-us-gov-east-1": {
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30045,7 +39179,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"mediaconvert": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "mediaconvert.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "mediaconvert.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -30083,7 +39223,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "meetings-chime-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "meetings-chime-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -30094,7 +39240,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "meetings-chime-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "meetings-chime-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"memory-db": {
@@ -30117,8 +39269,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"mgn": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "mgn-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "mgn-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "mgn-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "mgn-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30158,13 +39322,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "models-fips.lex.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "models-fips.lex.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"monitoring": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "monitoring.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "monitoring.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "monitoring.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "monitoring.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30189,8 +39371,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"mq": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "mq-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "mq-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "mq-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "mq-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30215,14 +39409,36 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"neptune": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "rds.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"us-gov-west-1": {Hostname: "rds.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"us-gov-east-1": {
+					Hostname: "rds.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"us-gov-west-1": {
+					Hostname: "rds.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"network-firewall": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "network-firewall-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "network-firewall-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "network-firewall-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "network-firewall-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30247,7 +39463,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"networkmanager": {
 			Endpoints: map[string]Endpoint{
-				"aws-us-gov-global": {Hostname: "networkmanager.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"aws-us-gov-global": {
+					Hostname: "networkmanager.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "networkmanager.us-gov-west-1.amazonaws.com",
@@ -30257,13 +39477,23 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"fips-aws-us-gov-global": {Hostname: "networkmanager.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-aws-us-gov-global": {
+					Hostname: "networkmanager.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"notifications": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "notifications.us-gov-east-1.api.aws"},
-				"us-gov-west-1": {Hostname: "notifications.us-gov-west-1.api.aws"},
+				"us-gov-east-1": {
+					Hostname: "notifications.us-gov-east-1.api.aws",
+				},
+				"us-gov-west-1": {
+					Hostname: "notifications.us-gov-west-1.api.aws",
+				},
 			},
 		},
 		"oam": {
@@ -30274,13 +39504,27 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"oidc": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "oidc.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"us-gov-west-1": {Hostname: "oidc.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"us-gov-east-1": {
+					Hostname: "oidc.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"us-gov-west-1": {
+					Hostname: "oidc.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"organizations": {
 			Endpoints: map[string]Endpoint{
-				"aws-us-gov-global": {Hostname: "organizations.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"aws-us-gov-global": {
+					Hostname: "organizations.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "organizations.us-gov-west-1.amazonaws.com",
@@ -30290,13 +39534,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"fips-aws-us-gov-global": {Hostname: "organizations.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-aws-us-gov-global": {
+					Hostname: "organizations.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"outposts": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "outposts.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "outposts.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "outposts.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "outposts.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30321,7 +39583,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"participant.connect": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "participant.connect.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "participant.connect.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -30336,8 +39604,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"pi": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "pi-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "pi-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "pi-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "pi-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30388,8 +39668,18 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"pinpoint": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "pinpoint-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "pinpoint.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"fips-us-gov-west-1": {
+					Hostname: "pinpoint-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "pinpoint.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "pinpoint-fips.us-gov-west-1.amazonaws.com",
@@ -30403,7 +39693,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"polly": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "polly-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "polly-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -30431,14 +39727,28 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"portal.sso": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "portal.sso.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"us-gov-west-1": {Hostname: "portal.sso.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"us-gov-east-1": {
+					Hostname: "portal.sso.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"us-gov-west-1": {
+					Hostname: "portal.sso.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"qbusiness": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "qbusiness.us-gov-east-1.api.aws"},
-				"us-gov-west-1": {Hostname: "qbusiness.us-gov-west-1.api.aws"},
+				"us-gov-east-1": {
+					Hostname: "qbusiness.us-gov-east-1.api.aws",
+				},
+				"us-gov-west-1": {
+					Hostname: "qbusiness.us-gov-west-1.api.aws",
+				},
 			},
 		},
 		"quicksight": {
@@ -30448,7 +39758,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"ram": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "ram.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "ram.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ram.us-gov-east-1.amazonaws.com",
@@ -30458,8 +39772,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "ram.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "ram.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-east-1-fips": {
+					Hostname: "ram.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "ram.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "ram.us-gov-west-1.amazonaws.com",
@@ -30469,13 +39793,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "ram.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "ram.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"rbin": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "rbin-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "rbin-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "rbin-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "rbin-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30526,8 +39868,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"rds": {
 			Endpoints: map[string]Endpoint{
-				"rds.us-gov-east-1": {Hostname: "rds.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"rds.us-gov-west-1": {Hostname: "rds.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"rds.us-gov-east-1": {
+					Hostname: "rds.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"rds.us-gov-west-1": {
+					Hostname: "rds.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30538,7 +39892,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "rds.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "rds.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -30549,19 +39909,47 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "rds.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "rds.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"redshift": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "redshift.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"us-gov-west-1": {Hostname: "redshift.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"us-gov-east-1": {
+					Hostname: "redshift.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"us-gov-west-1": {
+					Hostname: "redshift.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"redshift-serverless": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "redshift-serverless-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "redshift-serverless-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "redshift-serverless-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "redshift-serverless-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30586,8 +39974,18 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"rekognition": {
 			Endpoints: map[string]Endpoint{
-				"rekognition-fips.us-gov-west-1": {Hostname: "rekognition-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"rekognition.us-gov-west-1": {CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true,
+				"rekognition-fips.us-gov-west-1": {
+					Hostname: "rekognition-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"rekognition.us-gov-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "rekognition-fips.us-gov-west-1.amazonaws.com",
@@ -30607,13 +40005,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "rekognition-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "rekognition-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"resiliencehub": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "resiliencehub-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "resiliencehub-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "resiliencehub-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "resiliencehub-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30664,8 +40080,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"resource-groups": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "resource-groups.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "resource-groups.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "resource-groups.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "resource-groups.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30695,8 +40123,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"rolesanywhere": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "rolesanywhere-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "rolesanywhere-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "rolesanywhere-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "rolesanywhere-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30721,7 +40161,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"route53": {
 			Endpoints: map[string]Endpoint{
-				"aws-us-gov-global": {Hostname: "route53.us-gov.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"aws-us-gov-global": {
+					Hostname: "route53.us-gov.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "route53.us-gov.amazonaws.com",
@@ -30731,7 +40175,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"fips-aws-us-gov-global": {Hostname: "route53.us-gov.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-aws-us-gov-global": {
+					Hostname: "route53.us-gov.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"route53resolver": {
@@ -30746,7 +40196,10 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "route53resolver.us-gov-east-1.amazonaws.com", Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname:   "route53resolver.us-gov-east-1.amazonaws.com",
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -30757,7 +40210,10 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "route53resolver.us-gov-west-1.amazonaws.com", Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname:   "route53resolver.us-gov-west-1.amazonaws.com",
+					Deprecated: true,
+				},
 			},
 		},
 		"runtime-v2-lex": {
@@ -30777,7 +40233,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "runtime-fips.lex.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "runtime-fips.lex.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"runtime.sagemaker": {
@@ -30793,14 +40255,33 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "runtime.sagemaker.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "runtime.sagemaker.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"s3": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "s3-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "s3-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-east-1": {Hostname: "s3.us-gov-east-1.amazonaws.com",
+				"fips-us-gov-east-1": {
+					Hostname: "s3-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "s3-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-east-1": {
+					Hostname: "s3.us-gov-east-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3-fips.us-gov-east-1.amazonaws.com",
@@ -30816,7 +40297,8 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1": {Hostname: "s3.us-gov-west-1.amazonaws.com",
+				"us-gov-west-1": {
+					Hostname: "s3.us-gov-west-1.amazonaws.com",
 					Variants: []Variant{
 						{
 							Hostname: "s3-fips.us-gov-west-1.amazonaws.com",
@@ -30836,7 +40318,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"s3-control": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "s3-control.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "s3-control.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.dualstack.us-gov-east-1.amazonaws.com",
@@ -30859,8 +40345,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "s3-control-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "s3-control.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-east-1-fips": {
+					Hostname: "s3-control-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "s3-control.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.dualstack.us-gov-west-1.amazonaws.com",
@@ -30883,13 +40379,23 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "s3-control-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "s3-control-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"s3-outposts": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Deprecated: true},
-				"fips-us-gov-west-1": {Deprecated: true},
+				"fips-us-gov-east-1": {
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -30960,7 +40466,9 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Deprecated: true},
+				"us-gov-east-1-fips": {
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -30981,13 +40489,27 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Deprecated: true},
+				"us-gov-west-1-fips": {
+					Deprecated: true,
+				},
 			},
 		},
 		"securityhub": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "securityhub-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "securityhub-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "securityhub-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "securityhub-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31034,7 +40556,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "securitylake.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "securitylake.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -31045,7 +40573,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "securitylake.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "securitylake.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"serverlessrepo": {
@@ -31060,7 +40594,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "serverlessrepo.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "serverlessrepo.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -31071,7 +40611,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "serverlessrepo.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "serverlessrepo.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"servicecatalog": {
@@ -31086,7 +40632,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "servicecatalog-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "servicecatalog-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -31097,7 +40649,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "servicecatalog-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "servicecatalog-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"servicecatalog-appregistry": {
@@ -31108,7 +40666,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"servicediscovery": {
 			Endpoints: map[string]Endpoint{
-				"servicediscovery": {CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true,
+				"servicediscovery": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "servicediscovery-fips.us-gov-west-1.amazonaws.com",
@@ -31118,7 +40680,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"servicediscovery-fips": {Hostname: "servicediscovery-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"servicediscovery-fips": {
+					Hostname: "servicediscovery-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31142,7 +40710,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "servicediscovery-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "servicediscovery-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -31166,13 +40740,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "servicediscovery-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "servicediscovery-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"servicequotas": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "servicequotas.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "servicequotas.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "servicequotas.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "servicequotas.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31197,10 +40789,32 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"signer": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1":              {Hostname: "signer-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1":              {Hostname: "signer-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"fips-verification-us-gov-east-1": {Hostname: "verification.signer-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"fips-verification-us-gov-west-1": {Hostname: "verification.signer-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"fips-us-gov-east-1": {
+					Hostname: "signer-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "signer-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"fips-verification-us-gov-east-1": {
+					Hostname: "verification.signer-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"fips-verification-us-gov-west-1": {
+					Hostname: "verification.signer-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31221,14 +40835,36 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"verification-us-gov-east-1": {Hostname: "verification.signer.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"verification-us-gov-west-1": {Hostname: "verification.signer.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"verification-us-gov-east-1": {
+					Hostname: "verification.signer.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"verification-us-gov-west-1": {
+					Hostname: "verification.signer.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"simspaceweaver": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "simspaceweaver.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "simspaceweaver.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "simspaceweaver.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "simspaceweaver.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31253,7 +40889,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"sms": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-west-1": {Hostname: "sms-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-west-1": {
+					Hostname: "sms-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -31268,8 +40910,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"sms-voice": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "sms-voice-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "sms-voice-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "sms-voice-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "sms-voice-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31294,8 +40948,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"snowball": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "snowball-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "snowball-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "snowball-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "snowball-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31320,8 +40986,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"sns": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "sns.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "sns.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "sns.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "sns.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31346,14 +41024,36 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"sqs": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "sqs.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}},
-				"us-gov-west-1": {Hostname: "sqs.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
+				"us-gov-east-1": {
+					Hostname: "sqs.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+				},
+				"us-gov-west-1": {
+					Hostname: "sqs.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 			},
 		},
 		"ssm": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "ssm.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "ssm.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "ssm.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "ssm.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31378,7 +41078,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"sso": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "sso.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "sso.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "sso.us-gov-east-1.amazonaws.com",
@@ -31388,8 +41092,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "sso.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "sso.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-east-1-fips": {
+					Hostname: "sso.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "sso.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "sso.us-gov-west-1.amazonaws.com",
@@ -31399,13 +41113,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "sso.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "sso.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"states": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "states-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "states.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "states-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "states.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31430,7 +41162,13 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"storagegateway": {
 			Endpoints: map[string]Endpoint{
-				"fips": {Hostname: "storagegateway-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips": {
+					Hostname: "storagegateway-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31441,7 +41179,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "storagegateway-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "storagegateway-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -31452,7 +41196,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "storagegateway-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "storagegateway-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"streams.dynamodb": {
@@ -31473,7 +41223,13 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "sts.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
+				"us-gov-east-1-fips": {
+					Hostname: "sts.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
@@ -31484,14 +41240,35 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "sts.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "sts.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"support": {
 			Endpoints: map[string]Endpoint{
-				"aws-us-gov-global":  {Hostname: "support.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}},
-				"fips-us-gov-west-1": {Hostname: "support.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-west-1": {CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true,
+				"aws-us-gov-global": {
+					Hostname: "support.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "support.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "support.us-gov-west-1.amazonaws.com",
@@ -31505,7 +41282,11 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"swf": {
 			Endpoints: map[string]Endpoint{
-				"us-gov-east-1": {Hostname: "swf.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"us-gov-east-1": {
+					Hostname: "swf.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "swf.us-gov-east-1.amazonaws.com",
@@ -31515,8 +41296,18 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-east-1-fips": {Hostname: "swf.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"us-gov-west-1": {Hostname: "swf.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-east-1-fips": {
+					Hostname: "swf.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-west-1": {
+					Hostname: "swf.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "swf.us-gov-west-1.amazonaws.com",
@@ -31526,13 +41317,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "swf.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "swf.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"synthetics": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "synthetics-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "synthetics-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "synthetics-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "synthetics-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31563,8 +41372,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"textract": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "textract-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "textract-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "textract-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "textract-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31615,8 +41436,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"transcribe": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "fips.transcribe.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "fips.transcribe.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "fips.transcribe.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "fips.transcribe.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31641,8 +41474,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"transcribestreaming": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "transcribestreaming-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "transcribestreaming-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "transcribestreaming-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "transcribestreaming-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31667,8 +41512,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"transfer": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "transfer-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "transfer-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "transfer-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "transfer-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31703,13 +41560,31 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1-fips": {Hostname: "translate-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"us-gov-west-1-fips": {
+					Hostname: "translate-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"verifiedpermissions": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "verifiedpermissions-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "verifiedpermissions-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "verifiedpermissions-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "verifiedpermissions-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31734,9 +41609,25 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"waf-regional": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "waf-regional-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "waf-regional-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-east-1": {Hostname: "waf-regional.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"fips-us-gov-east-1": {
+					Hostname: "waf-regional-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "waf-regional-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-east-1": {
+					Hostname: "waf-regional.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.us-gov-east-1.amazonaws.com",
@@ -31746,7 +41637,11 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1": {Hostname: "waf-regional.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-west-1": {
+					Hostname: "waf-regional.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "waf-regional-fips.us-gov-west-1.amazonaws.com",
@@ -31760,9 +41655,25 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"wafv2": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "wafv2-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "wafv2-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
-				"us-gov-east-1": {Hostname: "wafv2.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"},
+				"fips-us-gov-east-1": {
+					Hostname: "wafv2-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "wafv2-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
+				"us-gov-east-1": {
+					Hostname: "wafv2.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.us-gov-east-1.amazonaws.com",
@@ -31772,7 +41683,11 @@ var AWS_US_GOVPartition = Partition{
 						},
 					},
 				},
-				"us-gov-west-1": {Hostname: "wafv2.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"},
+				"us-gov-west-1": {
+					Hostname: "wafv2.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "wafv2-fips.us-gov-west-1.amazonaws.com",
@@ -31792,8 +41707,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"workspaces": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "workspaces-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "workspaces-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "workspaces-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "workspaces-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31818,8 +41745,20 @@ var AWS_US_GOVPartition = Partition{
 		},
 		"xray": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-gov-east-1": {Hostname: "xray-fips.us-gov-east-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-east-1"}, Deprecated: true},
-				"fips-us-gov-west-1": {Hostname: "xray-fips.us-gov-west-1.amazonaws.com", CredentialScope: &CredentialScope{Region: "us-gov-west-1"}, Deprecated: true},
+				"fips-us-gov-east-1": {
+					Hostname: "xray-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-gov-west-1": {
+					Hostname: "xray-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: &CredentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
@@ -31859,7 +41798,13 @@ var AWS_ISOPartition = Partition{
 	Services: map[string]Service{
 		"agreement-marketplace": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "agreement-marketplace-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "agreement-marketplace-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -31874,8 +41819,18 @@ var AWS_ISOPartition = Partition{
 		},
 		"api.ecr": {
 			Endpoints: map[string]Endpoint{
-				"us-iso-east-1": {Hostname: "api.ecr.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
-				"us-iso-west-1": {Hostname: "api.ecr.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}},
+				"us-iso-east-1": {
+					Hostname: "api.ecr.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
+				"us-iso-west-1": {
+					Hostname: "api.ecr.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+				},
 			},
 		},
 		"api.pricing": {
@@ -31931,15 +41886,35 @@ var AWS_ISOPartition = Partition{
 		},
 		"bedrock": {
 			Endpoints: map[string]Endpoint{
-				"bedrock-runtime-us-iso-east-1": {Hostname: "bedrock-runtime.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
-				"bedrock-us-iso-east-1":         {Hostname: "bedrock.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
-				"us-iso-east-1":                 {},
+				"bedrock-runtime-us-iso-east-1": {
+					Hostname: "bedrock-runtime.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
+				"bedrock-us-iso-east-1": {
+					Hostname: "bedrock.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
+				"us-iso-east-1": {},
 			},
 		},
 		"budgets": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-global": {Hostname: "budgets.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
-				"us-iso-east-1":  {Hostname: "budgets.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
+				"aws-iso-global": {
+					Hostname: "budgets.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
+				"us-iso-east-1": {
+					Hostname: "budgets.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
 			},
 		},
 		"cloudcontrolapi": {
@@ -31956,8 +41931,20 @@ var AWS_ISOPartition = Partition{
 		},
 		"cloudtrail": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "cloudtrail-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"fips-us-iso-west-1": {Hostname: "cloudtrail-fips.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "cloudtrail-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-iso-west-1": {
+					Hostname: "cloudtrail-fips.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -31994,7 +41981,13 @@ var AWS_ISOPartition = Partition{
 		},
 		"comprehend": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "comprehend-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "comprehend-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32020,8 +42013,20 @@ var AWS_ISOPartition = Partition{
 		},
 		"datasync": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "datasync-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"fips-us-iso-west-1": {Hostname: "datasync-fips.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "datasync-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-iso-west-1": {
+					Hostname: "datasync-fips.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32058,7 +42063,11 @@ var AWS_ISOPartition = Partition{
 		},
 		"dms": {
 			Endpoints: map[string]Endpoint{
-				"dms": {CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true,
+				"dms": {
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "dms.us-iso-east-1.c2s.ic.gov",
@@ -32068,7 +42077,13 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"dms-fips": {Hostname: "dms.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
+				"dms-fips": {
+					Hostname: "dms.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32079,7 +42094,13 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"us-iso-east-1-fips": {Hostname: "dms.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
+				"us-iso-east-1-fips": {
+					Hostname: "dms.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-west-1": {
 					Variants: []Variant{
 						{
@@ -32090,13 +42111,31 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"us-iso-west-1-fips": {Hostname: "dms.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"us-iso-west-1-fips": {
+					Hostname: "dms.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"ds": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "ds-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"fips-us-iso-west-1": {Hostname: "ds-fips.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "ds-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-iso-west-1": {
+					Hostname: "ds-fips.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32157,8 +42196,20 @@ var AWS_ISOPartition = Partition{
 		},
 		"elasticfilesystem": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "elasticfilesystem-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"fips-us-iso-west-1": {Hostname: "elasticfilesystem-fips.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "elasticfilesystem-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-iso-west-1": {
+					Hostname: "elasticfilesystem-fips.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32189,8 +42240,20 @@ var AWS_ISOPartition = Partition{
 		},
 		"elasticmapreduce": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "elasticmapreduce.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"fips-us-iso-west-1": {Hostname: "elasticmapreduce.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "elasticmapreduce.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-iso-west-1": {
+					Hostname: "elasticmapreduce.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32233,9 +42296,25 @@ var AWS_ISOPartition = Partition{
 		},
 		"fsx": {
 			Endpoints: map[string]Endpoint{
-				"fips-prod-us-iso-east-1": {Hostname: "fsx-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"fips-us-iso-east-1":      {Hostname: "fsx-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"prod-us-iso-east-1": {CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true,
+				"fips-prod-us-iso-east-1": {
+					Hostname: "fsx-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-iso-east-1": {
+					Hostname: "fsx-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"prod-us-iso-east-1": {
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "fsx-fips.us-iso-east-1.c2s.ic.gov",
@@ -32280,7 +42359,12 @@ var AWS_ISOPartition = Partition{
 		},
 		"iam": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-global": {Hostname: "iam.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
+				"aws-iso-global": {
+					Hostname: "iam.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
 			},
 		},
 		"kinesis": {
@@ -32291,7 +42375,13 @@ var AWS_ISOPartition = Partition{
 		},
 		"kms": {
 			Endpoints: map[string]Endpoint{
-				"ProdFips": {Hostname: "kms-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
+				"ProdFips": {
+					Hostname: "kms-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32302,7 +42392,13 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"us-iso-east-1-fips": {Hostname: "kms-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
+				"us-iso-east-1-fips": {
+					Hostname: "kms-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-west-1": {
 					Variants: []Variant{
 						{
@@ -32313,7 +42409,13 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"us-iso-west-1-fips": {Hostname: "kms-fips.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"us-iso-west-1-fips": {
+					Hostname: "kms-fips.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"lambda": {
@@ -32362,7 +42464,12 @@ var AWS_ISOPartition = Partition{
 		},
 		"organizations": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-global": {Hostname: "organizations.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
+				"aws-iso-global": {
+					Hostname: "organizations.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
 			},
 		},
 		"outposts": {
@@ -32378,8 +42485,20 @@ var AWS_ISOPartition = Partition{
 		},
 		"rbin": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "rbin-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"fips-us-iso-west-1": {Hostname: "rbin-fips.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "rbin-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-iso-west-1": {
+					Hostname: "rbin-fips.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32404,8 +42523,20 @@ var AWS_ISOPartition = Partition{
 		},
 		"rds": {
 			Endpoints: map[string]Endpoint{
-				"rds.us-iso-east-1": {Hostname: "rds.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"rds.us-iso-west-1": {Hostname: "rds.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"rds.us-iso-east-1": {
+					Hostname: "rds.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"rds.us-iso-west-1": {
+					Hostname: "rds.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32416,7 +42547,13 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"us-iso-east-1-fips": {Hostname: "rds.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
+				"us-iso-east-1-fips": {
+					Hostname: "rds.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-west-1": {
 					Variants: []Variant{
 						{
@@ -32427,13 +42564,29 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"us-iso-west-1-fips": {Hostname: "rds.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"us-iso-west-1-fips": {
+					Hostname: "rds.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"redshift": {
 			Endpoints: map[string]Endpoint{
-				"us-iso-east-1": {Hostname: "redshift.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
-				"us-iso-west-1": {Hostname: "redshift.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}},
+				"us-iso-east-1": {
+					Hostname: "redshift.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
+				"us-iso-west-1": {
+					Hostname: "redshift.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+				},
 			},
 		},
 		"resource-groups": {
@@ -32444,7 +42597,12 @@ var AWS_ISOPartition = Partition{
 		},
 		"route53": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-global": {Hostname: "route53.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
+				"aws-iso-global": {
+					Hostname: "route53.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
 			},
 		},
 		"route53resolver": {
@@ -32460,8 +42618,20 @@ var AWS_ISOPartition = Partition{
 		},
 		"s3": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "s3-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"fips-us-iso-west-1": {Hostname: "s3-fips.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "s3-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-iso-west-1": {
+					Hostname: "s3-fips.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32500,7 +42670,11 @@ var AWS_ISOPartition = Partition{
 		},
 		"s3-control": {
 			Endpoints: map[string]Endpoint{
-				"us-iso-east-1": {Hostname: "s3-control.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"},
+				"us-iso-east-1": {
+					Hostname: "s3-control.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.dualstack.us-iso-east-1.c2s.ic.gov",
@@ -32523,8 +42697,18 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"us-iso-east-1-fips": {Hostname: "s3-control-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"us-iso-west-1": {Hostname: "s3-control.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"},
+				"us-iso-east-1-fips": {
+					Hostname: "s3-control-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"us-iso-west-1": {
+					Hostname: "s3-control.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.dualstack.us-iso-west-1.c2s.ic.gov",
@@ -32547,12 +42731,20 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"us-iso-west-1-fips": {Hostname: "s3-control-fips.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"us-iso-west-1-fips": {
+					Hostname: "s3-control-fips.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"s3-outposts": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Deprecated: true},
+				"fips-us-iso-east-1": {
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32620,13 +42812,30 @@ var AWS_ISOPartition = Partition{
 		},
 		"support": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-global": {Hostname: "support.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}},
+				"aws-iso-global": {
+					Hostname: "support.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+				},
 			},
 		},
 		"swf": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "swf-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
-				"fips-us-iso-west-1": {Hostname: "swf-fips.us-iso-west-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-west-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "swf-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-iso-west-1": {
+					Hostname: "swf-fips.us-iso-west-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-west-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32668,7 +42877,13 @@ var AWS_ISOPartition = Partition{
 		},
 		"transcribe": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-iso-east-1": {Hostname: "fips.transcribe.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
+				"fips-us-iso-east-1": {
+					Hostname: "fips.transcribe.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-iso-east-1": {
 					Variants: []Variant{
 						{
@@ -32698,7 +42913,13 @@ var AWS_ISOPartition = Partition{
 						},
 					},
 				},
-				"us-iso-east-1-fips": {Hostname: "translate-fips.us-iso-east-1.c2s.ic.gov", CredentialScope: &CredentialScope{Region: "us-iso-east-1"}, Deprecated: true},
+				"us-iso-east-1-fips": {
+					Hostname: "translate-fips.us-iso-east-1.c2s.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-iso-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"workspaces": {
@@ -32722,7 +42943,12 @@ var AWS_ISO_BPartition = Partition{
 	Services: map[string]Service{
 		"api.ecr": {
 			Endpoints: map[string]Endpoint{
-				"us-isob-east-1": {Hostname: "api.ecr.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}},
+				"us-isob-east-1": {
+					Hostname: "api.ecr.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+				},
 			},
 		},
 		"api.pricing": {
@@ -32767,8 +42993,18 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"budgets": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-b-global": {Hostname: "budgets.global.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}},
-				"us-isob-east-1":   {Hostname: "budgets.global.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}},
+				"aws-iso-b-global": {
+					Hostname: "budgets.global.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+				},
+				"us-isob-east-1": {
+					Hostname: "budgets.global.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+				},
 			},
 		},
 		"cloudcontrolapi": {
@@ -32783,7 +43019,13 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"cloudtrail": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-isob-east-1": {Hostname: "cloudtrail-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"fips-us-isob-east-1": {
+					Hostname: "cloudtrail-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -32818,7 +43060,11 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"dms": {
 			Endpoints: map[string]Endpoint{
-				"dms": {CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true,
+				"dms": {
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "dms.us-isob-east-1.sc2s.sgov.gov",
@@ -32828,7 +43074,13 @@ var AWS_ISO_BPartition = Partition{
 						},
 					},
 				},
-				"dms-fips": {Hostname: "dms.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"dms-fips": {
+					Hostname: "dms.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -32839,12 +43091,24 @@ var AWS_ISO_BPartition = Partition{
 						},
 					},
 				},
-				"us-isob-east-1-fips": {Hostname: "dms.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"us-isob-east-1-fips": {
+					Hostname: "dms.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"ds": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-isob-east-1": {Hostname: "ds-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"fips-us-isob-east-1": {
+					Hostname: "ds-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -32889,7 +43153,13 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"elasticfilesystem": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-isob-east-1": {Hostname: "elasticfilesystem-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"fips-us-isob-east-1": {
+					Hostname: "elasticfilesystem-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -32909,7 +43179,13 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"elasticmapreduce": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-isob-east-1": {Hostname: "elasticmapreduce.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"fips-us-isob-east-1": {
+					Hostname: "elasticmapreduce.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -32949,7 +43225,12 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"iam": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-b-global": {Hostname: "iam.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}},
+				"aws-iso-b-global": {
+					Hostname: "iam.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+				},
 			},
 		},
 		"kinesis": {
@@ -32959,7 +43240,13 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"kms": {
 			Endpoints: map[string]Endpoint{
-				"ProdFips": {Hostname: "kms-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"ProdFips": {
+					Hostname: "kms-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -32970,7 +43257,13 @@ var AWS_ISO_BPartition = Partition{
 						},
 					},
 				},
-				"us-isob-east-1-fips": {Hostname: "kms-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"us-isob-east-1-fips": {
+					Hostname: "kms-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"lambda": {
@@ -33020,7 +43313,12 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"organizations": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-b-global": {Hostname: "organizations.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}},
+				"aws-iso-b-global": {
+					Hostname: "organizations.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+				},
 			},
 		},
 		"outposts": {
@@ -33035,7 +43333,13 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"rbin": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-isob-east-1": {Hostname: "rbin-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"fips-us-isob-east-1": {
+					Hostname: "rbin-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -33050,7 +43354,13 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"rds": {
 			Endpoints: map[string]Endpoint{
-				"rds.us-isob-east-1": {Hostname: "rds.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"rds.us-isob-east-1": {
+					Hostname: "rds.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -33061,12 +43371,23 @@ var AWS_ISO_BPartition = Partition{
 						},
 					},
 				},
-				"us-isob-east-1-fips": {Hostname: "rds.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"us-isob-east-1-fips": {
+					Hostname: "rds.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"redshift": {
 			Endpoints: map[string]Endpoint{
-				"us-isob-east-1": {Hostname: "redshift.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}},
+				"us-isob-east-1": {
+					Hostname: "redshift.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+				},
 			},
 		},
 		"resource-groups": {
@@ -33076,7 +43397,12 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"route53": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-b-global": {Hostname: "route53.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}},
+				"aws-iso-b-global": {
+					Hostname: "route53.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+				},
 			},
 		},
 		"route53resolver": {
@@ -33091,7 +43417,13 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"s3": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-isob-east-1": {Hostname: "s3-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"fips-us-isob-east-1": {
+					Hostname: "s3-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -33113,7 +43445,11 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"s3-control": {
 			Endpoints: map[string]Endpoint{
-				"us-isob-east-1": {Hostname: "s3-control.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"},
+				"us-isob-east-1": {
+					Hostname: "s3-control.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
 					Variants: []Variant{
 						{
 							Hostname: "s3-control-fips.dualstack.us-isob-east-1.sc2s.sgov.gov",
@@ -33136,12 +43472,20 @@ var AWS_ISO_BPartition = Partition{
 						},
 					},
 				},
-				"us-isob-east-1-fips": {Hostname: "s3-control-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"us-isob-east-1-fips": {
+					Hostname: "s3-control-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"s3-outposts": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-isob-east-1": {Deprecated: true},
+				"fips-us-isob-east-1": {
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -33190,7 +43534,13 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"storagegateway": {
 			Endpoints: map[string]Endpoint{
-				"fips": {Hostname: "storagegateway-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"fips": {
+					Hostname: "storagegateway-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -33201,7 +43551,13 @@ var AWS_ISO_BPartition = Partition{
 						},
 					},
 				},
-				"us-isob-east-1-fips": {Hostname: "storagegateway-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"us-isob-east-1-fips": {
+					Hostname: "storagegateway-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"streams.dynamodb": {
@@ -33216,12 +43572,23 @@ var AWS_ISO_BPartition = Partition{
 		},
 		"support": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-b-global": {Hostname: "support.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}},
+				"aws-iso-b-global": {
+					Hostname: "support.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+				},
 			},
 		},
 		"swf": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-isob-east-1": {Hostname: "swf-fips.us-isob-east-1.sc2s.sgov.gov", CredentialScope: &CredentialScope{Region: "us-isob-east-1"}, Deprecated: true},
+				"fips-us-isob-east-1": {
+					Hostname: "swf-fips.us-isob-east-1.sc2s.sgov.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isob-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isob-east-1": {
 					Variants: []Variant{
 						{
@@ -33301,8 +43668,18 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"api.ecr": {
 			Endpoints: map[string]Endpoint{
-				"us-isof-east-1":  {Hostname: "api.ecr.us-isof-east-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-east-1"}},
-				"us-isof-south-1": {Hostname: "api.ecr.us-isof-south-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}},
+				"us-isof-east-1": {
+					Hostname: "api.ecr.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-east-1",
+					},
+				},
+				"us-isof-south-1": {
+					Hostname: "api.ecr.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+				},
 			},
 		},
 		"api.pricing": {
@@ -33366,8 +43743,18 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"budgets": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-f-global": {Hostname: "budgets.global.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}},
-				"us-isof-south-1":  {Hostname: "budgets.global.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}},
+				"aws-iso-f-global": {
+					Hostname: "budgets.global.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+				},
+				"us-isof-south-1": {
+					Hostname: "budgets.global.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+				},
 			},
 		},
 		"cloudformation": {
@@ -33408,7 +43795,12 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"compute-optimizer": {
 			Endpoints: map[string]Endpoint{
-				"us-isof-south-1": {Hostname: "compute-optimizer.us-isof-south-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}},
+				"us-isof-south-1": {
+					Hostname: "compute-optimizer.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+				},
 			},
 		},
 		"config": {
@@ -33419,7 +43811,12 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"cost-optimization-hub": {
 			Endpoints: map[string]Endpoint{
-				"us-isof-south-1": {Hostname: "cost-optimization-hub.us-isof-south-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}},
+				"us-isof-south-1": {
+					Hostname: "cost-optimization-hub.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+				},
 			},
 		},
 		"directconnect": {
@@ -33436,7 +43833,11 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"dms": {
 			Endpoints: map[string]Endpoint{
-				"dms": {CredentialScope: &CredentialScope{Region: "us-isof-east-1"}, Deprecated: true,
+				"dms": {
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-east-1",
+					},
+					Deprecated: true,
 					Variants: []Variant{
 						{
 							Hostname: "dms.us-isof-east-1.csp.hci.ic.gov",
@@ -33446,7 +43847,13 @@ var AWS_ISO_FPartition = Partition{
 						},
 					},
 				},
-				"dms-fips": {Hostname: "dms.us-isof-east-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-east-1"}, Deprecated: true},
+				"dms-fips": {
+					Hostname: "dms.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isof-east-1": {
 					Variants: []Variant{
 						{
@@ -33457,7 +43864,13 @@ var AWS_ISO_FPartition = Partition{
 						},
 					},
 				},
-				"us-isof-east-1-fips": {Hostname: "dms.us-isof-east-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-east-1"}, Deprecated: true},
+				"us-isof-east-1-fips": {
+					Hostname: "dms.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isof-south-1": {
 					Variants: []Variant{
 						{
@@ -33468,7 +43881,13 @@ var AWS_ISO_FPartition = Partition{
 						},
 					},
 				},
-				"us-isof-south-1-fips": {Hostname: "dms.us-isof-south-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}, Deprecated: true},
+				"us-isof-south-1-fips": {
+					Hostname: "dms.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"ds": {
@@ -33515,8 +43934,20 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"elasticfilesystem": {
 			Endpoints: map[string]Endpoint{
-				"fips-us-isof-east-1":  {Hostname: "elasticfilesystem-fips.us-isof-east-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-east-1"}, Deprecated: true},
-				"fips-us-isof-south-1": {Hostname: "elasticfilesystem-fips.us-isof-south-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}, Deprecated: true},
+				"fips-us-isof-east-1": {
+					Hostname: "elasticfilesystem-fips.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-east-1",
+					},
+					Deprecated: true,
+				},
+				"fips-us-isof-south-1": {
+					Hostname: "elasticfilesystem-fips.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+					Deprecated: true,
+				},
 				"us-isof-east-1": {
 					Variants: []Variant{
 						{
@@ -33589,7 +44020,12 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"iam": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-f-global": {Hostname: "iam.us-isof-south-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}},
+				"aws-iso-f-global": {
+					Hostname: "iam.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+				},
 			},
 		},
 		"kinesis": {
@@ -33600,7 +44036,13 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"kms": {
 			Endpoints: map[string]Endpoint{
-				"ProdFips": {Hostname: "kms-fips.us-isof-east-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-east-1"}, Deprecated: true},
+				"ProdFips": {
+					Hostname: "kms-fips.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isof-east-1": {
 					Variants: []Variant{
 						{
@@ -33611,7 +44053,13 @@ var AWS_ISO_FPartition = Partition{
 						},
 					},
 				},
-				"us-isof-east-1-fips": {Hostname: "kms-fips.us-isof-east-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-east-1"}, Deprecated: true},
+				"us-isof-east-1-fips": {
+					Hostname: "kms-fips.us-isof-east-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-east-1",
+					},
+					Deprecated: true,
+				},
 				"us-isof-south-1": {
 					Variants: []Variant{
 						{
@@ -33622,7 +44070,13 @@ var AWS_ISO_FPartition = Partition{
 						},
 					},
 				},
-				"us-isof-south-1-fips": {Hostname: "kms-fips.us-isof-south-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}, Deprecated: true},
+				"us-isof-south-1-fips": {
+					Hostname: "kms-fips.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+					Deprecated: true,
+				},
 			},
 		},
 		"lakeformation": {
@@ -33687,7 +44141,12 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"organizations": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-f-global": {Hostname: "organizations.us-isof-south-1.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}},
+				"aws-iso-f-global": {
+					Hostname: "organizations.us-isof-south-1.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+				},
 			},
 		},
 		"pi": {
@@ -33752,7 +44211,12 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"route53": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-f-global": {Hostname: "route53.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}},
+				"aws-iso-f-global": {
+					Hostname: "route53.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+				},
 			},
 		},
 		"route53resolver": {
@@ -33769,7 +44233,12 @@ var AWS_ISO_FPartition = Partition{
 		},
 		"savingsplans": {
 			Endpoints: map[string]Endpoint{
-				"aws-iso-f-global": {Hostname: "savingsplans.csp.hci.ic.gov", CredentialScope: &CredentialScope{Region: "us-isof-south-1"}},
+				"aws-iso-f-global": {
+					Hostname: "savingsplans.csp.hci.ic.gov",
+					CredentialScope: &CredentialScope{
+						Region: "us-isof-south-1",
+					},
+				},
 			},
 		},
 		"scheduler": {
