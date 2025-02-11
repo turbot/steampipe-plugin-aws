@@ -107,7 +107,7 @@ select
 from
   aws_cloudtrail_lookup_event
 where
-  and event_source = 'iam.amazonaws.com'
+  event_source = 'iam.amazonaws.com'
   and event_time >= now() - interval '1 hour';
 ```
 
@@ -120,6 +120,6 @@ select
 from
   aws_cloudtrail_lookup_event
 where
-  and event_source = 'iam.amazonaws.com'
+  event_source = 'iam.amazonaws.com'
   and event_time >= datetime('now', '-1 hour');
 ```
