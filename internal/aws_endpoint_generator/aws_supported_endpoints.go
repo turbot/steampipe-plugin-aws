@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"text/template"
@@ -78,12 +79,16 @@ func main() {
 	if err := Generate(); err != nil {
 		fmt.Printf("Error generating Service supported endpoint file: %v\n", err)
 	}
+	// Format the code
+	formatFiles("aws/endpoint_list_gen.go")
 
 	if err := GenerateServiceID(); err != nil {
 		fmt.Printf("Error generating Service IDs file: %v\n", err)
 	}
-}
 
+	// Format the code
+	formatFiles("aws/endpoint_service_ids_gen.go")
+}
 
 // Generate fetches endpoint data from AWS and generates a Go file with service-supported endpoints.
 func Generate() error {
@@ -220,27 +225,46 @@ var {{toConstant .ID}}Partition = Partition{
 	DNSSuffix:   "{{.DNSSuffix}}",
 	RegionRegex: regexp.MustCompile(` + "`{{.RegionRegex}}`" + `),
 	Regions: map[string]Region{
-		{{range $key, $region := .Regions}}
+		{{- range $key, $region := .Regions}}
 		"{{$key}}": {ID: "{{$key}}", Description: "{{$region.Description}}"},
 		{{end}}
 	},
 	Services: map[string]Service{
-		{{range $key, $service := .Services}}
+		{{- range $key, $service := .Services}}
 		"{{$key}}": {
 			Endpoints: map[string]Endpoint{
-				{{range $endpointKey, $endpoint := $service.Endpoints}}
+				{{- range $endpointKey, $endpoint := $service.Endpoints }}
 				"{{$endpointKey}}": {
-					Hostname: "{{$endpoint.Hostname}}",
-					{{if $endpoint.CredentialScope}}CredentialScope: &CredentialScope{Region: "{{$endpoint.CredentialScope.Region}}"},{{end}}
-					{{if $endpoint.Deprecated}}Deprecated: true,{{end}}
+					{{- if $endpoint.Hostname }}Hostname: "{{$endpoint.Hostname}}",{{- end }}
+					{{- if $endpoint.CredentialScope }}CredentialScope: &CredentialScope{Region: "{{$endpoint.CredentialScope.Region}}"},{{- end }}
+					{{- if $endpoint.Deprecated }}Deprecated: true,{{- end }}
+					{{- if $endpoint.Variants }}
+					Variants: []Variant{
+						{{- range $variant := $endpoint.Variants }}
+						{
+							{{- if $variant.Hostname }}
+							Hostname: "{{$variant.Hostname}}",
+							{{- end }}
+							{{- if $variant.Tags }}
+							Tags: []string{
+								{{- range $i, $tag := $variant.Tags }}
+								"{{$tag}}",
+								{{- end }}
+							},
+							{{- end }}
+						},
+
+						{{- end }}
+					},
+					{{- end }}
 				},
-				{{end}}
+				{{- end }}
 			},
 		},
-		{{end}}
+		{{- end }}
 	},
 }
-{{end}}
+{{- end }}
 `
 
 	return renderTemplate(filename, tmpl, data)
@@ -277,4 +301,19 @@ func renderTemplate(filename, tmpl string, data interface{}) error {
 	defer file.Close()
 
 	return t.Execute(file, data)
+}
+
+func formatFiles(filePath string) {
+
+	cmd := exec.Command("go", "fmt", filePath)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println("Error running go fmt:", err)
+		return
+	}
+
+	fmt.Println("go fmt successfully applied to", filePath)
 }

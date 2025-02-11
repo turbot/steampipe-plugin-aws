@@ -36,7 +36,7 @@ go mod tidy
 ### **3. Run the Endpoint Generator script**
 
 ```sh
-go run internal/awsEndpointGenerator/aws_supported_endpoints.go 
+go run internal/aws_endpoint_generator/aws_supported_endpoints.go 
 ```
 
 ---
