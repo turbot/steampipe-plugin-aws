@@ -1,3 +1,7 @@
+// This package generates Go files containing AWS service-supported endpoints
+// and service ID constants. These files are useful for determining AWS service
+// availability across regions or fetching supported services programmatically.
+
 package main
 
 import (
@@ -10,22 +14,6 @@ import (
 	"strings"
 	"text/template"
 )
-
-// This package generates Go files containing AWS service-supported endpoints
-// and service ID constants. These files are useful for determining AWS service
-// availability across regions or fetching supported services programmatically.
-
-
-func main() {
-	// Generate the AWS Service supported Endpoints
-	if err := Generate(); err != nil {
-		fmt.Printf("Error generating Service supported endpoint file: %v\n", err)
-	}
-
-	if err := GenerateServiceID(); err != nil {
-		fmt.Printf("Error generating Service IDs file: %v\n", err)
-	}
-}
 
 // URL for fetching AWS endpoints JSON data.
 const endpointsJSONURL = "https://raw.githubusercontent.com/aws/aws-sdk-go-v2/master/codegen/smithy-aws-go-codegen/src/main/resources/software/amazon/smithy/aws/go/codegen/endpoints.json"
@@ -84,6 +72,18 @@ type EndpointsData struct {
 type TemplateData struct {
 	Partitions []Partition
 }
+
+func main() {
+	// Generate the AWS Service supported Endpoints
+	if err := Generate(); err != nil {
+		fmt.Printf("Error generating Service supported endpoint file: %v\n", err)
+	}
+
+	if err := GenerateServiceID(); err != nil {
+		fmt.Printf("Error generating Service IDs file: %v\n", err)
+	}
+}
+
 
 // Generate fetches endpoint data from AWS and generates a Go file with service-supported endpoints.
 func Generate() error {
