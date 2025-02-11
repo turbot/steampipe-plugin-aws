@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -126,6 +127,7 @@ func GenerateServiceID() error {
 
 	// Extract unique service keys
 	serviceKeys := extractUniqueServiceKeys(endpoints)
+	sort.Strings(serviceKeys)
 	templateData := &ServiceIDTemplateData{ServiceKeys: serviceKeys}
 	outputFile := "aws/endpoint_service_ids_gen.go"
 
