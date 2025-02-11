@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
 
-	auditmanagerEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -42,7 +40,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "auditmanager", "action": "GetControl"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(auditmanagerEndpoint.AWS_AUDITMANAGER_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_AUDITMANAGER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

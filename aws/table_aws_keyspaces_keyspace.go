@@ -5,8 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/keyspaces"
 
-	keyspacesEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -30,7 +28,7 @@ func tableAwsKeyspacesKeyspace(ctx context.Context) *plugin.Table {
 			Hydrate: listKeyspacesKeyspaces, // Parent hydrate function
 			Tags:    map[string]string{"service": "keyspaces", "action": "ListKeyspaces"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(keyspacesEndpoint.AWS_CASSANDRA_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CASSANDRA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "keyspace_name",

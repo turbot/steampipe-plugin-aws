@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2/types"
 
-	kinesisanalyticsv2Endpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -32,7 +30,7 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 			Hydrate: listKinesisAnalyticsV2Applications,
 			Tags:    map[string]string{"service": "kinesisanalytics", "action": "ListApplications"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kinesisanalyticsv2Endpoint.AWS_KINESISANALYTICS_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_KINESISANALYTICS_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getKinesisAnalyticsV2Application,

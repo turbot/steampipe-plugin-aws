@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 
-	apigatewayv2EndpointId "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -34,7 +32,7 @@ func tableAwsAPIGatewayV2Route(_ context.Context) *plugin.Table {
 			Hydrate:       listAPIGatewayV2Routes,
 			Tags:          map[string]string{"service": "apigateway", "action": "GetRoutes"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2EndpointId.AWS_APIGATEWAY_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_key",

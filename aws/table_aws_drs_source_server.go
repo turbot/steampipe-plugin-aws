@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/drs"
 	"github.com/aws/aws-sdk-go-v2/service/drs/types"
 
-	drsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -38,7 +36,7 @@ func tableAwsDRSSourceServer(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "drs", "action": "GetLaunchConfiguration"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(drsEndpoint.AWS_DRS_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DRS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "source_server_id",

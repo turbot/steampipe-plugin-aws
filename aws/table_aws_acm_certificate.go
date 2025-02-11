@@ -11,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/acm/types"
 	"github.com/aws/smithy-go"
 
-	acmEndpointId "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -60,7 +58,7 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "acm", "action": "ListTagsForCertificate"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(acmEndpointId.AWS_ACM_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ACM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "certificate_arn",

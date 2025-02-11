@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wafregional"
 	"github.com/aws/aws-sdk-go-v2/service/wafregional/types"
 	"github.com/aws/smithy-go"
-	wafregionalEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -34,7 +33,7 @@ func tableAwsWafRegionalWebAcl(_ context.Context) *plugin.Table {
 			Hydrate: listWafRegionalWebAcls,
 			Tags:    map[string]string{"service": "waf-regional", "action": "ListWebACLs"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wafregionalEndpoint.AWS_WAF_REGIONAL_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_WAF_REGIONAL_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getWafRegionalWebAcl,

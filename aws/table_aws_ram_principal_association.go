@@ -3,8 +3,6 @@ package aws
 import (
 	"context"
 
-	ramEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -25,7 +23,7 @@ func tableAwsRAMPrincipalAssociation(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ram", "action": "ListResourceSharePermissions"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ramEndpoint.AWS_RAM_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RAM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "resource_share_name",

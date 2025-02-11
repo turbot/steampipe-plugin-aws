@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
 
-	apigatewayEndpointId "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -31,7 +30,7 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 			Hydrate: listUsagePlans,
 			Tags:    map[string]string{"service": "apigateway", "action": "GetUsagePlans"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayEndpointId.AWS_APIGATEWAY_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

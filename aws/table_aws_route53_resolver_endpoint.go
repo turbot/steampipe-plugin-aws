@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver/types"
 
-	route53resolverEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -52,7 +50,7 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "route53resolver", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(route53resolverEndpoint.AWS_ROUTE53RESOLVER_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ROUTE53RESOLVER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

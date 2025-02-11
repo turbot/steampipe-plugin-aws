@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice/types"
 
-	databasemigrationserviceEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -60,7 +58,7 @@ func tableAwsDmsReplicationTask(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dms", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(databasemigrationserviceEndpoint.AWS_DLM_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DLM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_task_identifier",
@@ -252,7 +250,7 @@ func listDmsReplicationTasks(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 	if equalQuals["target_endpoint_arn"] != nil || equalQuals["source_endpoint_arn"] != nil {
 		paramFilter := types.Filter{
-			Name:   aws.String("endpoint-arn"),
+			Name: aws.String("endpoint-arn"),
 		}
 		values := []string{}
 

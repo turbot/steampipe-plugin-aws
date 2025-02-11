@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/servicediscovery"
 	"github.com/aws/aws-sdk-go-v2/service/servicediscovery/types"
 
-	servicediscoveryEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -48,7 +46,7 @@ func tableAwsServiceDiscoveryNamespace(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "servicediscovery", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(servicediscoveryEndpoint.AWS_SERVICEDISCOVERY_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SERVICEDISCOVERY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

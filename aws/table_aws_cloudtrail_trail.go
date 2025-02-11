@@ -10,7 +10,6 @@ import (
 
 	"github.com/aws/smithy-go"
 	"github.com/turbot/go-kit/helpers"
-	cloudtrailEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -56,7 +55,7 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudtrail", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailEndpoint.AWS_CLOUDTRAIL_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CLOUDTRAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
 
-	sfnEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -42,7 +40,7 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 				Tags: map[string]string{"service": "states", "action": "DescribeExecution"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sfnEndpoint.AWS_STATES_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_STATES_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

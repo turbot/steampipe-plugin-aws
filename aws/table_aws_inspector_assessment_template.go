@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
 
-	inspectorEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -50,7 +48,7 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "inspector", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(inspectorEndpoint.AWS_INSPECTOR_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_INSPECTOR_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

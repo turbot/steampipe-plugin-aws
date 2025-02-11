@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 
-	redshiftEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -32,7 +30,7 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 			Hydrate: listRedshiftSubnetGroups,
 			Tags:    map[string]string{"service": "redshift", "action": "DescribeClusterSubnetGroups"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(redshiftEndpoint.AWS_REDSHIFT_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_REDSHIFT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_subnet_group_name",

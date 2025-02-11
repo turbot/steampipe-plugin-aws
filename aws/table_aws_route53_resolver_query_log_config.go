@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver/types"
 
-	route53resolverEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -28,7 +26,7 @@ func tableAwsRoute53ResolverQueryLogConfig(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(route53resolverEndpoint.AWS_ROUTE53RESOLVER_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ROUTE53RESOLVER_SERVICE_ID),
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "creator_request_id", Require: plugin.Optional},

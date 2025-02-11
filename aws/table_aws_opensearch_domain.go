@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/opensearch/types"
 
-	opensearchserviceEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -40,7 +38,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				Depends: []plugin.HydrateFunc{getOpenSearchDomain},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(opensearchserviceEndpoint.AWS_ES_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ES_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",

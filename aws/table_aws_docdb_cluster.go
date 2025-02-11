@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/docdb/types"
 
-	rdsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/go-kit/helpers"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -40,7 +38,7 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "docdb-elastic", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsEndpoint.AWS_RDS_DATA_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RDS_DATA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",

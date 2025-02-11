@@ -10,8 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	ec2Endpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	go_kit_pack "github.com/turbot/go-kit/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -54,7 +52,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2Endpoint.AWS_EC2_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -260,7 +258,6 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	image_id := d.EqualsQuals["image_id"].GetStringValue()
 	image_ids := d.EqualsQuals["image_ids"].GetJsonbValue()
 	owner_ids := d.EqualsQuals["owner_ids"].GetJsonbValue()
-
 
 	// check if owner_id and image_id is empty
 	if owner_id == "" && image_id == "" && image_ids == "" {

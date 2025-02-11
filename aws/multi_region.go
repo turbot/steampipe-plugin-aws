@@ -69,10 +69,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	cloudwatchEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/turbot/steampipe-plugin-sdk/v5/logging"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -97,7 +95,7 @@ func AllRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]int
 // _metric_ tables must all be limited to the CloudWatch service regions.
 // This is a convenience function for them to use.
 func CloudWatchRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
-	return SupportedRegionMatrixWithExclusions(cloudwatchEndpoint.AWS_MONITORING_SERVICE_ID, []string{})(ctx, d)
+	return SupportedRegionMatrixWithExclusions(AWS_MONITORING_SERVICE_ID, []string{})(ctx, d)
 }
 
 // Return a matrix of regions supported by serviceID, which will then be
@@ -306,7 +304,7 @@ func listRegionsForServiceCacheKey(ctx context.Context, d *plugin.QueryData, h *
 func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	var partitionName string
-	var partition awsSupportedEndpoints.Partition
+	var partition Partition
 
 	// Service ID is passed through the hydrate data
 	serviceID := h.Item.(string)
@@ -324,16 +322,16 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 
 	// Get AWS partition based on the partition name
 	switch partitionName {
-	case awsSupportedEndpoints.AWSPartition.ID:
-		partition = awsSupportedEndpoints.AWSPartition
-	case awsSupportedEndpoints.AWS_CNPartition.ID:
-		partition = awsSupportedEndpoints.AWS_CNPartition
-	case awsSupportedEndpoints.AWS_ISOPartition.ID:
-		partition = awsSupportedEndpoints.AWS_ISOPartition
-	case awsSupportedEndpoints.AWS_US_GOVPartition.ID:
-		partition = awsSupportedEndpoints.AWS_US_GOVPartition
-	case awsSupportedEndpoints.AWS_ISO_EPartition.ID:
-		partition = awsSupportedEndpoints.AWS_ISO_EPartition
+	case AWSPartition.ID:
+		partition = AWSPartition
+	case AWS_CNPartition.ID:
+		partition = AWS_CNPartition
+	case AWS_ISOPartition.ID:
+		partition = AWS_ISOPartition
+	case AWS_US_GOVPartition.ID:
+		partition = AWS_US_GOVPartition
+	case AWS_ISO_EPartition.ID:
+		partition = AWS_ISO_EPartition
 	default:
 		err := fmt.Errorf("listRegionsForServiceUncached:: '%s' is an invalid partition", partitionName)
 		plugin.Logger(ctx).Error("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "invalid_partition_error", err)

@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/aws/smithy-go"
 
-	securityhubEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -26,7 +24,7 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 			Hydrate: listSecurityHubStandardsSubcriptions,
 			Tags:    map[string]string{"service": "securityhub", "action": "GetEnabledStandards"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubEndpoint.AWS_SECURITYHUB_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SECURITYHUB_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: GetEnabledStandards,

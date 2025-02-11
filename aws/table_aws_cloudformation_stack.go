@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	go_kit "github.com/turbot/go-kit/types"
 
-	cloudformationEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 	"github.com/goccy/go-yaml"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -54,7 +53,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackResources"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudformationEndpoint.AWS_CLOUDFORMATION_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CLOUDFORMATION_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -385,7 +384,7 @@ func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (in
 * The API may return the template body in various formats like JSON or YAML, based on configuration made by user. Consequently, converting YAML to JSON isn't always required.
 * To address this, a dedicated function has been implemented. It ensures the template body is correctly formatted to JSON as per the API's output, adapting the transformation process accordingly.
 * This approach is specifically designed for this table, providing a tailored and accurate response handling as per the API specifications.
-*/
+ */
 
 // Functionality Overview
 // Identifies and decodes URLs within the template body. (URLs are decoded selectively to avoid issues with '%' characters not part of a valid escaped sequence.)

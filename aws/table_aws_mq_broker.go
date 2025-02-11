@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/mq"
 	"github.com/aws/aws-sdk-go-v2/service/mq/types"
 
-	mqEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -38,7 +36,7 @@ func tableAwsMQBroker(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "mq", "action": "DescribeBroker"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(mqEndpoint.AWS_MQ_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_MQ_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "broker_name",

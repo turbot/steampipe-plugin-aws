@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/servicecatalog"
 
-	servicecatalogEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -31,7 +29,7 @@ func tableAwsServicecatalogPortfolio(_ context.Context) *plugin.Table {
 			Hydrate: listServiceCatalogPortfolios,
 			Tags:    map[string]string{"service": "servicecatalog", "action": "ListPortfolios"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(servicecatalogEndpoint.AWS_SERVICECATALOG_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SERVICECATALOG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "display_name",

@@ -16,8 +16,8 @@ The tool retrieves endpoint data from the following AWS SDK JSON file:
 🔗 **[AWS Endpoints JSON](https://raw.githubusercontent.com/aws/aws-sdk-go-v2/master/codegen/smithy-aws-go-codegen/src/main/resources/software/amazon/smithy/aws/go/codegen/endpoints.json)**  
 
 It then **parses the JSON**, extracts relevant data, and generates two Go files:
-- **`awsSupportedEndpoints/endpoints_gen.go`** → Contains partition, region, and service endpoint definitions.
-- **`awsSupportedEndpoints/service_id_gen.go`** → Contains service ID constants for all AWS services.
+- **`aws/endpoint_list_gen.go`** → Contains partition, region, and service endpoint definitions.
+- **`aws/endpoint_service_ids_gen.go`** → Contains service ID constants for all AWS services.
 
 ---
 
@@ -36,15 +36,15 @@ go mod tidy
 ### **3. Run the Endpoint Generator script**
 
 ```sh
-./scripts/awsEndpointGenerator/generate_aws_endpoint.sh
+go run internal/awsEndpointGenerator/aws_supported_endpoints.go 
 ```
 
 ---
 
 ## **Generated Files**
-The tool generates the following files inside `awsSupportedEndpoints/`:
+The tool generates the following files inside `aws/`:
 
-### **1. `endpoints_gen.go`** (AWS Service Endpoints)
+### **1. `endpoint_list_gen.go`** (AWS Service Endpoints)
 Contains structured **Go definitions** of AWS partitions, regions, and service endpoints.
 
 Example:
@@ -60,7 +60,7 @@ var AWSPartition = Partition{
 }
 ```
 
-### **2. `service_id_gen.go`** (Service ID Constants)
+### **2. `endpoint_service_ids_gen.go`** (Service ID Constants)
 Defines **constants** for AWS services.
 
 Example:

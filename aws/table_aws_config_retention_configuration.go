@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
-	cognitoidentityEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -19,7 +18,7 @@ func tableAwsConfigRetentionConfiguration(_ context.Context) *plugin.Table {
 			Hydrate: listConfigRetentionConfigurations,
 			Tags:    map[string]string{"service": "config", "action": "DescribeRetentionConfigurations"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityEndpoint.AWS_CONFIG_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CONFIG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

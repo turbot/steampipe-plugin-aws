@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 	"github.com/aws/aws-sdk-go-v2/service/inspector2/types"
 
-	inspector2Endpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -68,7 +66,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				{Name: "vulnerable_package", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(inspector2Endpoint.AWS_INSPECTOR2_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_INSPECTOR2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				// Technically, this would be "aws_account_id", but "aws" is

@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/drs"
 	"github.com/aws/aws-sdk-go-v2/service/drs/types"
 
-	drsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -31,7 +29,7 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 			Hydrate: listAwsDRSJobs,
 			Tags:    map[string]string{"service": "drs", "action": "DescribeJobs"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(drsEndpoint.AWS_DRS_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DRS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "job_id",

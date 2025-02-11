@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/transfer/types"
-	transferEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -47,7 +46,7 @@ func tableAwsTransferUser(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "transfer", "action": "DescribeUser"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(transferEndpoint.AWS_TRANSFER_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_TRANSFER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

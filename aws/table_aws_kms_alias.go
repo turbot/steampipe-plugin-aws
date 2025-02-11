@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 
-	kmsEndpoint "github.com/turbot/steampipe-plugin-aws/awsSupportedEndpoints"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -25,7 +23,7 @@ func tableAwsKmsAlias(ctx context.Context) *plugin.Table {
 			Hydrate:       listKmsAliases,
 			Tags:          map[string]string{"service": "kms", "action": "ListAliases"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kmsEndpoint.AWS_KMS_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_KMS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "alias_name",
