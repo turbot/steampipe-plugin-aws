@@ -11,7 +11,6 @@ The `aws_lakeformation_resource` table allows you to query **AWS Lake Formation 
 
 The `aws_lakeformation_resource` table provides insights into registered **Lake Formation resources**, enabling users to identify **registered S3 locations** managed by Lake Formation and determine which **IAM role** was used for resource registration. It also allows users to check if **hybrid access** is enabled, which permits both **Lake Formation permissions and S3 bucket policies** to manage access. Additionally, this table helps track **when a resource was last modified** and filter resources based on attributes such as **AWS account, region, and partition**, making it a valuable tool for data governance and access control.
 
-
 ## **Examples**
 
 ### List all registered AWS Lake Formation resources
