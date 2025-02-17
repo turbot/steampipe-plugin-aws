@@ -76,14 +76,35 @@ type TemplateData struct {
 }
 
 func main() {
+
+	// Get Working DIR
+	workingDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting working directory:", err)
+	} else {
+		fmt.Println("Working Directory:", workingDir)
+	}
+
+	// Local file name to save
+	filePath := workingDir+ "/internal/aws_endpoint_generator/" + "endpoints.json"
+
+	// Download the file
+	err = downloadFile(endpointsJSONURL, filePath)
+	if err != nil {
+		fmt.Println("Error downloading file:", err)
+		return
+	}
+
+	fmt.Println("File downloaded successfully:", filePath)
+
 	// Generate the AWS Service supported Endpoints
-	if err := Generate(); err != nil {
+	if err := Generate(filePath); err != nil {
 		fmt.Printf("Error generating Service supported endpoint file: %v\n", err)
 	}
 	// Format the code
 	formatFiles("aws/endpoint_list_gen.go")
 
-	if err := GenerateServiceID(); err != nil {
+	if err := GenerateServiceID(filePath); err != nil {
 		fmt.Printf("Error generating Service IDs file: %v\n", err)
 	}
 
@@ -92,10 +113,11 @@ func main() {
 }
 
 // Generate fetches endpoint data from AWS and generates a Go file with service-supported endpoints.
-func Generate() error {
-	data, err := fetchJSON(endpointsJSONURL)
+func Generate(endpointFilePath string) error {
+	// Read and parse the JSON
+	data, err := os.ReadFile(endpointFilePath)
 	if err != nil {
-		return fmt.Errorf("error fetching JSON: %w", err)
+		return fmt.Errorf("failed to read file: %v", err)
 	}
 
 	var endpoints EndpointsData
@@ -114,10 +136,11 @@ func Generate() error {
 }
 
 // GenerateServiceID generates a Go file with service ID constants.
-func GenerateServiceID() error {
-	data, err := fetchJSON(endpointsJSONURL)
+func GenerateServiceID(endpointFilePath string) error {
+	// Read and parse the JSON
+	data, err := os.ReadFile(endpointFilePath)
 	if err != nil {
-		return fmt.Errorf("error fetching JSON: %w", err)
+		return fmt.Errorf("failed to read file: %v", err)
 	}
 
 	var endpoints EndpointsData
@@ -147,6 +170,32 @@ func fetchJSON(url string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 	return io.ReadAll(resp.Body)
+}
+
+// downloadFile downloads a file from the given URL and saves it locally
+func downloadFile(url, outputPath string) error {
+	// Create the file
+	outFile, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	// Send the HTTP request
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check HTTP status code
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download file: status code %d", resp.StatusCode)
+	}
+
+	// Copy response body to file
+	_, err = io.Copy(outFile, resp.Body)
+	return err
 }
 
 // extractUniqueServiceKeys extracts unique service keys from the EndpointsData.

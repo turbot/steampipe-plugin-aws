@@ -22752,24 +22752,140 @@ var AWSPartition = Partition{
 		},
 		"ram": {
 			Endpoints: map[string]Endpoint{
-				"af-south-1":     {},
-				"ap-east-1":      {},
-				"ap-northeast-1": {},
-				"ap-northeast-2": {},
-				"ap-northeast-3": {},
-				"ap-south-1":     {},
-				"ap-south-2":     {},
-				"ap-southeast-1": {},
-				"ap-southeast-2": {},
-				"ap-southeast-3": {},
-				"ap-southeast-4": {},
-				"ap-southeast-5": {},
-				"ap-southeast-7": {},
+				"af-south-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-east-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-northeast-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-northeast-2": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-northeast-3": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-south-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-south-2": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-southeast-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-southeast-2": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-southeast-3": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-southeast-4": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-southeast-5": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"ap-southeast-7": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
 				"ca-central-1": {
 					Variants: []Variant{
 						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+						{
 							Hostname: "ram-fips.ca-central-1.amazonaws.com",
 							Tags: []string{
+								"fips",
+							},
+						},
+						{
+							Hostname: "ram-fips.ca-central-1.api.aws",
+							Tags: []string{
+								"dualstack",
 								"fips",
 							},
 						},
@@ -22778,32 +22894,88 @@ var AWSPartition = Partition{
 				"ca-west-1": {
 					Variants: []Variant{
 						{
-							Hostname: "ram-fips.ca-west-1.amazonaws.com",
 							Tags: []string{
-								"fips",
+								"dualstack",
 							},
 						},
 					},
 				},
-				"eu-central-1": {},
-				"eu-central-2": {},
-				"eu-north-1":   {},
-				"eu-south-1":   {},
-				"eu-south-2":   {},
-				"eu-west-1":    {},
-				"eu-west-2":    {},
-				"eu-west-3":    {},
+				"eu-central-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"eu-central-2": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"eu-north-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"eu-south-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"eu-south-2": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"eu-west-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"eu-west-2": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"eu-west-3": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
 				"fips-ca-central-1": {
 					Hostname: "ram-fips.ca-central-1.amazonaws.com",
 					CredentialScope: &CredentialScope{
 						Region: "ca-central-1",
-					},
-					Deprecated: true,
-				},
-				"fips-ca-west-1": {
-					Hostname: "ram-fips.ca-west-1.amazonaws.com",
-					CredentialScope: &CredentialScope{
-						Region: "ca-west-1",
 					},
 					Deprecated: true,
 				},
@@ -22835,16 +23007,68 @@ var AWSPartition = Partition{
 					},
 					Deprecated: true,
 				},
-				"il-central-1": {},
-				"me-central-1": {},
-				"me-south-1":   {},
-				"mx-central-1": {},
-				"sa-east-1":    {},
+				"il-central-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"me-central-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"me-south-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"mx-central-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"sa-east-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
 				"us-east-1": {
 					Variants: []Variant{
 						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+						{
 							Hostname: "ram-fips.us-east-1.amazonaws.com",
 							Tags: []string{
+								"fips",
+							},
+						},
+						{
+							Hostname: "ram-fips.us-east-1.api.aws",
+							Tags: []string{
+								"dualstack",
 								"fips",
 							},
 						},
@@ -22853,8 +23077,20 @@ var AWSPartition = Partition{
 				"us-east-2": {
 					Variants: []Variant{
 						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+						{
 							Hostname: "ram-fips.us-east-2.amazonaws.com",
 							Tags: []string{
+								"fips",
+							},
+						},
+						{
+							Hostname: "ram-fips.us-east-2.api.aws",
+							Tags: []string{
+								"dualstack",
 								"fips",
 							},
 						},
@@ -22863,8 +23099,20 @@ var AWSPartition = Partition{
 				"us-west-1": {
 					Variants: []Variant{
 						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+						{
 							Hostname: "ram-fips.us-west-1.amazonaws.com",
 							Tags: []string{
+								"fips",
+							},
+						},
+						{
+							Hostname: "ram-fips.us-west-1.api.aws",
+							Tags: []string{
+								"dualstack",
 								"fips",
 							},
 						},
@@ -22873,8 +23121,20 @@ var AWSPartition = Partition{
 				"us-west-2": {
 					Variants: []Variant{
 						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+						{
 							Hostname: "ram-fips.us-west-2.amazonaws.com",
 							Tags: []string{
+								"fips",
+							},
+						},
+						{
+							Hostname: "ram-fips.us-west-2.api.aws",
+							Tags: []string{
+								"dualstack",
 								"fips",
 							},
 						},
@@ -34973,8 +35233,24 @@ var AWS_CNPartition = Partition{
 		},
 		"ram": {
 			Endpoints: map[string]Endpoint{
-				"cn-north-1":     {},
-				"cn-northwest-1": {},
+				"cn-north-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
+				"cn-northwest-1": {
+					Variants: []Variant{
+						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+					},
+				},
 			},
 		},
 		"rbin": {
@@ -37340,7 +37616,7 @@ var AWS_US_GOVPartition = Partition{
 				"us-gov-east-1": {
 					Variants: []Variant{
 						{
-							Hostname: "dynamodb.us-gov-east-1.amazonaws.com",
+							Hostname: "dynamodb-fips.us-gov-east-1.amazonaws.com",
 							Tags: []string{
 								"fips",
 							},
@@ -37348,7 +37624,7 @@ var AWS_US_GOVPartition = Partition{
 					},
 				},
 				"us-gov-east-1-fips": {
-					Hostname: "dynamodb.us-gov-east-1.amazonaws.com",
+					Hostname: "dynamodb-fips.us-gov-east-1.amazonaws.com",
 					CredentialScope: &CredentialScope{
 						Region: "us-gov-east-1",
 					},
@@ -37357,7 +37633,7 @@ var AWS_US_GOVPartition = Partition{
 				"us-gov-west-1": {
 					Variants: []Variant{
 						{
-							Hostname: "dynamodb.us-gov-west-1.amazonaws.com",
+							Hostname: "dynamodb-fips.us-gov-west-1.amazonaws.com",
 							Tags: []string{
 								"fips",
 							},
@@ -37365,7 +37641,7 @@ var AWS_US_GOVPartition = Partition{
 					},
 				},
 				"us-gov-west-1-fips": {
-					Hostname: "dynamodb.us-gov-west-1.amazonaws.com",
+					Hostname: "dynamodb-fips.us-gov-west-1.amazonaws.com",
 					CredentialScope: &CredentialScope{
 						Region: "us-gov-west-1",
 					},
@@ -39765,8 +40041,20 @@ var AWS_US_GOVPartition = Partition{
 					},
 					Variants: []Variant{
 						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+						{
 							Hostname: "ram.us-gov-east-1.amazonaws.com",
 							Tags: []string{
+								"fips",
+							},
+						},
+						{
+							Hostname: "ramus-gov-east-1.api.aws",
+							Tags: []string{
+								"dualstack",
 								"fips",
 							},
 						},
@@ -39786,8 +40074,20 @@ var AWS_US_GOVPartition = Partition{
 					},
 					Variants: []Variant{
 						{
+							Tags: []string{
+								"dualstack",
+							},
+						},
+						{
 							Hostname: "ram.us-gov-west-1.amazonaws.com",
 							Tags: []string{
+								"fips",
+							},
+						},
+						{
+							Hostname: "ramus-gov-west-1.api.aws",
+							Tags: []string{
+								"dualstack",
 								"fips",
 							},
 						},
@@ -41350,6 +41650,19 @@ var AWS_US_GOVPartition = Partition{
 								"fips",
 							},
 						},
+						{
+							Hostname: "synthetics-fips.us-gov-east-1.api.aws",
+							Tags: []string{
+								"dualstack",
+								"fips",
+							},
+						},
+						{
+							Hostname: "synthetics.us-gov-east-1.api.aws",
+							Tags: []string{
+								"dualstack",
+							},
+						},
 					},
 				},
 				"us-gov-west-1": {
@@ -41358,6 +41671,19 @@ var AWS_US_GOVPartition = Partition{
 							Hostname: "synthetics-fips.us-gov-west-1.amazonaws.com",
 							Tags: []string{
 								"fips",
+							},
+						},
+						{
+							Hostname: "synthetics-fips.us-gov-west-1.api.aws",
+							Tags: []string{
+								"dualstack",
+								"fips",
+							},
+						},
+						{
+							Hostname: "synthetics.us-gov-west-1.api.aws",
+							Tags: []string{
+								"dualstack",
 							},
 						},
 					},
