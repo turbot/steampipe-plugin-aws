@@ -16,6 +16,10 @@ The `aws_s3_object` table in Steampipe provides you with information about objec
 - It's recommended that you specify the `prefix` column when querying buckets with a large number of objects to reduce the query time.
 - The `body` column returns the raw bytes of the object data as a string. If the bytes entirely consist of valid UTF8 runes, e.g., `.txt files`, an UTF8 data will be set as column value and you will be able to query the object body ([refer example below](#get-data-details-of-a-particular-object-in-a-bucket)). However, for the invalid UTF8 runes, e.g., `.png files`, the bas64 encoding of the bytes will be set as column value and you will not be able to query the object body for those objects.
 - Using this table adds to the cost of your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. You should refer to AWS S3 Pricing to understand the cost implications.
+- If you encrypt an object by using server-side encryption with customer-provided encryption keys (SSE-C) when you store the object in Amazon S3, then when you GET the object, you must use the following query parameter:
+  - sse_customer_algorithm
+  - sse_customer_key_md5
+  - sse_customer_key
 
 ## Examples
 
