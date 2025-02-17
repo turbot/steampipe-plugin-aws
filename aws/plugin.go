@@ -366,6 +366,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_kms_alias":                                                tableAwsKmsAlias(ctx),
 			"aws_kms_key":                                                  tableAwsKmsKey(ctx),
 			"aws_kms_key_rotation":                                         tableAwsKmsKeyRotation(ctx),
+			"aws_lakeformation_resource":                                   tableAwsLakeformationResource(ctx),
 			"aws_lambda_alias":                                             tableAwsLambdaAlias(ctx),
 			"aws_lambda_event_source_mapping":                              tableAwsLambdaEventSourceMapping(ctx),
 			"aws_lambda_function":                                          tableAwsLambdaFunction(ctx),
