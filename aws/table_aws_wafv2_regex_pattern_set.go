@@ -307,7 +307,7 @@ func regexPatternSetLocation(_ context.Context, d *transform.TransformData) (int
 func regexPatternSetTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
-	if len(data.TagInfoForResource.TagList) < 1 {
+	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
 		return nil, nil
 	}
 
@@ -326,7 +326,7 @@ func regexPatternSetTagListToTurbotTags(ctx context.Context, d *transform.Transf
 func regularExpressionObjectListToRegularExpressionList(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*wafv2.GetRegexPatternSetOutput)
 
-	if len(data.RegexPatternSet.RegularExpressionList) < 1 {
+	if data.RegexPatternSet.RegularExpressionList == nil || len(data.RegexPatternSet.RegularExpressionList) < 1 {
 		return nil, nil
 	}
 

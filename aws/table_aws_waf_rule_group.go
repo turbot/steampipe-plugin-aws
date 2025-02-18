@@ -253,7 +253,7 @@ func getWafRuleGroupArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func classicRuleGroupTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*waf.ListTagsForResourceOutput)
 
-	if len(data.TagInfoForResource.TagList) < 1 {
+	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
 		return nil, nil
 	}
 

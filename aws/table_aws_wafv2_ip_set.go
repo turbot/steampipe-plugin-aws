@@ -309,7 +309,7 @@ func ipSetLocation(_ context.Context, d *transform.TransformData) (interface{}, 
 func ipSetTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
-	if len(data.TagInfoForResource.TagList) < 1 {
+	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
 		return nil, nil
 	}
 
