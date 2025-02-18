@@ -325,7 +325,7 @@ func ruleGroupTagListToTurbotTags(ctx context.Context, d *transform.TransformDat
 
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
-	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
+	if len(data.TagInfoForResource.TagList) < 1 {
 		return nil, nil
 	}
 
