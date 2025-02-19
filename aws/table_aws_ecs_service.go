@@ -239,18 +239,6 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	cluster := h.Item.(types.Cluster)
 
-	// The List Clusters API does not return the cluster name. Therefore, for clusters using the older ARN format, we make a Get API call to retrieve the cluster name.
-	// We need the cluster name to make the List tag API call for service.
-	if len(strings.Split(*cluster.ClusterArn, "/")) < 3 {
-		res, err := getEcsCluster(ctx, d, h)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_ecs_service.listEcsServices.getEcsCluster", "api_error", err)
-			return nil, err
-		}
-
-		cluster = res.(types.Cluster)
-	}
-
 	// Limiting the results
 	maxLimit := int32(10)
 	if d.QueryContext.Limit != nil {
@@ -367,6 +355,18 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// RequestID: 076ed52f-8f0e-43b9-af89-3728995bb52b, InvalidParameterException: Long arn format must be used for tagging operations.
 	resourceArnSplitPart := strings.Split(resourceArn, "/")
 	if len(resourceArnSplitPart) < 3 {
+		// The List Clusters API does not return the cluster name. Therefore, for clusters using the older ARN format, we make a Get API call to retrieve the cluster name.
+		// We need the cluster name to make the List tag API call for service.
+		h.Item = types.Cluster{ClusterArn: data.ClusterArn}
+		res, err := getEcsCluster(ctx, d, h)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecs_service.getEcsServiceTags.getEcsCluster", "api_error", err)
+			return nil, err
+		}
+
+		cluster := res.(types.Cluster)
+		data.ClusterName = cluster.ClusterName
+
 		resourceArn = resourceArnSplitPart[0] + "/" + *data.ClusterName + "/" + *data.ServiceName
 	}
 
