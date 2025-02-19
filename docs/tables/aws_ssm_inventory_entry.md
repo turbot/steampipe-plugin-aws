@@ -51,7 +51,7 @@ select
 from
   aws_ssm_inventory_entry
 where
-  capture_time >= time() - interval '30 day';
+  capture_time >= now() - interval '30 day';
 ```
 
 ```sql+sqlite

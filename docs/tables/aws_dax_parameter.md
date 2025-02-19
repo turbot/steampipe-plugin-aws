@@ -112,7 +112,7 @@ from
   aws_dax_parameter
 where
   source <> 'user';
-  ```
+```
 
   ```sql+sqlite
 select
@@ -127,4 +127,4 @@ from
   aws_dax_parameter
 where
   source != 'user';
-  ```
+```
