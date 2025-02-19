@@ -37,6 +37,10 @@ brew install python3  # For macOS users
 ./scripts/generate_aws_supported_endpoints/generate.sh
 ```
 
+### **4️⃣ Exit the virtual environment(venv)**
+```sh
+deactivate
+```
 ---
 
 ## **🔧 Troubleshooting**
