@@ -357,6 +357,7 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if len(resourceArnSplitPart) < 3 {
 		// The List Clusters API does not return the cluster name. Therefore, for clusters using the older ARN format, we make a Get API call to retrieve the cluster name.
 		// We need the cluster name to make the List tag API call for service.
+		// From Cluster ARN(arn:aws:ecs:region:aws_account_id:container-instance/container-instance-id) we can not extract the cluster name as it doesn't contain it.
 		h.Item = types.Cluster{ClusterArn: data.ClusterArn}
 		res, err := getEcsCluster(ctx, d, h)
 		if err != nil {
