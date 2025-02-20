@@ -320,24 +320,7 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 	}
 	partitionName = commonColumnData.(*awsCommonColumnData).Partition
 
-	// Get AWS partition based on the partition name
-	// switch partitionName {
-	// case AWSPartition.ID:
-	// 	partition = AWSPartition
-	// case AWS_CNPartition.ID:
-	// 	partition = AWS_CNPartition
-	// case AWS_ISOPartition.ID:
-	// 	partition = AWS_ISOPartition
-	// case AWS_US_GOVPartition.ID:
-	// 	partition = AWS_US_GOVPartition
-	// case AWS_ISO_EPartition.ID:
-	// 	partition = AWS_ISO_EPartition
-	// default:
-	// 	err := fmt.Errorf("listRegionsForServiceUncached:: '%s' is an invalid partition", partitionName)
-	// 	plugin.Logger(ctx).Error("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "invalid_partition_error", err)
-	// 	return nil, err
-	// }
-
+	// Get supported service along with the endpoints for the partition
 	partition, err = getPartitionValueByPartitionName(partitionName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the endpoint details for the partition '%s', %v", partitionName, err)
@@ -353,7 +336,7 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 
 	// Get the list of the service regions based on the service ID.  Ultimately,
 	// this is using data from
-	// https://github.com/aws/aws-sdk-go/blob/main/models/endpoints/endpoints.json
+	// https://raw.githubusercontent.com/aws/aws-sdk-go-v2/master/codegen/smithy-aws-go-codegen/src/main/resources/software/amazon/smithy/aws/go/codegen/endpoints.json
 	services := partition.Services
 	serviceInfo, ok := services[serviceID]
 	if !ok {

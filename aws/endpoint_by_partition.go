@@ -53,6 +53,7 @@ type EndpointInfo struct {
 	Partitions []Partition `json:"partitions"`
 }
 
+// Parse the embed endpoints.json file to the Go struct and return the value based on partitionId(aws, aws-cn, aws-us-gov, aws-iso, aws-iso-b, aws-iso-e, and aws-iso-f).
 func getPartitionValueByPartitionName(partitionId string) (*Partition, error) {
 
 	data, err := emb.GetEmbedEndpointJSONfileContent()
