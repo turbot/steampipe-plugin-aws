@@ -90,7 +90,7 @@ from
   aws_wellarchitected_lens_review_report as r,
   aws_wellarchitected_lens as l
 where
-  l.lens_type <> `aws_OFFICIAL';
+  l.lens_type <> 'aws_OFFICIAL';
 ```
 
 ```sql+sqlite
