@@ -246,7 +246,7 @@ func getVpcEipARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	// Get resource ARN
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":eip/" + *eip.AllocationId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":elastic-ip/" + *eip.AllocationId
 
 	return arn, nil
 }

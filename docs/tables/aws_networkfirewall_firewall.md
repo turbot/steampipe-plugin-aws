@@ -54,7 +54,7 @@ select
 from
   aws_networkfirewall_firewall
 where
-  encryption_configuration ->> 'Type' = `AWS_OWNED_KMS_KEY';
+  encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
 ```
 
 ```sql+sqlite
@@ -202,7 +202,7 @@ from
   aws_kms_key k
 where
   k.id = encryption_configuration ->> 'KeyId'
-  and not f.encryption_configuration ->> 'Type' = `AWS_OWNED_KMS_KEY';
+  and not f.encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
 ```
 
 ```sql+sqlite
