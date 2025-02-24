@@ -44,7 +44,7 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "waf-regional", "action": "GetRule"},
 			},
 		},
-		Columns: awsGlobalRegionColumns([]*plugin.Column{
+		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The friendly name or description for the Rule.",
