@@ -40,6 +40,10 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Func: listTagsForElastiCacheCluster,
 				Tags: map[string]string{"service": "elasticache", "action": "ListTagsForResource"},
 			},
+			{
+				Func: getElastiCacheClusterUpdateActions,
+				Tags: map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
+			},
 		},
 
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
@@ -217,7 +221,13 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Hydrate:     listTagsForElastiCacheCluster,
 				Transform:   transform.FromField("TagList"),
 			},
-
+			{
+				Name:        "update_actions",
+				Description: "A list of update actions available for the cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getElastiCacheClusterUpdateActions,
+				Transform:   transform.FromValue(),
+			},
 			// Standard columns
 			{
 				Name:        "title",
@@ -377,4 +387,27 @@ func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData)
 	}
 
 	return turbotTagsMap, nil
+}
+
+func getElastiCacheClusterUpdateActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	cluster := h.Item.(types.CacheCluster)
+	client, err := ElastiCacheClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_cluster.getElastiCacheClusterUpdateActions", "connection_error", err)
+		return nil, err
+	}
+	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, &elasticache.DescribeUpdateActionsInput{
+		CacheClusterIds: []string{*cluster.CacheClusterId},
+	})
+	var rs []types.UpdateAction
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_elasticache_cluster.getElastiCacheClusterUpdateActions", "api_error", err)
+			return nil, err
+		}
+		rs = append(rs, output.UpdateActions...)
+	}
+
+	return rs, nil
 }
