@@ -18,7 +18,7 @@ Determine the areas in which your AWS Security Lake data is being replicated and
 
 ```sql+postgres
 select
-  encryption_key,
+  kms_key_id,
   replication_role_arn,
   s3_bucket_arn,
   status
@@ -28,7 +28,7 @@ from
 
 ```sql+sqlite
 select
-  encryption_key,
+  kms_key_id,
   replication_role_arn,
   s3_bucket_arn,
   status
@@ -74,7 +74,6 @@ Determine the status of your data lake's security settings, including encryption
 
 ```sql+postgres
 select
-  l.encryption_key,
   l.replication_role_arn,
   l.s3_bucket_arn,
   l.status,
@@ -87,7 +86,6 @@ from
 
 ```sql+sqlite
 select
-  l.encryption_key,
   l.replication_role_arn,
   l.s3_bucket_arn,
   l.status,
@@ -103,7 +101,7 @@ Determine the areas in which data lakes are yet to complete their configuration 
 
 ```sql+postgres
 select
-  encryption_key,
+  kms_key_id,
   replication_role_arn,
   s3_bucket_arn,
   status
@@ -115,7 +113,7 @@ where
 
 ```sql+sqlite
 select
-  encryption_key,
+  kms_key_id,
   replication_role_arn,
   s3_bucket_arn,
   status
