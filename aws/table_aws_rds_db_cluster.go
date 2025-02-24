@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 
-	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -42,7 +40,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",
@@ -299,7 +297,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "performance_insights_kms_key_id",
 				Description: "The Amazon Web Services KMS key identifier for encryption of Performance Insights data.",
 				Type:        proto.ColumnType_STRING,
-				Transform: transform.FromField("PerformanceInsightsKMSKeyId"),
+				Transform:   transform.FromField("PerformanceInsightsKMSKeyId"),
 			},
 			{
 				Name:        "monitoring_interval",

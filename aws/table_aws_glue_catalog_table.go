@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
 	lakeformationTypes "github.com/aws/aws-sdk-go-v2/service/lakeformation/types"
-	gluev1 "github.com/aws/aws-sdk-go/service/glue"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -39,7 +38,7 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 			Hydrate:       listGlueCatalogTables,
 			Tags:          map[string]string{"service": "glue", "action": "GetTables"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(gluev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_GLUE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

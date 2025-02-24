@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/dax/types"
 
-	daxv1 "github.com/aws/aws-sdk-go/service/dax"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -33,7 +31,7 @@ func tableAwsDaxSubnetGroup(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(daxv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DAX_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subnet_group_name",

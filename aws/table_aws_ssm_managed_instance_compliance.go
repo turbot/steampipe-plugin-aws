@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -31,7 +29,7 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 				{Name: "resource_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SSM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

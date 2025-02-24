@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 	"github.com/aws/aws-sdk-go-v2/service/inspector2/types"
 
-	inspector2v1 "github.com/aws/aws-sdk-go/service/inspector2"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -41,7 +39,7 @@ func tableAwsInspector2Coverage(_ context.Context) *plugin.Table {
 			},
 		},
 
-		GetMatrixItemFunc: SupportedRegionMatrix(inspector2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_INSPECTOR2_SERVICE_ID),
 
 		// We *do not* use the common columns, because the account_id/region of
 		// the default columns come from the call, *not* from the retutned data.

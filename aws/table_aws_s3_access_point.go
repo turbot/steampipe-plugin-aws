@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/s3control/types"
 
-	s3controlv1 "github.com/aws/aws-sdk-go/service/s3control"
-
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -55,7 +53,7 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "s3", "action": "GetAccessPointPolicy"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(s3controlv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_S3_CONTROL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

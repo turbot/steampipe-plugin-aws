@@ -9,8 +9,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 
-	docdbv1 "github.com/aws/aws-sdk-go/service/docdb"
-
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/docdb/types"
 	"github.com/aws/aws-sdk-go/aws"
@@ -51,7 +49,7 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshotAttributes"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(docdbv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_snapshot_identifier",

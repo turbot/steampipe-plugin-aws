@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice/types"
 
-	databasemigrationservicev1 "github.com/aws/aws-sdk-go/service/databasemigrationservice"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -56,7 +54,7 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dms", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(databasemigrationservicev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DLM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_instance_identifier",

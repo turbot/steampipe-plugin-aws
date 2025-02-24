@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/aws/aws-sdk-go-v2/service/backup/types"
 
-	backupv1 "github.com/aws/aws-sdk-go/service/backup"
-
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -44,7 +42,7 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "backup", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BACKUP_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "framework_name",

@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 
-	snsv1 "github.com/aws/aws-sdk-go/service/sns"
-
 	"github.com/turbot/go-kit/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -46,7 +44,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFound", "InvalidParameter"}),
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(snsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SNS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subscription_arn",
