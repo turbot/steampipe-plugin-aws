@@ -44,27 +44,23 @@ Group fleet metrics by their aggregation type name. This query is useful for ana
 ```sql+postgres
 select
   metric_name,
-  aggregation_field,
-  creation_date,
-  aggregation_type_name,
-  query_string
+  aggregation_type_name
 from
   aws_iot_fleet_metric
 group by
-  aggregation_type_name;
+  aggregation_type_name,
+  metric_name;
 ```
 
 ```sql+sqlite
 select
   metric_name,
-  aggregation_field,
-  creation_date,
-  aggregation_type_name,
-  query_string
+  aggregation_type_name
 from
   aws_iot_fleet_metric
 group by
-  aggregation_type_name;
+  aggregation_type_name,
+  metric_name;
 ```
 
 ### List fleet metrics updated in the last 30 days

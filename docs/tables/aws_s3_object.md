@@ -193,12 +193,12 @@ select
   acl_grant -> 'Grantee' as grantee,
   acl_grant ->> 'Permission' as permission
 from
-  aws_s3_object as s,
-  jsonb_array_elements(aws_s3_object.acl -> 'Grants') as acl_grant
+  aws_s3_object AS s
+  cross join lateral jsonb_array_elements(s.acl -> 'Grants') as acl_grant
 where
-  bucket_name = 'steampipe-test'
+  s.bucket_name = 'steampipe-test'
   and acl_grant ->> 'Permission' = 'FULL_CONTROL'
-  and acl_grant -> 'Grantee' ->> 'ID' != aws_s3_object.owner ->> 'ID';
+  and acl_grant -> 'Grantee' ->> 'ID' != s.owner ->> 'ID';
 ```
 
 ```sql+sqlite

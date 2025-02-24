@@ -20,7 +20,7 @@ Explore which AWS EC2 launch templates have been created, by whom, and when. Thi
 select
   launch_template_name,
   launch_template_id,
-  created_time,
+  create_time,
   created_by,
   default_version_number,
   latest_version_number
@@ -32,7 +32,7 @@ from
 select
   launch_template_name,
   launch_template_id,
-  created_time,
+  create_time,
   created_by,
   default_version_number,
   latest_version_number

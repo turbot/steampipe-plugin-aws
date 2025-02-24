@@ -221,7 +221,7 @@ select
   title,
   service_attributes ->> 'AssessmentRunArn' as assessment_run_arn,
   service_attributes ->> 'RulesPackageArn' as rules_package_arn,
-  service_attributes ->> 'SchemaVersion' as schema_version,
+  service_attributes ->> 'SchemaVersion' as schema_version
 from
   aws_inspector_finding;
 ```
