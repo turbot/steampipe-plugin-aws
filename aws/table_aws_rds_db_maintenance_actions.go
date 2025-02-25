@@ -24,15 +24,9 @@ func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "name",
-				Description: "The name for the resource that the pending maintenance action applies to.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "arn",
+				Name:        "resource_identifier",
 				Description: "The Amazon Resource Name (ARN) of the resource that the pending maintenance action applies to.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ResourceIdentifier"),
 			},
 			{
 				Name:        "is_cluster",
@@ -69,6 +63,25 @@ func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
 				Description: "The date when the maintenance action will be forcibly applied.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+			// Standard columns
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(getRDSDBClusterTurbotTags),
+			},
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("DBClusterIdentifier"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("DBClusterArn").Transform(arnToAkas),
+			},
 		}),
 	}
 }
@@ -79,15 +92,23 @@ func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plug
 		plugin.Logger(ctx).Error("aws_rds_db_maintenance_action.listMaintenanceAction", "connection_error", err)
 		return nil, err
 	}
-	var maxItems = calculateMaxLimit[int32](100, d)
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
 	type result struct {
-		Name               string
 		ResourceIdentifier string
-		IsCluster          bool
 		types.PendingMaintenanceAction
 	}
 	paginator := rds.NewDescribePendingMaintenanceActionsPaginator(client, &rds.DescribePendingMaintenanceActionsInput{
-		MaxRecords: &maxItems,
+		MaxRecords: &maxLimit,
 	})
 	for paginator.HasMorePages() {
 		d.WaitForListRateLimit(ctx)
@@ -99,16 +120,16 @@ func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 
 		for _, action := range output.PendingMaintenanceActions {
-			splitIdentifier := strings.Split(*action.ResourceIdentifier, ":")
-			n := len(splitIdentifier)
 			for _, detail := range action.PendingMaintenanceActionDetails {
 				r := &result{
-					Name:                     splitIdentifier[n-1],
 					ResourceIdentifier:       *action.ResourceIdentifier,
-					IsCluster:                splitIdentifier[n-2] == "cluster",
 					PendingMaintenanceAction: detail,
 				}
 				d.StreamListItem(ctx, r)
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
 			}
 		}
 	}
