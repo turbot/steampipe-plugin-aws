@@ -7,6 +7,7 @@ import (
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 	"strings"
 )
 
@@ -26,6 +27,12 @@ func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name for the resource that the pending maintenance action applies to.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the resource that the pending maintenance action applies to.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ResourceIdentifier"),
 			},
 			{
 				Name:        "is_cluster",
@@ -74,8 +81,9 @@ func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 	var maxItems = calculateMaxLimit[int32](100, d)
 	type result struct {
-		Name      string
-		IsCluster bool
+		Name               string
+		ResourceIdentifier string
+		IsCluster          bool
 		types.PendingMaintenanceAction
 	}
 	paginator := rds.NewDescribePendingMaintenanceActionsPaginator(client, &rds.DescribePendingMaintenanceActionsInput{
@@ -96,6 +104,7 @@ func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plug
 			for _, detail := range action.PendingMaintenanceActionDetails {
 				r := &result{
 					Name:                     splitIdentifier[n-1],
+					ResourceIdentifier:       *action.ResourceIdentifier,
 					IsCluster:                splitIdentifier[n-2] == "cluster",
 					PendingMaintenanceAction: detail,
 				}

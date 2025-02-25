@@ -19,6 +19,7 @@ Discover the pending maintenance actions that need to be addressed for your RDS 
 ```sql+postgres
 select
   name,
+  arn,
   is_cluster,
   action,
   opt_in_status,
