@@ -396,9 +396,14 @@ func getElastiCacheClusterUpdateActions(ctx context.Context, d *plugin.QueryData
 		plugin.Logger(ctx).Error("aws_elasticache_cluster.getElastiCacheClusterUpdateActions", "connection_error", err)
 		return nil, err
 	}
-	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, &elasticache.DescribeUpdateActionsInput{
-		CacheClusterIds: []string{*cluster.CacheClusterId},
-	})
+	input := &elasticache.DescribeUpdateActionsInput{}
+	if cluster.CacheClusterId != nil {
+		input.CacheClusterIds = []string{*cluster.CacheClusterId}
+	}
+	if cluster.ReplicationGroupId != nil {
+		input.ReplicationGroupIds = []string{*cluster.ReplicationGroupId}
+	}
+	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, input)
 	var rs []types.UpdateAction
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
