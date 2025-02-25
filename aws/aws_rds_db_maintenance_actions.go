@@ -2,9 +2,12 @@ package aws
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
+	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"strings"
 )
 
 //// TABLE DEFINITION
@@ -14,14 +17,20 @@ func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_maintenance_action",
 		Description: "Lists pending maintenance actions for Amazon RDS instances and clusters.",
 		List: &plugin.ListConfig{
-			Hydrate: getRDSDBClusterPendingMaintenanceActionCopy,
+			Hydrate: listRDSMaintenanceActions,
+			Tags:    map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
 		},
-		Columns: []*plugin.Column{
+		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
+		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "resource_identifier",
-				Description: "The ARN of the resource with pending maintenance actions.",
+				Name:        "name",
+				Description: "The name for the resource that the pending maintenance action applies to.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ResourceIdentifier"),
+			},
+			{
+				Name:        "is_cluster",
+				Description: "Indicates whether the resource is a cluster.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "action",
@@ -53,24 +62,46 @@ func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
 				Description: "The date when the maintenance action will be forcibly applied.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
-		},
+		}),
 	}
 }
 
-func getRDSDBClusterPendingMaintenanceActionCopy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Create service
-	svc, err := RDSClient(ctx, d)
+func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	client, err := RDSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_maintenance_action.", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_rds_db_maintenance_action.listMaintenanceAction", "connection_error", err)
 		return nil, err
 	}
-
-	op, err := svc.DescribePendingMaintenanceActions(ctx, nil)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_maintenance_action.getRDSDBClusterPendingMaintenanceAction", "api_error", err)
-		return nil, err
+	var maxItems = calculateMaxLimit[int32](100, d)
+	type result struct {
+		Name      string
+		IsCluster bool
+		types.PendingMaintenanceAction
 	}
-	plugin.Logger(ctx).Warn("get result", len(op.PendingMaintenanceActions))
+	paginator := rds.NewDescribePendingMaintenanceActionsPaginator(client, &rds.DescribePendingMaintenanceActionsInput{
+		MaxRecords: &maxItems,
+	})
+	for paginator.HasMorePages() {
+		d.WaitForListRateLimit(ctx)
 
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_maintenance_action.listMaintenanceAction", "api_error", err)
+			return nil, err
+		}
+
+		for _, action := range output.PendingMaintenanceActions {
+			splitIdentifier := strings.Split(*action.ResourceIdentifier, ":")
+			n := len(splitIdentifier)
+			for _, detail := range action.PendingMaintenanceActionDetails {
+				r := &result{
+					Name:                     splitIdentifier[n-1],
+					IsCluster:                splitIdentifier[n-2] == "cluster",
+					PendingMaintenanceAction: detail,
+				}
+				d.StreamListItem(ctx, r)
+			}
+		}
+	}
 	return nil, nil
 }

@@ -121,7 +121,7 @@ func base64DecodedData(ctx context.Context, d *transform.TransformData) (interfa
 	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-add-user-data.html
 	if err != nil {
 		return nil, nil
-	} 
+	}
 	// Check for valid UTF-8
 	if !utf8.Valid(data) {
 		return types.SafeString(d.Value), nil
@@ -273,4 +273,18 @@ func readEnvVarToInt(name string, defaultVal int) int {
 		}
 	}
 	return val
+}
+
+func calculateMaxLimit[T ~int | ~int64 | ~int32](maxLimit T, d *plugin.QueryData) T {
+	if d.QueryContext.Limit != nil {
+		limit := T(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = T(1)
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+	return maxLimit
 }

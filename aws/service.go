@@ -1764,7 +1764,6 @@ func getClientForLastResortRegion(ctx context.Context, d *plugin.QueryData) (*aw
 // Helper function to get the session for a region set in query data
 func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
 	region := d.EqualsQualString(matrixKeyRegion)
-	plugin.Logger(ctx).With("region", region).Warn("in RDSClient")
 	if region == "" {
 		return nil, fmt.Errorf("getClientForQuerySupportedRegion called without a region in QueryData")
 	}
