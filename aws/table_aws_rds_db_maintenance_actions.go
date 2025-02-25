@@ -8,7 +8,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
-	"strings"
 )
 
 //// TABLE DEFINITION
@@ -27,11 +26,6 @@ func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
 				Name:        "resource_identifier",
 				Description: "The Amazon Resource Name (ARN) of the resource that the pending maintenance action applies to.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "is_cluster",
-				Description: "Indicates whether the resource is a cluster.",
-				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "action",
@@ -68,19 +62,18 @@ func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getRDSDBClusterTurbotTags),
 			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("DBClusterIdentifier"),
+				Transform:   transform.FromField("ResourceIdentifier"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("DBClusterArn").Transform(arnToAkas),
+				Transform:   transform.FromField("ResourceIdentifier").Transform(arnToAkas),
 			},
 		}),
 	}
