@@ -229,7 +229,7 @@ Explore the network configurations of your AWS CodeBuild projects. This allows y
 select
   id,
   network_interface ->> 'NetworkInterfaceId' as network_interface_id,
-  network_interface ->> 'SubnetId' as subnet_id,
+  network_interface ->> 'SubnetId' as subnet_id
 from
   aws_codebuild_build;
 ```

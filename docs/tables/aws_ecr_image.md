@@ -190,34 +190,3 @@ from
 where
   i.repository_name = r.repository_name;
 ```
-
-### Scan images with trivy for a particular repository
-This example is used to analyze the security vulnerabilities of images in a specific repository. It helps in proactively identifying and addressing potential security issues, thereby enhancing the overall safety of your applications.
-
-```sql+postgres
-select
-  artifact_name,
-  artifact_type,
-  metadata,
-  results
-from
-  trivy_scan_artifact as a,
-  aws_ecr_image as i
-where
-  artifact_name = image_uri
-  and repository_name = 'hello';
-```
-
-```sql+sqlite
-select
-  artifact_name,
-  artifact_type,
-  metadata,
-  results
-from
-  trivy_scan_artifact as a,
-  aws_ecr_image as i
-where
-  artifact_name = image_uri
-  and repository_name = 'hello';
-```
