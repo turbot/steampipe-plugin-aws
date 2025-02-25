@@ -170,6 +170,12 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("EndpointName"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTagsForGlueDevEndpoint,
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -274,6 +280,11 @@ func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 	return *data.DevEndpoint, nil
+}
+
+func getTagsForGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	arn, _ := getGlueDevEndpointArn(ctx, d, h)
+	return getTagsForGlueResource(ctx, d, arn.(string))
 }
 
 func getGlueDevEndpointArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

@@ -81,7 +81,7 @@ select
 from
   aws_inspector2_coverage
 where
-  resource_type = `aws_EC2_INSTANCE';
+  resource_type = 'aws_EC2_INSTANCE';
 ```
 
 ```sql+sqlite
@@ -197,7 +197,7 @@ from
 where
   r.repository_name = c.ecr_repository_name
 and
-  c.resource_type = `AWS_ECR_REPOSITORY';
+  c.resource_type = 'AWS_ECR_REPOSITORY';
 ```
 
 ```sql+sqlite
@@ -274,7 +274,7 @@ from
 where
   i.instance_id = c.resource_id
 and
-  c.resource_type = `AWS_EC2_INSTANCE';
+  c.resource_type = 'AWS_EC2_INSTANCE';
 ```
 
 ```sql+sqlite

@@ -101,7 +101,7 @@ select
   v -> 'Device' as device,
   v -> 'VolumeId' as volume_id
 from
-  aws_emr_instance,
+  aws_emr_instance as ei,
   jsonb_array_elements(ebs_volumes) as v
 where
   ei.id = 'ci-ULCFS2ZN0FK7';

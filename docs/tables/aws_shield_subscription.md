@@ -46,7 +46,7 @@ select
 from
   aws_shield_subscription
 where
-  state = 'ACTIVE'
+  subscription_state = 'ACTIVE'
   and proactive_engagement_status = 'ENABLED';
 ```
 
@@ -57,6 +57,6 @@ select
 from
   aws_shield_subscription
 where
-  state = 'ACTIVE'
+  subscription_state = 'ACTIVE'
   and proactive_engagement_status = 'ENABLED';
 ```

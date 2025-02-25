@@ -424,6 +424,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "pending_modified_values",
+				Description: "Information about pending changes to the DB instance. This information is returned only when there are pending changes. Specific changes are identified by subelements.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "status_infos",
 				Description: "The status of a read replica.",
 				Type:        proto.ColumnType_JSON,

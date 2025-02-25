@@ -373,7 +373,7 @@ select
 from
   aws_rds_db_instance
 where
-  processor_features not null;
+  processor_features is not null;
 ```
 
 ```sql+sqlite
@@ -387,5 +387,5 @@ select
 from
   aws_rds_db_instance
 where
-  processor_features not null;
+  processor_features is not null;
 ```

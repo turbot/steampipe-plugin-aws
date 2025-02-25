@@ -31,6 +31,9 @@ func tableAwsLightsailInstance(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listLightsailInstances,
 			Tags:    map[string]string{"service": "lightsail", "action": "GetInstances"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
+			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{

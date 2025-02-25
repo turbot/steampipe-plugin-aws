@@ -305,7 +305,7 @@ func getWafRegionalRuleGroupData(ctx context.Context, d *plugin.QueryData, h *pl
 func wafRegionalRuleGroupTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*wafregional.ListTagsForResourceOutput)
 
-	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
+	if len(data.TagInfoForResource.TagList) < 1 {
 		return nil, nil
 	}
 
