@@ -36,3 +36,25 @@ select
 from
   aws_elasticache_update_action;
 ```
+
+### Find all ElastiCache update actions before specific date
+
+```sql+postgres
+select 
+    * 
+from 
+    aws_elasticache_update_action 
+where 
+    service_update_recommended_apply_by_date > '2025-02-05T18:59:59+08:00';
+```
+
+### Find all ElastiCache update actions with important severity
+
+```sql+postgres
+select 
+    * 
+from 
+    aws_elasticache_update_action 
+where 
+    service_update_severity='important'
+```

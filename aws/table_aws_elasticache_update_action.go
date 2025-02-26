@@ -3,9 +3,11 @@ package aws
 import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
 	elasticachev1 "github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsElasticacheUpdateAction(_ context.Context) *plugin.Table {
@@ -100,6 +102,19 @@ func tableAwsElasticacheUpdateAction(_ context.Context) *plugin.Table {
 				Description: "Last modification date of the update action status.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+			// Standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(extracElasticacheUpdateActionId),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(extracElasticacheUpdateActionId).Transform(arnToAkas),
+			},
 		}),
 	}
 }
@@ -139,4 +154,12 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	return nil, nil
+}
+
+func extracElasticacheUpdateActionId(ctx context.Context, data *transform.TransformData) (interface{}, error) {
+	rs := data.HydrateItem.(types.UpdateAction)
+	if rs.CacheClusterId != nil {
+		return *rs.CacheClusterId, nil
+	}
+	return *rs.ReplicationGroupId, nil
 }
