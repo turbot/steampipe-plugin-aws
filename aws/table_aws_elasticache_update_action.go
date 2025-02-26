@@ -119,7 +119,6 @@ func tableAwsElasticacheUpdateAction(_ context.Context) *plugin.Table {
 	}
 }
 
-// 核心数据获取逻辑
 func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	client, err := ElastiCacheClient(ctx, d)
 	if err != nil {
