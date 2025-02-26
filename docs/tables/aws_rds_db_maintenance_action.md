@@ -18,9 +18,7 @@ Discover the pending maintenance actions that need to be addressed for your RDS 
 
 ```sql+postgres
 select
-  name,
-  arn,
-  is_cluster,
+  resource_identifier,
   action,
   opt_in_status,
   forced_apply_date,
@@ -28,3 +26,15 @@ select
   auto_applied_after_date
 from
   aws_rds_db_maintenance_action;
+```
+### Show if the maintenance action is for a cluster
+```sql+postgres
+SELECT
+    resource_identifier,
+    CASE
+        WHEN resource_identifier LIKE '%:cluster:%' THEN TRUE
+        ELSE FALSE
+    END AS is_cluster
+FROM aws_rds_db_maintenance_action
+    where resource_identifier like '%clustername';
+```
