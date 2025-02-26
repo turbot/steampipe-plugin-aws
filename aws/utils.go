@@ -14,6 +14,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
 	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
@@ -121,7 +124,7 @@ func base64DecodedData(ctx context.Context, d *transform.TransformData) (interfa
 	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-add-user-data.html
 	if err != nil {
 		return nil, nil
-	} 
+	}
 	// Check for valid UTF-8
 	if !utf8.Valid(data) {
 		return types.SafeString(d.Value), nil
@@ -273,4 +276,26 @@ func readEnvVarToInt(name string, defaultVal int) int {
 		}
 	}
 	return val
+}
+
+func ResourceTaggingClient(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.Client, error) {
+	// Get AWS session
+	sess, err := getSession(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create AWS Resource Tagging client
+	return resourcegroupstaggingapi.NewFromConfig(*sess), nil
+}
+
+// getSession initializes an AWS SDK v2 session using Steampipe's connection config.
+func getSession(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	// Load the AWS configuration with default credentials and region handling
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		plugin.Logger(ctx).Error("getSession", "config_error", err)
+		return nil, err
+	}
+	return &cfg, nil
 }
