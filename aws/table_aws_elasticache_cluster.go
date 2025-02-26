@@ -217,6 +217,7 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Hydrate:     listTagsForElastiCacheCluster,
 				Transform:   transform.FromField("TagList"),
 			},
+
 			// Standard columns
 			{
 				Name:        "title",
