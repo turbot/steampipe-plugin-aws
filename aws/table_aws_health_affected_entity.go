@@ -7,8 +7,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 
-	healthv1 "github.com/aws/aws-sdk-go/service/health"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/health"
 	"github.com/aws/aws-sdk-go-v2/service/health/types"
@@ -33,7 +31,7 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 				{Name: "last_updated_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<=", "="}},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(healthv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_HEALTH_SERVICE_ID),
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -150,7 +148,7 @@ func listHealthAffectedEntities(ctx context.Context, d *plugin.QueryData, h *plu
 	return nil, err
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build health affected entity list call input filter
 func buildHealthAffectedEntityFilter(d *plugin.QueryData) *types.EntityFilter {
 	filter := &types.EntityFilter{}

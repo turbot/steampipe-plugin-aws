@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
-	lambdav1 "github.com/aws/aws-sdk-go/service/lambda"
+
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -24,7 +24,7 @@ func tableAwsLambdaEventSourceMapping(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaEventSourceMappings,
-			Tags:       map[string]string{"service": "lambda", "action": "ListEventSourceMappings"},
+			Tags:    map[string]string{"service": "lambda", "action": "ListEventSourceMappings"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "arn",
@@ -40,7 +40,7 @@ func tableAwsLambdaEventSourceMapping(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_LAMBDA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "uuid",

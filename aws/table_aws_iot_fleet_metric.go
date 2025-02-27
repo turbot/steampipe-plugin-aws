@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iot"
 	"github.com/aws/aws-sdk-go-v2/service/iot/types"
 
-	iotv1 "github.com/aws/aws-sdk-go/service/iot"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -42,7 +40,7 @@ func tableAwsIoTFleetMetric(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "iot", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(iotv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_IOT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "metric_name",

@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types"
 	"github.com/aws/smithy-go"
 
-	accessanalyzerv1 "github.com/aws/aws-sdk-go/service/accessanalyzer"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -77,7 +75,7 @@ func tableAwsAccessAnalyzerFinding(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(accessanalyzerv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ACCESS_ANALYZER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "access_analyzer_arn",

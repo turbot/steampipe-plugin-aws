@@ -1,0 +1,2 @@
+pip3 install -r scripts/generate_aws_supported_endpoints/requirements.txt
+python3 scripts/generate_aws_supported_endpoints/main.py

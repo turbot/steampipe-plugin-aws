@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 
-	securityhubv1 "github.com/aws/aws-sdk-go/service/securityhub"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -33,7 +31,7 @@ func tableAwsSecurityHubFindingAggregator(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAccessException"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(securityhubv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SECURITYHUB_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getSecurityHubFindingAggregator,

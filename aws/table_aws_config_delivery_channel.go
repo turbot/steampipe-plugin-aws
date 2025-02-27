@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
 
-	configservicev1 "github.com/aws/aws-sdk-go/service/configservice"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -26,13 +24,13 @@ func tableAwsConfigDeliveryChannel(_ context.Context) *plugin.Table {
 					Name:    "name",
 					Require: plugin.Optional,
 				},
-			},		
+			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchDeliveryChannelException"}),
 			},
-			Tags:    map[string]string{"service": "config", "action": "DescribeDeliveryChannels"},
+			Tags: map[string]string{"service": "config", "action": "DescribeDeliveryChannels"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(configservicev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CONFIG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

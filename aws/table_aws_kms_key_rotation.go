@@ -11,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 	"github.com/aws/smithy-go"
 
-	kmsv1 "github.com/aws/aws-sdk-go/service/kms"
-
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -43,7 +41,7 @@ func tableAwsKmsKeyRotation(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kmsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_KMS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "key_id",
@@ -146,7 +144,7 @@ func listKmsKeyRotations(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			ignoreCodes := GetConfig(d.Connection).IgnoreErrorCodes
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
-				if helpers.StringSliceContains(ignoreCodes, ae.ErrorCode()){
+				if helpers.StringSliceContains(ignoreCodes, ae.ErrorCode()) {
 					return nil, nil
 				}
 			}

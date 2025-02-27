@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/athena"
 	"github.com/aws/aws-sdk-go-v2/service/athena/types"
 
-	athenav1 "github.com/aws/aws-sdk-go/service/athena"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -41,7 +39,7 @@ func tableAwsAthenaQueryExecution(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "athena", "action": "GetQueryExecution"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(athenav1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ATHENA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
