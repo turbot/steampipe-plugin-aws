@@ -33,7 +33,7 @@ from
 ```
 
 
-### List of AWS regions which are enable
+### List of AWS regions that are enabled
 Discover the segments that are not currently active in your AWS regions. This can help you understand which regions are not utilized, potentially highlighting areas for infrastructure optimization or cost savings.
 
 ```sql+postgres
