@@ -21,12 +21,18 @@ func tableAwsLakeformationTag(ctx context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			Hydrate:    getLakeformationTag,
 			KeyColumns: plugin.AllColumns([]string{"catalog_id", "tag_key"}),
-			Tags:       map[string]string{"service": "lakeformation", "action": "GetLFTag"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
+			},
+			Tags: map[string]string{"service": "lakeformation", "action": "GetLFTag"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listLakeformationTags,
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "catalog_id", Require: plugin.Optional},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Tags: map[string]string{"service": "lakeformation", "action": "ListLFTags"},
 		},
