@@ -79,7 +79,6 @@ select
   endpoint_identifier,
   arn,
   engine_name,
-  instance_create_time,
   my_sql_settings
 from
   aws_dms_endpoint
@@ -92,7 +91,6 @@ select
   endpoint_identifier,
   arn,
   engine_name,
-  instance_create_time,
   my_sql_settings
 from
   aws_dms_endpoint
