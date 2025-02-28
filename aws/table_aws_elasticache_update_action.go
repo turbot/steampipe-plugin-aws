@@ -108,7 +108,7 @@ func tableAwsElasticacheUpdateAction(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(extractElasticacheUpdateActionId),
+				Transform:   transform.From(extractElastiCacheUpdateActionId),
 			},
 		}),
 	}
@@ -157,7 +157,7 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 	return nil, nil
 }
 
-func extractElasticacheUpdateActionId(ctx context.Context, data *transform.TransformData) (interface{}, error) {
+func extractElastiCacheUpdateActionId(ctx context.Context, data *transform.TransformData) (interface{}, error) {
 	rs := data.HydrateItem.(types.UpdateAction)
 	if rs.CacheClusterId != nil {
 		return *rs.CacheClusterId, nil
