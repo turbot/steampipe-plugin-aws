@@ -274,17 +274,3 @@ func readEnvVarToInt(name string, defaultVal int) int {
 	}
 	return val
 }
-
-func calculateMaxLimit[T ~int | ~int64 | ~int32](maxLimit T, d *plugin.QueryData) T {
-	if d.QueryContext.Limit != nil {
-		limit := T(*d.QueryContext.Limit)
-		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = T(1)
-			} else {
-				maxLimit = limit
-			}
-		}
-	}
-	return maxLimit
-}
