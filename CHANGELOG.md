@@ -1,3 +1,10 @@
+## v1.8.0 [2025-02-28]
+
+_Dependencies_
+
+- Recompiled plugin with Go version `1.23.1`.
+- Recompiled plugin with [steampipe-plugin-sdk v5.11.3](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5113-2025-02-11) that addresses critical and high vulnerabilities in dependent packages.
+
 ## v1.7.0 [2025-02-28]
 
 _Enhancements_
