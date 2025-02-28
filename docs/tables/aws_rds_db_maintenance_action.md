@@ -43,3 +43,16 @@ from
 where 
   resource_identifier like '%clustername';
 ```
+
+```sql+sqlite
+select
+  resource_identifier,
+  case
+    when resource_identifier like '%:cluster:%' then 1
+    else 0
+  end as is_cluster
+from
+  aws_rds_db_maintenance_action
+where 
+  resource_identifier like '%clustername';
+```
