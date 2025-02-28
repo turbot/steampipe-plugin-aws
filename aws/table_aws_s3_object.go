@@ -30,9 +30,9 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				// If you encrypt an object by using server-side encryption with customer-provided
 				// encryption keys (SSE-C) when you store the object in Amazon S3, then when you
 				// GET the object, you must use the following query parameter:
-				{Name: "sse_customer_algorithm", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "sse_customer_algorithm", Require: plugin.Optional},
 				{Name: "sse_customer_key", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
-				{Name: "sse_customer_key_md5", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "sse_customer_key_md5", Require: plugin.Optional},
 			},
 		},
 

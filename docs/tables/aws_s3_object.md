@@ -457,3 +457,38 @@ where
   bucket_name = 'steampipe-test'
   and prefix = 'test1/log_text.txt';
 ```
+
+### Retrieve object details encrypted with customer-provided encryption keys (SSE-C)
+This query retrieves details of objects stored in an S3 bucket that are encrypted using Server-Side Encryption with Customer-Provided Keys (SSE-C). SSE-C allows you to provide your own encryption keys when storing objects in S3, ensuring that AWS does not manage the encryption keys.
+
+```sql+postgres
+select 
+  key,
+  bucket_name,
+  content_language,
+  content_length,
+  content_type
+from
+  aws_s3_object 
+where 
+  bucket_name = 'tes-encryption-31' 
+  and sse_customer_algorithm = 'AES256' 
+  and sse_customer_key = '/J03dxHHdcPTDNi97Aq7mYxBjnxOX0kV6UzSHVOh8es=' 
+  and sse_customer_key_md5 = 'gaWCs7+kcAeTCCLlbVdTXA==';
+```
+
+```sql+sqlite
+select 
+  key,
+  bucket_name,
+  content_language,
+  content_length,
+  content_type
+from
+  aws_s3_object 
+where 
+  bucket_name = 'tes-encryption-31' 
+  and sse_customer_algorithm = 'AES256' 
+  and sse_customer_key = '/J03dxHHdcPTDNi97Aq7mYxBjnxOX0kV6UzSHVOh8es=' 
+  and sse_customer_key_md5 = 'gaWCs7+kcAeTCCLlbVdTXA==';
+```
