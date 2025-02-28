@@ -116,20 +116,25 @@ func tableAwsElasticacheUpdateAction(_ context.Context) *plugin.Table {
 
 func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	client, err := ElastiCacheClient(ctx, d)
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_elasticache_update_action.listElastiCacheUpdateActions", "client_error", err)
 		return nil, err
 	}
+
 	input := &elasticache.DescribeUpdateActionsInput{}
+
 	if v, ok := d.EqualsQuals["cache_cluster_id"]; ok {
 		input.CacheClusterIds = []string{v.GetStringValue()}
 	}
+
 	if v, ok := d.EqualsQuals["replication_group_id"]; ok {
 		input.ReplicationGroupIds = []string{v.GetStringValue()}
 	}
 
 	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, input)
 	for paginator.HasMorePages() {
+
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
@@ -141,6 +146,8 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 
 		for _, action := range page.UpdateActions {
 			d.StreamListItem(ctx, action)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
