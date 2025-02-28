@@ -63,6 +63,8 @@ func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
 				Description: "The date when the maintenance action will be forcibly applied.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+
+			// Standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -121,6 +123,7 @@ func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plug
 					PendingMaintenanceAction: detail,
 				}
 				d.StreamListItem(ctx, r)
+
 				// Context can be cancelled due to manual cancellation or the limit has been hit
 				if d.RowsRemaining(ctx) == 0 {
 					return nil, nil
