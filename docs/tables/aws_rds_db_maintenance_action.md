@@ -29,6 +29,8 @@ from
 ```
 
 ### Show if the maintenance action is for a cluster
+Determine if a specific maintenance action is associated with a DB cluster.
+
 ```sql+postgres
 SELECT
   resource_identifier,
