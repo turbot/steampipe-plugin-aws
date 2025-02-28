@@ -38,23 +38,26 @@ from
 ```
 
 ### Find all ElastiCache update actions before specific date
+Retrieve a list of all service updates that are recommended to be applied before a specific date. This can help you plan and schedule updates in advance.
 
 ```sql+postgres
 select 
-    * 
+  * 
 from 
-    aws_elasticache_update_action 
+  aws_elasticache_update_action 
 where 
-    service_update_recommended_apply_by_date > '2025-02-05T18:59:59+08:00';
+  service_update_recommended_apply_by_date > '2025-02-05T18:59:59+08:00';
 ```
 
 ### Find all ElastiCache update actions with important severity
+Retrieve a list of all service updates that have an important severity level. This can help you prioritize and address critical updates first.
 
 ```sql+postgres
 select 
-    * 
+  * 
 from 
-    aws_elasticache_update_action 
+  aws_elasticache_update_action 
 where 
-    service_update_severity='important'
+  service_update_severity='important'
 ```
+
