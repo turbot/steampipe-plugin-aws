@@ -56,3 +56,23 @@ from
 where 
   resource_identifier like '%clustername';
 ```
+
+### List DB cluster pending maintenance actions
+Discover the segments that require pending maintenance actions in your database clusters. This is useful in planning and prioritizing maintenance schedules, by understanding which actions are due and their respective timelines.
+
+```sql+postgres
+select
+  a.db_cluster_identifier,
+  action,
+  a.status,
+  opt_in_status,
+  forced_apply_date,
+  current_apply_date,
+  auto_applied_after_date
+from 
+  aws_rds_db_cluster as a
+join 
+  aws_rds_db_maintenance_action as b 
+on 
+  a.arn = b.resource_identifier;
+```
