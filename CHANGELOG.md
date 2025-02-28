@@ -1,3 +1,22 @@
+## v1.7.0 [2025-02-28]
+
+_Enhancements_
+
+- Added support for `sse_customer_algorithm`, `sse_customer_key` and `sse_customer_key_md5` optional key quals in the `aws_s3_object` table to list objects encrypted with SSE-C. ([#2409](https://github.com/turbot/steampipe-plugin-aws/pull/2409))
+- Added parent hydrate support in the `aws_ecr_image_scan_finding` table to manage the complex join queries. ([#2376](https://github.com/turbot/steampipe-plugin-aws/pull/2376))
+- Added `pending_modified_values` column to the `aws_rds_db_instance` table. ([#2411](https://github.com/turbot/steampipe-plugin-aws/pull/2411))
+- Added tags to `aws_glue_*` tables. ([#2402](https://github.com/turbot/steampipe-plugin-aws/pull/2402)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+- Added tag retrieval example to `aws_ses_domain_identity` table documentation. ([#2432](https://github.com/turbot/steampipe-plugin-aws/pull/2432))
+- Added `logging_config` column to the `aws_lambda_function` table. ([#2423](https://github.com/turbot/steampipe-plugin-aws/pull/2423))
+
+_Bug fixes_
+
+- Fixed the `nil pointer dereference` error when querying AWS RDS custom instances. ([#2436](https://github.com/turbot/steampipe-plugin-aws/pull/2436))
+- Fixed the `region` column of `aws_wafregional_rule` table to correctly return the resource region instead of `global`. ([#2429](https://github.com/turbot/steampipe-plugin-aws/pull/2429))
+- Fixed the `arn` column in `aws_vpc_eip` table to use the correct format. ([#2415](https://github.com/turbot/steampipe-plugin-aws/pull/2415)) (Thanks [@thomasklemm](https://github.com/thomasklemm) for the contribution!)
+- Fixed not found errors in `aws_kinesis_consumer` and `aws_lightsail_instance` tables. ([#2408](https://github.com/turbot/steampipe-plugin-aws/pull/2408))
+- Fixed the `InvalidParameterException` error in `aws_ecs_service` tables when listing tags for older ECS services. ([#2410](https://github.com/turbot/steampipe-plugin-aws/pull/2410))
+
 ## v1.6.0 [2025-02-06]
 
 _Enhancements_
