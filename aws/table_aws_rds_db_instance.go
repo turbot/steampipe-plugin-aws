@@ -600,7 +600,7 @@ func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.Que
 }
 
 func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	caCertificateIdentifier := *h.Item.(types.DBInstance).CACertificateIdentifier
+	instance := h.Item.(types.DBInstance)
 
 	// Create service
 	svc, err := RDSClient(ctx, d)
@@ -610,7 +610,7 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	params := &rds.DescribeCertificatesInput{
-		CertificateIdentifier: aws.String(caCertificateIdentifier),
+		CertificateIdentifier: instance.CACertificateIdentifier,
 	}
 
 	op, err := svc.DescribeCertificates(ctx, params)
