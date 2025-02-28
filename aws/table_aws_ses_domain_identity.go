@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 
@@ -82,14 +81,6 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 				Hydrate:     getSESIdentityNotificationAttributes,
 				Transform:   transform.FromValue(),
 			},
-			{
-				Name:        "tags",
-				Description: "A map of tags associated with the SES domain identity.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getSESDomainIdentityTags,
-				Transform:   transform.FromValue(),
-			},
-
 			// Standard columns for all tables
 			{
 				Name:        "title",
@@ -231,64 +222,4 @@ func getSESDomainIdentityMailFromDomainAttributes(ctx context.Context, d *plugin
 	}
 
 	return nil, nil
-}
-
-func getSESDomainIdentityTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// Fetch the ARN using the hydrate function
-	arnData, err := getSESIdentityARN(ctx, d, h)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityTags", "arn_fetch_error", err)
-		return nil, err
-	}
-	arn, ok := arnData.(string)
-	if !ok || arn == "" {
-		plugin.Logger(ctx).Warn("aws_ses_domain_identity.getSESDomainIdentityTags", "missing_arn", "ARN could not be determined for SES identity")
-		return nil, nil
-	}
-
-	// Create AWS Resource Tagging Client
-	svc, err := ResourceTaggingClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityTags", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region
-		return nil, nil
-	}
-
-	// Get tags using AWS Resource Groups Tagging API
-	input := &resourcegroupstaggingapi.GetResourcesInput{
-		ResourceARNList: []string{arn},
-	}
-
-	result, err := svc.GetResources(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ses_domain_identity.getSESDomainIdentityTags", "api_error", err)
-		return nil, err
-	}
-
-	// If no tags are found, return nil (which will be converted to NULL in the query output)
-	if len(result.ResourceTagMappingList) == 0 {
-		return nil, nil
-	}
-
-	// Extract tags
-	tagMap := map[string]string{}
-	for _, resourceTag := range result.ResourceTagMappingList {
-		if *resourceTag.ResourceARN == arn {
-			for _, tag := range resourceTag.Tags {
-				tagMap[*tag.Key] = *tag.Value
-			}
-			break
-		}
-	}
-
-	// If the tagMap is empty, return nil instead of an empty map
-	if len(tagMap) == 0 {
-		return nil, nil
-	}
-
-	return tagMap, nil
 }

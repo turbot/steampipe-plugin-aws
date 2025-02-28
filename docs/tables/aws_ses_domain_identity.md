@@ -60,3 +60,28 @@ from
 where
   verification_status = 'Failed';
 ```
+
+### Retrieve tags for SES domain identities
+Identify the tags associated with domain identities in Amazon SES. This query retrieves domain identity details along with their assigned tags, enabling better resource management and organization.
+
+```sql+postgres
+select 
+  i.arn,
+  i.identity,
+  r.tags_src,
+  r.tags
+from 
+  aws_ses_domain_identity as i
+  join aws_tagging_resource as r on r.arn = i.arn;
+```
+
+```sql+sqlite
+select 
+  i.arn,
+  i.identity,
+  r.tags_src,
+  r.tags
+from 
+  aws_ses_domain_identity as i
+  join aws_tagging_resource as r on r.arn = i.arn;
+```
