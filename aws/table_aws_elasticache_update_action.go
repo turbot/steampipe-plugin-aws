@@ -102,18 +102,13 @@ func tableAwsElasticacheUpdateAction(_ context.Context) *plugin.Table {
 				Description: "Last modification date of the update action status.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+
 			// Standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(extracElasticacheUpdateActionId),
-			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(extracElasticacheUpdateActionId).Transform(arnToAkas),
 			},
 		}),
 	}
