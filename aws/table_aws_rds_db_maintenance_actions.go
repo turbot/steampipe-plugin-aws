@@ -100,7 +100,6 @@ func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plug
 		MaxRecords: &maxLimit,
 	}
 	if resourceIdentifier := d.EqualsQualString("resource_identifier"); resourceIdentifier != "" {
-		plugin.Logger(ctx).Warn("aws_rds_db_maintenance_action.listMaintenanceAction", "resource_identifier", resourceIdentifier)
 		input.ResourceIdentifier = &resourceIdentifier
 	}
 
