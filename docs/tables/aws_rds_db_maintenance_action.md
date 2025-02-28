@@ -28,16 +28,18 @@ from
   aws_rds_db_maintenance_action;
 ```
 
-### Show if the maintenance action is for a cluster
+### Check if a maintenance action is for a cluster
 Determine if a specific maintenance action is associated with a DB cluster.
 
 ```sql+postgres
-SELECT
+select
   resource_identifier,
-  CASE
-    WHEN resource_identifier LIKE '%:cluster:%' THEN TRUE
-    ELSE FALSE
-  END AS is_cluster
-FROM aws_rds_db_maintenance_action
-  where resource_identifier like '%clustername';
+  case
+    when resource_identifier like '%:cluster:%' then true
+    else false
+  end as is_cluster
+from
+  aws_rds_db_maintenance_action
+where 
+  resource_identifier like '%clustername';
 ```
