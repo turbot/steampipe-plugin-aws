@@ -73,7 +73,7 @@ func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
 	}
 }
 
-type rdsMaintenanceAction struct {
+type rdsMaintenanceActionResult struct {
 	ResourceIdentifier string
 	types.PendingMaintenanceAction
 }
@@ -115,7 +115,7 @@ func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plug
 
 		for _, action := range output.PendingMaintenanceActions {
 			for _, detail := range action.PendingMaintenanceActionDetails {
-				r := &rdsMaintenanceAction{
+				r := &rdsMaintenanceActionResult{
 					ResourceIdentifier:       *action.ResourceIdentifier,
 					PendingMaintenanceAction: detail,
 				}
