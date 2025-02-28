@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
@@ -9,7 +10,6 @@ import (
 
 	ssoadminv1 "github.com/aws/aws-sdk-go/service/ssoadmin"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -142,7 +142,7 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 				return nil, nil
 			}
 		} else if len(getListValues(equalQuals["instance_arn"].GetListValue())) > 0 {
-			if !helpers.StringSliceContains(aws.ToStringSlice(getListValues(equalQuals["instance_arn"].GetListValue())), instanceArn) {
+			if !slices.Contains(aws.ToStringSlice(getListValues(equalQuals["instance_arn"].GetListValue())), instanceArn) {
 				return nil, nil
 			}
 		}

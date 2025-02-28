@@ -64,6 +64,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -110,7 +111,6 @@ func SupportedRegionMatrix(serviceID string) func(ctx context.Context, d *plugin
 	return SupportedRegionMatrixWithExclusions(serviceID, []string{})
 }
 
-
 // This function is used in the GetMatrixItemFunc implementations within the table definitions.
 // GetMatrixItemFunc is designed to accept a single return type `[]map[string]interface{}`.
 // AWS regional tables make API calls based on the region matrix return by the SupportedRegionMatrixWithExclusions function.
@@ -149,7 +149,7 @@ func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []stri
 		}
 		// Find all regions in both the query regions and the service regions
 		for _, region := range queryRegions {
-			if helpers.StringSliceContains(serviceRegions, region) {
+			if slices.Contains(serviceRegions, region) {
 				obj := map[string]interface{}{matrixKeyRegion: region}
 				matrix = append(matrix, obj)
 			}

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"unicode/utf8"
 
 	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -259,7 +259,7 @@ func isSuppportedRDSEngine(engine string) bool {
 		"sqlserver-web",
 	}
 
-	return helpers.StringSliceContains(supportedEngines, engine)
+	return slices.Contains(supportedEngines, engine)
 }
 
 // Helper function for integer based environment variables.

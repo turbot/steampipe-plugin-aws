@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -10,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
-
-	"github.com/turbot/go-kit/helpers"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -870,7 +869,7 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 	data := d.HydrateItem.(types.Instance)
 
 	if *data.StateTransitionReason != "" {
-		if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, string(data.State.Name)) {
+		if slices.Contains([]string{"shutting-down", "stopped", "stopping", "terminated"}, string(data.State.Name)) {
 			// User initiated (2019-09-12 16:38:34 GMT)
 			regexExp := regexp.MustCompile(`\((.*?) *\)`)
 			stateTransitionTime := regexExp.FindStringSubmatch(*data.StateTransitionReason)
