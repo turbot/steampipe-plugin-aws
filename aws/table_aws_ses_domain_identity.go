@@ -81,6 +81,7 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 				Hydrate:     getSESIdentityNotificationAttributes,
 				Transform:   transform.FromValue(),
 			},
+
 			// Standard columns for all tables
 			{
 				Name:        "title",
