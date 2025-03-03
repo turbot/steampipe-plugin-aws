@@ -12,9 +12,9 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsRDSDBMaintenanceAction(_ context.Context) *plugin.Table {
+func tableAwsRDSPendingMaintenanceAction(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_rds_db_maintenance_action",
+		Name:        "aws_rds_pending_maintenance_action",
 		Description: "Lists pending maintenance actions for Amazon RDS instances and clusters.",
 		List: &plugin.ListConfig{
 			Hydrate: listRDSMaintenanceActions,
@@ -83,7 +83,7 @@ type rdsMaintenanceActionResult struct {
 func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	client, err := RDSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_maintenance_action.listMaintenanceAction", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_rds_pending_maintenance_action.listMaintenanceAction", "connection_error", err)
 		return nil, err
 	}
 
@@ -111,7 +111,7 @@ func listRDSMaintenanceActions(ctx context.Context, d *plugin.QueryData, h *plug
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_rds_db_maintenance_action.listMaintenanceAction", "api_error", err)
+			plugin.Logger(ctx).Error("aws_rds_pending_maintenance_action.listMaintenanceAction", "api_error", err)
 			return nil, err
 		}
 
