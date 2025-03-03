@@ -28,8 +28,20 @@ from
   aws_rds_pending_maintenance_action;
 ```
 
-### Check if a maintenance action is for a cluster
-Determine if a specific maintenance action is associated with a DB cluster.
+```sql+sqlite
+select
+  resource_identifier,
+  action,
+  opt_in_status,
+  forced_apply_date,
+  current_apply_date,
+  auto_applied_after_date
+from
+  aws_rds_pending_maintenance_action;
+```
+
+### Determine if a maintenance action is for clusters
+Check whether a specific maintenance action is associated with a DB cluster.
 
 ```sql+postgres
 select
@@ -39,9 +51,7 @@ select
     else false
   end as is_cluster
 from
-  aws_rds_pending_maintenance_action
-where 
-  resource_identifier like '%clustername';
+  aws_rds_pending_maintenance_action;
 ```
 
 ```sql+sqlite
@@ -52,23 +62,21 @@ select
     else 0
   end as is_cluster
 from
-  aws_rds_pending_maintenance_action
-where 
-  resource_identifier like '%clustername';
+  aws_rds_pending_maintenance_action;
 ```
 
-### List DB cluster pending maintenance actions
-Discover the segments that require pending maintenance actions in your database clusters. This is useful in planning and prioritizing maintenance schedules, by understanding which actions are due and their respective timelines.
+### List DB clusters with pending maintenance actions
+Identify DB clusters that have pending maintenance actions to plan and prioritize maintenance schedules effectively.
 
 ```sql+postgres
 select
   a.db_cluster_identifier,
   action,
   a.status,
-  opt_in_status,
-  forced_apply_date,
-  current_apply_date,
-  auto_applied_after_date
+  b.opt_in_status,
+  b.forced_apply_date,
+  b.current_apply_date,
+  b.auto_applied_after_date
 from 
   aws_rds_db_cluster as a
 join 
@@ -76,3 +84,47 @@ join
 on 
   a.arn = b.resource_identifier;
 ```
+
+```sql+sqlite
+select
+  a.db_cluster_identifier,
+  action,
+  a.status,
+  b.opt_in_status,
+  b.forced_apply_date,
+  b.current_apply_date,
+  b.auto_applied_after_date
+from 
+  aws_rds_db_cluster as a
+join 
+  aws_rds_pending_maintenance_action as b 
+on 
+  a.arn = b.resource_identifier;
+```
+
+### Retrieve pending maintenance actions for a specific cluster
+Fetch pending maintenance actions for a specific DB cluster using its Amazon Resource Name (ARN).
+
+```sql+postgres
+select
+  resource_identifier,
+  action,
+  current_apply_date,
+  forced_apply_date
+from
+  aws_rds_pending_maintenance_action
+where
+  resource_identifier = 'arn:aws:rds:us-east-1:123456789012:cluster:my-aurora-cluster-1';
+``` 
+
+```sql+sqlite
+select
+  resource_identifier,
+  action,
+  current_apply_date,
+  forced_apply_date
+from
+  aws_rds_pending_maintenance_action
+where
+  resource_identifier = 'arn:aws:rds:us-east-1:123456789012:cluster:my-aurora-cluster-1';
+``` 
