@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
@@ -12,6 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsTaggingResource(_ context.Context) *plugin.Table {
@@ -29,6 +31,14 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listTaggingResources,
 			Tags:    map[string]string{"service": "tag", "action": "GetResources"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:       "resource_type_filters",
+					Require:    plugin.Optional,
+					Operators:  []string{"="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(resourcegroupstaggingapiv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -68,6 +78,12 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
+			{
+				Name:        "resource_type_filters",
+				Description: "The resource types that you want to include in the returned results. Specify as a comma separated string, e.g. 'ec2:instance,s3:bucket,auditmanager' for limiting the response to only Amazon EC2 instances, Amazon S3 buckets, or any AWS Audit Manager resource.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("resource_type_filters"),
+			},
 
 			/// Steampipe standard columns
 			{
@@ -104,6 +120,12 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	input := &resourcegroupstaggingapi.GetResourcesInput{
 		ResourcesPerPage: aws.Int32(100),
+	}
+
+	// Add resource type filters
+	if d.EqualsQuals["resource_type_filters"] != nil {
+		resourceTypeFilters := strings.Split(d.EqualsQuals["resource_type_filters"].GetStringValue(), ",")
+		input.ResourceTypeFilters = resourceTypeFilters
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
