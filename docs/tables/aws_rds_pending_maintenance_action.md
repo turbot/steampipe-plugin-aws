@@ -5,7 +5,7 @@ description: "Allows users to query AWS RDS DB Maintenance Actions and retrieve 
 
 # Table: aws_rds_pending_maintenance_action - Query AWS RDS DB Maintenance Actions using SQL
 
-The AWS RDS DB Maintenance Action is a feature of Amazon Relational Database Service (RDS) that allows users to manage and schedule maintenance tasks for their RDS DB instances and clusters. These maintenance actions can include updates, patches, and other necessary changes to ensure optimal performance and security of the database services.
+The AWS RDS Pending Maintenance Action is a feature of Amazon Relational Database Service (RDS) that allows users to manage and schedule maintenance tasks for their RDS DB instances and clusters. These maintenance actions can include updates, patches, and other necessary changes to ensure optimal performance and security of the database services.
 
 ## Table Usage Guide
 
