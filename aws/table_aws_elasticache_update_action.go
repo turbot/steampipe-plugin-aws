@@ -10,20 +10,13 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
-func tableAwsElasticacheUpdateAction(_ context.Context) *plugin.Table {
+func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_update_action",
 		Description: "AWS ElastiCache Update Action",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"cache_cluster_id", "replication_group_id"}),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
-			},
-			Hydrate: listElastiCacheUpdateActions,
-			Tags:    map[string]string{"service": "elasticache", "action": "DescribeCacheClusters"},
-		},
 		List: &plugin.ListConfig{
-			Hydrate: listElastiCacheUpdateActions,
+			KeyColumns: plugin.AnyColumn([]string{"cache_cluster_id", "replication_group_id"}),
+			Hydrate:    listElastiCacheUpdateActions,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
