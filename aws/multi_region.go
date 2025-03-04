@@ -668,7 +668,7 @@ func getDefaultRegionFromConfig(ctx context.Context, d *plugin.QueryData, _ *plu
 }
 
 func getRegionByPartition(partition string) []string {
-	regionsByPartitions := []string{}
+	regionsByPartition := []string{}
 
 	partitionInfo, err := getPartitionValueByPartitionName(partition)
 	if err != nil {
@@ -677,11 +677,11 @@ func getRegionByPartition(partition string) []string {
 
 	if partitionInfo != nil {
 		for region := range partitionInfo.Regions {
-			regionsByPartitions = append(regionsByPartitions, region)
+			regionsByPartition = append(regionsByPartition, region)
 		}
 	}
 
-	return regionsByPartitions
+	return regionsByPartition
 }
 
 // Given a region (including wildcards), guess at the best last resort region
