@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
-	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -17,15 +16,16 @@ func tableAwsOrganizationsDelegatedServicesForAccount(_ context.Context) *plugin
 		Name:        "aws_organizations_delegated_services_for_account",
 		Description: "AWS Organizations Delegated Services For Account",
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.AllColumns([]string{"account_id"}),
-			Hydrate:    listDelegatedServicesForAccount,
+			KeyColumns: plugin.SingleColumn("delegated_account_id"),
+			Hydrate:    listDelegatedServices,
 			Tags:       map[string]string{"service": "organizations", "action": "ListDelegatedServicesForAccount"},
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
-				Name:        "account_id",
-				Description: "The AWS Account ID of the delegated administrator account.",
+				Name:        "delegated_account_id",
+				Description: "The unique identifier (account ID) of the delegated administrator.",
 				Type:        proto.ColumnType_STRING,
+				Transform: 	 transform.FromQual("delegated_account_id"),
 			},
 			{
 				Name:        "service_principal",
@@ -38,6 +38,8 @@ func tableAwsOrganizationsDelegatedServicesForAccount(_ context.Context) *plugin
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			// Standard columns for all tables
+			// TODO
+			// I am unsure whether the title and akas below should correspond to 'ServicePrincipal'.
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -54,9 +56,10 @@ func tableAwsOrganizationsDelegatedServicesForAccount(_ context.Context) *plugin
 	}
 }
 
-func listDelegatedServicesForAccount(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDelegatedServices(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	accountId := d.EqualsQuals["account_id"].GetStringValue()
+	// Retrieve the `delegated_account_id` from the user's `WHERE` statement
+	delegatedAccountId := d.EqualsQuals["delegated_account_id"].GetStringValue()
 
 	// Get Client
 	svc, err := OrganizationClient(ctx, d)
@@ -77,7 +80,7 @@ func listDelegatedServicesForAccount(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	params := &organizations.ListDelegatedServicesForAccountInput{
-		AccountId:  aws.String(accountId),
+		AccountId:  aws.String(delegatedAccountId),
 		MaxResults: &maxItems,
 	}
 
@@ -95,12 +98,7 @@ func listDelegatedServicesForAccount(ctx context.Context, d *plugin.QueryData, _
 		}
 
 		for _, service := range output.DelegatedServices {
-			item := DelegatedService{
-				AccountId:        aws.String(accountId),
-				DelegatedService: service,
-			}
-
-			d.StreamListItem(ctx, item)
+			d.StreamListItem(ctx, service)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -110,9 +108,4 @@ func listDelegatedServicesForAccount(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	return nil, nil
-}
-
-type DelegatedService struct {
-	AccountId        *string
-	DelegatedService types.DelegatedService
 }

@@ -18,7 +18,7 @@ func tableAwsOrganizationsDelegatedAdministrator(_ context.Context) *plugin.Tabl
 			Hydrate: listOrganizationsDelegatedAdmins,
 			Tags:    map[string]string{"service": "organizations", "action": "ListDelegatedAdministrators"},
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "id",
 				Description: "The unique identifier (account ID) of the delegated administrator.",
