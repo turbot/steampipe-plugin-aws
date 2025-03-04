@@ -19,10 +19,13 @@ func tableAwsOrganizationsDelegatedAdministrator(_ context.Context) *plugin.Tabl
 			Tags:    map[string]string{"service": "organizations", "action": "ListDelegatedAdministrators"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
+			// Used FromField method as the Name is changed from 'id' to 'delegated_account_id' to avoid misunderstanding
+			// As well as to standardize with aws_organizations_delegated_services_for_account table
 			{
-				Name:        "id",
+				Name:        "delegated_account_id",
 				Description: "The unique identifier (account ID) of the delegated administrator.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Id"),
 			},
 			{
 				Name:        "arn",
