@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
+	"github.com/aws/aws-sdk-go-v2/service/lakeformation/types"
 	lakeformationv1 "github.com/aws/aws-sdk-go/service/lakeformation"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -20,7 +21,28 @@ func tableAwsLakeformationPermission(ctx context.Context) *plugin.Table {
 		Description: "AWS Lake Formation Permissions.",
 		List: &plugin.ListConfig{
 			Hydrate: listLakeformationPermissions,
-			Tags:    map[string]string{"service": "lakeformation", "action": "ListPermissions"},
+			// Future Reference:
+			// The key column qualifiers can be included for "table_*", "table_with_*", "lf_tag_*", etc.
+			// However, handling the values in the input parameters is complex due to their interdependencies.
+			// The dependencies work as follows:
+			//
+			// - If `table_catalog_id` is provided, `table_database_name`, `table_name`, and the table wildcard
+			//   must also be included in the query parameters.
+			//
+			// - If `table_database_name` is provided, `table_name` and the table wildcard
+			//   must also be included in the query parameters.
+			//
+			// - If `table_name` is provided, the table wildcard must also be included in the query parameters.
+			//
+			// Omitting any required parameter may result in an incomplete or invalid query.
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "principal_identifier", Require: plugin.Optional},
+				{Name: "database_catalog_id", Require: plugin.Optional},
+				{Name: "database_name", Require: plugin.Optional},
+				{Name: "data_location_catalog_id", Require: plugin.Optional},
+				{Name: "data_location_resource_arn", Require: plugin.Optional},
+			},
+			Tags: map[string]string{"service": "lakeformation", "action": "ListPermissions"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(lakeformationv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -32,32 +54,12 @@ func tableAwsLakeformationPermission(ctx context.Context) *plugin.Table {
 				Transform:   transform.FromField("Principal.DataLakePrincipalIdentifier"),
 			},
 
-			// Permissions
-			{
-				Name:        "permissions",
-				Description: "The permissions granted to the principal.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "permissions_with_grant_option",
-				Description: "The permissions granted with the grant option.",
-				Type:        proto.ColumnType_JSON,
-			},
-
 			// Condition
 			{
 				Name:        "condition_expression",
 				Description: "The condition expression associated with the permission.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Condition.Expression"),
-			},
-
-			// Additional Details
-			{
-				Name:        "additional_details_resource_share",
-				Description: "Resource share details associated with the permission.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("AdditionalDetails.ResourceShare"),
 			},
 
 			// Last Updated
@@ -169,12 +171,6 @@ func tableAwsLakeformationPermission(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Resource.LFTag.TagKey"),
 			},
-			{
-				Name:        "lf_tag_values",
-				Description: "The values of the LF tag resource.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Resource.LFTag.TagValues"),
-			},
 
 			// LF Tag Expression
 			{
@@ -190,7 +186,35 @@ func tableAwsLakeformationPermission(ctx context.Context) *plugin.Table {
 				Transform:   transform.FromField("Resource.LFTagExpression.Name"),
 			},
 
-			/// Standard columns for all tables
+			// Permissions
+			{
+				Name:        "permissions",
+				Description: "The permissions granted to the principal.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "permissions_with_grant_option",
+				Description: "The permissions granted with the grant option.",
+				Type:        proto.ColumnType_JSON,
+			},
+
+			// LF-Tag values
+			{
+				Name:        "lf_tag_values",
+				Description: "The values of the LF tag resource.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Resource.LFTag.TagValues"),
+			},
+
+			// Additional Details
+			{
+				Name:        "additional_details_resource_share",
+				Description: "Resource share details associated with the permission.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("AdditionalDetails.ResourceShare"),
+			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -231,6 +255,19 @@ func listLakeformationPermissions(ctx context.Context, d *plugin.QueryData, _ *p
 		}
 	}
 	input.MaxResults = aws.Int32(maxItems)
+
+	resourceInput := buildLakeformationResourceInputFilter(ctx, d.Quals)
+	if resourceInput != nil {
+		input.Resource = resourceInput
+	}
+
+	// Error: aws: operation error LakeFormation: ListPermissions, https response error StatusCode: 400, RequestID: 4dd01db3-77a7-4fcc-86d2-398e7f62fbcf, InvalidInputException: Resource is mandatory if Principal is set in the input.
+	if d.EqualsQualString("principal_identifier") != "" && resourceInput != nil {
+		input.Principal = &types.DataLakePrincipal{
+			DataLakePrincipalIdentifier: aws.String(d.EqualsQualString("principal_identifier")),
+		}
+	}
+
 	paginator := lakeformation.NewListPermissionsPaginator(svc, input, func(o *lakeformation.ListPermissionsPaginatorOptions) {
 		o.Limit = maxItems
 		o.StopOnDuplicateToken = true
@@ -257,4 +294,66 @@ func listLakeformationPermissions(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	return nil, nil
+}
+
+func buildLakeformationResourceInputFilter(ctx context.Context, quals plugin.KeyColumnQualMap) (resource *types.Resource) {
+	resourceInput := &types.Resource{}
+	hasValues := false // Track if any value is set
+
+	for columnName, _ := range quals {
+		if quals[columnName] != nil {
+			plugin.Logger(ctx).Error("Column Name ===>>", columnName)
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if !ok {
+				continue
+			}
+
+			switch columnName {
+			case "database_catalog_id":
+				// If we are providing database_catalog_id then we must have to provide database_name
+				// Otherwise we will get the error:
+				// Error: aws: operation error LakeFormation: ListPermissions, 1 validation error(s) found.
+				// - missing required field, ListPermissionsInput.Resource.Database.Name.
+				if quals["database_name"] != nil {
+					if resourceInput.Database == nil {
+						resourceInput.Database = &types.DatabaseResource{}
+					}
+					resourceInput.Database.CatalogId = aws.String(val)
+					hasValues = true
+				}
+			case "database_name":
+				if resourceInput.Database == nil {
+					resourceInput.Database = &types.DatabaseResource{}
+				}
+				resourceInput.Database.Name = aws.String(val)
+				hasValues = true
+
+			// Error: aws: operation error LakeFormation: ListPermissions, 1 validation error(s) found.
+			// - missing required field, ListPermissionsInput.Resource.DataLocation.ResourceArn.
+			//  (SQLSTATE HV000
+			case "data_location_catalog_id":
+				if quals["data_location_resource_arn"] != nil {
+					if resourceInput.DataLocation == nil {
+						resourceInput.DataLocation = &types.DataLocationResource{}
+					}
+					resourceInput.DataLocation.CatalogId = aws.String(val)
+					hasValues = true
+				}
+			case "data_location_resource_arn":
+				if resourceInput.DataLocation == nil {
+					resourceInput.DataLocation = &types.DataLocationResource{}
+				}
+				resourceInput.DataLocation.ResourceArn = aws.String(val)
+				hasValues = true
+			}
+		}
+	}
+
+	// Return the resource only if at least one field is set
+	if hasValues {
+		return resourceInput
+	}
+
+	return nil
 }
