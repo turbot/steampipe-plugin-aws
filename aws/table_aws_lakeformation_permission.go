@@ -300,7 +300,7 @@ func buildLakeformationResourceInputFilter(ctx context.Context, quals plugin.Key
 	resourceInput := &types.Resource{}
 	hasValues := false // Track if any value is set
 
-	for columnName, _ := range quals {
+	for columnName := range quals {
 		if quals[columnName] != nil {
 			plugin.Logger(ctx).Error("Column Name ===>>", columnName)
 			value := getQualsValueByColumn(quals, columnName, "string")
