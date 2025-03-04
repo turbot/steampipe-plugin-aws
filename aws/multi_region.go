@@ -672,7 +672,7 @@ func getRegionByPartition(partition string) []string {
 
 	partitionInfo, err := getPartitionValueByPartitionName(partition)
 	if err != nil {
-		panic(fmt.Errorf("failed to get the partition info with given partition '%s'", partition, err))
+		panic("failed to get the partition info with given partition '" + partition + "': " + err.Error())
 	}
 
 	if partitionInfo != nil {
