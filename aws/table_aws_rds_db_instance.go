@@ -400,7 +400,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "pending_maintenance_actions",
-				Description: "A list that provides details about the pending maintenance actions for the resource.",
+				Description: "[Deprecated] A list that provides details about the pending maintenance actions for the resource.",
 				Hydrate:     getRDSDBInstancePendingMaintenanceAction,
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromValue(),

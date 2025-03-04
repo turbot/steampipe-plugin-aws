@@ -65,41 +65,35 @@ from
   aws_rds_pending_maintenance_action;
 ```
 
-### List DB clusters with pending maintenance actions
-Identify DB clusters that have pending maintenance actions to plan and prioritize maintenance schedules effectively.
+### List DB clusters pending maintenance actions
+Identify DB clusters pending maintenance actions to plan and prioritize maintenance schedules effectively.
 
 ```sql+postgres
 select
   a.db_cluster_identifier,
-  action,
+  b.action,
   a.status,
   b.opt_in_status,
   b.forced_apply_date,
   b.current_apply_date,
   b.auto_applied_after_date
 from 
-  aws_rds_db_cluster as a
-join 
-  aws_rds_pending_maintenance_action as b 
-on 
-  a.arn = b.resource_identifier;
+  aws_rds_db_instance as a
+  join aws_rds_pending_maintenance_action as b on b.resource_identifier = a.arn;
 ```
 
 ```sql+sqlite
 select
   a.db_cluster_identifier,
-  action,
+  b.action,
   a.status,
   b.opt_in_status,
   b.forced_apply_date,
   b.current_apply_date,
   b.auto_applied_after_date
 from 
-  aws_rds_db_cluster as a
-join 
-  aws_rds_pending_maintenance_action as b 
-on 
-  a.arn = b.resource_identifier;
+  aws_rds_db_instance as a
+  join aws_rds_pending_maintenance_action as b on b.resource_identifier = a.arn;
 ```
 
 ### Retrieve pending maintenance actions for a specific cluster

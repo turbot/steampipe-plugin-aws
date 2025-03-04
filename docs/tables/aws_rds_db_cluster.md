@@ -137,3 +137,34 @@ from
   json_each(pending_maintenance_actions) as actions,
   json_each(json_extract(actions.value, '$.PendingMaintenanceActionDetails')) as details;
 ```
+
+### Get RDS DB clusters pending maintenance actions
+Get DB clusters pending maintenance actions to plan and prioritize maintenance schedules effectively.
+
+```sql+postgres
+select
+  a.db_cluster_identifier,
+  b.action,
+  a.status,
+  b.opt_in_status,
+  b.forced_apply_date,
+  b.current_apply_date,
+  b.auto_applied_after_date
+from 
+  aws_rds_db_cluster as a
+  join aws_rds_pending_maintenance_action as b on b.resource_identifier = a.arn;
+```
+
+```sql+sqlite
+sselect
+  a.db_cluster_identifier,
+  b.action,
+  a.status,
+  b.opt_in_status,
+  b.forced_apply_date,
+  b.current_apply_date,
+  b.auto_applied_after_date
+from 
+  aws_rds_db_cluster as a
+  join aws_rds_pending_maintenance_action as b on b.resource_identifier = a.arn;
+```
