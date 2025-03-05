@@ -62,6 +62,7 @@ where
 ```
 
 ### Find all ElastiCache update actions for a specific cache cluster
+Retrieve a list of all service updates that are associated with a specific ElastiCache cluster. This can help you track updates for a specific cluster.
 
 ```sql+postgres
 select 
