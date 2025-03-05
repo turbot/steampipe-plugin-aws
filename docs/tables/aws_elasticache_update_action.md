@@ -61,3 +61,14 @@ where
   service_update_severity='important'
 ```
 
+### Find all ElastiCache update actions for a specific cache cluster
+
+```sql+postgres
+select 
+  * 
+from 
+  aws_elasticache_update_action 
+where 
+  replication_group_id='minutes-auth-qa-ec'
+```
+

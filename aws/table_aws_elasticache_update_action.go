@@ -117,7 +117,7 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 	// Limiting the results
-	maxLimit := int32(100)
+	maxLimit := int32(50)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
@@ -137,6 +137,7 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	if v, ok := d.EqualsQuals["replication_group_id"]; ok {
+
 		input.ReplicationGroupIds = []string{v.GetStringValue()}
 	}
 
