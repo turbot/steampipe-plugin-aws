@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
 
-	laekformationv1 "github.com/aws/aws-sdk-go/service/lakeformation"
+	lakeformationv1 "github.com/aws/aws-sdk-go/service/lakeformation"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -31,7 +31,7 @@ func tableAwsLakeformationResource(ctx context.Context) *plugin.Table {
 			Hydrate: listLakeformationResources,
 			Tags:    map[string]string{"service": "lakeformation", "action": "ListResources"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(laekformationv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(lakeformationv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "resource_arn",
