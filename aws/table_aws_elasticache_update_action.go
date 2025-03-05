@@ -10,12 +10,14 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_update_action",
 		Description: "AWS ElastiCache Update Action",
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.AnyColumn([]string{"cache_cluster_id", "replication_group_id"}),
+			KeyColumns: plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id"}),
 			Hydrate:    listElastiCacheUpdateActions,
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
@@ -114,8 +116,21 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 		plugin.Logger(ctx).Error("aws_elasticache_update_action.listElastiCacheUpdateActions", "client_error", err)
 		return nil, err
 	}
-
-	input := &elasticache.DescribeUpdateActionsInput{}
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+	input := &elasticache.DescribeUpdateActionsInput{
+		MaxRecords: &maxLimit,
+	}
 
 	if v, ok := d.EqualsQuals["cache_cluster_id"]; ok {
 		input.CacheClusterIds = []string{v.GetStringValue()}
@@ -127,7 +142,6 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 
 	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, input)
 	for paginator.HasMorePages() {
-
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
