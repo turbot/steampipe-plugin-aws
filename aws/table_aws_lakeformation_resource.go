@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
@@ -19,7 +18,7 @@ import (
 func tableAwsLakeformationResource(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_lakeformation_resource",
-		Description: "AWS Lakeformation Resource",
+		Description: "AWS Lake Formation Resource",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("resource_arn"),
 			Hydrate:    getLakeformationResource,
@@ -135,7 +134,7 @@ func getLakeformationResource(ctx context.Context, d *plugin.QueryData, _ *plugi
 	arn := d.EqualsQuals["resource_arn"].GetStringValue()
 
 	// Empty id check
-	if strings.TrimSpace(arn) == "" {
+	if arn == "" {
 		return nil, nil
 	}
 
@@ -166,7 +165,7 @@ func getLakeformationResource(ctx context.Context, d *plugin.QueryData, _ *plugi
 		// The AWS CLI exhibits the same behavior as the API.
 		// Therefore, we are assigning the value from the qualifiers (quals) here.
 		res.ResourceInfo.ResourceArn = &arn
-		
+
 		return *res.ResourceInfo, nil
 	}
 

@@ -18,7 +18,7 @@ import (
 func tableAwsLakeformationPermission(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_lakeformation_permission",
-		Description: "AWS Lake Formation Permissions.",
+		Description: "AWS Lake Formation Permission",
 		List: &plugin.ListConfig{
 			Hydrate: listLakeformationPermissions,
 			// Future Reference:
@@ -302,7 +302,6 @@ func buildLakeformationResourceInputFilter(ctx context.Context, quals plugin.Key
 
 	for columnName := range quals {
 		if quals[columnName] != nil {
-			plugin.Logger(ctx).Error("Column Name ===>>", columnName)
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if !ok {
@@ -329,6 +328,8 @@ func buildLakeformationResourceInputFilter(ctx context.Context, quals plugin.Key
 				resourceInput.Database.Name = aws.String(val)
 				hasValues = true
 
+			// If we are providing data_location_catalog_id then we must have to provide data_location_resource_arn
+			// Otherwise we will get the error:
 			// Error: aws: operation error LakeFormation: ListPermissions, 1 validation error(s) found.
 			// - missing required field, ListPermissionsInput.Resource.DataLocation.ResourceArn.
 			//  (SQLSTATE HV000

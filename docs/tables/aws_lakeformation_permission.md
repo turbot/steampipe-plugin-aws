@@ -129,7 +129,7 @@ select
 from
   aws_lakeformation_permission
 where
-  lf_tag_key IS NOT NULL;
+  lf_tag_key is not null;
 ```
 
 ```sql+sqlite
@@ -141,7 +141,7 @@ select
 from
   aws_lakeformation_permission
 where
-  lf_tag_key IS NOT NULL;
+  lf_tag_key is not null;
 ```
 
 ### Find IAM principals with access to LF-tags

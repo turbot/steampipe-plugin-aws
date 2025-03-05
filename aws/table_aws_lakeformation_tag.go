@@ -17,7 +17,7 @@ import (
 func tableAwsLakeformationTag(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_lakeformation_tag",
-		Description: "AWS Lake Formation Permissions.",
+		Description: "AWS Lake Formation Tag",
 		Get: &plugin.GetConfig{
 			Hydrate:    getLakeformationTag,
 			KeyColumns: plugin.AllColumns([]string{"catalog_id", "tag_key"}),
