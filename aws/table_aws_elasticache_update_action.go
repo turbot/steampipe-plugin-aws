@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
 	elasticachev1 "github.com/aws/aws-sdk-go/service/elasticache"
@@ -17,7 +18,7 @@ func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_update_action",
 		Description: "AWS ElastiCache Update Action",
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id"}),
+			KeyColumns: plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id", "engine", "service_update_status", "update_action_status"}),
 			Hydrate:    listElastiCacheUpdateActions,
 			Tags:       map[string]string{"service": "elasticache", "action": "DescribeUpdateActions"},
 		},
@@ -134,6 +135,18 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 
 	if v, ok := d.EqualsQuals["replication_group_id"]; ok {
 		input.ReplicationGroupIds = []string{v.GetStringValue()}
+	}
+
+	if v, ok := d.EqualsQuals["engine"]; ok {
+		input.Engine = aws.String(v.GetStringValue())
+	}
+
+	if v, ok := d.EqualsQuals["service_update_status"]; ok {
+		input.ServiceUpdateStatus = []types.ServiceUpdateStatus{types.ServiceUpdateStatus(v.GetStringValue())}
+	}
+
+	if v, ok := d.EqualsQuals["update_action_status"]; ok {
+		input.UpdateActionStatus = []types.UpdateActionStatus{types.UpdateActionStatus(v.GetStringValue())}
 	}
 
 	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, input)
