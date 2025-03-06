@@ -3,7 +3,6 @@ package aws
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 
 	emb "github.com/turbot/steampipe-plugin-aws/internal/aws_endpoint_generator"
 )
@@ -13,7 +12,7 @@ type Partition struct {
 	ID          string             `json:"partition"`
 	Name        string             `json:"partitionName"`
 	DNSSuffix   string             `json:"dnsSuffix"`
-	RegionRegex *regexp.Regexp     `json:"regionRegex"`
+	RegionRegex string             `json:"regionRegex"`
 	Regions     map[string]Region  `json:"regions"`
 	Services    map[string]Service `json:"services"`
 }

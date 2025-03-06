@@ -64,6 +64,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -342,7 +343,8 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	for rs := range serviceInfo.Endpoints {
-		if partition.RegionRegex.Match([]byte(rs)) {
+		re := regexp.MustCompile(partition.RegionRegex)
+		if re.Match([]byte(rs)) {
 			regionsForService = append(regionsForService, rs)
 		}
 	}
