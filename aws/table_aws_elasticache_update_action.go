@@ -18,7 +18,7 @@ func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_update_action",
 		Description: "AWS ElastiCache Update Action",
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id", "engine", "service_update_status", "update_action_status"}),
+			KeyColumns: plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id", "engine", "service_update_status", "update_action_status", "service_update_name"}),
 			Hydrate:    listElastiCacheUpdateActions,
 			Tags:       map[string]string{"service": "elasticache", "action": "DescribeUpdateActions"},
 		},
@@ -147,6 +147,10 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 
 	if v, ok := d.EqualsQuals["update_action_status"]; ok {
 		input.UpdateActionStatus = []types.UpdateActionStatus{types.UpdateActionStatus(v.GetStringValue())}
+	}
+
+	if v, ok := d.EqualsQuals["service_update_name"]; ok {
+		input.ServiceUpdateName = aws.String(v.GetStringValue())
 	}
 
 	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, input)

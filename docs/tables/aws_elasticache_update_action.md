@@ -16,7 +16,28 @@ The `aws_elasticache_update_action` table in Steampipe provides you with informa
 ### List all pending ElastiCache update actions
 Retrieve a list of all service updates that are pending for your ElastiCache clusters and nodes. This is essential for ensuring that your caching infrastructure is up to date.
 
-```sql
+```sql+postgres
+select
+  cache_cluster_id,
+  replication_group_id,
+  engine,
+  estimated_update_time,
+  nodes_updated,
+  service_update_name,
+  service_update_recommended_apply_by_date,
+  service_update_release_date,
+  service_update_severity,
+  service_update_status,
+  service_update_type,
+  sla_met,
+  update_action_available_date,
+  update_action_status,
+  update_action_status_modified_date
+from
+  aws_elasticache_update_action;
+```
+
+```sql+sqlite
 select
   cache_cluster_id,
   replication_group_id,
@@ -49,6 +70,15 @@ where
   service_update_recommended_apply_by_date > '2025-02-05T18:59:59+08:00';
 ```
 
+```sql+sqlite
+select 
+  *
+ from 
+  aws_elasticache_update_action 
+where 
+  service_update_recommended_apply_by_date > '2025-02-05T18:59:59+08:00';
+```
+
 ### Find all ElastiCache update actions with important severity
 Retrieve a list of all service updates that have an important severity level. This can help you prioritize and address critical updates first.
 
@@ -60,6 +90,16 @@ from
 where 
   service_update_severity='important'
 ```
+
+```sql+sqlite
+select 
+  * 
+from 
+  aws_elasticache_update_action 
+where 
+  service_update_severity='important'
+```
+
 
 ### Find all ElastiCache update actions for a specific cache cluster
 Retrieve a list of all service updates that are associated with a specific ElastiCache cluster. This can help you track updates for a specific cluster.
@@ -73,3 +113,11 @@ where
   replication_group_id='minutes-auth-qa-ec'
 ```
 
+```sql+sqlite
+select 
+  * 
+from 
+  aws_elasticache_update_action 
+where 
+  replication_group_id='minutes-auth-qa-ec'
+```
