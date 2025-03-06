@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
@@ -14,11 +15,21 @@ import (
 //// TABLE DEFINITION
 
 func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
+	columns := plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id", "engine", "service_update_status", "update_action_status", "service_update_name"})
+	columns = append(columns,
+		[]*plugin.KeyColumn{
+			{
+				Name:      "service_update_time_range",
+				Operators: []string{">", ">=", "=", "<", "<="},
+				Require:   plugin.Optional,
+			},
+		}...,
+	)
 	return &plugin.Table{
 		Name:        "aws_elasticache_update_action",
 		Description: "AWS ElastiCache Update Action",
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id", "engine", "service_update_status", "update_action_status", "service_update_name"}),
+			KeyColumns: columns,
 			Hydrate:    listElastiCacheUpdateActions,
 			Tags:       map[string]string{"service": "elasticache", "action": "DescribeUpdateActions"},
 		},
@@ -151,6 +162,25 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 
 	if v, ok := d.EqualsQuals["service_update_name"]; ok {
 		input.ServiceUpdateName = aws.String(v.GetStringValue())
+	}
+
+	if _, ok := d.Quals["service_update_time_range"]; ok {
+		plugin.Logger(ctx).Warn("in service_update_time_range")
+		input.ServiceUpdateTimeRange = &types.TimeRangeFilter{}
+		for _, q := range d.Quals["service_update_time_range"].Quals {
+			timestamp := aws.Time(q.Value.GetTimestampValue().AsTime())
+			plugin.Logger(ctx).Warn(fmt.Sprintf("%+#v", q.Value))
+
+			switch q.Operator {
+			case "=":
+				input.ServiceUpdateTimeRange.StartTime = timestamp
+				input.ServiceUpdateTimeRange.EndTime = timestamp
+			case ">=", ">":
+				input.ServiceUpdateTimeRange.StartTime = timestamp
+			case "<", "<=":
+				input.ServiceUpdateTimeRange.EndTime = timestamp
+			}
+		}
 	}
 
 	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, input)
