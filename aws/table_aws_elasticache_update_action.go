@@ -19,6 +19,7 @@ func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id"}),
 			Hydrate:    listElastiCacheUpdateActions,
+			Tags:       map[string]string{"service": "elasticache", "action": "DescribeUpdateActions"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -111,7 +112,6 @@ func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
 
 func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	client, err := ElastiCacheClient(ctx, d)
-
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_elasticache_update_action.listElastiCacheUpdateActions", "client_error", err)
 		return nil, err
@@ -121,11 +121,7 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 	input := &elasticache.DescribeUpdateActionsInput{
@@ -137,7 +133,6 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	if v, ok := d.EqualsQuals["replication_group_id"]; ok {
-
 		input.ReplicationGroupIds = []string{v.GetStringValue()}
 	}
 
