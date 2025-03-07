@@ -1222,8 +1222,8 @@ func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.C
 		"cn-north-1",     // China (Beijing)
 		"cn-northwest-1", // China (Ningxia)
 	}
-	excludeRegions = append(excludeRegions, awsChinaRegions()...)
-	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-cn")...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-us-gov")...)
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
@@ -1247,8 +1247,8 @@ func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, er
 		"eu-south-2",     // Spain
 		"me-central-1",   // UAE
 	}
-	excludeRegions = append(excludeRegions, awsChinaRegions()...)
-	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-cn")...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-us-gov")...)
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
