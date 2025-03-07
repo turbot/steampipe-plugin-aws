@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
@@ -10,6 +9,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
+	"time"
 )
 
 //// TABLE DEFINITION
@@ -18,11 +19,8 @@ func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
 	columns := plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id", "engine", "service_update_status", "update_action_status", "service_update_name"})
 	columns = append(columns,
 		[]*plugin.KeyColumn{
-			{
-				Name:      "service_update_time_range",
-				Operators: []string{">", ">=", "=", "<", "<="},
-				Require:   plugin.Optional,
-			},
+			{Name: "end_time", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+			{Name: "start_time", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 		}...,
 	)
 	return &plugin.Table{
@@ -110,6 +108,18 @@ func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
 				Description: "Last modification date of the update action status.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+			{
+				Name:        "start_time",
+				Description: "The date and time when the update action started.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromQual("start_time"),
+			},
+			{
+				Name:        "end_time",
+				Description: "The date and time when the update action is completed.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromQual("end_time"),
+			},
 
 			// Standard columns
 			{
@@ -139,6 +149,11 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 	input := &elasticache.DescribeUpdateActionsInput{
 		MaxRecords: &maxLimit,
 	}
+	initializeTimeRangeFunc := func() {
+		if input.ServiceUpdateTimeRange == nil {
+			input.ServiceUpdateTimeRange = &types.TimeRangeFilter{}
+		}
+	}
 
 	if v, ok := d.EqualsQuals["cache_cluster_id"]; ok {
 		input.CacheClusterIds = []string{v.GetStringValue()}
@@ -164,23 +179,17 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 		input.ServiceUpdateName = aws.String(v.GetStringValue())
 	}
 
-	if _, ok := d.Quals["service_update_time_range"]; ok {
-		plugin.Logger(ctx).Warn("in service_update_time_range")
-		input.ServiceUpdateTimeRange = &types.TimeRangeFilter{}
-		for _, q := range d.Quals["service_update_time_range"].Quals {
-			timestamp := aws.Time(q.Value.GetTimestampValue().AsTime())
-			plugin.Logger(ctx).Warn(fmt.Sprintf("%+#v", q.Value))
-
-			switch q.Operator {
-			case "=":
-				input.ServiceUpdateTimeRange.StartTime = timestamp
-				input.ServiceUpdateTimeRange.EndTime = timestamp
-			case ">=", ">":
-				input.ServiceUpdateTimeRange.StartTime = timestamp
-			case "<", "<=":
-				input.ServiceUpdateTimeRange.EndTime = timestamp
-			}
-		}
+	if d.Quals["start_time"] != nil {
+		initializeTimeRangeFunc()
+		value := getQualsValueByColumn(d.Quals, "start_time", "time")
+		plugin.Logger(ctx).Warn("start_time", value)
+		input.ServiceUpdateTimeRange.StartTime = aws.Time(value.(time.Time))
+	}
+	if d.Quals["end_time"] != nil {
+		initializeTimeRangeFunc()
+		value := getQualsValueByColumn(d.Quals, "end_time", "time")
+		plugin.Logger(ctx).Warn("end_time", value)
+		input.ServiceUpdateTimeRange.EndTime = aws.Time(value.(time.Time))
 	}
 
 	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, input)

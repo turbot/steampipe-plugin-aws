@@ -121,3 +121,25 @@ from
 where 
   replication_group_id='minutes-auth-qa-ec'
 ```
+
+### Find all ElastiCache update actions for a specific service update type
+
+```sql+postgres
+select
+  *
+from
+  aws_elasticache_update_action
+where
+  start_time = now() - interval '30 days'
+  and end_time = now();
+```
+
+```sql+sqlite
+select
+  *
+from
+  aws_elasticache_update_action
+where
+  start_time = datetime('now', '-30 days')
+  and end_time = datetime('now');
+```
