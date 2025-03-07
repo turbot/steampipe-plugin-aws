@@ -1,0 +1,223 @@
+package aws
+
+import (
+	"context"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
+	elasticachev1 "github.com/aws/aws-sdk-go/service/elasticache"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
+	"time"
+)
+
+//// TABLE DEFINITION
+
+func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
+	columns := plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id", "engine", "service_update_status", "update_action_status", "service_update_name"})
+	columns = append(columns,
+		[]*plugin.KeyColumn{
+			{Name: "end_time", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+			{Name: "start_time", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+		}...,
+	)
+	return &plugin.Table{
+		Name:        "aws_elasticache_update_action",
+		Description: "AWS ElastiCache Update Action",
+		List: &plugin.ListConfig{
+			KeyColumns: columns,
+			Hydrate:    listElastiCacheUpdateActions,
+			Tags:       map[string]string{"service": "elasticache", "action": "DescribeUpdateActions"},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
+		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "cache_cluster_id",
+				Description: "The ID of the cache cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "replication_group_id",
+				Description: "The ID of the replication group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "engine",
+				Description: "The ElastiCache engine (Redis or Memcached).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "estimated_update_time",
+				Description: "The estimated length of time for the update to complete.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "nodes_updated",
+				Description: "The progress of the service update on the replication group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "service_update_name",
+				Description: "The unique ID of the service update.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "service_update_recommended_apply_by_date",
+				Description: "Recommended date to apply the update for compliance.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "service_update_release_date",
+				Description: "The date the update was first available.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "service_update_severity",
+				Description: "Severity level of the service update.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "service_update_status",
+				Description: "Current status of the service update.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "service_update_type",
+				Description: "Type of service update (security update, etc).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "sla_met",
+				Description: "Indicates if nodes were updated by recommended date.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "update_action_available_date",
+				Description: "Date the update became available to the replication group.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "update_action_status",
+				Description: "Current status of the update action.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "update_action_status_modified_date",
+				Description: "Last modification date of the update action status.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "start_time",
+				Description: "The start time of the specified range for searching service updates that are in available status",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromQual("start_time"),
+			},
+			{
+				Name:        "end_time",
+				Description: "The end time of the specified range for searching service updates that are in available status",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromQual("end_time"),
+			},
+
+			// Standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(extractElastiCacheUpdateActionId),
+			},
+		}),
+	}
+}
+
+func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	client, err := ElastiCacheClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_update_action.listElastiCacheUpdateActions", "client_error", err)
+		return nil, err
+	}
+	// Limiting the results
+	maxLimit := int32(50)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
+	}
+	input := &elasticache.DescribeUpdateActionsInput{
+		MaxRecords: &maxLimit,
+	}
+	initializeTimeRangeFunc := func() {
+		if input.ServiceUpdateTimeRange == nil {
+			input.ServiceUpdateTimeRange = &types.TimeRangeFilter{}
+		}
+	}
+
+	if v, ok := d.EqualsQuals["cache_cluster_id"]; ok {
+		input.CacheClusterIds = []string{v.GetStringValue()}
+	}
+
+	if v, ok := d.EqualsQuals["replication_group_id"]; ok {
+		input.ReplicationGroupIds = []string{v.GetStringValue()}
+	}
+
+	if v, ok := d.EqualsQuals["engine"]; ok {
+		input.Engine = aws.String(v.GetStringValue())
+	}
+
+	if v, ok := d.EqualsQuals["service_update_status"]; ok {
+		input.ServiceUpdateStatus = []types.ServiceUpdateStatus{types.ServiceUpdateStatus(v.GetStringValue())}
+	}
+
+	if v, ok := d.EqualsQuals["update_action_status"]; ok {
+		input.UpdateActionStatus = []types.UpdateActionStatus{types.UpdateActionStatus(v.GetStringValue())}
+	}
+
+	if v, ok := d.EqualsQuals["service_update_name"]; ok {
+		input.ServiceUpdateName = aws.String(v.GetStringValue())
+	}
+
+	if d.Quals["start_time"] != nil {
+		initializeTimeRangeFunc()
+		value := getQualsValueByColumn(d.Quals, "start_time", "time")
+		input.ServiceUpdateTimeRange.StartTime = aws.Time(value.(time.Time))
+	}
+	if d.Quals["end_time"] != nil {
+		initializeTimeRangeFunc()
+		value := getQualsValueByColumn(d.Quals, "end_time", "time")
+		input.ServiceUpdateTimeRange.EndTime = aws.Time(value.(time.Time))
+	}
+
+	paginator := elasticache.NewDescribeUpdateActionsPaginator(client, input)
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_elasticache_update_action.listElastiCacheUpdateActions", "api_error", err)
+			return nil, err
+		}
+
+		for _, action := range page.UpdateActions {
+			d.StreamListItem(ctx, action)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	return nil, nil
+}
+
+func extractElastiCacheUpdateActionId(ctx context.Context, data *transform.TransformData) (interface{}, error) {
+	rs := data.HydrateItem.(types.UpdateAction)
+	if rs.CacheClusterId != nil {
+		return *rs.CacheClusterId, nil
+	}
+	return *rs.ReplicationGroupId, nil
+}
