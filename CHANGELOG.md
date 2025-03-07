@@ -1,3 +1,16 @@
+## v1.9.0 [2025-03-07]
+
+_What's new?_
+
+- New tables added
+  - [aws_lakeformation_permission](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lakeformation_permission) ([#2417](https://github.com/turbot/steampipe-plugin-aws/pull/2417))
+  - [aws_lakeformation_resource](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lakeformation_resource) ([#2417](https://github.com/turbot/steampipe-plugin-aws/pull/2417))
+  - [aws_lakeformation_tag](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lakeformation_tag) ([#2417](https://github.com/turbot/steampipe-plugin-aws/pull/2417))
+
+_Enhancements_
+
+- Updated `aws_acm_*`, `aws_sns_*`, `aws_sqs_*`, `aws_cloudtrail_*`, and `aws_guardduty_*` tables to use AWS Go SDK V2, enabling dynamic region listing for all AWS partitions. ([#2440](https://github.com/turbot/steampipe-plugin-aws/pull/2440)) 
+
 ## v1.8.0 [2025-02-28]
 
 _Dependencies_
