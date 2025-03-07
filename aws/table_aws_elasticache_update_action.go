@@ -182,13 +182,11 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 	if d.Quals["start_time"] != nil {
 		initializeTimeRangeFunc()
 		value := getQualsValueByColumn(d.Quals, "start_time", "time")
-		plugin.Logger(ctx).Warn("start_time", value)
 		input.ServiceUpdateTimeRange.StartTime = aws.Time(value.(time.Time))
 	}
 	if d.Quals["end_time"] != nil {
 		initializeTimeRangeFunc()
 		value := getQualsValueByColumn(d.Quals, "end_time", "time")
-		plugin.Logger(ctx).Warn("end_time", value)
 		input.ServiceUpdateTimeRange.EndTime = aws.Time(value.(time.Time))
 	}
 
