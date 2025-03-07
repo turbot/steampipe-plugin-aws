@@ -123,7 +123,7 @@ where
 ```
 
 ### Find all ElastiCache update actions for a specific time range
-Retrieve a list of all service updates that occurred within a specific time range. 
+The range of time specified to search for service updates that are in available status
 
 ```sql+postgres
 select

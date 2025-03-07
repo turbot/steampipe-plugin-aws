@@ -110,13 +110,13 @@ func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "start_time",
-				Description: "The date and time when the update action started.",
+				Description: "The start time of the specified range for searching service updates that are in available status",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromQual("start_time"),
 			},
 			{
 				Name:        "end_time",
-				Description: "The date and time when the update action is completed.",
+				Description: "The end time of the specified range for searching service updates that are in available status",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromQual("end_time"),
 			},
