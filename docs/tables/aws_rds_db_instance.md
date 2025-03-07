@@ -377,7 +377,7 @@ from
 ```
 
 ```sql+sqlite
-sselect
+select
   a.db_instance_identifier,
   b.action,
   a.status,
