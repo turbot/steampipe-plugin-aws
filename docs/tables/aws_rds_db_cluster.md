@@ -125,7 +125,7 @@ from
 ```
 
 ```sql+sqlite
-sselect
+select
   a.db_cluster_identifier,
   b.action,
   a.status,
