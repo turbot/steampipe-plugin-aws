@@ -274,37 +274,6 @@ where
   parameter_value = '0';
 ```
 
-### List DB instance pending maintenance actions
-Determine the areas in which your database instances have pending maintenance actions. This can help ensure your databases are up-to-date and avoid potential downtime or performance issues due to missed maintenance.
-
-```sql+postgres
-select
-  actions ->> 'ResourceIdentifier' as db_instance_identifier,
-  details ->> 'Action' as action,
-  details ->> 'OptInStatus' as opt_in_status,
-  details ->> 'ForcedApplyDate' as forced_apply_date,
-  details ->> 'CurrentApplyDate' as current_apply_date,
-  details ->> 'AutoAppliedAfterDate' as auto_applied_after_date
-from
-  aws_rds_db_instance,
-  jsonb_array_elements(pending_maintenance_actions) as actions,
-  jsonb_array_elements(actions -> 'PendingMaintenanceActionDetails') as details;
-```
-
-```sql+sqlite
-select
-  json_extract(actions.value, '$.ResourceIdentifier') as db_instance_identifier,
-  json_extract(details.value, '$.Action') as action,
-  json_extract(details.value, '$.OptInStatus') as opt_in_status,
-  json_extract(details.value, '$.ForcedApplyDate') as forced_apply_date,
-  json_extract(details.value, '$.CurrentApplyDate') as current_apply_date,
-  json_extract(details.value, '$.AutoAppliedAfterDate') as auto_applied_after_date
-from
-  aws_rds_db_instance,
-  json_each(pending_maintenance_actions) as actions,
-  json_each(json_extract(actions.value, '$.PendingMaintenanceActionDetails')) as details;
-```
-
 ### List certificate details associated to the instance
 Discover the segments that highlight the validity and type of certificates associated with a specific instance. This can be especially useful in managing and tracking certificate expiration dates, ensuring the security and reliability of your database instances.
 
@@ -388,4 +357,35 @@ from
   aws_rds_db_instance
 where
   processor_features is not null;
+```
+
+### Get RDS DB instances pending maintenance actions
+Get DB instances pending maintenance actions to plan and prioritize maintenance schedules effectively.
+
+```sql+postgres
+select
+  a.db_instance_identifier,
+  b.action,
+  a.status,
+  b.opt_in_status,
+  b.forced_apply_date,
+  b.current_apply_date,
+  b.auto_applied_after_date
+from 
+  aws_rds_db_instance as a
+  join aws_rds_pending_maintenance_action as b on b.resource_identifier = a.arn;
+```
+
+```sql+sqlite
+select
+  a.db_instance_identifier,
+  b.action,
+  a.status,
+  b.opt_in_status,
+  b.forced_apply_date,
+  b.current_apply_date,
+  b.auto_applied_after_date
+from 
+  aws_rds_db_instance as a
+  join aws_rds_pending_maintenance_action as b on b.resource_identifier = a.arn;
 ```
