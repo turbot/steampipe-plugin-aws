@@ -1,3 +1,19 @@
+## v1.10.0 [2025-03-18]
+
+_What's new?_
+
+- New tables added
+  - [aws_rds_pending_maintenance_action](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_pending_maintenance_action) ([#2430](https://github.com/turbot/steampipe-plugin-aws/pull/2430)) (Thanks [@fyqtian](https://github.com/fyqtian) for the contribution!)
+
+_Bug fixes_
+
+- Fixed `aws_health_*` tables to correctly reference the AWS Health Global endpoint instead of regional endpoints. ([#2450](https://github.com/turbot/steampipe-plugin-aws/pull/2450))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.11.4](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5114-2025-03-12).
+- Recompiled plugin with `golang.org/x/net` with `v0.36.0`. ([#2447](https://github.com/turbot/steampipe-plugin-aws/pull/2447))
+
 ## v1.9.0 [2025-03-07]
 
 _What's new?_
