@@ -142,8 +142,8 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
-	github.com/turbot/go-kit v1.0.0
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.11.3
+	github.com/turbot/go-kit v1.1.0
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.11.4
 	golang.org/x/sync v0.11.0
 	golang.org/x/text v0.22.0
 )
@@ -151,52 +151,15 @@ require (
 require golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 
 require (
-	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
-	github.com/Masterminds/semver/v3 v3.2.1 // indirect
-	github.com/Microsoft/hcsshim v0.11.5 // indirect
-	github.com/briandowns/spinner v1.23.0 // indirect
-	github.com/containerd/containerd v1.7.18 // indirect
-	github.com/containerd/errdefs v0.1.0 // indirect
-	github.com/containerd/log v0.1.0 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
-	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/go-playground/locales v0.14.1 // indirect
-	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.14.3 // indirect
-	github.com/jackc/pgio v1.0.0 // indirect
-	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/karrick/gows v0.3.0 // indirect
-	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
-	github.com/moby/locker v1.0.1 // indirect
-	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.1.0 // indirect
-	github.com/rs/xid v1.5.0 // indirect
-	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/shiena/ansicolor v0.0.0-20230509054315-a9deabde6e02 // indirect
-	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/spf13/cobra v1.8.1 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/tklauser/go-sysconf v0.3.9 // indirect
-	github.com/tklauser/numcpus v0.3.0 // indirect
-	github.com/turbot/pipe-fittings/v2 v2.1.1 // indirect
-	github.com/turbot/terraform-components v0.0.0-20231213122222-1f3526cab7a7 // indirect
-	github.com/yusufpapurcu/wmi v1.2.2 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
 	golang.org/x/mod v0.19.0 // indirect
-	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
-	oras.land/oras-go/v2 v2.5.0 // indirect
 )
 
 require (
