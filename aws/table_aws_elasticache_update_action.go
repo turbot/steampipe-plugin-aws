@@ -154,31 +154,24 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 			input.ServiceUpdateTimeRange = &types.TimeRangeFilter{}
 		}
 	}
-
 	if v, ok := d.EqualsQuals["cache_cluster_id"]; ok {
 		input.CacheClusterIds = []string{v.GetStringValue()}
 	}
-
 	if v, ok := d.EqualsQuals["replication_group_id"]; ok {
 		input.ReplicationGroupIds = []string{v.GetStringValue()}
 	}
-
 	if v, ok := d.EqualsQuals["engine"]; ok {
 		input.Engine = aws.String(v.GetStringValue())
 	}
-
 	if v, ok := d.EqualsQuals["service_update_status"]; ok {
 		input.ServiceUpdateStatus = []types.ServiceUpdateStatus{types.ServiceUpdateStatus(v.GetStringValue())}
 	}
-
 	if v, ok := d.EqualsQuals["update_action_status"]; ok {
 		input.UpdateActionStatus = []types.UpdateActionStatus{types.UpdateActionStatus(v.GetStringValue())}
 	}
-
 	if v, ok := d.EqualsQuals["service_update_name"]; ok {
 		input.ServiceUpdateName = aws.String(v.GetStringValue())
 	}
-
 	if d.Quals["start_time"] != nil {
 		initializeTimeRangeFunc()
 		value := getQualsValueByColumn(d.Quals, "start_time", "time")
@@ -210,7 +203,6 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 			}
 		}
 	}
-
 	return nil, nil
 }
 
