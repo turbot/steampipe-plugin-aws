@@ -157,15 +157,15 @@ func listElastiCacheUpdateActions(ctx context.Context, d *plugin.QueryData, h *p
 	if val := d.Quals["service_update_release_date"]; val != nil {
 		input.ServiceUpdateTimeRange = &types.TimeRangeFilter{}
 		for _, q := range val.Quals {
-			queryTIme := aws.Time(q.Value.GetTimestampValue().AsTime())
+			queryTime := aws.Time(q.Value.GetTimestampValue().AsTime())
 			switch q.Operator {
 			case ">=", ">":
-				input.ServiceUpdateTimeRange.StartTime = queryTIme
+				input.ServiceUpdateTimeRange.StartTime = queryTime
 			case "<=", "<":
-				input.ServiceUpdateTimeRange.EndTime = queryTIme
+				input.ServiceUpdateTimeRange.EndTime = queryTime
 			case "=":
-				input.ServiceUpdateTimeRange.StartTime = queryTIme
-				input.ServiceUpdateTimeRange.EndTime = queryTIme
+				input.ServiceUpdateTimeRange.StartTime = queryTime
+				input.ServiceUpdateTimeRange.EndTime = queryTime
 			}
 		}
 	}
