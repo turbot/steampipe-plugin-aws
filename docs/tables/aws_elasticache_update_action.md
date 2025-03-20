@@ -58,33 +58,19 @@ from
   aws_elasticache_update_action;
 ```
 
-### Find all ElastiCache update actions before specific date
-Retrieve a list of all service updates that are recommended to be applied before a specific date. This can help you plan and schedule updates in advance.
-
-```sql+postgres
-select 
-  * 
-from 
-  aws_elasticache_update_action 
-where 
-  service_update_recommended_apply_by_date > '2025-02-05T18:59:59+08:00';
-```
-
-```sql+sqlite
-select 
-  *
- from 
-  aws_elasticache_update_action 
-where 
-  service_update_recommended_apply_by_date > '2025-02-05T18:59:59+08:00';
-```
-
 ### Find all ElastiCache update actions with important severity
 Retrieve a list of all service updates that have an important severity level. This can help you prioritize and address critical updates first.
 
 ```sql+postgres
 select 
-  * 
+  cache_cluster_id,
+  replication_group_id,
+  engine,
+  service_update_severity,
+  nodes_updated,
+  service_update_name,
+  service_update_recommended_apply_by_date,
+  service_update_release_date
 from 
   aws_elasticache_update_action 
 where 
@@ -93,33 +79,49 @@ where
 
 ```sql+sqlite
 select 
-  * 
+  cache_cluster_id,
+  replication_group_id,
+  engine,
+  service_update_severity,
+  nodes_updated,
+  service_update_name,
+  service_update_recommended_apply_by_date,
+  service_update_release_date 
 from 
   aws_elasticache_update_action 
 where 
   service_update_severity='important'
 ```
-
 
 ### Find all ElastiCache update actions for a specific cache cluster
 Retrieve a list of all service updates that are associated with a specific ElastiCache cluster. This can help you track updates for a specific cluster.
 
 ```sql+postgres
 select 
-  * 
+  cache_cluster_id,
+  replication_group_id,
+  estimated_update_time,
+  service_update_recommended_apply_by_date,
+  service_update_release_date,
+  service_update_type
 from 
   aws_elasticache_update_action 
 where 
-  replication_group_id='minutes-auth-qa-ec'
+  cache_cluster_id='minutes-auth-qa-ec'
 ```
 
 ```sql+sqlite
 select 
-  * 
+  cache_cluster_id,
+  replication_group_id,
+  estimated_update_time,
+  service_update_recommended_apply_by_date,
+  service_update_release_date,
+  service_update_type
 from 
   aws_elasticache_update_action 
 where 
-  replication_group_id='minutes-auth-qa-ec'
+  cache_cluster_id='minutes-auth-qa-ec'
 ```
 
 ### Find all ElastiCache update actions for a specific time range
@@ -127,18 +129,118 @@ The range of time specified to search for service updates that are in available 
 
 ```sql+postgres
 select
-  *
+  cache_cluster_id,
+  replication_group_id,
+  service_update_name,
+  service_update_status,
+  update_action_status,
+  service_update_release_date
+from
+  aws_elasticache_update_action
+where
+  service_update_release_date >= '2024-02-05T18:59:59+08:00' and service_update_release_date <= '2025-02-05T18:59:59+08:00';
+```
+
+```sql+sqlite
+select
+  cache_cluster_id,
+  replication_group_id,
+  service_update_name,
+  service_update_status,
+  update_action_status,
+  service_update_release_date
 from
   aws_elasticache_update_action
 where
   service_update_release_date > '2024-02-05T18:59:59+08:00' and service_update_release_date < '2025-02-05T18:59:59+08:00';
 ```
 
+### Find all ElastiCache update actions for replication groups
+Retrieve a list of all service updates that are associated with ElastiCache replication groups.
+
+```sql+postgres
+select
+  c.cache_cluster_id,
+  c.engine,
+  c.engine_version,
+  c.cache_node_type,
+  a.service_update_name,
+  a.service_update_severity,
+  a.service_update_status,
+  a.service_update_type,
+  a.service_update_recommended_apply_by_date
+from
+  aws_elasticache_cluster as c
+  join aws_elasticache_update_action as a on c.replication_group_id = a.replication_group_id
+where
+  a.service_update_status = 'available'
+order by
+  a.service_update_severity,
+  a.service_update_recommended_apply_by_date;
+```
+
 ```sql+sqlite
 select
-  *
+  c.replication_group_id,
+  c.engine,
+  c.engine_version,
+  c.cache_node_type,
+  a.service_update_name,
+  a.service_update_severity,
+  a.service_update_status,
+  a.service_update_type,
+  a.service_update_recommended_apply_by_date
 from
-  aws_elasticache_update_action
+  aws_elasticache_cluster as c
+  join aws_elasticache_update_action as a on c.replication_group_id = a.replication_group_id
 where
-  service_update_release_date > '2024-02-05T18:59:59+08:00' and service_update_release_date < '2025-02-05T18:59:59+08:00';
+  a.service_update_status = 'available'
+order by
+  a.service_update_severity,
+  a.service_update_recommended_apply_by_date;
+```
+
+### Find all ElastiCache update actions for cache clusters
+Retrieve a list of all service updates that are associated with ElastiCache clusters.
+
+```sql+postgres
+select
+  c.cache_cluster_id,
+  c.engine,
+  c.engine_version,
+  c.cache_node_type,
+  a.service_update_name,
+  a.service_update_severity,
+  a.service_update_status,
+  a.service_update_type,
+  a.service_update_recommended_apply_by_date
+from
+  aws_elasticache_cluster as c
+  join aws_elasticache_update_action as a on c.cache_cluster_id = a.cache_cluster_id
+where
+  a.service_update_status = 'available'
+order by
+  a.service_update_severity,
+  a.service_update_recommended_apply_by_date;
+```
+
+```sql+sqlite
+select
+  c.cache_cluster_id,
+  c.engine,
+  c.engine_version,
+  c.cache_node_type,
+  a.service_update_name,
+  a.service_update_severity,
+  a.service_update_status,
+  a.service_update_type,
+  a.service_update_recommended_apply_by_date
+from
+  aws_elasticache_cluster as c
+  join aws_elasticache_update_action as a on c.cache_cluster_id = a.cache_cluster_id
+where
+  a.service_update_status = 'available'
+order by
+  a.service_update_severity,
+  a.service_update_recommended_apply_by_date;
 ```
