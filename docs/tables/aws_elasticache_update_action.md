@@ -131,8 +131,7 @@ select
 from
   aws_elasticache_update_action
 where
-  start_time = now() - interval '30 days'
-  and end_time = now();
+  service_update_release_date > '2024-02-05T18:59:59+08:00' and service_update_release_date < '2025-02-05T18:59:59+08:00';
 ```
 
 ```sql+sqlite
@@ -141,6 +140,5 @@ select
 from
   aws_elasticache_update_action
 where
-  start_time = datetime('now', '-30 days')
-  and end_time = datetime('now');
+  service_update_release_date > '2024-02-05T18:59:59+08:00' and service_update_release_date < '2025-02-05T18:59:59+08:00';
 ```

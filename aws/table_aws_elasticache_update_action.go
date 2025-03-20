@@ -14,19 +14,21 @@ import (
 //// TABLE DEFINITION
 
 func tableAwsElastiCacheUpdateAction(_ context.Context) *plugin.Table {
-	columns := plugin.OptionalColumns([]string{"cache_cluster_id", "replication_group_id", "engine", "service_update_status", "update_action_status", "service_update_name"})
-	columns = append(columns,
-		[]*plugin.KeyColumn{
-			{Name: "service_update_release_date", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<=", "="}},
-		}...,
-	)
 	return &plugin.Table{
 		Name:        "aws_elasticache_update_action",
 		Description: "AWS ElastiCache Update Action",
 		List: &plugin.ListConfig{
-			KeyColumns: columns,
-			Hydrate:    listElastiCacheUpdateActions,
-			Tags:       map[string]string{"service": "elasticache", "action": "DescribeUpdateActions"},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "cache_cluster_id", Require: plugin.Optional},
+				{Name: "replication_group_id", Require: plugin.Optional},
+				{Name: "engine", Require: plugin.Optional},
+				{Name: "service_update_status", Require: plugin.Optional},
+				{Name: "update_action_status", Require: plugin.Optional},
+				{Name: "service_update_name", Require: plugin.Optional},
+				{Name: "service_update_release_date", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<=", "="}},
+			},
+			Hydrate: listElastiCacheUpdateActions,
+			Tags:    map[string]string{"service": "elasticache", "action": "DescribeUpdateActions"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
