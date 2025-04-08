@@ -1,7 +1,7 @@
 ---
 title: "Steampipe Table: aws_account - Query AWS Accounts using SQL"
 description: "Allows users to query AWS Account information, including details about the account's status, owner, and associated resources."
-folder: "Organizations"
+folder: "Account"
 ---
 
 # Table: aws_account - Query AWS Accounts using SQL
