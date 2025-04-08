@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lakeformation_resource - Query AWS Lake Formation Resources Using SQL"
 description: "Query AWS Lake Formation registered resources, including their ARNs, associated IAM roles, and data access configurations."
+folder: "Lake Formation"
 ---
 
 # Table: aws_lakeformation_resource - Query AWS Lake Formation Resources Using SQL

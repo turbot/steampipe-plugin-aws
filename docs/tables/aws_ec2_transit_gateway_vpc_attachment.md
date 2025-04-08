@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_transit_gateway_vpc_attachment - Query AWS EC2 Transit Gateway VPC Attachments using SQL"
 description: "Allows users to query AWS EC2 Transit Gateway VPC Attachments for details such as the attachment state, creation time, and more."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_transit_gateway_vpc_attachment - Query AWS EC2 Transit Gateway VPC Attachments using SQL

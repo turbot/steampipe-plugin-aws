@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_eks_fargate_profile - Query AWS EKS Fargate Profiles using SQL"
 description: "Allows users to query AWS EKS Fargate Profiles and retrieve data such as the Fargate profile name, ARN, status, and more."
+folder: "EKS"
 ---
 
 # Table: aws_eks_fargate_profile - Query AWS EKS Fargate Profiles using SQL

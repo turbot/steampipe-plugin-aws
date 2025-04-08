@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_endpoint_service - Query AWS VPC Endpoint Services using SQL"
 description: "Allows users to query AWS VPC Endpoint Services to retrieve detailed information about each service, including service name, service type, and whether or not the service is private."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_endpoint_service - Query AWS VPC Endpoint Services using SQL

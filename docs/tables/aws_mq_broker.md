@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_mq_broker - Query AWS MQ Brokers using SQL"
 description: "Allows users to query AWS MQ Brokers."
+folder: "Amazon MQ"
 ---
 
 # Table: aws_mq_broker - Query AWS MQ Brokers using SQL

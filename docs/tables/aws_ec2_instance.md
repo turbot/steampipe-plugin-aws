@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_instance - Query AWS EC2 Instances using SQL"
 description: "Allows users to query AWS EC2 Instances for comprehensive data on each instance, including instance type, state, tags, and more."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_instance - Query AWS EC2 Instances using SQL

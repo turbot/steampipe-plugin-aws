@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudtrail_trail_event - Query AWS CloudTrail Events using SQL"
 description: "Allows users to query AWS CloudTrail Events, providing information about each trail event within AWS CloudTrail. The table can be used to retrieve details such as the event time, event name, resources involved, and much more."
+folder: "CloudTrail"
 ---
 
 # Table: aws_cloudtrail_trail_event - Query AWS CloudTrail Events using SQL

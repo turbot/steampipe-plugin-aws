@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_redshift_event_subscription - Query AWS Redshift Event Subscriptions using SQL"
 description: "Allows users to query AWS Redshift Event Subscriptions, providing insights into the subscription's configuration, status, and associated Redshift clusters."
+folder: "Redshift"
 ---
 
 # Table: aws_redshift_event_subscription - Query AWS Redshift Event Subscriptions using SQL

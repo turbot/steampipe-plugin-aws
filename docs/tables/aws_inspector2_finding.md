@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_inspector2_finding - Query AWS Inspector findings using SQL"
 description: "Allows users to query AWS Inspector findings to gain insights into potential security issues and vulnerabilities within their AWS resources. The table provides detailed information about each finding, including its severity, status, and associated resources."
+folder: "Inspector2"
 ---
 
 # Table: aws_inspector2_finding - Query AWS Inspector findings using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_availability_zone - Query EC2 Availability Zones using SQL"
 description: "Allows users to query EC2 Availability Zones in AWS, providing details such as zone ID, name, region, and state."
+folder: "EC2"
 ---
 
 # Table: aws_availability_zone - Query EC2 Availability Zones using SQL

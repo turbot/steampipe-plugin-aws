@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sagemaker_domain - Query AWS SageMaker Domains using SQL"
 description: "Allows users to query AWS SageMaker Domains to retrieve data about AWS SageMaker Studio domains, including domain details, status, and associated metadata."
+folder: "SageMaker"
 ---
 
 # Table: aws_sagemaker_domain - Query AWS SageMaker Domains using SQL

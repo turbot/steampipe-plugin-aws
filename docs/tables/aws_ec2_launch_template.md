@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_launch_template - Query AWS EC2 Launch Templates using SQL"
 description: "Allows users to query AWS EC2 Launch Templates to retrieve detailed information, including the associated AMI, instance type, key pair, security groups, and user data."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_launch_template - Query AWS EC2 Launch Templates using SQL

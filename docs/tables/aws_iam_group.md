@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_group - Query AWS IAM Group using SQL"
 description: "Allows users to query AWS IAM Group data such as group name, path, and ARN. This table provides information about IAM groups within AWS Identity and Access Management (IAM)."
+folder: "IAM"
 ---
 
 # Table: aws_iam_group - Query AWS IAM Group using SQL

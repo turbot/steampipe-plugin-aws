@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codeartifact_repository - Query AWS CodeArtifact Repository using SQL"
 description: "Allows users to query AWS CodeArtifact Repository data, including details about the repository, its domain ownership, and associated metadata."
+folder: "CodeArtifact"
 ---
 
 # Table: aws_codeartifact_repository - Query AWS CodeArtifact Repository using SQL

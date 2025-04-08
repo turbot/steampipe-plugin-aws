@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securitylake_data_lake - Query AWS Lake Formation Data Lakes using SQL"
 description: "Allows users to query AWS Lake Formation Data Lakes for information such as the Data Lake name, creation time, last modified time, and more."
+folder: "Security Lake"
 ---
 
 # Table: aws_securitylake_data_lake - Query AWS Lake Formation Data Lakes using SQL

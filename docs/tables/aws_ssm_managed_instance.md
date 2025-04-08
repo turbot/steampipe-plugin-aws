@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_managed_instance - Query AWS SSM Managed Instances using SQL"
 description: "Allows users to query AWS SSM Managed Instances to retrieve their configuration and status information."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_managed_instance - Query AWS SSM Managed Instances using SQL

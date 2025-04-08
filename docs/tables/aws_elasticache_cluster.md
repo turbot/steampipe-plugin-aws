@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_cluster - Query Amazon ElastiCache Cluster using SQL"
 description: "Allows users to query Amazon ElastiCache Cluster data, providing information about each ElastiCache Cluster within the AWS account."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_cluster - Query Amazon ElastiCache Cluster using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_shield_protection_group - Query AWS Shield Advanced Protection Groups using SQL"
 description: "Allows users to query AWS Shield Advanced Protection Groups and retrieve detailed information about each Protection Group."
+folder: "Shield"
 ---
 
 # Table: aws_shield_protection_group - Query AWS Shield Advanced Protection Groups using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_standards_subscription - Query AWS Security Hub Standards Subscriptions using SQL"
 description: "Allows users to query AWS Security Hub Standards Subscriptions, providing detailed information about each standard subscription in AWS Security Hub."
+folder: "RDS"
 ---
 
 # Table: aws_securityhub_standards_subscription - Query AWS Security Hub Standards Subscriptions using SQL

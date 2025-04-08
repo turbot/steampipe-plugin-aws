@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codedeploy_app - Query AWS CodeDeploy Applications using SQL"
 description: "Allows users to query AWS CodeDeploy Applications to return detailed information about each application, including application name, ID, and associated deployment groups."
+folder: "CodeDeploy"
 ---
 
 # Table: aws_codedeploy_app - Query AWS CodeDeploy Applications using SQL

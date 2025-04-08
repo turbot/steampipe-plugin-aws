@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_query_log - Query AWS Route 53 Query Log using SQL"
 description: "Allows users to query AWS Route 53 Query Log data, providing insights into DNS queries made to Route 53 hosted zones."
+folder: "Route 53"
 ---
 
 # Table: aws_route53_query_log - Query AWS Route 53 Query Log using SQL

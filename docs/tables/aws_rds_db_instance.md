@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance - Query AWS RDS DB Instances using SQL"
 description: "Allows users to query AWS RDS DB Instances for detailed information about the configuration, status, and other metadata associated with each database instance."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance - Query AWS RDS DB Instances using SQL

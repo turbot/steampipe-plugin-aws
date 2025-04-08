@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_nat_gateway_metric_bytes_out_to_destination - Query AWS CloudWatch NAT Gateway Metrics using SQL"
 description: "Allows users to query AWS NAT Gateway metrics for bytes sent to the destination from the NAT gateway. The table provides information about the number of bytes sent out to the destination per NAT gateway in a VPC."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_nat_gateway_metric_bytes_out_to_destination - Query AWS CloudWatch NAT Gateway Metrics using SQL

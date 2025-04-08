@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dms_replication_task - Query AWS DMS Replication Tasks using SQL"
 description: "Enables users to query AWS DMS Replication Tasks to retrieve detailed information on data migration activities between source and target databases."
+folder: "DMS"
 ---
 
 # Table: aws_dms_replication_task - Query AWS DMS Replication Tasks using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_nat_gateway - Query AWS VPC NAT Gateways using SQL"
 description: "Allows users to query NAT Gateways within Amazon Virtual Private Cloud (VPC). The `aws_vpc_nat_gateway` table in Steampipe provides information about each NAT Gateway within a VPC. This table can be used to gather insights on NAT Gateways, such as their state, subnet association, and associated Elastic IP addresses."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_nat_gateway - Query AWS VPC NAT Gateways using SQL

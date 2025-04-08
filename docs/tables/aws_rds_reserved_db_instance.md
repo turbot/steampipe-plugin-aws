@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_reserved_db_instance - Query AWS RDS Reserved DB Instances using SQL"
 description: "Allows users to query RDS Reserved DB Instances in AWS, providing details such as reservation status, instance type, duration, and associated costs."
+folder: "RDS"
 ---
 
 # Table: aws_rds_reserved_db_instance - Query AWS RDS Reserved DB Instances using SQL

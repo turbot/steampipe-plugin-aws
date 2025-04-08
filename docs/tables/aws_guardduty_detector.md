@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_guardduty_detector - Query AWS GuardDuty Detector using SQL"
 description: "Allows users to query AWS GuardDuty Detector data, including detector details, status, and associated metadata."
+folder: "GuardDuty"
 ---
 
 # Table: aws_guardduty_detector - Query AWS GuardDuty Detector using SQL

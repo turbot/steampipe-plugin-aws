@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_subnet_group - Query AWS ElastiCache Subnet Groups using SQL"
 description: "Allows users to query AWS ElastiCache Subnet Groups, providing details about each subnet group within their ElastiCache service, including the associated VPC, subnets, and status."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_subnet_group - Query AWS ElastiCache Subnet Groups using SQL

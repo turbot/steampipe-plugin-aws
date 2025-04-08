@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_replication_group - Query AWS ElastiCache Replication Groups using SQL"
 description: "Allows users to query AWS ElastiCache Replication Groups to retrieve information related to their configuration, status, and associated resources."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_replication_group - Query AWS ElastiCache Replication Groups using SQL

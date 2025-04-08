@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lambda_function_metric_duration_daily - Query AWS Lambda Function Metrics using SQL"
 description: "Allows users to query AWS Lambda Function daily duration metrics."
+folder: "Lambda"
 ---
 
 # Table: aws_lambda_function_metric_duration_daily - Query AWS Lambda Function Metrics using SQL

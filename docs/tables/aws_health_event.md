@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_health_event - Query AWS Health Events using SQL"
 description: "Allows users to query AWS Health Events to retrieve information about events that affect your AWS services and accounts."
+folder: "Health"
 ---
 
 # Table: aws_health_event - Query AWS Health Events using SQL

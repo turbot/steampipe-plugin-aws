@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sfn_state_machine - Query AWS Step Functions State Machines using SQL"
 description: "Allows users to query AWS Step Functions State Machines to retrieve detailed information about each state machine."
+folder: "Step Functions"
 ---
 
 # Table: aws_sfn_state_machine - Query AWS Step Functions State Machines using SQL

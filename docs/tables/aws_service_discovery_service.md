@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_service_discovery_service - Query AWS Service Discovery Service using SQL"
 description: "Allows users to query AWS Service Discovery Service to retrieve detailed information about AWS resources that are registered with AWS Cloud Map."
+folder: "Service Discovery"
 ---
 
 # Table: aws_service_discovery_service - Query AWS Service Discovery Service using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_directory_servicelog_subscription - Query AWS Directory Service Log Subscription using SQL"
 description: "Allows users to query AWS Directory Service Log Subscription to obtain detailed information about each log subscription associated with the AWS Directory Service."
+folder: "Directory Service"
 ---
 
 # Table: aws_directory_servicelog_subscription - Query AWS Directory Service Log Subscription using SQL

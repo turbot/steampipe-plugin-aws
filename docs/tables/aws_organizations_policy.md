@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_organizations_policy - Query AWS Organizations Policy using SQL"
 description: "Allows users to query AWS Organizations Policy to retrieve detailed information on policies within AWS Organizations. This table can be utilized to gain insights on policy-specific details, such as policy type, content, and associated metadata."
+folder: "Organizations"
 ---
 
 # Table: aws_organizations_policy - Query AWS Organizations Policy using SQL

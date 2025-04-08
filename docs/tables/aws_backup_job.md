@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_backup_job - Query AWS Backup Jobs using SQL"
 description: "Allows users to query AWS Backup Jobs, providing detailed information about the status of backups jobs."
+folder: "Backup"
 ---
 
 # Table: aws_backup_jobs - Query AWS Backup Jobs using SQL

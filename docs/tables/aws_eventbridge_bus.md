@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_eventbridge_bus - Query AWS EventBridge Buses using SQL"
 description: "Allows users to query AWS EventBridge Buses for detailed information about each bus, including its name, ARN, policy, and more."
+folder: "EventBridge"
 ---
 
 # Table: aws_eventbridge_bus - Query AWS EventBridge Buses using SQL

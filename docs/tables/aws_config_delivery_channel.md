@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_config_delivery_channel - Query AWS Config Delivery Channels using SQL"
 description: "Allows users to query AWS Config Delivery Channels"
+folder: "Config"
 ---
 
 # Table: aws_config_delivery_channel - Query AWS Config Delivery Channels using SQL

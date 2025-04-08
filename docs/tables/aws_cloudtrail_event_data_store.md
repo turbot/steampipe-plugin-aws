@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudtrail_event_data_store - Query AWS CloudTrail Event Data using SQL"
 description: "Allows users to query AWS CloudTrail Event Data, providing information about API activity in AWS accounts. This includes details about API calls, logins, and other events captured by AWS CloudTrail."
+folder: "CloudTrail"
 ---
 
 # Table: aws_cloudtrail_event_data_store - Query AWS CloudTrail Event Data using SQL

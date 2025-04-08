@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_drs_job - Query AWS Data Replication Service Jobs using SQL"
 description: "Allows users to query AWS Data Replication Service Jobs and retrieve key job details such as job ID, job status, creation time, and more."
+folder: "Elastic Disaster Recovery (DRS)"
 ---
 
 # Table: aws_drs_job - Query AWS Data Replication Service Jobs using SQL

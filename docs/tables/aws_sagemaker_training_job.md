@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sagemaker_training_job - Query AWS SageMaker Training Jobs using SQL"
 description: "Allows users to query AWS SageMaker Training Jobs to retrieve information about individual training jobs."
+folder: "SageMaker"
 ---
 
 # Table: aws_sagemaker_training_job - Query AWS SageMaker Training Jobs using SQL

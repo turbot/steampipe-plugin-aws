@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecr_image_scan_finding - Query Amazon Elastic Container Registry (ECR) Image Scan Findings using SQL"
 description: "Allows users to query Amazon ECR Image Scan Findings to retrieve detailed information about image scan findings, including attributes such as the severity of the finding, description, and package name where the vulnerability was found."
+folder: "ECR"
 ---
 
 # Table: aws_ecr_image_scan_finding - Query Amazon Elastic Container Registry (ECR) Image Scan Findings using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sns_topic_subscription - Query AWS Simple Notification Service (SNS) Topic Subscriptions using SQL"
 description: "Allows users to query AWS SNS Topic Subscriptions to obtain detailed information about each subscription, including subscription ARN, owner, protocol, endpoint, and more."
+folder: "SNS"
 ---
 
 # Table: aws_sns_topic_subscription - Query AWS Simple Notification Service (SNS) Topic Subscriptions using SQL

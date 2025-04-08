@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_proxy - Query Amazon RDS DB Proxy using SQL"
 description: "Allows users to query DB Proxies in Amazon RDS to fetch detailed information about each proxy, including its ARN, name, engine family, role ARN, status, and more."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_proxy - Query Amazon RDS DB Proxy using SQL

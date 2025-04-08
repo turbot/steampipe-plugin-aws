@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dynamodb_table - Query AWS DynamoDB Tables using SQL"
 description: "Allows users to query AWS DynamoDB Tables and retrieve detailed information about their configuration, status, and associated attributes."
+folder: "DynamoDB"
 ---
 
 # Table: aws_dynamodb_table - Query AWS DynamoDB Tables using SQL

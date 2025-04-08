@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_pinpoint_app - Query AWS Pinpoint Applications using SQL"
 description: "Allows users to query AWS Pinpoint Applications to gather information about the applications, such as application ID, name, and creation date. The table also provides details about the application's settings and limits."
+folder: "Pinpoint"
 ---
 
 # Table: aws_pinpoint_app - Query AWS Pinpoint Applications using SQL

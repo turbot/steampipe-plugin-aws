@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_glue_job - Query AWS Glue Jobs using SQL"
 description: "Allows users to query AWS Glue Jobs to retrieve detailed information related to job properties, execution, and status."
+folder: "Glue"
 ---
 
 # Table: aws_glue_job - Query AWS Glue Jobs using SQL

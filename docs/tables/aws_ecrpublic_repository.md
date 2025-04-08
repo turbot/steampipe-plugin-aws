@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecrpublic_repository - Query AWS Elastic Container Registry Public Repository using SQL"
 description: "Allows users to query AWS Elastic Container Registry Public Repository to get detailed information about each ECR public repository within an AWS account."
+folder: "ECR Public"
 ---
 
 # Table: aws_ecrpublic_repository - Query AWS Elastic Container Registry Public Repository using SQL

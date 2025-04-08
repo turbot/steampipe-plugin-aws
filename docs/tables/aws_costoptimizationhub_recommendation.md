@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_costoptimizationhub_recommendation - Query AWS Cost Optimization Recommendations using SQL"
 description: "Allows users to query AWS Cost Optimization Hub Recommendations to obtain insights on cost-saving opportunities, resource configuration, and associated metadata."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_costoptimizationhub_recommendation - Query AWS Cost Optimization Recommendations using SQL

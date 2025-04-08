@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_servicecatalog_portfolio - Query AWS Service Catalog Portfolio using SQL"
 description: "Allows users to query AWS Service Catalog Portfolios. The aws_servicecatalog_portfolio table in Steampipe provides information about portfolios within AWS Service Catalog. This table allows DevOps engineers to query portfolio-specific details, including owner, description, created time, and associated metadata. Users can utilize this table to gather insights on portfolios, such as portfolio details, associated products, and more. The schema outlines the various attributes of the portfolio, including the portfolio ARN, creation date, and associated tags."
+folder: "Service Catalog"
 ---
 
 # Table: aws_servicecatalog_portfolio - Query AWS Service Catalog Portfolio using SQL

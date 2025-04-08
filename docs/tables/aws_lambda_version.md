@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lambda_version - Query AWS Lambda Versions using SQL"
 description: "Allows users to query AWS Lambda Versions to fetch detailed information about each version of a specific AWS Lambda function."
+folder: "Lambda"
 ---
 
 # Table: aws_lambda_version - Query AWS Lambda Versions using SQL

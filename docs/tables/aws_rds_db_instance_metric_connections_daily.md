@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_metric_connections_daily - Query AWS RDS DB Instance Metrics using SQL"
 description: "Allows users to query AWS RDS DB Instance Metrics on a daily basis, retrieving information about the number of database connections."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance_metric_connections_daily - Query AWS RDS DB Instance Metrics using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wellarchitected_lens_share - Query AWS Well-Architected Tool Lens Shares using SQL"
 description: "Allows users to query Lens Shares in AWS Well-Architected Tool, providing details about shared lenses including the share ARN, share status, and the AWS account ID of the lens owner."
+folder: "Well-Architected"
 ---
 
 # Table: aws_wellarchitected_lens_share - Query AWS Well-Architected Tool Lens Shares using SQL

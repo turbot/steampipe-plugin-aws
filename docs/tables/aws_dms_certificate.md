@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dms_certificate - Query AWS DMS Certificates using SQL"
 description: "Allows users to query AWS DMS (Database Migration Service) Certificates. This table provides information about SSL/TLS certificates used in AWS DMS for encrypting data during database migration tasks. Certificates play a crucial role in ensuring the security and integrity of data transferred between source and target databases."
+folder: "DMS"
 ---
 
 # Table: aws_dms_certificate - Query AWS DMS Certificates using SQL

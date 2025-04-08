@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudtrail_channel - Query AWS CloudTrail Channel using SQL"
 description: "Allows users to query AWS CloudTrail Channel data, including trail configurations, status, and associated metadata."
+folder: "CloudTrail"
 ---
 
 # Table: aws_cloudtrail_channel - Query AWS CloudTrail Channel using SQL

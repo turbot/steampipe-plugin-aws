@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wellarchitected_share_invitation - Query AWS Well-Architected Tool Share Invitations using SQL"
 description: "Allows users to query Share Invitations in the AWS Well-Architected Tool."
+folder: "Well-Architected"
 ---
 
 # Table: aws_wellarchitected_share_invitation - Query AWS Well-Architected Tool Share Invitations using SQL

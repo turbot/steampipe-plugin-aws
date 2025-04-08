@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_document_permission - Query AWS SSM Document Permissions using SQL"
 description: "Allows users to query AWS SSM Document Permissions, providing detailed information about the permissions associated with Systems Manager (SSM) documents."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_document_permission - Query AWS SSM Document Permissions using SQL

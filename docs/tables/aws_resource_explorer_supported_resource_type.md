@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_resource_explorer_supported_resource_type - Query AWS Resource Explorer Supported Resource Types using SQL"
 description: "Allows users to query AWS Resource Explorer Supported Resource Types to obtain details about supported resource types for AWS Resource Groups."
+folder: "Resource Explorer"
 ---
 
 # Table: aws_resource_explorer_supported_resource_type - Query AWS Resource Explorer Supported Resource Types using SQL

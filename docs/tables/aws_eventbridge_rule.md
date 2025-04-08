@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_eventbridge_rule - Query AWS EventBridge Rule using SQL"
 description: "Allows users to query AWS EventBridge Rule to access information regarding the EventBridge rules defined within an AWS account."
+folder: "EventBridge"
 ---
 
 # Table: aws_eventbridge_rule - Query AWS EventBridge Rule using SQL

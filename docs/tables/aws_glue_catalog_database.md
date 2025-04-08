@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_glue_catalog_database - Query AWS Glue Databases using SQL"
 description: "Allows users to query AWS Glue Databases for detailed information about their Glue Catalog Databases."
+folder: "Glue"
 ---
 
 # Table: aws_glue_catalog_database - Query AWS Glue Databases using SQL

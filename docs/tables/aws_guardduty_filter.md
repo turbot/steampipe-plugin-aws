@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_guardduty_filter - Query AWS GuardDuty Filter using SQL"
 description: "Allows users to query AWS GuardDuty Filters to retrieve information about existing filters, their conditions, actions, and associated metadata."
+folder: "GuardDuty"
 ---
 
 # Table: aws_guardduty_filter - Query AWS GuardDuty Filter using SQL

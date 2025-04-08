@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_s3_multi_region_access_point - Query AWS S3 Multi-Region Access Point using SQL"
 description: "Allows users to query AWS S3 Multi-Region Access Points to retrieve information about their configuration, status, and associated policies."
+folder: "Region"
 ---
 
 # Table: aws_s3_multi_region_access_point - Query AWS S3 Multi-Region Access Point using SQL

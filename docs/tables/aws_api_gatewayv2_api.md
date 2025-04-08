@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_api_gatewayv2_api - Query AWS API Gateway using SQL"
 description: "Allows users to query API Gateway APIs and retrieve detailed information about each API, including its ID, name, protocol type, and more."
+folder: "API Gateway"
 ---
 
 # Table: aws_api_gatewayv2_api - Query AWS API Gateway using SQL
