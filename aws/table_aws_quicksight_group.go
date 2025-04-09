@@ -67,6 +67,13 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 				Description: "The namespace. Currently, you should set this to default.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "group_members",
+				Description: "The members of the group.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsQuickSightGroupMembers,
+				Transform:   transform.FromValue(),
+			},
 
 			// Steampipe Standard columns
 			{
@@ -198,4 +205,47 @@ func getAwsQuickSightGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	return QuickSightGroup{Group: *data.Group, Namespace: namespace}, nil
+}
+
+
+func getAwsQuickSightGroupMembers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	group := h.Item.(QuickSightGroup)
+
+	// Create client
+	svc, err := QuickSightClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_quicksight_group.getAwsQuickSightGroupMembers", "connection_error", err)
+		return nil, err
+	}
+
+	// Get AWS Account ID
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	params := &quicksight.ListGroupMembershipsInput{
+		AwsAccountId: aws.String(commonColumnData.AccountId),
+		Namespace:    aws.String(group.Namespace),
+		GroupName:    group.GroupName,
+	}
+
+	// Get call
+	paginator := quicksight.NewListGroupMembershipsPaginator(svc, params, func(o *quicksight.ListGroupMembershipsPaginatorOptions) {
+		o.Limit = int32(100)
+		o.StopOnDuplicateToken = true
+	})
+
+	var data []types.GroupMember
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_quicksight_group.getAwsQuickSightGroupMembers", "api_error", err)
+			return nil, err
+		}
+		data = append(data, output.GroupMemberList...)
+	}
+
+	return data, nil
 }
