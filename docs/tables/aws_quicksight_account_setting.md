@@ -1,15 +1,15 @@
 ---
-title: "Steampipe Table: aws_quicksight_account_settings - Query AWS QuickSight Account Settings using SQL"
+title: "Steampipe Table: aws_quicksight_account_setting - Query AWS QuickSight Account Settings using SQL"
 description: "Allows users to query AWS QuickSight Account Settings, providing details about the QuickSight account configuration, edition, notification settings, and security features."
 ---
 
-# Table: aws_quicksight_account_settings - Query AWS QuickSight Account Settings using SQL
+# Table: aws_quicksight_account_setting - Query AWS QuickSight Account Settings using SQL
 
 AWS QuickSight Account Settings represent the configuration and preferences set for your QuickSight account. These settings include account name, edition type, notification email, security features, and various other configurations that determine how QuickSight operates within your AWS environment.
 
 ## Table Usage Guide
 
-The `aws_quicksight_account_settings` table in Steampipe provides you with information about account settings within AWS QuickSight. This table allows you, as a data analyst or administrator, to query account-specific details, including edition type, notification settings, security configurations, and various other account-level settings. You can utilize this table to gather insights on account configurations, such as termination protection status, public sharing settings, and notification preferences.
+The `aws_quicksight_account_setting` table in Steampipe provides you with information about account settings within AWS QuickSight. This table allows you, as a data analyst or administrator, to query account-specific details, including edition type, notification settings, security configurations, and various other account-level settings. You can utilize this table to gather insights on account configurations, such as termination protection status, public sharing settings, and notification preferences.
 
 ## Examples
 
@@ -26,7 +26,7 @@ select
   termination_protection_enabled,
   public_sharing_enabled
 from
-  aws_quicksight_account_settings;
+  aws_quicksight_account_setting;
 ```
 
 ```sql+sqlite
@@ -38,7 +38,7 @@ select
   termination_protection_enabled,
   public_sharing_enabled
 from
-  aws_quicksight_account_settings;
+  aws_quicksight_account_setting;
 ```
 
 ### Check accounts with termination protection disabled
@@ -52,7 +52,7 @@ select
   notification_email,
   termination_protection_enabled
 from
-  aws_quicksight_account_settings
+  aws_quicksight_account_setting
 where
   not termination_protection_enabled;
 ```
@@ -64,7 +64,7 @@ select
   notification_email,
   termination_protection_enabled
 from
-  aws_quicksight_account_settings
+  aws_quicksight_account_setting
 where
   termination_protection_enabled = 0;
 ```
@@ -80,7 +80,7 @@ select
   notification_email,
   public_sharing_enabled
 from
-  aws_quicksight_account_settings
+  aws_quicksight_account_setting
 where
   public_sharing_enabled;
 ```
@@ -92,7 +92,7 @@ select
   notification_email,
   public_sharing_enabled
 from
-  aws_quicksight_account_settings
+  aws_quicksight_account_setting
 where
   public_sharing_enabled = 1;
 ```
@@ -108,7 +108,7 @@ select
   default_namespace,
   notification_email
 from
-  aws_quicksight_account_settings
+  aws_quicksight_account_setting
 where
   edition = 'ENTERPRISE';
 ```
@@ -120,7 +120,7 @@ select
   default_namespace,
   notification_email
 from
-  aws_quicksight_account_settings
+  aws_quicksight_account_setting
 where
   edition = 'ENTERPRISE';
 ```
@@ -137,7 +137,7 @@ select
   default_namespace,
   public_sharing_enabled
 from
-  aws_quicksight_account_settings
+  aws_quicksight_account_setting
 order by
   region;
 ```
@@ -150,7 +150,7 @@ select
   default_namespace,
   public_sharing_enabled
 from
-  aws_quicksight_account_settings
+  aws_quicksight_account_setting
 order by
   region;
 ```

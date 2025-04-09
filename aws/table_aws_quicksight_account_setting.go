@@ -13,16 +13,16 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsQuickSightAccountSettings(_ context.Context) *plugin.Table {
+func tableAwsQuickSightAccountSetting(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_quicksight_account_settings",
+		Name:        "aws_quicksight_account_setting",
 		Description: "AWS QuickSight Account Settings",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsQuickSightAccountSettings,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Tags:    map[string]string{"service": "quicksight", "action": "DescribeAccountSettings"},
+			Tags: map[string]string{"service": "quicksight", "action": "DescribeAccountSettings"},
 			// TODO do we need to add the account id as a qualifier?
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_QUICKSIGHT_SERVICE_ID),
@@ -81,7 +81,7 @@ func listAwsQuickSightAccountSettings(ctx context.Context, d *plugin.QueryData, 
 	// Create client
 	svc, err := QuickSightClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_quicksight_account_settings.listAwsQuickSightAccountSettings", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_quicksight_account_setting.listAwsQuickSightAccountSettings", "connection_error", err)
 		return nil, err
 	}
 
@@ -100,7 +100,7 @@ func listAwsQuickSightAccountSettings(ctx context.Context, d *plugin.QueryData, 
 	// Get call
 	data, err := svc.DescribeAccountSettings(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_quicksight_account_settings.listAwsQuickSightAccountSettings", "api_error", err)
+		plugin.Logger(ctx).Error("aws_quicksight_account_setting.listAwsQuickSightAccountSettings", "api_error", err)
 		return nil, err
 	}
 
