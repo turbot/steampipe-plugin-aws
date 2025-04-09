@@ -125,7 +125,9 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	// Add resource type filters
 	if d.EqualsQuals["resource_type_filters"] != nil {
 		resourceTypeFilters := strings.Split(d.EqualsQuals["resource_type_filters"].GetStringValue(), ",")
-		input.ResourceTypeFilters = resourceTypeFilters
+		for i, filter := range resourceTypeFilters {
+			resourceTypeFilters[i] = strings.TrimSpace(filter)
+		}
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
