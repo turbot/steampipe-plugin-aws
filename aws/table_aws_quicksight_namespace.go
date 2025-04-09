@@ -18,16 +18,31 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 		Name:        "aws_quicksight_namespace",
 		Description: "AWS QuickSight Namespace",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
-			Hydrate:    getAwsQuickSightNamespace,
-			Tags:       map[string]string{"service": "quicksight", "action": "DescribeNamespace"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "quicksight_account_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "name",
+					Require: plugin.Required,
+				},
+			},
+			Hydrate: getAwsQuickSightNamespace,
+			Tags:    map[string]string{"service": "quicksight", "action": "DescribeNamespace"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsQuickSightNamespaces,
-			Tags:    map[string]string{"service": "quicksight", "action": "ListNamespaces"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "quicksight_account_id",
+					Require: plugin.Optional,
+				},
+			},
+			Tags: map[string]string{"service": "quicksight", "action": "ListNamespaces"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_QUICKSIGHT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -42,6 +57,13 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) of the namespace.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Arn"),
+			},
+			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
+			{
+				Name:        "quicksight_account_id",
+				Description: "The account name displayed for the account.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("quicksight_account_id"),
 			},
 			{
 				Name:        "capacity_region",
@@ -87,12 +109,17 @@ func listAwsQuickSightNamespaces(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
+
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -104,7 +131,7 @@ func listAwsQuickSightNamespaces(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	input := &quicksight.ListNamespacesInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 		MaxResults:   aws.Int32(maxLimit),
 	}
 
@@ -149,6 +176,7 @@ func getAwsQuickSightNamespace(ctx context.Context, d *plugin.QueryData, h *plug
 
 	namespaceName := d.EqualsQuals["name"].GetStringValue()
 
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -156,8 +184,12 @@ func getAwsQuickSightNamespace(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
+
 	params := &quicksight.DescribeNamespaceInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 		Namespace:    aws.String(namespaceName),
 	}
 

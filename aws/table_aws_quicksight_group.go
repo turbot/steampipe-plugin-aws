@@ -21,9 +21,22 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_quicksight_group",
 		Description: "AWS QuickSight Group",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"group_name", "namespace"}),
-			Hydrate:    getAwsQuickSightGroup,
-			Tags:       map[string]string{"service": "quicksight", "action": "DescribeGroup"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "quicksight_account_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "group_name",
+					Require: plugin.Required,
+				},
+				{
+					Name:    "namespace",
+					Require: plugin.Required,
+				},
+			},
+			Hydrate: getAwsQuickSightGroup,
+			Tags:    map[string]string{"service": "quicksight", "action": "DescribeGroup"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -33,6 +46,7 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 			Hydrate:       listAwsQuickSightGroups,
 			Tags:          map[string]string{"service": "quicksight", "action": "ListGroups"},
 			KeyColumns: []*plugin.KeyColumn{
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 				{Name: "namespace", Require: plugin.Optional},
 			},
 		},
@@ -49,6 +63,13 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) for the group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Arn"),
+			},
+			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
+			{
+				Name:        "quicksight_account_id",
+				Description: "The account name displayed for the account.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("quicksight_account_id"),
 			},
 			{
 				Name:        "description",
@@ -107,12 +128,17 @@ func listAwsQuickSightGroups(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, nil
 	}
 
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
+
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -124,7 +150,7 @@ func listAwsQuickSightGroups(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	input := &quicksight.ListGroupsInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 		Namespace:    namespaceInfo.Name,
 		MaxResults:   aws.Int32(maxLimit),
 	}
@@ -179,6 +205,8 @@ func getAwsQuickSightGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	groupName := d.EqualsQuals["group_name"].GetStringValue()
 	namespace := d.EqualsQuals["namespace"].GetStringValue()
 
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
+
 	// Default namespace is default
 	if namespace == "" {
 		namespace = "default"
@@ -191,8 +219,12 @@ func getAwsQuickSightGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
+
 	params := &quicksight.DescribeGroupInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 		Namespace:    aws.String(namespace),
 		GroupName:    aws.String(groupName),
 	}
@@ -207,7 +239,6 @@ func getAwsQuickSightGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	return QuickSightGroup{Group: *data.Group, Namespace: namespace}, nil
 }
 
-
 func getAwsQuickSightGroupMembers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	group := h.Item.(QuickSightGroup)
 
@@ -218,6 +249,7 @@ func getAwsQuickSightGroupMembers(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -225,8 +257,12 @@ func getAwsQuickSightGroupMembers(ctx context.Context, d *plugin.QueryData, h *p
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
+
 	params := &quicksight.ListGroupMembershipsInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 		Namespace:    aws.String(group.Namespace),
 		GroupName:    group.GroupName,
 	}

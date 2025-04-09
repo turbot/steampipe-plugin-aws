@@ -19,9 +19,22 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 		Name:        "aws_quicksight_user",
 		Description: "AWS QuickSight User",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"user_name", "namespace"}),
-			Hydrate:    getAwsQuickSightUser,
-			Tags:       map[string]string{"service": "quicksight", "action": "DescribeUser"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "quicksight_account_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "user_name",
+					Require: plugin.Required,
+				},
+				{
+					Name:    "namespace",
+					Require: plugin.Required,
+				},
+			},
+			Hydrate: getAwsQuickSightUser,
+			Tags:    map[string]string{"service": "quicksight", "action": "DescribeUser"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterValueException"}),
 			},
@@ -31,6 +44,7 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 			Hydrate:       listAwsQuickSightUsers,
 			Tags:          map[string]string{"service": "quicksight", "action": "ListUsers"},
 			KeyColumns: []*plugin.KeyColumn{
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 				{Name: "namespace", Require: plugin.Optional},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -50,6 +64,13 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) for the user.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Arn"),
+			},
+			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
+			{
+				Name:        "quicksight_account_id",
+				Description: "The account name displayed for the account.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("quicksight_account_id"),
 			},
 			{
 				Name:        "email",
@@ -135,12 +156,17 @@ func listAwsQuickSightUsers(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, nil
 	}
 
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
+
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -152,7 +178,7 @@ func listAwsQuickSightUsers(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	input := &quicksight.ListUsersInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 		Namespace:    namespaceInfo.Name,
 		MaxResults:   aws.Int32(maxLimit),
 	}
@@ -199,11 +225,7 @@ func getAwsQuickSightUser(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	userName := d.EqualsQuals["user_name"].GetStringValue()
 	namespace := d.EqualsQuals["namespace"].GetStringValue()
 
-	// Default namespace is default
-	if namespace == "" {
-		namespace = "default"
-	}
-
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -211,8 +233,12 @@ func getAwsQuickSightUser(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
+
 	params := &quicksight.DescribeUserInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 		Namespace:    aws.String(namespace),
 		UserName:     aws.String(userName),
 	}

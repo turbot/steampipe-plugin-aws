@@ -22,8 +22,13 @@ func tableAwsQuickSightAccountSetting(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "quicksight_account_id",
+					Require: plugin.Optional,
+				},
+			},
 			Tags: map[string]string{"service": "quicksight", "action": "DescribeAccountSettings"},
-			// TODO do we need to add the account id as a qualifier?
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_QUICKSIGHT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -32,6 +37,13 @@ func tableAwsQuickSightAccountSetting(_ context.Context) *plugin.Table {
 				Description: "The account name displayed for the account.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("AccountSettings.AccountName"),
+			},
+			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
+			{
+				Name:        "quicksight_account_id",
+				Description: "The account name displayed for the account.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("quicksight_account_id"),
 			},
 			{
 				Name:        "edition",
@@ -85,6 +97,7 @@ func listAwsQuickSightAccountSettings(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -92,9 +105,13 @@ func listAwsQuickSightAccountSettings(ctx context.Context, d *plugin.QueryData, 
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
+
 	// Build the params
 	params := &quicksight.DescribeAccountSettingsInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 	}
 
 	// Get call

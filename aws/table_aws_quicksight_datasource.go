@@ -19,16 +19,31 @@ func tableAwsQuickSightDatasource(_ context.Context) *plugin.Table {
 		Name:        "aws_quicksight_datasource",
 		Description: "AWS QuickSight Data Source",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("data_source_id"),
-			Hydrate:    getAwsQuickSightDatasource,
-			Tags:       map[string]string{"service": "quicksight", "action": "DescribeDataSource"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "quicksight_account_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "data_source_id",
+					Require: plugin.Required,
+				},
+			},
+			Hydrate: getAwsQuickSightDatasource,
+			Tags:    map[string]string{"service": "quicksight", "action": "DescribeDataSource"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsQuickSightDatasources,
-			Tags:    map[string]string{"service": "quicksight", "action": "ListDataSources"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "quicksight_account_id",
+					Require: plugin.Optional,
+				},
+			},
+			Tags: map[string]string{"service": "quicksight", "action": "ListDataSources"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_QUICKSIGHT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -42,6 +57,13 @@ func tableAwsQuickSightDatasource(_ context.Context) *plugin.Table {
 				Description: "The ID of the data source.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DataSourceId"),
+			},
+			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
+			{
+				Name:        "quicksight_account_id",
+				Description: "The account name displayed for the account.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("quicksight_account_id"),
 			},
 			{
 				Name:        "arn",
@@ -115,12 +137,17 @@ func listAwsQuickSightDatasources(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
+
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -132,7 +159,7 @@ func listAwsQuickSightDatasources(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	input := &quicksight.ListDataSourcesInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 		MaxResults:   aws.Int32(maxLimit),
 	}
 
@@ -182,6 +209,8 @@ func getAwsQuickSightDatasource(ctx context.Context, d *plugin.QueryData, h *plu
 		dataSourceID = d.EqualsQuals["data_source_id"].GetStringValue()
 	}
 
+	accountId := d.EqualsQuals["namespace"].GetStringValue()
+
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -189,9 +218,13 @@ func getAwsQuickSightDatasource(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	if accountId == "" {
+		accountId = commonColumnData.AccountId
+	}
+
 	// Build the params
 	params := &quicksight.DescribeDataSourceInput{
-		AwsAccountId: aws.String(commonColumnData.AccountId),
+		AwsAccountId: aws.String(accountId),
 		DataSourceId: aws.String(dataSourceID),
 	}
 
