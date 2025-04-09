@@ -2,12 +2,10 @@ package aws
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/quicksight/types"
 	"github.com/aws/aws-sdk-go-v2/service/quicksight"
-	"github.com/aws/smithy-go"
+	"github.com/aws/aws-sdk-go-v2/service/quicksight/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -23,7 +21,10 @@ func tableAwsQuickSightDataset(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("dataset_id"),
 			Hydrate:    getAwsQuickSightDataset,
-			Tags:       map[string]string{"service": "quicksight", "action": "DescribeDataSet"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
+			Tags: map[string]string{"service": "quicksight", "action": "DescribeDataSet"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsQuickSightDatasets,
@@ -66,37 +67,46 @@ func tableAwsQuickSightDataset(_ context.Context) *plugin.Table {
 				Name:        "row_level_permission_data_set",
 				Description: "The row-level security configuration for the dataset.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("RowLevelPermissionDataSet"),
 			},
 			{
 				Name:        "column_groups",
 				Description: "Groupings of columns that work together in certain Amazon QuickSight features.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsQuickSightDataset,
 			},
 			{
 				Name:        "column_level_permission_rules",
 				Description: "A set of one or more definitions of a ColumnLevelPermissionRule.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsQuickSightDataset,
 			},
 			{
 				Name:        "data_set_usage_configuration",
 				Description: "The usage configuration to apply to child datasets that reference this dataset as a source.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsQuickSightDataset,
 			},
 			{
 				Name:        "logical_table_map",
 				Description: "Configures the combination and transformation of the data from the physical tables.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsQuickSightDataset,
 			},
 			{
 				Name:        "output_columns",
 				Description: "Output columns for the dataset.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsQuickSightDataset,
 			},
 			{
 				Name:        "physical_table_map",
 				Description: "Declares the physical tables that are available in the underlying data sources.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsQuickSightDataset,
 			},
+
+			// Steampipe Standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -150,12 +160,6 @@ func listAwsQuickSightDatasets(ctx context.Context, d *plugin.QueryData, h *plug
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			var ae smithy.APIError
-			if errors.As(err, &ae) {
-				if ae.ErrorCode() == "ResourceNotFoundException" {
-					return nil, nil
-				}
-			}
 			plugin.Logger(ctx).Error("aws_quicksight_dataset.listAwsQuickSightDatasets", "api_error", err)
 			return nil, err
 		}
@@ -206,12 +210,6 @@ func getAwsQuickSightDataset(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Get call
 	data, err := svc.DescribeDataSet(ctx, params)
 	if err != nil {
-		var ae smithy.APIError
-		if errors.As(err, &ae) {
-			if ae.ErrorCode() == "ResourceNotFoundException" {
-				return nil, nil
-			}
-		}
 		plugin.Logger(ctx).Error("aws_quicksight_dataset.getAwsQuickSightDataset", "api_error", err)
 		return nil, err
 	}

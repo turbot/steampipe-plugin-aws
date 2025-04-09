@@ -53,25 +53,11 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 				Name:        "creation_status",
 				Description: "The creation status of the namespace.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CreationStatus"),
 			},
 			{
 				Name:        "identity_store",
 				Description: "The identity store used for the namespace.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("IdentityStore"),
-			},
-			{
-				Name:        "iam_identity_center_application_arn",
-				Description: "The ARN of the IAM Identity Center application that is integrated with Amazon QuickSight.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("IamIdentityCenterApplicationArn"),
-			},
-			{
-				Name:        "iam_identity_center_instance_arn",
-				Description: "The ARN of the IAM Identity Center instance that is integrated with Amazon QuickSight.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("IamIdentityCenterInstanceArn"),
 			},
 			{
 				Name:        "namespace_error",
@@ -79,6 +65,8 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("NamespaceError"),
 			},
+
+			// Steampipe Standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),

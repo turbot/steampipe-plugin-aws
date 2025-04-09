@@ -61,57 +61,49 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 				Name:        "role",
 				Description: "The user's role.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Role"),
 			},
 			{
 				Name:        "identity_type",
 				Description: "The type of identity authentication used by the user.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("IdentityType"),
 			},
 			{
 				Name:        "active",
 				Description: "The active status of the user. When you create an Amazon QuickSight user that's not an IAM user or an Active Directory user, that user is inactive until they sign in and provide a password.",
 				Type:        proto.ColumnType_BOOL,
-				Transform:   transform.FromField("Active"),
 			},
 			{
 				Name:        "principal_id",
 				Description: "The principal ID of the user.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("PrincipalId"),
+			},
+			{
+				Name:        "external_login_id",
+				Description: "The identity ID for the user in the external login provider.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "namespace",
 				Description: "The namespace. Currently, you should set this to default.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("namespace"),
-				Default:     "default",
 			},
 			{
 				Name:        "custom_permissions_name",
 				Description: "The custom permissions profile associated with this user.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CustomPermissionsName"),
 			},
 			{
 				Name:        "external_login_federation_provider_type",
 				Description: "The type of supported external login provider that provides identity to let a user federate into Amazon QuickSight with an associated AWS Identity and Access Management (IAM) role.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ExternalLoginFederationProviderType"),
 			},
 			{
 				Name:        "external_login_federation_provider_url",
 				Description: "The URL of the external login provider.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ExternalLoginFederationProviderUrl"),
 			},
-			{
-				Name:        "custom_federation_provider_url",
-				Description: "The URL of the custom OpenID Connect (OIDC) provider that provides identity to let a user federate into Amazon QuickSight with an associated AWS Identity and Access Management (IAM) role.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CustomFederationProviderUrl"),
-			},
+
+			// Steampipe Standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -120,6 +112,11 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+type QuickSightUser struct {
+	types.User
+	Namespace string
 }
 
 //// LIST FUNCTION
@@ -177,7 +174,7 @@ func listAwsQuickSightUsers(ctx context.Context, d *plugin.QueryData, h *plugin.
 		}
 
 		for _, item := range output.UserList {
-			d.StreamListItem(ctx, item)
+			d.StreamListItem(ctx, QuickSightUser{User: item, Namespace: *namespaceInfo.Name})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -227,5 +224,5 @@ func getAwsQuickSightUser(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
-	return *data.User, nil
+	return QuickSightUser{User: *data.User, Namespace: namespace}, nil
 }

@@ -72,13 +72,11 @@ func tableAwsQuickSightDatasource(_ context.Context) *plugin.Table {
 				Name:        "vpc_connection_properties",
 				Description: "The VPC connection properties of the data source.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("VpcConnectionProperties"),
 			},
 			{
 				Name:        "ssl_properties",
 				Description: "Secure Socket Layer (SSL) properties that apply when QuickSight connects to your underlying data source.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("SslProperties"),
 			},
 			{
 				Name:        "error_info",
@@ -95,6 +93,8 @@ func tableAwsQuickSightDatasource(_ context.Context) *plugin.Table {
 				Description: "A list of alternate data source parameters.",
 				Type:        proto.ColumnType_JSON,
 			},
+
+			// Steampipe Standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),

@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/quicksight"
 	"github.com/aws/aws-sdk-go-v2/service/quicksight/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -32,9 +34,6 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 			Tags:          map[string]string{"service": "quicksight", "action": "ListGroups"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "namespace", Require: plugin.Optional},
-			},
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_QUICKSIGHT_SERVICE_ID),
@@ -67,9 +66,9 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 				Name:        "namespace",
 				Description: "The namespace. Currently, you should set this to default.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("namespace"),
-				Default:     "default",
 			},
+
+			// Steampipe Standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -78,6 +77,11 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+type QuickSightGroup struct {
+	types.Group
+	Namespace string
 }
 
 //// LIST FUNCTION
@@ -130,12 +134,20 @@ func listAwsQuickSightGroups(ctx context.Context, d *plugin.QueryData, h *plugin
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			//In the case of parent hydrate use the ignore config is not working as expected in the list config.
+			//So we are using this workaround to ignore the ResourceNotFoundException
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "ResourceNotFoundException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_quicksight_group.listAwsQuickSightGroups", "api_error", err)
 			return nil, err
 		}
 
 		for _, item := range output.GroupList {
-			d.StreamListItem(ctx, item)
+			d.StreamListItem(ctx, QuickSightGroup{Group: item, Namespace: *namespaceInfo.Name})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
@@ -185,5 +197,5 @@ func getAwsQuickSightGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
-	return *data.Group, nil
+	return QuickSightGroup{Group: *data.Group, Namespace: namespace}, nil
 }

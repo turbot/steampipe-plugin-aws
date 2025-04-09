@@ -1,0 +1,156 @@
+---
+title: "Steampipe Table: aws_quicksight_account_settings - Query AWS QuickSight Account Settings using SQL"
+description: "Allows users to query AWS QuickSight Account Settings, providing details about the QuickSight account configuration, edition, notification settings, and security features."
+---
+
+# Table: aws_quicksight_account_settings - Query AWS QuickSight Account Settings using SQL
+
+AWS QuickSight Account Settings represent the configuration and preferences set for your QuickSight account. These settings include account name, edition type, notification email, security features, and various other configurations that determine how QuickSight operates within your AWS environment.
+
+## Table Usage Guide
+
+The `aws_quicksight_account_settings` table in Steampipe provides you with information about account settings within AWS QuickSight. This table allows you, as a data analyst or administrator, to query account-specific details, including edition type, notification settings, security configurations, and various other account-level settings. You can utilize this table to gather insights on account configurations, such as termination protection status, public sharing settings, and notification preferences.
+
+## Examples
+
+### Basic info
+
+Explore the basic configuration of your AWS QuickSight account to understand its setup and security settings.
+
+```sql+postgres
+select
+  account_name,
+  edition,
+  default_namespace,
+  notification_email,
+  termination_protection_enabled,
+  public_sharing_enabled
+from
+  aws_quicksight_account_settings;
+```
+
+```sql+sqlite
+select
+  account_name,
+  edition,
+  default_namespace,
+  notification_email,
+  termination_protection_enabled,
+  public_sharing_enabled
+from
+  aws_quicksight_account_settings;
+```
+
+### Check accounts with termination protection disabled
+
+Identify AWS QuickSight accounts that might be at risk due to disabled termination protection.
+
+```sql+postgres
+select
+  account_name,
+  edition,
+  notification_email,
+  termination_protection_enabled
+from
+  aws_quicksight_account_settings
+where
+  not termination_protection_enabled;
+```
+
+```sql+sqlite
+select
+  account_name,
+  edition,
+  notification_email,
+  termination_protection_enabled
+from
+  aws_quicksight_account_settings
+where
+  termination_protection_enabled = 0;
+```
+
+### List accounts with public sharing enabled
+
+Identify accounts that have public sharing enabled to assess potential data exposure risks.
+
+```sql+postgres
+select
+  account_name,
+  edition,
+  notification_email,
+  public_sharing_enabled
+from
+  aws_quicksight_account_settings
+where
+  public_sharing_enabled;
+```
+
+```sql+sqlite
+select
+  account_name,
+  edition,
+  notification_email,
+  public_sharing_enabled
+from
+  aws_quicksight_account_settings
+where
+  public_sharing_enabled = 1;
+```
+
+### Get enterprise edition accounts
+
+List all QuickSight accounts that are using the Enterprise edition to understand feature availability.
+
+```sql+postgres
+select
+  account_name,
+  edition,
+  default_namespace,
+  notification_email
+from
+  aws_quicksight_account_settings
+where
+  edition = 'ENTERPRISE';
+```
+
+```sql+sqlite
+select
+  account_name,
+  edition,
+  default_namespace,
+  notification_email
+from
+  aws_quicksight_account_settings
+where
+  edition = 'ENTERPRISE';
+```
+
+### Get account settings by region
+
+Analyze QuickSight account settings across different AWS regions.
+
+```sql+postgres
+select
+  region,
+  account_name,
+  edition,
+  default_namespace,
+  public_sharing_enabled
+from
+  aws_quicksight_account_settings
+order by
+  region;
+```
+
+```sql+sqlite
+select
+  region,
+  account_name,
+  edition,
+  default_namespace,
+  public_sharing_enabled
+from
+  aws_quicksight_account_settings
+order by
+  region;
+```
