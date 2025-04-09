@@ -411,6 +411,8 @@ github.com/aws/aws-sdk-go-v2/service/pipes v1.11.4 h1:xOLwoRZoNFTNeM1W6jafNh9xFm
 github.com/aws/aws-sdk-go-v2/service/pipes v1.11.4/go.mod h1:mvuBjGM/Fc/GbFTF4SNX4BtXg4SX9WwB6r8a2mOztCc=
 github.com/aws/aws-sdk-go-v2/service/pricing v1.28.1 h1:BUaW46SlGFEqknJq82CjFPTI/M7LhiGuZrLf2zowXiY=
 github.com/aws/aws-sdk-go-v2/service/pricing v1.28.1/go.mod h1:nRP1NcPnLcvdtG5z0QFxYKK2UwV7/ZZaAXh4YMGlGMc=
+github.com/aws/aws-sdk-go-v2/service/quicksight v1.64.2 h1:qJ85WPSt8VLAW59GGsqDFCdQB/CbgXK9wnUWuEyvfiA=
+github.com/aws/aws-sdk-go-v2/service/quicksight v1.64.2/go.mod h1:gjmbCte2Tbq1mOgNd4bG4UlbEbba4jyFd6JtZpHuVng=
 github.com/aws/aws-sdk-go-v2/service/ram v1.25.4 h1:jkrrriOy9I7ZpswuT7wzcOvClm5RC7sFJrw/qQTl0cs=
 github.com/aws/aws-sdk-go-v2/service/ram v1.25.4/go.mod h1:ZDVnnA45kEAe24PtJOB3pgU0GdKeoRAJPIDCIVXal9c=
 github.com/aws/aws-sdk-go-v2/service/rds v1.77.0 h1:5U1HvcksSLGJ81tXSDEPYGqkSRxlLcobrMBv8OvuDsY=
@@ -491,8 +493,8 @@ github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4 h1:OuFs453KXWTLBkem
 github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4/go.mod h1:MRT/P9Cwn+7xCCVpD1sTvUESiWMAc9hA+FooRsW5fe8=
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4 h1:SvHYikdxmnyptMebU3zFfXbfU96SHzdUX+KXqa6pjYE=
 github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4/go.mod h1:1XK49PATLHBd7mpKqO91GqRuV7bEsmyQ8Lslvn3fFj4=
-github.com/aws/smithy-go v1.22.1 h1:/HPHZQ0g7f4eUeK6HKglFz8uwVfZKgoI25rb/J+dnro=
-github.com/aws/smithy-go v1.22.1/go.mod h1:irrKGvNn1InZwb2d7fkIRNucdfwR8R+Ts3wxYa/cJHg=
+github.com/aws/smithy-go v1.22.2 h1:6D9hW43xKFrRx/tXXfAlIZc4JI+yQe6snnWcQyxSyLQ=
+github.com/aws/smithy-go v1.22.2/go.mod h1:irrKGvNn1InZwb2d7fkIRNucdfwR8R+Ts3wxYa/cJHg=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=

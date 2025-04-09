@@ -1,0 +1,231 @@
+package aws
+
+import (
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/quicksight"
+	"github.com/aws/aws-sdk-go-v2/service/quicksight/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+)
+
+//// TABLE DEFINITION
+
+func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_quicksight_user",
+		Description: "AWS QuickSight User",
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.AllColumns([]string{"user_name", "namespace"}),
+			Hydrate:    getAwsQuickSightUser,
+			Tags:       map[string]string{"service": "quicksight", "action": "DescribeUser"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterValueException"}),
+			},
+		},
+		List: &plugin.ListConfig{
+			ParentHydrate: listAwsQuickSightNamespaces,
+			Hydrate:       listAwsQuickSightUsers,
+			Tags:          map[string]string{"service": "quicksight", "action": "ListUsers"},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "namespace", Require: plugin.Optional},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterValueException"}),
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_QUICKSIGHT_SERVICE_ID),
+		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "user_name",
+				Description: "The user's user name.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("UserName"),
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) for the user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Arn"),
+			},
+			{
+				Name:        "email",
+				Description: "The user's email address.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Email"),
+			},
+			{
+				Name:        "role",
+				Description: "The user's role.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Role"),
+			},
+			{
+				Name:        "identity_type",
+				Description: "The type of identity authentication used by the user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("IdentityType"),
+			},
+			{
+				Name:        "active",
+				Description: "The active status of the user. When you create an Amazon QuickSight user that's not an IAM user or an Active Directory user, that user is inactive until they sign in and provide a password.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("Active"),
+			},
+			{
+				Name:        "principal_id",
+				Description: "The principal ID of the user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PrincipalId"),
+			},
+			{
+				Name:        "namespace",
+				Description: "The namespace. Currently, you should set this to default.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("namespace"),
+				Default:     "default",
+			},
+			{
+				Name:        "custom_permissions_name",
+				Description: "The custom permissions profile associated with this user.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("CustomPermissionsName"),
+			},
+			{
+				Name:        "external_login_federation_provider_type",
+				Description: "The type of supported external login provider that provides identity to let a user federate into Amazon QuickSight with an associated AWS Identity and Access Management (IAM) role.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ExternalLoginFederationProviderType"),
+			},
+			{
+				Name:        "external_login_federation_provider_url",
+				Description: "The URL of the external login provider.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ExternalLoginFederationProviderUrl"),
+			},
+			{
+				Name:        "custom_federation_provider_url",
+				Description: "The URL of the custom OpenID Connect (OIDC) provider that provides identity to let a user federate into Amazon QuickSight with an associated AWS Identity and Access Management (IAM) role.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("CustomFederationProviderUrl"),
+			},
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("UserName"),
+			},
+		}),
+	}
+}
+
+//// LIST FUNCTION
+
+func listAwsQuickSightUsers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create client
+	svc, err := QuickSightClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_quicksight_user.listAwsQuickSightUsers", "connection_error", err)
+		return nil, err
+	}
+
+	// Get namespace from parent or quals
+	namespaceInfo := h.Item.(types.NamespaceInfoV2)
+	if d.EqualsQuals["namespace"] != nil && d.EqualsQuals["namespace"].GetStringValue() != *namespaceInfo.Name {
+		return nil, nil
+	}
+
+	// Get AWS Account ID
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
+	}
+
+	input := &quicksight.ListUsersInput{
+		AwsAccountId: aws.String(commonColumnData.AccountId),
+		Namespace:    namespaceInfo.Name,
+		MaxResults:   aws.Int32(maxLimit),
+	}
+
+	paginator := quicksight.NewListUsersPaginator(svc, input, func(o *quicksight.ListUsersPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_quicksight_user.listAwsQuickSightUsers", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.UserList {
+			d.StreamListItem(ctx, item)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+	}
+
+	return nil, nil
+}
+
+//// HYDRATE FUNCTIONS
+
+func getAwsQuickSightUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create client
+	svc, err := QuickSightClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_quicksight_user.getAwsQuickSightUser", "connection_error", err)
+		return nil, err
+	}
+
+	userName := d.EqualsQuals["user_name"].GetStringValue()
+	namespace := d.EqualsQuals["namespace"].GetStringValue()
+
+	// Default namespace is default
+	if namespace == "" {
+		namespace = "default"
+	}
+
+	// Get AWS Account ID
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	params := &quicksight.DescribeUserInput{
+		AwsAccountId: aws.String(commonColumnData.AccountId),
+		Namespace:    aws.String(namespace),
+		UserName:     aws.String(userName),
+	}
+
+	// Get call
+	data, err := svc.DescribeUser(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_quicksight_user.getAwsQuickSightUser", "api_error", err)
+		return nil, err
+	}
+
+	return *data.User, nil
+}

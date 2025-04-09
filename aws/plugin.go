@@ -588,6 +588,12 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wellarchitected_workload_share":                           tableAwsWellArchitectedWorkloadShare(ctx),
 			"aws_workspaces_directory":                                     tableAwsWorkspacesDirectory(ctx),
 			"aws_workspaces_workspace":                                     tableAwsWorkspace(ctx),
+			"aws_quicksight_account_settings":                              tableAwsQuickSightAccountSettings(ctx),
+			"aws_quicksight_dataset":                                       tableAwsQuickSightDataset(ctx),
+			"aws_quicksight_datasource":                                    tableAwsQuickSightDatasource(ctx),
+			"aws_quicksight_group":                                         tableAwsQuickSightGroup(ctx),
+			"aws_quicksight_namespace":                                     tableAwsQuickSightNamespace(ctx),
+			"aws_quicksight_user":                                          tableAwsQuickSightUser(ctx),
 		},
 	}
 
