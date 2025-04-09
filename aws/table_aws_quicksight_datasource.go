@@ -61,7 +61,7 @@ func tableAwsQuickSightDatasource(_ context.Context) *plugin.Table {
 			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
 			{
 				Name:        "quicksight_account_id",
-				Description: "The account name displayed for the account.",
+				Description: "The Amazon Web Services account ID where the data source is located.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("quicksight_account_id"),
 			},
