@@ -14,109 +14,97 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsQuickSightDataset(_ context.Context) *plugin.Table {
+func tableAwsQuickSightVpcConnection(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_quicksight_dataset",
-		Description: "AWS QuickSight Dataset",
+		Name:        "aws_quicksight_vpc_connection",
+		Description: "AWS QuickSight VPC Connection",
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "dataset_id", Require: plugin.Required},
+				{Name: "vpc_connection_id", Require: plugin.Required},
 				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
-			Hydrate: getAwsQuickSightDataset,
+			Hydrate: getAwsQuickSightVpcConnection,
+			Tags:    map[string]string{"service": "quicksight", "action": "DescribeVPCConnection"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
-			Tags: map[string]string{"service": "quicksight", "action": "DescribeDataSet"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsQuickSightDatasets,
+			Hydrate: listAwsQuickSightVpcConnections,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
-			Tags: map[string]string{"service": "quicksight", "action": "ListDataSets"},
+			Tags: map[string]string{"service": "quicksight", "action": "ListVPCConnections"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_QUICKSIGHT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "A display name for the dataset.",
+				Description: "A display name for the VPC connection.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "dataset_id",
-				Description: "The ID of the dataset.",
+				Name:        "vpc_connection_id",
+				Description: "The ID of the VPC connection.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("DataSetId"),
+				Transform:   transform.FromField("VPCConnectionId"),
 			},
 			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
 			{
 				Name:        "quicksight_account_id",
-				Description: "The Amazon Web Services account ID where the dataset is located.",
+				Description: "The Amazon Web Services account ID where the VPC connection is located.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("quicksight_account_id"),
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) of the resource.",
+				Description: "The Amazon Resource Name (ARN) of the VPC connection.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "created_time",
-				Description: "The time that this dataset was created.",
+				Description: "The time that this VPC connection was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "last_updated_time",
-				Description: "The last time that this dataset was updated.",
+				Description: "The last time that this VPC connection was updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "import_mode",
-				Description: "A value that indicates whether you want to import the data into SPICE.",
+				Name:        "status",
+				Description: "The status of the VPC connection.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "row_level_permission_data_set",
-				Description: "The row-level security configuration for the dataset.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("RowLevelPermissionDataSet"),
+				Name:        "availability_status",
+				Description: "The availability status of the VPC connection.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "column_groups",
-				Description: "Groupings of columns that work together in certain Amazon QuickSight features.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsQuickSightDataset,
+				Name:        "role_arn",
+				Description: "The ARN of the IAM role used to create the VPC connection.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "column_level_permission_rules",
-				Description: "A set of one or more definitions of a ColumnLevelPermissionRule.",
+				Name:        "security_group_ids",
+				Description: "The security group IDs used for the VPC connection.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsQuickSightDataset,
 			},
 			{
-				Name:        "data_set_usage_configuration",
-				Description: "The usage configuration to apply to child datasets that reference this dataset as a source.",
+				Name:        "dns_resolvers",
+				Description: "The DNS resolvers used for the VPC connection.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsQuickSightDataset,
 			},
 			{
-				Name:        "logical_table_map",
-				Description: "Configures the combination and transformation of the data from the physical tables.",
+				Name:        "network_interfaces",
+				Description: "Information about the network interfaces for the VPC connection.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsQuickSightDataset,
 			},
 			{
-				Name:        "output_columns",
-				Description: "Output columns for the dataset.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsQuickSightDataset,
-			},
-			{
-				Name:        "physical_table_map",
-				Description: "Declares the physical tables that are available in the underlying data sources.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsQuickSightDataset,
+				Name:        "vpc_id",
+				Description: "The ID of the VPC associated with the connection.",
+				Type:        proto.ColumnType_STRING,
 			},
 
 			// Steampipe Standard columns
@@ -132,16 +120,15 @@ func tableAwsQuickSightDataset(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsQuickSightDatasets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsQuickSightVpcConnections(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create client
 	svc, err := QuickSightClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_quicksight_dataset.listAwsQuickSightDatasets", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_quicksight_vpc_connection.listAwsQuickSightVpcConnections", "connection_error", err)
 		return nil, err
 	}
 
 	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
-
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -162,12 +149,12 @@ func listAwsQuickSightDatasets(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 	}
 
-	input := &quicksight.ListDataSetsInput{
+	input := &quicksight.ListVPCConnectionsInput{
 		AwsAccountId: aws.String(accountId),
 		MaxResults:   aws.Int32(maxLimit),
 	}
 
-	paginator := quicksight.NewListDataSetsPaginator(svc, input, func(o *quicksight.ListDataSetsPaginatorOptions) {
+	paginator := quicksight.NewListVPCConnectionsPaginator(svc, input, func(o *quicksight.ListVPCConnectionsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
@@ -179,11 +166,11 @@ func listAwsQuickSightDatasets(ctx context.Context, d *plugin.QueryData, h *plug
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_quicksight_dataset.listAwsQuickSightDatasets", "api_error", err)
+			plugin.Logger(ctx).Error("aws_quicksight_vpc_connection.listAwsQuickSightVpcConnections", "api_error", err)
 			return nil, err
 		}
 
-		for _, item := range output.DataSetSummaries {
+		for _, item := range output.VPCConnectionSummaries {
 			d.StreamListItem(ctx, item)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
@@ -198,22 +185,23 @@ func listAwsQuickSightDatasets(ctx context.Context, d *plugin.QueryData, h *plug
 
 //// HYDRATE FUNCTIONS
 
-func getAwsQuickSightDataset(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsQuickSightVpcConnection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create client
 	svc, err := QuickSightClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_quicksight_dataset.getAwsQuickSightDataset", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_quicksight_vpc_connection.getAwsQuickSightVpcConnection", "connection_error", err)
 		return nil, err
 	}
 
-	var datasetID string
+	var vpcConnectionId string
 	if h.Item != nil {
-		datasetID = *h.Item.(types.DataSetSummary).DataSetId
+		vpcConnectionId = *h.Item.(types.VPCConnectionSummary).VPCConnectionId
 	} else {
-		datasetID = d.EqualsQuals["dataset_id"].GetStringValue()
+		vpcConnectionId = d.EqualsQuals["vpc_connection_id"].GetStringValue()
 	}
 
 	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
+
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -226,17 +214,17 @@ func getAwsQuickSightDataset(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Build the params
-	params := &quicksight.DescribeDataSetInput{
-		AwsAccountId: aws.String(accountId),
-		DataSetId:    aws.String(datasetID),
+	params := &quicksight.DescribeVPCConnectionInput{
+		AwsAccountId:    aws.String(accountId),
+		VPCConnectionId: aws.String(vpcConnectionId),
 	}
 
 	// Get call
-	data, err := svc.DescribeDataSet(ctx, params)
+	data, err := svc.DescribeVPCConnection(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_quicksight_dataset.getAwsQuickSightDataset", "api_error", err)
+		plugin.Logger(ctx).Error("aws_quicksight_vpc_connection.getAwsQuickSightVpcConnection", "api_error", err)
 		return nil, err
 	}
 
-	return *data.DataSet, nil
+	return *data.VPCConnection, nil
 }

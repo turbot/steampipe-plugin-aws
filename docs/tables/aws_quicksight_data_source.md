@@ -1,15 +1,15 @@
 ---
-title: "Steampipe Table: aws_quicksight_datasource - Query AWS QuickSight Data Sources using SQL"
+title: "Steampipe Table: aws_quicksight_data_source - Query AWS QuickSight Data Sources using SQL"
 description: "Allows users to query AWS QuickSight Data Sources, providing details about data source configurations, connections, and status information."
 ---
 
-# Table: aws_quicksight_datasource - Query AWS QuickSight Data Sources using SQL
+# Table: aws_quicksight_data_source - Query AWS QuickSight Data Sources using SQL
 
 AWS QuickSight Data Source is a connection to your data that QuickSight uses to create datasets. It contains the connection information, credentials, and other parameters needed to access your data from various sources like Amazon S3, Amazon RDS, or other supported data sources.
 
 ## Table Usage Guide
 
-The `aws_quicksight_datasource` table in Steampipe provides you with information about data sources within AWS QuickSight. This table allows you, as a data analyst or administrator, to query data source-specific details, including connection properties, status, and configuration parameters. You can utilize this table to gather insights on data sources, such as their creation time, last update time, connection status, and type.
+The `aws_quicksight_data_source` table in Steampipe provides you with information about data sources within AWS QuickSight. This table allows you, as a data analyst or administrator, to query data source-specific details, including connection properties, status, and configuration parameters. You can utilize this table to gather insights on data sources, such as their creation time, last update time, connection status, and type.
 
 ## Examples
 
@@ -27,7 +27,7 @@ select
   status,
   type
 from
-  aws_quicksight_datasource;
+  aws_quicksight_data_source;
 ```
 
 ```sql+sqlite
@@ -40,7 +40,7 @@ select
   status,
   type
 from
-  aws_quicksight_datasource;
+  aws_quicksight_data_source;
 ```
 
 ### List failed data sources
@@ -54,7 +54,7 @@ select
   status,
   error_info
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   status like '%FAILED%';
 ```
@@ -66,7 +66,7 @@ select
   status,
   error_info
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   status like '%FAILED%';
 ```
@@ -82,7 +82,7 @@ select
   status,
   data_source_parameters
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   type = 'S3';
 ```
@@ -94,7 +94,7 @@ select
   status,
   data_source_parameters
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   type = 'S3';
 ```
@@ -109,7 +109,7 @@ select
   data_source_id,
   vpc_connection_properties
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   vpc_connection_properties is not null;
 ```
@@ -120,7 +120,7 @@ select
   data_source_id,
   vpc_connection_properties
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   vpc_connection_properties is not null;
 ```
@@ -135,7 +135,7 @@ select
   data_source_id,
   ssl_properties
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   ssl_properties is not null;
 ```
@@ -146,7 +146,7 @@ select
   data_source_id,
   ssl_properties
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   ssl_properties is not null;
 ```
@@ -162,7 +162,7 @@ select
   type,
   alternate_data_source_parameters
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   alternate_data_source_parameters is not null;
 ```
@@ -174,7 +174,7 @@ select
   type,
   alternate_data_source_parameters
 from
-  aws_quicksight_datasource
+  aws_quicksight_data_source
 where
   alternate_data_source_parameters is not null;
 ```

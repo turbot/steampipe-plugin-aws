@@ -16,7 +16,7 @@ import (
 
 func tableAwsQuickSightDatasource(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_quicksight_datasource",
+		Name:        "aws_quicksight_data_source",
 		Description: "AWS QuickSight Data Source",
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
@@ -124,7 +124,7 @@ func listAwsQuickSightDatasources(ctx context.Context, d *plugin.QueryData, h *p
 	// Create client
 	svc, err := QuickSightClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_quicksight_datasource.listAwsQuickSightDatasources", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_quicksight_data_source.listAwsQuickSightDatasources", "connection_error", err)
 		return nil, err
 	}
 
@@ -166,7 +166,7 @@ func listAwsQuickSightDatasources(ctx context.Context, d *plugin.QueryData, h *p
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_quicksight_datasource.listAwsQuickSightDatasources", "api_error", err)
+			plugin.Logger(ctx).Error("aws_quicksight_data_source.listAwsQuickSightDatasources", "api_error", err)
 			return nil, err
 		}
 
@@ -189,7 +189,7 @@ func getAwsQuickSightDatasource(ctx context.Context, d *plugin.QueryData, h *plu
 	// Create client
 	svc, err := QuickSightClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_quicksight_datasource.getAwsQuickSightDatasource", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_quicksight_data_source.getAwsQuickSightDatasource", "connection_error", err)
 		return nil, err
 	}
 
@@ -222,7 +222,7 @@ func getAwsQuickSightDatasource(ctx context.Context, d *plugin.QueryData, h *plu
 	// Get call
 	data, err := svc.DescribeDataSource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_quicksight_datasource.getAwsQuickSightDatasource", "api_error", err)
+		plugin.Logger(ctx).Error("aws_quicksight_data_source.getAwsQuickSightDatasource", "api_error", err)
 		return nil, err
 	}
 
