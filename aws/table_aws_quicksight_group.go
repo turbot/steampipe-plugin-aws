@@ -128,7 +128,7 @@ func listAwsQuickSightGroups(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, nil
 	}
 
-	accountId := d.EqualsQuals["namespace"].GetStringValue()
+	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -205,12 +205,7 @@ func getAwsQuickSightGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	groupName := d.EqualsQuals["group_name"].GetStringValue()
 	namespace := d.EqualsQuals["namespace"].GetStringValue()
 
-	accountId := d.EqualsQuals["namespace"].GetStringValue()
-
-	// Default namespace is default
-	if namespace == "" {
-		namespace = "default"
-	}
+	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)

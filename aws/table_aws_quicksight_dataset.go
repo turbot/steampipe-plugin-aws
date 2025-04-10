@@ -149,7 +149,7 @@ func listAwsQuickSightDatasets(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 
-	accountId := d.EqualsQuals["namespace"].GetStringValue()
+	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
@@ -222,7 +222,7 @@ func getAwsQuickSightDataset(ctx context.Context, d *plugin.QueryData, h *plugin
 		datasetID = d.EqualsQuals["dataset_id"].GetStringValue()
 	}
 
-	accountId := d.EqualsQuals["namespace"].GetStringValue()
+	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {

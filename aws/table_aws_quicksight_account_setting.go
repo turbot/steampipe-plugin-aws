@@ -97,7 +97,7 @@ func listAwsQuickSightAccountSettings(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
-	accountId := d.EqualsQuals["namespace"].GetStringValue()
+	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {

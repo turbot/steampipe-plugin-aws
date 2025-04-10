@@ -109,7 +109,7 @@ func listAwsQuickSightNamespaces(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 
-	accountId := d.EqualsQuals["namespace"].GetStringValue()
+	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -176,7 +176,7 @@ func getAwsQuickSightNamespace(ctx context.Context, d *plugin.QueryData, h *plug
 
 	namespaceName := d.EqualsQuals["name"].GetStringValue()
 
-	accountId := d.EqualsQuals["namespace"].GetStringValue()
+	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {

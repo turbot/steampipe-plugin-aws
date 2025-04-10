@@ -156,7 +156,7 @@ func listAwsQuickSightUsers(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, nil
 	}
 
-	accountId := d.EqualsQuals["namespace"].GetStringValue()
+	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -225,7 +225,7 @@ func getAwsQuickSightUser(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	userName := d.EqualsQuals["user_name"].GetStringValue()
 	namespace := d.EqualsQuals["namespace"].GetStringValue()
 
-	accountId := d.EqualsQuals["namespace"].GetStringValue()
+	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 	// Get AWS Account ID
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
