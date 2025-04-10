@@ -28,7 +28,7 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 			Hydrate: getAwsQuickSightUser,
 			Tags:    map[string]string{"service": "quicksight", "action": "DescribeUser"},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -41,7 +41,7 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 				{Name: "region", Require: plugin.Required},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_QUICKSIGHT_SERVICE_ID),

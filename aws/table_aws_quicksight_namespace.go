@@ -34,7 +34,7 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 				// Namespaces can only be created in the QuickSight identity region.
 				// When listing namespaces from other regions, the API returns the same results,
 				// which can lead to duplicate entries.
-				// Simply requiring the "region" as a qualifier still allows incorrect to be returned.
+				// Simply requiring the "region" as a qualifier still allows incorrect results to be returned.
 				//
 				// Example: For the query "SELECT * FROM aws_quicksight_namespace WHERE region = 'us-east-1';"
 				// (where 'us-east-1' is a non-identity region), the API still returns namespaces that exist in the identity region, in my case identity region is "ap-south-1".
