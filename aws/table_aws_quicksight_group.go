@@ -194,6 +194,11 @@ func getAwsQuickSightGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	groupName := d.EqualsQuals["group_name"].GetStringValue()
 	namespace := d.EqualsQuals["namespace"].GetStringValue()
 
+	// Empty check for required parameters
+	if groupName == "" || namespace == "" {
+		return nil, nil
+	}
+
 	accountId := d.EqualsQuals["quicksight_account_id"].GetStringValue()
 
 	// Get AWS Account ID
