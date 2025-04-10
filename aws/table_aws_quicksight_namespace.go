@@ -19,14 +19,8 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 		Description: "AWS QuickSight Namespace",
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "quicksight_account_id",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "name",
-					Require: plugin.Required,
-				},
+				{Name: "name", Require: plugin.Required},
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
 			Hydrate: getAwsQuickSightNamespace,
 			Tags:    map[string]string{"service": "quicksight", "action": "DescribeNamespace"},
@@ -37,10 +31,17 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsQuickSightNamespaces,
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "quicksight_account_id",
-					Require: plugin.Optional,
-				},
+				// Namespaces can only be created in the QuickSight identity region.
+				// When listing namespaces from other regions, the API returns the same results,
+				// which can lead to duplicate entries.
+				// Simply requiring the "region" as a qualifier still allows incorrect to be returned.
+				//
+				// Example: For the query "SELECT * FROM aws_quicksight_namespace WHERE region = 'us-east-1';"
+				// (where 'us-east-1' is a non-identity region), the API still returns namespaces that exist in the identity region, in my case identity region is "ap-south-1".
+				//
+				// Instead, we’ve added a check in the list function to return results only when the queried region
+				// matches the QuickSight capacity (identity) region.
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
 			Tags: map[string]string{"service": "quicksight", "action": "ListNamespaces"},
 		},
@@ -50,13 +51,11 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the namespace.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the namespace.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Arn"),
 			},
 			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
 			{
@@ -69,7 +68,6 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 				Name:        "capacity_region",
 				Description: "The region that hosts the namespace's capacity.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CapacityRegion"),
 			},
 			{
 				Name:        "creation_status",
@@ -85,7 +83,6 @@ func tableAwsQuickSightNamespace(_ context.Context) *plugin.Table {
 				Name:        "namespace_error",
 				Description: "The error type and message for a namespace error.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("NamespaceError"),
 			},
 
 			// Steampipe Standard columns
@@ -152,11 +149,15 @@ func listAwsQuickSightNamespaces(ctx context.Context, d *plugin.QueryData, h *pl
 		}
 
 		for _, item := range output.Namespaces {
-			d.StreamListItem(ctx, item)
+			// The API returns the same result regardless of the region.
+			// Adding a check for the capacity region helps prevent duplicate entries.
+			if d.EqualsQuals[matrixKeyRegion].GetStringValue() == *item.CapacityRegion {
+				d.StreamListItem(ctx, item)
 
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
 			}
 		}
 	}

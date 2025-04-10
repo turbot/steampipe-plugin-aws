@@ -22,18 +22,10 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 		Description: "AWS QuickSight Group",
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "quicksight_account_id",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "group_name",
-					Require: plugin.Required,
-				},
-				{
-					Name:    "namespace",
-					Require: plugin.Required,
-				},
+				{Name:    "group_name", Require: plugin.Required},
+				{Name:    "region", Require: plugin.Required},
+				{Name:    "namespace", Require: plugin.Required},
+				{Name:    "quicksight_account_id", Require: plugin.Optional},
 			},
 			Hydrate: getAwsQuickSightGroup,
 			Tags:    map[string]string{"service": "quicksight", "action": "DescribeGroup"},
@@ -48,6 +40,7 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "quicksight_account_id", Require: plugin.Optional},
 				{Name: "namespace", Require: plugin.Optional},
+				{Name: "region", Require: plugin.Required},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_QUICKSIGHT_SERVICE_ID),
@@ -56,13 +49,11 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 				Name:        "group_name",
 				Description: "The name of the group.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("GroupName"),
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) for the group.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Arn"),
 			},
 			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
 			{
@@ -75,13 +66,11 @@ func tableAwsQuickSightGroup(_ context.Context) *plugin.Table {
 				Name:        "description",
 				Description: "The group description.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Description"),
 			},
 			{
 				Name:        "principal_id",
 				Description: "The principal ID of the group.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("PrincipalId"),
 			},
 			{
 				Name:        "namespace",

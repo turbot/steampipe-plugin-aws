@@ -11,6 +11,11 @@ AWS QuickSight User represents an individual account that can access and interac
 
 The `aws_quicksight_user` table in Steampipe provides you with information about users within AWS QuickSight. This table allows you, as an administrator, to query user-specific details, including roles, identity types, and access configurations. You can utilize this table to gather insights on user management, such as active status, authentication methods, and permission levels.
 
+**Important Notes**
+- You **_must_** specify `region` in a `where` clause in order to use this table.
+- User information for QuickSight is only available from the **identity region** (i.e., the region where the QuickSight account was initially created or enabled).
+- Since there is no direct API to retrieve the identity region, users must provide it manually in the query to retrieve data successfully.
+
 ## Examples
 
 ### Basic info

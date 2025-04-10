@@ -20,18 +20,10 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 		Description: "AWS QuickSight User",
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "quicksight_account_id",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "user_name",
-					Require: plugin.Required,
-				},
-				{
-					Name:    "namespace",
-					Require: plugin.Required,
-				},
+				{Name: "user_name", Require: plugin.Required},
+				{Name: "namespace", Require: plugin.Required},
+				{Name: "region", Require: plugin.Required},
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
 			Hydrate: getAwsQuickSightUser,
 			Tags:    map[string]string{"service": "quicksight", "action": "DescribeUser"},
@@ -46,6 +38,7 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "quicksight_account_id", Require: plugin.Optional},
 				{Name: "namespace", Require: plugin.Optional},
+				{Name: "region", Require: plugin.Required},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterValueException"}),
@@ -57,13 +50,11 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 				Name:        "user_name",
 				Description: "The user's user name.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("UserName"),
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) for the user.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Arn"),
 			},
 			// As we have already a column "account_id" as a common column for all the tables, we have renamed the column to "quicksight_account_id"
 			{
@@ -76,7 +67,6 @@ func tableAwsQuickSightUser(_ context.Context) *plugin.Table {
 				Name:        "email",
 				Description: "The user's email address.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Email"),
 			},
 			{
 				Name:        "role",

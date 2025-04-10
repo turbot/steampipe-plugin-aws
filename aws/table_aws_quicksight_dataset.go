@@ -20,14 +20,8 @@ func tableAwsQuickSightDataset(_ context.Context) *plugin.Table {
 		Description: "AWS QuickSight Dataset",
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "quicksight_account_id",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "dataset_id",
-					Require: plugin.Required,
-				},
+				{Name: "dataset_id", Require: plugin.Required},
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
 			Hydrate: getAwsQuickSightDataset,
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -38,10 +32,7 @@ func tableAwsQuickSightDataset(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsQuickSightDatasets,
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "quicksight_account_id",
-					Require: plugin.Optional,
-				},
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
 			Tags: map[string]string{"service": "quicksight", "action": "ListDataSets"},
 		},

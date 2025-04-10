@@ -11,6 +11,11 @@ AWS QuickSight Group is a collection of users that can be managed together for a
 
 The `aws_quicksight_group` table in Steampipe provides you with information about groups within AWS QuickSight. This table allows you, as an administrator, to query group-specific details, including group names, ARNs, and associated permissions. You can utilize this table to gather insights on group management, such as group memberships, access levels, and namespace associations.
 
+**Important Notes**
+- You **_must_** specify `region` in a `where` clause in order to use this table.
+- Group information for QuickSight is only available from the **identity region** (i.e., the region where the QuickSight account was initially created or enabled).
+- Since there is no direct API to retrieve the identity region, users must provide it manually in the query to retrieve data successfully.
+
 ## Examples
 
 ### Basic info

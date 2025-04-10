@@ -20,14 +20,8 @@ func tableAwsQuickSightDatasource(_ context.Context) *plugin.Table {
 		Description: "AWS QuickSight Data Source",
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "quicksight_account_id",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "data_source_id",
-					Require: plugin.Required,
-				},
+				{Name: "data_source_id", Require: plugin.Required},
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
 			Hydrate: getAwsQuickSightDatasource,
 			Tags:    map[string]string{"service": "quicksight", "action": "DescribeDataSource"},
@@ -38,10 +32,7 @@ func tableAwsQuickSightDatasource(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsQuickSightDatasources,
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "quicksight_account_id",
-					Require: plugin.Optional,
-				},
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
 			Tags: map[string]string{"service": "quicksight", "action": "ListDataSources"},
 		},

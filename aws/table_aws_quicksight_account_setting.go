@@ -23,10 +23,8 @@ func tableAwsQuickSightAccountSetting(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "quicksight_account_id",
-					Require: plugin.Optional,
-				},
+				{Name: "region", Require: plugin.Required},
+				{Name: "quicksight_account_id", Require: plugin.Optional},
 			},
 			Tags: map[string]string{"service": "quicksight", "action": "DescribeAccountSettings"},
 		},
