@@ -19,7 +19,6 @@ The `aws_quicksight_user` table in Steampipe provides you with information about
 ## Examples
 
 ### Basic info
-
 Explore the basic details of QuickSight users to understand who has access to your QuickSight account.
 
 ```sql+postgres
@@ -31,7 +30,9 @@ select
   identity_type,
   active
 from
-  aws_quicksight_user;
+  aws_quicksight_user
+where
+  region = 'us-east-1';
 ```
 
 ```sql+sqlite
@@ -43,11 +44,12 @@ select
   identity_type,
   active
 from
-  aws_quicksight_user;
+  aws_quicksight_user
+where
+  region = 'us-east-1';
 ```
 
 ### List admin users
-
 Identify all QuickSight users who have administrative privileges to manage security and governance.
 
 ```sql+postgres
@@ -59,7 +61,8 @@ select
 from
   aws_quicksight_user
 where
-  role = 'ADMIN';
+  region = 'us-east-1'
+  and role = 'ADMIN';
 ```
 
 ```sql+sqlite
@@ -71,11 +74,11 @@ select
 from
   aws_quicksight_user
 where
-  role = 'ADMIN';
+  region = 'us-east-1'
+  and role = 'ADMIN';
 ```
 
 ### Find inactive users
-
 Determine which users are currently inactive to manage access and licenses.
 
 ```sql+postgres
@@ -87,7 +90,8 @@ select
 from
   aws_quicksight_user
 where
-  not active;
+  region = 'us-east-1'
+  and not active;
 ```
 
 ```sql+sqlite
@@ -99,11 +103,11 @@ select
 from
   aws_quicksight_user
 where
-  active = 0;
+  region = 'us-east-1'
+  and active = 0;
 ```
 
 ### List users by identity type
-
 Analyze the distribution of users based on their authentication method.
 
 ```sql+postgres
@@ -112,6 +116,8 @@ select
   count(*) as user_count
 from
   aws_quicksight_user
+where
+  region = 'us-east-1'
 group by
   identity_type;
 ```
@@ -122,12 +128,13 @@ select
   count(*) as user_count
 from
   aws_quicksight_user
+where
+  region = 'us-east-1'
 group by
   identity_type;
 ```
 
 ### List users with external login federation
-
 Discover users who are authenticated via external login federation providers.
 
 ```sql+postgres
@@ -139,7 +146,8 @@ select
 from
   aws_quicksight_user
 where
-  external_login_federation_provider_type is not null;
+  region = 'us-east-1'
+  and external_login_federation_provider_type is not null;
 ```
 
 ```sql+sqlite
@@ -151,11 +159,11 @@ select
 from
   aws_quicksight_user
 where
-  external_login_federation_provider_type is not null;
+  region = 'us-east-1'
+  and external_login_federation_provider_type is not null;
 ```
 
 ### List users with custom permissions
-
 Find users who have been assigned custom permission profiles rather than standard roles.
 
 ```sql+postgres
@@ -166,7 +174,8 @@ select
 from
   aws_quicksight_user
 where
-  custom_permissions_name is not null;
+  region = 'us-east-1'
+  and custom_permissions_name is not null;
 ```
 
 ```sql+sqlite
@@ -177,5 +186,6 @@ select
 from
   aws_quicksight_user
 where
-  custom_permissions_name is not null;
+  region = 'us-east-1'
+  and custom_permissions_name is not null;
 ```

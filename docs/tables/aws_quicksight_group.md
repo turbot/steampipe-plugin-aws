@@ -12,6 +12,7 @@ AWS QuickSight Group is a collection of users that can be managed together for a
 The `aws_quicksight_group` table in Steampipe provides you with information about groups within AWS QuickSight. This table allows you, as an administrator, to query group-specific details, including group names, ARNs, and associated permissions. You can utilize this table to gather insights on group management, such as group memberships, access levels, and namespace associations.
 
 **Important Notes**
+
 - You **_must_** specify `region` in a `where` clause in order to use this table.
 - Group information for QuickSight is only available from the **identity region** (i.e., the region where the QuickSight account was initially created or enabled).
 - Since there is no direct API to retrieve the identity region, users must provide it manually in the query to retrieve data successfully.
@@ -19,7 +20,6 @@ The `aws_quicksight_group` table in Steampipe provides you with information abou
 ## Examples
 
 ### Basic info
-
 Explore the basic details of your QuickSight groups to understand their organization and naming conventions.
 
 ```sql+postgres
@@ -30,7 +30,9 @@ select
   namespace,
   principal_id
 from
-  aws_quicksight_group;
+  aws_quicksight_group
+where
+  region = 'us-east-1';
 ```
 
 ```sql+sqlite
@@ -41,11 +43,12 @@ select
   namespace,
   principal_id
 from
-  aws_quicksight_group;
+  aws_quicksight_group
+where
+  region = 'us-east-1';
 ```
 
 ### List groups for a specific namespace
-
 Focus on groups within a particular namespace to better manage access and permissions for specific organizational units.
 
 ```sql+postgres
@@ -57,7 +60,8 @@ select
 from
   aws_quicksight_group
 where
-  namespace = 'default';
+  region = 'us-east-1'
+  and namespace = 'default';
 ```
 
 ```sql+sqlite
@@ -69,57 +73,53 @@ select
 from
   aws_quicksight_group
 where
-  namespace = 'default';
+  region = 'us-east-1'
+  and namespace = 'default';
 ```
 
-### Get groups with descriptions
-
-Find groups that have descriptions to understand their intended purposes.
+### Get user details for each QuickSight group
+Identify all users belonging to each QuickSight group to understand group memberships and simplify access management.
 
 ```sql+postgres
 select
-  group_name,
-  description,
-  namespace
+  g.group_name,
+  g.description,
+  u.user_name,
+  u.email,
+  u.role,
+  u.active
 from
-  aws_quicksight_group
+  aws_quicksight_group g,
+  jsonb_array_elements(g.group_members) as m
+join
+  aws_quicksight_user u
+  on u.arn = (m ->> 'Arn')
 where
-  description is not null;
+  g.region = 'us-east-1'
+  and u.region = 'us-east-1'
+order by
+  g.group_name,
+  u.user_name;
 ```
 
 ```sql+sqlite
 select
-  group_name,
-  description,
-  namespace
+  g.group_name,
+  g.description,
+  u.user_name,
+  u.email,
+  u.role,
+  u.active
 from
-  aws_quicksight_group
+  aws_quicksight_group g,
+  json_each(g.group_members) as m
+join
+  aws_quicksight_user u
+  on u.arn = json_extract(m.value, '$.Arn')
 where
-  description is not null;
-```
-
-### List groups by region
-
-Analyze the distribution of QuickSight groups across different AWS regions.
-
-```sql+postgres
-select
-  region,
-  count(*) as group_count,
-  array_agg(group_name) as groups
-from
-  aws_quicksight_group
-group by
-  region;
-```
-
-```sql+sqlite
-select
-  region,
-  count(*) as group_count,
-  group_concat(group_name) as groups
-from
-  aws_quicksight_group
-group by
-  region;
+  g.region = 'us-east-1'
+  and u.region = 'us-east-1'
+order by
+  g.group_name,
+  u.user_name;
 ```

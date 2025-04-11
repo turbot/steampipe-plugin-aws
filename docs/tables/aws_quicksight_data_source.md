@@ -14,7 +14,6 @@ The `aws_quicksight_data_source` table in Steampipe provides you with informatio
 ## Examples
 
 ### Basic info
-
 Explore the fundamental details of your QuickSight data sources to understand their configuration and connection types.
 
 ```sql+postgres
@@ -44,7 +43,6 @@ from
 ```
 
 ### List failed data sources
-
 Identify data sources that have failed to help troubleshoot connection issues.
 
 ```sql+postgres
@@ -72,7 +70,6 @@ where
 ```
 
 ### Get S3 data sources
-
 Analyze the configuration of S3-based data sources to understand your data connections.
 
 ```sql+postgres
@@ -100,7 +97,6 @@ where
 ```
 
 ### List data sources with VPC connections
-
 Identify data sources that are configured with VPC connections for network security assessment.
 
 ```sql+postgres
@@ -126,7 +122,6 @@ where
 ```
 
 ### Get data sources with SSL configuration
-
 Review data sources that have SSL properties configured for secure connections.
 
 ```sql+postgres
@@ -152,7 +147,6 @@ where
 ```
 
 ### List data sources with alternate parameters
-
 Find data sources that have alternate connection parameters configured.
 
 ```sql+postgres

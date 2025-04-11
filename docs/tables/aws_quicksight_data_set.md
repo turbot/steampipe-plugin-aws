@@ -14,7 +14,6 @@ The `aws_quicksight_data_set` table in Steampipe provides you with information a
 ## Examples
 
 ### Basic info
-
 Explore which datasets are available in your AWS QuickSight environment and when they were created. This can help you manage and organize your data resources effectively.
 
 ```sql+postgres
@@ -38,7 +37,6 @@ from
 ```
 
 ### List datasets with SPICE import mode
-
 Identify datasets that use SPICE as their import mode. This is useful for understanding which datasets leverage QuickSight's in-memory calculation engine for faster analysis.
 
 ```sql+postgres
@@ -64,7 +62,6 @@ where
 ```
 
 ### Find datasets with row-level permissions
-
 Determine which datasets have row-level permission controls in place. This helps identify datasets with enhanced security controls that restrict user access to specific rows of data.
 
 ```sql+postgres
@@ -90,7 +87,6 @@ where
 ```
 
 ### Get datasets with column-level permissions
-
 Discover datasets that implement column-level permission rules to control access to specific columns of data. This is helpful for assessing security controls across your datasets.
 
 ```sql+postgres
@@ -116,7 +112,6 @@ where
 ```
 
 ### List datasets created in the last 30 days
-
 Identify recently created datasets to monitor new data resources or track recent changes to your QuickSight environment.
 
 ```sql+postgres

@@ -11,15 +11,9 @@ AWS QuickSight Namespace is a logical container that helps organize and manage Q
 
 The `aws_quicksight_namespace` table in Steampipe provides you with information about namespaces within AWS QuickSight. This table allows you, as an administrator, to query namespace-specific details, including identity store configurations and creation status. You can utilize this table to gather insights on namespace management, such as creation status, capacity regions, and associated identity stores.
 
-**Important Notes**
-- You **_must_** specify `region` in a `where` clause in order to use this table.
-- As we can create the namespaces only in the identity region.
-- Although no error is returned when calling the API from regions other than the identity region, it results in duplicate rows being returned.
-
 ## Examples
 
 ### Basic info
-
 Explore the fundamental details of your QuickSight namespaces to understand their organization and structure.
 
 ```sql+postgres
@@ -45,7 +39,6 @@ from
 ```
 
 ### List namespaces with creation errors
-
 Identify namespaces that encountered errors during creation to troubleshoot issues.
 
 ```sql+postgres
@@ -71,7 +64,6 @@ where
 ```
 
 ### Get namespaces using IAM Identity Center
-
 Determine which namespaces are configured to use IAM Identity Center for authentication.
 
 ```sql+postgres
@@ -99,7 +91,6 @@ where
 ```
 
 ### List namespaces by capacity region
-
 Analyze the distribution of namespaces across different capacity regions.
 
 ```sql+postgres
@@ -125,7 +116,6 @@ group by
 ```
 
 ### Get successfully created namespaces
-
 List all namespaces that have been successfully created and are ready to use.
 
 ```sql+postgres

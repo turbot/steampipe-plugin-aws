@@ -19,7 +19,6 @@ The `aws_quicksight_account_setting` table in Steampipe provides you with inform
 ## Examples
 
 ### Basic info
-
 Explore the basic configuration of your AWS QuickSight account to understand its setup and security settings.
 
 ```sql+postgres
@@ -31,7 +30,9 @@ select
   termination_protection_enabled,
   public_sharing_enabled
 from
-  aws_quicksight_account_setting;
+  aws_quicksight_account_setting
+where
+  region = 'us-east-1';
 ```
 
 ```sql+sqlite
@@ -43,11 +44,12 @@ select
   termination_protection_enabled,
   public_sharing_enabled
 from
-  aws_quicksight_account_setting;
+  aws_quicksight_account_setting
+where
+  region = 'us-east-1';
 ```
 
 ### Check accounts with termination protection disabled
-
 Identify AWS QuickSight accounts that might be at risk due to disabled termination protection.
 
 ```sql+postgres
@@ -59,7 +61,8 @@ select
 from
   aws_quicksight_account_setting
 where
-  not termination_protection_enabled;
+  region = 'us-east-1'
+  and not termination_protection_enabled;
 ```
 
 ```sql+sqlite
@@ -71,11 +74,11 @@ select
 from
   aws_quicksight_account_setting
 where
-  termination_protection_enabled = 0;
+  region = 'us-east-1'
+  and termination_protection_enabled = 0;
 ```
 
 ### List accounts with public sharing enabled
-
 Identify accounts that have public sharing enabled to assess potential data exposure risks.
 
 ```sql+postgres
@@ -87,7 +90,8 @@ select
 from
   aws_quicksight_account_setting
 where
-  public_sharing_enabled;
+  region = 'us-east-1'
+  and public_sharing_enabled;
 ```
 
 ```sql+sqlite
@@ -99,11 +103,11 @@ select
 from
   aws_quicksight_account_setting
 where
-  public_sharing_enabled = 1;
+  region = 'us-east-1'
+  and public_sharing_enabled = 1;
 ```
 
 ### Get enterprise edition accounts
-
 List all QuickSight accounts that are using the Enterprise edition to understand feature availability.
 
 ```sql+postgres
@@ -115,7 +119,8 @@ select
 from
   aws_quicksight_account_setting
 where
-  edition = 'ENTERPRISE';
+  region = 'us-east-1'
+  and edition = 'ENTERPRISE';
 ```
 
 ```sql+sqlite
@@ -127,35 +132,6 @@ select
 from
   aws_quicksight_account_setting
 where
-  edition = 'ENTERPRISE';
-```
-
-### Get account settings by region
-
-Analyze QuickSight account settings across different AWS regions.
-
-```sql+postgres
-select
-  region,
-  account_name,
-  edition,
-  default_namespace,
-  public_sharing_enabled
-from
-  aws_quicksight_account_setting
-order by
-  region;
-```
-
-```sql+sqlite
-select
-  region,
-  account_name,
-  edition,
-  default_namespace,
-  public_sharing_enabled
-from
-  aws_quicksight_account_setting
-order by
-  region;
+  region = 'us-east-1'
+  and edition = 'ENTERPRISE';
 ```
