@@ -107,6 +107,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pipes"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/service/quicksight"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
@@ -1185,6 +1186,15 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	}
 
 	return pricing.NewFromConfig(*cfg), nil
+}
+
+// QuickSightClient returns the client for the Amazon QuickSight service
+func QuickSightClient(ctx context.Context, d *plugin.QueryData) (*quicksight.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return quicksight.NewFromConfig(*cfg), nil
 }
 
 func RAMClient(ctx context.Context, d *plugin.QueryData) (*ram.Client, error) {

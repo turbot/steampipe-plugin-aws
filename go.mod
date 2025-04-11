@@ -99,6 +99,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/pinpoint v1.29.0
 	github.com/aws/aws-sdk-go-v2/service/pipes v1.11.4
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.28.1
+	github.com/aws/aws-sdk-go-v2/service/quicksight v1.64.2
 	github.com/aws/aws-sdk-go-v2/service/ram v1.25.4
 	github.com/aws/aws-sdk-go-v2/service/rds v1.77.0
 	github.com/aws/aws-sdk-go-v2/service/redshift v1.43.5
@@ -136,7 +137,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.48.2
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4
-	github.com/aws/smithy-go v1.22.1
+	github.com/aws/smithy-go v1.22.2
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/goccy/go-yaml v1.11.3
 	github.com/golang/protobuf v1.5.4
