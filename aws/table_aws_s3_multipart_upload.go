@@ -14,7 +14,7 @@ import (
 func tableAwsS3MultipartUpload(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_s3_multipart_upload",
-		Description: "AWS S3 Multipart Upload - Lists in-progress multipart uploads for a S3 bucket.",
+		Description: "AWS S3 Multipart Upload",
 		List: &plugin.ListConfig{
 			Hydrate: listS3MultipartUploads,
 			KeyColumns: []*plugin.KeyColumn{
