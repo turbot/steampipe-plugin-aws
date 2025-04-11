@@ -16,7 +16,8 @@ import (
 
 func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name: "aws_ec2_transit_gateway_vpc_attachment",
+		Name:        "aws_ec2_transit_gateway_vpc_attachment",
+		Description: "AWS EC2 Transit Gateway VPC Attachment",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("transit_gateway_attachment_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
