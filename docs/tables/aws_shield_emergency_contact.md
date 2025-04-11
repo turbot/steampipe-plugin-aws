@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_shield_emergency_contact - Query AWS Shield Advanced Emergency Contacts using SQL"
 description: "Allows users to query AWS Shield Advanced Emergency Contacts and retrieve the phone number, email address and notes for each contact."
+folder: "Shield"
 ---
 
 # Table: aws_shield_emergency_contact - Query AWS Shield Advanced Emergency Contacts using SQL

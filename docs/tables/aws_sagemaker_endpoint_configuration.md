@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sagemaker_endpoint_configuration - Query AWS SageMaker Endpoint Configurations using SQL"
 description: "Allows users to query AWS SageMaker Endpoint Configurations to retrieve detailed information about each endpoint configuration in the AWS SageMaker service."
+folder: "Config"
 ---
 
 # Table: aws_sagemaker_endpoint_configuration - Query AWS SageMaker Endpoint Configurations using SQL

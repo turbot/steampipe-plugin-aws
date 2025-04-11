@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dax_parameter_group - Query AWS DAX Parameter Groups using SQL"
 description: "Allows users to query AWS DynamoDB Accelerator (DAX) Parameter Groups, providing details such as parameter group name, ARN, description, and parameter settings."
+folder: "DAX"
 ---
 
 # Table: aws_dax_parameter_group - Query AWS DAX Parameter Groups using SQL

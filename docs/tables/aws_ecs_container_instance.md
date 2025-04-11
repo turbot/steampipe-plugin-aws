@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecs_container_instance - Query AWS ECS Container Instance using SQL"
 description: "Allows users to query AWS ECS Container Instance to retrieve data about the Amazon Elastic Container Service (ECS) container instances. This includes information about the container instance ARN, status, running tasks count, pending tasks count, agent connected status, and more."
+folder: "ECS"
 ---
 
 # Table: aws_ecs_container_instance - Query AWS ECS Container Instance using SQL

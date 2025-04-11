@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudtrail_trail - Query AWS CloudTrail Trail using SQL"
 description: "Allows users to query AWS CloudTrail Trails for information about the AWS CloudTrail service's trail records. This includes trail configuration details, status, and associated metadata."
+folder: "CloudTrail"
 ---
 
 # Table: aws_cloudtrail_trail - Query AWS CloudTrail Trail using SQL

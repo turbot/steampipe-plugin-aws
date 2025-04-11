@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_managed_instance_compliance - Query AWS SSM Managed Instance Compliance using SQL"
 description: "Allows users to query AWS SSM Managed Instance Compliance data, providing details on compliance status, compliance type, and related metadata."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_managed_instance_compliance - Query AWS SSM Managed Instance Compliance using SQL

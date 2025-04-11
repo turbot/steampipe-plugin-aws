@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_waf_rate_based_rule - Query AWS WAF RateBasedRule using SQL"
 description: "Allows users to query AWS WAF RateBasedRule to retrieve information about rate-based security rules that AWS Web Application Firewall (WAF) uses."
+folder: "WAF"
 ---
 
 # Table: aws_waf_rate_based_rule - Query AWS WAF RateBasedRule using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_emr_instance_fleet - Query AWS EMR Instance Fleets using SQL"
 description: "Allows users to query AWS EMR Instance Fleets to obtain detailed information about each instance fleet, including its configuration, instance type specifications, target capacities, and associated metadata."
+folder: "EMR"
 ---
 
 # Table: aws_emr_instance_fleet - Query AWS EMR Instance Fleets using SQL

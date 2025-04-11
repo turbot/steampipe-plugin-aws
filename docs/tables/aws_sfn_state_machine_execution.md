@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sfn_state_machine_execution - Query AWS Step Functions State Machine Execution using SQL"
 description: "Allows users to query AWS Step Functions State Machine Execution data, including execution status, start and end times, and associated state machine details."
+folder: "Step Functions"
 ---
 
 # Table: aws_sfn_state_machine_execution - Query AWS Step Functions State Machine Execution using SQL

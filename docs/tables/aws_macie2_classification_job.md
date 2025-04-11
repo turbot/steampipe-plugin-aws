@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_macie2_classification_job - Query AWS Macie2 Classification Jobs using SQL"
 description: "Allows users to query AWS Macie2 Classification Jobs and retrieve detailed information about each job's settings, status, and results."
+folder: "Macie"
 ---
 
 # Table: aws_macie2_classification_job - Query AWS Macie2 Classification Jobs using SQL

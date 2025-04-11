@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_eks_cluster - Query AWS Elastic Kubernetes Service Cluster using SQL"
 description: "Allows users to query AWS Elastic Kubernetes Service Cluster data, including cluster configurations, statuses, and associated metadata."
+folder: "EKS"
 ---
 
 # Table: aws_eks_cluster - Query AWS Elastic Kubernetes Service Cluster using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_maintenance_window - Query AWS Systems Manager Maintenance Windows using SQL"
 description: "Allows users to query AWS Systems Manager Maintenance Windows to retrieve details about scheduled maintenance tasks for AWS resources."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_maintenance_window - Query AWS Systems Manager Maintenance Windows using SQL

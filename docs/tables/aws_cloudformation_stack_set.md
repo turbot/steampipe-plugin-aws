@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudformation_stack_set - Query AWS CloudFormation StackSets using SQL"
 description: "Allows users to query AWS CloudFormation StackSets, providing detailed information about each StackSet's configuration, status, and associated AWS resources."
+folder: "CloudFormation"
 ---
 
 # Table: aws_cloudformation_stack_set - Query AWS CloudFormation StackSets using SQL

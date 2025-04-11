@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_msk_serverless_cluster - Query AWS Managed Streaming for Kafka (MSK) Serverless Clusters using SQL"
 description: "Allows users to query AWS MSK Serverless Clusters to retrieve detailed information about each cluster."
+folder: "MSK"
 ---
 
 # Table: aws_msk_serverless_cluster - Query AWS Managed Streaming for Kafka (MSK) Serverless Clusters using SQL

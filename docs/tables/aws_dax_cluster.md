@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dax_cluster - Query AWS DAX Clusters using SQL"
 description: "Allows users to query AWS DAX Clusters to fetch details about their configurations, status, nodes, and other associated metadata."
+folder: "DAX"
 ---
 
 # Table: aws_dax_cluster - Query AWS DAX Clusters using SQL

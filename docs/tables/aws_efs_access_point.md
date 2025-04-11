@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_efs_access_point - Query Amazon EFS Access Points using SQL"
 description: "Allows users to query Amazon EFS Access Points, providing detailed information about each access point's configuration, including the file system it is associated with, its access point ID, and other related metadata."
+folder: "EFS"
 ---
 
 # Table: aws_efs_access_point - Query Amazon EFS Access Points using SQL

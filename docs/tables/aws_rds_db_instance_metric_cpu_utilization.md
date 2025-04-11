@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_metric_cpu_utilization - Query Amazon RDS DBInstanceCPUUtilization using SQL"
 description: "Allows users to query Amazon RDS DBInstanceCPUUtilization to fetch data about CPU utilization metrics for RDS DB instances."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance_metric_cpu_utilization - Query Amazon RDS DBInstanceCPUUtilization using SQL

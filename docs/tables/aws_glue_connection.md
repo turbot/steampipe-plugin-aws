@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_glue_connection - Query AWS Glue Connections using SQL"
 description: "Allows users to query AWS Glue Connections to retrieve detailed information about each connection."
+folder: "Glue"
 ---
 
 # Table: aws_glue_connection - Query AWS Glue Connections using SQL

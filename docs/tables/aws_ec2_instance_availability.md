@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_instance_availability - Query AWS EC2 Instance Availability using SQL"
 description: "Allows users to query AWS EC2 Instance Availability and retrieve detailed information about the availability of EC2 instances in each AWS region."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_instance_availability - Query AWS EC2 Instance Availability using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codepipeline_pipeline - Query AWS CodePipeline Pipeline using SQL"
 description: "Allows users to query AWS CodePipeline Pipeline data, including pipeline names, statuses, stages, and associated metadata."
+folder: "CodePipeline"
 ---
 
 # Table: aws_codepipeline_pipeline - Query AWS CodePipeline Pipeline using SQL

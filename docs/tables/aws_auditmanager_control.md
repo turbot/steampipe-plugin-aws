@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_auditmanager_control - Query AWS Audit Manager Control using SQL"
 description: "Allows users to query AWS Audit Manager Control data, providing information about controls within AWS Audit Manager. This table enables users to access detailed information about controls, such as control source, control type, description, and associated metadata."
+folder: "Audit Manager"
 ---
 
 # Table: aws_auditmanager_control - Query AWS Audit Manager Control using SQL

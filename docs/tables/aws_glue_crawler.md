@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_glue_crawler - Query AWS Glue Crawlers using SQL"
 description: "Allows users to query AWS Glue Crawlers and retrieve essential information about the crawler's configuration, status, and associated metadata."
+folder: "Glue"
 ---
 
 # Table: aws_glue_crawler - Query AWS Glue Crawlers using SQL

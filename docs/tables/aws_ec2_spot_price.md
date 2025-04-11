@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_spot_price - Query AWS EC2 Spot Price using SQL"
 description: "Allows users to query AWS EC2 Spot Price data, including information about the instance type, product description, spot price, and the date and time the price was set."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_spot_price - Query AWS EC2 Spot Price using SQL

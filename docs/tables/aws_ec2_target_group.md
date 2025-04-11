@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_target_group - Query AWS EC2 Target Groups using SQL"
 description: "Allows users to query AWS EC2 Target Groups and provides information about each Target Group within an AWS account."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_target_group - Query AWS EC2 Target Groups using SQL

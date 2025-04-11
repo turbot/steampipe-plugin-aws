@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_globalaccelerator_accelerator - Query AWS Global Accelerator using SQL"
 description: "Allows users to query AWS Global Accelerator's accelerators."
+folder: "Global Accelerator"
 ---
 
 # Table: aws_globalaccelerator_accelerator - Query AWS Global Accelerator using SQL

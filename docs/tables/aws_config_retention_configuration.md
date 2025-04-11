@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_config_retention_configuration - Query AWS Config Retention Configuration using SQL"
 description: "Allows users to query AWS Config Retention Configuration for information about the retention period that AWS Config uses to retain your configuration items."
+folder: "Config"
 ---
 
 # Table: aws_config_retention_configuration - Query AWS Config Retention Configuration using SQL

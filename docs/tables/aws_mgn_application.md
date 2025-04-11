@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_mgn_application - Query AWS Migration Service Applications using SQL"
 description: "Allows users to query AWS Migration Service Applications to retrieve detailed information about each application."
+folder: "Application Migration Service"
 ---
 
 # Table: aws_mgn_application - Query AWS Migration Service Applications using SQL

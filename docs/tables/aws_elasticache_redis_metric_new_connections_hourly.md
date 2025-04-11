@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_redis_metric_new_connections_hourly - Query AWS ElastiCache Redis Metrics using SQL"
 description: "Allows users to query AWS ElastiCache Redis Metrics to get hourly data on new connections."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_redis_metric_new_connections_hourly - Query AWS ElastiCache Redis Metrics using SQL

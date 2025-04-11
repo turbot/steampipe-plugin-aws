@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_workspaces_workspace - Query Amazon WorkSpaces Workspace using SQL"
 description: "Allows users to query Amazon WorkSpaces Workspace to retrieve details about each workspace in the AWS account."
+folder: "WorkSpaces"
 ---
 
 # Table: aws_workspaces_workspace - Query Amazon WorkSpaces Workspace using SQL

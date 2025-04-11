@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_account_password_policy - Query AWS IAM Account Password Policies using SQL"
 description: "Allows users to query AWS IAM Account Password Policies to gain insights about password policy details such as minimum password length, password expiration period, and whether it requires at least one number or symbol."
+folder: "IAM"
 ---
 
 # Table: aws_iam_account_password_policy - Query AWS IAM Account Password Policies using SQL

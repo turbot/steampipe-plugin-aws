@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_finding - Query AWS Security Hub Findings using SQL"
 description: "Allows users to query AWS Security Hub Findings to gather information about security issues identified within AWS resources. This includes details such as the severity, status, and description of the finding, the resources affected, and any remediation steps recommended."
+folder: "Security Hub"
 ---
 
 # Table: aws_securityhub_finding - Query AWS Security Hub Findings using SQL

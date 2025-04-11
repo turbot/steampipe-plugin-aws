@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_redshift_parameter_group - Query Amazon Redshift Parameter Groups using SQL"
 description: "Allows users to query Amazon Redshift Parameter Groups to obtain detailed information about the configuration parameters and settings for Redshift clusters. This can be useful for managing and optimizing the performance of Redshift databases."
+folder: "Resource Access Manager"
 ---
 
 # Table: aws_redshift_parameter_group - Query Amazon Redshift Parameter Groups using SQL

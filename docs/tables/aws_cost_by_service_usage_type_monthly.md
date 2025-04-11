@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_service_usage_type_monthly - Query AWS Cost Explorer Service using SQL"
 description: "Allows users to query AWS Cost Explorer Service to get detailed cost data per service and usage type on a monthly basis."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_service_usage_type_monthly - Query AWS Cost Explorer Service using SQL

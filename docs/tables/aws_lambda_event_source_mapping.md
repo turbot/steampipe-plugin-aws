@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lambda_event_source_mapping - Query AWS Lambda Event Source Mappings using SQL"
 description: "Allows users to query AWS Lambda Event Source Mappings, providing a detailed view of each mapping configuration."
+folder: "Lambda"
 ---
 
 # Table: aws_lambda_event_source_mapping - Query AWS Lambda Event Source Mappings using SQL

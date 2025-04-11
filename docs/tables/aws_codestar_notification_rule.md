@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codestar_notification_rule - Query AWS CodeStar notification rules using SQL"
 description: "Allows users to query CodeStar notification rules in the AWS Developer Tools to retrieve information about notification rules."
+folder: "CodeStar"
 ---
 
 # Table: aws_codestar_notification_rule - Query AWS CodeStar notification rules using SQL

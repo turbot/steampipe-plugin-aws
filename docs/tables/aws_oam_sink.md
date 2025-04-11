@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_oam_sink - Query AWS OAM Sink using SQL"
 description: "Allows users to query AWS OAM Sink data, providing detailed information about each AWS OAM Sink in your AWS account."
+folder: "OAM"
 ---
 
 # Table: aws_oam_sink - Query AWS OAM Sink using SQL

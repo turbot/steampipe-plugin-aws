@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_docdb_cluster_instance - Query Amazon DocumentDB Cluster Instances using SQL"
 description: "Allows users to query Amazon DocumentDB Cluster Instances to gather detailed information such as instance identifier, cluster identifier, instance class, availability zone, engine version, and more."
+folder: "DocumentDB"
 ---
 
 # Table: aws_docdb_cluster_instance - Query Amazon DocumentDB Cluster Instances using SQL

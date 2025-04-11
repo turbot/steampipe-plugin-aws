@@ -1,7 +1,16 @@
-# Table: aws_networkfirewall_firewall_policy
+---
+title: "Steampipe Table: aws_networkfirewall_firewall - Query AWS Network Firewall Policy using SQL"
+description: "Allows users to query AWS Network Firewall Policy for detailed information about each firewall's properties and settings."
+folder: "Network Firewall"
+---
+
+# Table: aws_networkfirewall_firewall_policy - Query AWS Network Firewall Policy using SQL
 
 An AWS Network Firewall Policy defines the behavior of a firewall in a particular stateless or stateful rule group. It sets the actions that are taken on a packet when it matches the rule criteria. The policy can be tailored to fit any network security needs, offering granular control over the traffic passing through the firewall.
 
+## Table Usage Guide
+
+The `aws_networkfirewall_firewall_policy` table in Steampipe provides you with information about each firewall policy in AWS Network Firewall. This table enables you, as a network administrator, security analyst, or DevOps engineer, to query specific details about firewalls, including firewall policies, subnet mappings, and associated VPCs. You can utilize this table to gain insights into firewall configurations, such as firewall policy ARNs, VPC IDs, subnet IDs, and more. The schema outlines the various attributes of the firewall for you, including the firewall ARN, firewall name, firewall policy ARN, VPC ID, subnet mapping, delete protection status, and associated tags.
 
 ## Examples
 

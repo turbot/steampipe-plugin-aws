@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lakeformation_tag - Query AWS Lake Formation Tags Using SQL"
 description: "Query AWS Lake Formation LF-tags, including their tag keys, possible tag values, and associated AWS accounts."
+folder: "Lake Formation"
 ---
 
 # Table: aws_lakeformation_tag - Query AWS Lake Formation Tags Using SQL

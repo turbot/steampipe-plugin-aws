@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_quicksight_data_set - Query AWS QuickSight Datasets using SQL"
 description: "Allows users to query AWS QuickSight Datasets and retrieve information about datasets within AWS QuickSight."
+folder: "QuickSight"
 ---
 
 # Table: aws_quicksight_data_set - Query AWS QuickSight Datasets using SQL

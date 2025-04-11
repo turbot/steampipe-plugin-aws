@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_inspector_finding - Query AWS Inspector Findings using SQL"
 description: "Allows users to query AWS Inspector Findings to obtain detailed information about the Amazon Inspector findings that are generated during the assessment of the target applications."
+folder: "Inspector"
 ---
 
 # Table: aws_inspector_finding - Query AWS Inspector Findings using SQL

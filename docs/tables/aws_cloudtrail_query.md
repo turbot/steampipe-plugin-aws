@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudtrail_query - Query AWS CloudTrail using SQL"
 description: "Allows users to query AWS CloudTrail events for a detailed view of account activity, including actions taken through the AWS Management Console, AWS SDKs, command line tools, and other AWS services."
+folder: "CloudTrail"
 ---
 
 # Table: aws_cloudtrail_query - Query AWS CloudTrail using SQL

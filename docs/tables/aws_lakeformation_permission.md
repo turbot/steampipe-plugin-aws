@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lakeformation_permission - Query AWS Lake Formation Permissions Using SQL"
 description: "Query AWS Lake Formation permissions, including granted permissions, principals, and associated AWS resources."
+folder: "Lake Formation"
 ---
 
 # Table: aws_lakeformation_permission - Query AWS Lake Formation Permissions Using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_s3_bucket - Query AWS S3 Buckets using SQL"
 description: "Allows users to query AWS S3 buckets for detailed information about their configuration, policies, and permissions."
+folder: "S3"
 ---
 
 # Table: aws_s3_bucket - Query AWS S3 Buckets using SQL

@@ -13,7 +13,7 @@ import (
 func tableAwsCloudWatchLogDeliveryDestination(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cloudwatch_log_delivery_destination",
-		Description: "AWS CloudWatch Log Delivery Destination represents a destination configuration for vended log delivery.",
+		Description: "AWS CloudWatch Log Delivery Destination",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getCloudWatchLogDeliveryDestination,

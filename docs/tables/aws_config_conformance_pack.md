@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_config_conformance_pack - Query AWS Config Conformance Packs using SQL"
 description: "Allows users to query AWS Config Conformance Packs to fetch information about the AWS Config conformance packs deployed on an AWS account."
+folder: "Config"
 ---
 
 # Table: aws_config_conformance_pack - Query AWS Config Conformance Packs using SQL

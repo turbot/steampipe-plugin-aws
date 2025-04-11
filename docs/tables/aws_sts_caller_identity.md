@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sts_caller_identity - Query AWS Security Token Service Caller Identity using SQL"
 description: "Allows users to query AWS Security Token Service Caller Identity to retrieve details about the IAM user or role whose credentials are used to call the operation."
+folder: "STS"
 ---
 
 # Table: aws_sts_caller_identity - Query AWS Security Token Service Caller Identity using SQL

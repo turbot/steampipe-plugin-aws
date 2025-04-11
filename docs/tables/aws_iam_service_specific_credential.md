@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_service_specific_credential - Query AWS IAM Service Specific Credentials using SQL"
 description: "Allows users to query AWS IAM Service Specific Credentials, retrieving detailed information about each credential, such as the username, status, creation date, and service name."
+folder: "IAM"
 ---
 
 # Table: aws_iam_service_specific_credential - Query AWS IAM Service Specific Credentials using SQL

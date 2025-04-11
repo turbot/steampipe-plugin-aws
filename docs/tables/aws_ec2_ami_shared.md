@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_ami_shared - Query AWS EC2 AMI using SQL"
 description: "Allows users to query shared Amazon Machine Images (AMIs) in AWS EC2"
+folder: "EC2"
 ---
 
 # Table: aws_ec2_ami_shared - Query AWS EC2 AMI using SQL

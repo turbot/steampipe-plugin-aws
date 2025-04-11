@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_metric_data_point - Query AWS CloudWatch MetricDataPoints using SQL"
 description: "Allows users to query AWS CloudWatch MetricDataPoints to fetch detailed information about the data points for a defined metric."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_metric_data_point - Query AWS CloudWatch MetricDataPoints using SQL

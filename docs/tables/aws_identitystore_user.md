@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_identitystore_user - Query AWS Identity Store User using SQL"
 description: "Allows users to query AWS Identity Store User data, providing details such as user ID, username, and ARN. This table is essential for managing and auditing user information within the AWS Identity Store."
+folder: "Identity Store"
 ---
 
 # Table: aws_identitystore_user - Query AWS Identity Store User using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_log_stream - Query AWS CloudWatch Log Stream using SQL"
 description: "Allows users to query AWS CloudWatch Log Stream to retrieve detailed information about each log stream within a log group."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_log_stream - Query AWS CloudWatch Log Stream using SQL

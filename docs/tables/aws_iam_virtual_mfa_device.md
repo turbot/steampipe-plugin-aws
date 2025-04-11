@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_virtual_mfa_device - Query AWS Identity and Access Management (IAM) Virtual MFA Devices using SQL"
 description: "Allows users to query Virtual MFA Devices in AWS Identity and Access Management (IAM)."
+folder: "IAM"
 ---
 
 # Table: aws_iam_virtual_mfa_device - Query AWS Identity and Access Management (IAM) Virtual MFA Devices using SQL

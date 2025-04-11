@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dms_endpoint - Query AWS DMS Endpoints using SQL"
 description: "Query AWS DMS Endpoints to retrieve connection information for source or target databases in database migration activities."
+folder: "DMS"
 ---
 
 # Table: aws_dms_endpoint - Query AWS DMS Endpoints using SQL

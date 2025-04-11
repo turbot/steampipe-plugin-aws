@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_policy_simulator - Query AWS IAM Policy Simulator using SQL"
 description: "Allows users to query IAM Policy Simulator for evaluating the effects of IAM access control policies. It provides information such as evaluation results, matching resources, and involved actions."
+folder: "IAM"
 ---
 
 # Table: aws_iam_policy_simulator - Query AWS IAM Policy Simulator using SQL

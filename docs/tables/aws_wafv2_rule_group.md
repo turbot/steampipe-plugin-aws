@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wafv2_rule_group - Query AWS WAFv2 Rule Groups using SQL"
 description: "Allows users to query AWS WAFv2 Rule Groups and gather information such as the group's ARN, capacity, description, rules, visibility configuration, and more."
+folder: "WAFv2"
 ---
 
 # Table: aws_wafv2_rule_group - Query AWS WAFv2 Rule Groups using SQL

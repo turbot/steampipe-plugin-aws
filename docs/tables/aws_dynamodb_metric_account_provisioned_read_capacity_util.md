@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dynamodb_metric_account_provisioned_read_capacity_util - Query AWS DynamoDB Metrics using SQL"
 description: "Allows users to query DynamoDB Metrics on account provisioned read capacity utilization."
+folder: "DynamoDB"
 ---
 
 # Table: aws_dynamodb_metric_account_provisioned_read_capacity_util - Query AWS DynamoDB Metrics using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sfn_state_machine_execution_history - Query AWS Step Functions State Machine Execution History using SQL"
 description: "Allows users to query AWS Step Functions State Machine Execution History to fetch information about the execution history of a state machine."
+folder: "Step Functions"
 ---
 
 # Table: aws_sfn_state_machine_execution_history - Query AWS Step Functions State Machine Execution History using SQL

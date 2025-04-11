@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_fms_app_list - Query AWS Firewall Manager Applications using SQL"
 description: "Allows users to query AWS Firewall Manager Applications to obtain comprehensive details about each application, including application ID, protocol, source and destination IP ranges, and source and destination ports."
+folder: "Firewall Manager (FMS)"
 ---
 
 # Table: aws_fms_app_list - Query AWS Firewall Manager Applications using SQL

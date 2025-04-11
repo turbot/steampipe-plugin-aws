@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_accessanalyzer_analyzer - Query AWS Access Analyzer using SQL"
 description: "Allows users to query Access Analyzer Analyzer in AWS IAM to retrieve information about analyzers."
+folder: "Access Analyzer"
 ---
 
 # Table: aws_accessanalyzer_analyzer - Query AWS Access Analyzer using SQL

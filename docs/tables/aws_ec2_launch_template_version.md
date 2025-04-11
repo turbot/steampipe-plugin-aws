@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_launch_template_version - Query AWS EC2 Launch Template Versions using SQL"
 description: "Allows users to query AWS EC2 Launch Template Versions, providing details about each version of an Amazon EC2 launch template."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_launch_template_version - Query AWS EC2 Launch Template Versions using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_inspector2_coverage - Query AWS Inspector Coverage using SQL"
 description: "Allows users to query AWS Inspector Coverage data that provides details on the assessment targets and the assessment templates that are associated with the AWS Inspector service."
+folder: "Inspector2"
 ---
 
 # Table: aws_inspector2_coverage - Query AWS Inspector Coverage using SQL

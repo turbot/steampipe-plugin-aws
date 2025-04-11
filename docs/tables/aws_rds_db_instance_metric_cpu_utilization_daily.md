@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_metric_cpu_utilization_daily - Query AWS RDS DB Instances using SQL"
 description: "Allows users to query AWS RDS DB Instances to retrieve daily CPU utilization metrics."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance_metric_cpu_utilization_daily - Query AWS RDS DB Instances using SQL

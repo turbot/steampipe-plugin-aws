@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_eip_address_transfer - Query AWS VPC Elastic IP Address Transfers using SQL"
 description: "Allows users to query Elastic IP Address Transfers in AWS VPC."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_eip_address_transfer - Query AWS VPC Elastic IP Address Transfers using SQL

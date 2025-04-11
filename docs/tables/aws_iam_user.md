@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_user - Query AWS IAM User using SQL"
 description: "Allows users to query AWS IAM User data, providing details such as user ID, name, path, creation date, and more. This table is useful for security audits, policy enforcement, and operational troubleshooting."
+folder: "IAM"
 ---
 
 # Table: aws_iam_user - Query AWS IAM User using SQL

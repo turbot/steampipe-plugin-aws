@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_msk_cluster - Query AWS MSK Clusters using SQL"
 description: "Allows users to query AWS Managed Streaming for Apache Kafka (MSK) clusters."
+folder: "MSK"
 ---
 
 # Table: aws_msk_cluster - Query AWS MSK Clusters using SQL

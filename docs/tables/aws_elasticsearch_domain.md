@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticsearch_domain - Query AWS Elasticsearch Service Domain using SQL"
 description: "Allows users to query AWS Elasticsearch Service Domains for detailed information related to the configuration, status, and access policies of the Elasticsearch domains."
+folder: "Elasticsearch"
 ---
 
 # Table: aws_elasticsearch_domain - Query AWS Elasticsearch Service Domain using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_directory_service_directory - Query AWS Directory Service Directories using SQL"
 description: "Allows users to query AWS Directory Service Directories for information about AWS Managed Microsoft AD, AWS Managed AD, and Simple AD directories."
+folder: "Directory Service"
 ---
 
 # Table: aws_directory_service_directory - Query AWS Directory Service Directories using SQL

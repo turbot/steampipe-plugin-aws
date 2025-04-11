@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wafv2_web_acl - Query AWS WAFv2 WebACLs using SQL"
 description: "Allows users to query AWS WAFv2 WebACLs to retrieve and manage information about WebACL resources within AWS WAFv2."
+folder: "WAFv2"
 ---
 
 # Table: aws_wafv2_web_acl - Query AWS WAFv2 WebACLs using SQL

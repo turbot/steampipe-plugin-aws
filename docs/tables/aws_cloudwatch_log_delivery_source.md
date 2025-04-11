@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_log_delivery_source - Query AWS CloudWatch Log Delivery Sources using SQL"
 description: "Allows users to query AWS CloudWatch Log Delivery Sources, providing information about source configurations for vended log delivery."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_log_delivery_source - Query AWS CloudWatch Log Delivery Sources using SQL

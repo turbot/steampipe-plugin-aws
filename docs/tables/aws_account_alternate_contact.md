@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_account_alternate_contact - Query AWS Account Alternate Contact using SQL"
 description: "Allows users to query AWS Account Alternate Contact to fetch details about the alternate contacts associated with an AWS account."
+folder: "Account"
 ---
 
 # Table: aws_account_alternate_contact - Query AWS Account Alternate Contact using SQL

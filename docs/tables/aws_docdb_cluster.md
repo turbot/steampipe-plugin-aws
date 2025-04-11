@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_docdb_cluster - Query Amazon DocumentDB Cluster using SQL"
 description: "Allows users to query Amazon DocumentDB Clusters for detailed information about their configuration, status, and associated metadata."
+folder: "DocumentDB"
 ---
 
 # Table: aws_docdb_cluster - Query Amazon DocumentDB Cluster using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_document - Query AWS SSM Documents using SQL"
 description: "Allows users to query AWS SSM Documents and retrieve detailed information about each document, including its name, version, owner, status, and permissions, among others."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_document - Query AWS SSM Documents using SQL

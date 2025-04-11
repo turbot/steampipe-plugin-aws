@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_kinesis_firehose_delivery_stream - Query AWS Kinesis Firehose Delivery Stream using SQL"
 description: "Allows users to query AWS Kinesis Firehose Delivery Stream data, providing detailed information about each delivery stream in the AWS account."
+folder: "Kinesis"
 ---
 
 # Table: aws_kinesis_firehose_delivery_stream - Query AWS Kinesis Firehose Delivery Stream using SQL

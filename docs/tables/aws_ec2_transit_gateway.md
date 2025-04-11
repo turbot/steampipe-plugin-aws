@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_transit_gateway - Query AWS EC2 Transit Gateway using SQL"
 description: "Allows users to query AWS EC2 Transit Gateway resources for detailed information on configuration, status, and associations."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_transit_gateway - Query AWS EC2 Transit Gateway using SQL

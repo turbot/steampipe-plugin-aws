@@ -15,7 +15,7 @@ import (
 func tableAwsRDSPendingMaintenanceAction(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_pending_maintenance_action",
-		Description: "Lists pending maintenance actions for Amazon RDS instances and clusters.",
+		Description: "AWS RDS Pending Maintenance Action",
 		List: &plugin.ListConfig{
 			Hydrate: listRDSMaintenanceActions,
 			Tags:    map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},

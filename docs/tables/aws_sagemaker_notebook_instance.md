@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sagemaker_notebook_instance - Query AWS SageMaker Notebook Instances using SQL"
 description: "Allows users to query AWS SageMaker Notebook Instances to gather information about their configuration, status, and other related details."
+folder: "SageMaker"
 ---
 
 # Table: aws_sagemaker_notebook_instance - Query AWS SageMaker Notebook Instances using SQL

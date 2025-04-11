@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_backup_framework - Query AWS Backup Frameworks using SQL"
 description: "Allows users to query AWS Backup Frameworks and retrieve comprehensive data about each backup plan, including its unique ARN, version, creation and deletion dates, and more."
+folder: "Backup"
 ---
 
 # Table: aws_backup_framework - Query AWS Backup Frameworks using SQL

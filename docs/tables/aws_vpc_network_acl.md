@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_network_acl - Query AWS VPC Network ACL using SQL"
 description: "Allows users to query AWS VPC Network ACLs to retrieve detailed information about network access control lists in a specific AWS VPC."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_network_acl - Query AWS VPC Network ACL using SQL

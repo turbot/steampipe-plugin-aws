@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudcontrol_resource - Query AWS Cloud Control API Resource using SQL"
 description: "Allows users to query AWS Cloud Control API Resource data, providing detailed insights into resource properties, types, and statuses."
+folder: "CloudControl"
 ---
 
 # Table: aws_cloudcontrol_resource - Query AWS Cloud Control API Resource using SQL

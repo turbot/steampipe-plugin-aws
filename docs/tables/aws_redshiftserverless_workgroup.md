@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_redshiftserverless_workgroup - Query AWS Redshift Serverless Workgroup using SQL"
 description: "Allows users to query AWS Redshift Serverless Workgroup information, including workgroup details, query execution settings, and enforce workgroup configuration."
+folder: "Redshift"
 ---
 
 # Table: aws_redshiftserverless_workgroup - Query AWS Redshift Serverless Workgroup using SQL

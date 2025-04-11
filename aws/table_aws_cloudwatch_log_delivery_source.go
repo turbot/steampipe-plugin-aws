@@ -12,7 +12,7 @@ import (
 func tableAwsCloudWatchLogDeliverySource(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cloudwatch_log_delivery_source",
-		Description: "AWS CloudWatch Log Delivery Source represents a source configuration for vended log delivery.",
+		Description: "AWS CloudWatch Log Delivery Source",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getCloudWatchLogDeliverySource,

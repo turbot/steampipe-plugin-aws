@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wafv2_ip_set - Query AWS WAFv2 IPSet using SQL"
 description: "Allows users to query AWS WAFv2 IPSet information, including IP addresses, IP address version, and associated metadata."
+folder: "WAFv2"
 ---
 
 # Table: aws_wafv2_ip_set - Query AWS WAFv2 IPSet using SQL

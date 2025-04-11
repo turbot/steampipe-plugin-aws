@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_quicksight_group - Query AWS QuickSight Groups using SQL"
 description: "Allows users to query AWS QuickSight Groups, providing details about group configurations, memberships, and access settings within QuickSight."
+folder: "QuickSight"
 ---
 
 # Table: aws_quicksight_group - Query AWS QuickSight Groups using SQL

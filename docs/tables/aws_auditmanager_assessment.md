@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_auditmanager_assessment - Query AWS Audit Manager Assessments using SQL"
 description: "Allows users to query AWS Audit Manager Assessments to retrieve detailed information about each assessment."
+folder: "Audit Manager"
 ---
 
 # Table: aws_auditmanager_assessment - Query AWS Audit Manager Assessments using SQL
