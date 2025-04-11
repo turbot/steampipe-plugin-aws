@@ -266,6 +266,10 @@ func getCEStartDateForGranularity(granularity string) time.Time {
 	return time.Now().AddDate(0, 0, -13)
 }
 
+func getCEStartDateForGranularityWithResources(granularity string) time.Time {
+	return time.Now().AddDate(0, 0, -13)
+}
+
 type CEQuals struct {
 	// Quals stuff
 	SearchStartTime *timestamp.Timestamp
