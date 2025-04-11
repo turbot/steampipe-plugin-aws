@@ -159,7 +159,7 @@ where
 ```
 
 ### Identify which sources are using each destination
-Join delivery sources with destinations to see which services are configured to send logs to which destinations.
+Identify the source destination mappings.
 
 ```sql+postgres
 select
