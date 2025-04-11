@@ -16,7 +16,7 @@ import (
 func tableAwsQuickSightAccountSetting(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_quicksight_account_setting",
-		Description: "AWS QuickSight Account Settings",
+		Description: "AWS QuickSight Account Setting",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsQuickSightAccountSettings,
 			IgnoreConfig: &plugin.IgnoreConfig{
