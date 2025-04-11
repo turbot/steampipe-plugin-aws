@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_quicksight_namespace - Query AWS QuickSight Namespaces using SQL"
 description: "Allows users to query AWS QuickSight Namespaces, providing details about namespace configurations, identity stores, and status information."
+folder: "QuickSight"
 ---
 
 # Table: aws_quicksight_namespace - Query AWS QuickSight Namespaces using SQL

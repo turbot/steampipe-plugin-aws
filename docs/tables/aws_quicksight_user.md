@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_quicksight_user - Query AWS QuickSight Users using SQL"
 description: "Allows users to query AWS QuickSight Users, providing details about user accounts, roles, and access configurations within QuickSight."
+folder: "QuickSight"
 ---
 
 # Table: aws_quicksight_user - Query AWS QuickSight Users using SQL

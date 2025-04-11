@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_quicksight_data_source - Query AWS QuickSight Data Sources using SQL"
 description: "Allows users to query AWS QuickSight Data Sources, providing details about data source configurations, connections, and status information."
+folder: "QuickSight"
 ---
 
 # Table: aws_quicksight_data_source - Query AWS QuickSight Data Sources using SQL

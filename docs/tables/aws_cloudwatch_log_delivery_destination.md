@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_log_delivery_destination - Query AWS CloudWatch Log Delivery Destinations using SQL"
 description: "Allows users to query AWS CloudWatch Log Delivery Destinations, providing information about destination configurations for vended log delivery."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_log_delivery_destination - Query AWS CloudWatch Log Delivery Destinations using SQL

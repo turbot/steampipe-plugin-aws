@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_quicksight_account_setting - Query AWS QuickSight Account Settings using SQL"
 description: "Allows users to query AWS QuickSight Account Settings, providing details about the QuickSight account configuration, edition, notification settings, and security features."
+folder: "QuickSight"
 ---
 
 # Table: aws_quicksight_account_setting - Query AWS QuickSight Account Settings using SQL

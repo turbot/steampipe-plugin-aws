@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_quicksight_vpc_connection - Query AWS QuickSight VPC Connections using SQL"
 description: "Allows users to query AWS QuickSight VPC Connections to retrieve details about VPC connections used for secure data access."
+folder: "QuickSight"
 ---
 
 # Table: aws_quicksight_vpc_connection - Query AWS QuickSight VPC Connections using SQL
