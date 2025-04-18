@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/applicationsignals"
 	"github.com/aws/aws-sdk-go-v2/service/apprunner"
 	"github.com/aws/aws-sdk-go-v2/service/appstream"
 	"github.com/aws/aws-sdk-go-v2/service/appsync"
@@ -321,6 +322,17 @@ func ApplicationAutoScalingClient(ctx context.Context, d *plugin.QueryData) (*ap
 		return nil, err
 	}
 	return applicationautoscaling.NewFromConfig(*cfg), nil
+}
+
+func ApplicationSignalsClient(ctx context.Context, d *plugin.QueryData) (*applicationsignals.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return applicationsignals.NewFromConfig(*cfg), nil
 }
 
 func AppRunnerClient(ctx context.Context, d *plugin.QueryData) (*apprunner.Client, error) {
@@ -1920,21 +1932,18 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	if awsSpcConfig.EndpointUrl != nil {
 		awsEndpointUrl = *awsSpcConfig.EndpointUrl
 		if awsEndpointUrl != "" {
-			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-				return aws.Endpoint{
-					PartitionID:   "aws",
-					URL:           awsEndpointUrl,
-					SigningRegion: region,
-				}, nil
-			})
-			newCfg, err := config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver))
-			if err != nil {
-				plugin.Logger(ctx).Error("service.getClientWithMaxRetries", "connection_error", err)
-				return nil, err
-			}
-			newCfg.Retryer = cfg.Retryer
-			newCfg.Region = cfg.Region
-			cfg = newCfg
+			// The global endpoint resolution interface is deprecated. The API
+			// for endpoint resolution is now unique to each service and is set via the
+			// EndpointResolverV2 field on service client options. Setting a value for
+			// EndpointResolver on aws.Config or service client options will prevent you
+			// from using any endpoint-related service features released after the
+			// introduction of EndpointResolverV2. You may also encounter broken or
+			// unexpected behavior when using the old global interface with services that
+			// use many endpoint-related customizations such as S3.
+			// https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/endpoints/
+			// By default the custom endpoint provided in "BaseEndpoint" will be resolved for each service
+			// Eg: https://github.com/aws/aws-sdk-go-v2/blob/v1.30.5/service/cloudfront/api_client.go#L257
+			cfg.BaseEndpoint = &awsEndpointUrl
 		}
 	}
 
