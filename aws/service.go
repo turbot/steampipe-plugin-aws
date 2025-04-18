@@ -114,6 +114,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
+	"github.com/aws/aws-sdk-go-v2/service/rolesanywhere"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
@@ -201,6 +202,7 @@ import (
 	rdsEndpoint "github.com/aws/aws-sdk-go/service/rds"
 	redshiftserverlessEndpoint "github.com/aws/aws-sdk-go/service/redshiftserverless"
 	resourceexplorer2Endpoint "github.com/aws/aws-sdk-go/service/resourceexplorer2"
+	rolesanywhereEndpoint "github.com/aws/aws-sdk-go/service/rolesanywhere"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
 	schedulerEndpoint "github.com/aws/aws-sdk-go/service/scheduler"
@@ -1325,6 +1327,17 @@ func ResourceGroupsTaggingClient(ctx context.Context, d *plugin.QueryData) (*res
 		return nil, err
 	}
 	return resourcegroupstaggingapi.NewFromConfig(*cfg), nil
+}
+
+func RolesAnywhereClient(ctx context.Context, d *plugin.QueryData) (*rolesanywhere.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, rolesanywhereEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return rolesanywhere.NewFromConfig(*cfg), nil
 }
 
 func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, error) {
