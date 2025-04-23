@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_organizations_delegated_services_for_account - Query AWS Organizations Delegated Services for an Account using SQL"
 description: "Allows users to query AWS Organizations delegated services for a specific account, providing details on which services have been granted delegated administrative privileges."
+folder: "Organizations"
 ---
 
 # Table: aws_organizations_delegated_services_for_account - Query AWS Organizations Delegated Services for an Account using SQL

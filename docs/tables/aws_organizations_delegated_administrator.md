@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_organizations_delegated_administrator - Query AWS Organizations Delegated Administrators using SQL"
 description: "Allows users to query AWS Organizations Delegated Administrators and provides information about each account delegated administrative privileges within an AWS Organization."
+folder: "Organizations"
 ---
 
 # Table: aws_organizations_delegated_administrator - Query AWS Organizations Delegated Administrators using SQL
