@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -118,7 +118,7 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 
 	for _, keyQual := range d.Table.List.KeyColumns {
 		filterQual := d.Quals[keyQual.Name]
-		if filterQual == nil || !helpers.StringSliceContains([]string{"service", "usage_type"}, keyQual.Name) {
+		if filterQual == nil || !slices.Contains([]string{"service", "usage_type"}, keyQual.Name) {
 			continue
 		}
 		for _, qual := range filterQual.Quals {
