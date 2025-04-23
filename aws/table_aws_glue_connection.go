@@ -100,6 +100,12 @@ func tableAwsGlueConnection(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Name"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTagsForGlueConnection,
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -213,6 +219,11 @@ func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 	return *data.Connection, nil
+}
+
+func getTagsForGlueConnection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	arn, _ := getGlueConnectionArn(ctx, d, h)
+	return getTagsForGlueResource(ctx, d, arn.(string))
 }
 
 func getGlueConnectionArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

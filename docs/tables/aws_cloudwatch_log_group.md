@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_log_group - Query AWS CloudWatch Log Groups using SQL"
 description: "Allows users to query AWS CloudWatch Log Groups and retrieve their attributes such as ARN, creation time, stored bytes, metric filter count, and more."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_log_group - Query AWS CloudWatch Log Groups using SQL

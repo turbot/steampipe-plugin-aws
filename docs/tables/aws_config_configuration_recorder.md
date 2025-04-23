@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_config_configuration_recorder - Query AWS Config Configuration Recorder using SQL"
 description: "Allows users to query AWS Config Configuration Recorder"
+folder: "Config"
 ---
 
 # Table: aws_config_configuration_recorder - Query AWS Config Configuration Recorder using SQL

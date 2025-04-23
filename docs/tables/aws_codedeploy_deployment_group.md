@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codedeploy_deployment_group - Query AWS CodeDeploy Deployment Groups using SQL"
 description: "Allows users to query AWS CodeDeploy Deployment Group details including deployment configurations, target revisions, and associated alarm configurations."
+folder: "CodeDeploy"
 ---
 
 # Table: aws_codedeploy_deployment_group - Query AWS CodeDeploy Deployment Groups using SQL

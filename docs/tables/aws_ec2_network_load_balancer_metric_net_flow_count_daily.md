@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_network_load_balancer_metric_net_flow_count_daily - Query AWS EC2 Network Load Balancer Metrics using SQL"
 description: "Allows users to query Network Load Balancer Metrics in EC2, specifically the daily net flow count, providing insights into network traffic patterns and potential anomalies."
+folder: "ELB"
 ---
 
 # Table: aws_ec2_network_load_balancer_metric_net_flow_count_daily - Query AWS EC2 Network Load Balancer Metrics using SQL

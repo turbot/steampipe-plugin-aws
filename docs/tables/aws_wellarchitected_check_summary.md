@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wellarchitected_check_summary - Query AWS Well-Architected Tool Check Summary using SQL"
 description: "Allows users to query AWS Well-Architected Tool Check Summary for detailed information about the checks for all workloads. This table provides insights into the state of your workloads, highlighting potential risks and areas for improvement."
+folder: "Well-Architected"
 ---
 
 # Table: aws_wellarchitected_check_summary - Query AWS Well-Architected Tool Check Summary using SQL

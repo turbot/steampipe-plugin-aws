@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_organizations_organizational_unit - Query AWS Organizations Organizational Units using SQL"
 description: "Allows users to query AWS Organizations Organizational Units and provides information about each OU."
+folder: "Organizations"
 ---
 
 # Table: aws_organizations_organizational_unit

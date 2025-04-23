@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dynamodb_backup - Query AWS DynamoDB Backup using SQL"
 description: "Allows users to query DynamoDB Backup details such as backup ARN, backup creation date, backup size, backup status, and more."
+folder: "Backup"
 ---
 
 # Table: aws_dynamodb_backup - Query AWS DynamoDB Backup using SQL

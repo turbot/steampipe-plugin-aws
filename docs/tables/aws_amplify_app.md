@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_amplify_app - Query AWS Amplify Apps using SQL"
 description: "Allows users to query AWS Amplify Apps to retrieve detailed information about each application, including its name, ARN, creation date, default domain, and more."
+folder: "Amplify"
 ---
 
 # Table: aws_amplify_app - Query AWS Amplify Apps using SQL

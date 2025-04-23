@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_dhcp_options - Query AWS VPC DHCP Options using SQL"
 description: "Allows users to query DHCP Options associated with Virtual Private Cloud (VPC) in AWS."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_dhcp_options - Query AWS VPC DHCP Options using SQL

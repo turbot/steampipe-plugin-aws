@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_security_group_rule - Query AWS VPC Security Group Rule using SQL"
 description: "Allows users to query AWS VPC Security Group Rule, providing detailed information about security group rules within Amazon Virtual Private Cloud (VPC)."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_security_group_rule - Query AWS VPC Security Group Rule using SQL

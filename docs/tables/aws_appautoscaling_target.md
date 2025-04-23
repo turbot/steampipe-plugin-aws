@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_appautoscaling_target - Query AWS Application Auto Scaling Targets using SQL"
 description: "Allows users to query AWS Application Auto Scaling Targets. This table provides information about each target, including the service namespace, scalable dimension, resource ID, and the associated scaling policies."
+folder: "Application Auto Scaling"
 ---
 
 # Table: aws_appautoscaling_target - Query AWS Application Auto Scaling Targets using SQL

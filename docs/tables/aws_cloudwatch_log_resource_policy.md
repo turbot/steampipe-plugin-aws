@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_log_resource_policy - Query AWS CloudWatch Log Resource Policies using SQL"
 description: "Allows users to query AWS CloudWatch Log Resource Policies, providing details such as the policy name, policy document, and last updated timestamp."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_log_resource_policy - Query AWS CloudWatch Log Resource Policies using SQL

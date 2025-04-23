@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dms_replication_task - Query AWS DMS Replication Tasks using SQL"
 description: "Enables users to query AWS DMS Replication Tasks to retrieve detailed information on data migration activities between source and target databases."
+folder: "DMS"
 ---
 
 # Table: aws_dms_replication_task - Query AWS DMS Replication Tasks using SQL
@@ -155,52 +156,4 @@ from
   aws_dms_replication_task as t
 join
   aws_dms_replication_instance as i on t.replication_instance_arn = i.arn;
-```
-
-### List source endpoint tasks
-Query to list tasks associated with source endpoints.
-
-```sql+postgresql
-select
-  replication_task_identifier,
-  source_endpoint_arn,
-  status
-from
-  aws_dms_replication_task
-where
-  endpoint_type = 'source';
-```
-
-```sql+sqlite
-select
-  replication_task_identifier,
-  source_endpoint_arn,
-  status
-from
-  aws_dms_replication_task
-where
-  endpoint_type = 'source';
-```
-
-### Endpoint type count
-Count tasks by endpoint type (source or target).
-
-```sql+postgresql
-select
-  endpoint_type,
-  count(*) as task_count
-from
-  aws_dms_replication_task
-group by
-  endpoint_type;
-```
-
-```sql+sqlite
-select
-  endpoint_type,
-  count(*) as task_count
-from
-  aws_dms_replication_task
-group by
-  endpoint_type;
 ```

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securitylake_subscriber - Query AWS Security Lake Subscriber using SQL"
 description: "Allows users to query AWS Security Lake Subscriber data, providing information about each subscriber's details in the AWS Security Lake service. This includes subscriber status, endpoint type, and subscription creation time."
+folder: "Security Lake"
 ---
 
 # Table: aws_securitylake_subscriber - Query AWS Security Lake Subscriber using SQL

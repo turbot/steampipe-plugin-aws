@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_redshift_snapshot - Query AWS Redshift Snapshots using SQL"
 description: "Allows users to query Redshift Snapshots, providing details about each snapshot's configuration, status, and associated metadata."
+folder: "Redshift"
 ---
 
 # Table: aws_redshift_snapshot - Query AWS Redshift Snapshots using SQL

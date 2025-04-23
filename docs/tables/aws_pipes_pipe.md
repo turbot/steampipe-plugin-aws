@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_pipes_pipe - Query AWS Pipes using SQL"
 description: "Allows users to query AWS Pipes to obtain detailed information about individual pipes."
+folder: "Pipes"
 ---
 
 # Table: aws_pipes_pipe - Query AWS Pipes using SQL

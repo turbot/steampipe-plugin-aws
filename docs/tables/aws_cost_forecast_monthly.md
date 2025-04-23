@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_forecast_monthly - Query AWS Cost Explorer Cost Forecast using SQL"
 description: "Allows users to query Cost Forecasts in AWS Cost Explorer for monthly cost predictions."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_forecast_monthly - Query AWS Cost Explorer Cost Forecast using SQL

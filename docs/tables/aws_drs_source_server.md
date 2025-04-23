@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_drs_source_server - Query AWS Database Migration Service Source Server using SQL"
 description: "Allows users to query AWS Database Migration Service Source Servers for detailed information about the replication servers used in database migrations."
+folder: "Elastic Disaster Recovery (DRS)"
 ---
 
 # Table: aws_drs_source_server - Query AWS Database Migration Service Source Server using SQL

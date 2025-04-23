@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_servicequotas_default_service_quota - Query AWS Service Quotas using SQL"
 description: "Allows users to query AWS Service Quotas Default Service Quota to retrieve information about the default values of service quotas for AWS services."
+folder: "Service Quotas"
 ---
 
 # Table: aws_servicequotas_default_service_quota - Query AWS Service Quotas using SQL

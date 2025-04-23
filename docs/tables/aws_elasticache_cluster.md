@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_cluster - Query Amazon ElastiCache Cluster using SQL"
 description: "Allows users to query Amazon ElastiCache Cluster data, providing information about each ElastiCache Cluster within the AWS account."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_cluster - Query Amazon ElastiCache Cluster using SQL
@@ -188,4 +189,49 @@ from
   aws_elasticache_cluster
 where
   snapshot_retention_limit is null;
+```
+
+### Find all ElastiCache update actions for clusters
+Retrieve a list of all service updates that are associated with ElastiCache clusters.
+
+```sql+postgres
+select
+  c.cache_cluster_id,
+  c.engine,
+  c.engine_version,
+  c.cache_node_type,
+  a.service_update_name,
+  a.service_update_severity,
+  a.service_update_status,
+  a.service_update_type,
+  a.service_update_recommended_apply_by_date
+from
+  aws_elasticache_cluster as c
+  right join aws_elasticache_update_action as a on c.cache_cluster_id = a.cache_cluster_id
+where
+  a.service_update_status = 'available'
+order by
+  a.service_update_severity,
+  a.service_update_recommended_apply_by_date;
+```
+
+```sql+sqlite
+select
+  c.cache_cluster_id,
+  c.engine,
+  c.engine_version,
+  c.cache_node_type,
+  a.service_update_name,
+  a.service_update_severity,
+  a.service_update_status,
+  a.service_update_type,
+  a.service_update_recommended_apply_by_date
+from
+  aws_elasticache_cluster as c
+  join aws_elasticache_update_action as a on c.cache_cluster_id = a.cache_cluster_id
+where
+  a.service_update_status = 'available'
+order by
+  a.service_update_severity,
+  a.service_update_recommended_apply_by_date;
 ```

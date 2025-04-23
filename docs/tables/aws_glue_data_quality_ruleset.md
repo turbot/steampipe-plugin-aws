@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_glue_data_quality_ruleset - Query AWS Glue Data Quality Ruleset using SQL"
 description: "Allows users to query AWS Glue Data Quality Ruleset to obtain information about the rulesets used for data quality checks in AWS Glue."
+folder: "Glue"
 ---
 
 # Table: aws_glue_data_quality_ruleset - Query AWS Glue Data Quality Ruleset using SQL

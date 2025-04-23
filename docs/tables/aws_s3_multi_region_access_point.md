@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_s3_multi_region_access_point - Query AWS S3 Multi-Region Access Point using SQL"
 description: "Allows users to query AWS S3 Multi-Region Access Points to retrieve information about their configuration, status, and associated policies."
+folder: "Region"
 ---
 
 # Table: aws_s3_multi_region_access_point - Query AWS S3 Multi-Region Access Point using SQL
@@ -72,27 +73,6 @@ where
   and json_extract(public_access_block, '$.BlockPublicPolicy') = 'true' 
   and json_extract(public_access_block, '$.IgnorePublicAcls') = 'true' 
   and json_extract(public_access_block, '$.RestrictPublicBuckets') = 'true';
-```
-
-### Get policy details of each multi-region access point
-Gain insights into the established and proposed policies for each multi-region access point in your AWS S3 service. This is useful for understanding the current and future policy configurations, helping you manage and plan your access points effectively.
-
-```sql+postgres
-select
-  name,
-  policy -> 'Established' -> 'Policy' as established_policy,
-  policy -> 'Proposed' -> 'Policy' as proposed_policy
-from
-  aws_s3_multi_region_access_point;
-```
-
-```sql+sqlite
-select
-  name,
-  json_extract(policy, '$.Established.Policy') as established_policy,
-  json_extract(policy, '$.Proposed.Policy') as proposed_policy
-from
-  aws_s3_multi_region_access_point;
 ```
 
 ### Count the number of multi-region access points per bucket

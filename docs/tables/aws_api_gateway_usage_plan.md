@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_api_gateway_usage_plan - Query AWS API Gateway Usage Plans using SQL"
 description: "Allows users to query AWS API Gateway Usage Plans in order to retrieve information about the usage plans configured in the AWS API Gateway service."
+folder: "API Gateway"
 ---
 
 # Table: aws_api_gateway_usage_plan - Query AWS API Gateway Usage Plans using SQL

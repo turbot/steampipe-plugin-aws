@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wafv2_regex_pattern_set - Query AWS WAFv2 Regex Pattern Set using SQL"
 description: "Allows users to query AWS WAFv2 Regex Pattern Set data, providing details about the regex pattern sets used in AWS WAFv2 to filter web requests."
+folder: "WAFv2"
 ---
 
 # Table: aws_wafv2_regex_pattern_set - Query AWS WAFv2 Regex Pattern Set using SQL

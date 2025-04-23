@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sqs_queue - Query AWS Simple Queue Service (SQS) using SQL"
 description: "Allows users to query AWS Simple Queue Service (SQS) to retrieve detailed information about each queue."
+folder: "SQS"
 ---
 
 # Table: aws_sqs_queue - Query AWS Simple Queue Service (SQS) using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_inspector_assessment_template - Query AWS Inspector Assessment Templates using SQL"
 description: "Allows users to query AWS Inspector Assessment Templates to gain insights into each template's configuration, including ARN, duration, rules package ARNs, and user attributes for findings."
+folder: "Inspector"
 ---
 
 # Table: aws_inspector_assessment_template - Query AWS Inspector Assessment Templates using SQL

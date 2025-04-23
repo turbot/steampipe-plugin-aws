@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"time"
 
@@ -50,6 +51,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costoptimizationhub"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
@@ -84,6 +86,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 	"github.com/aws/aws-sdk-go-v2/service/iot"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/keyspaces"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
@@ -104,6 +107,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pipes"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/service/quicksight"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
@@ -116,6 +120,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/service/scheduler"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securitylake"
@@ -173,10 +178,12 @@ import (
 	eventbridgeEndpoint "github.com/aws/aws-sdk-go/service/eventbridge"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
+	healthEndpoint "github.com/aws/aws-sdk-go/service/health"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
 	iotEndpoint "github.com/aws/aws-sdk-go/service/iot"
 	kafkaEndpoint "github.com/aws/aws-sdk-go/service/kafka"
+	keyspacesEndpoint "github.com/aws/aws-sdk-go/service/keyspaces"
 	kinesisanalyticsv2Endpoint "github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	kinesisvideoEndpoint "github.com/aws/aws-sdk-go/service/kinesisvideo"
 	kmsEndpoint "github.com/aws/aws-sdk-go/service/kms"
@@ -197,6 +204,7 @@ import (
 	resourceexplorer2Endpoint "github.com/aws/aws-sdk-go/service/resourceexplorer2"
 	route53resolverEndpoint "github.com/aws/aws-sdk-go/service/route53resolver"
 	sagemakerEndpoint "github.com/aws/aws-sdk-go/service/sagemaker"
+	schedulerEndpoint "github.com/aws/aws-sdk-go/service/scheduler"
 	securityhubEndpoint "github.com/aws/aws-sdk-go/service/securityhub"
 	securitylakeEndpoint "github.com/aws/aws-sdk-go/service/securitylake"
 	serverlessrepoEndpoint "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
@@ -570,6 +578,14 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	return costexplorer.NewFromConfig(*cfg), nil
 }
 
+func CostOptimizationHubClient(ctx context.Context, d *plugin.QueryData) (*costoptimizationhub.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return costoptimizationhub.NewFromConfig(*cfg), nil
+}
+
 func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -847,10 +863,37 @@ func GuardDutyClient(ctx context.Context, d *plugin.QueryData) (*guardduty.Clien
 }
 
 func HealthClient(ctx context.Context, d *plugin.QueryData) (*health.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	// Get Health API supported regions
+	healthAPISupportedRegions, err := listRegionsForService(ctx, d, healthEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
+
+	// Get the client region for AWS API calls
+	// Typically this should be the region closest to the user
+	clientRegion, err := getDefaultRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Health API is a global API that supports only us-east-1 and us-east-2 regions
+	// in `aws` partition and us-gov-west-1 in `aws-gov` partition.
+	// If a preferred region is set using default_region, or in the AWS config files,
+	// and the API supports that region, use that as the endpoint.
+	// As of April 12, 2025, AWS Health API only works in AWS Commercial Cloud and GovCloud.
+	queryRegion := clientRegion
+	if !slices.Contains(healthAPISupportedRegions, queryRegion) {
+		queryRegion, err = getLastResortRegion(ctx, d, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cfg, err := getClient(ctx, d, queryRegion)
+	if err != nil {
+		return nil, err
+	}
+
 	return health.NewFromConfig(*cfg), nil
 }
 
@@ -916,6 +959,17 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 		return nil, nil
 	}
 	return kafka.NewFromConfig(*cfg), nil
+}
+
+func KeyspacesClient(ctx context.Context, d *plugin.QueryData) (*keyspaces.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, keyspacesEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return keyspaces.NewFromConfig(*cfg), nil
 }
 
 func KinesisClient(ctx context.Context, d *plugin.QueryData) (*kinesis.Client, error) {
@@ -1147,7 +1201,7 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	// and the API supports that region, use that as the endpoint.
 	// As of Dec 13, 2022, AWS Pricing API only works in AWS Commercial Cloud.
 	queryRegion := clientRegion
-	if !helpers.StringSliceContains(pricingAPISupportedRegions, queryRegion) {
+	if !slices.Contains(pricingAPISupportedRegions, queryRegion) {
 		queryRegion, err = getLastResortRegion(ctx, d, nil)
 		if err != nil {
 			return nil, err
@@ -1160,6 +1214,15 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	}
 
 	return pricing.NewFromConfig(*cfg), nil
+}
+
+// QuickSightClient returns the client for the Amazon QuickSight service
+func QuickSightClient(ctx context.Context, d *plugin.QueryData) (*quicksight.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return quicksight.NewFromConfig(*cfg), nil
 }
 
 func RAMClient(ctx context.Context, d *plugin.QueryData) (*ram.Client, error) {
@@ -1197,8 +1260,8 @@ func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.C
 		"cn-north-1",     // China (Beijing)
 		"cn-northwest-1", // China (Ningxia)
 	}
-	excludeRegions = append(excludeRegions, awsChinaRegions()...)
-	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-cn")...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-us-gov")...)
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
@@ -1222,8 +1285,8 @@ func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, er
 		"eu-south-2",     // Spain
 		"me-central-1",   // UAE
 	}
-	excludeRegions = append(excludeRegions, awsChinaRegions()...)
-	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-cn")...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-us-gov")...)
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
@@ -1272,7 +1335,7 @@ func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region str
 
 	// Verify the requested region is supported, otherwise return nil which
 	// will mean zero results are returned for the query.
-	if !helpers.StringSliceContains(resourceExplorerRegions, region) {
+	if !slices.Contains(resourceExplorerRegions, region) {
 		return nil, nil
 	}
 
@@ -1379,6 +1442,17 @@ func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Clien
 		return nil, nil
 	}
 	return sagemaker.NewFromConfig(*cfg), nil
+}
+
+func SchedulerClient(ctx context.Context, d *plugin.QueryData) (*scheduler.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, schedulerEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return scheduler.NewFromConfig(*cfg), nil
 }
 
 func SecretsManagerClient(ctx context.Context, d *plugin.QueryData) (*secretsmanager.Client, error) {
@@ -1500,7 +1574,7 @@ func ShieldClient(ctx context.Context, d *plugin.QueryData) (*shield.Client, err
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if cfg == nil {
 		return nil, nil
 	}
@@ -1697,7 +1771,7 @@ func getClientForQuerySupportedRegionWithExclusions(ctx context.Context, d *plug
 	// Remove the excluded regions from the valid list
 	validRegions = helpers.RemoveFromStringSlice(validRegions, excludeRegions...)
 
-	if !helpers.StringSliceContains(validRegions, region) {
+	if !slices.Contains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather
 		// than an error. The caller must handle this case.

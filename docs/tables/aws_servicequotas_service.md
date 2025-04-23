@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_servicequotas_service - Query AWS Service Quota Services using SQL"
 description: "Allows users to query AWS Service Quotas services, providing detailed information about each service's code and name."
+folder: "Service Quotas"
 ---
 
 # Table: aws_servicequotas_service - Query AWS Service Quota Services using SQL

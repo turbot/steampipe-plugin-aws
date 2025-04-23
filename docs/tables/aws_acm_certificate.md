@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_acm_certificate - Query AWS Certificate Manager certificates using SQL"
 description: "Allows users to query AWS Certificate Manager certificates. This table provides information about each certificate, including the domain name, status, issuer, and more. It can be used to monitor certificate details, validity, and expiration data."
+folder: "ACM"
 ---
 
 # Table: aws_acm_certificate - Query AWS Certificate Manager certificates using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudfront_function - Query AWS CloudFront Functions using SQL"
 description: "Allows users to query AWS CloudFront Functions to retrieve detailed information about each function, including its ARN, stage, status, and more."
+folder: "CloudFront"
 ---
 
 # Table: aws_cloudfront_function - Query AWS CloudFront Functions using SQL

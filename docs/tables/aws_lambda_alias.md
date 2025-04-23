@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lambda_alias - Query AWS Lambda Alias using SQL"
 description: "Allows users to query AWS Lambda Alias, providing detailed information about each alias associated with AWS Lambda functions."
+folder: "Lambda"
 ---
 
 # Table: aws_lambda_alias - Query AWS Lambda Alias using SQL

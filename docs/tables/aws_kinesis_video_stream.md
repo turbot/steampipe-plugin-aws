@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_kinesis_video_stream - Query AWS Kinesis Video Streams using SQL"
 description: "Allows users to query Kinesis Video Streams to obtain metadata about each stream, including the stream's ARN, creation time, status, and other information."
+folder: "Kinesis"
 ---
 
 # Table: aws_kinesis_video_stream - Query AWS Kinesis Video Streams using SQL

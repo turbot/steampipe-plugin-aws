@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_organizations_account - Query AWS Organizations Account using SQL"
 description: "Allows users to query AWS Organizations Account and provides information about each AWS account that is a member of an organization in AWS Organizations."
+folder: "Organizations"
 ---
 
 # Table: aws_organizations_account - Query AWS Organizations Account using SQL

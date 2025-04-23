@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_emr_security_configuration - Query AWS EMR Security Configurations using SQL"
 description: "Allows users to query AWS EMR (Amazon Elastic MapReduce) Security Configurations. This table provides information about security settings and configurations that can be applied to EMR clusters, managing encryption, authentication, and authorization. These configurations are crucial for ensuring the secure handling of data, protecting sensitive information, and complying with various data security standards and regulations."
+folder: "Config"
 ---
 
 # Table: aws_emr_security_configuration - Query AWS EMR Security Configurations using SQL

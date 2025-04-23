@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_policy - Query AWS IAM Policy using SQL"
 description: "Allows users to query AWS IAM Policies, providing detailed information about each policy, including permissions, attachment, and associated metadata."
+folder: "IAM"
 ---
 
 # Table: aws_iam_policy - Query AWS IAM Policy using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_shield_drt_access - Query AWS Shield Advanced SRT Access settings using SQL"
 description: "Allows users to query AWS Shield Advanced SRT Access settings and retrieve information about the Shield Response Team's access to your AWS resources."
+folder: "Shield"
 ---
 
 # Table: aws_shield_drt_access - Query AWS Shield Advanced SRT Access settings using SQL

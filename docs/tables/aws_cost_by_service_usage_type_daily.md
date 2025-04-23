@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_service_usage_type_daily - Query AWS Cost Explorer Service usage type daily using SQL"
 description: "Allows users to query AWS Cost Explorer Service daily usage type to fetch detailed data about AWS service usage and costs."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_service_usage_type_daily - Query AWS Cost Explorer Service usage type daily using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_glue_security_configuration - Query AWS Glue Security Configurations using SQL"
 description: "Allows users to query AWS Glue Security Configurations and gain insights into the security configurations of Glue resources."
+folder: "Config"
 ---
 
 # Table: aws_glue_security_configuration - Query AWS Glue Security Configurations using SQL

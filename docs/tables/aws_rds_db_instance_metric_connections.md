@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_metric_connections - Query AWS RDS DBInstance Metrics using SQL"
 description: "Allows users to query AWS RDS DBInstance Metrics for a comprehensive view of the number of database connections."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance_metric_connections - Query AWS RDS DBInstance Metrics using SQL

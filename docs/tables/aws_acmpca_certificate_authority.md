@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_acmpca_certificate_authority - Query AWS ACM PCA Certificate Authorities using SQL"
 description: "Allows users to query AWS ACM PCA Certificate Authorities. It can be used to monitor certificate authorities details, validity, usage mode and expiration data."
+folder: "ACM"
 ---
 
 # Table: aws_acmpca_certificate_authority - Query AWS ACM PCA Certificate Authorities using SQL

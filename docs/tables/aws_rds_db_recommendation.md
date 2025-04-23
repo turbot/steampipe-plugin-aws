@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_recommendation - Query AWS RDS DB Recommendations using SQL"
 description: "Allows users to query AWS RDS DB Recommendations and retrieve valuable information about each recommendation's status, impact, and suggested actions."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_recommendation - Query AWS RDS DB Recommendations using SQL

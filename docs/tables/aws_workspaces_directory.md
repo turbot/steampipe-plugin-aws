@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_workspaces_directory - Query AWS WorkSpaces Directory using SQL"
 description: "Allows users to query AWS WorkSpaces Directory information to retrieve details such as directory ID, directory type, workspace creation properties, and more."
+folder: "WorkSpaces"
 ---
 
 # Table: aws_workspaces_directory - Query AWS WorkSpaces Directory using SQL

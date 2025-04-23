@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
@@ -9,7 +10,6 @@ import (
 
 	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -46,6 +46,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			{
 				Func: getRDSDBInstanceCertificate,
 				Tags: map[string]string{"service": "rds", "action": "DescribeCertificates"},
+				// Certificate "rds-ca-2019" not found due to discontinuation, Amazon RDS and Amazon Aurora Expire in 2024.
+				// AWS announcement ref: https://aws.amazon.com/blogs/aws/rotate-your-ssl-tls-certificates-now-amazon-rds-and-amazon-aurora-expire-in-2024/
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"CertificateNotFound"}),
+				},
 			},
 			{
 				Func: getRDSDBInstanceProcessorFeatures,
@@ -395,7 +400,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "pending_maintenance_actions",
-				Description: "A list that provides details about the pending maintenance actions for the resource.",
+				Description: "[Deprecated] This column has been deprecated and will be removed in a future release. Please use the aws_rds_pending_maintenance_action table instead.",
 				Hydrate:     getRDSDBInstancePendingMaintenanceAction,
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromValue(),
@@ -416,6 +421,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			{
 				Name:        "read_replica_db_instance_identifiers",
 				Description: "A list of identifiers of the read replicas associated with this DB instance.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "pending_modified_values",
+				Description: "Information about pending changes to the DB instance. This information is returned only when there are pending changes. Specific changes are identified by subelements.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -590,7 +600,7 @@ func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.Que
 }
 
 func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	caCertificateIdentifier := *h.Item.(types.DBInstance).CACertificateIdentifier
+	instance := h.Item.(types.DBInstance)
 
 	// Create service
 	svc, err := RDSClient(ctx, d)
@@ -600,7 +610,7 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	params := &rds.DescribeCertificatesInput{
-		CertificateIdentifier: aws.String(caCertificateIdentifier),
+		CertificateIdentifier: instance.CACertificateIdentifier,
 	}
 
 	op, err := svc.DescribeCertificates(ctx, params)
@@ -635,7 +645,7 @@ func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData,
 
 	// https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeOrderableDBInstanceOptions.html
 	// Return nil if unsupported engine type
-	if !helpers.StringSliceContains([]string{"aurora-mysql", "aurora-postgresql", "custom-oracle-ee", "db2-ae", "db2-se", "mariadb", "mysql", "oracle-ee", "oracle-ee-cdb", "oracle-se2", "oracle-se2-cdb", "postgres", "sqlserver-ee", "sqlserver-se", "sqlserver-ex", "sqlserver-web"}, *dbInstance.Engine) {
+	if !slices.Contains([]string{"aurora-mysql", "aurora-postgresql", "custom-oracle-ee", "db2-ae", "db2-se", "mariadb", "mysql", "oracle-ee", "oracle-ee-cdb", "oracle-se2", "oracle-se2-cdb", "postgres", "sqlserver-ee", "sqlserver-se", "sqlserver-ex", "sqlserver-web"}, *dbInstance.Engine) {
 		return nil, nil
 	}
 

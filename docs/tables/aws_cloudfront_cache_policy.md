@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudfront_cache_policy - Query AWS CloudFront Cache Policies using SQL"
 description: "Allows users to query AWS CloudFront Cache Policies for details about their configuration, status, and associated metadata."
+folder: "CloudFront"
 ---
 
 # Table: aws_cloudfront_cache_policy - Query AWS CloudFront Cache Policies using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_access_advisor - Query AWS IAM Access Advisor using SQL"
 description: "Allows users to query AWS IAM Access Advisor to retrieve information about the service last accessed data for IAM entities (users, groups, and roles)."
+folder: "IAM"
 ---
 
 # Table: aws_iam_access_advisor - Query AWS IAM Access Advisor using SQL

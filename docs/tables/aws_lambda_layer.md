@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lambda_layer - Query AWS Lambda Layer using SQL"
 description: "Allows users to query AWS Lambda Layers and retrieve information including layer ARNs, layer versions, compatible runtimes, and more."
+folder: "Lambda"
 ---
 
 # Table: aws_lambda_layer - Query AWS Lambda Layer using SQL

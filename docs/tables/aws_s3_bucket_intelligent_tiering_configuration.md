@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_s3_bucket_intelligent_tiering_configuration - Query AWS S3 Bucket Intelligent Tiering Configuration using SQL"
 description: "Allows users to query Intelligent Tiering configurations for S3 buckets. It provides information about each configuration, including the bucket name, the ID of the configuration, and the status of the configuration."
+folder: "Config"
 ---
 
 # Table: aws_s3_bucket_intelligent_tiering_configuration - Query AWS S3 Bucket Intelligent Tiering Configuration using SQL

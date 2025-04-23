@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codebuild_source_credential - Query AWS CodeBuild Source Credentials using SQL"
 description: "Allows users to query AWS CodeBuild Source Credentials"
+folder: "CodeBuild"
 ---
 
 # Table: aws_codebuild_source_credential - Query AWS CodeBuild Source Credentials using SQL

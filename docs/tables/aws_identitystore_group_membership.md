@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_identitystore_group_membership - Query AWS Identity Store Group Memberships using SQL"
 description: "Allows users to query AWS Identity Store Group Memberships, providing information about AWS users' membership status within various identity groups."
+folder: "Identity Store"
 ---
 
 # Table: aws_identitystore_group_membership - Query AWS Identity Store Group Memberships using SQL

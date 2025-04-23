@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_kms_key - Query AWS KMS Key using SQL"
 description: "Allows users to query AWS KMS Key data including cryptographic details, key usage, key state, and associated metadata."
+folder: "KMS"
 ---
 
 # Table: aws_kms_key - Query AWS KMS Key using SQL

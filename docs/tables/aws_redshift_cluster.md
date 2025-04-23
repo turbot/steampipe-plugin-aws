@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_redshift_cluster - Query AWS Redshift Clusters using SQL"
 description: "Allows users to query AWS Redshift Clusters and retrieve comprehensive information about each cluster, including its configuration, status, performance, and security settings."
+folder: "Redshift"
 ---
 
 # Table: aws_redshift_cluster - Query AWS Redshift Clusters using SQL

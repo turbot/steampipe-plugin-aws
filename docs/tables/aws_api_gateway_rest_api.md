@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_api_gateway_rest_api - Query AWS API Gateway Rest APIs using SQL"
 description: "Allows users to query AWS API Gateway Rest APIs to retrieve information about API Gateway REST APIs in an AWS account."
+folder: "API Gateway"
 ---
 
 # Table: aws_api_gateway_rest_api - Query AWS API Gateway Rest APIs using SQL

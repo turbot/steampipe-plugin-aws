@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_waf_rule_group - Query AWS WAF Rule Groups using SQL"
 description: "Allows users to query AWS WAF Rule Groups to provide information about Web Application Firewall (WAF) rule groups within AWS WAF. This table enables security and DevOps engineers to query rule group-specific details, including rules, actions, and associated metadata."
+folder: "WAF"
 ---
 
 # Table: aws_waf_rule_group - Query AWS WAF Rule Groups using SQL

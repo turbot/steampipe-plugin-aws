@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_directory_service_certificate - Query AWS Directory Service Certificates using SQL"
 description: "Allows users to query AWS Directory Service Certificates to gather information about the certificates associated with AWS Managed Microsoft AD and Simple AD directories."
+folder: "Directory Service"
 ---
 
 # Table: aws_directory_service_certificate - Query AWS Directory Service Certificates using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecs_cluster_metric_cpu_utilization_hourly - Query AWS ECS Cluster Metrics using SQL"
 description: "Allows users to query AWS ECS Cluster CPU Utilization Metrics on an hourly basis."
+folder: "ECS"
 ---
 
 # Table: aws_ecs_cluster_metric_cpu_utilization_hourly - Query AWS ECS Cluster Metrics using SQL

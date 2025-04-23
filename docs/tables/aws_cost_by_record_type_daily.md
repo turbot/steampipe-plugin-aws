@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_record_type_daily - Query AWS Cost and Usage Report using SQL"
 description: "Allows users to query daily AWS cost data by record type. This table provides information about AWS costs incurred per record type on a daily basis."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_record_type_daily - Query AWS Cost and Usage Report using SQL

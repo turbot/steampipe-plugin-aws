@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_flow_log_event - Query AWS VPC Flow Logs using SQL"
 description: "Allows users to query AWS VPC Flow Logs and retrieve information about the IP traffic going to and from network interfaces in their VPC."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_flow_log_event - Query AWS VPC Flow Logs using SQL

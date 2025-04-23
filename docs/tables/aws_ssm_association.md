@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_association - Query AWS SSM Association using SQL"
 description: "Allows users to query AWS SSM Associations for detailed information about the AWS Systems Manager associations, including their status, targets, and parameters."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_association - Query AWS SSM Association using SQL

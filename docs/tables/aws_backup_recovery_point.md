@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_backup_recovery_point - Query AWS Backup Recovery Points using SQL"
 description: "Allows users to query AWS Backup Recovery Points to gather comprehensive information about each recovery point within an AWS Backup vault."
+folder: "Backup"
 ---
 
 # Table: aws_backup_recovery_point - Query AWS Backup Recovery Points using SQL

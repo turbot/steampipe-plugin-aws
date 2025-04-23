@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ram_principal_association - Query AWS RAM Principal Associations using SQL"
 description: "Allows users to query AWS RAM Principal Associations. The `aws_ram_principal_association` table in Steampipe provides information about principal associations within AWS Resource Access Manager (RAM). This table allows DevOps engineers to query principal-specific details, including resource share ARN, principal ARN, creation time, and associated tags. Users can utilize this table to gather insights on principal associations, such as their status, external status, and more. The schema outlines the various attributes of the principal association, including the resource share ARN, principal ARN, creation time, and associated tags."
+folder: "Resource Access Manager"
 ---
 
 # Table: aws_ram_principal_association - Query AWS RAM Principal Associations using SQL

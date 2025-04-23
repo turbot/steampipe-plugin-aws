@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_domain - Query AWS Route 53 Domains using SQL"
 description: "Allows users to query AWS Route 53 Domains for detailed information about domain names, including their status, expiration date, and associated tags."
+folder: "Route 53"
 ---
 
 # Table: aws_route53_domain - Query AWS Route 53 Domains using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_service_discovery_instance - Query AWS Cloud Map Service Instances using SQL"
 description: "Allows users to query AWS Cloud Map Service Instances and retrieve detailed information about each instance associated with a specified service. This information includes the instance ID, instance attributes, and the health status of the instance."
+folder: "Service Discovery"
 ---
 
 # Table: aws_service_discovery_instance - Query AWS Cloud Map Service Instances using SQL

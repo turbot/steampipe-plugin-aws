@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cognito_identity_provider - Query AWS Cognito Identity Providers using SQL"
 description: "Allows users to query AWS Cognito Identity Providers, providing essential details about the identity provider configurations within AWS Cognito User Pools."
+folder: "Cognito"
 ---
 
 # Table: aws_cognito_identity_provider - Query AWS Cognito Identity Providers using SQL

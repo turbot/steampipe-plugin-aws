@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_application_load_balancer_metric_request_count - Query AWS EC2 Application Load Balancer Metrics using SQL"
 description: "Allows users to query AWS EC2 Application Load Balancer Metrics, specifically the request count."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_application_load_balancer_metric_request_count - Query AWS EC2 Application Load Balancer Metrics using SQL

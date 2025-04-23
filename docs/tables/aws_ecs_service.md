@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecs_service - Query AWS Elastic Container Service using SQL"
 description: "Allows users to query AWS Elastic Container Service (ECS) to retrieve information about the services within the ECS clusters."
+folder: "ECS"
 ---
 
 # Table: aws_ecs_service - Query AWS Elastic Container Service using SQL

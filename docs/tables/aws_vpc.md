@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc - Query AWS VPC using SQL"
 description: "Allows users to query VPCs within AWS. It provides information about each VPC's configuration, including its ID, state, CIDR block, and whether it is the default VPC."
+folder: "VPC"
 ---
 
 # Table: aws_vpc - Query AWS VPC using SQL

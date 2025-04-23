@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_service_daily - Query AWS Cost Explorer using SQL"
 description: "Allows users to query AWS Cost Explorer to retrieve daily cost breakdown by AWS service."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_service_daily - Query AWS Cost Explorer using SQL

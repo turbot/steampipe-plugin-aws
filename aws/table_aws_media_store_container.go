@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -247,7 +247,7 @@ func getMediaStoreContainerPolicy(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"PolicyNotFoundException", "ContainerInUseException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"PolicyNotFoundException", "ContainerInUseException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}

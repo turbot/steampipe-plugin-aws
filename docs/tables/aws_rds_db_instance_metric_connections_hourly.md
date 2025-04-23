@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_metric_connections_hourly - Query AWS RDS DB Instance Metrics using SQL"
 description: "Allows users to query AWS RDS DB Instance Metrics on an hourly basis, specifically the connection metrics. It provides data about the number of database connections to each DB instance in your Amazon RDS environment."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance_metric_connections_hourly - Query AWS RDS DB Instance Metrics using SQL

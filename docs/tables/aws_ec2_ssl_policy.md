@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_ssl_policy - Query AWS EC2 SSL Policies using SQL"
 description: "Allows users to query AWS EC2 SSL Policies to retrieve detailed information about SSL policies used in AWS EC2 Load Balancers."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_ssl_policy - Query AWS EC2 SSL Policies using SQL
