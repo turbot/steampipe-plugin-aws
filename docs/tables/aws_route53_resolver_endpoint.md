@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_resolver_endpoint - Query AWS Route 53 Resolver Endpoints using SQL"
 description: "Allows users to query AWS Route 53 Resolver Endpoints, providing detailed information about each endpoint, including its ID, direction, IP addresses, and status, among other details."
+folder: "Route 53"
 ---
 
 # Table: aws_route53_resolver_endpoint - Query AWS Route 53 Resolver Endpoints using SQL

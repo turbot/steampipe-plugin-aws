@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ebs_snapshot - Query AWS Elastic Block Store (EBS) using SQL"
 description: "Allows users to query AWS EBS snapshots, providing detailed information about each snapshot's configuration, status, and associated metadata."
+folder: "EBS"
 ---
 
 # Table: aws_ebs_snapshot - Query AWS Elastic Block Store (EBS) using SQL

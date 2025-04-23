@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssmincidents_response_plan - Query AWS SSM Incidents Response Plan using SQL"
 description: "Allows users to query AWS SSM Incidents Response Plan data to retrieve information about each resource plan in your AWS account."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssmincidents_response_plan - Query AWS SSM Incidents Response Plan using SQL

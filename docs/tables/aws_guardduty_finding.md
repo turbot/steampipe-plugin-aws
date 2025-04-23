@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_guardduty_finding - Query AWS GuardDuty Findings using SQL"
 description: "Allows users to query AWS GuardDuty Findings to access detailed information about potential security threats or suspicious activities detected in their AWS environment."
+folder: "GuardDuty"
 ---
 
 # Table: aws_guardduty_finding - Query AWS GuardDuty Findings using SQL

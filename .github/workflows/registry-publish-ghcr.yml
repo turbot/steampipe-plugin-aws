@@ -47,9 +47,9 @@ jobs:
           echo $trim
           echo "VERSION=${trim}" >> $GITHUB_ENV
 
-      - name: Validate Version String is SemVer
+      - name: Validate Version String (only accept prod & rc)
         run: |-
-          if [[ $VERSION =~  ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
             echo "Version OK: $VERSION"
           else
             echo "Invalid version: $VERSION"
@@ -142,6 +142,7 @@ jobs:
       - name: Push to the container registry
         run: |-
           REF="$CR/$CR_PREFIX/$ORG/$PLUGIN_NAME:$VERSION"
+          LATEST_REF="$CR/$CR_PREFIX/$ORG/$PLUGIN_NAME:latest"
           oras push $REF \
             --config config.json:application/vnd.turbot.steampipe.config.v1+json \
             --annotation-file annotations.json \
@@ -151,5 +152,15 @@ jobs:
             steampipe-plugin-${PLUGIN_NAME}_linux_arm64.gz:application/vnd.turbot.steampipe.plugin.linux-arm64.layer.v1+gzip \
             docs:application/vnd.turbot.steampipe.plugin.docs.layer.v1+tar \
             config:application/vnd.turbot.steampipe.plugin.spc.layer.v1+tar
+            
+          # tag the image with the GitHub Run ID for traceability
           oras tag $REF $GITHUB_RUN_ID
+
+          # check if the version is NOT an rc version before tagging as latest
+          if [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tagging as latest: $LATEST_REF"
+            oras tag $REF $LATEST_REF
+          else
+            echo "Skipping latest tag for rc version: $VERSION"
+          fi
       

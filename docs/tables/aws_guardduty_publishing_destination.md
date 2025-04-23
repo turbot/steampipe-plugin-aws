@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_guardduty_publishing_destination - Query AWS GuardDuty Publishing Destinations using SQL"
 description: "Allows users to query AWS GuardDuty Publishing Destinations to retrieve information about where GuardDuty findings are published."
+folder: "GuardDuty"
 ---
 
 # Table: aws_guardduty_publishing_destination - Query AWS GuardDuty Publishing Destinations using SQL

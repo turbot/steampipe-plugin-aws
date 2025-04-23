@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_account_daily - Query AWS Cost Explorer using SQL"
 description: "Allows users to query daily AWS costs by account. This table provides an overview of AWS usage and cost data for each AWS account on a daily basis."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_account_daily - Query AWS Cost Explorer using SQL

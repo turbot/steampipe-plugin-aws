@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_reserved_cache_node - Query AWS ElastiCache Reserved Cache Nodes using SQL"
 description: "Allows users to query AWS ElastiCache Reserved Cache Nodes to gather details such as the reservation status, start time, duration, and associated metadata."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_reserved_cache_node - Query AWS ElastiCache Reserved Cache Nodes using SQL

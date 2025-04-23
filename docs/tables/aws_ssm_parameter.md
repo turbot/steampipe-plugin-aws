@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_parameter - Query AWS Systems Manager Parameter Store using SQL"
 description: "Allows users to query AWS Systems Manager Parameter Store to retrieve information about parameters, their types, values, and associated metadata."
+folder: "Resource Access Manager"
 ---
 
 # Table: aws_ssm_parameter - Query AWS Systems Manager Parameter Store using SQL

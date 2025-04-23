@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudfront_origin_request_policy - Query AWS CloudFront Origin Request Policies using SQL"
 description: "Allows users to query AWS CloudFront Origin Request Policies, providing details about each policy such as ID, name, comment, cookies configuration, headers configuration, query strings configuration, and more."
+folder: "CloudFront"
 ---
 
 # Table: aws_cloudfront_origin_request_policy - Query AWS CloudFront Origin Request Policies using SQL

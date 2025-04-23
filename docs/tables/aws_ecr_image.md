@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecr_image - Query Amazon ECR Images using SQL"
 description: "Allows users to query Amazon Elastic Container Registry (ECR) Images and retrieve detailed information about each image, including image tags, push timestamps, image sizes, and more."
+folder: "ECR"
 ---
 
 # Table: aws_ecr_image - Query Amazon ECR Images using SQL

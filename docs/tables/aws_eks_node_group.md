@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_eks_node_group - Query AWS EKS Node Group using SQL"
 description: "Allows users to query AWS EKS Node Group data, providing information about each node group within an AWS Elastic Kubernetes Service (EKS) cluster."
+folder: "EKS"
 ---
 
 # Table: aws_eks_node_group - Query AWS EKS Node Group using SQL

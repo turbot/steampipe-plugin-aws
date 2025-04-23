@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_s3_object - Query AWS S3 Object using SQL"
 description: "Allows users to query AWS S3 Objects and retrieve metadata and details about each object stored in S3 buckets."
+folder: "S3"
 ---
 
 # Table: aws_s3_object - Query AWS S3 Object using SQL

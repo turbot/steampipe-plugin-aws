@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codeartifact_domain - Query AWS CodeArtifact Domains using SQL"
 description: "Allows users to query AWS CodeArtifact Domains for details such as domain ownership, encryption key, and policy information."
+folder: "CodeArtifact"
 ---
 
 # Table: aws_codeartifact_domain - Query AWS CodeArtifact Domains using SQL

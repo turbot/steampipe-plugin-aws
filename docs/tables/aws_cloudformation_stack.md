@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudformation_stack - Query AWS CloudFormation Stack using SQL"
 description: "Allows users to query AWS CloudFormation Stack data, including stack name, status, creation time, and associated tags."
+folder: "CloudFormation"
 ---
 
 # Table: aws_cloudformation_stack - Query AWS CloudFormation Stack using SQL

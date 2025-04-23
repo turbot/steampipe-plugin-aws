@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_guardduty_threat_intel_set - Query AWS GuardDuty ThreatIntelSet using SQL"
 description: "Allows users to query AWS GuardDuty ThreatIntelSet to fetch information about threat intelligence sets that are associated with a GuardDuty detector."
+folder: "GuardDuty"
 ---
 
 # Table: aws_guardduty_threat_intel_set - Query AWS GuardDuty ThreatIntelSet using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_kinesis_consumer - Query AWS Kinesis Consumers using SQL"
 description: "Allows users to query AWS Kinesis Consumers. This table provides information about Kinesis Consumers within AWS Kinesis Data Streams. It enables users to gather insights on consumers such as consumer ARN, creation timestamp, stream ARN and more."
+folder: "Kinesis"
 ---
 
 # Table: aws_kinesis_consumer - Query AWS Kinesis Consumers using SQL

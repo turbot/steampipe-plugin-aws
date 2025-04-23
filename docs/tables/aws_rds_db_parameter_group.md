@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_parameter_group - Query AWS RDS DB Parameter Groups using SQL"
 description: "Allows users to query AWS RDS DB Parameter Groups, providing information about the configurations that control the behavior of the databases that they are associated with."
+folder: "Resource Access Manager"
 ---
 
 # Table: aws_rds_db_parameter_group - Query AWS RDS DB Parameter Groups using SQL

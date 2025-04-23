@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_ami - Query AWS EC2 AMI using SQL"
 description: "Allows users to query AWS EC2 AMIs (Amazon Machine Images) to retrieve detailed information about each AMI available in the AWS account."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_ami - Query AWS EC2 AMI using SQL

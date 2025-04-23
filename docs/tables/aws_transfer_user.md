@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_transfer_user - Query AWS Transfer for users in a server using SQL"
 description: "Allows users to query AWS Transfer for users in a server, equivalent to list/describe user functions."
+folder: "Transfer Family"
 ---
 
 # Table: aws_transfer_user - Query AWS Transfer Family users using SQL

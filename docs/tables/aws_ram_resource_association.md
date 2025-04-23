@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ram_resource_association - Query AWS RAM Resource Associations using SQL"
 description: "Allows users to query AWS RAM Resource Associations to retrieve information about the associations between resources and resource shares."
+folder: "Resource Access Manager"
 ---
 
 # Table: aws_ram_resource_association - Query AWS RAM Resource Associations using SQL

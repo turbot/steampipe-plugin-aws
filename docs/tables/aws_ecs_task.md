@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecs_task - Query AWS ECS Tasks using SQL"
 description: "Allows users to query AWS ECS Tasks to obtain detailed information about each task, including its status, task definition, cluster, and other related metadata."
+folder: "ECS"
 ---
 
 # Table: aws_ecs_task - Query AWS ECS Tasks using SQL

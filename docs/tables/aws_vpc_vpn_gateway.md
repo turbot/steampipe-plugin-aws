@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_vpn_gateway - Query AWS VPC VPN Gateway using SQL"
 description: "Allows users to query AWS VPC VPN Gateway data, providing details about Virtual Private Cloud (VPC) VPN gateways in an AWS account."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_vpn_gateway - Query AWS VPC VPN Gateway using SQL

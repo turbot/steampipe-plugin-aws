@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_servicequotas_service_quota_change_request - Query AWS Service Quotas using SQL"
 description: "Allows users to query AWS Service Quotas change requests."
+folder: "Service Quotas"
 ---
 
 # Table: aws_servicequotas_service_quota_change_request - Query AWS Service Quotas using SQL

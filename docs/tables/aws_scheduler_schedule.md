@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_scheduler_schedule - Query AWS EventBridge Schedules using SQL"
 description: "Allows users to query AWS EventBridge Scheduler schedules, including metadata, schedule expressions, target configurations, and other details."
+folder: "Scheduler"
 ---
 
 # Table: aws_scheduler_schedule - Query AWS EventBridge Schedules using SQL

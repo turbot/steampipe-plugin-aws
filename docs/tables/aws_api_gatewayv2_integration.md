@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_api_gatewayv2_integration - Query AWS API Gateway Integrations using SQL"
 description: "Allows users to query AWS API Gateway Integrations to retrieve detailed information about each integration within the API Gateway."
+folder: "API Gateway"
 ---
 
 # Table: aws_api_gatewayv2_integration - Query AWS API Gateway Integrations using SQL

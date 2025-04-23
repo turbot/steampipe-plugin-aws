@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_resource_explorer_search - Query AWS Resource Explorer using SQL"
 description: "Allows users to query AWS Resource Explorer to obtain a structured view of all resources across AWS services. It provides detailed information about each resource, including the service name, resource type, resource ID, and associated tags."
+folder: "Resource Explorer"
 ---
 
 # Table: aws_resource_explorer_search - Query AWS Resource Explorer using SQL

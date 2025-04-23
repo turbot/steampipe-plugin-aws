@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_metric_write_iops - Query AWS RDS DBInstance Write IOPS using SQL"
 description: "Allows users to query AWS RDS DBInstance Write IOPS to retrieve metrics on the write input/output operations per second."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance_metric_write_iops - Query AWS RDS DBInstance Write IOPS using SQL

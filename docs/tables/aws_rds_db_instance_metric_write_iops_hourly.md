@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_metric_write_iops_hourly - Query AWS RDS DBInstance Metrics using SQL"
 description: "Allows users to query AWS RDS DBInstance write IOPS metrics on an hourly basis."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance_metric_write_iops_hourly - Query AWS RDS DBInstance Metrics using SQL

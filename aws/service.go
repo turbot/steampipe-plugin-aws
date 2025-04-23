@@ -107,6 +107,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pipes"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/service/quicksight"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
@@ -177,6 +178,7 @@ import (
 	eventbridgeEndpoint "github.com/aws/aws-sdk-go/service/eventbridge"
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 	glacierEndpoint "github.com/aws/aws-sdk-go/service/glacier"
+	healthEndpoint "github.com/aws/aws-sdk-go/service/health"
 	inspectorEndpoint "github.com/aws/aws-sdk-go/service/inspector"
 	inspector2Endpoint "github.com/aws/aws-sdk-go/service/inspector2"
 	iotEndpoint "github.com/aws/aws-sdk-go/service/iot"
@@ -861,10 +863,37 @@ func GuardDutyClient(ctx context.Context, d *plugin.QueryData) (*guardduty.Clien
 }
 
 func HealthClient(ctx context.Context, d *plugin.QueryData) (*health.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	// Get Health API supported regions
+	healthAPISupportedRegions, err := listRegionsForService(ctx, d, healthEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
+
+	// Get the client region for AWS API calls
+	// Typically this should be the region closest to the user
+	clientRegion, err := getDefaultRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Health API is a global API that supports only us-east-1 and us-east-2 regions
+	// in `aws` partition and us-gov-west-1 in `aws-gov` partition.
+	// If a preferred region is set using default_region, or in the AWS config files,
+	// and the API supports that region, use that as the endpoint.
+	// As of April 12, 2025, AWS Health API only works in AWS Commercial Cloud and GovCloud.
+	queryRegion := clientRegion
+	if !slices.Contains(healthAPISupportedRegions, queryRegion) {
+		queryRegion, err = getLastResortRegion(ctx, d, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cfg, err := getClient(ctx, d, queryRegion)
+	if err != nil {
+		return nil, err
+	}
+
 	return health.NewFromConfig(*cfg), nil
 }
 
@@ -1187,6 +1216,15 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	return pricing.NewFromConfig(*cfg), nil
 }
 
+// QuickSightClient returns the client for the Amazon QuickSight service
+func QuickSightClient(ctx context.Context, d *plugin.QueryData) (*quicksight.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return quicksight.NewFromConfig(*cfg), nil
+}
+
 func RAMClient(ctx context.Context, d *plugin.QueryData) (*ram.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -1222,8 +1260,8 @@ func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.C
 		"cn-north-1",     // China (Beijing)
 		"cn-northwest-1", // China (Ningxia)
 	}
-	excludeRegions = append(excludeRegions, awsChinaRegions()...)
-	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-cn")...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-us-gov")...)
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err
@@ -1247,8 +1285,8 @@ func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, er
 		"eu-south-2",     // Spain
 		"me-central-1",   // UAE
 	}
-	excludeRegions = append(excludeRegions, awsChinaRegions()...)
-	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-cn")...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-us-gov")...)
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, rdsEndpoint.EndpointsID, excludeRegions)
 	if err != nil {
 		return nil, err

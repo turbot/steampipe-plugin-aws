@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_organizations_root - Query AWS Organizations Root using SQL"
 description: "Allows users to query AWS Organizations Root to retrieve detailed information on AWS Organizations Root account. This table can be utilized to gain insights on organizations root account."
+folder: "Organizations"
 ---
 
 # Table: aws_organizations_root - Query AWS Organizations Root using SQL

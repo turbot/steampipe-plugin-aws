@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_autoscaling_group - Query AWS EC2 Auto Scaling Groups using SQL"
 description: "Allows users to query AWS EC2 Auto Scaling Groups and access detailed information about each group's configuration, instances, policies, and more."
+folder: "Auto Scaling"
 ---
 
 # Table: aws_ec2_autoscaling_group - Query AWS EC2 Auto Scaling Groups using SQL

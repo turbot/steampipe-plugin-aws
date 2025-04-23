@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_inspector_assessment_run - Query AWS Inspector Assessment Runs using SQL"
 description: "Allows users to query AWS Inspector Assessment Runs to get detailed information about each assessment run, including its state, duration, findings, and more."
+folder: "Inspector"
 ---
 
 # Table: aws_inspector_assessment_run - Query AWS Inspector Assessment Runs using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_automated_backup - Query AWS RDS DB Instance Automated Backups using SQL"
 description: "Allows users to query AWS RDS DB Instance Automated Backups and retrieve data about automated backups for RDS DB instances."
+folder: "Backup"
 ---
 
 # Table: aws_rds_db_instance_automated_backup - Query AWS RDS DB Instance Automated Backups using SQL

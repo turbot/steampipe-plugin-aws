@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_peering_connection - Query AWS VPC Peering Connections using SQL"
 description: "Allows users to query VPC Peering Connections in Amazon Virtual Private Cloud (VPC)."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_peering_connection - Query AWS VPC Peering Connections using SQL

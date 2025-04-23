@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_organizations_policy_target - Query AWS Organizations Policy Targets using SQL"
 description: "Allows users to query AWS Organizations Policy Targets to retrieve detailed information about the application of policies to roots, organizational units (OUs), and accounts."
+folder: "Organizations"
 ---
 
 # Table: aws_organizations_policy_target - Query AWS Organizations Policy Targets using SQL

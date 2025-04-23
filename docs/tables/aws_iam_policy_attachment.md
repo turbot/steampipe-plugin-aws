@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_policy_attachment - Query AWS IAM Policy Attachments using SQL"
 description: "Allows users to query IAM Policy Attachments in AWS to gather information about the relationship between IAM policies and their associated entities (users, groups, and roles)."
+folder: "IAM"
 ---
 
 # Table: aws_iam_policy_attachment - Query AWS IAM Policy Attachments using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_resource_explorer_index - Query AWS Resource Explorer Index using SQL"
 description: "Allows users to query AWS Resource Explorer Index, providing a comprehensive view of all resources across different AWS services in a single table."
+folder: "Resource Explorer"
 ---
 
 # Table: aws_resource_explorer_index - Query AWS Resource Explorer Index using SQL

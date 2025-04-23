@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_shield_attack_statistic - Query AWS Shield Attack Statistics using SQL"
 description: "Allows users to query AWS Shield Attack Statistics and retrieve an overview and statistics over past attacks Shield was able detected."
+folder: "Shield"
 ---
 
 # Table: aws_shield_attack_statistic - Query AWS Shield Attack Statistics using SQL

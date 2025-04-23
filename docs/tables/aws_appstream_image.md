@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_appstream_image - Query AWS AppStream Images using SQL"
 description: "Allows users to query AWS AppStream Images to gain insights into their properties, states, and associated metadata."
+folder: "AppStream"
 ---
 
 # Table: aws_appstream_image - Query AWS AppStream Images using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_emr_cluster_metric_is_idle - Query AWS EMR Cluster Metrics using SQL"
 description: "Allows users to query AWS EMR Cluster Metrics to determine if a cluster is idle."
+folder: "EMR"
 ---
 
 # Table: aws_emr_cluster_metric_is_idle - Query AWS EMR Cluster Metrics using SQL

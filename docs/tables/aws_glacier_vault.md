@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_glacier_vault - Query AWS Glacier Vaults using SQL"
 description: "Allows users to query AWS Glacier Vaults for detailed information on each vault, including the vault's name, ARN, creation date, number of archives, size of archives, and more."
+folder: "Glacier"
 ---
 
 # Table: aws_glacier_vault - Query AWS Glacier Vaults using SQL

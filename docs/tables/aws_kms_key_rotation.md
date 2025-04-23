@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_kms_key_rotation - Query AWS KMS Key Rotation using SQL"
 description: "Allows users to query AWS KMS Key Rotation data including the rotation schedule, type, and associated key details."
+folder: "KMS"
 ---
 
 # Table: aws_kms_key_rotation - Query AWS KMS Key Rotation using SQL

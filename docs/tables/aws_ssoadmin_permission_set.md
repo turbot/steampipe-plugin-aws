@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssoadmin_permission_set - Query AWS SSO Admin Permission Set using SQL"
 description: "Allows users to query AWS SSO Admin Permission Set to retrieve data related to the permissions sets of AWS Single Sign-On (SSO) service."
+folder: "SSO"
 ---
 
 # Table: aws_ssoadmin_permission_set - Query AWS SSO Admin Permission Set using SQL

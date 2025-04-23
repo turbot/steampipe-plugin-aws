@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_efs_mount_target - Query AWS EFS Mount Targets using SQL"
 description: "Allows users to query AWS EFS Mount Targets for detailed information about each mount target's configuration, status, and associated resources."
+folder: "EFS"
 ---
 
 # Table: aws_efs_mount_target - Query AWS EFS Mount Targets using SQL

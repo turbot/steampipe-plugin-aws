@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wellarchitected_workload - Query AWS Well-Architected Tool Workloads using SQL"
 description: "Allows users to query AWS Well-Architected Tool Workloads to retrieve and manage workload data, including workload names, ARNs, risk counts, and improvement statuses."
+folder: "Well-Architected"
 ---
 
 # Table: aws_wellarchitected_workload - Query AWS Well-Architected Tool Workloads using SQL

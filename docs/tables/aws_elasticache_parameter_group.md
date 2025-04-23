@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_parameter_group - Query AWS Elasticache Parameter Groups using SQL"
 description: "Allows users to query AWS Elasticache Parameter Groups, providing detailed information about each group's configurations, parameters, and associated metadata."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_parameter_group - Query AWS Elasticache Parameter Groups using SQL

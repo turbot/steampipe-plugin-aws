@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_kms_alias - Query AWS Key Management Service (KMS) alias using SQL"
 description: "Allows users to query AWS KMS aliases and retrieve information about their associated keys, including the key ID, alias name, and alias ARN."
+folder: "KMS"
 ---
 
 # Table: aws_kms_alias - Query AWS Key Management Service (KMS) alias using SQL

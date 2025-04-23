@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_redis_metric_engine_cpu_utilization_hourly - Query AWS ElastiCache Redis using SQL"
 description: "Allows users to query hourly CPU utilization metrics for AWS ElastiCache Redis."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_redis_metric_engine_cpu_utilization_hourly - Query AWS ElastiCache Redis using SQL

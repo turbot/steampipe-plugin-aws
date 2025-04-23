@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_globalaccelerator_endpoint_group - Query AWS Global Accelerator Endpoint Groups using SQL"
 description: "Allows users to query AWS Global Accelerator Endpoint Groups and obtain detailed information about each group's configuration, state, and associated endpoints."
+folder: "Global Accelerator"
 ---
 
 # Table: aws_globalaccelerator_endpoint_group - Query AWS Global Accelerator Endpoint Groups using SQL

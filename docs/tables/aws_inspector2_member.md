@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_inspector2_member - Query AWS Inspector Members using SQL"
 description: "Allows users to query AWS Inspector Members to retrieve detailed information about the member accounts within an AWS Inspector assessment target."
+folder: "Inspector2"
 ---
 
 # Table: aws_inspector2_member - Query AWS Inspector Members using SQL

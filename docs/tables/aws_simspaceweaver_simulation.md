@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_simspaceweaver_simulation - Query AWS SimSpace Simulation using SQL"
 description: "Allows users to query AWS SimSpace Simulation data. This table provides information about simulations within AWS SimSpace. Engineers can use it to query simulation-specific details, including simulation status, configuration, and associated metadata."
+folder: "SimSpace Weaver"
 ---
 
 # Table: aws_simspaceweaver_simulation - Query AWS SimSpace Simulation using SQL

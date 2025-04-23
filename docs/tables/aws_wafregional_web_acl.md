@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wafregional_web_acl - Query AWS WAF Regional WebACL using SQL"
 description: "Allows users to query AWS WAF Regional WebACL to get information about AWS WAF Regional WebACLs."
+folder: "Region"
 ---
 
 # Table: aws_wafregional_web_acl - Query AWS WAF Regional WebACL using SQL

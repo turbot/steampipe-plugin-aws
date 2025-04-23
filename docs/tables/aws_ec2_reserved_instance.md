@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_reserved_instance - Query AWS EC2 Reserved Instances using SQL"
 description: "Allows users to query AWS EC2 Reserved Instances to gather comprehensive insights on the reserved instances, such as their configurations, state, and associated tags."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_reserved_instance - Query AWS EC2 Reserved Instances using SQL

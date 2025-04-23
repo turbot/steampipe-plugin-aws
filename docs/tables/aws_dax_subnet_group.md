@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dax_subnet_group - Query AWS DAX Subnet Group using SQL"
 description: "Allows users to query AWS DAX Subnet Group details, such as the subnet group name, description, VPC ID, and the subnets in the group."
+folder: "DAX"
 ---
 
 # Table: aws_dax_subnet_group - Query AWS DAX Subnet Group using SQL

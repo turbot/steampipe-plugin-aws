@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_globalaccelerator_listener - Query AWS Global Accelerator Listener using SQL"
 description: "Allows users to query AWS Global Accelerator Listener data, including details about each listener that processes inbound connections based on the port or port ranges that you configure."
+folder: "Global Accelerator"
 ---
 
 # Table: aws_globalaccelerator_listener - Query AWS Global Accelerator Listener using SQL

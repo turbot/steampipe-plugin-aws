@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_forecast_daily - Query AWS Cost Explorer Daily Cost Forecast using SQL"
 description: "Allows users to query AWS Cost Explorer's daily cost forecast data, providing insights into projected daily costs based on historical data."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_forecast_daily - Query AWS Cost Explorer Daily Cost Forecast using SQL

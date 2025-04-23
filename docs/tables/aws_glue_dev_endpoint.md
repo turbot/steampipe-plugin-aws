@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_glue_dev_endpoint - Query AWS Glue Development Endpoints using SQL"
 description: "Allows users to query AWS Glue Development Endpoints to retrieve detailed information about individual endpoints, their configurations, and related metadata."
+folder: "Glue"
 ---
 
 # Table: aws_glue_dev_endpoint - Query AWS Glue Development Endpoints using SQL

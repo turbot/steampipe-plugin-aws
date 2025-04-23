@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_instance_type - Query AWS EC2 Instance Type using SQL"
 description: "Allows users to query AWS EC2 Instance Type data, including details about instance type name, current generation, vCPU, memory, storage, and network performance."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_instance_type - Query AWS EC2 Instance Type using SQL

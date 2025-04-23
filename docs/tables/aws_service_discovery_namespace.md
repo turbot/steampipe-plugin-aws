@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_service_discovery_namespace - Query AWS Cloud Map Service Discovery Namespace using SQL"
 description: "Allows users to query AWS Cloud Map Service Discovery Namespace to retrieve details about the namespaces in AWS Cloud Map."
+folder: "Service Discovery"
 ---
 
 # Table: aws_service_discovery_namespace - Query AWS Cloud Map Service Discovery Namespace using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_emr_instance_group - Query AWS EMR Instance Groups using SQL"
 description: "Allows users to query AWS EMR Instance Groups to fetch details about each instance group within an EMR cluster."
+folder: "EMR"
 ---
 
 # Table: aws_emr_instance_group - Query AWS EMR Instance Groups using SQL

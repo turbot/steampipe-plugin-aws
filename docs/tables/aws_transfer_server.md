@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_transfer_server - Query AWS Transfer for SFTP Servers using SQL"
 description: "Allows users to query AWS Transfer for SFTP Servers and retrieve detailed information about SFTP servers in their AWS account."
+folder: "Transfer Family"
 ---
 
 # Table: aws_transfer_server - Query AWS Transfer for SFTP Servers using SQL

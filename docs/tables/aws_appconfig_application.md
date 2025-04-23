@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_appconfig_application - Query AWS AppConfig Applications using SQL"
 description: "Allows users to query AWS AppConfig Applications to gather detailed information about each application, including its name, description, associated environments, and more."
+folder: "AppConfig"
 ---
 
 # Table: aws_appconfig_application - Query AWS AppConfig Applications using SQL

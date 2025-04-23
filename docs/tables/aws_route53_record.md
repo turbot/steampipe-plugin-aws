@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_record - Query AWS Route 53 Record using SQL"
 description: "Allows users to query Route 53 DNS records within Amazon Web Services. The `aws_route53_record` table in Steampipe provides information about DNS records within AWS Route 53. This table allows DevOps engineers to query record-specific details, including type, name, TTL, and associated metadata. Users can utilize this table to gather insights on DNS records, such as record types, verification of TTL values, and more."
+folder: "Route 53"
 ---
 
 # Table: aws_route53_record - Query AWS Route 53 Record using SQL

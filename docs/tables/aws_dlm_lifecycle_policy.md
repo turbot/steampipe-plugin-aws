@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dlm_lifecycle_policy - Query AWS DLM Lifecycle Policies using SQL"
 description: "Allows users to query AWS DLM Lifecycle Policies to retrieve detailed information about each policy, including its configuration, status, and tags."
+folder: "DLM"
 ---
 
 # Table: aws_dlm_lifecycle_policy - Query AWS DLM Lifecycle Policies using SQL

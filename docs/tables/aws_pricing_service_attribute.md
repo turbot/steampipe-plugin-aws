@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_pricing_service_attribute - Query AWS Pricing Service Attributes using SQL"
 description: "Allows users to query AWS Pricing Service Attributes to gain insights into product attributes and their respective prices."
+folder: "Pricing"
 ---
 
 # Table: aws_pricing_service_attribute - Query AWS Pricing Service Attributes using SQL

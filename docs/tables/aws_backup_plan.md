@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_backup_plan - Query AWS Backup Plan using SQL"
 description: "Allows users to query AWS Backup Plan data, providing detailed information about each backup plan created within an AWS account. Useful for DevOps engineers to monitor and manage backup strategies and ensure data recovery processes are in place."
+folder: "Backup"
 ---
 
 # Table: aws_backup_plan - Query AWS Backup Plan using SQL

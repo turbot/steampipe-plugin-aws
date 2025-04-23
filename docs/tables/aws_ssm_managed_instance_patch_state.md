@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_managed_instance_patch_state - Query AWS Systems Manager Managed Instance Patch State using SQL"
 description: "Allows users to query AWS Systems Manager Managed Instance Patch State to gather information about the patch state of managed instances. This includes the instance ID, patch group, owner information, installed patches, and more."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_managed_instance_patch_state - Query AWS Systems Manager Managed Instance Patch State using SQL

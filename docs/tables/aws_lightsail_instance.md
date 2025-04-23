@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lightsail_instance - Query AWS Lightsail Instances using SQL"
 description: "Allows users to query AWS Lightsail Instances and retrieve detailed information about each instance such as instance state, type, associated bundles, and more."
+folder: "Lightsail"
 ---
 
 # Table: aws_lightsail_instance - Query AWS Lightsail Instances using SQL

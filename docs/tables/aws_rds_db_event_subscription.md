@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_event_subscription - Query AWS RDS DB Event Subscriptions using SQL"
 description: "Allows users to query AWS RDS DB Event Subscriptions to retrieve information about all event subscriptions for RDS DB instances."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_event_subscription - Query AWS RDS DB Event Subscriptions using SQL

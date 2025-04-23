@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_access_key - Query AWS IAM Access Keys using SQL"
 description: "Allows users to query IAM Access Keys in AWS to obtain details about the access keys associated with an IAM user. This includes the access key ID, status, creation date, and more."
+folder: "IAM"
 ---
 
 # Table: aws_iam_access_key - Query AWS IAM Access Keys using SQL

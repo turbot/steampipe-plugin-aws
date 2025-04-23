@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codebuild_project - Query AWS CodeBuild Projects using SQL"
 description: "Allows users to query AWS CodeBuild Projects and retrieve comprehensive information about each project."
+folder: "CodeBuild"
 ---
 
 # Table: aws_codebuild_project - Query AWS CodeBuild Projects using SQL

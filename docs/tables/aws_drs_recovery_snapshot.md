@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_drs_recovery_snapshot - Query AWS DRS Recovery Snapshot using SQL"
 description: "Allows users to query DRS Recovery Snapshot data in AWS. It provides information about recovery snapshots within AWS Disaster Recovery Service (DRS). This table can be used to gather insights on recovery snapshots, including their details, associated metadata, and more."
+folder: "Elastic Disaster Recovery (DRS)"
 ---
 
 # Table: aws_drs_recovery_snapshot - Query AWS DRS Recovery Snapshot using SQL

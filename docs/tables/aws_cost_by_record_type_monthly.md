@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_record_type_monthly - Query AWS Cost and Usage Report Records using SQL"
 description: "Allows users to query AWS Cost and Usage Report Records on a monthly basis."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_record_type_monthly - Query AWS Cost and Usage Report Records using SQL

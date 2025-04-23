@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iot_fleet_metric - Query AWS IoT Fleet Metrics using SQL"
 description: "Allows users to query AWS IoT Fleet Metrics to gain insights into each fleet metric's configuration, including ARN, creation date, and aggregation information."
+folder: "IoT Core"
 ---
 
 # Table: aws_iot_fleet_metric - Query AWS IoT Fleet Metrics using SQL

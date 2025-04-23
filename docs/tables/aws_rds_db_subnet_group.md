@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_subnet_group - Query AWS RDS DB Subnet Groups using SQL"
 description: "Allows users to query AWS RDS DB Subnet Groups to retrieve information about each DB subnet group configured in an AWS account."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_subnet_group - Query AWS RDS DB Subnet Groups using SQL

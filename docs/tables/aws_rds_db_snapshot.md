@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_snapshot - Query Amazon RDS DB Snapshots using SQL"
 description: "Allows users to query Amazon RDS DB Snapshots for information regarding manual and automatic snapshots of an Amazon RDS DB instance."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_snapshot - Query Amazon RDS DB Snapshots using SQL

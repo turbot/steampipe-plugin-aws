@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_shield_subscription - Query AWS Shield Advanced Subscription using SQL"
 description: "Allow users to query their AWS Shield Advanced Subscription details, such as the start and end dateof the subscription or the status of the proactive engagement of the Shield Response Team."
+folder: "Shield"
 ---
 
 # Table: aws_shield_subscription - Query AWS Shield Advanced Subscription using SQL

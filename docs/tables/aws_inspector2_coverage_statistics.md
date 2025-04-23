@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_inspector2_coverage_statistics - Query AWS Inspector2 Coverage Statistics using SQL"
 description: "Allows users to query AWS Inspector2 Coverage Statistics to obtain detailed information about the assessment targets and the number of instances they cover."
+folder: "Inspector2"
 ---
 
 # Table: aws_inspector2_coverage_statistics - Query AWS Inspector2 Coverage Statistics using SQL

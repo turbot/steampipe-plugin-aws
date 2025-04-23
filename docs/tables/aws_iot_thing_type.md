@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iot_thing_type - Query AWS IoT Thing Type using SQL"
 description: "Allows users to query AWS IoT Thing Type to gain insights into each thing type's configuration, including ARN, name, creation date, and deprecation status."
+folder: "IoT Core"
 ---
 
 # Table: aws_iot_thing_type - Query AWS IoT Thing Types using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssoadmin_instance - Query AWS SSO Admin Instance using SQL"
 description: "Allows users to query AWS SSO Admin Instance, providing information about each AWS SSO instance in your AWS account."
+folder: "SSO"
 ---
 
 # Table: aws_ssoadmin_instance - Query AWS SSO Admin Instance using SQL
