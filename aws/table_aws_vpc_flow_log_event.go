@@ -313,7 +313,7 @@ func getMessageField(_ context.Context, _ *plugin.QueryData, h *plugin.HydrateDa
 		fields := strings.Fields(*v.Message)
 		return fields, nil
 	default:
-		return nil, fmt.Errorf("unknown item type %T in getMessageField", v)
+		return nil, fmt.Errorf("Unknown item type %T in getMessageField", v)
 	}
 }
 
