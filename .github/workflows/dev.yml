@@ -1,0 +1,41 @@
+name: Development Workflow
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  AWS_REGION: "us-west-2"
+  AWS_ACCOUNT_ID: "891377056770"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set Git Commit SHA
+        id: vars
+        run: echo "GIT_COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubAction-AssumeRoleWithAction
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push steampipe image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/steampipe/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/steampipe:${{ env.GIT_COMMIT_SHA }}
