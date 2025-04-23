@@ -6,16 +6,24 @@ folder: "VPC"
 
 # Table: aws_vpc_flow_log_event - Query AWS VPC Flow Logs using SQL
 
-The AWS VPC Flow Logs is a feature that enables you to capture information about the IP traffic going to and from network interfaces in your VPC. It allows you to log network traffic that traverses your VPC, including traffic that doesn’t reach your application. Capturing this information can help you diagnose overly permissive or overly restrictive security group and network ACL rules.
+The AWS VPC Flow Logs is a feature that enables you to capture information about the IP traffic going to and from network interfaces in your VPC. It allows you to log network traffic that traverses your VPC, including traffic that doesn't reach your application. Capturing this information can help you diagnose overly permissive or overly restrictive security group and network ACL rules.
 
 ## Table Usage Guide
 
 The `aws_vpc_flow_log_event` table in Steampipe gives you information about the IP traffic going to and from network interfaces in your Virtual Private Cloud (VPC). With this table, you as a network administrator, security analyst, or DevOps engineer can query details about each traffic flow, including source and destination IP addresses, ports, protocol numbers, packet and byte counts, actions, and more. You can use this table to monitor traffic patterns, troubleshoot connectivity issues, and analyze security incidents. The schema outlines the various attributes of the VPC flow log event, including the event time, log status, and associated metadata.
 
 **Important Notes**
-- You must specify `log_group_name` in a `where` clause in order to use this table.
+- This table supports two log sources: CloudWatch and S3. Use the `log_source` qualifier to select your source (defaults to "cloudwatch").
+- When using CloudWatch as the source (`log_source = 'cloudwatch'` or omitted):
+  - You must specify `log_group_name` in a `where` clause.
+- When using S3 as the source (`log_source = 's3'`):
+  - You must specify `bucket_name` in a `where` clause.
+  - You should specify `s3_prefix` to limit the scope of the search.
 - For improved performance, it is suggested that you use the optional qual `timestamp` to limit the result set to a specific time period.
-- This table supports optional quals. Queries with optional quals are optimized to use CloudWatch filters. Optional quals are supported for the following columns:
+- This table supports optional quals. Queries with optional quals are optimized to use filters. Optional quals are supported for the following columns:
+  - `log_source`
+  - `bucket_name`
+  - `s3_prefix`
   - `action`
   - `dst_addr`
   - `dst_port`
@@ -176,6 +184,47 @@ from
 where
   log_group_name = 'vpc-log-group-name'
   and action = 'REJECT'
+  and timestamp >= datetime('now', '-1 hour');
+```
+
+### Query flow log events from S3 bucket
+Access VPC flow logs stored in an S3 bucket to analyze network traffic patterns and security events.
+
+```sql+postgres
+select
+  bucket_name,
+  s3_key,
+  timestamp,
+  interface_id,
+  src_addr,
+  dst_addr,
+  action,
+  protocol
+from
+  aws_vpc_flow_log_event
+where
+  log_source = 's3'
+  and bucket_name = 'my-vpc-flow-logs-bucket'
+  and s3_prefix = 'AWSLogs/123456789012/vpcflowlogs/us-east-1/'
+  and timestamp >= now() - interval '1 hour';
+```
+
+```sql+sqlite
+select
+  bucket_name,
+  s3_key,
+  timestamp,
+  interface_id,
+  src_addr,
+  dst_addr,
+  action,
+  protocol
+from
+  aws_vpc_flow_log_event
+where
+  log_source = 's3'
+  and bucket_name = 'my-vpc-flow-logs-bucket'
+  and s3_prefix = 'AWSLogs/123456789012/vpcflowlogs/us-east-1/'
   and timestamp >= datetime('now', '-1 hour');
 ```
 

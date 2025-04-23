@@ -70,6 +70,7 @@ func tableAwsVpcFlowLogEvent(_ context.Context) *plugin.Table {
 			// selector / provenance cols
 			{Name: "log_source", Type: proto.ColumnType_STRING, Transform: transform.FromQual("log_source"), Description: "Source of the flow logs: cloudwatch (default) or s3."},
 			{Name: "bucket_name", Type: proto.ColumnType_STRING, Transform: transform.FromField("BucketName"), Description: "S3 bucket containing the log file (when log_source = 's3')."},
+			{Name: "s3_prefix", Type: proto.ColumnType_STRING, Transform: transform.FromQual("s3_prefix"), Description: "S3 prefix to search for flow logs (when log_source = 's3')."},
 			{Name: "s3_key", Type: proto.ColumnType_STRING, Transform: transform.FromField("S3Key"), Description: "Full S3 object key for the record (when log_source = 's3')."},
 
 			// Top columns (existing)
