@@ -5,8 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rolesanywhere"
-
-	rolesanywherev1 "github.com/aws/aws-sdk-go/service/rolesanywhere"
+	"github.com/aws/aws-sdk-go-v2/service/rolesanywhere/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -20,7 +19,7 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 		Name:        "aws_rolesanywhere_profile",
 		Description: "AWS Roles Anywhere Profile",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"id"}),
+			KeyColumns: plugin.AnyColumn([]string{"profile_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -31,13 +30,18 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 			Hydrate: listProfiles,
 			Tags:    map[string]string{"service": "rolesanywhere", "action": "ListProfiles"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rolesanywherev1.EndpointsID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: listTagsForProfile,
+				Tags: map[string]string{"service": "rolesanywhere", "action": "ListTagsForResource"},
+			},
+		},
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ROLESANYWHERE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "id",
-				Description: "The ID of the profile.",
+				Name:        "profile_id",
+				Description: "The unique identifier of the profile.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ProfileId"),
 			},
 			{
 				Name:        "arn",
@@ -52,7 +56,7 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 			},
 			{
 				Name:        "accept_role_session_name",
-				Description: "Accept custom role session names.",
+				Description: "Used to determine if a custom role session name will be accepted in a temporary credential request.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
@@ -71,10 +75,9 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "duration",
-				Description: "The profile credential session duration in seconds.",
+				Name:        "duration_seconds",
+				Description: "Used to determine how long sessions vended using this profile are valid for.",
 				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromField("DurationSeconds"),
 			},
 			{
 				Name:        "enabled",
@@ -83,27 +86,27 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 			},
 			{
 				Name:        "attribute_mappings",
-				Description: "List of attribute mappings for certificate fields to session tags.",
+				Description: "A mapping applied to the authenticating end-entity certificate.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "managed_policy_arns",
-				Description: "List of managed IAM boundary policy ARNs attached to the profile.",
+				Description: "A list of managed policy ARNs that apply to the vended session credentials.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "role_arns",
-				Description: "List of IAM role ARNs the profile can assume.",
+				Description: "A list of IAM roles that this profile can assume in a temporary credential request.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "require_instance_properties",
-				Description: "If instance properties are required for the session creation.",
+				Description: "Specifies whether instance properties are required in temporary credential requests with this profile.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "session_policy",
-				Description: "Session policy applied to created sessions.",
+				Description: "A session policy that applies to the trust boundary of the vended session credentials.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("SessionPolicy").Transform(transform.UnmarshalYAML),
 			},
@@ -113,32 +116,39 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("SessionPolicy").Transform(unescape).Transform(policyToCanonical),
 			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags associated with the profile",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listTagsForProfile,
+				Transform:   transform.FromField("Tags"),
+			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ProfileId"),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listTagsForProfile,
+				Transform:   transform.From(profileTurbotTags),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ProfileArn").Transform(arnToAkas),
+			},
 		}),
 	}
 }
 
-func getProfile(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	profile_id := d.EqualsQuals["id"].GetStringValue()
-
-	svc, err := RolesAnywhereClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_rolesanywhere_profile.getProfile", "client_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		return nil, nil
-	}
-
-	params := &rolesanywhere.GetProfileInput{
-		ProfileId: aws.String(profile_id),
-	}
-	op, err := svc.GetProfile(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_rolesanywhere_profile.getProfile", "api_error", err)
-		return nil, err
-	}
-	return *op.Profile, nil
-}
+//// LIST FUNCTION
 
 func listProfiles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	svc, err := RolesAnywhereClient(ctx, d)
@@ -167,6 +177,7 @@ func listProfiles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		for _, profile := range output.Profiles {
 			d.StreamListItem(ctx, profile)
 
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
@@ -175,4 +186,67 @@ func listProfiles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 	return nil, nil
 
+}
+
+//// HYDRATE FUNCTIONS
+
+func getProfile(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	profile_id := d.EqualsQuals["id"].GetStringValue()
+
+	svc, err := RolesAnywhereClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rolesanywhere_profile.getProfile", "client_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
+	}
+
+	params := &rolesanywhere.GetProfileInput{
+		ProfileId: aws.String(profile_id),
+	}
+	op, err := svc.GetProfile(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rolesanywhere_profile.getProfile", "api_error", err)
+		return nil, err
+	}
+	return *op.Profile, nil
+}
+
+func listTagsForProfile(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	profile_arn := h.Item.(types.ProfileDetail).ProfileArn
+
+	svc, err := RolesAnywhereClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rolesanywhere_profile.listTagsForProfile", "client_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
+	}
+
+	params := &rolesanywhere.ListTagsForResourceInput{
+		ResourceArn: profile_arn,
+	}
+	op, err := svc.ListTagsForResource(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_rolesanywhere_profile.listTagsForProfile", "api_error", err)
+		return nil, err
+	}
+
+	return op, nil
+}
+
+//// TRANSFORM FUNCTION
+
+func profileTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	tags := d.HydrateItem.(*rolesanywhere.ListTagsForResourceOutput)
+	var turbotTagsMap map[string]string
+	if tags.Tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+	return turbotTagsMap, nil
 }

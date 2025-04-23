@@ -62,3 +62,28 @@ where
   source_type <> 'AWS_ACM_PCA';
 ```
 
+### List enabled Trust Anchor notifications
+Determine the notification events that are enabled for each Trust Anchor.
+This can be useful to determine which expiry events will trigger a notification.
+
+```sql+postgres
+select
+  arn, 
+  notification_setting -> 'Event' as event
+from
+  aws_rolesanywhere_trust_anchor as anchor,
+  jsonb_array_elements(notification_settings) as notification_setting
+where
+  notification_setting -> 'Enabled' = 'true'
+```
+
+```sql+sqlite
+select
+  arn, 
+  json_extract(notification_setting, '$.Event') as event
+from
+  aws_rolesanywhere_trust_anchor as anchor,
+  json_each(notification_settings) as notification_setting
+where
+  json_extract(notification_setting, '$.Enabled') = 'true'
+```

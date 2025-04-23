@@ -14,6 +14,30 @@ The `aws_rolesanywhere_profile` table in Steampipe provides you with information
 
 ## Examples
 
+### List enabled Profiles.
+Determine the Profiles that are currently enabled. 
+This can be useful to determine which Profiles can create temporary session in the account.
+
+```sql+postgres
+select
+  arn,
+  role_arns
+from
+  aws_rolesanywhere_profile
+where
+  enabled;
+```
+
+```sql+sqlite
+select
+  arn,
+  role_arns
+from
+  aws_rolesanywhere_profile
+where
+  enabled;
+```
+
 ### Find IAM Roles that can be assumed by Profiles
 Determine the IAM Roles that can be assumed by a Profile and their attached/inline IAM policies. 
 This can be useful to determine the effective permissions for a Trust Anchor's Profile.
@@ -40,4 +64,28 @@ from
     aws_rolesanywhere_profile as profile,
     jsonb_array_elements_text(profile.role_arns) as role_arn 
     join aws_iam_role as role on role_arn = role.arn
+```
+
+### List Profiles that have a session policy.
+Determine the Profiles that have a session policy configured. 
+This can be useful to determine if temporary role sessions created using the Profile have restricted permissions relative to the role's identity policy(s).
+
+```sql+postgres
+select
+  arn,
+  session_policy
+from
+  aws_rolesanywhere_profile
+where
+  session_policy is not null;
+```
+
+```sql+sqlite
+select
+  arn,
+  session_policy
+from
+  aws_rolesanywhere_profile
+where
+  session_policy is not null;
 ```
