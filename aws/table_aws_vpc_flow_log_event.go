@@ -303,9 +303,18 @@ func matchesQuals(ev s3FlowLogEvent, d *plugin.QueryData) bool {
 }
 
 func getMessageField(_ context.Context, _ *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	e := h.Item.(types.FilteredLogEvent)
-	fields := strings.Fields(*e.Message)
-	return fields, nil
+	switch v := h.Item.(type) {
+	case types.FilteredLogEvent:
+		// CloudWatch rows
+		fields := strings.Fields(*v.Message)
+		return fields, nil
+	case s3FlowLogEvent:
+		// S3‑sourced rows (our custom struct embeds FilteredLogEvent)
+		fields := strings.Fields(*v.Message)
+		return fields, nil
+	default:
+		return nil, fmt.Errorf("unknown item type %T in getMessageField", v)
+	}
 }
 
 func getField(_ context.Context, d *transform.TransformData) (interface{}, error) {
