@@ -38,4 +38,4 @@ jobs:
           file: docker/steampipe/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/steampipe:${{ env.GIT_COMMIT_SHA }}
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/steampipe:latest
