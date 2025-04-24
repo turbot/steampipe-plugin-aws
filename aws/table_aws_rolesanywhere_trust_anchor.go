@@ -50,6 +50,11 @@ func tableAwsRolesAnywhereTrustAnchor(ctx context.Context) *plugin.Table {
 				Transform:   transform.FromField("TrustAnchorArn"),
 			},
 			{
+				Name:        "name",
+				Description: "The name of the trust anchor.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "updated_at",
 				Description: "The date and time when the trust anchor was last updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -94,7 +99,7 @@ func tableAwsRolesAnywhereTrustAnchor(ctx context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("TrustAnchorId"),
+				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "tags",
@@ -107,7 +112,7 @@ func tableAwsRolesAnywhereTrustAnchor(ctx context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("TrustAnchorArn").Transform(arnToAkas),
+				Transform:   transform.FromField("TrustAnchorArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}

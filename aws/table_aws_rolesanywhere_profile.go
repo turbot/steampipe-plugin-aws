@@ -85,6 +85,11 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "require_instance_properties",
+				Description: "Specifies whether instance properties are required in temporary credential requests with this profile.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "attribute_mappings",
 				Description: "A mapping applied to the authenticating end-entity certificate.",
 				Type:        proto.ColumnType_JSON,
@@ -98,11 +103,6 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 				Name:        "role_arns",
 				Description: "A list of IAM roles that this profile can assume in a temporary credential request.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "require_instance_properties",
-				Description: "Specifies whether instance properties are required in temporary credential requests with this profile.",
-				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "session_policy",
@@ -129,7 +129,7 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ProfileId"),
+				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "tags",
@@ -142,7 +142,7 @@ func tableAwsRolesAnywhereProfile(ctx context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ProfileArn").Transform(arnToAkas),
+				Transform:   transform.FromField("ProfileArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
