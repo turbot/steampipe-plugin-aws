@@ -5,16 +5,17 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
-	"io"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -116,7 +117,17 @@ func listVpcFlowLogEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	switch logSource {
 	case "s3":
-		return nil, listS3FlowLogEvents(ctx, d)
+		region := d.EqualsQualString("region") // always set when you use SupportedRegionMatrix
+		if region == "" {
+			region = "us-west-2" // (safety fallback – should never hit)
+		}
+
+		// Initialize the S3 client
+		s3Client, err := S3Client(ctx, d, region)
+		if err != nil {
+			return nil, err
+		}
+		return nil, listS3FlowLogEvents(ctx, d, s3Client)
 	default:
 		return listCloudwatchLogEvents(ctx, d, h)
 	}
@@ -132,7 +143,50 @@ type s3FlowLogEvent struct {
 	S3Key      string
 }
 
-func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData) error {
+// S3ClientInterface defines the methods we use from the S3 client for testing
+type S3ClientInterface interface {
+	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
+	GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+}
+
+// listS3FlowLogEvents queries and processes VPC Flow Logs stored in S3.
+//
+// This function retrieves VPC flow logs from AWS S3 storage, processes them,
+// and streams the results back to the client. It supports various query filters
+// to narrow down the results based on user requirements.
+//
+// Input parameters:
+//   - ctx: The context for the query, which can be used for cancellation
+//   - d: The QueryData object containing qualifiers and filters for the query
+//
+// Expected qualifiers in QueryData:
+//   - bucket_name (required): The S3 bucket containing flow log files
+//   - s3_prefix (optional): Prefix path within the bucket to limit the search scope
+//   - region (optional): AWS region where the bucket is located
+//   - timestamp (optional): Time range filters to limit results by event timestamp
+//   - event_id, interface_id, src_addr, dst_addr, src_port, dst_port, action, log_status (optional):
+//     Content filters for specific fields in the flow logs
+//
+// Processing behavior:
+//   - Files are filtered by the ".log.gz" extension to identify flow log archives
+//   - Timestamp filtering is applied to filenames (if they match the expected pattern)
+//   - Downloaded files are decompressed and processed line by line
+//   - Content filtering is applied to match specific criteria when provided
+//
+// Output behavior:
+//   - Each matching log line is converted to an s3FlowLogEvent object
+//   - Results are streamed incrementally via d.StreamListItem() as they're processed
+//   - Processing continues until all matching files are processed or an error occurs
+//
+// Return value:
+//   - Returns nil on successful completion or if no matching files are found
+//   - Returns an error if bucket_name is missing or any processing error occurs
+func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3ClientInterface) error {
+	// Constant for controlling concurrency
+	const maxConcurrentDownloads = 5
+	const resultsChannelSize = 1000
+	const objectChannelSize = 100 // Buffer for eligible objects
+
 	bucketQual := d.EqualsQuals["bucket_name"]
 	if bucketQual == nil {
 		return fmt.Errorf("bucket_name must be provided when log_source = 's3'")
@@ -146,20 +200,9 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData) error {
 		prefix = q.GetStringValue()
 	}
 
-	region := d.EqualsQualString("region") // always set when you use SupportedRegionMatrix
-	if region == "" {
-		region = "us-west-2" // (safety fallback – should never hit)
-	}
-
-	svc, err := S3Client(ctx, d, region)
-	if err != nil {
-		return err
-	}
-
-	paginator := s3.NewListObjectsV2Paginator(svc, &s3.ListObjectsV2Input{
-		Bucket: aws.String(bucket),
-		Prefix: aws.String(prefix),
-	})
+	// Precompile patterns for better performance
+	reTs := regexp.MustCompile(`_(\d{8}T\d{4})Z_`)
+	reCommentPrefix := regexp.MustCompile(`^(#|version\s)`)
 
 	// compile optional time range
 	var startTime, endTime *time.Time
@@ -182,124 +225,253 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData) error {
 		}
 	}
 
-	// object key timestamp regex: _YYYYMMDDTHHMMZ_
-	reTs := regexp.MustCompile(`_(\d{8}T\d{4})Z_`)
+	// Setup channels for concurrent processing - create a pipeline
+	objChan := make(chan s3types.Object, objectChannelSize)
+	resultsChan := make(chan s3FlowLogEvent, resultsChannelSize)
+	errorChan := make(chan error, maxConcurrentDownloads)
+	listingDoneChan := make(chan struct{})    // Signal that S3 listing is complete
+	processingDoneChan := make(chan struct{}) // Signal that processing is complete
 
-	// stream each event
-	for paginator.HasMorePages() {
-		page, err := paginator.NextPage(ctx)
-		if err != nil {
-			return err
-		}
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-		for _, obj := range page.Contents {
-			key := aws.ToString(obj.Key)
-			if !strings.HasSuffix(key, ".log.gz") {
-				continue
-			}
+	// Start workers to process objects concurrently
+	// Workers begin processing immediately as objects become available from objChan
+	var workersWg sync.WaitGroup
+	for i := 0; i < maxConcurrentDownloads; i++ {
+		workersWg.Add(1)
+		go func() {
+			defer workersWg.Done()
+			for obj := range objChan {
+				key := aws.ToString(obj.Key)
 
-			if (startTime != nil || endTime != nil) && reTs.MatchString(key) {
-				tsPart := reTs.FindStringSubmatch(key)[1]
-				fileTs, _ := time.Parse("20060102T1504", tsPart)
-				if startTime != nil && fileTs.Before(*startTime) {
-					continue
-				}
-				if endTime != nil && fileTs.After(*endTime) {
-					continue
-				}
-			}
-
-			// download object
-			objOut, err := svc.GetObject(ctx, &s3.GetObjectInput{
-				Bucket: aws.String(bucket),
-				Key:    aws.String(key),
-			})
-			if err != nil {
-				return err
-			}
-			defer objOut.Body.Close()
-
-			gr, err := gzip.NewReader(objOut.Body)
-			if err != nil {
-				return err
-			}
-			defer gr.Close()
-
-			reader := bufio.NewReader(gr)
-			lineNum := 0
-			for {
-				line, err := reader.ReadString('\n')
-				if err == io.EOF {
-					break
-				}
+				// download object
+				objOut, err := s3Client.GetObject(ctx, &s3.GetObjectInput{
+					Bucket: aws.String(bucket),
+					Key:    aws.String(key),
+				})
 				if err != nil {
-					return err
-				}
-				line = strings.TrimSpace(line)
-				if line == "" ||
-					strings.HasPrefix(line, "#") ||
-					strings.HasPrefix(line, "version ") { // <─ NEW
+					select {
+					case errorChan <- err:
+					case <-ctx.Done():
+						return
+					}
 					continue
 				}
 
-				fields := strings.Fields(line)
-				if len(fields) < 14 {
-					continue // malformed
+				gr, err := gzip.NewReader(objOut.Body)
+				if err != nil {
+					objOut.Body.Close()
+					select {
+					case errorChan <- err:
+					case <-ctx.Done():
+						return
+					}
+					continue
 				}
 
-				// build event
-				endField := fields[11]
-				endUnix, _ := strconv.ParseInt(endField, 10, 64)
-				endMillis := endUnix * 1000
+				// Use a scanner for better line reading performance
+				scanner := bufio.NewScanner(gr)
+				// Increase buffer size for large lines
+				const maxScanTokenSize = 1024 * 1024
+				buf := make([]byte, maxScanTokenSize)
+				scanner.Buffer(buf, maxScanTokenSize)
 
-				var ingestion *int64
-				if obj.LastModified != nil {
-					ingestion = aws.Int64(obj.LastModified.UnixMilli())
-				}
+				// Pre-compute filters once before the loop for efficiency
+				// This avoids rebuilding the filter list for each line
+				filters := buildFilter(d.EqualsQuals)
+				hasFilters := len(filters) > 0
 
-				ev := s3FlowLogEvent{
-					FilteredLogEvent: types.FilteredLogEvent{
-						Message:       aws.String(line),
-						EventId:       aws.String(fmt.Sprintf("%s:%d", key, lineNum)),
-						Timestamp:     aws.Int64(endMillis),
-						IngestionTime: ingestion,
-					},
-					BucketName: bucket,
-					S3Key:      key,
-				}
+				lineNum := 0
+				for scanner.Scan() {
+					line := scanner.Text()
 
-				// in‑memory row‑level filtering (reuse helper)
-				if !matchesQuals(ev, d) {
+					// Skip empty lines and comments more efficiently
+					if line == "" || reCommentPrefix.MatchString(line) {
+						continue
+					}
+
+					fields := strings.Fields(line)
+					if len(fields) < 14 {
+						continue // malformed
+					}
+
+					// If filters exist, do a quick check before creating the full event
+					// This avoids the overhead of creating the event object for records
+					// that will be filtered out anyway
+					if hasFilters {
+						// Quick check for filter matches
+						match := true
+						for _, f := range filters {
+							if !strings.Contains(line, f) {
+								match = false
+								break
+							}
+						}
+						if !match {
+							lineNum++
+							continue
+						}
+					}
+
+					// build event
+					endField := fields[11]
+					endUnix, _ := strconv.ParseInt(endField, 10, 64)
+					endMillis := endUnix * 1000
+
+					var ingestion *int64
+					if obj.LastModified != nil {
+						ingestion = aws.Int64(obj.LastModified.UnixMilli())
+					}
+
+					ev := s3FlowLogEvent{
+						FilteredLogEvent: types.FilteredLogEvent{
+							Message:       aws.String(line),
+							EventId:       aws.String(fmt.Sprintf("%s:%d", key, lineNum)),
+							Timestamp:     aws.Int64(endMillis),
+							IngestionTime: ingestion,
+						},
+						BucketName: bucket,
+						S3Key:      key,
+					}
+
+					select {
+					case resultsChan <- ev:
+					case <-ctx.Done():
+						gr.Close()
+						objOut.Body.Close()
+						return
+					}
 					lineNum++
+				}
+
+				if err := scanner.Err(); err != nil {
+					select {
+					case errorChan <- err:
+					case <-ctx.Done():
+					}
+				}
+
+				gr.Close()
+				objOut.Body.Close()
+			}
+		}()
+	}
+
+	// Start a goroutine to close results channel when all workers finish
+	go func() {
+		workersWg.Wait()
+		close(resultsChan)
+		close(processingDoneChan)
+	}()
+
+	// Start parallel goroutine to list and filter S3 objects
+	// This sends objects to workers as they're discovered, without collecting them all first
+	go func() {
+		objectCount := 0
+		defer func() {
+			// If we found zero objects, we need to close the objChan
+			// to signal workers they're done and can exit
+			close(objChan)
+			close(listingDoneChan)
+		}()
+
+		paginator := s3.NewListObjectsV2Paginator(s3Client, &s3.ListObjectsV2Input{
+			Bucket: aws.String(bucket),
+			Prefix: aws.String(prefix),
+		})
+
+		for paginator.HasMorePages() {
+			page, err := paginator.NextPage(ctx)
+			if err != nil {
+				select {
+				case errorChan <- err:
+				case <-ctx.Done():
+				}
+				return
+			}
+
+			for _, obj := range page.Contents {
+				key := aws.ToString(obj.Key)
+				if !strings.HasSuffix(key, ".log.gz") {
 					continue
 				}
 
-				d.StreamListItem(ctx, ev)
-				lineNum++
+				if (startTime != nil || endTime != nil) && reTs.MatchString(key) {
+					tsPart := reTs.FindStringSubmatch(key)[1]
+					fileTs, _ := time.Parse("20060102T1504", tsPart)
+					if startTime != nil && fileTs.Before(*startTime) {
+						continue
+					}
+					if endTime != nil && fileTs.After(*endTime) {
+						continue
+					}
+				}
+
+				// Found an eligible object, send it to worker pool
+				objectCount++
+				select {
+				case objChan <- obj:
+				case <-ctx.Done():
+					return
+				}
 			}
 		}
-	}
 
-	return nil
-}
+		// If we processed the entire listing with zero objects found, log an info message
+		if objectCount == 0 {
+			plugin.Logger(ctx).Info("listS3FlowLogEvents", "message", "No eligible log files found in S3 bucket",
+				"bucket", bucket, "prefix", prefix)
+		}
+	}()
 
-// matchesQuals evaluates optional quals for S3‑sourced rows
-func matchesQuals(ev s3FlowLogEvent, d *plugin.QueryData) bool {
-	equalQuals := d.EqualsQuals
-
-	// leverage buildFilter helper to construct list of strings required.
-	filters := buildFilter(equalQuals)
-	if len(filters) == 0 {
-		return true
-	}
-
-	msg := aws.ToString(ev.Message)
-	for _, f := range filters {
-		if !strings.Contains(msg, f) {
-			return false
+	// Stream results to output while checking for errors
+	noObjectsFound := false
+	for {
+		select {
+		case result, ok := <-resultsChan:
+			if !ok {
+				// resultsChan closed, all processing complete
+				if noObjectsFound {
+					// We know there were no objects to process, so report success
+					return nil
+				}
+				// Wait for listing to complete before returning
+				select {
+				case <-listingDoneChan:
+					return nil
+				case err := <-errorChan:
+					cancel()
+					return err
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			}
+			d.StreamListItem(ctx, result)
+		case err := <-errorChan:
+			// Cancel all in-progress work
+			cancel()
+			return err
+		case <-listingDoneChan:
+			// S3 listing is complete, but we still need to wait for processing to finish
+			noObjectsFound = true
+		case <-processingDoneChan:
+			// All workers finished and no more results
+			// Wait for listing to complete before returning
+			select {
+			case <-listingDoneChan:
+				return nil
+			case err := <-errorChan:
+				cancel()
+				return err
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		case <-ctx.Done():
+			// Context cancelled externally
+			return ctx.Err()
 		}
 	}
-	return true
 }
 
 func getMessageField(_ context.Context, _ *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
