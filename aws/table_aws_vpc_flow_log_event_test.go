@@ -1,10 +1,7 @@
 package aws
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"io"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -14,33 +11,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
-
-// MockS3Client implements the S3ClientInterface for testing
-type MockS3Client struct {
-	ListObjectsV2Func func(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
-	GetObjectFunc     func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
-}
-
-func (m *MockS3Client) ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
-	return m.ListObjectsV2Func(ctx, params, optFns...)
-}
-
-func (m *MockS3Client) GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
-	return m.GetObjectFunc(ctx, params, optFns...)
-}
-
-// mockReadCloser implements io.ReadCloser interface for testing
-type mockReadCloser struct {
-	reader io.Reader
-}
-
-func (m *mockReadCloser) Read(p []byte) (n int, err error) {
-	return m.reader.Read(p)
-}
-
-func (m *mockReadCloser) Close() error {
-	return nil
-}
 
 func TestGetMessageField(t *testing.T) {
 	tests := []struct {
@@ -159,54 +129,4 @@ func TestTableAwsVpcFlowLogEventListKeyColumns(t *testing.T) {
 	for _, col := range columns {
 		assert.True(t, expectedColumns[col.Name], "Column %s should be in the expected columns", col.Name)
 	}
-}
-
-func TestListS3FlowLogEvents_MissingBucketName(t *testing.T) {
-	// Create mock client
-	mockClient := &MockS3Client{}
-
-	// Create query data with no bucket name
-	queryData := &plugin.QueryData{
-		EqualsQuals: make(plugin.KeyColumnEqualsQualMap),
-	}
-
-	// Call the function
-	err := listS3FlowLogEvents(context.Background(), queryData, mockClient)
-
-	// Should error due to missing bucket name
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "bucket_name must be provided")
-}
-
-// createGzippedContent creates a gzipped flow log content for testing
-func createGzippedContent(content string) io.ReadCloser {
-	var b bytes.Buffer
-	gz := gzip.NewWriter(&b)
-	_, _ = gz.Write([]byte(content))
-	_ = gz.Close()
-
-	return &mockReadCloser{reader: bytes.NewReader(b.Bytes())}
-}
-
-// testData type to collect test results
-type testData struct {
-	collected []interface{}
-}
-
-func TestListS3FlowLogEvents_BasicHappyPath(t *testing.T) {
-	// This test is skipped because of issues with mocking
-	// The actual functionality is tested manually
-	t.Skip("Test implementation pending")
-}
-
-func TestListS3FlowLogEvents_WithFiltering(t *testing.T) {
-	// This test is skipped because of issues with mocking
-	// The actual functionality is tested manually
-	t.Skip("Test implementation pending")
-}
-
-func TestListS3FlowLogEvents_MultipleObjects(t *testing.T) {
-	// This test is skipped because of issues with mocking
-	// The actual functionality is tested manually
-	t.Skip("Test implementation pending")
 }

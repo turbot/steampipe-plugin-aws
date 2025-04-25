@@ -182,6 +182,9 @@ type S3ClientInterface interface {
 //   - Returns nil on successful completion or if no matching files are found
 //   - Returns an error if bucket_name is missing or any processing error occurs
 func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3ClientInterface) error {
+	logger := plugin.Logger(ctx)
+	logger.Debug("listS3FlowLogEvents", "message", "Starting S3 flow log retrieval operation")
+
 	// Constant for controlling concurrency
 	const maxConcurrentDownloads = 5
 	const resultsChannelSize = 1000
@@ -189,6 +192,7 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 
 	bucketQual := d.EqualsQuals["bucket_name"]
 	if bucketQual == nil {
+		logger.Error("listS3FlowLogEvents", "error", "bucket_name qualifier missing")
 		return fmt.Errorf("bucket_name must be provided when log_source = 's3'")
 	}
 
@@ -199,6 +203,7 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 	if q := d.EqualsQuals["s3_prefix"]; q != nil {
 		prefix = q.GetStringValue()
 	}
+	logger.Debug("listS3FlowLogEvents", "bucket", bucket, "prefix", prefix)
 
 	// Precompile patterns for better performance
 	reTs := regexp.MustCompile(`_(\d{8}T\d{4})Z_`)
@@ -223,6 +228,8 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 				endTime = &t
 			}
 		}
+		logger.Debug("listS3FlowLogEvents", "time_filter", "applied",
+			"start_time", startTime, "end_time", endTime)
 	}
 
 	// Setup channels for concurrent processing - create a pipeline
@@ -237,13 +244,19 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 
 	// Start workers to process objects concurrently
 	// Workers begin processing immediately as objects become available from objChan
+	logger.Debug("listS3FlowLogEvents", "workers", maxConcurrentDownloads,
+		"message", "Starting worker goroutines")
 	var workersWg sync.WaitGroup
 	for i := 0; i < maxConcurrentDownloads; i++ {
 		workersWg.Add(1)
-		go func() {
+		go func(workerID int) {
+			logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Worker started")
 			defer workersWg.Done()
 			for obj := range objChan {
 				key := aws.ToString(obj.Key)
+				logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+					"message", "Processing object", "key", key)
 
 				// download object
 				objOut, err := s3Client.GetObject(ctx, &s3.GetObjectInput{
@@ -251,6 +264,9 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 					Key:    aws.String(key),
 				})
 				if err != nil {
+					logger.Error("listS3FlowLogEvents", "worker_id", workerID,
+						"message", "Failed to get object from S3",
+						"key", key, "error", err)
 					select {
 					case errorChan <- err:
 					case <-ctx.Done():
@@ -261,6 +277,9 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 
 				gr, err := gzip.NewReader(objOut.Body)
 				if err != nil {
+					logger.Error("listS3FlowLogEvents", "worker_id", workerID,
+						"message", "Failed to create gzip reader",
+						"key", key, "error", err)
 					objOut.Body.Close()
 					select {
 					case errorChan <- err:
@@ -346,16 +365,24 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 				}
 
 				if err := scanner.Err(); err != nil {
+					logger.Error("listS3FlowLogEvents", "worker_id", workerID,
+						"message", "Scanner error while processing file",
+						"key", key, "error", err)
 					select {
 					case errorChan <- err:
 					case <-ctx.Done():
 					}
 				}
 
+				logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+					"message", "Completed processing object",
+					"key", key, "lines_processed", lineNum)
 				gr.Close()
 				objOut.Body.Close()
 			}
-		}()
+			logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Worker finished")
+		}(i) // Pass worker ID to the goroutine
 	}
 
 	// Start a goroutine to close results channel when all workers finish
@@ -367,6 +394,7 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 
 	// Start parallel goroutine to list and filter S3 objects
 	// This sends objects to workers as they're discovered, without collecting them all first
+	logger.Debug("listS3FlowLogEvents", "message", "Starting S3 object listing")
 	go func() {
 		objectCount := 0
 		defer func() {
@@ -374,6 +402,8 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 			// to signal workers they're done and can exit
 			close(objChan)
 			close(listingDoneChan)
+			logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
+				"eligible_objects_found", objectCount)
 		}()
 
 		paginator := s3.NewListObjectsV2Paginator(s3Client, &s3.ListObjectsV2Input{
@@ -381,9 +411,16 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 			Prefix: aws.String(prefix),
 		})
 
+		pageCount := 0
 		for paginator.HasMorePages() {
+			pageCount++
+			logger.Trace("listS3FlowLogEvents", "message", "Retrieving page of S3 objects",
+				"page", pageCount)
+
 			page, err := paginator.NextPage(ctx)
 			if err != nil {
+				logger.Error("listS3FlowLogEvents", "message", "Error listing S3 objects",
+					"error", err, "page", pageCount)
 				select {
 				case errorChan <- err:
 				case <-ctx.Done():
@@ -410,6 +447,8 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 
 				// Found an eligible object, send it to worker pool
 				objectCount++
+				logger.Trace("listS3FlowLogEvents", "message", "Found eligible object",
+					"key", aws.ToString(obj.Key), "count", objectCount)
 				select {
 				case objChan <- obj:
 				case <-ctx.Done():
@@ -427,11 +466,15 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 
 	// Stream results to output while checking for errors
 	noObjectsFound := false
+	resultCount := 0
+	logger.Debug("listS3FlowLogEvents", "message", "Starting result streaming phase")
 	for {
 		select {
 		case result, ok := <-resultsChan:
 			if !ok {
 				// resultsChan closed, all processing complete
+				logger.Debug("listS3FlowLogEvents", "message", "Result streaming complete",
+					"total_results", resultCount)
 				if noObjectsFound {
 					// We know there were no objects to process, so report success
 					return nil
@@ -447,9 +490,16 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 					return ctx.Err()
 				}
 			}
+			resultCount++
+			if resultCount%1000 == 0 {
+				logger.Debug("listS3FlowLogEvents", "message", "Streaming results",
+					"count", resultCount)
+			}
 			d.StreamListItem(ctx, result)
 		case err := <-errorChan:
 			// Cancel all in-progress work
+			logger.Error("listS3FlowLogEvents", "message", "Error received from worker",
+				"error", err)
 			cancel()
 			return err
 		case <-listingDoneChan:
@@ -457,9 +507,12 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 			noObjectsFound = true
 		case <-processingDoneChan:
 			// All workers finished and no more results
+			logger.Debug("listS3FlowLogEvents", "message", "All processing complete")
 			// Wait for listing to complete before returning
 			select {
 			case <-listingDoneChan:
+				logger.Debug("listS3FlowLogEvents", "message", "S3 flow log retrieval operation complete",
+					"total_results", resultCount)
 				return nil
 			case err := <-errorChan:
 				cancel()
@@ -469,6 +522,8 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 			}
 		case <-ctx.Done():
 			// Context cancelled externally
+			logger.Warn("listS3FlowLogEvents", "message", "Operation cancelled by context",
+				"error", ctx.Err())
 			return ctx.Err()
 		}
 	}
