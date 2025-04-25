@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_action - Query AWS IAM Action using SQL"
 description: "Allows users to query IAM Actions in AWS Identity and Access Management (IAM)."
+folder: "IAM"
 ---
 
 # Table: aws_iam_action - Query AWS IAM Action using SQL

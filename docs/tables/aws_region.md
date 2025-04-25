@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_region - Query AWS Region using SQL"
 description: "Allows users to query AWS Region to retrieve details about AWS regions including their names, descriptions, and statuses."
+folder: "Region"
 ---
 
 # Table: aws_region - Query AWS Region using SQL
@@ -33,7 +34,7 @@ from
 ```
 
 
-### List of AWS regions which are enable
+### List of AWS regions that are enabled
 Discover the segments that are not currently active in your AWS regions. This can help you understand which regions are not utilized, potentially highlighting areas for infrastructure optimization or cost savings.
 
 ```sql+postgres

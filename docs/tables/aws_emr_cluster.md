@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_emr_cluster - Query AWS Elastic MapReduce Cluster using SQL"
 description: "Allows users to query AWS Elastic MapReduce Cluster data."
+folder: "EMR"
 ---
 
 # Table: aws_emr_cluster - Query AWS Elastic MapReduce Cluster using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_finding - Query AWS Security Hub Findings using SQL"
 description: "Allows users to query AWS Security Hub Findings to gather information about security issues identified within AWS resources. This includes details such as the severity, status, and description of the finding, the resources affected, and any remediation steps recommended."
+folder: "Security Hub"
 ---
 
 # Table: aws_securityhub_finding - Query AWS Security Hub Findings using SQL
@@ -163,7 +164,7 @@ from
   aws_securityhub_finding
 where
   severity ->> 'Original' = 'CRITICAL'
-and 
+and
   created_at >= now() - interval '10' day;
 ```
 
@@ -177,7 +178,7 @@ from
   aws_securityhub_finding
 where
   json_extract(severity, '$.Original') = 'CRITICAL'
-and 
+and
   created_at >= datetime('now', '-10 day');
 ```
 
@@ -192,7 +193,7 @@ select
   criticality
 from
   aws_securityhub_finding
-order by 
+order by
   criticality desc nulls last;
 ```
 
@@ -204,7 +205,7 @@ select
   criticality
 from
   aws_securityhub_finding
-order by 
+order by
   case when criticality is null then 1 else 0 end, criticality desc;
 ```
 
@@ -220,7 +221,7 @@ select
   company_name
 from
   aws_securityhub_finding
-where 
+where
   company_name = 'Turbot';
 ```
 
@@ -233,7 +234,7 @@ select
   company_name
 from
   aws_securityhub_finding
-where 
+where
   company_name = 'Turbot';
 ```
 
@@ -276,7 +277,7 @@ select
   workflow_status
 from
   aws_securityhub_finding
-where 
+where
   workflow_status = 'NOTIFIED';
 ```
 
@@ -289,7 +290,7 @@ select
   workflow_status
 from
   aws_securityhub_finding
-where 
+where
   workflow_status = 'NOTIFIED';
 ```
 
@@ -310,7 +311,7 @@ select
   network ->> 'SourcePort' as network_source_port
 from
   aws_securityhub_finding
-where 
+where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
@@ -328,7 +329,7 @@ select
   json_extract(network, '$.SourcePort') as network_source_port
 from
   aws_securityhub_finding
-where 
+where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
@@ -352,7 +353,7 @@ select
   patch_summary ->> 'RebootOption' as reboot_option
 from
   aws_securityhub_finding
-where 
+where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
@@ -373,7 +374,7 @@ select
   json_extract(patch_summary, '$.RebootOption') as reboot_option
 from
   aws_securityhub_finding
-where 
+where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
@@ -396,7 +397,7 @@ select
 from
   aws_securityhub_finding,
   jsonb_array_elements(vulnerabilities) as v
-where 
+where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
@@ -416,7 +417,7 @@ select
 from
   aws_securityhub_finding,
   json_each(vulnerabilities) as v
-where 
+where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
@@ -496,30 +497,30 @@ order by
 Explore which findings are associated with the CIS AWS foundations benchmark in your AWS Security Hub. This can assist in identifying potential security risks or non-compliance issues for your company.
 
 ```sql+postgres
- select 
+ select
   title,
   id,
   company_name,
   created_at,
   criticality,
   confidence
-from 
+from
   aws_securityhub_finding
-where 
+where
   standards_control_arn like '%cis-aws-foundations-benchmark%';
 ```
 
 ```sql+sqlite
-select 
+select
   title,
   id,
   company_name,
   created_at,
   criticality,
   confidence
-from 
+from
   aws_securityhub_finding
-where 
+where
   standards_control_arn like '%cis-aws-foundations-benchmark%';
 ```
 
@@ -527,34 +528,34 @@ where
 Identify instances where specific security findings are associated with a particular standard control. This is beneficial in understanding the security posture of your organization by analyzing the criticality and confidence of the findings.
 
 ```sql+postgres
- select 
+ select
   f.title,
   f.id,
   f.company_name,
   f.created_at,
   f.criticality,
   f.confidence
-from 
+from
   aws_securityhub_finding as f,
   aws_securityhub_standards_control as c
-where 
+where
   c.arn = f.standards_control_arn
 and
   c.control_id = 'Config.1';
 ```
 
 ```sql+sqlite
-select 
+select
   f.title,
   f.id,
   f.company_name,
   f.created_at,
   f.criticality,
   f.confidence
-from 
+from
   aws_securityhub_finding as f,
   aws_securityhub_standards_control as c
-where 
+where
   c.arn = f.standards_control_arn
 and
   c.control_id = 'Config.1';
@@ -709,4 +710,68 @@ group by
   source_account_id
 order by
   source_account_id;
+```
+
+### Retrieve findings updated within a specific time range
+This query retrieves AWS Security Hub findings that were updated within a specified time interval. It provides details such as the ID, company name, the first time the finding was observed, the last update time, criticality, and verification state.
+
+```sql+postgres
+select
+  id,
+  company_name,
+  first_observed_at,
+  updated_at,
+  criticality,
+  verification_state
+from
+  aws_securityhub_finding
+where
+  updated_at between '2023-06-26T13:00:21+05:30' and '2024-07-04T14:45:00+05:30';
+```
+
+```sql+sqlite
+select
+  id,
+  company_name,
+  first_observed_at,
+  updated_at,
+  criticality,
+  verification_state
+from
+  aws_securityhub_finding
+where
+  updated_at between '2023-06-26T13:00:21+05:30' and '2024-07-04T14:45:00+05:30';
+```
+
+### List findings that are created in the last month
+This query is useful for retrieving security findings from AWS Security Hub that were created within the last 30 days. It allows you to filter and monitor findings based on their creation date, helping identify recent security issues, assess compliance status, and track product-specific incidents. This can be particularly valuable for auditing, incident response, or compliance reporting, ensuring you're working with the most recent data.
+
+```sql+postgres
+select
+  id,
+  company_name,
+  created_at,
+  confidence,
+  compliance_status,
+  product_name,
+  product_arn
+from
+  aws_securityhub_finding
+where
+  created_at >= now() - interval '30d';
+```
+
+```sql+sqlite
+select
+  id,
+  company_name,
+  created_at,
+  confidence,
+  compliance_status,
+  product_name,
+  product_arn
+from
+  aws_securityhub_finding
+where
+  created_at >= datetime('now', '-30 days');
 ```

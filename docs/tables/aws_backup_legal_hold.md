@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_backup_legal_hold - Query AWS Backup Legal Hold using SQL"
 description: "Allows users to query AWS Backup Legal Hold to obtain information about the legal hold settings of AWS backup resources."
+folder: "Backup"
 ---
 
 # Table: aws_backup_legal_hold - Query AWS Backup Legal Hold using SQL

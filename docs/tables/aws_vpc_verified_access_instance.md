@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_verified_access_instance - Query AWS VPC Verified Access Instances using SQL"
 description: "Allows users to query AWS VPC Verified Access Instances and provides information about the Amazon VPC verified access instances. This table can be used to gather details such as the instance ID, instance state, instance type, and associated tags."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_verified_access_instance - Query AWS VPC Verified Access Instances using SQL

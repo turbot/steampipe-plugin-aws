@@ -79,12 +79,6 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "image_details",
-				Description: "A list of ImageDetail objects that contain data about the image.",
-				Hydrate:     getAwsEcrpublicDescribeImages,
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "policy",
 				Description: "The JSON repository policy text associated with the repository.",
 				Hydrate:     getAwsEcrpublicRepositoryPolicy,
@@ -231,7 +225,7 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plug
 		plugin.Logger(ctx).Error("aws_ecrpublic_repository.getAwsEcrpublicRepository", "api_error", err)
 		return nil, err
 	}
-	if data.Repositories != nil && len(data.Repositories) > 0 {
+	if len(data.Repositories) > 0 {
 		return data.Repositories[0], nil
 	}
 

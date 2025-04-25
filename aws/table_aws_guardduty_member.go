@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty/types"
 
-	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -36,7 +34,7 @@ func tableAwsGuardDutyMember(_ context.Context) *plugin.Table {
 				{Name: "detector_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_GUARDDUTY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "member_account_id",
@@ -67,6 +65,11 @@ func tableAwsGuardDutyMember(_ context.Context) *plugin.Table {
 			{
 				Name:        "relationship_status",
 				Description: "The status of the relationship between the member and the administrator.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "administrator_id",
+				Description: "The administrator account ID.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -121,7 +124,7 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			params.MaxResults = limit
+			params.MaxResults = aws.Int32(limit)
 		}
 	}
 

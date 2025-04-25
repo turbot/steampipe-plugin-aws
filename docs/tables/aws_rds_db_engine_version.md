@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_engine_version - Query AWS RDS DB Engine Versions using SQL"
 description: "Enables users to query AWS RDS DB Engine Versions to retrieve detailed information on various database engine versions supported by Amazon RDS."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_engine_version - Query AWS RDS DB Engine Versions using SQL

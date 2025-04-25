@@ -60,6 +60,12 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "description",
+				Description: "The description of the simulation.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSimSpaceWeaverSimulation,
+			},
+			{
 				Name:        "status",
 				Description: "The current status of the simulation.",
 				Type:        proto.ColumnType_STRING,
@@ -79,6 +85,12 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 			{
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) of the Identity and Access Management (IAM) role that the simulation assumes to perform actions.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSimSpaceWeaverSimulation,
+			},
+			{
+				Name:        "start_error",
+				Description: "An error message that SimSpace Weaver returns only if a problem occurs when the simulation is in the STARTING state.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSimSpaceWeaverSimulation,
 			},
@@ -103,6 +115,12 @@ func tableAwsSimSpaceWeaverSimulation(_ context.Context) *plugin.Table {
 			{
 				Name:        "schema_s3_location",
 				Description: "The location of the simulation schema in Amazon Simple Storage Service (Amazon S3).",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSimSpaceWeaverSimulation,
+			},
+			{
+				Name:        "snapshot_s3_location",
+				Description: "A location in Amazon Simple Storage Service (Amazon S3) where SimSpace Weaver stores simulation data, such as your app .zip files and schema file.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSimSpaceWeaverSimulation,
 			},

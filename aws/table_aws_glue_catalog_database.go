@@ -40,6 +40,13 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the catalog database.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getGlueCatalogDatabaseArn,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "catalog_id",
 				Description: "The ID of the Data Catalog in which the database resides.",
 				Type:        proto.ColumnType_STRING,
@@ -65,6 +72,11 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "federated_database",
+				Description: "A FederatedDatabase structure that references an entity outside the Glue Data Catalog.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "parameters",
 				Description: "These key-value pairs define parameters and properties of the database.",
 				Type:        proto.ColumnType_JSON,
@@ -83,11 +95,17 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Name"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTagsForGlueCatalogDatabase,
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getGlueCatalogDatabaseAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getGlueCatalogDatabaseArn,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -187,7 +205,37 @@ func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	return *data.Database, nil
 }
 
-func getGlueCatalogDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getTagsForGlueResource(ctx context.Context, d *plugin.QueryData, arn string) (interface{}, error) {
+	// Create session
+	svc, err := GlueClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getTagsForGlueCatalogDatabase", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region check
+		return nil, nil
+	}
+
+	// Build param
+	param := &glue.GetTagsInput{
+		ResourceArn: aws.String(arn),
+	}
+
+	tags, err := svc.GetTags(ctx, param)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getTagsForGlueCatalogDatabase", "api_error", err)
+		return nil, err
+	}
+	return tags, nil
+}
+
+func getTagsForGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	arn, _ := getGlueCatalogDatabaseArn(ctx, d, h)
+	return getTagsForGlueResource(ctx, d, arn.(string))
+}
+
+func getGlueCatalogDatabaseArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.EqualsQualString(matrixKeyRegion)
 	data := h.Item.(types.Database)
 
@@ -195,11 +243,14 @@ func getGlueCatalogDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plu
 
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabaseAkas", "common_data_error", err)
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabaseArn", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":glue:" + region + ":" + commonColumnData.AccountId + ":database/" + *data.Name
 
-	return []string{aka}, nil
+	// arn format - https://docs.aws.amazon.com/glue/latest/dg/glue-specifying-resource-arns.html
+	// arn:aws:glue:region:account-id:database/database-name
+	arn := "arn:" + commonColumnData.Partition + ":glue:" + region + ":" + commonColumnData.AccountId + ":database/" + *data.Name
+
+	return arn, nil
 }

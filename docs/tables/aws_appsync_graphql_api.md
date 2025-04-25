@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_appsync_graphql_api - Query AWS AppSync GraphQL API using SQL"
 description: "Allows users to query AppSync GraphQL APIs to retrieve detailed information about each individual GraphQL API."
+folder: "AppSync"
 ---
 
 # Table: aws_appsync_graphql_api - Query AWS AppSync GraphQL APIs using SQL

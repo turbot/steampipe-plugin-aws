@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -12,7 +13,6 @@ import (
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
@@ -115,7 +115,7 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 				if milestoneNumber < 1 || milestoneNumber > 100 {
 					return nil, fmt.Errorf("MilestoneNumber must have minimum value of 1 and maximum value of 100")
 				}
-				input.MilestoneNumber = milestoneNumber
+				input.MilestoneNumber = aws.Int32(milestoneNumber)
 			}
 		}
 
@@ -124,7 +124,7 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 			// If user provided milestone number does not exist then the API will throw ResourceNotFoundException error.
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
-				if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+				if slices.Contains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
 					return nil, nil
 				}
 			}
@@ -136,7 +136,7 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 			Base64String:    op.LensReviewReport.Base64String,
 			LensAlias:       op.LensReviewReport.LensAlias,
 			LensArn:         op.LensReviewReport.LensArn,
-			MilestoneNumber: op.MilestoneNumber,
+			MilestoneNumber: *op.MilestoneNumber,
 			WorkloadId:      op.WorkloadId,
 		})
 

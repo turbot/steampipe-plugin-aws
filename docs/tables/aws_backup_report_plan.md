@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_backup_report_plan - Query AWS Backup Report Plan using SQL"
 description: "Allows users to query AWS Backup Report Plan data, including details about backup jobs, recovery points, and backup vaults."
+folder: "Backup"
 ---
 
 # Table: aws_backup_report_plan - Query AWS Backup Report Plan using SQL

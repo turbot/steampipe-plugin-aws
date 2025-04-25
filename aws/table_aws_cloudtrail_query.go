@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 
-	cloudtrailv1 "github.com/aws/aws-sdk-go/service/cloudtrail"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -55,7 +53,7 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudtrail", "action": "DescribeQuery"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CLOUDTRAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "query_id",

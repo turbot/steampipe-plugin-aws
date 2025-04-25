@@ -101,6 +101,12 @@ func tableAwsSageMakerModel(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSageMakerModel,
 			},
 			{
+				Name:        "deployment_recommendation",
+				Description: "A set of recommended deployment configurations for the model.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSageMakerModel,
+			},
+			{
 				Name:        "tags_src",
 				Description: "The list of tags for the model.",
 				Type:        proto.ColumnType_JSON,

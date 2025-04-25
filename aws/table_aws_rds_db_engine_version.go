@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -27,10 +28,10 @@ func tableAwsRDSDBEngineVersion(_ context.Context) *plugin.Table {
 				{Name: "engine", Require: plugin.Optional},
 				{Name: "engine_version", Require: plugin.Optional},
 				{Name: "db_parameter_group_family", Require: plugin.Optional},
-				{Name: "list_supported_character_sets", Require: plugin.Optional},
-				{Name: "list_supported_timezones", Require: plugin.Optional},
-				{Name: "default_only", Require: plugin.Optional},
-				{Name: "engine_mode", Require: plugin.Optional},
+				{Name: "list_supported_character_sets", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "list_supported_timezones", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "default_only", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "engine_mode", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
@@ -92,7 +93,7 @@ func tableAwsRDSDBEngineVersion(_ context.Context) *plugin.Table {
 				Name:        "default_only",
 				Description: "A value that indicates whether only the default version of the specified engine or engine and major version combination is returned.",
 				Type:        proto.ColumnType_BOOL,
-				Transform:   transform.FromQual("list_supported_timezones"),
+				Transform:   transform.FromQual("default_only"),
 				Default:     false,
 			},
 			{
@@ -275,7 +276,7 @@ func listRDSDBEngineVersions(ctx context.Context, d *plugin.QueryData, _ *plugin
 		input.ListSupportedTimezones = aws.Bool(d.EqualsQuals["list_supported_timezones"].GetBoolValue())
 	}
 	if d.EqualsQuals["default_only"] != nil {
-		input.DefaultOnly = d.EqualsQuals["default_only"].GetBoolValue()
+		input.DefaultOnly = aws.Bool(d.EqualsQuals["default_only"].GetBoolValue())
 	}
 
 	// Additional input filter

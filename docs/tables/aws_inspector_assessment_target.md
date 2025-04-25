@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_inspector_assessment_target - Query AWS Inspector Assessment Targets using SQL"
 description: "Allows users to query AWS Inspector Assessment Targets. The `aws_inspector_assessment_target` table in Steampipe provides information about assessment targets within AWS Inspector. This table allows DevOps engineers to query target-specific details, including ARN, name, and associated resource group ARN. Users can utilize this table to gather insights on assessment targets, such as their creation time, last updated time, and more. The schema outlines the various attributes of the assessment target, including the target ARN, creation date, and associated tags."
+folder: "Inspector"
 ---
 
 # Table: aws_inspector_assessment_target - Query AWS Inspector Assessment Targets using SQL

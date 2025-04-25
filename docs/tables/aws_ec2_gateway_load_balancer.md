@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_gateway_load_balancer - Query AWS EC2 Gateway Load Balancer using SQL"
 description: "Allows users to query AWS EC2 Gateway Load Balancer details, including its configuration, state, type, and associated tags."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_gateway_load_balancer - Query AWS EC2 Gateway Load Balancer using SQL

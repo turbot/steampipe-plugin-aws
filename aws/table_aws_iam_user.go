@@ -320,7 +320,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		UserName: user.UserName,
 	}
 
-	userData, _ := svc.GetUser(ctx, params)
+	userData, err := svc.GetUser(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_user.getAwsIamUserData", "api_error", err)
 		return nil, err
@@ -367,7 +367,7 @@ func getAwsIamUserAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *
 		UserName: user.UserName,
 	}
 
-	userData, _ := svc.ListAttachedUserPolicies(ctx, params)
+	userData, err := svc.ListAttachedUserPolicies(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_user.getAwsIamUserAttachedPolicies", "api_error", err)
 		return nil, err
@@ -398,7 +398,7 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		UserName: user.UserName,
 	}
 
-	userData, _ := svc.ListGroupsForUser(ctx, params)
+	userData, err := svc.ListGroupsForUser(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_user.getAwsIamUserGroups", "api_error", err)
 		return nil, err
@@ -421,7 +421,7 @@ func getAwsIamUserMfaDevices(ctx context.Context, d *plugin.QueryData, h *plugin
 		UserName: user.UserName,
 	}
 
-	userData, _ := svc.ListMFADevices(ctx, params)
+	userData, err := svc.ListMFADevices(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_iam_user.getAwsIamUserMfaDevices", "api_error", err)
 		return nil, err
@@ -530,7 +530,7 @@ func getUserInlinePolicy(ctx context.Context, policyName *string, userName *stri
 
 func handleEmptyUserMfaStatus(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*iam.ListMFADevicesOutput)
-	if data.MFADevices != nil && len(data.MFADevices) > 0 {
+	if data != nil && len(data.MFADevices) > 0 {
 		return true, nil
 	}
 

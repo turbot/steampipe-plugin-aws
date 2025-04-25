@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudsearch_domain - Query AWS CloudSearch Domain using SQL"
 description: "Allows users to query AWS CloudSearch Domain to retrieve detailed information about each search domain configured within an AWS account."
+folder: "CloudSearch"
 ---
 
 # Table: aws_cloudsearch_domain - Query AWS CloudSearch Domain using SQL

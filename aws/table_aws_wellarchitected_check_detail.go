@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -11,7 +12,6 @@ import (
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -202,7 +202,7 @@ func fetchWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, 
 		}
 
 		input := &wellarchitected.ListCheckDetailsInput{
-			MaxResults: maxLimit,
+			MaxResults: aws.Int32(maxLimit),
 			LensArn:    aws.String(*answer.LensArn),
 			PillarId:   aws.String(*answer.PillarId),
 			QuestionId: aws.String(*answer.QuestionId),
@@ -223,7 +223,7 @@ func fetchWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, 
 			if err != nil {
 				var ae smithy.APIError
 				if errors.As(err, &ae) {
-					if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+					if slices.Contains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
 						return nil, nil
 					}
 				}
@@ -284,7 +284,7 @@ func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *pl
 		}
 
 		input := &wellarchitected.ListAnswersInput{
-			MaxResults: int32(50),
+			MaxResults: aws.Int32(50),
 			LensAlias:  aws.String(lensArn),
 			WorkloadId: aws.String(*workloadId),
 		}
@@ -303,7 +303,7 @@ func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *pl
 			if err != nil {
 				var ae smithy.APIError
 				if errors.As(err, &ae) {
-					if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+					if slices.Contains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
 						return nil, nil
 					}
 				}
@@ -324,7 +324,7 @@ func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *pl
 					Risk:          item.Risk,
 				}
 
-				answerList = append(answerList, AnswerInfo{answer, output.LensAlias, output.LensArn, &output.MilestoneNumber, output.WorkloadId})
+				answerList = append(answerList, AnswerInfo{answer, output.LensAlias, output.LensArn, output.MilestoneNumber, output.WorkloadId})
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ebs_volume - Query AWS Elastic Block Store (EBS) using SQL"
 description: "Allows users to query AWS Elastic Block Store (EBS) volumes for detailed information about their configuration, status, and associated tags."
+folder: "EBS"
 ---
 
 # Table: aws_ebs_volume - Query AWS Elastic Block Store (EBS) using SQL

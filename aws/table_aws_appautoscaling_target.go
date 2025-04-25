@@ -55,6 +55,12 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "scalable_target_arn",
+				Description: "The ARN of the scalable target.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ScalableTargetARN"),
+			},
+			{
 				Name:        "scalable_dimension",
 				Description: "The scalable dimension associated with the scalable target. This string consists of the service namespace, resource type, and scaling property.",
 				Type:        proto.ColumnType_STRING,
@@ -189,7 +195,7 @@ func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData
 		plugin.Logger(ctx).Error("aws_appautoscaling_target.getAwsApplicationAutoScalingTarget", "api_error", err)
 		return nil, err
 	}
-	if op.ScalableTargets != nil && len(op.ScalableTargets) > 0 {
+	if len(op.ScalableTargets) > 0 {
 		return op.ScalableTargets[0], nil
 	}
 

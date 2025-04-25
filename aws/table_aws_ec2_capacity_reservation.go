@@ -63,6 +63,26 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "capacity_reservation_fleet_id",
+				Description: "The ID of the Capacity Reservation Fleet to which the Capacity Reservation belongs. Only valid for Capacity Reservations that were created by a Capacity Reservation Fleet.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "outpost_arn",
+				Description: "The Amazon Resource Name (ARN) of the Outpost on which the Capacity Reservation was created.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "placement_group_arn",
+				Description: "The Amazon Resource Name (ARN) of the cluster placement group in which the Capacity Reservation was created.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "reservation_type",
+				Description: "The type of Capacity Reservation.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "state",
 				Description: "The current state of the capacity reservation. A capacity reservation can be in one of the following states: 'active', 'expired', 'cancelled', 'pending', 'failed'.",
 				Type:        proto.ColumnType_STRING,
@@ -256,7 +276,7 @@ func getEc2CapacityReservation(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	if op.CapacityReservations != nil && len(op.CapacityReservations) > 0 {
+	if len(op.CapacityReservations) > 0 {
 		return op.CapacityReservations[0], nil
 	}
 	return nil, nil

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_api_gateway_domain_name - Query AWS API Gateway Domain Names using SQL"
 description: "Allows users to query AWS API Gateway Domain Names and retrieve details about each domain's configuration, certificate, and associated API."
+folder: "API Gateway"
 ---
 
 # Table: aws_api_gateway_domain_name - Query AWS API Gateway Domain Names using SQL

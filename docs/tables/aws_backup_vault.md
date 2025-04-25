@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_backup_vault - Query AWS Backup Vaults using SQL"
 description: "Allows users to query AWS Backup Vaults, providing detailed information about each backup vault, including its name, ARN, recovery points, and more."
+folder: "Backup"
 ---
 
 # Table: aws_backup_vault - Query AWS Backup Vaults using SQL

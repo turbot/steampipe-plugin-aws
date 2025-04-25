@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_emr_block_public_access_configuration - Query AWS EMR Block Public Access Configuration using SQL"
 description: "Allows users to query AWS EMR Block Public Access Configuration to retrieve details about the block public access configurations for EMR clusters."
+folder: "Config"
 ---
 
 # Table: aws_emr_block_public_access_configuration - Query AWS EMR Block Public Access Configuration using SQL

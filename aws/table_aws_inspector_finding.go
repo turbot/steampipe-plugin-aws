@@ -326,7 +326,7 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_inspector_finding.getInspectorFinding", "api_error", err)
 		return nil, err
 	}
-	if data.Findings != nil && len(data.Findings) > 0 {
+	if data != nil && len(data.Findings) > 0 {
 		return &InspectorFindingInfo{
 			FailedItems: data.FailedItems,
 			Finding:     data.Findings[0],

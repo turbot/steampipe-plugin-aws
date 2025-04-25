@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codedeploy_deployment_config - Query AWS CodeDeploy Deployment Configurations using SQL"
 description: "Allows users to query AWS CodeDeploy Deployment Configurations to retrieve information about the deployment configurations within AWS CodeDeploy service."
+folder: "CodeDeploy"
 ---
 
 # Table: aws_codedeploy_deployment_config - Query AWS CodeDeploy Deployment Configurations using SQL

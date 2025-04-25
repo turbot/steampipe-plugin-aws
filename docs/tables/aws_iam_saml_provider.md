@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_saml_provider - Query AWS IAM SAML Providers using SQL"
 description: "Allows users to query AWS IAM SAML Providers and retrieve detailed information about each SAML provider within AWS Identity and Access Management (IAM)."
+folder: "IAM"
 ---
 
 # Table: aws_iam_saml_provider - Query AWS IAM SAML Providers using SQL

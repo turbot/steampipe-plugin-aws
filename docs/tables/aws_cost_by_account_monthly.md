@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_account_monthly - Query AWS Cost Explorer Service using SQL"
 description: "Allows users to query monthly AWS costs per account. It provides cost details for each AWS account, allowing users to monitor and manage their AWS spending."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_account_monthly - Query AWS Cost Explorer Service using SQL
@@ -113,7 +114,7 @@ with cost_data as (
     linked_account_id,
     period_start,
     unblended_cost_amount as this_month,
-    lag(unblended_cost_amount,1) over(partition by linked_account_id order by period_start desc) as previous_month
+    lag(unblended_cost_amount,-1) over(partition by linked_account_id order by period_start desc) as previous_month
   from 
     aws_cost_by_account_monthly
 )
@@ -136,7 +137,7 @@ with cost_data as (
     linked_account_id,
     period_start,
     unblended_cost_amount as this_month,
-    lag(unblended_cost_amount, 1) over(partition by linked_account_id order by period_start desc) as previous_month
+    lag(unblended_cost_amount, -1) over(partition by linked_account_id order by period_start desc) as previous_month
   from 
     aws_cost_by_account_monthly
 )

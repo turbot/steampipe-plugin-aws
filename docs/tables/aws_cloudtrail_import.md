@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudtrail_import - Query AWS CloudTrail using SQL"
 description: "Allows users to query AWS CloudTrail imports to extract data about imported trail files such as the file name, import time, hash value, and more."
+folder: "CloudTrail"
 ---
 
 # Table: aws_cloudtrail_import - Query AWS CloudTrail using SQL

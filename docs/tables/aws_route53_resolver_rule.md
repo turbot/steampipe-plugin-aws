@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_resolver_rule - Query AWS Route 53 Resolver Rule using SQL"
 description: "Allows users to query AWS Route 53 Resolver Rule to obtain data on DNS resolver rules configured in an AWS account."
+folder: "Route 53"
 ---
 
 # Table: aws_route53_resolver_rule - Query AWS Route 53 Resolver Rule using SQL

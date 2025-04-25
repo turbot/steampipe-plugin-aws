@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_api_gateway_authorizer - Query AWS API Gateway Authorizer using SQL"
 description: "Allows users to query AWS API Gateway Authorizer and access data about API Gateway Authorizers in an AWS account. This data includes the authorizer's ID, name, type, provider ARNs, and other configuration details."
+folder: "API Gateway"
 ---
 
 # Table: aws_api_gateway_authorizer - Query AWS API Gateway Authorizer using SQL

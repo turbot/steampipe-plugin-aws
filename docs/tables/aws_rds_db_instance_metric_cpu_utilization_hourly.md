@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_metric_cpu_utilization_hourly - Query AWS RDS DB Instance Metrics using SQL"
 description: "Allows users to query AWS RDS DB Instance CPU Utilization Metrics on an hourly basis."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance_metric_cpu_utilization_hourly - Query AWS RDS DB Instance Metrics using SQL

@@ -76,22 +76,13 @@ resource "aws_elasticache_cluster" "named_test_resource" {
   }
 }
 
-data "template_file" "resource_aka" {
-  template = "arn:$${partition}:elasticache:$${region}:$${account_id}:cluster:${aws_elasticache_cluster.named_test_resource.cluster_id}"
-  vars = {
-    partition  = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region     = data.aws_region.primary.name
-  }
-}
-
 output "resource_name" {
   value = var.resource_name
 }
 
 output "resource_aka" {
   depends_on = [aws_elasticache_cluster.named_test_resource]
-  value      = data.template_file.resource_aka.rendered
+  value      = "arn:${data.aws_partition.current.partition}:elasticache:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:cluster:${aws_elasticache_cluster.named_test_resource.cluster_id}"
 }
 
 output "resource_id" {

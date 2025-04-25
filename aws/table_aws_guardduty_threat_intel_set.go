@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
-
-	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -47,7 +46,7 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "guardduty", "action": "GetThreatIntelSet"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_GUARDDUTY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -142,7 +141,7 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			input.MaxResults = limit
+			input.MaxResults = aws.Int32(limit)
 		}
 	}
 

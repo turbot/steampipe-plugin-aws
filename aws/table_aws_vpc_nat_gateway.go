@@ -217,7 +217,7 @@ func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		return nil, err
 	}
 
-	if op.NatGateways != nil && len(op.NatGateways) > 0 {
+	if op != nil && len(op.NatGateways) > 0 {
 		return op.NatGateways[0], nil
 	}
 	return nil, nil

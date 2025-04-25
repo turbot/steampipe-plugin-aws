@@ -2,14 +2,13 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/docdb/types"
 
 	docdbv1 "github.com/aws/aws-sdk-go/service/docdb"
-
-	"github.com/turbot/go-kit/helpers"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -146,6 +145,11 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "percent_progress",
 				Description: "Specifies the progress of the operation as a percentage.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "storage_type",
+				Description: "Storage type associated with your cluster Storage type associated with the cluster.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -287,7 +291,7 @@ func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 		for _, cluster := range output.DBClusters {
 			// The DescribeDBClusters API returns non-DocDB clusters as well, but we only want DocDB clusters here.
-			if helpers.StringSliceContains([]string{"docdb"}, *cluster.Engine) {
+			if slices.Contains([]string{"docdb"}, *cluster.Engine) {
 				d.StreamListItem(ctx, cluster)
 			}
 
@@ -327,7 +331,7 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	if op.DBClusters != nil && len(op.DBClusters) > 0 {
+	if len(op.DBClusters) > 0 {
 		cluster := op.DBClusters[0]
 		if *cluster.Engine == "docdb" {
 			return cluster, nil

@@ -3,7 +3,7 @@ organization: Turbot
 category: ["public cloud"]
 icon_url: "/images/plugins/turbot/aws.svg"
 brand_color: "#FF9900"
-display_name: "Amazon Web Services"
+display_name: "AWS"
 short_name: "aws"
 description: "Steampipe plugin for querying instances, buckets, databases and more from AWS."
 og_description: "Query AWS with SQL! Open source CLI. No DB required."

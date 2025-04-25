@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_hub - Query AWS Security Hub using SQL"
 description: "Allows users to query Security Hub to retrieve information about the Hub resources."
+folder: "Security Hub"
 ---
 
 # Table: aws_securityhub_hub - Query AWS Security Hub using SQL

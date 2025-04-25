@@ -154,7 +154,7 @@ func getElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
-	if op.CacheParameterGroups != nil && len(op.CacheParameterGroups) > 0 {
+	if op != nil && len(op.CacheParameterGroups) > 0 {
 		return op.CacheParameterGroups[0], nil
 	}
 	return nil, nil

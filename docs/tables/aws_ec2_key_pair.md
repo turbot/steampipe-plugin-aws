@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_key_pair - Query AWS EC2 Key Pairs using SQL"
 description: "Allows users to query AWS EC2 Key Pairs, providing information about key pairs which are used to securely log into EC2 instances."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_key_pair - Query AWS EC2 Key Pairs using SQL

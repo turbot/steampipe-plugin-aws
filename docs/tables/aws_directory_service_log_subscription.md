@@ -1,15 +1,16 @@
 ---
-title: "Steampipe Table: aws_directory_servicelog_subscription - Query AWS Directory Service Log Subscription using SQL"
+title: "Steampipe Table: aws_directory_service_log_subscription - Query AWS Directory Service Log Subscription using SQL"
 description: "Allows users to query AWS Directory Service Log Subscription to obtain detailed information about each log subscription associated with the AWS Directory Service."
+folder: "Directory Service"
 ---
 
-# Table: aws_directory_servicelog_subscription - Query AWS Directory Service Log Subscription using SQL
+# Table: aws_directory_service_log_subscription - Query AWS Directory Service Log Subscription using SQL
 
 The AWS Directory Service Log Subscription is a feature of AWS Directory Service that allows you to monitor directory-related events. It enables you to subscribe to and receive logs of activities such as directory creation, deletion, and modification. This service aids in tracking and responding to security or operational issues related to your AWS Directory Service.
 
 ## Table Usage Guide
 
-The `aws_directory_servicelog_subscription` table in Steampipe provides you with information about each log subscription associated with the AWS Directory Service. This table allows you, as a DevOps engineer, to query log subscription-specific details, including the directory ID, log group name, and subscription status. You can utilize this table to gather insights on log subscriptions, such as subscription status, associated log groups, and more. The schema outlines for you the various attributes of the log subscription, including the directory ID, log group name, and subscription status.
+The `aws_directory_service_log_subscription` table in Steampipe provides you with information about each log subscription associated with the AWS Directory Service. This table allows you, as a DevOps engineer, to query log subscription-specific details, including the directory ID, log group name, and subscription status. You can utilize this table to gather insights on log subscriptions, such as subscription status, associated log groups, and more. The schema outlines for you the various attributes of the log subscription, including the directory ID, log group name, and subscription status.
 
 ## Examples
 

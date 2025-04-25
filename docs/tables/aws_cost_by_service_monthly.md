@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_service_monthly - Query AWS Cost Explorer Service using SQL"
 description: "Allows users to query AWS Cost Explorer Service for monthly cost breakdown by service. This table provides details such as the service name, the cost associated with it, and the currency code."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_service_monthly - Query AWS Cost Explorer Service using SQL
@@ -180,7 +181,7 @@ with cost_data as (
     service,
     period_start,
     unblended_cost_amount as this_month,
-    lag(unblended_cost_amount,1) over(partition by service order by period_start desc) as previous_month
+    lag(unblended_cost_amount,-1) over(partition by service order by period_start desc) as previous_month
   from 
     aws_cost_by_service_monthly
 )
@@ -207,7 +208,7 @@ with cost_data as (
     service,
     period_start,
     unblended_cost_amount as this_month,
-    lag(unblended_cost_amount,1) over(partition by service order by period_start desc) as previous_month
+    lag(unblended_cost_amount,-1) over(partition by service order by period_start desc) as previous_month
   from 
     aws_cost_by_service_monthly
 )

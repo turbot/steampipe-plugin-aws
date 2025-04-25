@@ -202,7 +202,7 @@ func getSecurityLakeSubscriber(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	// Build the params
 	params := &securitylake.GetSubscriberInput{
-		Id: aws.String(id),
+		SubscriberId: aws.String(id),
 	}
 
 	// Get call

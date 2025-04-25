@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_capacity_reservation - Query AWS EC2 Capacity Reservations using SQL"
 description: "Allows users to query AWS EC2 Capacity Reservations to provide information about the reservations within AWS Elastic Compute Cloud (EC2)."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_capacity_reservation - Query AWS EC2 Capacity Reservations using SQL

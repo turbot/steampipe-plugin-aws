@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_network_load_balancer_metric_net_flow_count - Query AWS EC2 Network Load Balancer Metrics using SQL"
 description: "Allows users to query AWS EC2 Network Load Balancer Metrics for net flow count data. This includes information such as the number of new or terminated flows per minute from a network load balancer."
+folder: "ELB"
 ---
 
 # Table: aws_ec2_network_load_balancer_metric_net_flow_count - Query AWS EC2 Network Load Balancer Metrics using SQL

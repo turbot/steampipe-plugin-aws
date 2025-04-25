@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_regional_settings - Query AWS EC2 Regional Settings using SQL"
 description: "Allows users to query AWS EC2 regional settings, including default EBS encryption and default EBS encryption KMS key."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_regional_settings - Query AWS EC2 Regional Settings using SQL

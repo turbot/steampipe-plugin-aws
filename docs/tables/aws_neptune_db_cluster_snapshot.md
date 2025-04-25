@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_neptune_db_cluster_snapshot - Query AWS Neptune DB Cluster Snapshots using SQL"
 description: "Allows users to query AWS Neptune DB Cluster Snapshots for comprehensive details about their configurations, status, and associated metadata."
+folder: "Neptune"
 ---
 
 # Table: aws_neptune_db_cluster_snapshot - Query AWS Neptune DB Cluster Snapshots using SQL

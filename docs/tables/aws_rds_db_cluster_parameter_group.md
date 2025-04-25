@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_cluster_parameter_group - Query AWS RDS DB Cluster Parameter Groups using SQL"
 description: "Allows users to query AWS RDS DB Cluster Parameter Groups, providing detailed information about each parameter group's configuration, including its name, family, description, and ARN. This table can be used to identify unused or misconfigured parameter groups and to ensure they comply with security and operational best practices."
+folder: "Resource Access Manager"
 ---
 
 # Table: aws_rds_db_cluster_parameter_group - Query AWS RDS DB Cluster Parameter Groups using SQL

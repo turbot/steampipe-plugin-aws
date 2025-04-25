@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/macie2/types"
 
@@ -73,6 +74,24 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "description",
+				Description: "The custom description of the job.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getMacie2ClassificationJob,
+			},
+			{
+				Name:        "managed_data_identifier_selector",
+				Description: "The selection type that determines which managed data identifiers the job uses when it analyzes data.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getMacie2ClassificationJob,
+			},
+			{
+				Name:        "initial_run",
+				Description: "For a recurring job, specifies whether you configured the job to analyze all existing, eligible objects immediately after the job was created (true). ",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getMacie2ClassificationJob,
+			},
+			{
 				Name:        "client_token",
 				Description: "The token that was provided to ensure the idempotency of the request to create the job.",
 				Type:        proto.ColumnType_STRING,
@@ -114,6 +133,18 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 			{
 				Name:        "s3_job_definition",
 				Description: "Specifies which S3 buckets contain the objects that a classification job analyzes, and the scope of that analysis.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getMacie2ClassificationJob,
+			},
+			{
+				Name:        "allow_list_ids",
+				Description: "An array of unique identifiers, one for each allow list that the job uses when it analyzes data.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getMacie2ClassificationJob,
+			},
+			{
+				Name:        "managed_data_identifier_ids",
+				Description: "An array of unique identifiers, one for each managed data identifier that the job is explicitly configured to include (use) or exclude (not use) when it analyzes data.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getMacie2ClassificationJob,
 			},
@@ -177,7 +208,7 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 
 	maxItems := int32(200)
 	input := &macie2.ListClassificationJobsInput{
-		MaxResults: maxItems,
+		MaxResults: aws.Int32(maxItems),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

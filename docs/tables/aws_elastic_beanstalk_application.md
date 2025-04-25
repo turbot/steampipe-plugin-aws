@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elastic_beanstalk_application - Query AWS Elastic Beanstalk Applications using SQL"
 description: "Allows users to query AWS Elastic Beanstalk Applications to obtain details about their configurations, versions, environment, and other metadata."
+folder: "Elastic Beanstalk"
 ---
 
 # Table: aws_elastic_beanstalk_application - Query AWS Elastic Beanstalk Applications using SQL

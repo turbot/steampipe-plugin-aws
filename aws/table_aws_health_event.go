@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/health"
 	"github.com/aws/aws-sdk-go-v2/service/health/types"
 
-	healthv1 "github.com/aws/aws-sdk-go/service/health"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -33,12 +31,24 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 				{Name: "status_code", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(healthv1.EndpointsID),
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the HealthEvent.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "event_region",
+				Description: "The Amazon Web Services Region name of the event.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Region"),
+			},
+			{
+				Name:        "description",
+				Description: "The description of the event.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getHealthEventDescription,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "availability_zone",
@@ -158,6 +168,29 @@ func listHealthEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	return nil, err
+}
+
+func getHealthEventDescription(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	event := h.Item.(types.Event)
+
+	// Create Session
+	svc, err := HealthClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_health_event.getHealthEventDescription", "client error", err)
+		return nil, err
+	}
+
+	eventDetails, err := svc.DescribeEventDetails(ctx, &health.DescribeEventDetailsInput{EventArns: []string{*event.Arn}})
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_health_event.getHealthEventDescription", "api error", err)
+		return nil, err
+	}
+
+	if len(eventDetails.SuccessfulSet) == 1 {
+		return eventDetails.SuccessfulSet[0].EventDescription.LatestDescription, nil
+	}
+
+	return nil, nil
 }
 
 // / UTILITY FUNCTION

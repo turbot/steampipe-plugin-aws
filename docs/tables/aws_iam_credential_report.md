@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_credential_report - Query AWS IAM Credential Reports using SQL"
 description: "Allows users to query AWS IAM Credential Reports, providing a comprehensive overview of the AWS Identity and Access Management (IAM) users, their status, and credential usage."
+folder: "IAM"
 ---
 
 # Table: aws_iam_credential_report - Query AWS IAM Credential Reports using SQL

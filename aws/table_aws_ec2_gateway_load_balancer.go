@@ -67,6 +67,11 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "enforce_security_group_inbound_rules_on_private_link_traffic",
+				Description: "Indicates whether to evaluate inbound security group rules for traffic sent to a Network Load Balancer through Amazon Web Services PrivateLink.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "state_code",
 				Description: "The state of the load balancer.",
 				Type:        proto.ColumnType_STRING,
@@ -246,7 +251,7 @@ func getEc2GatewayLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	if op.LoadBalancers != nil && len(op.LoadBalancers) > 0 && op.LoadBalancers[0].Type == types.LoadBalancerTypeEnumGateway {
+	if len(op.LoadBalancers) > 0 && op.LoadBalancers[0].Type == types.LoadBalancerTypeEnumGateway {
 		return op.LoadBalancers[0], nil
 	}
 	return nil, nil
@@ -273,7 +278,7 @@ func getAwsEc2GatewayLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
-	if loadBalancerData.TagDescriptions != nil && len(loadBalancerData.TagDescriptions) > 0 {
+	if len(loadBalancerData.TagDescriptions) > 0 {
 		return loadBalancerData.TagDescriptions[0].Tags, nil
 	}
 

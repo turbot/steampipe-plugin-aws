@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 
-	cloudtrailv1 "github.com/aws/aws-sdk-go/service/cloudtrail"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -35,7 +33,7 @@ func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudtrail", "action": "GetEventDataStore"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CLOUDTRAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -51,6 +49,30 @@ func tableAwsCloudtrailEventDataStore(_ context.Context) *plugin.Table {
 			{
 				Name:        "status",
 				Description: "The status of an event data store.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudTrailEventDataStore,
+			},
+			{
+				Name:        "billing_mode",
+				Description: "The billing mode for the event data store.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudTrailEventDataStore,
+			},
+			{
+				Name:        "federation_role_arn",
+				Description: "If Lake query federation is enabled, provides the ARN of the federation role used to access the resources for the federated event data store.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudTrailEventDataStore,
+			},
+			{
+				Name:        "federation_status",
+				Description: "Indicates the Lake query federation status.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudTrailEventDataStore,
+			},
+			{
+				Name:        "kms_key_id",
+				Description: "Specifies the KMS key ID that encrypts the events delivered by CloudTrail.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCloudTrailEventDataStore,
 			},

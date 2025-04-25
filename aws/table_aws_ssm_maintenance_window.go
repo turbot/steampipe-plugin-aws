@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -10,7 +11,6 @@ import (
 
 	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
 
-	"github.com/turbot/go-kit/helpers"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
@@ -440,7 +440,7 @@ func buildSSMMaintenanceWindowFilter(quals plugin.KeyColumnQualMap) []types.Main
 			filter := types.MaintenanceWindowFilter{
 				Key: aws.String(filterName),
 			}
-			if helpers.StringSliceContains(columnBool, columnName) {
+			if slices.Contains(columnBool, columnName) {
 				value := getQualsValueByColumn(quals, columnName, "boolean").(string)
 				filter.Values = []string{cases.Title(language.English, cases.NoLower).String(value)}
 			} else {

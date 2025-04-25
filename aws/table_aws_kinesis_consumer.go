@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis/types"
+	"github.com/aws/smithy-go"
 
 	kinesisv1 "github.com/aws/aws-sdk-go/service/kinesis"
 
@@ -141,6 +143,14 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// In the case of parent hydrate the ignore config seems to not work for the child table. So we need to handle it manually.
+			// Steampipe SDK issue ref: https://github.com/turbot/steampipe-plugin-sdk/issues/544
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "ResourceNotFoundException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
 			return nil, err
 		}

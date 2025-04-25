@@ -96,6 +96,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Description: "The URL to the CNAME for this environment.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getElasticBeanstalkEnvironment,
+				Transform:   transform.FromField("CNAME"),
 			},
 			{
 				Name:        "date_updated",
@@ -107,6 +108,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Description: "The URL to the LoadBalancer.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getElasticBeanstalkEnvironment,
+				Transform:   transform.FromField("EndpointURL"),
 			},
 			{
 				Name:        "health",

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_appautoscaling_policy - Query AWS Application Auto Scaling Policies using SQL"
 description: "Allows users to query AWS Application Auto Scaling Policies to obtain information about their configuration, attached resources, and other metadata."
+folder: "Application Auto Scaling"
 ---
 
 # Table: aws_appautoscaling_policy - Query AWS Application Auto Scaling Policies using SQL
@@ -10,6 +11,13 @@ The AWS Application Auto Scaling Policies allow you to manage the scaling of you
 ## Table Usage Guide
 
 The `aws_appautoscaling_policy` table in Steampipe provides you with information about Application Auto Scaling policies in AWS. This table allows you, as a DevOps engineer, system administrator, or other technical professional, to query policy-specific details, including the scaling target, scaling dimensions, and associated metadata. You can utilize this table to gather insights on policies, such as policy configurations, attached resources, scaling activities, and more. The schema outlines the various attributes of the Application Auto Scaling policy, including the policy ARN, policy type, creation time, and associated tags for you.
+
+**Important Notes**
+- You **_must_** specify `service_namespace` in a `where` clause in order to use this table.
+- For supported values of the service namespace, please refer [Service Namespace](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_ScalingPolicy.html#autoscaling-Type-ScalingPolicy-ServiceNamespace).
+- This table supports optional quals. Queries with optional quals are optimised to use additional filtering provided by the AWS API function. Optional quals are supported for the following columns:
+  - `policy_name`
+  - `resource_id`
 
 ## Examples
 

@@ -14,6 +14,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -33,28 +34,29 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				{Name: "first_observed_at", Operators: []string{"<=", ">="}, Require: plugin.Optional},
 				{Name: "fix_available", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "inspector_score", Operators: []string{"<=", ">="}, Require: plugin.Optional},
+				{Name: "epss_score", Operators: []string{"<=", ">="}, Require: plugin.Optional},
 				{Name: "last_observed_at", Operators: []string{"<=", ">="}, Require: plugin.Optional},
 				{Name: "severity", Operators: []string{"=", "<>"}, Require: plugin.Optional},
-				{Name: "component_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "component_type", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ec2_instance_image_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ec2_instance_subnet_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ec2_instance_vpc_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ecr_image_architecture", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ecr_image_hash", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ecr_image_pushed_at", Operators: []string{"<=", ">="}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "lambda_function_last_modified_at", Operators: []string{"<=", ">="}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ecr_image_registry", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ecr_image_repository_name", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "lambda_function_execution_role_arn", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "lambda_function_layers", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "lambda_function_name", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "lambda_function_runtime", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "network_protocol", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "related_vulnerabilitie", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "resource_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "resource_type", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "ecr_image_tags", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "component_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "component_type", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ec2_instance_image_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ec2_instance_subnet_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ec2_instance_vpc_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ecr_image_architecture", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ecr_image_hash", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ecr_image_pushed_at", Operators: []string{"<=", ">="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "lambda_function_last_modified_at", Operators: []string{"<=", ">="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ecr_image_registry", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ecr_image_repository_name", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "lambda_function_execution_role_arn", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "lambda_function_layers", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "lambda_function_name", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "lambda_function_runtime", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "network_protocol", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "related_vulnerabilitie", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "resource_id", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "resource_type", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "ecr_image_tags", Operators: []string{"=", "<>"}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "source", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "status", Operators: []string{"=", "<>"}, Require: plugin.Optional}, // findingStatus
 				{Name: "title", Operators: []string{"=", "<>"}, Require: plugin.Optional},
@@ -62,8 +64,8 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				{Name: "updated_at", Operators: []string{"<=", ">="}, Require: plugin.Optional},
 				{Name: "vendor_severity", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 				{Name: "vulnerability_id", Operators: []string{"=", "<>"}, Require: plugin.Optional},
-				{Name: "resource_tags", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: "exact"},
-				{Name: "vulnerable_package", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: "exact"},
+				{Name: "resource_tags", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "vulnerable_package", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(inspector2v1.EndpointsID),
@@ -101,7 +103,7 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "type",
-				Description: "The type of the finding. Valid values are: NETWORK_REACHABILITY | PACKAGE_VULNERABILITY.",
+				Description: "The type of the finding. Valid values are: NETWORK_REACHABILITY | PACKAGE_VULNERABILITY | CODE_VULNERABILITY.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -301,6 +303,12 @@ func tableAwsInspector2Finding(_ context.Context) *plugin.Table {
 				Description: "The ID given to this vulnerability.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("PackageVulnerabilityDetails.VulnerabilityId"),
+			},
+			{
+				Name:        "epss_score",
+				Description: "The finding's EPSS score.",
+				Type:        proto.ColumnType_DOUBLE,
+				Transform:   transform.FromField("Epss.Score"),
 			},
 			{
 				Name:        "exploitability_details",
@@ -664,6 +672,12 @@ var findingNumberFilters = []numberFilterField{
 			return &(f.InspectorScore)
 		},
 	},
+	{
+		columnName: "epss_score",
+		filterField: func(f *types.FilterCriteria) *[]types.NumberFilter {
+			return &(f.EpssScore)
+		},
+	},
 }
 
 var findingVulnerablePackageFilter = []vulnerablePackageFilter{
@@ -836,9 +850,9 @@ func buildNumberFilters(d *plugin.QueryData, filter *types.FilterCriteria) {
 				val := aws.Float64(q.Value.GetDoubleValue())
 				var f types.NumberFilter
 				switch q.Operator {
-				case "<=":
-					f = types.NumberFilter{LowerInclusive: val}
 				case ">=":
+					f = types.NumberFilter{LowerInclusive: val}
+				case "<=":
 					f = types.NumberFilter{UpperInclusive: val}
 				}
 				*field = append(*field, f)
@@ -855,9 +869,9 @@ func buildDateFilters(d *plugin.QueryData, filter *types.FilterCriteria) {
 				val := aws.Time(q.Value.GetTimestampValue().AsTime())
 				var f types.DateFilter
 				switch q.Operator {
-				case "<=":
-					f = types.DateFilter{StartInclusive: val}
 				case ">=":
+					f = types.DateFilter{StartInclusive: val}
+				case "<=":
 					f = types.DateFilter{EndInclusive: val}
 				}
 				*field = append(*field, f)

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_client_vpn_endpoint - Query AWS EC2 Client VPN Endpoints using SQL"
 description: "Allows users to query AWS EC2 Client VPN Endpoints to retrieve detailed information about the configuration, status, and associated network details of each endpoint."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_client_vpn_endpoint - Query AWS EC2 Client VPN Endpoints using SQL

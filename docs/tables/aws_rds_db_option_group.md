@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_option_group - Query AWS RDS DB Option Groups using SQL"
 description: "Allows users to query AWS RDS DB Option Groups and provides information about the option groups within Amazon Relational Database Service (RDS)."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_option_group - Query AWS RDS DB Option Groups using SQL

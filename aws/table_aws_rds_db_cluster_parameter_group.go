@@ -185,7 +185,7 @@ func getRDSDBClusterParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 		return nil, err
 	}
 
-	if op.DBClusterParameterGroups != nil && len(op.DBClusterParameterGroups) > 0 {
+	if op != nil && len(op.DBClusterParameterGroups) > 0 {
 		return op.DBClusterParameterGroups[0], nil
 	}
 	return nil, nil

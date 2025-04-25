@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_tag - Query AWS Cost Explorer using SQL"
 description: "Allows users to query AWS Cost Explorer to obtain cost allocation tags and associated costs."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_tag - Query AWS Cost Explorer using SQL

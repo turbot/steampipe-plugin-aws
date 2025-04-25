@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_cluster - Query AWS RDS DB Clusters using SQL"
 description: "Allows users to query AWS RDS DB Clusters and retrieve valuable information about the status, configuration, and security settings of each DB cluster."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_cluster - Query AWS RDS DB Clusters using SQL
@@ -108,32 +109,32 @@ from
 ```
 
 ### List DB cluster pending maintenance actions
-Discover the segments that require pending maintenance actions in your database clusters. This is useful in planning and prioritizing maintenance schedules, by understanding which actions are due and their respective timelines.
+List DB clusters pending maintenance actions to plan and prioritize maintenance schedules effectively.
 
 ```sql+postgres
 select
-  actions ->> 'ResourceIdentifier' as db_cluster_identifier,
-  details ->> 'Action' as action,
-  details ->> 'OptInStatus' as opt_in_status,
-  details ->> 'ForcedApplyDate' as forced_apply_date,
-  details ->> 'CurrentApplyDate' as current_apply_date,
-  details ->> 'AutoAppliedAfterDate' as auto_applied_after_date
-from
-  aws_rds_db_cluster,
-  jsonb_array_elements(pending_maintenance_actions) as actions,
-  jsonb_array_elements(actions -> 'PendingMaintenanceActionDetails') as details;
+  a.db_cluster_identifier,
+  b.action,
+  a.status,
+  b.opt_in_status,
+  b.forced_apply_date,
+  b.current_apply_date,
+  b.auto_applied_after_date
+from 
+  aws_rds_db_cluster as a
+  join aws_rds_pending_maintenance_action as b on b.resource_identifier = a.arn;
 ```
 
 ```sql+sqlite
 select
-  json_extract(actions.value, '$.ResourceIdentifier') as db_cluster_identifier,
-  json_extract(details.value, '$.Action') as action,
-  json_extract(details.value, '$.OptInStatus') as opt_in_status,
-  json_extract(details.value, '$.ForcedApplyDate') as forced_apply_date,
-  json_extract(details.value, '$.CurrentApplyDate') as current_apply_date,
-  json_extract(details.value, '$.AutoAppliedAfterDate') as auto_applied_after_date
-from
-  aws_rds_db_cluster,
-  json_each(pending_maintenance_actions) as actions,
-  json_each(json_extract(actions.value, '$.PendingMaintenanceActionDetails')) as details;
+  a.db_cluster_identifier,
+  b.action,
+  a.status,
+  b.opt_in_status,
+  b.forced_apply_date,
+  b.current_apply_date,
+  b.auto_applied_after_date
+from 
+  aws_rds_db_cluster as a
+  join aws_rds_pending_maintenance_action as b on b.resource_identifier = a.arn;
 ```

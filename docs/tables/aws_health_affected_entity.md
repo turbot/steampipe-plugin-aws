@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_health_affected_entity - Query AWS Health Affected Entities using SQL"
 description: "Allows users to query Affected Entities in AWS Health. The `aws_health_affected_entity` table provides comprehensive details about each entity affected by AWS Health events. It can be utilized to gain insights into the health status of AWS resources, allowing for proactive monitoring and maintenance."
+folder: "Health"
 ---
 
 # Table: aws_health_affected_entity - Query AWS Health Affected Entities using SQL
@@ -80,7 +81,7 @@ select
   e.entity_url,
   e.event_arn,
   v.event_type_category,
-  v.event_type_code
+  v.event_type_code,
   v.service
 from
   aws_health_affected_entity as e,

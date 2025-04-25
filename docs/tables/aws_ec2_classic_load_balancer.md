@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_classic_load_balancer - Query AWS EC2 Classic Load Balancer using SQL"
 description: "Allows users to query Classic Load Balancers within Amazon EC2."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_classic_load_balancer - Query AWS EC2 Classic Load Balancer using SQL

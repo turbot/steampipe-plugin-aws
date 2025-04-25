@@ -49,6 +49,11 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 				Description: "A list of protocols.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "supported_load_balancer_types",
+				Description: "The supported load balancers.",
+				Type:        proto.ColumnType_JSON,
+			},
 
 			// Steampipe standard columns
 			{
@@ -74,8 +79,8 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// Create Session
 	svc, err := ELBV2Client(ctx, d)
-	plugin.Logger(ctx).Error("aws_ec2_ssl_policy.listEc2SslPolicies", "connection_error", err)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_ssl_policy.listEc2SslPolicies", "connection_error", err)
 		return nil, err
 	}
 
@@ -160,7 +165,7 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			return nil, err
 		}
 
-		if op.SslPolicies != nil && len(op.SslPolicies) > 0 {
+		if len(op.SslPolicies) > 0 {
 			return op.SslPolicies[0], nil
 		}
 	}

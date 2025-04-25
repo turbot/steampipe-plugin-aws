@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_health_check - Query AWS Route 53 Health Check using SQL"
 description: "Allows users to query AWS Route 53 Health Check data, providing information about health checks within AWS Route 53. This includes details such as health check configuration, health check status, and associated metadata."
+folder: "Health"
 ---
 
 # Table: aws_route53_health_check - Query AWS Route 53 Health Check using SQL

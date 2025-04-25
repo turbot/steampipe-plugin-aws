@@ -3,9 +3,8 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/guardduty"
-
-	guarddutyv1 "github.com/aws/aws-sdk-go/service/guardduty"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -45,7 +44,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "guardduty", "action": "GetAdministratorAccount"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(guarddutyv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_GUARDDUTY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "detector_id",
@@ -147,14 +146,14 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	maxItems := int32(50)
 	params := &guardduty.ListDetectorsInput{
-		MaxResults: maxItems,
+		MaxResults: aws.Int32(maxItems),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			params.MaxResults = limit
+			params.MaxResults = aws.Int32(limit)
 		}
 	}
 

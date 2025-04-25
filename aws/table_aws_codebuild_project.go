@@ -82,6 +82,18 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "public_project_alias",
+				Description: "Contains the project identifier used with the public build APIs.",
+				Hydrate:     getCodeBuildProject,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "resource_access_role",
+				Description: "The ARN of the IAM role that enables CodeBuild to access the CloudWatch Logs and Amazon S3 artifacts for the project's builds.",
+				Hydrate:     getCodeBuildProject,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "queued_timeout_in_minutes",
 				Description: "The number of minutes a build is allowed to be queued before it times out.",
 				Hydrate:     getCodeBuildProject,
@@ -303,7 +315,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
-	if op.Projects != nil && len(op.Projects) > 0 {
+	if len(op.Projects) > 0 {
 		return op.Projects[0], nil
 	}
 	return nil, nil

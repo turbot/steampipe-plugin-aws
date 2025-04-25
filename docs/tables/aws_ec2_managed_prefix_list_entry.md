@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_managed_prefix_list_entry - Query AWS EC2 Managed Prefix List Entry using SQL"
 description: "Allows users to query AWS EC2 Managed Prefix List Entries, providing details such as the CIDR block, description, and the prefix list ID. This table is useful for understanding the IP address ranges included in a managed prefix list."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_managed_prefix_list_entry - Query AWS EC2 Managed Prefix List Entry using SQL

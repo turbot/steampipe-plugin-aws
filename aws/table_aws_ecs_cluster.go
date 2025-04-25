@@ -92,6 +92,13 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEcsCluster,
 			},
 			{
+				Name:        "service_connect_defaults_namespace",
+				Description: "The namespace name or full Amazon Resource Name (ARN) of the Cloud Map namespace. When you create a service and don't specify a Service Connect configuration, this namespace is used.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEcsCluster,
+				Transform:   transform.FromField("ServiceConnectDefaults.Namespace"),
+			},
+			{
 				Name:        "attachments",
 				Description: "The resources attached to a cluster. When using a capacity provider with a cluster, the Auto Scaling plan that is created will be returned as a cluster attachment.",
 				Type:        proto.ColumnType_JSON,
@@ -120,6 +127,13 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				Description: "Additional information about your clusters that are separated by launch type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
+			},
+			{
+				Name:        "execute_command_configuration",
+				Description: "The execute command configuration for the cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsCluster,
+				Transform:   transform.FromField("Configuration.ExecuteCommandConfiguration"),
 			},
 			{
 				Name:        "tags_src",
@@ -245,7 +259,7 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, err
 	}
 
-	if op.Clusters != nil && len(op.Clusters) > 0 {
+	if op != nil && len(op.Clusters) > 0 {
 		return op.Clusters[0], nil
 	}
 

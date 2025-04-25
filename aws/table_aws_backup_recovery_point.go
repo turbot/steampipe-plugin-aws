@@ -2,15 +2,12 @@ package aws
 
 import (
 	"context"
-	"errors"
-	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/aws/aws-sdk-go-v2/service/backup/types"
-	"github.com/aws/smithy-go"
 
 	backupv1 "github.com/aws/aws-sdk-go/service/backup"
 
@@ -57,12 +54,31 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 				Func: getAwsBackupRecoveryPoint,
 				Tags: map[string]string{"service": "backup", "action": "DescribeRecoveryPoint"},
 			},
+			{
+				Func: getAwsBackupRecoveryPointTags,
+				Tags: map[string]string{"service": "backup", "action": "ListTags"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "backup_vault_name",
 				Description: "The name of a logical container where backups are stored.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "composite_member_identifier",
+				Description: "This is the identifier of a resource within a composite group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "parent_recovery_point_arn",
+				Description: "This is the Amazon Resource Name (ARN) of the parent (composite) recovery point.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "resource_name",
+				Description: "This is the non-unique name of the resource that belongs to the specified backup.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -115,6 +131,11 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 				Description: "A Boolean value that is returned as TRUE if the specified recovery point is encrypted, or FALSE if the recovery point is not encrypted.",
 				Type:        proto.ColumnType_BOOL,
 				Default:     false,
+			},
+			{
+				Name:        "is_parent",
+				Description: "This is a boolean value indicating this is a parent (composite) recovery point.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "last_restore_time",
@@ -307,50 +328,7 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 func getAwsBackupRecoveryPointTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	arn := recoveryPointArn(h.Item)
 
-	// Define the regex pattern for the recovery point ARN
-	pattern := `arn:aws:backup:[a-z0-9\-]+:[0-9]{12}:recovery-point:.*`
-
-	// Create a regular expression object
-	re := regexp.MustCompile(pattern)
-
-	// Only return the tags associated with the resovery point
-	if !re.MatchString(arn) {
-		return nil, nil
-	}
-
-	// Create Session
-	svc, err := BackupClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_recovery_point.getAwsBackupRecoveryPointTags", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
-	params := &backup.ListTagsInput{
-		ResourceArn: aws.String(arn),
-	}
-
-	op, err := svc.ListTags(ctx, params)
-	if err != nil {
-
-		var ae smithy.APIError
-		if errors.As(err, &ae) {
-			if ae.ErrorCode() == "ResourceNotFoundException" {
-				return &backup.GetBackupVaultNotificationsOutput{}, nil
-			}
-		}
-		plugin.Logger(ctx).Error("aws_backup_recovery_point.getAwsBackupRecoveryPointTags", "api_error", err)
-		return nil, err
-	}
-
-	if op.Tags == nil {
-		return nil, nil
-	}
-
-	return op, nil
+	return getAwsBackupResourceTags(ctx, d, arn)
 }
 
 func recoveryPointArn(item interface{}) string {

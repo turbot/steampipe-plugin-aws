@@ -1,0 +1,166 @@
+name: Build and Deploy OCI Image - GHCR
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  ORG: turbot
+  CR: ghcr.io
+  CR_PREFIX: turbot/steampipe/plugins
+  CONFIG_SCHEMA_VERSION: '2020-11-18'
+  ORAS_VERSION: 1.1.0
+
+jobs:
+  build-deploy:
+    runs-on:
+      group: large-runners
+    permissions:
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Setup Env
+      - name: Set environment variables
+        run: |
+          plugin_name=$(echo $GITHUB_REPOSITORY | cut -d'-' -f 3)
+          echo $plugin_name
+          echo "PLUGIN_NAME=${plugin_name}" >> $GITHUB_ENV
+
+      # Exit early if we don't need to build
+      - name: Exit if goreleaser file is missing
+        run: |
+          test -f .goreleaser.yml
+
+      - name: Get latest version tag
+        run: |-
+          echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Get latest trimmed version tag
+        run: |-
+          echo $VERSION
+          trim=${VERSION#"v"}
+          echo $trim
+          echo "VERSION=${trim}" >> $GITHUB_ENV
+
+      - name: Validate Version String (only accept prod & rc)
+        run: |-
+          if [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "Version OK: $VERSION"
+          else
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+
+      - name: Ensure Version Does Not Exist
+        run: |-
+          URL=https://$CR/v2/$CR_PREFIX/$ORG/$PLUGIN_NAME/tags/list
+          IDX=$(curl -L -H "Authorization: Bearer $(base64 <<< $GITHUB_TOKEN)" $URL | jq ".tags | index(\"$VERSION\")")
+          if [ $IDX == "null" ]; then
+            echo "OK - Version does not exist: $VERSION"
+          else
+            echo "Version already exists: $VERSION"
+            exit 1
+          fi
+
+      # Setup go & build
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --clean --skip=publish --timeout=60m
+          
+      - name: List Build Artifacts
+        run: ls -laR ./dist
+
+      # Copy artifacts into working dir
+      - name: Copy artifacts to working dir
+        run: cp ./dist/*.gz .
+      
+      # Create files for registry
+      - name: Create config file
+        run: |-
+          JSON_STRING=$( jq -n \
+                    --arg name "$PLUGIN_NAME" \
+                    --arg organization "$ORG" \
+                    --arg version "$VERSION" \
+                    --arg schemaVersion "$CONFIG_SCHEMA_VERSION" \
+                    '{schemaVersion: $schemaVersion, plugin: { name: $name, organization: $organization, version: $version} }' )
+          echo $JSON_STRING > config.json
+
+      - name: Create annotations file
+        run: |-
+           JSON_STRING=$( jq -n \
+                    --arg title "$PLUGIN_NAME" \
+                    --arg desc "$ORG" \
+                    --arg version "$VERSION" \
+                    --arg timestamp "$(date +%FT%T%z | sed 's/\([0-9][0-9]\)\([0-9][0-9]\)$/\1:\2/')" \
+                    --arg repo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+                    --arg commit "$GITHUB_SHA" \
+                    --arg vendor "Turbot HQ, Inc." \
+                  '{
+                    "$manifest": {
+                        "org.opencontainers.image.title": $title,
+                        "org.opencontainers.image.description": $desc,
+                        "org.opencontainers.image.version": $version,
+                        "org.opencontainers.image.created": $timestamp,
+                        "org.opencontainers.image.source": $repo,
+                        "org.opencontainers.image.revision": $commit,
+                        "org.opencontainers.image.vendor":  $vendor
+                    }
+                  }' )
+            echo $JSON_STRING > annotations.json
+
+      - run: cat annotations.json
+      - run: cat README.md
+
+      # Setup ORAS
+      - name: Install specific version of ORAS
+        run: |
+          curl -LO https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz
+          sudo tar xzf oras_${ORAS_VERSION}_linux_amd64.tar.gz -C /usr/local/bin oras
+          oras version
+
+      # Login to GHCR
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.CR }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Publish to GHCR
+      - name: Push to the container registry
+        run: |-
+          REF="$CR/$CR_PREFIX/$ORG/$PLUGIN_NAME:$VERSION"
+          LATEST_REF="$CR/$CR_PREFIX/$ORG/$PLUGIN_NAME:latest"
+          oras push $REF \
+            --config config.json:application/vnd.turbot.steampipe.config.v1+json \
+            --annotation-file annotations.json \
+            steampipe-plugin-${PLUGIN_NAME}_darwin_amd64.gz:application/vnd.turbot.steampipe.plugin.darwin-amd64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_darwin_arm64.gz:application/vnd.turbot.steampipe.plugin.darwin-arm64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_linux_amd64.gz:application/vnd.turbot.steampipe.plugin.linux-amd64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_linux_arm64.gz:application/vnd.turbot.steampipe.plugin.linux-arm64.layer.v1+gzip \
+            docs:application/vnd.turbot.steampipe.plugin.docs.layer.v1+tar \
+            config:application/vnd.turbot.steampipe.plugin.spc.layer.v1+tar
+            
+          # tag the image with the GitHub Run ID for traceability
+          oras tag $REF $GITHUB_RUN_ID
+
+          # check if the version is NOT an rc version before tagging as latest
+          if [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tagging as latest: $LATEST_REF"
+            oras tag $REF $LATEST_REF
+          else
+            echo "Skipping latest tag for rc version: $VERSION"
+          fi
+      

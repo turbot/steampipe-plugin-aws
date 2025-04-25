@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_networkfirewall_firewall - Query AWS Network Firewall using SQL"
 description: "Allows users to query AWS Network Firewalls for detailed information about each firewall's properties and settings."
+folder: "Network Firewall"
 ---
 
 # Table: aws_networkfirewall_firewall - Query AWS Network Firewall using SQL
@@ -54,7 +55,7 @@ select
 from
   aws_networkfirewall_firewall
 where
-  encryption_configuration ->> 'Type' = `AWS_OWNED_KMS_KEY';
+  encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
 ```
 
 ```sql+sqlite
@@ -202,7 +203,7 @@ from
   aws_kms_key k
 where
   k.id = encryption_configuration ->> 'KeyId'
-  and not f.encryption_configuration ->> 'Type' = `AWS_OWNED_KMS_KEY';
+  and not f.encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
 ```
 
 ```sql+sqlite

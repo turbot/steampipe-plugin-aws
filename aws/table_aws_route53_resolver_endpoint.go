@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
@@ -10,7 +11,6 @@ import (
 
 	route53resolverv1 "github.com/aws/aws-sdk-go/service/route53resolver"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -80,6 +80,21 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "preferred_instance_type",
+				Description: "The Amazon EC2 instance type.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "resolver_endpoint_type",
+				Description: "The Resolver endpoint IP address type.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "outpost_arn",
+				Description: "The ARN (Amazon Resource Name) for the Outpost.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "direction",
 				Description: "Indicates whether the Resolver endpoint allows inbound or outbound DNS queries.",
 				Type:        proto.ColumnType_STRING,
@@ -119,6 +134,11 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 			{
 				Name:        "security_group_ids",
 				Description: "The ID of one or more security groups that control access to this VPC.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "protocols",
+				Description: "Protocols used for the endpoint.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -352,7 +372,7 @@ func buildRoute53ResolverEndpointFilter(quals plugin.KeyColumnQualMap) []types.F
 			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
-			if helpers.StringSliceContains(columnsInt, columnName) { //check Int columns
+			if slices.Contains(columnsInt, columnName) { //check Int columns
 				value := getQualsValueByColumn(quals, columnName, "int64")
 				val, ok := value.(int64)
 				if ok {

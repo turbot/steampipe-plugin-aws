@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_replication_group - Query AWS ElastiCache Replication Groups using SQL"
 description: "Allows users to query AWS ElastiCache Replication Groups to retrieve information related to their configuration, status, and associated resources."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_replication_group - Query AWS ElastiCache Replication Groups using SQL
@@ -40,7 +41,6 @@ from
   aws_elasticache_replication_group;
 ```
 
-
 ### List replication groups that are not encrypted at rest
 Identify instances where replication groups in AWS ElastiCache are not encrypted at rest. This is useful to ensure data security by pinpointing potential vulnerabilities.
 
@@ -66,7 +66,6 @@ where
   at_rest_encryption_enabled = 0;
 ```
 
-
 ### List replication groups with multi-AZ disabled
 Determine the areas in which replication groups have multi-AZ disabled to assess potential vulnerabilities in your AWS ElastiCache setup.
 
@@ -91,7 +90,6 @@ from
 where
   multi_az = 'disabled';
 ```
-
 
 ### List replication groups whose backup retention period is less than 30 days
 Determine the areas in which backup retention periods for replication groups fall short of a 30-day standard, allowing for timely adjustments to ensure data safety.
@@ -120,7 +118,6 @@ where
   snapshot_retention_limit < 30;
 ```
 
-
 ### List replication groups by node type
 Explore which node types are used in your replication groups and determine their frequency. This can help optimize resource allocation and improve system performance.
 
@@ -144,7 +141,6 @@ group by
   cache_node_type;
 ```
 
-
 ### List member clusters for each replication group
 Explore the relationships within your replication groups by identifying which member clusters belong to each group. This helps in understanding the distribution and organization of your data across different clusters.
 
@@ -163,4 +159,49 @@ select
 from
   aws_elasticache_replication_group,
   json_each(aws_elasticache_replication_group.member_clusters);
+```
+
+### Find all ElastiCache update actions for replication groups
+Retrieve a list of all service updates that are associated with ElastiCache replication groups.
+
+```sql+postgres
+select
+  c.replication_group_id,
+  c.engine,
+  c.engine_version,
+  c.cache_node_type,
+  a.service_update_name,
+  a.service_update_severity,
+  a.service_update_status,
+  a.service_update_type,
+  a.service_update_recommended_apply_by_date
+from
+  aws_elasticache_cluster as c
+  join aws_elasticache_update_action as a on c.replication_group_id = a.replication_group_id
+where
+  a.service_update_status = 'available'
+order by
+  a.service_update_severity,
+  a.service_update_recommended_apply_by_date;
+```
+
+```sql+sqlite
+select
+  c.replication_group_id,
+  c.engine,
+  c.engine_version,
+  c.cache_node_type,
+  a.service_update_name,
+  a.service_update_severity,
+  a.service_update_status,
+  a.service_update_type,
+  a.service_update_recommended_apply_by_date
+from
+  aws_elasticache_cluster as c
+  join aws_elasticache_update_action as a on c.replication_group_id = a.replication_group_id
+where
+  a.service_update_status = 'available'
+order by
+  a.service_update_severity,
+  a.service_update_recommended_apply_by_date;
 ```

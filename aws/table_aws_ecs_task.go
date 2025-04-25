@@ -13,6 +13,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsEcsTask(_ context.Context) *plugin.Table {
@@ -42,7 +43,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				{
 					Name:       "service_name",
 					Require:    plugin.Optional,
-					CacheMatch: "exact",
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 		},
@@ -201,6 +202,11 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 			{
 				Name:        "task_definition_arn",
 				Description: "The ARN of the task definition that creates the task.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "platform_family",
+				Description: "The operating system that your tasks are running on.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{

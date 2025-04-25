@@ -2,13 +2,13 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
@@ -19,14 +19,14 @@ func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 			Hydrate: listS3ObjectVersions,
 			Tags:    map[string]string{"service": "s3", "action": "ListObjectVersions"},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "bucket_name", Require: plugin.Required, CacheMatch: "exact"},
+				{Name: "bucket_name", Require: plugin.Required, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "key", Require: plugin.Optional},
 			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getBucketLocationForObjects,
-				Tags: map[string]string{"service": "s3", "action": "GetBucketLocation"},
+				Func: getBucketRegionForObjects,
+				Tags: map[string]string{"service": "s3", "action": "HTTPHeadBucket"},
 			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
@@ -101,7 +101,7 @@ func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 				Name:        "region",
 				Description: "The AWS Region in which the object is located.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBucketLocationForObjects,
+				Hydrate:     getBucketRegionForObjects,
 				Transform:   transform.FromValue(),
 			},
 		}),
@@ -109,22 +109,14 @@ func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 }
 
 func listS3ObjectVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Bucket location will be nil if getBucketLocationForObjects returned an error but
-	// was ignored through ignore_error_codes config arg
-	location, err := getBucketLocationForObjects(ctx, d, h)
-	if err != nil {
-		return nil, err
-	} else if location == "" {
-		return nil, nil
-	}
+	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	bucketRegion := h.HydrateResults["getBucketRegionForObjects"].(string)
 
-	svc, err := S3Client(ctx, d, fmt.Sprint(location))
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_object_version.listS3ObjectVersions", "get_client_error", err)
 		return nil, err
 	}
-
-	bucketName := d.EqualsQualString("bucket_name")
 
 	// default supported max value is 1000 by ListObjectVersions
 	maxItems := int32(1000)
@@ -140,7 +132,7 @@ func listS3ObjectVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	input := &s3.ListObjectVersionsInput{
 		Bucket:  aws.String(bucketName),
-		MaxKeys: maxItems,
+		MaxKeys: aws.Int32(maxItems),
 	}
 
 	if d.EqualsQualString("key") != "" {

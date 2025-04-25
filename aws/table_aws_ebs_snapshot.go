@@ -22,7 +22,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 			Hydrate: listAwsEBSSnapshots,
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeSnapshots"},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue", "InvalidUserID.Malformed"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidUserID.Malformed"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -112,8 +112,23 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "restore_expiry_time",
+				Description: "Only for archived snapshots that are temporarily restored. Indicates the date and time when a temporarily restored snapshot will be automatically re-archived.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
 				Name:        "description",
 				Description: "The description for the snapshot.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "outpost_arn",
+				Description: "The ARN of the Outpost on which the snapshot is stored.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "storage_tier",
+				Description: "The storage tier in which the snapshot is stored.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -214,7 +229,9 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// Build filter for ebs snapshot
 	filters := buildEbsSnapshotFilter(ctx, d, h, d.EqualsQuals, input)
-	input.Filters = filters
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
 
 	paginator := ec2.NewDescribeSnapshotsPaginator(svc, input, func(o *ec2.DescribeSnapshotsPaginatorOptions) {
 		if input.MaxResults != nil {

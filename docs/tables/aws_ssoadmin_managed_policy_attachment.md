@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssoadmin_managed_policy_attachment - Query AWS SSO Managed Policy Attachments using SQL"
 description: "Allows users to query AWS SSO Managed Policy Attachments, providing information about the managed policy attachments of AWS SSO permission sets."
+folder: "SSO"
 ---
 
 # Table: aws_ssoadmin_managed_policy_attachment - Query AWS SSO Managed Policy Attachments using SQL

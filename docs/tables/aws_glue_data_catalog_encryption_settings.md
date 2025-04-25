@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_glue_data_catalog_encryption_settings - Query AWS Glue Data Catalog using SQL"
 description: "Allows users to query AWS Glue Data Catalog Encryption Settings."
+folder: "Glue"
 ---
 
 # Table: aws_glue_data_catalog_encryption_settings - Query AWS Glue Data Catalog using SQL

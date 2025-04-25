@@ -281,7 +281,7 @@ func listMQBrokers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	input := mq.ListBrokersInput{
-		MaxResults: maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	paginator := mq.NewListBrokersPaginator(svc, &input, func(o *mq.ListBrokersPaginatorOptions) {

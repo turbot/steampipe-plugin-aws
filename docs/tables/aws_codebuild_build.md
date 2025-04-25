@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codebuild_build - Query AWS CodeBuild Build using SQL"
 description: "Allows users to query AWS CodeBuild Build to retrieve information about AWS CodeBuild projects' builds."
+folder: "CodeBuild"
 ---
 
 # Table: aws_codebuild_build - Query AWS CodeBuild Build using SQL
@@ -228,8 +229,8 @@ Explore the network configurations of your AWS CodeBuild projects. This allows y
 ```sql+postgres
 select
   id,
-  network_interfaces ->> 'NetworkInterfaceId' as network_interface_id,
-  network_interfaces ->> 'SubnetId' as subnet_id,
+  network_interface ->> 'NetworkInterfaceId' as network_interface_id,
+  network_interface ->> 'SubnetId' as subnet_id
 from
   aws_codebuild_build;
 ```
@@ -237,8 +238,8 @@ from
 ```sql+sqlite
 select
   id,
-  json_extract(network_interfaces, '$.NetworkInterfaceId') as network_interface_id,
-  json_extract(network_interfaces, '$.SubnetId') as subnet_id
+  json_extract(network_interface, '$.NetworkInterfaceId') as network_interface_id,
+  json_extract(network_interface, '$.SubnetId') as subnet_id
 from
   aws_codebuild_build;
 ```

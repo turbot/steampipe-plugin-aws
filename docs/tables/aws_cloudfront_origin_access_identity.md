@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudfront_origin_access_identity - Query AWS CloudFront Origin Access Identity using SQL"
 description: "Allows users to query AWS CloudFront Origin Access Identity to fetch detailed information about each identity, including its ID, S3 canonical user ID, caller reference, and associated comment."
+folder: "CloudFront"
 ---
 
 # Table: aws_cloudfront_origin_access_identity - Query AWS CloudFront Origin Access Identity using SQL

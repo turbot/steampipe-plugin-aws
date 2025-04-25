@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_cluster_snapshot - Query AWS RDS DB Cluster Snapshots using SQL"
 description: "Allows users to query AWS RDS DB Cluster Snapshots for detailed information on each snapshot, such as the snapshot identifier, creation time, status, and more."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_cluster_snapshot - Query AWS RDS DB Cluster Snapshots using SQL

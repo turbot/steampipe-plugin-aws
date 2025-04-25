@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dax_parameter - Query AWS DAX Parameter Groups using SQL"
 description: "Allows users to query AWS DAX Parameter Groups to retrieve information about their configuration settings."
+folder: "DAX"
 ---
 
 # Table: aws_dax_parameter - Query AWS DAX Parameter Groups using SQL
@@ -112,7 +113,7 @@ from
   aws_dax_parameter
 where
   source <> 'user';
-  ```
+```
 
   ```sql+sqlite
 select
@@ -127,4 +128,4 @@ from
   aws_dax_parameter
 where
   source != 'user';
-  ```
+```

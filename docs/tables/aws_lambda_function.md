@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lambda_function - Query AWS Lambda Function using SQL"
 description: "Allows users to query AWS Lambda Functions, providing information about each function's configuration, including runtime, code size, timeout, and associated tags."
+folder: "Lambda"
 ---
 
 # Table: aws_lambda_function - Query AWS Lambda Function using SQL

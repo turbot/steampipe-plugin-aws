@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_redis_metric_list_based_cmds_hourly - Query AWS ElastiCache Redis Metrics using SQL"
 description: "Allows users to query ElastiCache Redis Metrics on an hourly basis, providing data on list-based commands executed in the ElastiCache Redis environment."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_redis_metric_list_based_cmds_hourly - Query AWS ElastiCache Redis Metrics using SQL

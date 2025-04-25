@@ -7,8 +7,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 
-	healthv1 "github.com/aws/aws-sdk-go/service/health"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/health"
 	"github.com/aws/aws-sdk-go-v2/service/health/types"
@@ -22,9 +20,6 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 			ParentHydrate: listHealthEvents,
 			Hydrate:       listHealthAffectedEntities,
 			Tags:          map[string]string{"service": "health", "action": "DescribeAffectedEntities"},
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionRequiredException"}),
-			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "arn", Require: plugin.Optional},
 				{Name: "event_arn", Require: plugin.Optional},
@@ -33,7 +28,6 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 				{Name: "last_updated_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<=", "="}},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(healthv1.EndpointsID),
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -77,7 +71,7 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("EntityArn").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("EntityArn").Transform(transform.NullIfZeroValue).Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -150,7 +144,7 @@ func listHealthAffectedEntities(ctx context.Context, d *plugin.QueryData, h *plu
 	return nil, err
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build health affected entity list call input filter
 func buildHealthAffectedEntityFilter(d *plugin.QueryData) *types.EntityFilter {
 	filter := &types.EntityFilter{}

@@ -74,6 +74,11 @@ func tableAwsDRSJob(_ context.Context) *plugin.Table {
 				Description: "A list of servers that the Job is acting upon.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "participating_resources",
+				Description: "A list of resources that the Job is acting upon.",
+				Type:        proto.ColumnType_JSON,
+			},
 			// Steampipe standard columns
 			{
 				Name:        "title",
@@ -128,7 +133,7 @@ func listAwsDRSJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		}
 	}
 
-	input.MaxResults = int32(maxItems)
+	input.MaxResults = aws.Int32(maxItems)
 
 	filter := &types.DescribeJobsRequestFilters{}
 

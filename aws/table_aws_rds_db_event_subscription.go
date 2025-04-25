@@ -183,7 +183,7 @@ func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	if op.EventSubscriptionsList != nil && len(op.EventSubscriptionsList) > 0 {
+	if op != nil && len(op.EventSubscriptionsList) > 0 {
 		return op.EventSubscriptionsList[0], nil
 	}
 	return nil, nil

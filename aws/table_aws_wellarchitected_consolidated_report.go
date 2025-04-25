@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -24,8 +26,9 @@ func tableAwsWellArchitectedConsolidatedReport(_ context.Context) *plugin.Table 
 			Tags:    map[string]string{"service": "wellarchitected", "action": "GetConsolidatedReport"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
-					Name:    "include_shared_resources",
-					Require: plugin.Optional,
+					Name:       "include_shared_resources",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
 				},
 			},
 		},
@@ -120,12 +123,12 @@ func listWellArchitectedConsolidatedReports(ctx context.Context, d *plugin.Query
 
 	input := &wellarchitected.GetConsolidatedReportInput{
 		Format:     types.ReportFormatJson,
-		MaxResults: maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	// The default value for IncludeSharedResources in input param is false.
 	if d.EqualsQuals["include_shared_resources"] != nil {
-		input.IncludeSharedResources = d.EqualsQuals["include_shared_resources"].GetBoolValue()
+		input.IncludeSharedResources = aws.Bool(d.EqualsQuals["include_shared_resources"].GetBoolValue())
 	}
 
 	paginator := wellarchitected.NewGetConsolidatedReportPaginator(svc, input, func(o *wellarchitected.GetConsolidatedReportPaginatorOptions) {
@@ -171,12 +174,12 @@ func listWellArchitectedConsolidatedReportBase64(ctx context.Context, d *plugin.
 
 	input := &wellarchitected.GetConsolidatedReportInput{
 		Format:     types.ReportFormatPdf,
-		MaxResults: int32(15),
+		MaxResults: aws.Int32(15),
 	}
 
 	// The default value for IncludeSharedResources in input param is false.
 	if d.EqualsQuals["include_shared_resources"] != nil {
-		input.IncludeSharedResources = d.EqualsQuals["include_shared_resources"].GetBoolValue()
+		input.IncludeSharedResources = aws.Bool(d.EqualsQuals["include_shared_resources"].GetBoolValue())
 	}
 
 	paginator := wellarchitected.NewGetConsolidatedReportPaginator(svc, input, func(o *wellarchitected.GetConsolidatedReportPaginatorOptions) {

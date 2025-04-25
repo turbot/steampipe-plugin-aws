@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_efs_file_system - Query AWS Elastic File System using SQL"
 description: "Allows users to query AWS Elastic File System (EFS) file systems, providing detailed information about each file system such as its ID, ARN, creation token, performance mode, and lifecycle state."
+folder: "EFS"
 ---
 
 # Table: aws_efs_file_system - Query AWS Elastic File System using SQL

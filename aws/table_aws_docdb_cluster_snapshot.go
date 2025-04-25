@@ -2,11 +2,12 @@ package aws
 
 import (
 	"context"
+	"slices"
 
-	"github.com/turbot/go-kit/helpers"
 	go_kit "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 
 	docdbv1 "github.com/aws/aws-sdk-go/service/docdb"
 
@@ -35,8 +36,8 @@ func tableAwsDocDBClusterSnapshot(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "db_cluster_identifier", Require: plugin.Optional},
 				{Name: "snapshot_type", Require: plugin.Optional},
-				{Name: "include_public", Require: plugin.Optional},
-				{Name: "include_shared", Require: plugin.Optional},
+				{Name: "include_public", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "include_shared", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 			Tags: map[string]string{"service": "docdb-elastic", "action": "DescribeDBClusterSnapshots"},
 		},
@@ -230,10 +231,10 @@ func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		input.SnapshotType = aws.String(d.EqualsQualString("snapshot_type"))
 	}
 	if d.EqualsQuals["include_public"] != nil {
-		input.IncludePublic = d.EqualsQuals["include_public"].GetBoolValue()
+		input.IncludePublic = aws.Bool(d.EqualsQuals["include_public"].GetBoolValue())
 	}
 	if d.EqualsQuals["include_shared"] != nil {
-		input.IncludePublic = d.EqualsQuals["include_shared"].GetBoolValue()
+		input.IncludePublic = aws.Bool(d.EqualsQuals["include_shared"].GetBoolValue())
 	}
 
 	// List call
@@ -254,7 +255,7 @@ func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 
 		for _, cluster := range output.DBClusterSnapshots {
 			// The DescribeDBClusters API returns non-DocDB clusters as well, but we only want DocDB clusters here.
-			if helpers.StringSliceContains([]string{"docdb"}, *cluster.Engine) {
+			if slices.Contains([]string{"docdb"}, *cluster.Engine) {
 				d.StreamListItem(ctx, cluster)
 			}
 
@@ -289,7 +290,7 @@ func getDocDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	if op.DBClusterSnapshots != nil && len(op.DBClusterSnapshots) > 0 {
+	if len(op.DBClusterSnapshots) > 0 {
 		return op.DBClusterSnapshots[0], nil
 	}
 	return nil, nil

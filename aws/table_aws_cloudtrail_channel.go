@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 
-	cloudtrailv1 "github.com/aws/aws-sdk-go/service/cloudtrail"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -34,11 +32,11 @@ func tableAwsCloudtrailChannel(_ context.Context) *plugin.Table {
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getCloudSearchDomain,
+				Func: getCloudTrailChannel,
 				Tags: map[string]string{"service": "cloudtrail", "action": "GetChannel"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CLOUDTRAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -70,6 +68,12 @@ func tableAwsCloudtrailChannel(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudTrailChannel,
 				Transform:   transform.FromField("SourceConfig.AdvancedEventSelectors"),
+			},
+			{
+				Name:        "ingestion_status",
+				Description: "A table showing information about the most recent successful and failed attempts to ingest events.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudTrailChannel,
 			},
 			{
 				Name:        "destinations",

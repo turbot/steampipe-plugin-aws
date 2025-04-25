@@ -6,7 +6,7 @@
         "DeviceName":"/dev/sda1",
         "Ebs": {
           "DeleteOnTermination":true,
-          "Encrypted":false,
+          "Encrypted":true,
           "Iops":null,
           "KmsKeyId":null,
           "OutpostArn": null,

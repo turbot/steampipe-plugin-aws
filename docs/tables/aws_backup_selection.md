@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_backup_selection - Query AWS Backup Selections using SQL"
 description: "Allows users to query AWS Backup Selections to obtain detailed information about the backup selection resources within AWS Backup service."
+folder: "Backup"
 ---
 
 # Table: aws_backup_selection - Query AWS Backup Selections using SQL

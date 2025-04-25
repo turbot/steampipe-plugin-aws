@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
@@ -9,7 +10,6 @@ import (
 
 	gluev1 "github.com/aws/aws-sdk-go/service/glue"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -234,15 +234,15 @@ func buildGlueDataQualityRulesetFilter(quals plugin.KeyColumnQualMap) *types.Dat
 					value := q.Value.GetTimestampValue().AsTime()
 					switch columnName {
 					case "created_on":
-						if helpers.StringSliceContains([]string{"<=", "<"}, q.Operator) {
+						if slices.Contains([]string{"<=", "<"}, q.Operator) {
 							filter.CreatedBefore = &value
-						} else if helpers.StringSliceContains([]string{">=", ">"}, q.Operator) {
+						} else if slices.Contains([]string{">=", ">"}, q.Operator) {
 							filter.CreatedAfter = &value
 						}
 					case "last_modified_on":
-						if helpers.StringSliceContains([]string{"<=", "<"}, q.Operator) {
+						if slices.Contains([]string{"<=", "<"}, q.Operator) {
 							filter.LastModifiedBefore = &value
-						} else if helpers.StringSliceContains([]string{">=", ">"}, q.Operator) {
+						} else if slices.Contains([]string{">=", ">"}, q.Operator) {
 							filter.LastModifiedBefore = &value
 						}
 					}

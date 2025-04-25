@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_subnet - Query AWS VPC Subnets using SQL"
 description: "Allows users to query AWS VPC Subnets and obtain detailed information about each subnet, including its configuration, associated VPC, availability zone, and CIDR block."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_subnet - Query AWS VPC Subnets using SQL

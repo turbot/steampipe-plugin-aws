@@ -256,6 +256,12 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "logging_config",
+				Description: "The function's Amazon CloudWatch Logs configuration settings.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.LoggingConfig", "LoggingConfig"),
+			},
+			{
 				Name:        "vpc_security_group_ids",
 				Description: "A list of VPC security groups IDs attached to Lambda function.",
 				Type:        proto.ColumnType_JSON,

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -11,7 +12,6 @@ import (
 
 	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -202,7 +202,7 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	input := &wellarchitected.ListAnswersInput{
-		MaxResults: maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	// Create session
@@ -225,7 +225,7 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 			input.PillarId = aws.String(d.EqualsQualString("pillar_id"))
 		}
 		if d.EqualsQuals["milestone_number"] != nil {
-			input.MilestoneNumber = int32(d.EqualsQuals["milestone_number"].GetInt64Value())
+			input.MilestoneNumber = aws.Int32(int32(d.EqualsQuals["milestone_number"].GetInt64Value()))
 		}
 		input.LensAlias = aws.String(lensAlias)
 		input.WorkloadId = aws.String(*workload.WorkloadId)
@@ -244,7 +244,7 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 			if err != nil {
 				var ae smithy.APIError
 				if errors.As(err, &ae) {
-					if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+					if slices.Contains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
 						return nil, nil
 					}
 				}
@@ -265,7 +265,7 @@ func listWellArchitectedAnswers(ctx context.Context, d *plugin.QueryData, h *plu
 					Risk:          item.Risk,
 				}
 
-				d.StreamListItem(ctx, &AnswerInfo{answer, output.LensAlias, output.LensArn, &output.MilestoneNumber, output.WorkloadId})
+				d.StreamListItem(ctx, &AnswerInfo{answer, output.LensAlias, output.LensArn, output.MilestoneNumber, output.WorkloadId})
 
 				// Context can be cancelled due to manual cancellation or the limit has been hit
 				if d.RowsRemaining(ctx) == 0 {
@@ -309,7 +309,7 @@ func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugi
 		WorkloadId: aws.String(workloadId),
 	}
 	if milestoneNumber != 0 {
-		params.MilestoneNumber = milestoneNumber
+		*params.MilestoneNumber = milestoneNumber
 	}
 
 	// Create Session
@@ -330,5 +330,5 @@ func getWellArchitectedAnswer(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	return &AnswerInfo{*op.Answer, op.LensAlias, op.LensArn, &op.MilestoneNumber, op.WorkloadId}, nil
+	return &AnswerInfo{*op.Answer, op.LensAlias, op.LensArn, op.MilestoneNumber, op.WorkloadId}, nil
 }

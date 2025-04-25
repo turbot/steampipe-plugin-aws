@@ -56,11 +56,6 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
-				Name:        "allocated_capacity",
-				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use max_capacity instead. The number of Glue data processing units (DPUs) that can be allocated when this job runs.",
-				Type:        proto.ColumnType_DOUBLE,
-			},
-			{
 				Name:        "created_on",
 				Description: "The time and date that this job definition was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -106,6 +101,11 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "execution_class",
+				Description: "TIndicates whether the job is run with a standard or flexible execution class.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "security_configuration",
 				Description: "The name of the SecurityConfiguration structure to be used with this job.",
 				Type:        proto.ColumnType_STRING,
@@ -141,6 +141,16 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "code_gen_configuration_nodes",
+				Description: "The representation of a directed acyclic graph on which both the Glue Studio visual component and Glue Studio code generation is based.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "source_control_details",
+				Description: "The details for a source control configuration for a job, allowing synchronization of job artifacts to or from a remote repository.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "job_bookmark",
 				Description: "Defines a point that a job can resume processing.",
 				Hydrate:     getGlueJobBookmark,
@@ -164,6 +174,12 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTagsForGlueJob,
 			},
 			{
 				Name:        "akas",
@@ -297,6 +313,11 @@ func getGlueJobBookmark(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 	return data.JobBookmarkEntry, nil
+}
+
+func getTagsForGlueJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	arn, _ := getGlueJobArn(ctx, d, h)
+	return getTagsForGlueResource(ctx, d, arn.(string))
 }
 
 func getGlueJobArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

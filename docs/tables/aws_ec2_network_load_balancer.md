@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_network_load_balancer - Query AWS EC2 Network Load Balancer using SQL"
 description: "Allows users to query AWS EC2 Network Load Balancer data including configuration, status, and other related information."
+folder: "ELB"
 ---
 
 # Table: aws_ec2_network_load_balancer - Query AWS EC2 Network Load Balancer using SQL

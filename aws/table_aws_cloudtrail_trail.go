@@ -3,15 +3,13 @@ package aws
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 
-	cloudtrailv1 "github.com/aws/aws-sdk-go/service/cloudtrail"
-
 	"github.com/aws/smithy-go"
-	"github.com/turbot/go-kit/helpers"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -57,7 +55,7 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cloudtrail", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudtrailv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CLOUDTRAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -319,7 +317,7 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	if item.TrailList != nil && len(item.TrailList) > 0 {
+	if len(item.TrailList) > 0 {
 		return item.TrailList[0], nil
 	}
 
@@ -357,7 +355,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}
@@ -400,7 +398,7 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}
@@ -442,7 +440,7 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"InsightNotEnabledException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"InsightNotEnabledException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}
@@ -485,7 +483,7 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}
@@ -493,7 +491,7 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
-	if resp.ResourceTagList != nil && len(resp.ResourceTagList) > 0 {
+	if len(resp.ResourceTagList) > 0 {
 		return resp.ResourceTagList[0].TagsList, nil
 	}
 

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_document - Query AWS SSM Documents using SQL"
 description: "Allows users to query AWS SSM Documents and retrieve detailed information about each document, including its name, version, owner, status, and permissions, among others."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_document - Query AWS SSM Documents using SQL
@@ -110,27 +111,55 @@ where
 Discover the segments that consist of documents which are shared publicly. This query is handy in identifying potential security risks by pinpointing documents that are open to all, thus allowing for appropriate action to be taken.
 
 ```sql+postgres
+with ssm_documents as (
+  select
+    name,
+    owner,
+    region,
+    account_id
+  from
+    aws_ssm_document
+  where
+    owner_type = 'Self'
+  order by
+    name
+)
 select
-  name,
-  owner,
-  account_ids
+  d.name,
+  d.owner,
+  p.account_ids
 from
-  aws_ssm_document
+  ssm_documents as d
+  left join aws_ssm_document_permission as p on p.document_name = d.name and p.region = d.region and p.account_id = d.account_id
 where
-  owner_type = 'Self'
-  and account_ids :: jsonb ? 'all';
+  p.account_ids :: jsonb ? 'all';
 ```
 
 ```sql+sqlite
+with ssm_documents as (
+  select
+    name,
+    owner,
+    region,
+    account_id
+  from
+    aws_ssm_document
+  where
+    owner_type = 'Self'
+  order by
+    name
+)
 select
-  name,
-  owner,
-  account_ids
+  d.name,
+  d.owner,
+  p.account_ids
 from
-  aws_ssm_document
+  ssm_documents as d
+  left join aws_ssm_document_permission as p on p.document_name = d.name 
+    and p.region = d.region 
+    and p.account_id = d.account_id
 where
-  owner_type = 'Self'
-  and json_extract(account_ids, '$.all') is not null;
+  json_extract(account_ids, '$.all') is not null;
 ```
 
 ### Get a specific document

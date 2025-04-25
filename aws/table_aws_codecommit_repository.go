@@ -57,6 +57,11 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("RepositoryDescription"),
 			},
 			{
+				Name:        "kms_key_id",
+				Description: "The ID of the Key Management Service encryption key used to encrypt and decrypt the repository.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "creation_date",
 				Description: "The date and time the repository was created.",
 				Type:        proto.ColumnType_TIMESTAMP,

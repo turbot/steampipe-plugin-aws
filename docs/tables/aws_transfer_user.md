@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_transfer_user - Query AWS Transfer for users in a server using SQL"
 description: "Allows users to query AWS Transfer for users in a server, equivalent to list/describe user functions."
+folder: "Transfer Family"
 ---
 
 # Table: aws_transfer_user - Query AWS Transfer Family users using SQL
@@ -22,9 +23,9 @@ select
   server_id,
   user_name
 from
-  aws_transfer_user;
+  aws_transfer_user
 where
-  server_id = "s-xxxxxxxxxxxxxxxxx";
+  server_id = 's-xxxxxxxxxxxxxxxxx';
 ```
 
 ```sql+sqlite
@@ -33,9 +34,9 @@ select
   server_id,
   user_name
 from
-  aws_transfer_user;
+  aws_transfer_user
 where
-  server_id = "s-xxxxxxxxxxxxxxxxx";
+  server_id = 's-xxxxxxxxxxxxxxxxx';
 ```
 
 ### Sort users descending by SSH public key count
@@ -47,9 +48,9 @@ select
   user_name,
   ssh_public_key_count
 from
-  aws_transfer_user;
+  aws_transfer_user
 where
-  server_id = "s-xxxxxxxxxxxxxxxxx"
+  server_id = 's-xxxxxxxxxxxxxxxxx'
 order by
   ssh_public_key_count desc;
 ```
@@ -61,9 +62,9 @@ select
   user_name,
   ssh_public_key_count
 from
-  aws_transfer_user;
+  aws_transfer_user
 where
-  server_id = "s-xxxxxxxxxxxxxxxxx"
+  server_id = 's-xxxxxxxxxxxxxxxxx'
 order by
   ssh_public_key_count desc;
 ```
