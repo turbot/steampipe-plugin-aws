@@ -2,9 +2,9 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -109,7 +109,7 @@ func getAWSRegionsInConfig(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// check if the region is set in the connection config
-	if helpers.StringSliceContains(configRegions, *region.RegionName) {
+	if slices.Contains(configRegions, *region.RegionName) {
 		regionsInConfig.SteampipeAvailable = true
 	}
 	return regionsInConfig, nil
