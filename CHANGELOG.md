@@ -1,3 +1,14 @@
+## v1.12.0 [2025-04-26]
+
+_Enhancements_
+
+- Added columns `steampipe_available` and `steampipe_default` to `aws_region` table. ([#2158](https://github.com/turbot/steampipe-plugin-aws/pull/2158))
+- Added column `description` to `aws_health_event` table. ([#2476](https://github.com/turbot/steampipe-plugin-aws/pull/2476)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the service endpoint of `aws_health_*` tables to use only `us-east-1`, `us-east-2` and `us-gov-west-1` regions. ([#2470](https://github.com/turbot/steampipe-plugin-aws/pull/2470)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
 ## v1.11.0 [2025-04-11]
 
 _What's new?_
