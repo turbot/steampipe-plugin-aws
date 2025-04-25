@@ -44,26 +44,26 @@ This can be useful to determine the effective permissions for a Trust Anchor's P
 
 ```sql+postgres
 select 
-    profile.arn as profile_arn, 
-    role.arn as role_arn,
-    role.attached_policy_arns as policy_arns,
-    role.inline_policies as inline_policies
+  profile.arn as profile_arn, 
+  role.arn as role_arn,
+  role.attached_policy_arns as policy_arns,
+  role.inline_policies as inline_policies
 from 
-    aws_rolesanywhere_profile as profile,
-    jsonb_array_elements_text(profile.role_arns) as role_arn 
-    join aws_iam_role as role on role_arn = role.arn
+  aws_rolesanywhere_profile as profile,
+  jsonb_array_elements_text(profile.role_arns) as role_arn 
+  join aws_iam_role as role on role_arn = role.arn
 ```
 
 ```sql+sqlite
 select 
-    profile.arn as profile_arn, 
-    role.arn as role_arn,
-    role.attached_policy_arns as policy_arns,
-    role.inline_policies as inline_policies
+  profile.arn as profile_arn, 
+  role.arn as role_arn,
+  role.attached_policy_arns as policy_arns,
+  role.inline_policies as inline_policies
 from 
-    aws_rolesanywhere_profile as profile,
-    jsonb_array_elements_text(profile.role_arns) as role_arn 
-    join aws_iam_role as role on role_arn = role.arn
+  aws_rolesanywhere_profile as profile,
+  json_each(profile.role_arns) as role_arn 
+  join aws_iam_role as role on role_arn = role.arn
 ```
 
 ### List Profiles that have a session policy.
