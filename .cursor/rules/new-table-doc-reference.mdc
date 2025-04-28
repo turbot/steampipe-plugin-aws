@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Here are the helpful docs for creating the new steampipe table:
+
+Writing Your First Table: @https://steampipe.io/docs/develop/writing-your-first-table
+Steampipe Table & Column Standards: @https://steampipe.io/docs/develop/standards
+Hydrate Functions: @https://steampipe.io/docs/develop/writing_plugins/hydrate-functions
+Transform Functions: @https://steampipe.io/docs/develop/writing_plugins/transform-functions
+Column data types: @https://steampipe.io/docs/develop/writing-plugins#column-data-types
+Table Documentation Standards: @https://steampipe.io/docs/develop/table-docs-standards
+Writing Example Queries: @https://steampipe.io/docs/develop/writing-example-queries

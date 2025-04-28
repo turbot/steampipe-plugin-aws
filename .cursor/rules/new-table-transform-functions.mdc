@@ -15,14 +15,6 @@ alwaysApply: false
 ### Field Mappings
 
 ```go
-// Direct field mapping
-{
-  Name:        "name",
-  Description: "The name of the resource",
-  Type:        proto.ColumnType_STRING,
-  Transform:   transform.FromField("Name"),
-}
-
 // Nested field mapping with dot notation
 {
   Name:        "limit_amount",
