@@ -3,11 +3,6 @@ description:
 globs: 
 alwaysApply: true
 ---
----
-description: Steampipe create table
-globe: 
-alwaysApply: true
----
 
 **File Structure**
    - Create a new file named `table_aws_<service>_<resource>.go` in the aws directory

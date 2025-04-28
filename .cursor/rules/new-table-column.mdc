@@ -3,11 +3,6 @@ description:
 globs: 
 alwaysApply: true
 ---
----
-description: Steampipe create table
-globe: 
-alwaysApply: true
----
 
 **Column Definitions**
   - Columns should be defined based on the fields returned by the **List** or **Get** API responses.

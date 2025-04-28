@@ -3,11 +3,7 @@ description:
 globs: 
 alwaysApply: false
 ---
----
-description: Steampipe create table
-globe: 
-alwaysApply: true
----
+
 **Performance Considerations**
     - Use parent/child hydration for related resources
     - Implement proper caching where applicable

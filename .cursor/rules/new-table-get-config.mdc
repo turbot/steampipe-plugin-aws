@@ -3,11 +3,6 @@ description:
 globs: 
 alwaysApply: false
 ---
----
-description: Steampipe create table hydrate config
-globe: 
-alwaysApply: true
----
 
 # Steampipe Table Get Configuration
 

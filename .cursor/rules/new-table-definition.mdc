@@ -3,11 +3,6 @@ description:
 globs: 
 alwaysApply: false
 ---
----
-description: Steampipe create table
-globe: 
-alwaysApply: true
----
 
 - `Name`: Table name in snake_case format (aws_<service>_<resource>)
 - `Description`: Brief description of the resource
@@ -15,7 +10,6 @@ alwaysApply: true
 - `Get`: Configuration for get a particular resource
 - `Columns`: Column definitions using awsRegionalColumns(regional resource) or awsAccountColumns(global resource)
 - `GetMatrixItemFunc`: For region-specific resources, use SupportedRegionMatrix. The service ID can be find under the endpoint_service_ids_gen.go
-- Update the 
 
 
 **Best Practices**

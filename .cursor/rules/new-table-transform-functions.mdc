@@ -3,11 +3,6 @@ description:
 globs: 
 alwaysApply: false
 ---
----
-description: Steampipe create table
-globe: 
-alwaysApply: true
----
 
 # Transform Functions in Steampipe Tables
 - **Do not** use an explicit `transform` function if the column name can be automatically converted from **snake_case** to match the API response field.

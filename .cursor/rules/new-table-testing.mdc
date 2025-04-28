@@ -3,11 +3,6 @@ description:
 globs: 
 alwaysApply: false
 ---
----
-description: Steampipe table testing guide
-globe: 
-alwaysApply: true
----
 
 # Testing Newly Added Steampipe Tables
 
