@@ -102,6 +102,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_appstream_fleet":                                          tableAwsAppStreamFleet(ctx),
 			"aws_appstream_image":                                          tableAwsAppStreamImage(ctx),
 			"aws_appsync_graphql_api":                                      tableAwsAppsyncGraphQLApi(ctx),
+			"aws_athena_database":                                          tableAwsAthenaDatabase(ctx),
+			"aws_athena_data_catalog":                                      tableAwsAthenaDataCatalog(ctx),
 			"aws_athena_query_execution":                                   tableAwsAthenaQueryExecution(ctx),
 			"aws_athena_workgroup":                                         tableAwsAthenaWorkGroup(ctx),
 			"aws_auditmanager_assessment":                                  tableAwsAuditManagerAssessment(ctx),
