@@ -1,0 +1,172 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Steampipe create table
+globe: 
+alwaysApply: true
+---
+**Performance Considerations**
+    - Use parent/child hydration for related resources
+    - Implement proper caching where applicable
+    - Consider query optimization with key columns
+    - Handle large result sets efficiently
+    
+**List Configuration**
+  1. **Qualifier Types**
+    ```go
+    KeyColumns: []*plugin.KeyColumn{
+      {Name: "field_name", Require: plugin.Required},    // Must be provided
+      {Name: "field_name", Require: plugin.Optional},    // Can be provided
+      {Name: "field_name", Require: plugin.AnyOf},       // One of the AnyOf fields must be provided
+      {Name: "field_name", Require: plugin.AllOf},       // All fields must be provided
+    }
+    ```
+
+  2. **Filter Implementation Patterns**
+
+    a. **Direct API Filters**
+    ```go
+    // When the AWS API supports filtering
+    input := &ec2.DescribeInstancesInput{
+      Filters: buildEc2InstanceFilter(d.EqualsQuals),
+    }
+    ```
+
+    b. **Client-Side Filtering**
+    ```go
+    // When API doesn't support filtering
+    if d.EqualsQuals["status"] != nil {
+      if item.Status != d.EqualsQuals["status"].GetStringValue() {
+        return nil
+      }
+    }
+    ```
+
+  3. **Filter Building Function Example**
+    ```go
+    func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []types.Filter {
+      var filters []types.Filter
+      
+      for columnName, quals := range equalQuals {
+        switch columnName {
+        case "instance_type":
+          filters = append(filters, types.Filter{
+            Name: aws.String("instance-type"),
+            Values: []string{quals.GetStringValue()},
+          })
+        case "vpc_id":
+          filters = append(filters, types.Filter{
+            Name: aws.String("vpc-id"),
+            Values: []string{quals.GetStringValue()},
+          })
+        }
+      }
+      return filters
+    }
+    ```
+
+  4. **Qualifier Usage Rules**
+
+    a. **Required Qualifiers**
+    - Must be provided in the WHERE clause
+    - Query will fail if not provided
+    - Use for essential filtering parameters
+    ```go
+    {Name: "repository_name", Require: plugin.Required}
+    ```
+
+    b. **Optional Qualifiers**
+    - Can be provided but not mandatory
+    - Used for additional filtering
+    - Improves query performance when provided
+    ```go
+    {Name: "instance_type", Require: plugin.Optional}
+    ```
+
+    c. **AnyOf Qualifiers**
+    - At least one of the specified fields must be provided
+    - Used when multiple identifiers are possible
+    ```go
+    KeyColumns: plugin.AnyColumn([]string{
+      "instance_id", 
+      "private_ip",
+    })
+    ```
+
+  5. **Filter Value Types**
+
+    a. **String Values**
+    ```go
+    if d.EqualsQuals["name"] != nil {
+      val := d.EqualsQuals["name"].GetStringValue()
+    }
+    ```
+
+    b. **List Values**
+    ```go
+    if d.EqualsQuals["tags"] != nil {
+      val := getListValues(d.EqualsQuals["tags"].GetListValue())
+    }
+    ```
+
+    c. **Boolean Values**
+    ```go
+    if d.EqualsQuals["enabled"] != nil {
+      val := d.EqualsQuals["enabled"].GetBoolValue()
+    }
+    ```
+
+  6. **Best Practices for Filters**
+
+    a. **API-Level Filtering**
+    ```go
+    // Prefer API-level filtering when available
+    input := &ec2.DescribeInstancesInput{
+      Filters: buildEc2InstanceFilter(d.EqualsQuals),
+    }
+    ```
+
+    b. **Pagination with Filters**
+    ```go
+    paginator := ec2.NewDescribeInstancesPaginator(svc, input)
+    for paginator.HasMorePages() {
+      output, err := paginator.NextPage(ctx)
+      // Process filtered results
+    }
+    ```
+
+    c. **Multiple Filter Conditions**
+    ```go
+    filters := []types.Filter{}
+    
+    if d.EqualsQuals["state"] != nil {
+      filters = append(filters, types.Filter{
+        Name: aws.String("instance-state-name"),
+        Values: []string{d.EqualsQuals["state"].GetStringValue()},
+      })
+    }
+    
+    if d.EqualsQuals["type"] != nil {
+      filters = append(filters, types.Filter{
+        Name: aws.String("instance-type"),
+        Values: []string{d.EqualsQuals["type"].GetStringValue()},
+      })
+    }
+    ```
+
+  7. **Documentation Requirements**
+    - Specify which qualifiers are required
+    - Provide examples of valid filter values
+    - Document any limitations or special cases
+
+   ```go
+   List: &plugin.ListConfig{
+     Hydrate: list<Service><Resource>,
+     Tags: map[string]string{"service": "<service>", "action": "<API_Action>"},
+     KeyColumns: []*plugin.KeyColumn{...},  // If filtering is supported
+     IgnoreConfig: &plugin.IgnoreConfig{...} // For handling specific errors
+   }
+   ```

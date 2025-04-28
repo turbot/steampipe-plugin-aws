@@ -1,0 +1,275 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Steampipe create table hydrate config
+globe: 
+alwaysApply: true
+---
+
+# Steampipe Hydration Configuration Patterns
+
+## Basic Hydration Configuration Structure
+
+```go
+HydrateConfig: []plugin.HydrateConfig{
+  {
+    Func: getResourceAttribute,
+    Tags: map[string]string{"service": "serviceIdentifier", "action": "APIActionName"},
+    Depends: []plugin.HydrateFunc{prerequisiteFunction},
+  },
+}
+```
+
+## Key Components of Hydration Config
+
+1. **Func**: The hydration function to execute
+   - Should be implemented as `func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error)`
+   - Name should clearly describe what it retrieves (e.g., `getBucketEncryption`)
+
+2. **Tags**: Service and action metadata
+   - Always include `service` tag with AWS service identifier (e.g., "s3", "ec2")
+   - Always include `action` tag with API action being called (e.g., "GetBucketEncryption")
+   - Used for logging, metrics, and permissions documentation
+
+3. **Depends**: List of prerequisite hydration functions
+   - Functions that must run before this one to provide required data
+   - Common pattern: Many resource attributes depend on region information
+
+## Dependency Chains
+
+Use dependencies when a hydration function needs data from another hydration function:
+
+```go
+// Base resource information
+{
+  Func: getResourceLocation,
+  Tags: map[string]string{"service": "service", "action": "GetLocation"},
+},
+// Resource attributes that need location information
+{
+  Func: getResourceDetails,
+  Depends: []plugin.HydrateFunc{getResourceLocation},
+  Tags: map[string]string{"service": "service", "action": "GetDetails"},
+},
+```
+
+## Accessing Hydration Results
+
+In hydration functions, access results from dependency functions via the `HydrateResults` map:
+
+```go
+func getResourceDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+  // Access the item being processed
+  resourceID := h.Item.(types.Resource).ID
+  
+  // Access results from another hydration function
+  location := h.HydrateResults["getResourceLocation"].(string)
+  
+  // Use both to make API calls
+  // ...
+}
+```
+
+## Error Handling Guidelines
+
+1. **Service-specific errors**: Use type assertions to handle expected API errors
+   ```go
+   var apiError smithy.APIError
+   if errors.As(err, &apiError) {
+     if apiError.ErrorCode() == "ResourceNotFoundError" {
+       // Return a default/empty value instead of error
+       return defaultValue, nil
+     }
+   }
+   ```
+
+2. **Logging**: Always include context in error logs
+   ```go
+   plugin.Logger(ctx).Error("aws_service_resource.getFunctionName", "api_error", err)
+   ```
+
+3. **Performance Note**: Handle errors manually instead of using `IgnoreConfig` for better performance
+   ```go
+   // Avoid this pattern for better performance
+   IgnoreConfig: &plugin.IgnoreConfig{
+     ShouldIgnoreErrorFunc: shouldIgnoreErrors,
+   }
+   
+   // Instead, handle errors directly in hydration functions
+   if err != nil {
+     // Check for specific error types and handle appropriately
+     if isNotFoundError(err) {
+       return nil, nil
+     }
+   }
+   ```
+
+## Return Values
+
+1. **Direct API Response**: Return the API response directly when possible
+   ```go
+   return apiResponse, nil
+   ```
+
+2. **Specific Field**: Return a specific field when only that data is needed
+   ```go
+   return apiResponse.Configuration, nil
+   ```
+
+3. **Empty Returns**: Return `nil, nil` when a resource doesn't have the requested attribute
+   ```go
+   // If the resource doesn't support the feature
+   if isFeatureNotSupported(err) {
+     return nil, nil
+   }
+   ```
+
+4. **Transformed Data**: Transform API responses when necessary before returning
+   ```go
+   // Creating a customized output structure
+   output := map[string]any{}
+   output["MainConfiguration"] = response.Configuration
+   output["SecondaryData"] = response.SecondaryData
+   return output, nil
+   ```
+
+## Column Definition with Hydration
+
+Link hydration functions to columns using the `Hydrate` field:
+
+```go
+{
+  Name:        "encryption_configuration",
+  Description: "The encryption configuration for the resource.",
+  Type:        proto.ColumnType_JSON,
+  Hydrate:     getResourceEncryption,
+  Transform:   transform.FromField("Configuration"),
+},
+```
+
+## Implementing Hydration Functions
+
+1. **Basic Pattern**:
+   ```go
+   func getResourceAttribute(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+     // Extract resource identifier from the item
+     resourceID := h.Item.(types.Resource).ID
+     
+     // Create service client
+     svc, err := ServiceClient(ctx, d)
+     if err != nil {
+       plugin.Logger(ctx).Error("aws_service_resource.getResourceAttribute", "client_error", err)
+       return nil, err
+     }
+     
+     // Build API request
+     params := &service.GetAttributeInput{
+       ResourceId: resourceID,
+     }
+     
+     // Call API
+     result, err := svc.GetAttribute(ctx, params)
+     if err != nil {
+       // Handle expected errors
+       var apiError smithy.APIError
+       if errors.As(err, &apiError) {
+         if apiError.ErrorCode() == "NotFound" {
+           return nil, nil
+         }
+       }
+       
+       // Log unexpected errors
+       plugin.Logger(ctx).Error("aws_service_resource.getResourceAttribute", "api_error", err)
+       return nil, err
+     }
+     
+     return result, nil
+   }
+   ```
+
+2. **With Dependency**:
+   ```go
+   func getResourceDetailedAttribute(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+     // Extract resource identifier
+     resourceID := h.Item.(types.Resource).ID
+     
+     // Get dependency data
+     region := h.HydrateResults["getResourceRegion"].(string)
+     
+     // Create region-specific client
+     svc, err := ServiceClient(ctx, d, region)
+     if err != nil {
+       plugin.Logger(ctx).Error("aws_service_resource.getResourceDetailedAttribute", "client_error", err)
+       return nil, err
+     }
+     
+     // Proceed with API call using both resource ID and region
+     // ...
+   }
+   ```
+
+## Best Practices
+
+1. **Function Organization**:
+   - Group related hydration functions together
+   - Primary/foundational functions (like region retrieval) should come first
+
+2. **Efficiency**:
+   - Cache common data like region information to avoid repeated API calls
+   - Use `HydrateResults` to access previously computed data
+
+3. **Error Resilience**:
+   - Handle common errors gracefully (e.g., resource not found, feature not enabled)
+   - Return sensible defaults when appropriate rather than errors
+
+4. **Naming Conventions**:
+   - Use consistent naming pattern: `get<Resource><Attribute>`
+   - Function names should clearly indicate what they retrieve
+
+5. **Documentation**:
+   - Include accurate tags to document API permissions required
+   - Comment any special error handling or dependencies
+
+6. **Testing**:
+   - Test hydration functions with various error scenarios
+   - Verify dependency chains work correctly
+
+## Common Hydration Patterns
+
+1. **Region Resolution**: For regional resources, first determine the resource's region
+   ```go
+   {
+     Func: getResourceRegion,
+     Tags: map[string]string{"service": "service", "action": "GetRegion"},
+   }
+   ```
+
+2. **Resource Properties**: Get specific properties after region is known
+   ```go
+   {
+     Func: getResourceConfiguration,
+     Depends: []plugin.HydrateFunc{getResourceRegion},
+     Tags: map[string]string{"service": "service", "action": "DescribeConfiguration"},
+   }
+   ```
+
+3. **Parent/Child Resources**: Fetch child resources after parent information is available
+   ```go
+   {
+     Func: getChildResources,
+     Depends: []plugin.HydrateFunc{getParentResource},
+     Tags: map[string]string{"service": "service", "action": "ListChildren"},
+   }
+   ```
+
+4. **Policy/Permission Data**: Retrieve IAM policies or permissions
+   ```go
+   {
+     Func: getResourcePolicy,
+     Depends: []plugin.HydrateFunc{getResourceRegion},
+     Tags: map[string]string{"service": "service", "action": "GetResourcePolicy"},
+   }
+   ```

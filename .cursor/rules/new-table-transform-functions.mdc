@@ -1,0 +1,284 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Steampipe create table
+globe: 
+alwaysApply: true
+---
+
+# Transform Functions in Steampipe Tables
+- **Do not** use an explicit `transform` function if the column name can be automatically converted from **snake_case** to match the API response field.
+- The **default transform function** automatically handles snake_case to UpperCamelCase conversion.
+- For fields where the API field name **deviates from standard casing** (e.g., `URL`, `ID`, `HTTPStatus`), explicitly specify the field using:
+  ```go
+  Transform: transform.FromField("<FieldName>")
+  ```
+
+### Field Mappings
+
+```go
+// Direct field mapping
+{
+  Name:        "name",
+  Description: "The name of the resource",
+  Type:        proto.ColumnType_STRING,
+  Transform:   transform.FromField("Name"),
+}
+
+// Nested field mapping with dot notation
+{
+  Name:        "limit_amount",
+  Description: "The budget limit amount",
+  Type:        proto.ColumnType_DOUBLE,
+  Transform:   transform.FromField("BudgetLimit.Amount"),
+}
+
+// Mapping with different field name (rename)
+{
+  Name:        "arn",
+  Description: "The ARN of the resource",
+  Type:        proto.ColumnType_STRING,
+  Transform:   transform.FromField("ResourceArn"),
+}
+```
+
+### Value Transformations
+
+```go
+// Return custom value from hydrate function
+{
+  Name:        "arn",
+  Description: "The ARN of the resource",
+  Type:        proto.ColumnType_STRING,
+  Hydrate:     getResourceARN,
+  Transform:   transform.FromValue(),
+}
+
+// Transform entire row via custom function
+{
+  Name:        "tags",
+  Description: "Resource tags",
+  Type:        proto.ColumnType_JSON,
+  Transform:   transform.From(getResourceTags),
+}
+```
+
+## Chained Transformations
+
+Chain multiple transform functions using the `Transform` method:
+
+```go
+// String conversion followed by type conversion
+{
+  Name:        "limit_amount",
+  Description: "The budget limit amount",
+  Type:        proto.ColumnType_DOUBLE,
+  Transform:   transform.FromField("BudgetLimit.Amount").Transform(transform.ToString).Transform(transform.ToDouble),
+}
+
+// Ensure consistent array format
+{
+  Name:        "akas",
+  Description: "Array of globally unique identifiers",
+  Type:        proto.ColumnType_JSON,
+  Hydrate:     getResourceARN,
+  Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
+}
+```
+
+## Data Type Conversions
+
+```go
+// Convert to appropriate data types
+transform.ToString        // Convert to string
+transform.ToInt           // Convert to integer
+transform.ToDouble        // Convert to double/float
+transform.ToBool          // Convert to boolean
+transform.ToJSON          // Convert to JSON
+transform.ToStringArray   // Convert to string array
+transform.EnsureStringArray // Ensure value is a string array
+```
+
+## Handling Special Cases
+
+### Timestamps and Dates
+
+```go
+// AWS SDK timestamps are automatically handled
+{
+  Name:        "created_time",
+  Description: "When the resource was created",
+  Type:        proto.ColumnType_TIMESTAMP,
+  Transform:   transform.FromField("CreationTime"),
+}
+
+// Custom date format conversion
+{
+  Name:        "expires_at",
+  Description: "Expiration date",
+  Type:        proto.ColumnType_TIMESTAMP,
+  Transform:   transform.FromField("ExpiresAt").Transform(customDateParser),
+}
+```
+
+### Handling Empty or Null Values
+
+```go
+// Provide default value when field is nil
+{
+  Name:        "enabled",
+  Description: "Whether the feature is enabled",
+  Type:        proto.ColumnType_BOOL,
+  Transform:   transform.FromField("Enabled").Transform(transform.NullIfZero),
+}
+```
+
+## Common Transform Patterns
+
+### ARN Formatting
+
+```go
+// Standard ARN formatting for a resource
+func getResourceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+  resource := h.Item.(types.Resource)
+  commonData, err := getCommonColumns(ctx, d, h)
+  if err != nil {
+    return nil, err
+  }
+  commonColumnData := commonData.(*awsCommonColumnData)
+  
+  // Format: arn:partition:service:region:account-id:resource-type/resource-id
+  arn := fmt.Sprintf("arn:%s:%s:%s:%s:%s/%s", 
+    commonColumnData.Partition, 
+    "service-name", 
+    commonColumnData.Region, 
+    commonColumnData.AccountId,
+    "resource-type",
+    *resource.ID)
+  
+  return arn, nil
+}
+```
+
+### Tag Extraction
+
+```go
+// Extract AWS tags into a standardized map
+func getResourceTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+  data := d.HydrateItem.(types.Resource)
+  
+  if data.Tags == nil {
+    return nil, nil
+  }
+  
+  tags := map[string]string{}
+  for _, tag := range data.Tags {
+    tags[*tag.Key] = *tag.Value
+  }
+  
+  return tags, nil
+}
+```
+
+### Data Structure Parsing
+
+```go
+// Parse nested JSON data
+{
+  Name:        "settings",
+  Description: "Resource settings",
+  Type:        proto.ColumnType_JSON,
+  Transform:   transform.FromField("Configuration").Transform(transform.UnmarshalYAML),
+}
+
+// Convert policy document to canonical form
+{
+  Name:        "policy_std",
+  Description: "Standardized policy document",
+  Type:        proto.ColumnType_JSON,
+  Transform:   transform.FromField("PolicyDocument").Transform(transform.UnmarshalYAML).Transform(policyToCanonical),
+}
+```
+
+## Best Practices
+
+1. **Field Naming Consistency**
+   - Use snake_case for column names
+   - Always rename "ARN" fields (e.g., TopicArn, RoleArn) to simply "arn"
+
+2. **Type Consistency**
+   - Use appropriate data types (STRING, INT, BOOL, TIMESTAMP, JSON)
+   - Explicitly convert numeric strings to proper numeric types
+
+3. **Null Handling**
+   - Use `transform.NullIfZero` for values that should be null when zero/empty
+   - Handle nil pointers in custom transform functions
+
+4. **Transform Chain Optimization**
+   - Keep transform chains as short as possible for better performance
+   - Put computationally expensive transformations at the end of chains
+
+5. **Error Handling**
+   - Always include proper error handling in custom transform functions
+   - Return nil, nil for optional values that couldn't be computed (not errors)
+
+6. **Documentation**
+   - Add clear descriptions for all columns
+   - Document any special transformation logic
+
+## Complex Transform Examples
+
+### Multi-stage Data Processing
+
+```go
+// Process complex nested data structure
+func processComplexData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+  resource := d.HydrateItem.(types.Resource)
+  
+  if resource.ComplexData == nil {
+    return nil, nil
+  }
+  
+  // Extract relevant data
+  result := map[string]interface{}{}
+  
+  // Process first level
+  for k, v := range resource.ComplexData {
+    // Further processing
+    result[k] = processValue(v)
+  }
+  
+  return result, nil
+}
+
+// Column using the complex transform
+{
+  Name:        "processed_data",
+  Description: "Processed complex data structure",
+  Type:        proto.ColumnType_JSON,
+  Transform:   transform.From(processComplexData),
+}
+```
+
+### Common Reusable Transforms
+
+```go
+// A reusable transform for ARN values
+{
+  Name:        "akas",
+  Description: resourceInterfaceDescription("akas"),
+  Type:        proto.ColumnType_JSON,
+  Transform:   transform.FromField("Arn").Transform(arnToAkas),
+}
+
+// A reusable transform for standard title value 
+{
+  Name:        "title",
+  Description: resourceInterfaceDescription("title"),
+  Type:        proto.ColumnType_STRING,
+  Transform:   transform.FromField("Name"),
+}
+``` 

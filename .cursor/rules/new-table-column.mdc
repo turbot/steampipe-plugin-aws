@@ -1,0 +1,33 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Steampipe create table
+globe: 
+alwaysApply: true
+---
+
+**Column Definitions**
+  - Columns should be defined based on the fields returned by the **List** or **Get** API responses.
+  - Only **top-level properties** from the API response should be mapped as table columns.
+  - If a property is **not available** in the **List** API response, use a **Hydrate function** to fetch it separately and that should be mapped using the `Hydrate` key.
+  - By default, the table uses a **transform function** that automatically converts column names from **snake_case** to **UpperCamelCase** to match the API response fields.  
+  - If the field name does not match this pattern, explicitly specify it using `transform.FromField("<FieldName>")` (e.g., `ID`, `HtmlURL`, `ARN`).
+  - We should not rename any columns except the ARN column.
+  - We will have tags_src/tags column if API supports or the response contains the tags information.
+  - Always rename the column to **`arn`** when representing a resource's ARN, even if the API uses a different property name (e.g., `TopicArn`, `CertificateArn`, `FindingArn`, etc.).
+  - The description should be copied from the API documentation response structure.
+
+   ```go
+   Columns: awsRegionalColumns([]*plugin.Column{
+     {
+       Name: "name",
+       Description: "Description of the column",
+       Type: proto.ColumnType_<TYPE>,
+       Transform: transform.FromField("<FieldName>"),
+     },
+     // Additional columns...
+   })
+   ```

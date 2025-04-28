@@ -1,0 +1,190 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Steampipe create table hydrate config
+globe: 
+alwaysApply: true
+---
+
+# Steampipe Table Get Configuration
+
+The `Get` configuration defines how to retrieve a single resource by its unique identifier.
+
+## Basic Get Config Structure
+
+```go
+Get: &plugin.GetConfig{
+  KeyColumns: plugin.SingleColumn("id"),
+  Hydrate:    getResource,
+  Tags:       map[string]string{"service": "serviceIdentifier", "action": "GetResource"},
+},
+```
+
+## Key Components
+
+1. **KeyColumns**: Specifies which column(s) can be used to uniquely identify and retrieve a resource
+2. **Hydrate**: The function that retrieves a single resource 
+3. **Tags**: Service and API action metadata for documentation and permissions
+4. **IgnoreConfig**: Optional error handling configuration
+
+## KeyColumns Configuration Patterns
+
+Steampipe supports several patterns for defining key columns in Get operations:
+
+### 1. Single Column Key
+
+When a resource can be uniquely identified by a single column:
+
+```go
+KeyColumns: plugin.SingleColumn("name"),
+```
+
+### 2. Multiple Required Keys (All Required)
+
+When multiple columns are required to uniquely identify a resource:
+
+```go
+KeyColumns: plugin.AllColumns([]string{"database_name", "schema_name", "table_name"}),
+```
+
+### 3. Alternative Keys (Any One Required)
+
+When a resource can be identified by any one of multiple possible keys:
+
+```go
+KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+```
+
+### 4. Composite Keys with Different Requirements
+
+For complex scenarios with a mix of required and optional keys:
+
+```go
+KeyColumns: []*plugin.KeyColumn{
+  {Name: "parent_id", Require: plugin.Required},
+  {Name: "region", Require: plugin.Optional},
+},
+```
+
+## Error Handling with IgnoreConfig
+
+Handle expected errors gracefully:
+
+```go
+IgnoreConfig: &plugin.IgnoreConfig{
+  ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "NoSuchEntity"}),
+},
+```
+
+This prevents expected errors (like resource not found) from being treated as actual errors.
+
+## Hydrate Function Implementation
+
+The hydrate function should retrieve the single resource and handle errors appropriately:
+
+```go
+func getResource(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+  // Get the resource ID from the quals
+  id := d.EqualsQualString("id")
+  
+  // Empty check
+  if id == "" {
+    return nil, nil
+  }
+  
+  // Create service client
+  svc, err := ServiceClient(ctx, d)
+  if err != nil {
+    plugin.Logger(ctx).Error("aws_service_resource.getResource", "connection_error", err)
+    return nil, err
+  }
+  
+  // Build the params
+  params := &service.GetResourceInput{
+    ResourceId: aws.String(id),
+  }
+  
+  // Get the resource
+  data, err := svc.GetResource(ctx, params)
+  if err != nil {
+    plugin.Logger(ctx).Error("aws_service_resource.getResource", "api_error", err)
+    return nil, err
+  }
+  
+  return data.Resource, nil
+}
+```
+
+## Best Practices
+
+1. **Key Selection**: Choose the most appropriate and efficient key(s) for your resource
+   - Use natural resource identifiers (name, id) when possible
+   - Include ARN as an alternative key for AWS resources when applicable
+   - Ensure keys are indexed/efficient for retrieval
+
+2. **Error Handling**: Always implement proper error handling
+   - Use `IgnoreConfig` for expected errors like "resource not found"
+   - Include detailed error logging with context
+
+3. **Tags**: Always include service and action tags
+   - Properly document the AWS service identifier and API action
+   - This helps generate accurate permissions documentation
+
+4. **Naming Conventions**:
+   - Use consistent naming pattern for hydrate functions: `get<Resource>`
+   - Function names should clearly indicate what they retrieve
+
+5. **Efficient Implementation**:
+   - Validate key values before making API calls
+   - Only retrieve necessary data for the specific resource
+
+## Common Get Patterns
+
+### 1. Simple Resource Retrieval
+
+```go
+Get: &plugin.GetConfig{
+  KeyColumns: plugin.SingleColumn("name"),
+  Hydrate:    getResource,
+  Tags:       map[string]string{"service": "service", "action": "GetResource"},
+},
+```
+
+### 2. Multi-Key Resource Retrieval
+
+```go
+Get: &plugin.GetConfig{
+  KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+  Hydrate:    getResource,
+  Tags:       map[string]string{"service": "service", "action": "GetResource"},
+},
+```
+
+### 3. Parent/Child Resource Retrieval
+
+```go
+Get: &plugin.GetConfig{
+  KeyColumns: []*plugin.KeyColumn{
+    {Name: "parent_id", Require: plugin.Required},
+    {Name: "id", Require: plugin.Required},
+  },
+  Hydrate: getChildResource,
+  Tags:    map[string]string{"service": "service", "action": "GetChildResource"},
+},
+```
+
+### 4. Regional Resource Retrieval
+
+```go
+Get: &plugin.GetConfig{
+  KeyColumns: []*plugin.KeyColumn{
+    {Name: "id", Require: plugin.Required},
+    {Name: "region", Require: plugin.Optional},
+  },
+  Hydrate: getRegionalResource,
+  Tags:    map[string]string{"service": "service", "action": "GetResource"},
+},
+``` 

@@ -1,0 +1,26 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Steampipe create table
+globe: 
+alwaysApply: true
+---
+
+**File Structure**
+   - Create a new file named `table_aws_<service>_<resource>.go` in the aws directory
+   - Follow Go package structure with `package aws` declaration
+   - Import required AWS SDK v2 packages and Steampipe SDK packages
+
+**Table Definition Function**
+   ```go
+   func tableAws<Service><Resource>(_ context.Context) *plugin.Table {
+     return &plugin.Table{
+       Name: "aws_<service>_<resource>",
+       Description: "AWS <Service> <Resource>",
+       ...
+     }
+   }
+   ```

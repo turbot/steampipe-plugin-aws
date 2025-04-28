@@ -1,0 +1,154 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Steampipe table testing guide
+globe: 
+alwaysApply: true
+---
+
+# Testing Newly Added Steampipe Tables
+
+This guide outlines the standardized process for testing new tables added to the Steampipe AWS plugin.
+
+---
+
+## 1. Preparation Steps
+
+- Run the command `go mod tidy`
+- Build the plugin locally by running the command `make`
+- Start the stempipe service by running the command `steampipe service start`
+- Run the query using steampipe MCP server
+- Stop steampipe service by running the command `steampipe service stop --force`
+---
+
+## 2. Testing Process
+
+### 2.1 Basic Functionality Tests
+
+Run simple queries to validate table structure and connectivity:
+
+```sql
+-- Test list functionality
+select * from aws_<service>_<resource> limit 5;
+
+-- Validate standard columns
+select name, arn, region, account_id from aws_<service>_<resource> limit 1;
+
+-- Test filtering by a known attribute
+select * from aws_<service>_<resource> where name = '<known_resource_name>';
+```
+
+---
+
+### 2.2 Get Configuration Testing
+
+If your table implements `GetConfig`, verify it works properly:
+
+```sql
+-- Test retrieval using key columns
+select * from aws_<service>_<resource> where <key_column> = '<known_value>';
+
+-- If multiple keys exist, test each individually
+select * from aws_<service>_<resource> where name = '<known_name>';
+select * from aws_<service>_<resource> where arn = '<known_arn>';
+```
+
+---
+
+### 2.3 Hydration Function Testing
+
+Validate columns populated via hydrate functions:
+
+```sql
+-- Test retrieval of hydrated columns
+select <hydrated_column1>, <hydrated_column2> from aws_<service>_<resource> limit 1;
+
+-- Test error handling during hydration
+select <column_with_error_handling> from aws_<service>_<resource> where <key_column> = '<resource_without_this_feature>';
+```
+
+---
+
+### 2.4 Regional Resource Testing
+
+For region-specific tables:
+
+```sql
+-- Query across multiple regions
+select name, region from aws_<service>_<resource> where region in ('us-east-1', 'us-west-2') limit 10;
+
+-- Region-specific filtering
+select * from aws_<service>_<resource> where region = 'us-east-1' and name = '<known_resource_name>';
+```
+
+---
+
+### 2.5 Performance Testing
+
+Ensure acceptable performance for both qualified and unqualified queries:
+
+```sql
+-- With qualification (filter applied)
+select count(*) from aws_<service>_<resource> where <column> = '<value>';
+
+-- Without qualification (full table scan)
+select count(*) from aws_<service>_<resource>;
+```
+
+---
+
+### 2.6 Error Handling
+
+Simulate error scenarios:
+
+```sql
+-- Query a non-existent resource
+select * from aws_<service>_<resource> where name = 'non_existent_resource';
+
+-- Use invalid filter values
+select * from aws_<service>_<resource> where <column> = 'invalid-value-format';
+```
+
+---
+
+## 3. Validation Checklist
+
+✅ Ensure all the following before submitting:
+
+- [ ] List operation returns expected resources.
+- [ ] Get operation retrieves the correct resource.
+- [ ] All columns have proper values and types.
+- [ ] Region handling behaves correctly.
+- [ ] Hydration functions populate as expected.
+- [ ] JSON columns (if any) format data properly.
+- [ ] Standard columns (`account_id`, `region`, `arn`, `tags`, `akas`, etc.) work properly.
+- [ ] Query performance is acceptable for common use cases.
+- [ ] Error cases are handled gracefully.
+
+---
+
+## 4. Troubleshooting
+
+### 4.1 Common Issues and Solutions
+
+**No Results Returned**
+- Verify AWS credentials and region settings.
+- Ensure the account has the relevant resources.
+- Check Steampipe logs for API errors:
+  ```bash
+  tail -f ~/.steampipe/logs/plugin-*.log | grep error
+  ```
+
+**Incorrect Column Values**
+- Confirm the `Transform` path in column definitions.
+- Validate hydrate function return values.
+- Double-check if the API response matches expected field mappings.
+
+**Slow Query Performance**
+- Ensure proper API pagination is implemented.
+- Confirm key columns are leveraged for filtering.
+- Review hydration patterns to avoid unnecessary API calls.
+

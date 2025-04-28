@@ -1,0 +1,33 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Steampipe create table
+globe: 
+alwaysApply: true
+---
+
+- `Name`: Table name in snake_case format (aws_<service>_<resource>)
+- `Description`: Brief description of the resource
+- `List`: Configuration for listing resources
+- `Get`: Configuration for get a particular resource
+- `Columns`: Column definitions using awsRegionalColumns(regional resource) or awsAccountColumns(global resource)
+- `GetMatrixItemFunc`: For region-specific resources, use SupportedRegionMatrix. The service ID can be find under the endpoint_service_ids_gen.go
+- Update the 
+
+
+**Best Practices**
+   - Use AWS SDK v2 for API calls
+   - Implement pagination for list operations
+   - Handle rate limiting appropriately
+   - Add proper tags for API actions
+   - Use transform functions for data manipulation
+   - Follow existing naming conventions
+
+ **Performance Considerations**
+    - Use parent/child hydration for related resources
+    - Implement proper caching where applicable
+    - Consider query optimization with key columns
+    - Handle large result sets efficiently
