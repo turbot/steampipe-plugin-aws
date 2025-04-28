@@ -154,6 +154,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"golang.org/x/sync/semaphore"
 
+	"github.com/aws/aws-sdk-go-v2/service/mwaa"
 	amplifyEndpoint "github.com/aws/aws-sdk-go/service/amplify"
 	apigatewayv2Endpoint "github.com/aws/aws-sdk-go/service/apigatewayv2"
 	appRunnerEndpoint "github.com/aws/aws-sdk-go/service/apprunner"
@@ -1085,6 +1086,18 @@ func MGNClient(ctx context.Context, d *plugin.QueryData) (*mgn.Client, error) {
 		return nil, nil
 	}
 	return mgn.NewFromConfig(*cfg), nil
+}
+
+// MWAAClient returns an AWS MWAA client for the given context and query data.
+func MWAAClient(ctx context.Context, d *plugin.QueryData) (*mwaa.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_AIRFLOW_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return mwaa.NewFromConfig(*cfg), nil
 }
 
 func MQClient(ctx context.Context, d *plugin.QueryData) (*mq.Client, error) {

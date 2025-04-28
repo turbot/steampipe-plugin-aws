@@ -390,6 +390,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_memorydb_cluster":                                         tableAwsMemoryDBCluster(ctx),
 			"aws_mgn_application":                                          tableAwsMGNApplication(ctx),
 			"aws_mq_broker":                                                tableAwsMQBroker(ctx),
+			"aws_mwaa_environment":                                         tableAwsMwaaEnvironment(ctx),
 			"aws_msk_cluster":                                              tableAwsMSKCluster(ctx),
 			"aws_msk_serverless_cluster":                                   tableAwsMSKServerlessCluster(ctx),
 			"aws_neptune_db_cluster":                                       tableAwsNeptuneDBCluster(ctx),
