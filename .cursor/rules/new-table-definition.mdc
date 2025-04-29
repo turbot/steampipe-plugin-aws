@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 
 - `Name`: Table name in snake_case format (aws_<service>_<resource>)
@@ -10,6 +10,23 @@ alwaysApply: false
 - `Get`: Configuration for get a particular resource
 - `Columns`: Column definitions using awsRegionalColumns(regional resource) or awsAccountColumns(global resource)
 - `GetMatrixItemFunc`: For region-specific resources, use SupportedRegionMatrix. The service ID can be find under the endpoint_service_ids_gen.go
+- Add the new table mapping in plugin.go
+
+## 1. Service Endpoint ID Usage
+
+- Always use the **constant variable reference** for the **service endpoint ID**.
+- Do **not hardcode** service IDs directly into table files.
+- Reference the service endpoint ID constant defined in `endpoint_service_ids_gen.go`.
+- **Example**: Refer to the implementation in the `aws_sns_topic` table for correct usage.
+
+
+## 2. Client Initialization
+
+- Ensure the AWS service **client** is initialized in the `service.go` file.
+- If the client does not exist:
+  - Add the appropriate client creation function in `service.go`.
+  - Follow the existing patterns for client initialization and error handling.
+- Always **reuse** the client in the table code — **do not create a new client** inside the table file.
 
 
 **Best Practices**
