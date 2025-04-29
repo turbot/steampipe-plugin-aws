@@ -3,11 +3,6 @@ description:
 globs: 
 alwaysApply: true
 ---
----
-description: 
-globs: 
-alwaysApply: true
----
 # Table Development and Testing Workflow
 
 This document outlines the step-by-step process for developing and testing new tables in the Steampipe AWS plugin.
