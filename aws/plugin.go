@@ -306,6 +306,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_fms_app_list":                                             tableAwsFMSAppList(ctx),
 			"aws_fms_policy":                                               tableAwsFMSPolicy(ctx),
 			"aws_fsx_file_system":                                          tableAwsFsxFileSystem(ctx),
+			"aws_fsx_backup":                                               tableAwsFsxBackup(ctx),
 			"aws_glacier_vault":                                            tableAwsGlacierVault(ctx),
 			"aws_globalaccelerator_accelerator":                            tableAwsGlobalAcceleratorAccelerator(ctx),
 			"aws_globalaccelerator_endpoint_group":                         tableAwsGlobalAcceleratorEndpointGroup(ctx),
