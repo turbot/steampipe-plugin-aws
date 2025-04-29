@@ -3,112 +3,92 @@ description:
 globs: 
 alwaysApply: true
 ---
-Rule Name: new-table-documentation.mdc
-Description: 
-# Steampipe Table Documentation Standards
+## Documentation Rules
 
-## Documentation File Structure
+- We should use the lower case for the preserved SQL keyword
+- Documentation should be in `docs/tables/aws_service_name.md`
 
-Each table should have a corresponding Markdown file in the `docs/tables` directory with the following structure:
 
-### 1. File Name and Location
-- Name should match the table name: `docs/tables/aws_<service>_<resource>.md`
-
-### 2. Frontmatter
+### 2. Documentation Structure
 ```markdown
 ---
-title: "Steampipe Table: aws_<service>_<resource> - Query AWS <Service> <Resource> using SQL"
-description: "Allows users to query <details about what the table provides>."
-folder: "<Service>"
+title: "Steampipe Table: aws_service_name - Query AWS Service using SQL"
+description: "Allows users to query AWS Service for detailed information about..."
+folder: "ServiceName"
 ---
-```
 
-### 3. Main Heading & Resource Description
-```markdown
-# Table: aws_<service>_<resource> - Query AWS <Service> <Resource> using SQL
+# Table: aws_service_name - Query AWS Service using SQL
 
-<One to two paragraphs describing the AWS resource itself - what it is, what it does, and its purpose in AWS.>
-```
+[Detailed service description explaining what the service does and its purpose]
 
-### 4. Table Usage Guide
-```markdown
 ## Table Usage Guide
 
-The `aws_<service>_<resource>` table in Steampipe provides you with information about <resource> within AWS <Service>. This table allows you, as a <target user role>, to query <resource>-specific details, including <key attributes>. You can utilize this table to gather insights on <common use cases>. The schema outlines the various attributes of the <resource> for you, including <important columns>.
-```
+[Comprehensive guide on how to use the table, including:
+- What information can be queried
+- Common use cases
+- Important notes about the service
+- Any limitations or special considerations]
 
-### 5. Examples Section
-- Each example should include:
-  - A title describing the example purpose
-  - A brief description of what the example does and why it's valuable
-  - SQL queries for both PostgreSQL and SQLite syntax
-  - Examples should progress from basic to more complex
-
-```markdown
 ## Examples
 
-### Basic example title
-<Description explaining what this query helps discover and why it's useful>
-
+### Basic info
 ```sql+postgres
-<PostgreSQL query>
+select
+  id,
+  name,
+  status,
+  creation_time
+from
+  aws_service_name;
 ```
 
-```sql+sqlite
-<SQLite query>
+### List resources with specific tags
+```sql+postgres
+select
+  id,
+  name,
+  tags
+from
+  aws_service_name
+where
+  tags ->> 'Environment' = 'Production';
 ```
 
-### More complex example title
-<Description>
-...
+### List resources by status
+```sql+postgres
+select
+  id,
+  name,
+  status
+from
+  aws_service_name
+where
+  status = 'FAILED';
 ```
 
-## Documentation Style Guide
+### List resources older than X days
+```sql+postgres
+select
+  id,
+  name,
+  creation_time
+from
+  aws_service_name
+where
+  creation_time < now() - interval '30 days';
+```
 
-### Descriptions
-1. **Resource Description:**
-   - Begin with a concise definition of the AWS resource
-   - Explain its purpose and benefits within AWS architecture
-   - Use official AWS terminology
-
-2. **Table Usage Guide:**
-   - Address the reader directly with "you" and "your"
-   - Specify target user roles (e.g., "DevOps engineer", "security analyst")
-   - Highlight key use cases and insights the table provides
-
-3. **Example Descriptions:**
-   - Start with an action verb like "Discover", "Identify", "Determine", "Explore"
-   - Explain the practical value of running the query
-   - Keep to 1-3 sentences
-
-### Examples
-1. **Query Selection:**
-   - Include 4-8 varied examples starting with basic queries
-   - Include examples for:
-     - Basic resource attributes
-     - Filtering for specific conditions
-     - Security or compliance checks
-     - Resource counting/aggregation by region, type, etc.
-     - Missing tags or configurations
-
-2. **Format:**
-   - Always include both PostgreSQL and SQLite versions
-   - For functions not available in SQLite, include an error message:
-     ```sql+sqlite
-     Error: SQLite does not support <feature>
-     ```
-
-### Best Practices
-1. **Consistency:**
-   - Maintain consistent terminology throughout
-   - Use backticks for column names in descriptions
-   - Use sentence case for headings and titles
-
-2. **Relevance:**
-   - Examples should be practical and represent real-world use cases
-   - Focus on queries that would be useful in security, compliance, and resource management
-
-3. **Completeness:**
-   - Cover the most important and useful columns in examples
-   - Include examples that demonstrate joins with related tables where appropriate
-   - Ensure all critical use cases for the resource are covered 
+### List resources by type and status
+```sql+postgres
+select
+  type,
+  status,
+  count(*) as resource_count
+from
+  aws_service_name
+group by
+  type,
+  status
+order by
+  resource_count desc;
+```
