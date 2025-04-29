@@ -8,54 +8,140 @@ description:
 globs: 
 alwaysApply: true
 ---
-# Steampipe AWS Plugin Development Workflow
+# Table Development and Testing Workflow
 
-This document outlines the step-by-step process for developing new tables in the Steampipe AWS plugin.
+This document outlines the step-by-step process for developing and testing new tables in the Steampipe AWS plugin.
 
-## Development Workflow
+## Development Process
 
-### 1. Create Table and Documentation
-- Create the table implementation file in `aws/` directory following `table_creation_rules.mdc`
-- Create the documentation file in `docs/tables/` directory
-- Follow naming conventions and structure from `table_creation_rules.mdc`
+### 1. Initial Implementation
+- Create the table definition in the appropriate service directory
+- Implement the table structure with proper column definitions
+- Set up list and get functions
+- Ensure proper field mappings from AWS SDK types
+- Add appropriate error handling and rate limiting
 
-### 2. Fix Lint Errors
+### 2. Documentation
+- Create/update the table documentation in `docs/tables/`
+- Include:
+  - Table description and usage guide
+  - Column descriptions
+  - Example queries
+  - Common use cases
+
+## Testing Process
+
+### 1. Build and Restart
+After any code changes:
 ```bash
-# Run golangci-lint to check for linting issues
-golangci-lint run
+make && steampipe service restart
 ```
 
-### 3. Build the New Table
-```bash
-# Run make to build the plugin
-make
+### 2. Basic Query Testing
+Start with a simple query to verify all fields:
+```sql
+select * from table_name limit 1;
+```
+Check for:
+- Proper field population
+- Correct data types
+- Null/empty field handling
+
+### 3. Documentation Testing
+Run all example queries from the table documentation:
+```sql
+-- Example 1
+select field1, field2 from table_name;
+
+-- Example 2
+select field1, field2 from table_name where condition;
+
+-- Example 3
+select field1, count(*) from table_name group by field1;
 ```
 
-### 4. Fix Build Errors
-- Address any errors reported by the make command
-- Common issues include:
-  - Missing imports
-  - Type mismatches
-  - Undefined functions
-  - Incorrect API calls
+### 4. Edge Case Testing
+Test various scenarios:
+- Different regions
+- Different account configurations
+- Error conditions
+- Rate limiting
+- Pagination
+- Filter combinations
 
-### 5. Verify Build
+### 5. Iterative Testing Process
+For each issue found:
+1. Fix the code
+2. Rebuild and restart
+3. Re-test affected queries
+4. Document the fix
+
+### 6. Final Verification
+Run all documentation queries one final time:
 ```bash
-# Run make again to ensure all errors are resolved
-make
+steampipe query "select * from table_name limit 1"
+steampipe query "select field1, field2 from table_name"
+steampipe query "select field1, count(*) from table_name group by field1"
 ```
 
-### 6. Restart Steampipe Service
-```bash
-# Restart the Steampipe service to load the new table
-steampipe service restart
+## Common Issues and Solutions
+
+### Empty Fields
+- Check AWS SDK field names
+- Verify field mappings in transform functions
+- Ensure proper handling of nested structures
+- Example: For nested structures like `CertificateDetail`, use `transform.FromField("CertificateDetail.FieldName")`
+
+### Error Handling
+- Implement proper error handling in list and get functions
+- Add appropriate ignore config for common errors
+- Log errors with proper context
+- Example:
+```go
+IgnoreConfig: &plugin.IgnoreConfig{
+    ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidResourceName", "DoesNotExist"}),
+},
 ```
 
-### 7. Test the Table
-```bash
-# Connect to Steampipe MCP
-steampipe query "select * from aws_new_table"
+### Performance
+- Implement rate limiting
+- Use appropriate batch sizes
+- Optimize query patterns
+- Example:
+```go
+// apply rate limiting
+d.WaitForListRateLimit(ctx)
+```
 
+## Best Practices
+
+1. Always rebuild and restart after changes
+2. Test all documentation examples
+3. Verify edge cases
+4. Document any limitations or known issues
+5. Keep the documentation up to date
+6. Follow AWS SDK version compatibility
+7. Use proper type assertions
+8. Implement proper error handling
+9. Add appropriate logging
+10. Test with different AWS account configurations
+
+## Example Testing Session
+
+```bash
+# 1. Build and restart
+make && steampipe service restart
+
+# 2. Basic query test
+steampipe query "select * from aws_lightsail_certificate limit 1"
+
+# 3. Documentation tests
+steampipe query "select name, domain_name, status, not_after, not_before, issuer_ca from aws_lightsail_certificate"
+steampipe query "select name, domain_name, not_after, status from aws_lightsail_certificate where not_after < now() + interval '30 days' and status = 'ISSUED'"
+steampipe query "select name, domain_name, status, request_failure_reason from aws_lightsail_certificate where status = 'FAILED'"
+steampipe query "select status, count(*) as certificate_count from aws_lightsail_certificate group by status order by certificate_count desc"
+steampipe query "select name, domain_name, in_use_resource_count, status from aws_lightsail_certificate where in_use_resource_count > 0"
+steampipe query "select name, domain_name, tags from aws_lightsail_certificate where tags ->> 'Environment' = 'Production'"
 ```
 
 ## Common Commands Reference
@@ -115,23 +201,3 @@ select * from steampipe_table_list;
    - Table not found: Verify table name and service status
    - Permission errors: Check AWS credentials
    - Timeout errors: Check network connectivity
-
-## Best Practices
-
-1. **Before Committing**
-   - Run linter
-   - Build successfully
-   - Test queries
-   - Update documentation
-
-2. **Testing**
-   - Test all columns
-   - Test error conditions
-   - Test pagination
-   - Test rate limiting
-
-3. **Documentation**
-   - Keep documentation up to date
-   - Include examples
-   - Document limitations
-   - Add troubleshooting tips
