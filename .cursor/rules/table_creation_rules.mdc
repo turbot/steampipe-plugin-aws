@@ -1,0 +1,347 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Steampipe AWS Plugin Table Creation Rules
+
+This document outlines the rules and best practices for creating tables and documentation in the Steampipe AWS plugin.
+
+## Table Definition Rules
+
+### 1. File Structure
+- Each table should be defined in its own Go file under the `aws/` directory
+- File naming convention: `table_aws_service_name.go`
+- Example: `table_aws_ec2_instance.go`
+
+### 2. Table Function Definition
+```go
+func tableAwsServiceName(_ context.Context) *plugin.Table {
+    return &plugin.Table{
+        Name:        "aws_service_name",
+        Description: "AWS Service Name - Detailed description of the service",
+        Get: &plugin.GetConfig{
+            KeyColumns: plugin.SingleColumn("id"),
+            Hydrate:    getServiceName,
+            Tags:       map[string]string{"service": "service_name", "action": "DescribeService"},
+        },
+        List: &plugin.ListConfig{
+            Hydrate: listServiceNames,
+            Tags:    map[string]string{"service": "service_name", "action": "DescribeService"},
+        },
+        GetMatrixItemFunc: SupportedRegionMatrix(AWS_SERVICE_ID),
+        Columns: awsRegionalColumns([]*plugin.Column{
+            // Column definitions here
+        }),
+    }
+}
+```
+
+### 3. Column Definition Rules
+- Each column must have:
+  - Name: Lowercase, snake_case
+  - Description: Clear, concise, and complete
+  - Type: One of the proto.ColumnType_* values
+  - Transform: If needed for data transformation
+
+```go
+{
+    Name:        "column_name",
+    Description: "Detailed description of what this column represents",
+    Type:        proto.ColumnType_STRING,
+    Transform:   transform.FromField("FieldName"), // Optional
+}
+```
+
+### 4. Common Column Types
+- STRING: For text data
+- INT: For integer values
+- TIMESTAMP: For date/time values
+- JSON: For complex nested data
+- BOOL: For boolean values
+- DOUBLE: For floating-point numbers
+
+### 5. Required Columns
+Every table should include these standard columns:
+```go
+{
+    Name:        "title",
+    Description: resourceInterfaceDescription("title"),
+    Type:        proto.ColumnType_STRING,
+    Transform:   transform.FromField("Name"),
+},
+{
+    Name:        "akas",
+    Description: resourceInterfaceDescription("akas"),
+    Type:        proto.ColumnType_JSON,
+    Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
+},
+```
+
+### 6. Tag Handling
+- Every table that supports tags should include both `tags` and `tags_src` columns:
+```go
+{
+    Name:        "tags_src",
+    Description: "A list of tags attached to the resource.",
+    Type:        proto.ColumnType_JSON,
+    Transform:   transform.FromField("Tags"),
+},
+{
+    Name:        "tags",
+    Description: "The tags associated with the resource.",
+    Type:        proto.ColumnType_JSON,
+    Transform:   transform.From(getResourceTags),
+},
+```
+
+### 7. Rate Limiter Tags
+- Include appropriate rate limiter tags in the Get and List configurations
+- Example: `Tags: map[string]string{"service": "service_name", "action": "DescribeService"}`
+- Ensure rate limiters are properly defined in `plugin.go` if needed
+
+### 8. Error Handling
+- Implement proper error handling in hydrate functions
+- Use `shouldIgnoreErrors` for common AWS errors
+- Log errors appropriately using `plugin.Logger(ctx).Error()`
+
+## Documentation Rules
+
+### 1. File Location
+- Documentation should be in `docs/tables/aws_service_name.mdc`
+- Example: `docs/tables/aws_ec2_instance.mdc`
+
+### 2. Documentation Structure
+```markdown
+---
+title: "Steampipe Table: aws_service_name - Query AWS Service using SQL"
+description: "Allows users to query AWS Service for detailed information about..."
+folder: "ServiceName"
+---
+
+# Table: aws_service_name - Query AWS Service using SQL
+
+[Detailed service description explaining what the service does and its purpose]
+
+## Table Usage Guide
+
+[Comprehensive guide on how to use the table, including:
+- What information can be queried
+- Common use cases
+- Important notes about the service
+- Any limitations or special considerations]
+
+## Examples
+
+### Basic info
+```sql+postgres
+select
+  id,
+  name,
+  status,
+  creation_time
+from
+  aws_service_name;
+```
+
+### List resources with specific tags
+```sql+postgres
+select
+  id,
+  name,
+  tags
+from
+  aws_service_name
+where
+  tags ->> 'Environment' = 'Production';
+```
+
+### List resources by status
+```sql+postgres
+select
+  id,
+  name,
+  status
+from
+  aws_service_name
+where
+  status = 'FAILED';
+```
+
+### List resources older than X days
+```sql+postgres
+select
+  id,
+  name,
+  creation_time
+from
+  aws_service_name
+where
+  creation_time < now() - interval '30 days';
+```
+
+### List resources by type and status
+```sql+postgres
+select
+  type,
+  status,
+  count(*) as resource_count
+from
+  aws_service_name
+group by
+  type,
+  status
+order by
+  resource_count desc;
+```
+```
+
+### 3. Example Query Requirements
+- Include both PostgreSQL and SQLite syntax for all examples
+- Cover common use cases:
+  - Basic information retrieval
+  - Tag-based filtering
+  - Status-based filtering
+  - Age-based filtering
+  - Aggregation and grouping
+  - Error/failure information
+- Ensure examples demonstrate both `tags` and `tags_src` usage where applicable
+
+## Testing Requirements
+
+### 1. Development Testing
+- Test all example queries from documentation
+- Verify both `tags` and `tags_src` columns work correctly
+- Test filtering and aggregation operations
+- Verify error handling and edge cases
+
+### 2. Query Testing
+```bash
+# Test basic query
+steampipe query "select * from aws_service_name limit 1"
+
+# Test tag filtering
+steampipe query "select id, tags_src, tags from aws_service_name where tags_src is not null"
+
+# Test aggregation
+steampipe query "select type, status, count(*) from aws_service_name group by type, status"
+```
+
+### 3. Documentation Testing
+- Verify all example queries execute without errors
+- Ensure queries return expected columns
+- Test both PostgreSQL and SQLite syntax
+- Verify filtering and aggregation work as documented
+
+## Implementation Rules
+
+### 1. Error Handling
+- Always include proper error handling in Get/List functions
+- Log errors using plugin.Logger
+- Return appropriate error messages
+
+### 2. Hydration Functions
+- Name should be descriptive: getServiceName, listServiceNames
+- Include proper context handling
+- Implement pagination where needed
+- Handle rate limiting and throttling
+
+### 3. Testing
+- Include unit tests for all functions
+- Test error conditions
+- Test pagination
+- Test rate limiting scenarios
+
+### 4. Performance Considerations
+- Implement efficient pagination
+- Use appropriate batch sizes
+- Cache results where appropriate
+- Minimize API calls
+
+## Common Patterns
+
+### 1. List Function Pattern
+```go
+func listServiceNames(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+    // Create session
+    svc, err := ServiceClient(ctx, d)
+    if err != nil {
+        plugin.Logger(ctx).Error("aws_service_name.listServiceNames", "connection_error", err)
+        return nil, err
+    }
+
+    // List all items
+    paginator := service.NewListItemsPaginator(svc, &service.ListItemsInput{})
+    for paginator.HasMorePages() {
+        output, err := paginator.NextPage(ctx)
+        if err != nil {
+            plugin.Logger(ctx).Error("aws_service_name.listServiceNames", "api_error", err)
+            return nil, err
+        }
+
+        for _, item := range output.Items {
+            d.StreamListItem(ctx, item)
+        }
+    }
+
+    return nil, nil
+}
+```
+
+### 2. Get Function Pattern
+```go
+func getServiceName(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+    // Get client
+    svc, err := ServiceClient(ctx, d)
+    if err != nil {
+        plugin.Logger(ctx).Error("aws_service_name.getServiceName", "client_error", err)
+        return nil, err
+    }
+
+    // Get item ID from query data
+    id := d.EqualsQuals["id"].GetStringValue()
+    if id == "" {
+        return nil, nil
+    }
+
+    // Get item details
+    params := &service.GetItemInput{
+        Id: &id,
+    }
+
+    // Get call
+    op, err := svc.GetItem(ctx, params)
+    if err != nil {
+        plugin.Logger(ctx).Error("aws_service_name.getServiceName", "api_error", err)
+        return nil, err
+    }
+
+    return op.Item, nil
+}
+```
+
+## Version Control
+
+### 1. Commit Messages
+- Use conventional commit format
+- Reference issue numbers
+- Include brief description of changes
+
+### 2. Pull Requests
+- Include description of changes
+- Reference related issues
+- Include test results
+- Document any breaking changes
+
+## Maintenance
+
+### 1. Regular Updates
+- Keep documentation up to date
+- Update examples as needed
+- Review and update error handling
+- Monitor API changes
+
+### 2. Deprecation
+- Mark deprecated features clearly
+- Provide migration paths
+- Maintain backward compatibility where possible
