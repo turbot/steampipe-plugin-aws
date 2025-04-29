@@ -2296,3 +2296,14 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 
 	return retryTime, nil
 }
+
+// LightsailDomainClient returns the service connection for AWS Lightsail Domain service
+// Lightsail Domain API is only available in us-east-1 region
+func LightsailDomainClient(ctx context.Context, d *plugin.QueryData) (*lightsail.Client, error) {
+	// Force us-east-1 region for Lightsail Domain API
+	cfg, err := getClient(ctx, d, "us-east-1")
+	if err != nil {
+		return nil, err
+	}
+	return lightsail.NewFromConfig(*cfg), nil
+}

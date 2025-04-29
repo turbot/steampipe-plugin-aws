@@ -388,6 +388,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lightsail_certificate":                                    tableAwsLightsailCertificate(ctx),
 			"aws_lightsail_database":                                       tableAwsLightsailDatabase(ctx),
 			"aws_lightsail_disk":                                           tableAwsLightsailDisk(ctx),
+			"aws_lightsail_domain":                                         tableAwsLightsailDomain(ctx),
 			"aws_lightsail_instance":                                       tableAwsLightsailInstance(ctx),
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
 			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
