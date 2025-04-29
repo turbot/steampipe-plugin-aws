@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -37,6 +38,7 @@ func tableAwsVpcFlowLogEventListKeyColumns() []*plugin.KeyColumn {
 		// s3‑only
 		{Name: "bucket_name", Require: plugin.Optional},
 		{Name: "s3_prefix", Require: plugin.Optional},
+		{Name: "extraction_time", Require: plugin.Optional},
 		// shared optionals
 		{Name: "log_stream_name", Require: plugin.Optional},
 		{Name: "filter", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
@@ -73,6 +75,7 @@ func tableAwsVpcFlowLogEvent(_ context.Context) *plugin.Table {
 			{Name: "bucket_name", Type: proto.ColumnType_STRING, Transform: transform.FromField("BucketName"), Description: "S3 bucket containing the log file (when log_source = 's3')."},
 			{Name: "s3_prefix", Type: proto.ColumnType_STRING, Transform: transform.FromQual("s3_prefix"), Description: "S3 prefix to search for flow logs (when log_source = 's3')."},
 			{Name: "s3_key", Type: proto.ColumnType_STRING, Transform: transform.FromField("S3Key"), Description: "Full S3 object key for the record (when log_source = 's3')."},
+			{Name: "extraction_time", Type: proto.ColumnType_INT, Transform: transform.FromQual("extraction_time"), Description: "Time limit in seconds to process flow log files (when log_source = 's3'). Defaults to 600 seconds (10 minutes) if not specified."},
 
 			// Top columns (existing)
 			{Name: "log_group_name", Type: proto.ColumnType_STRING, Transform: transform.FromQual("log_group_name"), Description: "The name of the log group to which this event belongs (CloudWatch source)."},
@@ -127,7 +130,12 @@ func listVpcFlowLogEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		if err != nil {
 			return nil, err
 		}
-		return nil, listS3FlowLogEvents(ctx, d, s3Client)
+
+		// Get extraction time from query parameters or use default (10 minutes)
+		const defaultExtractionTime = 600
+		extractionTime := getExtractionTime(d, defaultExtractionTime)
+
+		return nil, listS3FlowLogEvents(ctx, d, s3Client, extractionTime)
 	default:
 		return listCloudwatchLogEvents(ctx, d, h)
 	}
@@ -181,7 +189,7 @@ type S3ClientInterface interface {
 // Return value:
 //   - Returns nil on successful completion or if no matching files are found
 //   - Returns an error if bucket_name is missing or any processing error occurs
-func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3ClientInterface) error {
+func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3ClientInterface, extractionTime int) error {
 	logger := plugin.Logger(ctx)
 	logger.Debug("listS3FlowLogEvents", "message", "Starting S3 flow log retrieval operation")
 
@@ -239,7 +247,11 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 	listingDoneChan := make(chan struct{})    // Signal that S3 listing is complete
 	processingDoneChan := make(chan struct{}) // Signal that processing is complete
 
-	ctx, cancel := context.WithCancel(ctx)
+	// Use the extraction time passed as a parameter
+	logger.Debug("listS3FlowLogEvents", "extraction_time", extractionTime)
+
+	// Create a context with timeout based on extraction time
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(extractionTime)*time.Second)
 	defer cancel()
 
 	// Start workers to process objects concurrently
@@ -487,6 +499,11 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 					cancel()
 					return err
 				case <-ctx.Done():
+					if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+						logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
+							"extraction_time_seconds", extractionTime, "results_found", resultCount)
+						return nil
+					}
 					return ctx.Err()
 				}
 			}
@@ -518,11 +535,21 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 				cancel()
 				return err
 			case <-ctx.Done():
+				if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+					logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
+						"extraction_time_seconds", extractionTime, "results_found", resultCount)
+					return nil
+				}
 				return ctx.Err()
 			}
 		case <-ctx.Done():
-			// Context cancelled externally
-			logger.Warn("listS3FlowLogEvents", "message", "Operation cancelled by context",
+			// Context cancelled externally or timeout
+			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+				logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
+					"extraction_time_seconds", extractionTime, "results_found", resultCount)
+				return nil
+			}
+			logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
 				"error", ctx.Err())
 			return ctx.Err()
 		}
@@ -551,6 +578,19 @@ func getField(_ context.Context, d *transform.TransformData) (interface{}, error
 		return nil, nil
 	}
 	return fields[idx], nil
+}
+
+// getExtractionTime extracts the extraction time parameter from query data
+// or returns the default extraction time if not set
+func getExtractionTime(d *plugin.QueryData, defaultTime int) int {
+	if q := d.EqualsQuals["extraction_time"]; q != nil {
+		extractionTime := int(q.GetInt64Value())
+		if extractionTime <= 0 {
+			return defaultTime
+		}
+		return extractionTime
+	}
+	return defaultTime
 }
 
 func buildFilter(equalQuals plugin.KeyColumnEqualsQualMap) []string {
