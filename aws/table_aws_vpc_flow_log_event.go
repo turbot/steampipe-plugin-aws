@@ -136,7 +136,7 @@ func listVpcFlowLogEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		const defaultExtractionTime = 600
 		extractionTime := getExtractionTime(d, defaultExtractionTime)
 
-		return nil, listS3FlowLogEvents(ctx, d, s3Client, extractionTime)
+		return nil, listS3FlowLogEvents(ctx, d, s3Client, extractionTime, region)
 	default:
 		return listCloudwatchLogEvents(ctx, d, h)
 	}
@@ -167,11 +167,13 @@ type S3ClientInterface interface {
 // Input parameters:
 //   - ctx: The context for the query, which can be used for cancellation
 //   - d: The QueryData object containing qualifiers and filters for the query
+//   - s3Client: The S3 client interface used for S3 operations
+//   - extractionTime: Time limit in seconds to process flow log files
+//   - region: AWS region where the bucket is located
 //
 // Expected qualifiers in QueryData:
 //   - bucket_name (required): The S3 bucket containing flow log files
 //   - s3_prefix (optional): Prefix path within the bucket to limit the search scope
-//   - region (optional): AWS region where the bucket is located
 //   - timestamp (optional): Time range filters to limit results by event timestamp
 //   - event_id, interface_id, src_addr, dst_addr, src_port, dst_port, action, log_status (optional):
 //     Content filters for specific fields in the flow logs
@@ -190,7 +192,7 @@ type S3ClientInterface interface {
 // Return value:
 //   - Returns nil on successful completion or if no matching files are found
 //   - Returns an error if bucket_name is missing or any processing error occurs
-func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3ClientInterface, extractionTime int) error {
+func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3ClientInterface, extractionTime int, region string) error {
 	logger := plugin.Logger(ctx)
 	logger.Debug("listS3FlowLogEvents", "message", "Starting S3 flow log retrieval operation")
 
