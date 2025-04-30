@@ -726,71 +726,96 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 	}()
 
 	// Stream results to output while checking for errors
-	noObjectsFound := false
+	// Prioritize context check before starting the streaming loop
+	if ctx.Err() != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			logger.Info("listS3FlowLogEvents", "message", "Operation timed out before streaming results",
+				"extraction_time_seconds", extractionTime)
+			return nil
+		}
+		return ctx.Err()
+	}
+
 	resultCount := 0
 	logger.Debug("listS3FlowLogEvents", "message", "Starting result streaming phase")
+
+	// Create a separate goroutine to monitor context cancellation
+	// This ensures we can break out of any waiting state immediately
+	doneChan := make(chan struct{})
+	go func() {
+		<-ctx.Done()
+		close(doneChan)
+	}()
+
 	for {
+		// First priority: check if context is done at the start of each loop iteration
 		select {
+		case <-doneChan:
+			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+				logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
+					"extraction_time_seconds", extractionTime, "results_found", resultCount)
+				return nil
+			}
+			logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
+				"error", ctx.Err())
+			return ctx.Err()
+		default:
+			// Continue with normal processing
+		}
+
+		// Second priority: process events and check other channels
+		select {
+		case <-doneChan:
+			// Double-check for cancellation (prioritized)
+			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+				logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
+					"extraction_time_seconds", extractionTime, "results_found", resultCount)
+				return nil
+			}
+			logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
+				"error", ctx.Err())
+			return ctx.Err()
+
 		case result, ok := <-resultsChan:
 			if !ok {
 				// resultsChan closed, all processing complete
 				logger.Debug("listS3FlowLogEvents", "message", "Result streaming complete",
 					"total_results", resultCount)
-				if noObjectsFound {
-					// We know there were no objects to process, so report success
-					return nil
-				}
-				// Wait for listing to complete before returning
-				select {
-				case <-listingDoneChan:
-					return nil
-				case err := <-errorChan:
-					cancel()
-					return err
-				case <-ctx.Done():
-					if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-						logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
-							"extraction_time_seconds", extractionTime, "results_found", resultCount)
-						return nil
-					}
-					return ctx.Err()
-				}
+				// No need to wait for additional signals - just return what we have
+				return nil
 			}
 			resultCount++
 			if resultCount%1000 == 0 {
 				logger.Debug("listS3FlowLogEvents", "message", "Streaming results",
 					"count", resultCount)
 			}
-			d.StreamListItem(ctx, result)
+			// Stream with context awareness
+			select {
+			case <-doneChan:
+				// Context was cancelled while trying to stream
+				logger.Info("listS3FlowLogEvents", "message", "Context cancelled during streaming, returning partial results",
+					"results_found", resultCount)
+				return nil
+			default:
+				d.StreamListItem(ctx, result)
+			}
+
 		case err := <-errorChan:
 			// Cancel all in-progress work
 			logger.Error("listS3FlowLogEvents", "message", "Error received from worker",
 				"error", err)
 			cancel()
 			return err
+
 		case <-listingDoneChan:
-			// S3 listing is complete, but we still need to wait for processing to finish
-			noObjectsFound = true
+			// S3 listing is complete, but we continue processing existing items
+			logger.Debug("listS3FlowLogEvents", "message", "S3 listing complete, continuing to process results")
+
 		case <-processingDoneChan:
 			// All workers finished and no more results
-			logger.Debug("listS3FlowLogEvents", "message", "All processing complete")
-			// Wait for listing to complete before returning
-			select {
-			case <-listingDoneChan:
-				logger.Debug("listS3FlowLogEvents", "message", "S3 flow log retrieval operation complete",
-					"total_results", resultCount)
-				return nil
-			case err := <-errorChan:
-				cancel()
-				return err
-			case <-ctx.Done():
-				if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-					logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
-						"extraction_time_seconds", extractionTime, "results_found", resultCount)
-					return nil
-				}
-				return ctx.Err()
-			}
+			logger.Debug("listS3FlowLogEvents", "message", "All processing complete, returning results",
+				"total_results", resultCount)
+			return nil
 		case <-ctx.Done():
 			// Context cancelled externally or timeout
 			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
