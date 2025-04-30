@@ -114,7 +114,6 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 	objChan := make(chan s3types.Object, DefaultObjectChannelSize)
 	resultsChan := make(chan S3FlowLogEvent, DefaultResultsChannelSize)
 	errorChan := make(chan error, DefaultMaxConcurrentDownloads)
-	listingDoneChan := make(chan struct{})    // Signal that S3 listing is complete
 	processingDoneChan := make(chan struct{}) // Signal that processing is complete
 
 	// Use the extraction time passed as a parameter
@@ -144,10 +143,8 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 		close(processingDoneChan)
 	}()
 
-	// Start parallel goroutine for progressive processing with direct time slot targeting
-	// This implementation starts processing files immediately while continuing to discover more
 	r.logger.Debug("listS3FlowLogEvents", "message", "Starting progressive S3 object processing")
-	go r.processS3Objects(ctx, objChan, errorChan, listingDoneChan, extractionTime)
+	r.processS3Objects(ctx, objChan, errorChan, extractionTime)
 
 	// Stream results to output while checking for errors
 	// Prioritize context check before starting the streaming loop
@@ -220,10 +217,6 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 				"error", err)
 			cancel()
 			return err
-
-		case <-listingDoneChan:
-			// S3 listing is complete, but we continue processing existing items
-			r.logger.Debug("listS3FlowLogEvents", "message", "S3 listing complete, continuing to process results")
 
 		case <-processingDoneChan:
 			// All workers finished and no more results
@@ -504,7 +497,6 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	ctx context.Context,
 	objChan chan<- s3types.Object,
 	errorChan chan<- error,
-	listingDoneChan chan<- struct{},
 	extractionTime int,
 ) {
 	var objectCount int32 = 0
@@ -512,65 +504,9 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	defer func() {
 		// Close channels to signal completion
 		close(objChan)
-		close(listingDoneChan)
 		r.logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
 			"eligible_objects_found", atomic.LoadInt32(&objectCount), "processed_objects", atomic.LoadInt32(&processedCount))
 	}()
-
-	// If we have no time bounds, use default listing
-	if r.startTime == nil && r.endTime == nil {
-		// Prepare prefix with region component
-		listPrefix := r.prefix
-		if !strings.HasSuffix(listPrefix, "/") {
-			listPrefix += "/"
-		}
-
-		// Add region between vpcflowlogs prefix and any trailing components
-		if strings.Contains(listPrefix, "vpcflowlogs/") && !strings.Contains(listPrefix, fmt.Sprintf("vpcflowlogs/%s/", r.region)) {
-			// Replace "vpcflowlogs/" with "vpcflowlogs/region/"
-			listPrefix = strings.Replace(listPrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", r.region), 1)
-		}
-
-		r.logger.Debug("listS3FlowLogEvents", "message", "Listing S3 objects", "prefix", listPrefix)
-
-		// Use standard listing for cases with no time filtering
-		paginator := s3.NewListObjectsV2Paginator(r.s3Client, &s3.ListObjectsV2Input{
-			Bucket: aws.String(r.bucket),
-			Prefix: aws.String(listPrefix),
-		})
-
-		pageCount := 0
-		for paginator.HasMorePages() {
-			pageCount++
-			r.logger.Trace("listS3FlowLogEvents", "message", "Retrieving page of S3 objects",
-				"page", pageCount)
-
-			page, err := paginator.NextPage(ctx)
-			if err != nil {
-				r.logger.Error("listS3FlowLogEvents", "message", "Error listing S3 objects",
-					"error", err, "page", pageCount)
-				sendWithContext(ctx, errorChan, err)
-				return
-			}
-
-			for _, obj := range page.Contents {
-				key := aws.ToString(obj.Key)
-				if !strings.HasSuffix(key, ".log.gz") {
-					continue
-				}
-
-				// Found an eligible object, send it to worker pool
-				atomic.AddInt32(&objectCount, 1)
-				atomic.AddInt32(&processedCount, 1)
-				r.logger.Trace("listS3FlowLogEvents", "message", "Found eligible object",
-					"key", key, "count", atomic.LoadInt32(&objectCount))
-				if !sendWithContext(ctx, objChan, obj) {
-					return
-				}
-			}
-		}
-		return
-	}
 
 	// For time-bounded searches, use progressive processing with direct time slot targeting
 	// First, compute date range for our search
