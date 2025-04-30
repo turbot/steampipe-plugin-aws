@@ -67,7 +67,6 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 				Name:        "status",
 				Description: "The status of the finding.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Title"),
 			},
 			{
 				Name:        "created_at",
@@ -275,7 +274,7 @@ func getMacie2Finding(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 
-	if op.Findings != nil && len(op.Findings) > 0 {
+	if len(op.Findings) > 0 {
 		return op.Findings[0], nil
 	}
 
