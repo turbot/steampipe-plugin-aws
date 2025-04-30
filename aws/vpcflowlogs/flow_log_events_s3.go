@@ -19,8 +19,9 @@ import (
 	"time"
 )
 
-// Precompiled regex for better performance
+// Precompiled regex patterns for better performance
 var reCommentPrefix = regexp.MustCompile(`^(#|version\s)`)
+var reTs = regexp.MustCompile(`_(\d{8}T\d{4})Z_`)
 
 type s3FlowLogEvent struct {
 	types.FilteredLogEvent
@@ -70,9 +71,6 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 	const resultsChannelSize = 1000
 	const objectChannelSize = 100 // Buffer for eligible objects
 
-	// Precompile pattern for timestamp extraction
-	reTs := regexp.MustCompile(`_(\d{8}T\d{4})Z_`)
-
 	// Setup channels for concurrent processing - create a pipeline
 	objChan := make(chan s3types.Object, objectChannelSize)
 	resultsChan := make(chan s3FlowLogEvent, resultsChannelSize)
@@ -110,7 +108,7 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 	// Start parallel goroutine for progressive processing with direct time slot targeting
 	// This implementation starts processing files immediately while continuing to discover more
 	r.logger.Debug("listS3FlowLogEvents", "message", "Starting progressive S3 object processing")
-	go r.processS3Objects(ctx, objChan, errorChan, listingDoneChan, reTs, extractionTime)
+	go r.processS3Objects(ctx, objChan, errorChan, listingDoneChan, extractionTime)
 
 	// Stream results to output while checking for errors
 	// Prioritize context check before starting the streaming loop
@@ -362,7 +360,6 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 	hour int,
 	objChan chan<- s3types.Object,
 	errorChan chan<- error,
-	reTs *regexp.Regexp,
 	objectCount *int32,
 	processedCount *int32,
 ) {
@@ -490,7 +487,6 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	objChan chan<- s3types.Object,
 	errorChan chan<- error,
 	listingDoneChan chan<- struct{},
-	reTs *regexp.Regexp,
 	extractionTime int,
 ) {
 	var objectCount int32 = 0
@@ -686,7 +682,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 			defer listWg.Done()
 			defer func() { <-throttle }() // Release throttle when done
 
-			r.processTimeTarget(ctx, date, hour, objChan, errorChan, reTs, &objectCount, &processedCount)
+			r.processTimeTarget(ctx, date, hour, objChan, errorChan, &objectCount, &processedCount)
 		}(target.date, target.hour)
 	}
 
