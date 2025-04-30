@@ -409,14 +409,14 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 	// This implementation starts processing files immediately while continuing to discover more
 	logger.Debug("listS3FlowLogEvents", "message", "Starting progressive S3 object processing")
 	go func() {
-		objectCount := 0
-		processedCount := 0
+		var objectCount int32 = 0
+		var processedCount int32 = 0
 		defer func() {
 			// Close channels to signal completion
 			close(objChan)
 			close(listingDoneChan)
 			logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
-				"eligible_objects_found", objectCount, "processed_objects", processedCount)
+				"eligible_objects_found", atomic.LoadInt32(&objectCount), "processed_objects", atomic.LoadInt32(&processedCount))
 		}()
 
 		// If we have no time bounds, use default listing
@@ -451,10 +451,10 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 					}
 
 					// Found an eligible object, send it to worker pool
-					objectCount++
-					processedCount++
+					atomic.AddInt32(&objectCount, 1)
+					atomic.AddInt32(&processedCount, 1)
 					logger.Trace("listS3FlowLogEvents", "message", "Found eligible object",
-						"key", key, "count", objectCount)
+						"key", key, "count", atomic.LoadInt32(&objectCount))
 					select {
 					case objChan <- obj:
 					case <-ctx.Done():
@@ -681,8 +681,8 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 						key := aws.ToString(obj.Key)
 
 						// Atomically increment counts
-						atomic.AddInt32((*int32)(&objectCount), 1)
-						atomic.AddInt32((*int32)(&processedCount), 1)
+						atomic.AddInt32(&objectCount, 1)
+						atomic.AddInt32(&processedCount, 1)
 
 						logger.Trace("listS3FlowLogEvents", "message", "Processing object from time slot",
 							"date", dateStr, "hour", hourStr, "key", key)
@@ -713,14 +713,14 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 		select {
 		case <-listingDone:
 			logger.Debug("listS3FlowLogEvents", "message", "All time slots processed",
-				"total_objects", objectCount)
+				"total_objects", atomic.LoadInt32(&objectCount))
 		case <-ctx.Done():
 			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 				logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing stopped due to timeout",
-					"extraction_time_seconds", extractionTime, "objects_processed", processedCount)
+					"extraction_time_seconds", extractionTime, "objects_processed", atomic.LoadInt32(&processedCount))
 			} else {
 				logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing cancelled",
-					"objects_processed", processedCount)
+					"objects_processed", atomic.LoadInt32(&processedCount))
 			}
 		}
 	}()
