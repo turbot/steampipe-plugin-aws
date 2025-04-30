@@ -46,7 +46,7 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "arn",
+				Name:        "finding_arn",
 				Description: "The Amazon Resource Name (ARN) of the finding.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("FindingArn"),
@@ -60,8 +60,7 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 			{
 				Name:        "severity",
 				Description: "The severity level of the finding.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Severity.Description"),
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "status",
@@ -97,7 +96,6 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 				Name:        "resources_affected",
 				Description: "The resources that the finding applies to.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ResourcesAffected"),
 			},
 			{
 				Name:        "sample",
@@ -108,7 +106,6 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 				Name:        "classification_details",
 				Description: "The details of the classification that produced the finding.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ClassificationDetails"),
 			},
 			{
 				Name:        "remediation",
@@ -121,12 +118,12 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "region",
+				Name:        "source_region",
 				Description: "The AWS Region where the finding was generated.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "account_id",
+				Name:        "source_account_id",
 				Description: "The AWS account ID for the account that owns the finding.",
 				Type:        proto.ColumnType_STRING,
 			},
