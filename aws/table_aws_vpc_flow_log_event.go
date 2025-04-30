@@ -421,10 +421,24 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 
 		// If we have no time bounds, use default listing
 		if startTime == nil && endTime == nil {
+			// Prepare prefix with region component
+			listPrefix := prefix
+			if !strings.HasSuffix(listPrefix, "/") {
+				listPrefix += "/"
+			}
+
+			// Add region between vpcflowlogs prefix and any trailing components
+			if strings.Contains(listPrefix, "vpcflowlogs/") && !strings.Contains(listPrefix, fmt.Sprintf("vpcflowlogs/%s/", region)) {
+				// Replace "vpcflowlogs/" with "vpcflowlogs/region/"
+				listPrefix = strings.Replace(listPrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", region), 1)
+			}
+
+			logger.Debug("listS3FlowLogEvents", "message", "Listing S3 objects", "prefix", listPrefix)
+
 			// Use standard listing for cases with no time filtering
 			paginator := s3.NewListObjectsV2Paginator(s3Client, &s3.ListObjectsV2Input{
 				Bucket: aws.String(bucket),
-				Prefix: aws.String(prefix),
+				Prefix: aws.String(listPrefix),
 			})
 
 			pageCount := 0
@@ -600,6 +614,12 @@ func listS3FlowLogEvents(ctx context.Context, d *plugin.QueryData, s3Client S3Cl
 				datePrefix := prefix
 				if !strings.HasSuffix(datePrefix, "/") {
 					datePrefix += "/"
+				}
+
+				// Add region between vpcflowlogs prefix and date components
+				if strings.Contains(datePrefix, "vpcflowlogs/") && !strings.Contains(datePrefix, fmt.Sprintf("vpcflowlogs/%s/", region)) {
+					// Replace "vpcflowlogs/" with "vpcflowlogs/region/"
+					datePrefix = strings.Replace(datePrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", region), 1)
 				}
 
 				// If the prefix doesn't already include date components, add them
