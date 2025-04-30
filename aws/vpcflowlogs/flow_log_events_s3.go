@@ -90,137 +90,7 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 	var workersWg sync.WaitGroup
 	for i := 0; i < maxConcurrentDownloads; i++ {
 		workersWg.Add(1)
-		go func(workerID int) {
-			logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
-				"message", "Worker started")
-			defer workersWg.Done()
-			for obj := range objChan {
-				key := aws.ToString(obj.Key)
-				logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
-					"message", "Processing object", "key", key)
-
-				// download object
-				objOut, err := r.s3Client.GetObject(ctx, &s3.GetObjectInput{
-					Bucket: aws.String(r.bucket),
-					Key:    aws.String(key),
-				})
-				if err != nil {
-					logger.Error("listS3FlowLogEvents", "worker_id", workerID,
-						"message", "Failed to get object from S3",
-						"key", key, "error", err)
-					select {
-					case errorChan <- err:
-					case <-ctx.Done():
-						return
-					}
-					continue
-				}
-
-				gr, err := gzip.NewReader(objOut.Body)
-				if err != nil {
-					logger.Error("listS3FlowLogEvents", "worker_id", workerID,
-						"message", "Failed to create gzip reader",
-						"key", key, "error", err)
-					objOut.Body.Close()
-					select {
-					case errorChan <- err:
-					case <-ctx.Done():
-						return
-					}
-					continue
-				}
-
-				// Use a scanner for better line reading performance
-				scanner := bufio.NewScanner(gr)
-				// Increase buffer size for large lines
-				const maxScanTokenSize = 1024 * 1024
-				buf := make([]byte, maxScanTokenSize)
-				scanner.Buffer(buf, maxScanTokenSize)
-
-				hasFilters := len(r.filters) > 0
-
-				lineNum := 0
-				for scanner.Scan() {
-					line := scanner.Text()
-
-					// Skip empty lines and comments more efficiently
-					if line == "" || reCommentPrefix.MatchString(line) {
-						continue
-					}
-
-					fields := strings.Fields(line)
-					if len(fields) < 14 {
-						continue // malformed
-					}
-
-					// If filters exist, do a quick check before creating the full event
-					// This avoids the overhead of creating the event object for records
-					// that will be filtered out anyway
-					if hasFilters {
-						// Quick check for filter matches
-						match := true
-						for _, f := range r.filters {
-							if !strings.Contains(line, f) {
-								match = false
-								break
-							}
-						}
-						if !match {
-							lineNum++
-							continue
-						}
-					}
-
-					// build event
-					endField := fields[11]
-					endUnix, _ := strconv.ParseInt(endField, 10, 64)
-					endMillis := endUnix * 1000
-
-					var ingestion *int64
-					if obj.LastModified != nil {
-						ingestion = aws.Int64(obj.LastModified.UnixMilli())
-					}
-
-					ev := s3FlowLogEvent{
-						FilteredLogEvent: types.FilteredLogEvent{
-							Message:       aws.String(line),
-							EventId:       aws.String(fmt.Sprintf("%s:%d", key, lineNum)),
-							Timestamp:     aws.Int64(endMillis),
-							IngestionTime: ingestion,
-						},
-						BucketName: r.bucket,
-						S3Key:      key,
-					}
-
-					select {
-					case resultsChan <- ev:
-					case <-ctx.Done():
-						gr.Close()
-						objOut.Body.Close()
-						return
-					}
-					lineNum++
-				}
-
-				if err := scanner.Err(); err != nil {
-					logger.Error("listS3FlowLogEvents", "worker_id", workerID,
-						"message", "Scanner error while processing file",
-						"key", key, "error", err)
-					select {
-					case errorChan <- err:
-					case <-ctx.Done():
-					}
-				}
-
-				logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
-					"message", "Completed processing object",
-					"key", key, "lines_processed", lineNum)
-				gr.Close()
-				objOut.Body.Close()
-			}
-			logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
-				"message", "Worker finished")
-		}(i) // Pass worker ID to the goroutine
+		go r.processObjectsWorker(ctx, i, objChan, resultsChan, errorChan, reCommentPrefix, &workersWg, logger)
 	}
 
 	// Start a goroutine to close results channel when all workers finish
@@ -233,342 +103,7 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 	// Start parallel goroutine for progressive processing with direct time slot targeting
 	// This implementation starts processing files immediately while continuing to discover more
 	logger.Debug("listS3FlowLogEvents", "message", "Starting progressive S3 object processing")
-	go func() {
-		var objectCount int32 = 0
-		var processedCount int32 = 0
-		defer func() {
-			// Close channels to signal completion
-			close(objChan)
-			close(listingDoneChan)
-			logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
-				"eligible_objects_found", atomic.LoadInt32(&objectCount), "processed_objects", atomic.LoadInt32(&processedCount))
-		}()
-
-		// If we have no time bounds, use default listing
-		if r.startTime == nil && r.endTime == nil {
-			// Prepare prefix with region component
-			listPrefix := r.prefix
-			if !strings.HasSuffix(listPrefix, "/") {
-				listPrefix += "/"
-			}
-
-			// Add region between vpcflowlogs prefix and any trailing components
-			if strings.Contains(listPrefix, "vpcflowlogs/") && !strings.Contains(listPrefix, fmt.Sprintf("vpcflowlogs/%s/", r.region)) {
-				// Replace "vpcflowlogs/" with "vpcflowlogs/region/"
-				listPrefix = strings.Replace(listPrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", r.region), 1)
-			}
-
-			logger.Debug("listS3FlowLogEvents", "message", "Listing S3 objects", "prefix", listPrefix)
-
-			// Use standard listing for cases with no time filtering
-			paginator := s3.NewListObjectsV2Paginator(r.s3Client, &s3.ListObjectsV2Input{
-				Bucket: aws.String(r.bucket),
-				Prefix: aws.String(listPrefix),
-			})
-
-			pageCount := 0
-			for paginator.HasMorePages() {
-				pageCount++
-				logger.Trace("listS3FlowLogEvents", "message", "Retrieving page of S3 objects",
-					"page", pageCount)
-
-				page, err := paginator.NextPage(ctx)
-				if err != nil {
-					logger.Error("listS3FlowLogEvents", "message", "Error listing S3 objects",
-						"error", err, "page", pageCount)
-					select {
-					case errorChan <- err:
-					case <-ctx.Done():
-					}
-					return
-				}
-
-				for _, obj := range page.Contents {
-					key := aws.ToString(obj.Key)
-					if !strings.HasSuffix(key, ".log.gz") {
-						continue
-					}
-
-					// Found an eligible object, send it to worker pool
-					atomic.AddInt32(&objectCount, 1)
-					atomic.AddInt32(&processedCount, 1)
-					logger.Trace("listS3FlowLogEvents", "message", "Found eligible object",
-						"key", key, "count", atomic.LoadInt32(&objectCount))
-					select {
-					case objChan <- obj:
-					case <-ctx.Done():
-						return
-					}
-				}
-			}
-			return
-		}
-
-		// For time-bounded searches, use progressive processing with direct time slot targeting
-		// First, compute date range for our search
-		// Default to a reasonable range if not fully specified
-		now := time.Now()
-		searchStartTime := r.startTime
-		searchEndTime := r.endTime
-		if searchStartTime == nil {
-			// Default to 1 day before end time or current time
-			if searchEndTime != nil {
-				defaultStart := searchEndTime.Add(-24 * time.Hour)
-				searchStartTime = &defaultStart
-			} else {
-				defaultStart := now.Add(-24 * time.Hour)
-				searchStartTime = &defaultStart
-			}
-		}
-		if searchEndTime == nil {
-			// Default to now if no end time provided
-			searchEndTime = &now
-		}
-
-		// Create a structure to track dates and hours we need to process
-		type timeTarget struct {
-			date time.Time
-			hour int
-		}
-
-		// Build a queue of time targets to process, distributed across the time range
-		var timeTargets []timeTarget
-
-		// Get start and end date at day granularity
-		startDate := time.Date(searchStartTime.Year(), searchStartTime.Month(), searchStartTime.Day(), 0, 0, 0, 0, searchStartTime.Location())
-		endDate := time.Date(searchEndTime.Year(), searchEndTime.Month(), searchEndTime.Day(), 0, 0, 0, 0, searchEndTime.Location())
-
-		// Calculate total days in range
-		totalDays := int(endDate.Sub(startDate).Hours()/24) + 1
-		logger.Debug("listS3FlowLogEvents", "message", "Time range calculated",
-			"start_date", startDate.Format("2006-01-02"),
-			"end_date", endDate.Format("2006-01-02"),
-			"total_days", totalDays)
-
-		// Create time targets that are well-distributed across the time range
-		// For each day, we'll create targets for specific hours
-		for day := 0; day < totalDays; day++ {
-			currentDate := startDate.AddDate(0, 0, day)
-
-			// For the first and last day, respect the actual start/end time's hour
-			var startHour, endHour int
-			if day == 0 {
-				// First day - start at the actual start time's hour
-				startHour = searchStartTime.Hour()
-			} else {
-				startHour = 0
-			}
-
-			if day == totalDays-1 && currentDate.Equal(endDate) {
-				// Last day - end at the actual end time's hour
-				endHour = searchEndTime.Hour() + 1 // +1 to include the hour of end time
-			} else {
-				endHour = 24
-			}
-
-			// Create targets for specific hours, balanced across the time range
-			// Use a stride to ensure even distribution
-			if endHour > startHour {
-				// Determine how many hours to sample based on the range
-				// For narrow ranges, sample every hour
-				// For wider ranges, sample fewer hours per day
-				stride := 1
-				if totalDays > 3 {
-					stride = 4 // Sample every 4 hours for ranges > 3 days
-				} else if totalDays > 1 {
-					stride = 2 // Sample every 2 hours for 2-3 day ranges
-				}
-
-				// Add time targets with appropriate stride
-				for hour := startHour; hour < endHour; hour += stride {
-					timeTargets = append(timeTargets, timeTarget{date: currentDate, hour: hour})
-				}
-			}
-		}
-
-		// Log the targeting plan
-		logger.Debug("listS3FlowLogEvents", "message", "Created time targets for distributed sampling",
-			"target_count", len(timeTargets))
-
-		// Shuffle time targets to improve distribution in case of timeout
-		// This helps ensure we don't process all early times first
-		// Using Fisher-Yates shuffle
-		for i := len(timeTargets) - 1; i > 0; i-- {
-			j := i
-			if i > 0 {
-				// Use a simple deterministic shuffle based on the indices
-				// since we don't have a real random source here
-				j = (i*7 + 3) % (i + 1)
-			}
-			timeTargets[i], timeTargets[j] = timeTargets[j], timeTargets[i]
-		}
-
-		// Process each time target concurrently (but limit concurrent API calls)
-		// This allows us to process files from across the time range immediately
-		// rather than waiting for the entire listing to complete
-
-		// Create a throttling channel to limit concurrent API calls
-		// This prevents too many simultaneous S3 requests
-		concurrencyLimit := 5
-		throttle := make(chan struct{}, concurrencyLimit)
-
-		// Create a wait group to track completion of all list operations
-		var listWg sync.WaitGroup
-
-		// Process time targets
-		for _, target := range timeTargets {
-			listWg.Add(1)
-
-			// Throttle concurrent API calls
-			throttle <- struct{}{}
-
-			// Start a goroutine to process this time target
-			go func(date time.Time, hour int) {
-				defer listWg.Done()
-				defer func() { <-throttle }() // Release throttle when done
-
-				// Format the hour for the pattern-matching prefix
-				hourStr := fmt.Sprintf("%02d", hour)
-
-				// Build pattern for direct time slot targeting
-				// Structure is typically: base_prefix/YYYY/MM/DD/AccountID_vpcflowlogs_region_*_YYYYMMDDTHHMM*
-				dateStr := fmt.Sprintf("%d%02d%02d", date.Year(), date.Month(), date.Day())
-				timePattern := dateStr + "T" + hourStr
-
-				// Build the date component of the prefix
-				datePrefix := r.prefix
-				if !strings.HasSuffix(datePrefix, "/") {
-					datePrefix += "/"
-				}
-
-				// Add region between vpcflowlogs prefix and date components
-				if strings.Contains(datePrefix, "vpcflowlogs/") && !strings.Contains(datePrefix, fmt.Sprintf("vpcflowlogs/%s/", r.region)) {
-					// Replace "vpcflowlogs/" with "vpcflowlogs/region/"
-					datePrefix = strings.Replace(datePrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", r.region), 1)
-				}
-
-				// If the prefix doesn't already include date components, add them
-				if !strings.Contains(datePrefix, fmt.Sprintf("/%d/%02d/%02d/", date.Year(), date.Month(), date.Day())) {
-					datePrefix += fmt.Sprintf("%d/%02d/%02d/", date.Year(), date.Month(), date.Day())
-				}
-
-				logger.Debug("listS3FlowLogEvents", "message", "Directly targeting time slot",
-					"date", dateStr, "hour", hourStr, "prefix", datePrefix)
-
-				// List objects for this specific time slot
-				paginator := s3.NewListObjectsV2Paginator(r.s3Client, &s3.ListObjectsV2Input{
-					Bucket: aws.String(r.bucket),
-					Prefix: aws.String(datePrefix),
-					// Use a small page size to get first results quickly
-					MaxKeys: aws.Int32(50),
-				})
-
-				// Process each page for this time slot
-				timeSlotCount := 0
-				for paginator.HasMorePages() {
-					// Check context before fetching next page
-					if ctx.Err() != nil {
-						return
-					}
-
-					page, err := paginator.NextPage(ctx)
-					if err != nil {
-						logger.Error("listS3FlowLogEvents", "message", "Error listing objects for time slot",
-							"date", dateStr, "hour", hourStr, "error", err)
-						if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-							return
-						}
-						select {
-						case errorChan <- err:
-						case <-ctx.Done():
-						}
-						return
-					}
-
-					// Filter objects that match our time pattern
-					var slotObjects []s3types.Object
-					for _, obj := range page.Contents {
-						key := aws.ToString(obj.Key)
-						if !strings.HasSuffix(key, ".log.gz") {
-							continue
-						}
-
-						// Match our specific time slot (hour)
-						// Use the original regex to extract the timestamp
-						if matches := reTs.FindStringSubmatch(key); len(matches) > 1 {
-							tsPart := matches[1]
-
-							// Check if this file belongs to our target hour
-							if strings.HasPrefix(tsPart, timePattern) {
-								fileTs, err := time.Parse("20060102T1504", tsPart)
-								if err != nil {
-									logger.Warn("listS3FlowLogEvents", "message", "Failed to parse timestamp from key",
-										"key", key, "error", err)
-									continue
-								}
-
-								// Double-check that file is within our time bounds
-								if (r.startTime != nil && fileTs.Before(*r.startTime)) ||
-									(r.endTime != nil && fileTs.After(*r.endTime)) {
-									continue
-								}
-
-								slotObjects = append(slotObjects, obj)
-								timeSlotCount++
-							}
-						}
-					}
-
-					// Process matched objects for this time slot
-					// Send objects directly to processing
-					for i := 0; i < len(slotObjects) && ctx.Err() == nil; i++ {
-						obj := slotObjects[i]
-						key := aws.ToString(obj.Key)
-
-						// Atomically increment counts
-						atomic.AddInt32(&objectCount, 1)
-						atomic.AddInt32(&processedCount, 1)
-
-						logger.Trace("listS3FlowLogEvents", "message", "Processing object from time slot",
-							"date", dateStr, "hour", hourStr, "key", key)
-
-						// Send object to processing channel
-						select {
-						case objChan <- obj:
-						case <-ctx.Done():
-							return
-						}
-					}
-				}
-
-				logger.Debug("listS3FlowLogEvents", "message", "Completed processing time slot",
-					"date", dateStr, "hour", hourStr, "objects", timeSlotCount)
-
-			}(target.date, target.hour)
-		}
-
-		// Wait for all listing operations to complete or context to be canceled
-		listingDone := make(chan struct{})
-		go func() {
-			listWg.Wait()
-			close(listingDone)
-		}()
-
-		// Wait for either completion or cancellation
-		select {
-		case <-listingDone:
-			logger.Debug("listS3FlowLogEvents", "message", "All time slots processed",
-				"total_objects", atomic.LoadInt32(&objectCount))
-		case <-ctx.Done():
-			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-				logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing stopped due to timeout",
-					"extraction_time_seconds", extractionTime, "objects_processed", atomic.LoadInt32(&processedCount))
-			} else {
-				logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing cancelled",
-					"objects_processed", atomic.LoadInt32(&processedCount))
-			}
-		}
-	}()
+	go r.processS3Objects(ctx, objChan, errorChan, listingDoneChan, reTs, extractionTime, logger)
 
 	// Stream results to output while checking for errors
 	// Prioritize context check before starting the streaming loop
@@ -671,6 +206,508 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 			logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
 				"error", ctx.Err())
 			return ctx.Err()
+		}
+	}
+}
+
+// processObjectsWorker processes S3 objects from the object channel and sends flow log events to the results channel
+func (r *S3FlowLogEventsRetriever) processObjectsWorker(
+	ctx context.Context,
+	workerID int,
+	objChan <-chan s3types.Object,
+	resultsChan chan<- s3FlowLogEvent,
+	errorChan chan<- error,
+	reCommentPrefix *regexp.Regexp,
+	workersWg *sync.WaitGroup,
+	logger hclog.Logger,
+) {
+	logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+		"message", "Worker started")
+	defer workersWg.Done()
+	for obj := range objChan {
+		key := aws.ToString(obj.Key)
+		logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+			"message", "Processing object", "key", key)
+
+		// download object
+		objOut, err := r.s3Client.GetObject(ctx, &s3.GetObjectInput{
+			Bucket: aws.String(r.bucket),
+			Key:    aws.String(key),
+		})
+		if err != nil {
+			logger.Error("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Failed to get object from S3",
+				"key", key, "error", err)
+			select {
+			case errorChan <- err:
+			case <-ctx.Done():
+				return
+			}
+			continue
+		}
+
+		gr, err := gzip.NewReader(objOut.Body)
+		if err != nil {
+			logger.Error("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Failed to create gzip reader",
+				"key", key, "error", err)
+			objOut.Body.Close()
+			select {
+			case errorChan <- err:
+			case <-ctx.Done():
+				return
+			}
+			continue
+		}
+
+		// Use a scanner for better line reading performance
+		scanner := bufio.NewScanner(gr)
+		// Increase buffer size for large lines
+		const maxScanTokenSize = 1024 * 1024
+		buf := make([]byte, maxScanTokenSize)
+		scanner.Buffer(buf, maxScanTokenSize)
+
+		hasFilters := len(r.filters) > 0
+
+		lineNum := 0
+		for scanner.Scan() {
+			line := scanner.Text()
+
+			// Skip empty lines and comments more efficiently
+			if line == "" || reCommentPrefix.MatchString(line) {
+				continue
+			}
+
+			fields := strings.Fields(line)
+			if len(fields) < 14 {
+				continue // malformed
+			}
+
+			// If filters exist, do a quick check before creating the full event
+			// This avoids the overhead of creating the event object for records
+			// that will be filtered out anyway
+			if hasFilters {
+				// Quick check for filter matches
+				match := true
+				for _, f := range r.filters {
+					if !strings.Contains(line, f) {
+						match = false
+						break
+					}
+				}
+				if !match {
+					lineNum++
+					continue
+				}
+			}
+
+			// build event
+			endField := fields[11]
+			endUnix, _ := strconv.ParseInt(endField, 10, 64)
+			endMillis := endUnix * 1000
+
+			var ingestion *int64
+			if obj.LastModified != nil {
+				ingestion = aws.Int64(obj.LastModified.UnixMilli())
+			}
+
+			ev := s3FlowLogEvent{
+				FilteredLogEvent: types.FilteredLogEvent{
+					Message:       aws.String(line),
+					EventId:       aws.String(fmt.Sprintf("%s:%d", key, lineNum)),
+					Timestamp:     aws.Int64(endMillis),
+					IngestionTime: ingestion,
+				},
+				BucketName: r.bucket,
+				S3Key:      key,
+			}
+
+			select {
+			case resultsChan <- ev:
+			case <-ctx.Done():
+				gr.Close()
+				objOut.Body.Close()
+				return
+			}
+			lineNum++
+		}
+
+		if err := scanner.Err(); err != nil {
+			logger.Error("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Scanner error while processing file",
+				"key", key, "error", err)
+			select {
+			case errorChan <- err:
+			case <-ctx.Done():
+			}
+		}
+
+		logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+			"message", "Completed processing object",
+			"key", key, "lines_processed", lineNum)
+		gr.Close()
+		objOut.Body.Close()
+	}
+	logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+		"message", "Worker finished")
+}
+
+// processTimeTarget processes a specific time slot and sends matching objects to the object channel
+func (r *S3FlowLogEventsRetriever) processTimeTarget(
+	ctx context.Context,
+	date time.Time,
+	hour int,
+	objChan chan<- s3types.Object,
+	errorChan chan<- error,
+	reTs *regexp.Regexp,
+	objectCount *int32,
+	processedCount *int32,
+	logger hclog.Logger,
+) {
+	// Format the hour for the pattern-matching prefix
+	hourStr := fmt.Sprintf("%02d", hour)
+
+	// Build pattern for direct time slot targeting
+	// Structure is typically: base_prefix/YYYY/MM/DD/AccountID_vpcflowlogs_region_*_YYYYMMDDTHHMM*
+	dateStr := fmt.Sprintf("%d%02d%02d", date.Year(), date.Month(), date.Day())
+	timePattern := dateStr + "T" + hourStr
+
+	// Build the date component of the prefix
+	datePrefix := r.prefix
+	if !strings.HasSuffix(datePrefix, "/") {
+		datePrefix += "/"
+	}
+
+	// Add region between vpcflowlogs prefix and date components
+	if strings.Contains(datePrefix, "vpcflowlogs/") && !strings.Contains(datePrefix, fmt.Sprintf("vpcflowlogs/%s/", r.region)) {
+		// Replace "vpcflowlogs/" with "vpcflowlogs/region/"
+		datePrefix = strings.Replace(datePrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", r.region), 1)
+	}
+
+	// If the prefix doesn't already include date components, add them
+	if !strings.Contains(datePrefix, fmt.Sprintf("/%d/%02d/%02d/", date.Year(), date.Month(), date.Day())) {
+		datePrefix += fmt.Sprintf("%d/%02d/%02d/", date.Year(), date.Month(), date.Day())
+	}
+
+	logger.Debug("listS3FlowLogEvents", "message", "Directly targeting time slot",
+		"date", dateStr, "hour", hourStr, "prefix", datePrefix)
+
+	// List objects for this specific time slot
+	paginator := s3.NewListObjectsV2Paginator(r.s3Client, &s3.ListObjectsV2Input{
+		Bucket: aws.String(r.bucket),
+		Prefix: aws.String(datePrefix),
+		// Use a small page size to get first results quickly
+		MaxKeys: aws.Int32(50),
+	})
+
+	// Process each page for this time slot
+	timeSlotCount := 0
+	for paginator.HasMorePages() {
+		// Check context before fetching next page
+		if ctx.Err() != nil {
+			return
+		}
+
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			logger.Error("listS3FlowLogEvents", "message", "Error listing objects for time slot",
+				"date", dateStr, "hour", hourStr, "error", err)
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return
+			}
+			select {
+			case errorChan <- err:
+			case <-ctx.Done():
+			}
+			return
+		}
+
+		// Filter objects that match our time pattern
+		var slotObjects []s3types.Object
+		for _, obj := range page.Contents {
+			key := aws.ToString(obj.Key)
+			if !strings.HasSuffix(key, ".log.gz") {
+				continue
+			}
+
+			// Match our specific time slot (hour)
+			// Use the original regex to extract the timestamp
+			if matches := reTs.FindStringSubmatch(key); len(matches) > 1 {
+				tsPart := matches[1]
+
+				// Check if this file belongs to our target hour
+				if strings.HasPrefix(tsPart, timePattern) {
+					fileTs, err := time.Parse("20060102T1504", tsPart)
+					if err != nil {
+						logger.Warn("listS3FlowLogEvents", "message", "Failed to parse timestamp from key",
+							"key", key, "error", err)
+						continue
+					}
+
+					// Double-check that file is within our time bounds
+					if (r.startTime != nil && fileTs.Before(*r.startTime)) ||
+						(r.endTime != nil && fileTs.After(*r.endTime)) {
+						continue
+					}
+
+					slotObjects = append(slotObjects, obj)
+					timeSlotCount++
+				}
+			}
+		}
+
+		// Process matched objects for this time slot
+		// Send objects directly to processing
+		for i := 0; i < len(slotObjects) && ctx.Err() == nil; i++ {
+			obj := slotObjects[i]
+			key := aws.ToString(obj.Key)
+
+			// Atomically increment counts
+			atomic.AddInt32(objectCount, 1)
+			atomic.AddInt32(processedCount, 1)
+
+			logger.Trace("listS3FlowLogEvents", "message", "Processing object from time slot",
+				"date", dateStr, "hour", hourStr, "key", key)
+
+			// Send object to processing channel
+			select {
+			case objChan <- obj:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}
+
+	logger.Debug("listS3FlowLogEvents", "message", "Completed processing time slot",
+		"date", dateStr, "hour", hourStr, "objects", timeSlotCount)
+}
+
+// processS3Objects handles S3 object discovery and sends objects to the worker pool
+func (r *S3FlowLogEventsRetriever) processS3Objects(
+	ctx context.Context,
+	objChan chan<- s3types.Object,
+	errorChan chan<- error,
+	listingDoneChan chan<- struct{},
+	reTs *regexp.Regexp,
+	extractionTime int,
+	logger hclog.Logger,
+) {
+	var objectCount int32 = 0
+	var processedCount int32 = 0
+	defer func() {
+		// Close channels to signal completion
+		close(objChan)
+		close(listingDoneChan)
+		logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
+			"eligible_objects_found", atomic.LoadInt32(&objectCount), "processed_objects", atomic.LoadInt32(&processedCount))
+	}()
+
+	// If we have no time bounds, use default listing
+	if r.startTime == nil && r.endTime == nil {
+		// Prepare prefix with region component
+		listPrefix := r.prefix
+		if !strings.HasSuffix(listPrefix, "/") {
+			listPrefix += "/"
+		}
+
+		// Add region between vpcflowlogs prefix and any trailing components
+		if strings.Contains(listPrefix, "vpcflowlogs/") && !strings.Contains(listPrefix, fmt.Sprintf("vpcflowlogs/%s/", r.region)) {
+			// Replace "vpcflowlogs/" with "vpcflowlogs/region/"
+			listPrefix = strings.Replace(listPrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", r.region), 1)
+		}
+
+		logger.Debug("listS3FlowLogEvents", "message", "Listing S3 objects", "prefix", listPrefix)
+
+		// Use standard listing for cases with no time filtering
+		paginator := s3.NewListObjectsV2Paginator(r.s3Client, &s3.ListObjectsV2Input{
+			Bucket: aws.String(r.bucket),
+			Prefix: aws.String(listPrefix),
+		})
+
+		pageCount := 0
+		for paginator.HasMorePages() {
+			pageCount++
+			logger.Trace("listS3FlowLogEvents", "message", "Retrieving page of S3 objects",
+				"page", pageCount)
+
+			page, err := paginator.NextPage(ctx)
+			if err != nil {
+				logger.Error("listS3FlowLogEvents", "message", "Error listing S3 objects",
+					"error", err, "page", pageCount)
+				select {
+				case errorChan <- err:
+				case <-ctx.Done():
+				}
+				return
+			}
+
+			for _, obj := range page.Contents {
+				key := aws.ToString(obj.Key)
+				if !strings.HasSuffix(key, ".log.gz") {
+					continue
+				}
+
+				// Found an eligible object, send it to worker pool
+				atomic.AddInt32(&objectCount, 1)
+				atomic.AddInt32(&processedCount, 1)
+				logger.Trace("listS3FlowLogEvents", "message", "Found eligible object",
+					"key", key, "count", atomic.LoadInt32(&objectCount))
+				select {
+				case objChan <- obj:
+				case <-ctx.Done():
+					return
+				}
+			}
+		}
+		return
+	}
+
+	// For time-bounded searches, use progressive processing with direct time slot targeting
+	// First, compute date range for our search
+	// Default to a reasonable range if not fully specified
+	now := time.Now()
+	searchStartTime := r.startTime
+	searchEndTime := r.endTime
+	if searchStartTime == nil {
+		// Default to 1 day before end time or current time
+		if searchEndTime != nil {
+			defaultStart := searchEndTime.Add(-24 * time.Hour)
+			searchStartTime = &defaultStart
+		} else {
+			defaultStart := now.Add(-24 * time.Hour)
+			searchStartTime = &defaultStart
+		}
+	}
+	if searchEndTime == nil {
+		// Default to now if no end time provided
+		searchEndTime = &now
+	}
+
+	// Create a structure to track dates and hours we need to process
+	type timeTarget struct {
+		date time.Time
+		hour int
+	}
+
+	// Build a queue of time targets to process, distributed across the time range
+	var timeTargets []timeTarget
+
+	// Get start and end date at day granularity
+	startDate := time.Date(searchStartTime.Year(), searchStartTime.Month(), searchStartTime.Day(), 0, 0, 0, 0, searchStartTime.Location())
+	endDate := time.Date(searchEndTime.Year(), searchEndTime.Month(), searchEndTime.Day(), 0, 0, 0, 0, searchEndTime.Location())
+
+	// Calculate total days in range
+	totalDays := int(endDate.Sub(startDate).Hours()/24) + 1
+	logger.Debug("listS3FlowLogEvents", "message", "Time range calculated",
+		"start_date", startDate.Format("2006-01-02"),
+		"end_date", endDate.Format("2006-01-02"),
+		"total_days", totalDays)
+
+	// Create time targets that are well-distributed across the time range
+	// For each day, we'll create targets for specific hours
+	for day := 0; day < totalDays; day++ {
+		currentDate := startDate.AddDate(0, 0, day)
+
+		// For the first and last day, respect the actual start/end time's hour
+		var startHour, endHour int
+		if day == 0 {
+			// First day - start at the actual start time's hour
+			startHour = searchStartTime.Hour()
+		} else {
+			startHour = 0
+		}
+
+		if day == totalDays-1 && currentDate.Equal(endDate) {
+			// Last day - end at the actual end time's hour
+			endHour = searchEndTime.Hour() + 1 // +1 to include the hour of end time
+		} else {
+			endHour = 24
+		}
+
+		// Create targets for specific hours, balanced across the time range
+		// Use a stride to ensure even distribution
+		if endHour > startHour {
+			// Determine how many hours to sample based on the range
+			// For narrow ranges, sample every hour
+			// For wider ranges, sample fewer hours per day
+			stride := 1
+			if totalDays > 3 {
+				stride = 4 // Sample every 4 hours for ranges > 3 days
+			} else if totalDays > 1 {
+				stride = 2 // Sample every 2 hours for 2-3 day ranges
+			}
+
+			// Add time targets with appropriate stride
+			for hour := startHour; hour < endHour; hour += stride {
+				timeTargets = append(timeTargets, timeTarget{date: currentDate, hour: hour})
+			}
+		}
+	}
+
+	// Log the targeting plan
+	logger.Debug("listS3FlowLogEvents", "message", "Created time targets for distributed sampling",
+		"target_count", len(timeTargets))
+
+	// Shuffle time targets to improve distribution in case of timeout
+	// This helps ensure we don't process all early times first
+	// Using Fisher-Yates shuffle
+	for i := len(timeTargets) - 1; i > 0; i-- {
+		j := i
+		if i > 0 {
+			// Use a simple deterministic shuffle based on the indices
+			// since we don't have a real random source here
+			j = (i*7 + 3) % (i + 1)
+		}
+		timeTargets[i], timeTargets[j] = timeTargets[j], timeTargets[i]
+	}
+
+	// Process each time target concurrently (but limit concurrent API calls)
+	// This allows us to process files from across the time range immediately
+	// rather than waiting for the entire listing to complete
+
+	// Create a throttling channel to limit concurrent API calls
+	// This prevents too many simultaneous S3 requests
+	concurrencyLimit := 5
+	throttle := make(chan struct{}, concurrencyLimit)
+
+	// Create a wait group to track completion of all list operations
+	var listWg sync.WaitGroup
+
+	// Process time targets
+	for _, target := range timeTargets {
+		listWg.Add(1)
+
+		// Throttle concurrent API calls
+		throttle <- struct{}{}
+
+		// Start a goroutine to process this time target
+		go func(date time.Time, hour int) {
+			defer listWg.Done()
+			defer func() { <-throttle }() // Release throttle when done
+
+			r.processTimeTarget(ctx, date, hour, objChan, errorChan, reTs, &objectCount, &processedCount, logger)
+		}(target.date, target.hour)
+	}
+
+	// Wait for all listing operations to complete or context to be canceled
+	listingDone := make(chan struct{})
+	go func() {
+		listWg.Wait()
+		close(listingDone)
+	}()
+
+	// Wait for either completion or cancellation
+	select {
+	case <-listingDone:
+		logger.Debug("listS3FlowLogEvents", "message", "All time slots processed",
+			"total_objects", atomic.LoadInt32(&objectCount))
+	case <-ctx.Done():
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing stopped due to timeout",
+				"extraction_time_seconds", extractionTime, "objects_processed", atomic.LoadInt32(&processedCount))
+		} else {
+			logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing cancelled",
+				"objects_processed", atomic.LoadInt32(&processedCount))
 		}
 	}
 }
