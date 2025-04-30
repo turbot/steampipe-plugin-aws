@@ -477,6 +477,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_s3_object":                                                tableAwsS3Object(ctx),
 			"aws_s3_object_version":                                        tableAwsS3ObjectVersion(ctx),
 			"aws_sagemaker_app":                                            tableAwsSageMakerApp(ctx),
+			"aws_sagemaker_device_fleet":                                   tableAwsSageMakerDeviceFleet(ctx),
 			"aws_sagemaker_domain":                                         tableAwsSageMakerDomain(ctx),
 			"aws_sagemaker_endpoint_configuration":                         tableAwsSageMakerEndpointConfiguration(ctx),
 			"aws_sagemaker_model":                                          tableAwsSageMakerModel(ctx),
