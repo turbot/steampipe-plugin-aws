@@ -144,9 +144,8 @@ func listCloudwatchLogEventsFromS3(ctx context.Context, d *plugin.QueryData) (in
 		return nil, err
 	}
 
-	// Get extraction time from query parameters or use default (10 minutes)
-	const defaultExtractionTime = 600
-	extractionTime := getExtractionTime(d, defaultExtractionTime)
+	// Get extraction time from query parameters or use default
+	extractionTime := getExtractionTime(d, vpcflowlogs.DefaultTimeoutSeconds)
 
 	retriever := vpcflowlogs.NewS3FlowLogEventsRetriever(buildFilter(d.EqualsQuals), d.StreamListItem, s3Client, region, bucket, prefix, startTime, endTime, plugin.Logger(ctx))
 

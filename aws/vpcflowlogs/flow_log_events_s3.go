@@ -19,9 +19,28 @@ import (
 	"time"
 )
 
+// Configuration constants for processing S3 flow logs
+const (
+	// Concurrent processing settings
+	DefaultMaxConcurrentDownloads = 5    // Number of concurrent worker goroutines
+	DefaultResultsChannelSize     = 1000 // Size of the channel buffer for results
+	DefaultObjectChannelSize      = 100  // Size of the channel buffer for S3 objects
+	DefaultConcurrencyLimit       = 5    // Limit for concurrent S3 list operations
+
+	// Default time targeting settings
+	DefaultTimeoutSeconds = 600 // Default timeout for extraction operations (10 minutes)
+	DefaultLookbackHours  = 24  // Default lookback period when not specified
+
+	// S3 pagination settings
+	DefaultS3PageSize = 50 // Page size for S3 listing operations
+
+	// Scanner settings
+	MaxScanTokenSize = 1024 * 1024 // Maximum size for scanner buffer (1MB)
+)
+
 // Precompiled regex patterns for better performance
-var reCommentPrefix = regexp.MustCompile(`^(#|version\s)`)
-var reTs = regexp.MustCompile(`_(\d{8}T\d{4})Z_`)
+var reCommentPrefix = regexp.MustCompile(`^(#|version\s)`) // Pattern to match comment lines in logs
+var reTs = regexp.MustCompile(`_(\d{8}T\d{4})Z_`)          // Pattern to extract timestamps from S3 keys
 
 // S3FlowLogEvent represents a flow log event from S3 storage
 type S3FlowLogEvent struct {
@@ -67,15 +86,10 @@ func NewS3FlowLogEventsRetriever(filters []string, itemStreamer ItemStreamer, s3
 func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extractionTime int) error {
 	r.logger.Debug("listS3FlowLogEvents", "message", "Starting S3 flow log retrieval operation")
 
-	// Constant for controlling concurrency
-	const maxConcurrentDownloads = 5
-	const resultsChannelSize = 1000
-	const objectChannelSize = 100 // Buffer for eligible objects
-
 	// Setup channels for concurrent processing - create a pipeline
-	objChan := make(chan s3types.Object, objectChannelSize)
-	resultsChan := make(chan S3FlowLogEvent, resultsChannelSize)
-	errorChan := make(chan error, maxConcurrentDownloads)
+	objChan := make(chan s3types.Object, DefaultObjectChannelSize)
+	resultsChan := make(chan S3FlowLogEvent, DefaultResultsChannelSize)
+	errorChan := make(chan error, DefaultMaxConcurrentDownloads)
 	listingDoneChan := make(chan struct{})    // Signal that S3 listing is complete
 	processingDoneChan := make(chan struct{}) // Signal that processing is complete
 
@@ -88,10 +102,10 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 
 	// Start workers to process objects concurrently
 	// Workers begin processing immediately as objects become available from objChan
-	r.logger.Debug("listS3FlowLogEvents", "workers", maxConcurrentDownloads,
+	r.logger.Debug("listS3FlowLogEvents", "workers", DefaultMaxConcurrentDownloads,
 		"message", "Starting worker goroutines")
 	var workersWg sync.WaitGroup
-	for i := 0; i < maxConcurrentDownloads; i++ {
+	for i := 0; i < DefaultMaxConcurrentDownloads; i++ {
 		workersWg.Add(1)
 		go func() {
 			defer workersWg.Done()
@@ -227,6 +241,16 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 	r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 		"message", "Worker started")
 	for obj := range objChan {
+		// Check if context is done before processing any object
+		select {
+		case <-ctx.Done():
+			r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Context done, worker exiting early")
+			return
+		default:
+			// Continue processing
+		}
+
 		key := aws.ToString(obj.Key)
 		r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 			"message", "Processing object", "key", key)
@@ -265,9 +289,8 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 		// Use a scanner for better line reading performance
 		scanner := bufio.NewScanner(gr)
 		// Increase buffer size for large lines
-		const maxScanTokenSize = 1024 * 1024
-		buf := make([]byte, maxScanTokenSize)
-		scanner.Buffer(buf, maxScanTokenSize)
+		buf := make([]byte, MaxScanTokenSize)
+		scanner.Buffer(buf, MaxScanTokenSize)
 
 		hasFilters := len(r.filters) > 0
 
@@ -397,7 +420,7 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 		Bucket: aws.String(r.bucket),
 		Prefix: aws.String(datePrefix),
 		// Use a small page size to get first results quickly
-		MaxKeys: aws.Int32(50),
+		MaxKeys: aws.Int32(DefaultS3PageSize),
 	})
 
 	// Process each page for this time slot
@@ -567,12 +590,12 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	searchStartTime := r.startTime
 	searchEndTime := r.endTime
 	if searchStartTime == nil {
-		// Default to 1 day before end time or current time
+		// Default to lookback period before end time or current time
 		if searchEndTime != nil {
-			defaultStart := searchEndTime.Add(-24 * time.Hour)
+			defaultStart := searchEndTime.Add(-time.Duration(DefaultLookbackHours) * time.Hour)
 			searchStartTime = &defaultStart
 		} else {
-			defaultStart := now.Add(-24 * time.Hour)
+			defaultStart := now.Add(-time.Duration(DefaultLookbackHours) * time.Hour)
 			searchStartTime = &defaultStart
 		}
 	}
@@ -665,8 +688,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 
 	// Create a throttling channel to limit concurrent API calls
 	// This prevents too many simultaneous S3 requests
-	concurrencyLimit := 5
-	throttle := make(chan struct{}, concurrencyLimit)
+	throttle := make(chan struct{}, DefaultConcurrencyLimit)
 
 	// Create a wait group to track completion of all list operations
 	var listWg sync.WaitGroup
