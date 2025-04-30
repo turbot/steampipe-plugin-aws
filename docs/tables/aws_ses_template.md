@@ -1,25 +1,22 @@
 ---
 title: "Steampipe Table: aws_ses_template - Query AWS SES Templates using SQL"
-description: "Allows users to query AWS SES Templates for detailed information about email templates used in Amazon Simple Email Service."
+description: "Allows users to query AWS SES Templates and retrieve detailed information about each template, including its name, subject, content, and timestamps."
 folder: "SES"
 ---
 
 # Table: aws_ses_template - Query AWS SES Templates using SQL
 
-Amazon Simple Email Service (SES) Templates are reusable email templates that can be used to send personalized emails. These templates can include both HTML and text content, along with subject lines, making it easier to maintain consistent email formatting and content across your application.
+The AWS SES Template is a feature of Amazon Simple Email Service (SES) that allows you to create and manage email templates. These templates can include both HTML and text content, along with variables that can be replaced with actual values when sending emails. Templates help maintain consistent branding and messaging across your email communications while simplifying the email sending process.
 
 ## Table Usage Guide
 
-The `aws_ses_template` table provides information about email templates in Amazon SES. You can use this table to:
-
-- List all available email templates
-- Get detailed information about a specific template, including its HTML and text content
-- Monitor template creation and update timestamps
-- Track template usage across your AWS account
+The `aws_ses_template` table in Steampipe provides you with information about email templates within AWS Simple Email Service (SES). This table allows you, as a DevOps engineer or email administrator, to query template-specific details, including the template name, subject line, HTML and text content, creation timestamp, and last update timestamp. You can utilize this table to gather insights on your email templates, such as their content, creation dates, and usage patterns. The schema outlines the various attributes of the SES template for you, including the template name, subject part, text part, HTML part, and associated metadata.
 
 ## Examples
 
 ### Basic info
+Explore the basic information of your AWS SES templates, including their names, subjects, and creation timestamps. This can help you maintain an overview of your email templates and their metadata.
+
 ```sql+postgres
 select
   name,
@@ -41,6 +38,8 @@ from
 ```
 
 ### Get template details by name
+Retrieve detailed information about a specific template, including its subject line and content. This is useful for reviewing or updating specific templates.
+
 ```sql+postgres
 select
   name,
@@ -51,7 +50,7 @@ select
 from
   aws_ses_template
 where
-  name = 'my-template';
+  name = 'MyTemplate';
 ```
 
 ```sql+sqlite
@@ -64,10 +63,12 @@ select
 from
   aws_ses_template
 where
-  name = 'my-template';
+  name = 'MyTemplate';
 ```
 
 ### List templates created in the last 30 days
+Identify recently created templates to track new additions to your email template library. This can help in maintaining an up-to-date inventory of your email templates.
+
 ```sql+postgres
 select
   name,
@@ -95,6 +96,8 @@ order by
 ```
 
 ### List templates with HTML content
+Find templates that include HTML formatting, which is useful for identifying templates that require special rendering or may need additional testing across different email clients.
+
 ```sql+postgres
 select
   name,
@@ -118,6 +121,8 @@ where
 ```
 
 ### List templates with text-only content
+Identify templates that contain only plain text content, which can be useful for ensuring accessibility and compatibility with all email clients.
+
 ```sql+postgres
 select
   name,
