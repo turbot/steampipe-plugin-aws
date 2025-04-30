@@ -49,6 +49,30 @@ type S3FlowLogEvent struct {
 	S3Key      string
 }
 
+// Helper functions for context handling
+
+// sendWithContext sends a value to a channel only if the context is not done
+// returns true if the value was sent, false if the context was done
+func sendWithContext[T any](ctx context.Context, ch chan<- T, value T) bool {
+	select {
+	case <-ctx.Done():
+		return false
+	case ch <- value:
+		return true
+	}
+}
+
+// logContextError logs the appropriate message when a context error occurs
+func logContextError(ctx context.Context, logger hclog.Logger, extractionTime int, resultCount int) {
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
+			"extraction_time_seconds", extractionTime, "results_found", resultCount)
+	} else {
+		logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
+			"error", ctx.Err())
+	}
+}
+
 // S3ClientInterface defines the methods we use from the S3 client for testing
 type S3ClientInterface interface {
 	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
@@ -148,32 +172,23 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 	}()
 
 	for {
-		// First priority: check if context is done at the start of each loop iteration
-		select {
-		case <-doneChan:
+		// Check if context is done at the start of each loop iteration
+		if ctx.Err() != nil {
+			logContextError(ctx, r.logger, extractionTime, resultCount)
 			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-				r.logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
-					"extraction_time_seconds", extractionTime, "results_found", resultCount)
-				return nil
+				return nil // Return success on timeout, just with partial results
 			}
-			r.logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
-				"error", ctx.Err())
 			return ctx.Err()
-		default:
-			// Continue with normal processing
 		}
 
-		// Second priority: process events and check other channels
+		// Process events and check channels
 		select {
 		case <-doneChan:
-			// Double-check for cancellation (prioritized)
+			// Context cancellation occurred
+			logContextError(ctx, r.logger, extractionTime, resultCount)
 			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-				r.logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
-					"extraction_time_seconds", extractionTime, "results_found", resultCount)
-				return nil
+				return nil // Return success on timeout, just with partial results
 			}
-			r.logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
-				"error", ctx.Err())
 			return ctx.Err()
 
 		case result, ok := <-resultsChan:
@@ -190,15 +205,14 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 					"count", resultCount)
 			}
 			// Stream with context awareness
-			select {
-			case <-doneChan:
-				// Context was cancelled while trying to stream
+			if ctx.Err() != nil {
 				r.logger.Info("listS3FlowLogEvents", "message", "Context cancelled during streaming, returning partial results",
 					"results_found", resultCount)
 				return nil
-			default:
-				r.itemStreamer(ctx, result)
 			}
+
+			// Pass result to the streamer
+			r.itemStreamer(ctx, result)
 
 		case err := <-errorChan:
 			// Cancel all in-progress work
@@ -218,13 +232,10 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 			return nil
 		case <-ctx.Done():
 			// Context cancelled externally or timeout
+			logContextError(ctx, r.logger, extractionTime, resultCount)
 			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-				r.logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
-					"extraction_time_seconds", extractionTime, "results_found", resultCount)
 				return nil
 			}
-			r.logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
-				"error", ctx.Err())
 			return ctx.Err()
 		}
 	}
@@ -242,13 +253,10 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 		"message", "Worker started")
 	for obj := range objChan {
 		// Check if context is done before processing any object
-		select {
-		case <-ctx.Done():
+		if ctx.Err() != nil {
 			r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 				"message", "Context done, worker exiting early")
 			return
-		default:
-			// Continue processing
 		}
 
 		key := aws.ToString(obj.Key)
@@ -264,9 +272,7 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 			r.logger.Error("listS3FlowLogEvents", "worker_id", workerID,
 				"message", "Failed to get object from S3",
 				"key", key, "error", err)
-			select {
-			case errorChan <- err:
-			case <-ctx.Done():
+			if !sendWithContext(ctx, errorChan, err) {
 				return
 			}
 			continue
@@ -278,9 +284,7 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 				"message", "Failed to create gzip reader",
 				"key", key, "error", err)
 			objOut.Body.Close()
-			select {
-			case errorChan <- err:
-			case <-ctx.Done():
+			if !sendWithContext(ctx, errorChan, err) {
 				return
 			}
 			continue
@@ -347,12 +351,10 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 				S3Key:      key,
 			}
 
-			select {
-			case <-ctx.Done():
+			if !sendWithContext(ctx, resultsChan, ev) {
 				gr.Close()
 				objOut.Body.Close()
 				return
-			case resultsChan <- ev:
 			}
 			lineNum++
 		}
@@ -361,10 +363,7 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 			r.logger.Error("listS3FlowLogEvents", "worker_id", workerID,
 				"message", "Scanner error while processing file",
 				"key", key, "error", err)
-			select {
-			case errorChan <- err:
-			case <-ctx.Done():
-			}
+			sendWithContext(ctx, errorChan, err)
 		}
 
 		r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
@@ -438,10 +437,7 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				return
 			}
-			select {
-			case errorChan <- err:
-			case <-ctx.Done():
-			}
+			sendWithContext(ctx, errorChan, err)
 			return
 		}
 
@@ -493,9 +489,7 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 				"date", dateStr, "hour", hourStr, "key", key)
 
 			// Send object to processing channel
-			select {
-			case objChan <- obj:
-			case <-ctx.Done():
+			if !sendWithContext(ctx, objChan, obj) {
 				return
 			}
 		}
@@ -555,10 +549,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 			if err != nil {
 				r.logger.Error("listS3FlowLogEvents", "message", "Error listing S3 objects",
 					"error", err, "page", pageCount)
-				select {
-				case errorChan <- err:
-				case <-ctx.Done():
-				}
+				sendWithContext(ctx, errorChan, err)
 				return
 			}
 
@@ -573,9 +564,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 				atomic.AddInt32(&processedCount, 1)
 				r.logger.Trace("listS3FlowLogEvents", "message", "Found eligible object",
 					"key", key, "count", atomic.LoadInt32(&objectCount))
-				select {
-				case objChan <- obj:
-				case <-ctx.Done():
+				if !sendWithContext(ctx, objChan, obj) {
 					return
 				}
 			}
@@ -722,12 +711,6 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 		r.logger.Debug("listS3FlowLogEvents", "message", "All time slots processed",
 			"total_objects", atomic.LoadInt32(&objectCount))
 	case <-ctx.Done():
-		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			r.logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing stopped due to timeout",
-				"extraction_time_seconds", extractionTime, "objects_processed", atomic.LoadInt32(&processedCount))
-		} else {
-			r.logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing cancelled",
-				"objects_processed", atomic.LoadInt32(&processedCount))
-		}
+		logContextError(ctx, r.logger, extractionTime, int(atomic.LoadInt32(&processedCount)))
 	}
 }
