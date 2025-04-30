@@ -369,23 +369,18 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 		"message", "Worker finished")
 }
 
-// processTimeTarget processes a specific time slot and sends matching objects to the object channel
+// processTimeTarget processes a full day and sends matching objects to the object channel
 func (r *S3FlowLogEventsRetriever) processTimeTarget(
 	ctx context.Context,
 	date time.Time,
-	hour int,
 	objChan chan<- s3types.Object,
 	errorChan chan<- error,
 	objectCount *int32,
 	processedCount *int32,
 ) {
-	// Format the hour for the pattern-matching prefix
-	hourStr := fmt.Sprintf("%02d", hour)
-
-	// Build pattern for direct time slot targeting
-	// Structure is typically: base_prefix/YYYY/MM/DD/AccountID_vpcflowlogs_region_*_YYYYMMDDTHHMM*
+	// Build pattern for direct day targeting
+	// Structure is typically: base_prefix/YYYY/MM/DD/AccountID_vpcflowlogs_region_*_YYYYMMDD*
 	dateStr := fmt.Sprintf("%d%02d%02d", date.Year(), date.Month(), date.Day())
-	timePattern := dateStr + "T" + hourStr
 
 	// Build the date component of the prefix
 	datePrefix := r.prefix
@@ -404,10 +399,10 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 		datePrefix += fmt.Sprintf("%d/%02d/%02d/", date.Year(), date.Month(), date.Day())
 	}
 
-	r.logger.Debug("listS3FlowLogEvents", "message", "Directly targeting time slot",
-		"date", dateStr, "hour", hourStr, "prefix", datePrefix)
+	r.logger.Debug("listS3FlowLogEvents", "message", "Directly targeting full day",
+		"date", dateStr, "prefix", datePrefix)
 
-	// List objects for this specific time slot
+	// List objects for this full day
 	paginator := s3.NewListObjectsV2Paginator(r.s3Client, &s3.ListObjectsV2Input{
 		Bucket: aws.String(r.bucket),
 		Prefix: aws.String(datePrefix),
@@ -415,8 +410,8 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 		MaxKeys: aws.Int32(DefaultS3PageSize),
 	})
 
-	// Process each page for this time slot
-	timeSlotCount := 0
+	// Process each page for this day
+	dayObjectCount := 0
 	for paginator.HasMorePages() {
 		// Check context before fetching next page
 		if ctx.Err() != nil {
@@ -425,8 +420,8 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 
 		page, err := paginator.NextPage(ctx)
 		if err != nil {
-			r.logger.Error("listS3FlowLogEvents", "message", "Error listing objects for time slot",
-				"date", dateStr, "hour", hourStr, "error", err)
+			r.logger.Error("listS3FlowLogEvents", "message", "Error listing objects for day",
+				"date", dateStr, "error", err)
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				return
 			}
@@ -434,21 +429,20 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 			return
 		}
 
-		// Filter objects that match our time pattern
-		var slotObjects []s3types.Object
+		// Filter objects for this day
+		var dayObjects []s3types.Object
 		for _, obj := range page.Contents {
 			key := aws.ToString(obj.Key)
 			if !strings.HasSuffix(key, ".log.gz") {
 				continue
 			}
 
-			// Match our specific time slot (hour)
-			// Use the original regex to extract the timestamp
+			// Extract timestamp from the key
 			if matches := reTs.FindStringSubmatch(key); len(matches) > 1 {
 				tsPart := matches[1]
 
-				// Check if this file belongs to our target hour
-				if strings.HasPrefix(tsPart, timePattern) {
+				// Check if this file belongs to our target day
+				if strings.HasPrefix(tsPart, dateStr) {
 					fileTs, err := time.Parse("20060102T1504", tsPart)
 					if err != nil {
 						r.logger.Warn("listS3FlowLogEvents", "message", "Failed to parse timestamp from key",
@@ -462,24 +456,24 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 						continue
 					}
 
-					slotObjects = append(slotObjects, obj)
-					timeSlotCount++
+					dayObjects = append(dayObjects, obj)
+					dayObjectCount++
 				}
 			}
 		}
 
-		// Process matched objects for this time slot
+		// Process matched objects for this day
 		// Send objects directly to processing
-		for i := 0; i < len(slotObjects) && ctx.Err() == nil; i++ {
-			obj := slotObjects[i]
+		for i := 0; i < len(dayObjects) && ctx.Err() == nil; i++ {
+			obj := dayObjects[i]
 			key := aws.ToString(obj.Key)
 
 			// Atomically increment counts
 			atomic.AddInt32(objectCount, 1)
 			atomic.AddInt32(processedCount, 1)
 
-			r.logger.Trace("listS3FlowLogEvents", "message", "Processing object from time slot",
-				"date", dateStr, "hour", hourStr, "key", key)
+			r.logger.Trace("listS3FlowLogEvents", "message", "Processing object from day",
+				"date", dateStr, "key", key)
 
 			// Send object to processing channel
 			if !sendWithContext(ctx, objChan, obj) {
@@ -488,8 +482,8 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 		}
 	}
 
-	r.logger.Debug("listS3FlowLogEvents", "message", "Completed processing time slot",
-		"date", dateStr, "hour", hourStr, "objects", timeSlotCount)
+	r.logger.Debug("listS3FlowLogEvents", "message", "Completed processing day",
+		"date", dateStr, "objects", dayObjectCount)
 }
 
 // processS3Objects handles S3 object discovery and sends objects to the worker pool
@@ -529,10 +523,9 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 		searchEndTime = &now
 	}
 
-	// Create a structure to track dates and hours we need to process
+	// Create a structure to track dates we need to process
 	type timeTarget struct {
 		date time.Time
-		hour int
 	}
 
 	// Build a queue of time targets to process, distributed across the time range
@@ -549,45 +542,10 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 		"end_date", endDate.Format("2006-01-02"),
 		"total_days", totalDays)
 
-	// Create time targets that are well-distributed across the time range
-	// For each day, we'll create targets for specific hours
+	// Create time targets for each day in the range
 	for day := 0; day < totalDays; day++ {
 		currentDate := startDate.AddDate(0, 0, day)
-
-		// For the first and last day, respect the actual start/end time's hour
-		var startHour, endHour int
-		if day == 0 {
-			// First day - start at the actual start time's hour
-			startHour = searchStartTime.Hour()
-		} else {
-			startHour = 0
-		}
-
-		if day == totalDays-1 && currentDate.Equal(endDate) {
-			// Last day - end at the actual end time's hour
-			endHour = searchEndTime.Hour() + 1 // +1 to include the hour of end time
-		} else {
-			endHour = 24
-		}
-
-		// Create targets for specific hours, balanced across the time range
-		// Use a stride to ensure even distribution
-		if endHour > startHour {
-			// Determine how many hours to sample based on the range
-			// For narrow ranges, sample every hour
-			// For wider ranges, sample fewer hours per day
-			stride := 1
-			if totalDays > 3 {
-				stride = 4 // Sample every 4 hours for ranges > 3 days
-			} else if totalDays > 1 {
-				stride = 2 // Sample every 2 hours for 2-3 day ranges
-			}
-
-			// Add time targets with appropriate stride
-			for hour := startHour; hour < endHour; hour += stride {
-				timeTargets = append(timeTargets, timeTarget{date: currentDate, hour: hour})
-			}
-		}
+		timeTargets = append(timeTargets, timeTarget{date: currentDate})
 	}
 
 	// Log the targeting plan
@@ -626,12 +584,12 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 		throttle <- struct{}{}
 
 		// Start a goroutine to process this time target
-		go func(date time.Time, hour int) {
+		go func(date time.Time) {
 			defer listWg.Done()
 			defer func() { <-throttle }() // Release throttle when done
 
-			r.processTimeTarget(ctx, date, hour, objChan, errorChan, &objectCount, &processedCount)
-		}(target.date, target.hour)
+			r.processTimeTarget(ctx, date, objChan, errorChan, &objectCount, &processedCount)
+		}(target.date)
 	}
 
 	// Wait for all listing operations to complete or context to be canceled
