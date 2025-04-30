@@ -325,11 +325,11 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 			}
 
 			select {
-			case resultsChan <- ev:
 			case <-ctx.Done():
 				gr.Close()
 				objOut.Body.Close()
 				return
+			case resultsChan <- ev:
 			}
 			lineNum++
 		}
