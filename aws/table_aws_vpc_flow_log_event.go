@@ -182,8 +182,12 @@ func getMessageField(_ context.Context, _ *plugin.QueryData, h *plugin.HydrateDa
 		// CloudWatch rows
 		fields := strings.Fields(*v.Message)
 		return fields, nil
+	case vpcflowlogs.S3FlowLogEvent:
+		// S3 rows - access the embedded FilteredLogEvent's Message field
+		fields := strings.Fields(*v.Message)
+		return fields, nil
 	default:
-		return nil, fmt.Errorf("Unknown item type %T in getMessageField", v)
+		return nil, fmt.Errorf("unknown item type %T in getMessageField", v)
 	}
 }
 

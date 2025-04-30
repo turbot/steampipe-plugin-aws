@@ -23,7 +23,8 @@ import (
 var reCommentPrefix = regexp.MustCompile(`^(#|version\s)`)
 var reTs = regexp.MustCompile(`_(\d{8}T\d{4})Z_`)
 
-type s3FlowLogEvent struct {
+// S3FlowLogEvent represents a flow log event from S3 storage
+type S3FlowLogEvent struct {
 	types.FilteredLogEvent
 	BucketName string
 	S3Key      string
@@ -73,7 +74,7 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 
 	// Setup channels for concurrent processing - create a pipeline
 	objChan := make(chan s3types.Object, objectChannelSize)
-	resultsChan := make(chan s3FlowLogEvent, resultsChannelSize)
+	resultsChan := make(chan S3FlowLogEvent, resultsChannelSize)
 	errorChan := make(chan error, maxConcurrentDownloads)
 	listingDoneChan := make(chan struct{})    // Signal that S3 listing is complete
 	processingDoneChan := make(chan struct{}) // Signal that processing is complete
@@ -220,7 +221,7 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 	ctx context.Context,
 	workerID int,
 	objChan <-chan s3types.Object,
-	resultsChan chan<- s3FlowLogEvent,
+	resultsChan chan<- S3FlowLogEvent,
 	errorChan chan<- error,
 ) {
 	r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
@@ -312,7 +313,7 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 				ingestion = aws.Int64(obj.LastModified.UnixMilli())
 			}
 
-			ev := s3FlowLogEvent{
+			ev := S3FlowLogEvent{
 				FilteredLogEvent: types.FilteredLogEvent{
 					Message:       aws.String(line),
 					EventId:       aws.String(fmt.Sprintf("%s:%d", key, lineNum)),
