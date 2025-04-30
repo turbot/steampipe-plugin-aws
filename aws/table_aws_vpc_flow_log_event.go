@@ -148,9 +148,9 @@ func listCloudwatchLogEventsFromS3(ctx context.Context, d *plugin.QueryData) (in
 	const defaultExtractionTime = 600
 	extractionTime := getExtractionTime(d, defaultExtractionTime)
 
-	retriever := vpcflowlogs.NewS3FlowLogEventsRetriever(buildFilter(d.EqualsQuals), d.StreamListItem, s3Client, region, bucket, prefix, startTime, endTime)
+	retriever := vpcflowlogs.NewS3FlowLogEventsRetriever(buildFilter(d.EqualsQuals), d.StreamListItem, s3Client, region, bucket, prefix, startTime, endTime, plugin.Logger(ctx))
 
-	return nil, retriever.ListS3FlowLogEvents(ctx, plugin.Logger(ctx), extractionTime)
+	return nil, retriever.ListS3FlowLogEvents(ctx, extractionTime)
 }
 
 func getStartEndTime(d *plugin.QueryData) (*time.Time, *time.Time) {

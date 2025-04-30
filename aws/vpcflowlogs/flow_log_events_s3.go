@@ -19,6 +19,9 @@ import (
 	"time"
 )
 
+// Precompiled regex for better performance
+var reCommentPrefix = regexp.MustCompile(`^(#|version\s)`)
+
 type s3FlowLogEvent struct {
 	types.FilteredLogEvent
 	BucketName string
@@ -42,9 +45,10 @@ type S3FlowLogEventsRetriever struct {
 	prefix       string
 	startTime    *time.Time
 	endTime      *time.Time
+	logger       hclog.Logger
 }
 
-func NewS3FlowLogEventsRetriever(filters []string, itemStreamer ItemStreamer, s3Client S3ClientInterface, region string, bucket string, prefix string, startTime *time.Time, endTime *time.Time) *S3FlowLogEventsRetriever {
+func NewS3FlowLogEventsRetriever(filters []string, itemStreamer ItemStreamer, s3Client S3ClientInterface, region string, bucket string, prefix string, startTime *time.Time, endTime *time.Time, logger hclog.Logger) *S3FlowLogEventsRetriever {
 	return &S3FlowLogEventsRetriever{
 		filters:      filters,
 		itemStreamer: itemStreamer,
@@ -54,20 +58,20 @@ func NewS3FlowLogEventsRetriever(filters []string, itemStreamer ItemStreamer, s3
 		prefix:       prefix,
 		startTime:    startTime,
 		endTime:      endTime,
+		logger:       logger,
 	}
 }
 
-func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logger hclog.Logger, extractionTime int) error {
-	logger.Debug("listS3FlowLogEvents", "message", "Starting S3 flow log retrieval operation")
+func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extractionTime int) error {
+	r.logger.Debug("listS3FlowLogEvents", "message", "Starting S3 flow log retrieval operation")
 
 	// Constant for controlling concurrency
 	const maxConcurrentDownloads = 5
 	const resultsChannelSize = 1000
 	const objectChannelSize = 100 // Buffer for eligible objects
 
-	// Precompile patterns for better performance
+	// Precompile pattern for timestamp extraction
 	reTs := regexp.MustCompile(`_(\d{8}T\d{4})Z_`)
-	reCommentPrefix := regexp.MustCompile(`^(#|version\s)`)
 
 	// Setup channels for concurrent processing - create a pipeline
 	objChan := make(chan s3types.Object, objectChannelSize)
@@ -77,7 +81,7 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 	processingDoneChan := make(chan struct{}) // Signal that processing is complete
 
 	// Use the extraction time passed as a parameter
-	logger.Debug("listS3FlowLogEvents", "extraction_time", extractionTime)
+	r.logger.Debug("listS3FlowLogEvents", "extraction_time", extractionTime)
 
 	// Create a context with timeout based on extraction time
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(extractionTime)*time.Second)
@@ -85,12 +89,15 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 
 	// Start workers to process objects concurrently
 	// Workers begin processing immediately as objects become available from objChan
-	logger.Debug("listS3FlowLogEvents", "workers", maxConcurrentDownloads,
+	r.logger.Debug("listS3FlowLogEvents", "workers", maxConcurrentDownloads,
 		"message", "Starting worker goroutines")
 	var workersWg sync.WaitGroup
 	for i := 0; i < maxConcurrentDownloads; i++ {
 		workersWg.Add(1)
-		go r.processObjectsWorker(ctx, i, objChan, resultsChan, errorChan, reCommentPrefix, &workersWg, logger)
+		go func() {
+			defer workersWg.Done()
+			r.processObjectsWorker(ctx, i, objChan, resultsChan, errorChan)
+		}()
 	}
 
 	// Start a goroutine to close results channel when all workers finish
@@ -102,14 +109,14 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 
 	// Start parallel goroutine for progressive processing with direct time slot targeting
 	// This implementation starts processing files immediately while continuing to discover more
-	logger.Debug("listS3FlowLogEvents", "message", "Starting progressive S3 object processing")
-	go r.processS3Objects(ctx, objChan, errorChan, listingDoneChan, reTs, extractionTime, logger)
+	r.logger.Debug("listS3FlowLogEvents", "message", "Starting progressive S3 object processing")
+	go r.processS3Objects(ctx, objChan, errorChan, listingDoneChan, reTs, extractionTime)
 
 	// Stream results to output while checking for errors
 	// Prioritize context check before starting the streaming loop
 	if ctx.Err() != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			logger.Info("listS3FlowLogEvents", "message", "Operation timed out before streaming results",
+			r.logger.Info("listS3FlowLogEvents", "message", "Operation timed out before streaming results",
 				"extraction_time_seconds", extractionTime)
 			return nil
 		}
@@ -117,7 +124,7 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 	}
 
 	resultCount := 0
-	logger.Debug("listS3FlowLogEvents", "message", "Starting result streaming phase")
+	r.logger.Debug("listS3FlowLogEvents", "message", "Starting result streaming phase")
 
 	// Create a separate goroutine to monitor context cancellation
 	// This ensures we can break out of any waiting state immediately
@@ -132,11 +139,11 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 		select {
 		case <-doneChan:
 			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-				logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
+				r.logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
 					"extraction_time_seconds", extractionTime, "results_found", resultCount)
 				return nil
 			}
-			logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
+			r.logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
 				"error", ctx.Err())
 			return ctx.Err()
 		default:
@@ -148,32 +155,32 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 		case <-doneChan:
 			// Double-check for cancellation (prioritized)
 			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-				logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
+				r.logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
 					"extraction_time_seconds", extractionTime, "results_found", resultCount)
 				return nil
 			}
-			logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
+			r.logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
 				"error", ctx.Err())
 			return ctx.Err()
 
 		case result, ok := <-resultsChan:
 			if !ok {
 				// resultsChan closed, all processing complete
-				logger.Debug("listS3FlowLogEvents", "message", "Result streaming complete",
+				r.logger.Debug("listS3FlowLogEvents", "message", "Result streaming complete",
 					"total_results", resultCount)
 				// No need to wait for additional signals - just return what we have
 				return nil
 			}
 			resultCount++
 			if resultCount%1000 == 0 {
-				logger.Debug("listS3FlowLogEvents", "message", "Streaming results",
+				r.logger.Debug("listS3FlowLogEvents", "message", "Streaming results",
 					"count", resultCount)
 			}
 			// Stream with context awareness
 			select {
 			case <-doneChan:
 				// Context was cancelled while trying to stream
-				logger.Info("listS3FlowLogEvents", "message", "Context cancelled during streaming, returning partial results",
+				r.logger.Info("listS3FlowLogEvents", "message", "Context cancelled during streaming, returning partial results",
 					"results_found", resultCount)
 				return nil
 			default:
@@ -182,28 +189,28 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, logg
 
 		case err := <-errorChan:
 			// Cancel all in-progress work
-			logger.Error("listS3FlowLogEvents", "message", "Error received from worker",
+			r.logger.Error("listS3FlowLogEvents", "message", "Error received from worker",
 				"error", err)
 			cancel()
 			return err
 
 		case <-listingDoneChan:
 			// S3 listing is complete, but we continue processing existing items
-			logger.Debug("listS3FlowLogEvents", "message", "S3 listing complete, continuing to process results")
+			r.logger.Debug("listS3FlowLogEvents", "message", "S3 listing complete, continuing to process results")
 
 		case <-processingDoneChan:
 			// All workers finished and no more results
-			logger.Debug("listS3FlowLogEvents", "message", "All processing complete, returning results",
+			r.logger.Debug("listS3FlowLogEvents", "message", "All processing complete, returning results",
 				"total_results", resultCount)
 			return nil
 		case <-ctx.Done():
 			// Context cancelled externally or timeout
 			if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-				logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
+				r.logger.Info("listS3FlowLogEvents", "message", "Operation timed out after reaching extraction_time limit, returning partial results",
 					"extraction_time_seconds", extractionTime, "results_found", resultCount)
 				return nil
 			}
-			logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
+			r.logger.Info("listS3FlowLogEvents", "message", "Operation cancelled by context",
 				"error", ctx.Err())
 			return ctx.Err()
 		}
@@ -217,16 +224,12 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 	objChan <-chan s3types.Object,
 	resultsChan chan<- s3FlowLogEvent,
 	errorChan chan<- error,
-	reCommentPrefix *regexp.Regexp,
-	workersWg *sync.WaitGroup,
-	logger hclog.Logger,
 ) {
-	logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+	r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 		"message", "Worker started")
-	defer workersWg.Done()
 	for obj := range objChan {
 		key := aws.ToString(obj.Key)
-		logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+		r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 			"message", "Processing object", "key", key)
 
 		// download object
@@ -235,7 +238,7 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 			Key:    aws.String(key),
 		})
 		if err != nil {
-			logger.Error("listS3FlowLogEvents", "worker_id", workerID,
+			r.logger.Error("listS3FlowLogEvents", "worker_id", workerID,
 				"message", "Failed to get object from S3",
 				"key", key, "error", err)
 			select {
@@ -248,7 +251,7 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 
 		gr, err := gzip.NewReader(objOut.Body)
 		if err != nil {
-			logger.Error("listS3FlowLogEvents", "worker_id", workerID,
+			r.logger.Error("listS3FlowLogEvents", "worker_id", workerID,
 				"message", "Failed to create gzip reader",
 				"key", key, "error", err)
 			objOut.Body.Close()
@@ -333,7 +336,7 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 		}
 
 		if err := scanner.Err(); err != nil {
-			logger.Error("listS3FlowLogEvents", "worker_id", workerID,
+			r.logger.Error("listS3FlowLogEvents", "worker_id", workerID,
 				"message", "Scanner error while processing file",
 				"key", key, "error", err)
 			select {
@@ -342,13 +345,13 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 			}
 		}
 
-		logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+		r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 			"message", "Completed processing object",
 			"key", key, "lines_processed", lineNum)
 		gr.Close()
 		objOut.Body.Close()
 	}
-	logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+	r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 		"message", "Worker finished")
 }
 
@@ -362,7 +365,6 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 	reTs *regexp.Regexp,
 	objectCount *int32,
 	processedCount *int32,
-	logger hclog.Logger,
 ) {
 	// Format the hour for the pattern-matching prefix
 	hourStr := fmt.Sprintf("%02d", hour)
@@ -389,7 +391,7 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 		datePrefix += fmt.Sprintf("%d/%02d/%02d/", date.Year(), date.Month(), date.Day())
 	}
 
-	logger.Debug("listS3FlowLogEvents", "message", "Directly targeting time slot",
+	r.logger.Debug("listS3FlowLogEvents", "message", "Directly targeting time slot",
 		"date", dateStr, "hour", hourStr, "prefix", datePrefix)
 
 	// List objects for this specific time slot
@@ -410,7 +412,7 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 
 		page, err := paginator.NextPage(ctx)
 		if err != nil {
-			logger.Error("listS3FlowLogEvents", "message", "Error listing objects for time slot",
+			r.logger.Error("listS3FlowLogEvents", "message", "Error listing objects for time slot",
 				"date", dateStr, "hour", hourStr, "error", err)
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				return
@@ -439,7 +441,7 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 				if strings.HasPrefix(tsPart, timePattern) {
 					fileTs, err := time.Parse("20060102T1504", tsPart)
 					if err != nil {
-						logger.Warn("listS3FlowLogEvents", "message", "Failed to parse timestamp from key",
+						r.logger.Warn("listS3FlowLogEvents", "message", "Failed to parse timestamp from key",
 							"key", key, "error", err)
 						continue
 					}
@@ -466,7 +468,7 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 			atomic.AddInt32(objectCount, 1)
 			atomic.AddInt32(processedCount, 1)
 
-			logger.Trace("listS3FlowLogEvents", "message", "Processing object from time slot",
+			r.logger.Trace("listS3FlowLogEvents", "message", "Processing object from time slot",
 				"date", dateStr, "hour", hourStr, "key", key)
 
 			// Send object to processing channel
@@ -478,7 +480,7 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 		}
 	}
 
-	logger.Debug("listS3FlowLogEvents", "message", "Completed processing time slot",
+	r.logger.Debug("listS3FlowLogEvents", "message", "Completed processing time slot",
 		"date", dateStr, "hour", hourStr, "objects", timeSlotCount)
 }
 
@@ -490,7 +492,6 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	listingDoneChan chan<- struct{},
 	reTs *regexp.Regexp,
 	extractionTime int,
-	logger hclog.Logger,
 ) {
 	var objectCount int32 = 0
 	var processedCount int32 = 0
@@ -498,7 +499,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 		// Close channels to signal completion
 		close(objChan)
 		close(listingDoneChan)
-		logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
+		r.logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
 			"eligible_objects_found", atomic.LoadInt32(&objectCount), "processed_objects", atomic.LoadInt32(&processedCount))
 	}()
 
@@ -516,7 +517,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 			listPrefix = strings.Replace(listPrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", r.region), 1)
 		}
 
-		logger.Debug("listS3FlowLogEvents", "message", "Listing S3 objects", "prefix", listPrefix)
+		r.logger.Debug("listS3FlowLogEvents", "message", "Listing S3 objects", "prefix", listPrefix)
 
 		// Use standard listing for cases with no time filtering
 		paginator := s3.NewListObjectsV2Paginator(r.s3Client, &s3.ListObjectsV2Input{
@@ -527,12 +528,12 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 		pageCount := 0
 		for paginator.HasMorePages() {
 			pageCount++
-			logger.Trace("listS3FlowLogEvents", "message", "Retrieving page of S3 objects",
+			r.logger.Trace("listS3FlowLogEvents", "message", "Retrieving page of S3 objects",
 				"page", pageCount)
 
 			page, err := paginator.NextPage(ctx)
 			if err != nil {
-				logger.Error("listS3FlowLogEvents", "message", "Error listing S3 objects",
+				r.logger.Error("listS3FlowLogEvents", "message", "Error listing S3 objects",
 					"error", err, "page", pageCount)
 				select {
 				case errorChan <- err:
@@ -550,7 +551,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 				// Found an eligible object, send it to worker pool
 				atomic.AddInt32(&objectCount, 1)
 				atomic.AddInt32(&processedCount, 1)
-				logger.Trace("listS3FlowLogEvents", "message", "Found eligible object",
+				r.logger.Trace("listS3FlowLogEvents", "message", "Found eligible object",
 					"key", key, "count", atomic.LoadInt32(&objectCount))
 				select {
 				case objChan <- obj:
@@ -598,7 +599,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 
 	// Calculate total days in range
 	totalDays := int(endDate.Sub(startDate).Hours()/24) + 1
-	logger.Debug("listS3FlowLogEvents", "message", "Time range calculated",
+	r.logger.Debug("listS3FlowLogEvents", "message", "Time range calculated",
 		"start_date", startDate.Format("2006-01-02"),
 		"end_date", endDate.Format("2006-01-02"),
 		"total_days", totalDays)
@@ -645,7 +646,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	}
 
 	// Log the targeting plan
-	logger.Debug("listS3FlowLogEvents", "message", "Created time targets for distributed sampling",
+	r.logger.Debug("listS3FlowLogEvents", "message", "Created time targets for distributed sampling",
 		"target_count", len(timeTargets))
 
 	// Shuffle time targets to improve distribution in case of timeout
@@ -685,7 +686,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 			defer listWg.Done()
 			defer func() { <-throttle }() // Release throttle when done
 
-			r.processTimeTarget(ctx, date, hour, objChan, errorChan, reTs, &objectCount, &processedCount, logger)
+			r.processTimeTarget(ctx, date, hour, objChan, errorChan, reTs, &objectCount, &processedCount)
 		}(target.date, target.hour)
 	}
 
@@ -699,14 +700,14 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	// Wait for either completion or cancellation
 	select {
 	case <-listingDone:
-		logger.Debug("listS3FlowLogEvents", "message", "All time slots processed",
+		r.logger.Debug("listS3FlowLogEvents", "message", "All time slots processed",
 			"total_objects", atomic.LoadInt32(&objectCount))
 	case <-ctx.Done():
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing stopped due to timeout",
+			r.logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing stopped due to timeout",
 				"extraction_time_seconds", extractionTime, "objects_processed", atomic.LoadInt32(&processedCount))
 		} else {
-			logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing cancelled",
+			r.logger.Info("listS3FlowLogEvents", "message", "Time-distributed processing cancelled",
 				"objects_processed", atomic.LoadInt32(&processedCount))
 		}
 	}
