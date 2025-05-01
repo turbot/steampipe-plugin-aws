@@ -460,120 +460,128 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 	// Structure is typically: base_prefix/YYYY/MM/DD/AccountID_vpcflowlogs_region_*_YYYYMMDD*
 	dateStr := fmt.Sprintf("%d%02d%02d", date.Year(), date.Month(), date.Day())
 
-	// Build the date component of the prefix
-	datePrefix := r.prefix
-	if !strings.HasSuffix(datePrefix, "/") {
-		datePrefix += "/"
+	// Create a list of prefixes to check - we need to try different patterns since
+	// VPC flow logs can be stored in different directory structures
+	var prefixesToCheck []string
+
+	// Standard format: prefix/YYYY/MM/DD/
+	basePrefix := r.prefix
+	if !strings.HasSuffix(basePrefix, "/") {
+		basePrefix += "/"
+	}
+	standardPrefix := fmt.Sprintf("%s%d/%02d/%02d/", basePrefix, date.Year(), date.Month(), date.Day())
+	prefixesToCheck = append(prefixesToCheck, standardPrefix)
+
+	// Region-specific format: prefix/region/YYYY/MM/DD/
+	if strings.Contains(basePrefix, "vpcflowlogs/") {
+		regionPrefix := strings.Replace(basePrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", r.region), 1)
+		regionDatePrefix := fmt.Sprintf("%s%d/%02d/%02d/", regionPrefix, date.Year(), date.Month(), date.Day())
+		prefixesToCheck = append(prefixesToCheck, regionDatePrefix)
 	}
 
-	// Add region between vpcflowlogs prefix and date components
-	if strings.Contains(datePrefix, "vpcflowlogs/") && !strings.Contains(datePrefix, fmt.Sprintf("vpcflowlogs/%s/", r.region)) {
-		// Replace "vpcflowlogs/" with "vpcflowlogs/region/"
-		datePrefix = strings.Replace(datePrefix, "vpcflowlogs/", fmt.Sprintf("vpcflowlogs/%s/", r.region), 1)
-	}
-
-	// If the prefix doesn't already include date components, add them
-	if !strings.Contains(datePrefix, fmt.Sprintf("/%d/%02d/%02d/", date.Year(), date.Month(), date.Day())) {
-		datePrefix += fmt.Sprintf("%d/%02d/%02d/", date.Year(), date.Month(), date.Day())
-	}
-
-	r.logger.Debug("listS3FlowLogEvents", "message", "Directly targeting full day",
-		"date", dateStr, "prefix", datePrefix)
-
-	// List objects for this full day
-	paginator := s3.NewListObjectsV2Paginator(r.s3Client, &s3.ListObjectsV2Input{
-		Bucket: aws.String(r.bucket),
-		Prefix: aws.String(datePrefix),
-		// Use a small page size to get first results quickly
-		MaxKeys: aws.Int32(DefaultS3PageSize),
-	})
-
-	// Process each page for this day
 	dayObjectCount := 0
-	for paginator.HasMorePages() {
-		// Check context before fetching next page
-		if ctx.Err() != nil {
-			r.logger.Debug("listS3FlowLogEvents", "message", "Context done during day processing",
-				"date", dateStr, "reason", ctx.Err())
-			return
-		}
 
-		page, err := paginator.NextPage(ctx)
-		if err != nil {
-			r.logger.Error("listS3FlowLogEvents", "message", "Error listing objects for day",
-				"date", dateStr, "error", err)
-			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				return
-			}
-			sendWithContext(ctx, errorChan, err)
-			return
-		}
+	// Process each prefix pattern
+	for _, datePrefix := range prefixesToCheck {
+		r.logger.Debug("listS3FlowLogEvents", "message", "Directly targeting full day",
+			"date", dateStr, "prefix", datePrefix)
 
-		// Filter objects for this day
-		var dayObjects []s3types.Object
-		for _, obj := range page.Contents {
-			// Check context frequently to ensure we stop promptly when time is up
+		// List objects for this prefix
+		paginator := s3.NewListObjectsV2Paginator(r.s3Client, &s3.ListObjectsV2Input{
+			Bucket: aws.String(r.bucket),
+			Prefix: aws.String(datePrefix),
+			// Use a small page size to get first results quickly
+			MaxKeys: aws.Int32(DefaultS3PageSize),
+		})
+
+		// Process each page for this prefix
+		for paginator.HasMorePages() {
+			// Check context before fetching next page
 			if ctx.Err() != nil {
-				r.logger.Debug("listS3FlowLogEvents", "message", "Context done during object filtering",
+				r.logger.Debug("listS3FlowLogEvents", "message", "Context done during day processing",
 					"date", dateStr, "reason", ctx.Err())
 				return
 			}
 
-			key := aws.ToString(obj.Key)
-			if !strings.HasSuffix(key, ".log.gz") {
-				continue
+			page, err := paginator.NextPage(ctx)
+			if err != nil {
+				r.logger.Error("listS3FlowLogEvents", "message", "Error listing objects for day",
+					"date", dateStr, "error", err)
+				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+					return
+				}
+				sendWithContext(ctx, errorChan, err)
+				return
 			}
 
-			// Extract timestamp from the key
-			if matches := reTs.FindStringSubmatch(key); len(matches) > 1 {
-				tsPart := matches[1]
+			// Filter objects for this day
+			var dayObjects []s3types.Object
+			for _, obj := range page.Contents {
+				// Check context frequently to ensure we stop promptly when time is up
+				if ctx.Err() != nil {
+					r.logger.Debug("listS3FlowLogEvents", "message", "Context done during object filtering",
+						"date", dateStr, "reason", ctx.Err())
+					return
+				}
 
-				// Check if this file belongs to our target day
-				if strings.HasPrefix(tsPart, dateStr) {
-					fileTs, err := time.Parse("20060102T1504", tsPart)
-					if err != nil {
-						r.logger.Warn("listS3FlowLogEvents", "message", "Failed to parse timestamp from key",
-							"key", key, "error", err)
-						continue
+				key := aws.ToString(obj.Key)
+				if !strings.HasSuffix(key, ".log.gz") {
+					continue
+				}
+
+				// Extract timestamp from the key
+				if matches := reTs.FindStringSubmatch(key); len(matches) > 1 {
+					tsPart := matches[1]
+
+					// Check if this file belongs to our target day
+					if strings.HasPrefix(tsPart, dateStr) {
+						fileTs, err := time.Parse("20060102T1504", tsPart)
+						if err != nil {
+							r.logger.Warn("listS3FlowLogEvents", "message", "Failed to parse timestamp from key",
+								"key", key, "error", err)
+							continue
+						}
+
+						// Double-check that file is within our time bounds
+						// Start time is inclusive, end time is exclusive
+						if (r.startTime != nil && fileTs.Before(*r.startTime)) ||
+							(r.endTime != nil && fileTs.Compare(*r.endTime) >= 0) {
+							// Skip incrementing objectCount for objects that don't match time filters
+							continue
+						}
+
+						dayObjects = append(dayObjects, obj)
+						dayObjectCount++
 					}
-
-					// Double-check that file is within our time bounds
-					if (r.startTime != nil && fileTs.Before(*r.startTime)) ||
-						(r.endTime != nil && fileTs.After(*r.endTime)) {
-						continue
-					}
-
-					dayObjects = append(dayObjects, obj)
-					dayObjectCount++
 				}
 			}
-		}
 
-		// Process matched objects for this day
-		// Send objects directly to processing
-		for i := 0; i < len(dayObjects); i++ {
-			// Check context before each object to ensure timely termination
-			if ctx.Err() != nil {
-				r.logger.Debug("listS3FlowLogEvents", "message", "Context done during object processing",
-					"date", dateStr, "reason", ctx.Err(), "processed", i, "total", len(dayObjects))
-				return
-			}
+			// Process matched objects for this day
+			// Send objects directly to processing
+			for i := 0; i < len(dayObjects); i++ {
+				// Check context before each object to ensure timely termination
+				if ctx.Err() != nil {
+					r.logger.Debug("listS3FlowLogEvents", "message", "Context done during object processing",
+						"date", dateStr, "reason", ctx.Err(), "processed", i, "total", len(dayObjects))
+					return
+				}
 
-			obj := dayObjects[i]
-			key := aws.ToString(obj.Key)
+				obj := dayObjects[i]
+				key := aws.ToString(obj.Key)
 
-			// Atomically increment counts
-			atomic.AddInt32(objectCount, 1)
-			atomic.AddInt32(processedCount, 1)
+				// Atomically increment counts
+				atomic.AddInt32(objectCount, 1)
+				atomic.AddInt32(processedCount, 1)
 
-			r.logger.Trace("listS3FlowLogEvents", "message", "Processing object from day",
-				"date", dateStr, "key", key)
-
-			// Add object to processing pool with context awareness
-			if !objectPool.AddWithContext(ctx, obj) {
-				r.logger.Debug("listS3FlowLogEvents", "message", "Context done when adding to object pool",
+				r.logger.Trace("listS3FlowLogEvents", "message", "Processing object from day",
 					"date", dateStr, "key", key)
-				return
+
+				// Add object to processing pool with context awareness
+				if !objectPool.AddWithContext(ctx, obj) {
+					r.logger.Debug("listS3FlowLogEvents", "message", "Context done when adding to object pool",
+						"date", dateStr, "key", key)
+					return
+				}
 			}
 		}
 	}
