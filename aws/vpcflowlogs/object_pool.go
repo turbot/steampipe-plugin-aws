@@ -117,26 +117,20 @@ func (p *ObjectPool[T]) Close() {
 	p.cond.Broadcast() // Wake up all waiting goroutines
 }
 
-// IsEmpty checks if the pool is empty
+// IsEmpty returns if the pool is empty at this instant
+// Note: This is not synchronized and may not reflect concurrent modifications
 func (p *ObjectPool[T]) IsEmpty() bool {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-
 	return len(p.objects) == 0
 }
 
-// Len returns the current number of objects in the pool
+// Len returns the current number of objects in the pool at this instant
+// Note: This is not synchronized and may not reflect concurrent modifications
 func (p *ObjectPool[T]) Len() int {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-
 	return len(p.objects)
 }
 
-// IsClosed checks if the pool is closed
+// IsClosed returns if the pool is marked as closed at this instant
+// Note: This is not synchronized and may not reflect concurrent modifications
 func (p *ObjectPool[T]) IsClosed() bool {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-
 	return p.closed
 }
