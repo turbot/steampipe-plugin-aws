@@ -2,34 +2,39 @@ package vpcflowlogs
 
 import (
 	"context"
-	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"sync"
 )
 
 const (
-	// DefaultObjectChannelSize is the default capacity for the object pool
-	DefaultObjectChannelSize = 100
+	// DefaultObjectPoolCapacity is the default capacity for the object pool
+	DefaultObjectPoolCapacity = 100
 )
 
-// ObjectPool is a thread-safe collection of S3 objects that allows random retrieval
-type ObjectPool struct {
-	objects []s3types.Object // Store objects in a slice
-	mutex   sync.Mutex       // Mutex for thread safety
-	closed  bool             // Flag to indicate if pool is closed
-	cond    *sync.Cond       // Condition variable for signaling when new objects are added
+// ObjectPool is a thread-safe collection of objects that allows random retrieval
+// It uses generics to support any type of objects
+type ObjectPool[T any] struct {
+	objects []T        // Store objects in a slice
+	mutex   sync.Mutex // Mutex for thread safety
+	closed  bool       // Flag to indicate if pool is closed
+	cond    *sync.Cond // Condition variable for signaling when new objects are added
 }
 
-// NewObjectPool creates a new empty object pool
-func NewObjectPool() *ObjectPool {
-	pool := &ObjectPool{
-		objects: make([]s3types.Object, 0, DefaultObjectChannelSize),
+// NewObjectPool creates a new empty object pool with the specified capacity
+func NewObjectPool[T any](capacity int) *ObjectPool[T] {
+	pool := &ObjectPool[T]{
+		objects: make([]T, 0, capacity),
 	}
 	pool.cond = sync.NewCond(&pool.mutex)
 	return pool
 }
 
+// NewObjectPoolDefault creates a new empty object pool with the default capacity
+func NewObjectPoolDefault[T any]() *ObjectPool[T] {
+	return NewObjectPool[T](DefaultObjectPoolCapacity)
+}
+
 // Add adds an object to the pool
-func (p *ObjectPool) Add(obj s3types.Object) {
+func (p *ObjectPool[T]) Add(obj T) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
@@ -44,7 +49,7 @@ func (p *ObjectPool) Add(obj s3types.Object) {
 // GetRandom gets and removes a random object from the pool
 // Blocks until an object is available or the pool is closed
 // Returns the object and a boolean indicating success
-func (p *ObjectPool) GetRandom(ctx context.Context) (s3types.Object, bool) {
+func (p *ObjectPool[T]) GetRandom(ctx context.Context) (T, bool) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
@@ -73,13 +78,15 @@ func (p *ObjectPool) GetRandom(ctx context.Context) (s3types.Object, bool) {
 
 		// Check if context was cancelled while waiting
 		if ctx.Err() != nil {
-			return s3types.Object{}, false
+			var zero T
+			return zero, false
 		}
 	}
 
 	// Check if pool is empty but closed
 	if len(p.objects) == 0 {
-		return s3types.Object{}, false
+		var zero T
+		return zero, false
 	}
 
 	// Get a random index
@@ -102,7 +109,7 @@ func (p *ObjectPool) GetRandom(ctx context.Context) (s3types.Object, bool) {
 }
 
 // Close marks the pool as closed, no more additions allowed
-func (p *ObjectPool) Close() {
+func (p *ObjectPool[T]) Close() {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
@@ -111,7 +118,7 @@ func (p *ObjectPool) Close() {
 }
 
 // IsEmpty checks if the pool is empty
-func (p *ObjectPool) IsEmpty() bool {
+func (p *ObjectPool[T]) IsEmpty() bool {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
@@ -119,7 +126,7 @@ func (p *ObjectPool) IsEmpty() bool {
 }
 
 // Len returns the current number of objects in the pool
-func (p *ObjectPool) Len() int {
+func (p *ObjectPool[T]) Len() int {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
@@ -127,7 +134,7 @@ func (p *ObjectPool) Len() int {
 }
 
 // IsClosed checks if the pool is closed
-func (p *ObjectPool) IsClosed() bool {
+func (p *ObjectPool[T]) IsClosed() bool {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 

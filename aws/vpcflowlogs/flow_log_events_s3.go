@@ -110,7 +110,7 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 	r.logger.Debug("listS3FlowLogEvents", "message", "Starting S3 flow log retrieval operation")
 
 	// Create object pool and setup channels for concurrent processing
-	objectPool := NewObjectPool()
+	objectPool := NewObjectPoolDefault[s3types.Object]()
 	resultsChan := make(chan S3FlowLogEvent, DefaultResultsChannelSize)
 	errorChan := make(chan error, DefaultMaxConcurrentDownloads)
 	processingDoneChan := make(chan struct{}) // Signal that processing is complete
@@ -237,7 +237,7 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 	ctx context.Context,
 	workerID int,
-	objectPool *ObjectPool,
+	objectPool *ObjectPool[s3types.Object],
 	resultsChan chan<- S3FlowLogEvent,
 	errorChan chan<- error,
 ) {
@@ -388,7 +388,7 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 func (r *S3FlowLogEventsRetriever) processTimeTarget(
 	ctx context.Context,
 	date time.Time,
-	objectPool *ObjectPool,
+	objectPool *ObjectPool[s3types.Object],
 	errorChan chan<- error,
 	objectCount *int32,
 	processedCount *int32,
@@ -502,7 +502,7 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 // processS3Objects handles S3 object discovery and adds objects to the worker pool
 func (r *S3FlowLogEventsRetriever) processS3Objects(
 	ctx context.Context,
-	objectPool *ObjectPool,
+	objectPool *ObjectPool[s3types.Object],
 	errorChan chan<- error,
 	extractionTime int,
 ) {
