@@ -34,16 +34,18 @@ func NewObjectPoolDefault[T any]() *ObjectPool[T] {
 }
 
 // Add adds an object to the pool
-func (p *ObjectPool[T]) Add(obj T) {
+// Returns true if the object was added, false if the pool was closed
+func (p *ObjectPool[T]) Add(obj T) bool {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
 	if p.closed {
-		return // Don't add to a closed pool
+		return false // Don't add to a closed pool
 	}
 
 	p.objects = append(p.objects, obj)
 	p.cond.Signal() // Signal that a new object is available
+	return true
 }
 
 // GetRandom gets and removes a random object from the pool
@@ -89,6 +91,22 @@ func (p *ObjectPool[T]) GetRandom(ctx context.Context) (T, bool) {
 		return zero, false
 	}
 
+	// Select and remove a random object from the pool
+	obj, idx := p.selectRandomObject()
+
+	// Remove the object from the pool (swap with last element and truncate)
+	lastIdx := len(p.objects) - 1
+	p.objects[idx] = p.objects[lastIdx]
+	p.objects = p.objects[:lastIdx]
+
+	return obj, true
+}
+
+// selectRandomObject selects a random object from the pool
+// Returns the selected object and its index
+// Note: This method assumes the caller holds the mutex lock
+// and that the pool has at least one object
+func (p *ObjectPool[T]) selectRandomObject() (T, int) {
 	// Get a random index
 	idx := 0
 	if len(p.objects) > 1 {
@@ -97,15 +115,8 @@ func (p *ObjectPool[T]) GetRandom(ctx context.Context) (T, bool) {
 		idx = (len(p.objects) * 13) % len(p.objects)
 	}
 
-	// Get the object
-	obj := p.objects[idx]
-
-	// Remove the object from the pool (swap with last element and truncate)
-	lastIdx := len(p.objects) - 1
-	p.objects[idx] = p.objects[lastIdx]
-	p.objects = p.objects[:lastIdx]
-
-	return obj, true
+	// Return the object and its index
+	return p.objects[idx], idx
 }
 
 // Close marks the pool as closed, no more additions allowed
