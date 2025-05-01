@@ -10,8 +10,28 @@ const (
 	DefaultObjectPoolCapacity = 100
 )
 
-// ObjectPool is a thread-safe collection of objects that allows random retrieval
-// It uses generics to support any type of objects
+// ObjectPool is a thread-safe collection that allows random access to stored objects.
+// Objects are added to the pool by producers and randomly retrieved by consumers.
+// The pool supports waiting with context for objects to become available.
+//
+// Example usage:
+//
+//	// Create a pool for string objects
+//	pool := NewObjectPoolDefault[string]()
+//
+//	// Add objects to the pool
+//	pool.Add("item1")
+//	pool.Add("item2")
+//
+//	// Get a random object with context
+//	ctx := context.Background()
+//	item, ok := pool.GetRandom(ctx)
+//	if ok {
+//	    // Process the item
+//	}
+//
+//	// When finished, close the pool to signal no more items will be added
+//	pool.Close()
 type ObjectPool[T any] struct {
 	objects []T        // Store objects in a slice
 	mutex   sync.Mutex // Mutex for thread safety
@@ -19,7 +39,8 @@ type ObjectPool[T any] struct {
 	cond    *sync.Cond // Condition variable for signaling when new objects are added
 }
 
-// NewObjectPool creates a new empty object pool with the specified capacity
+// NewObjectPool creates a new empty object pool with the specified initial capacity.
+// The capacity parameter is only a hint for initial memory allocation.
 func NewObjectPool[T any](capacity int) *ObjectPool[T] {
 	pool := &ObjectPool[T]{
 		objects: make([]T, 0, capacity),
@@ -28,13 +49,16 @@ func NewObjectPool[T any](capacity int) *ObjectPool[T] {
 	return pool
 }
 
-// NewObjectPoolDefault creates a new empty object pool with the default capacity
+// NewObjectPoolDefault creates a new empty object pool with a default capacity.
+// This is the recommended way to create a pool when no specific capacity is needed.
 func NewObjectPoolDefault[T any]() *ObjectPool[T] {
 	return NewObjectPool[T](DefaultObjectPoolCapacity)
 }
 
-// Add adds an object to the pool
-// Returns true if the object was added, false if the pool was closed
+// Add puts an object into the pool for later retrieval.
+// Returns true if the object was added, false if the pool is closed.
+//
+// This method is thread-safe and can be called from multiple goroutines.
 func (p *ObjectPool[T]) Add(obj T) bool {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
@@ -48,9 +72,88 @@ func (p *ObjectPool[T]) Add(obj T) bool {
 	return true
 }
 
-// waitWithContext waits on a condition variable with context support
-// The mutex must be locked when calling this function
-// Returns true if the wait completed normally, false if context was cancelled
+// GetRandom retrieves and removes a random object from the pool.
+// It blocks until an object is available, the pool is closed, or the context is cancelled.
+//
+// Returns:
+//   - The retrieved object and true if successful
+//   - A zero value and false if the pool is closed or the context is cancelled
+//
+// This method is thread-safe and can be called from multiple goroutines.
+func (p *ObjectPool[T]) GetRandom(ctx context.Context) (T, bool) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	// Wait until there's an object or the pool is closed
+	for len(p.objects) == 0 && !p.closed {
+		if !waitWithContext(ctx, p.cond) {
+			var zero T
+			return zero, false
+		}
+	}
+
+	// Check if pool is empty but closed
+	if len(p.objects) == 0 {
+		var zero T
+		return zero, false
+	}
+
+	// Select and remove a random object from the pool
+	obj, idx := p.selectRandomObject()
+
+	// Remove the object from the pool (swap with last element and truncate)
+	lastIdx := len(p.objects) - 1
+	p.objects[idx] = p.objects[lastIdx]
+	p.objects = p.objects[:lastIdx]
+
+	return obj, true
+}
+
+// Close marks the pool as closed, preventing new objects from being added.
+// All goroutines waiting in GetRandom will be woken up.
+// This should be called when no more objects will be added to the pool.
+//
+// This method is thread-safe and can be called from multiple goroutines.
+func (p *ObjectPool[T]) Close() {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	p.closed = true
+	p.cond.Broadcast() // Wake up all waiting goroutines
+}
+
+// IsEmpty checks if the pool currently has no objects.
+//
+// Note: This is a non-blocking method that returns a point-in-time snapshot.
+// In concurrent environments, the pool's state may change immediately after this call.
+func (p *ObjectPool[T]) IsEmpty() bool {
+	return len(p.objects) == 0
+}
+
+// Len returns the current number of objects in the pool.
+//
+// Note: This is a non-blocking method that returns a point-in-time snapshot.
+// In concurrent environments, the pool's state may change immediately after this call.
+func (p *ObjectPool[T]) Len() int {
+	return len(p.objects)
+}
+
+// IsClosed checks if the pool has been marked as closed.
+//
+// Note: This is a non-blocking method that returns a point-in-time snapshot.
+// In concurrent environments, the pool's state may change immediately after this call.
+func (p *ObjectPool[T]) IsClosed() bool {
+	return p.closed
+}
+
+// ----------------------------------------------------------------------------
+// Private helper methods
+// ----------------------------------------------------------------------------
+
+// waitWithContext waits on a condition variable with context support.
+// Returns true if the wait completed normally, false if context was cancelled.
+//
+// Note: The mutex must be locked when calling this function.
 func waitWithContext(ctx context.Context, cond *sync.Cond) bool {
 	// Check context first
 	if ctx.Err() != nil {
@@ -87,42 +190,11 @@ func waitWithContext(ctx context.Context, cond *sync.Cond) bool {
 	return ctx.Err() == nil
 }
 
-// GetRandom gets and removes a random object from the pool
-// Blocks until an object is available or the pool is closed
-// Returns the object and a boolean indicating success
-func (p *ObjectPool[T]) GetRandom(ctx context.Context) (T, bool) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-
-	// Wait until there's an object or the pool is closed
-	for len(p.objects) == 0 && !p.closed {
-		if !waitWithContext(ctx, p.cond) {
-			var zero T
-			return zero, false
-		}
-	}
-
-	// Check if pool is empty but closed
-	if len(p.objects) == 0 {
-		var zero T
-		return zero, false
-	}
-
-	// Select and remove a random object from the pool
-	obj, idx := p.selectRandomObject()
-
-	// Remove the object from the pool (swap with last element and truncate)
-	lastIdx := len(p.objects) - 1
-	p.objects[idx] = p.objects[lastIdx]
-	p.objects = p.objects[:lastIdx]
-
-	return obj, true
-}
-
-// selectRandomObject selects a random object from the pool
-// Returns the selected object and its index
+// selectRandomObject selects a random object from the pool.
+// Returns the selected object and its index.
+//
 // Note: This method assumes the caller holds the mutex lock
-// and that the pool has at least one object
+// and that the pool has at least one object.
 func (p *ObjectPool[T]) selectRandomObject() (T, int) {
 	// Get a random index
 	idx := 0
@@ -134,31 +206,4 @@ func (p *ObjectPool[T]) selectRandomObject() (T, int) {
 
 	// Return the object and its index
 	return p.objects[idx], idx
-}
-
-// Close marks the pool as closed, no more additions allowed
-func (p *ObjectPool[T]) Close() {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-
-	p.closed = true
-	p.cond.Broadcast() // Wake up all waiting goroutines
-}
-
-// IsEmpty returns if the pool is empty at this instant
-// Note: This is not synchronized and may not reflect concurrent modifications
-func (p *ObjectPool[T]) IsEmpty() bool {
-	return len(p.objects) == 0
-}
-
-// Len returns the current number of objects in the pool at this instant
-// Note: This is not synchronized and may not reflect concurrent modifications
-func (p *ObjectPool[T]) Len() int {
-	return len(p.objects)
-}
-
-// IsClosed returns if the pool is marked as closed at this instant
-// Note: This is not synchronized and may not reflect concurrent modifications
-func (p *ObjectPool[T]) IsClosed() bool {
-	return p.closed
 }
