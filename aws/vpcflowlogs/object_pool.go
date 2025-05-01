@@ -74,6 +74,35 @@ func (p *ObjectPool[T]) Add(obj T) bool {
 	return true
 }
 
+// AddWithContext puts an object into the pool for later retrieval, but respects
+// the provided context for cancellation.
+// Returns true if the object was added, false if the pool is closed or context is done.
+//
+// This method is thread-safe and can be called from multiple goroutines.
+func (p *ObjectPool[T]) AddWithContext(ctx context.Context, obj T) bool {
+	// First check if context is already done
+	if ctx.Err() != nil {
+		return false
+	}
+
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	if p.closed {
+		return false // Don't add to a closed pool
+	}
+
+	// Check context again with lock held
+	select {
+	case <-ctx.Done():
+		return false
+	default:
+		p.objects = append(p.objects, obj)
+		p.cond.Signal() // Signal that a new object is available
+		return true
+	}
+}
+
 // GetRandom retrieves and removes a random object from the pool.
 // It blocks until an object is available, the pool is closed, or the context is cancelled.
 //

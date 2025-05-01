@@ -249,27 +249,48 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 		// Check if context is done before getting the next object
 		if ctx.Err() != nil {
 			r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
-				"message", "Context done, worker exiting early")
+				"message", "Context done, worker exiting early", "reason", ctx.Err())
 			return
 		}
 
-		// Get a random object from the pool - blocks until object available or pool closed
-		obj, ok := objectPool.GetRandom(ctx)
+		// Set a timeout for getting the next object
+		// This ensures workers don't block indefinitely even if the pool is not empty
+		getCtx, cancelGet := context.WithTimeout(ctx, 5*time.Second)
+		obj, ok := objectPool.GetRandom(getCtx)
+		cancelGet()
+
 		if !ok {
-			// Either pool is closed and empty, or context was cancelled
+			// Check again with the main context to determine why we didn't get an object
 			if ctx.Err() != nil {
 				r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
-					"message", "Context cancelled while waiting for object")
-			} else {
+					"message", "Context cancelled while waiting for object", "reason", ctx.Err())
+				return
+			}
+
+			// If the main context isn't done, check if the pool is empty and closed
+			if objectPool.IsEmpty() && objectPool.IsClosed() {
 				r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 					"message", "Object pool empty and closed, worker finished")
+				return
 			}
-			return
+
+			// If neither of those conditions are true, we timed out waiting for an object
+			// Try again in the next loop iteration
+			r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Timed out waiting for object, checking context and trying again")
+			continue
 		}
 
 		key := aws.ToString(obj.Key)
 		r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 			"message", "Processing object", "key", key)
+
+		// Check context before heavy processing
+		if ctx.Err() != nil {
+			r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Context done before processing object", "key", key, "reason", ctx.Err())
+			return
+		}
 
 		// download object
 		objOut, err := r.s3Client.GetObject(ctx, &s3.GetObjectInput{
@@ -277,6 +298,13 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 			Key:    aws.String(key),
 		})
 		if err != nil {
+			if ctx.Err() != nil {
+				// Context cancelled during the download
+				r.logger.Debug("listS3FlowLogEvents", "worker_id", workerID,
+					"message", "Context cancelled during object download", "key", key, "reason", ctx.Err())
+				return
+			}
+
 			r.logger.Error("listS3FlowLogEvents", "worker_id", workerID,
 				"message", "Failed to get object from S3",
 				"key", key, "error", err)
@@ -284,6 +312,14 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 				return
 			}
 			continue
+		}
+
+		// Check context again before proceeding with decompression
+		if ctx.Err() != nil {
+			r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Context done after object download", "key", key, "reason", ctx.Err())
+			objOut.Body.Close()
+			return
 		}
 
 		gr, err := gzip.NewReader(objOut.Body)
@@ -307,7 +343,23 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 		hasFilters := len(r.filters) > 0
 
 		lineNum := 0
+		linesSinceContextCheck := 0
 		for scanner.Scan() {
+			// Check context periodically during scanning to ensure timely termination
+			// Only check every 100 lines to balance responsiveness and performance
+			linesSinceContextCheck++
+			if linesSinceContextCheck >= 100 {
+				linesSinceContextCheck = 0
+				if ctx.Err() != nil {
+					r.logger.Debug("listS3FlowLogEvents", "worker_id", workerID,
+						"message", "Context done during scanning", "key", key,
+						"lines_processed", lineNum, "reason", ctx.Err())
+					gr.Close()
+					objOut.Body.Close()
+					return
+				}
+			}
+
 			line := scanner.Text()
 
 			// Skip empty lines and comments more efficiently
@@ -360,6 +412,9 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 			}
 
 			if !sendWithContext(ctx, resultsChan, ev) {
+				r.logger.Debug("listS3FlowLogEvents", "worker_id", workerID,
+					"message", "Failed to send event to channel, context done",
+					"key", key, "lines_processed", lineNum)
 				gr.Close()
 				objOut.Body.Close()
 				return
@@ -371,7 +426,10 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 			r.logger.Error("listS3FlowLogEvents", "worker_id", workerID,
 				"message", "Scanner error while processing file",
 				"key", key, "error", err)
-			sendWithContext(ctx, errorChan, err)
+			if ctx.Err() == nil {
+				// Only send the error if the context isn't done
+				sendWithContext(ctx, errorChan, err)
+			}
 		}
 
 		r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
@@ -379,9 +437,14 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 			"key", key, "lines_processed", lineNum)
 		gr.Close()
 		objOut.Body.Close()
+
+		// Check context after finishing an object
+		if ctx.Err() != nil {
+			r.logger.Debug("listS3FlowLogEvents", "worker_id", workerID,
+				"message", "Context done after processing object", "key", key, "reason", ctx.Err())
+			return
+		}
 	}
-	r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
-		"message", "Worker finished")
 }
 
 // processTimeTarget processes a full day and adds matching objects to the object pool
@@ -430,6 +493,8 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 	for paginator.HasMorePages() {
 		// Check context before fetching next page
 		if ctx.Err() != nil {
+			r.logger.Debug("listS3FlowLogEvents", "message", "Context done during day processing",
+				"date", dateStr, "reason", ctx.Err())
 			return
 		}
 
@@ -447,6 +512,13 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 		// Filter objects for this day
 		var dayObjects []s3types.Object
 		for _, obj := range page.Contents {
+			// Check context frequently to ensure we stop promptly when time is up
+			if ctx.Err() != nil {
+				r.logger.Debug("listS3FlowLogEvents", "message", "Context done during object filtering",
+					"date", dateStr, "reason", ctx.Err())
+				return
+			}
+
 			key := aws.ToString(obj.Key)
 			if !strings.HasSuffix(key, ".log.gz") {
 				continue
@@ -479,7 +551,14 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 
 		// Process matched objects for this day
 		// Send objects directly to processing
-		for i := 0; i < len(dayObjects) && ctx.Err() == nil; i++ {
+		for i := 0; i < len(dayObjects); i++ {
+			// Check context before each object to ensure timely termination
+			if ctx.Err() != nil {
+				r.logger.Debug("listS3FlowLogEvents", "message", "Context done during object processing",
+					"date", dateStr, "reason", ctx.Err(), "processed", i, "total", len(dayObjects))
+				return
+			}
+
 			obj := dayObjects[i]
 			key := aws.ToString(obj.Key)
 
@@ -490,8 +569,12 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 			r.logger.Trace("listS3FlowLogEvents", "message", "Processing object from day",
 				"date", dateStr, "key", key)
 
-			// Add object to processing pool
-			objectPool.Add(obj)
+			// Add object to processing pool with context awareness
+			if !objectPool.AddWithContext(ctx, obj) {
+				r.logger.Debug("listS3FlowLogEvents", "message", "Context done when adding to object pool",
+					"date", dateStr, "key", key)
+				return
+			}
 		}
 	}
 
@@ -508,7 +591,42 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 ) {
 	var objectCount int32 = 0
 	var processedCount int32 = 0
+
+	// Create a channel to signal early completion based on timeout
+	extractionDone := make(chan struct{})
+
+	// Set up a timer to track extraction time separately from context
+	// This provides an early warning when approaching the extraction time limit
+	extractionTimer := time.NewTimer(time.Duration(extractionTime) * time.Second * 9 / 10) // 90% of extraction time
+
+	// Start a goroutine to monitor extraction time
+	go func() {
+		select {
+		case <-extractionTimer.C:
+			r.logger.Info("listS3FlowLogEvents", "message", "Approaching extraction time limit, signaling early completion",
+				"extraction_time_seconds", extractionTime,
+				"processed_count", atomic.LoadInt32(&processedCount),
+				"found_count", atomic.LoadInt32(&objectCount))
+			close(extractionDone)
+		case <-ctx.Done():
+			// Context already done, no need to do anything
+			if !extractionTimer.Stop() {
+				<-extractionTimer.C // Drain the channel if timer already fired
+			}
+		}
+	}()
+
 	defer func() {
+		// Clean up the timer
+		if !extractionTimer.Stop() {
+			select {
+			case <-extractionTimer.C:
+				// Drain the channel if timer has fired
+			default:
+				// Timer was already stopped or drained
+			}
+		}
+
 		// Close the object pool to signal completion
 		objectPool.Close()
 		r.logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
@@ -589,22 +707,57 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	// Create a wait group to track completion of all list operations
 	var listWg sync.WaitGroup
 
-	// Process time targets
-	for _, target := range timeTargets {
+	// Create a merged context that also respects our early completion signal
+	mergedCtx, cancelMerged := context.WithCancel(ctx)
+	defer cancelMerged()
+
+	// Set up goroutine to cancel merged context when extractionDone is signaled
+	go func() {
+		select {
+		case <-extractionDone:
+			cancelMerged() // Cancel mergedCtx when extractionDone is signaled
+		case <-ctx.Done():
+			// Original context is already done, no need to cancel again
+		}
+	}()
+
+	// Process time targets with regular checks for timeout
+	for i, target := range timeTargets {
+		// Check context before starting each target to avoid unnecessary work
+		select {
+		case <-mergedCtx.Done():
+			r.logger.Info("listS3FlowLogEvents", "message", "Stopping time target processing early",
+				"reason", mergedCtx.Err(), "completed", i, "total", len(timeTargets),
+				"processed_count", atomic.LoadInt32(&processedCount))
+			goto WaitForCompletion // Skip to wait for already started goroutines
+		default:
+			// Context still valid, continue processing
+		}
+
 		listWg.Add(1)
 
 		// Throttle concurrent API calls
-		throttle <- struct{}{}
+		select {
+		case throttle <- struct{}{}:
+			// Throttle acquired, proceed
+		case <-mergedCtx.Done():
+			// Context done while waiting for throttle
+			listWg.Done() // Undo the Add(1) since we're not starting the goroutine
+			r.logger.Info("listS3FlowLogEvents", "message", "Context cancelled while throttling",
+				"reason", mergedCtx.Err(), "completed", i, "total", len(timeTargets))
+			goto WaitForCompletion // Skip to wait for already started goroutines
+		}
 
 		// Start a goroutine to process this time target
 		go func(date time.Time) {
 			defer listWg.Done()
 			defer func() { <-throttle }() // Release throttle when done
 
-			r.processTimeTarget(ctx, date, objectPool, errorChan, &objectCount, &processedCount)
+			r.processTimeTarget(mergedCtx, date, objectPool, errorChan, &objectCount, &processedCount)
 		}(target.date)
 	}
 
+WaitForCompletion:
 	// Wait for all listing operations to complete or context to be canceled
 	listingDone := make(chan struct{})
 	go func() {
@@ -617,6 +770,9 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	case <-listingDone:
 		r.logger.Debug("listS3FlowLogEvents", "message", "All time slots processed",
 			"total_objects", atomic.LoadInt32(&objectCount))
+	case <-extractionDone:
+		r.logger.Info("listS3FlowLogEvents", "message", "Extraction time approaching limit, returning partial results",
+			"extraction_time_seconds", extractionTime, "processed_objects", atomic.LoadInt32(&processedCount))
 	case <-ctx.Done():
 		logContextError(ctx, r.logger, extractionTime, int(atomic.LoadInt32(&processedCount)))
 	}
