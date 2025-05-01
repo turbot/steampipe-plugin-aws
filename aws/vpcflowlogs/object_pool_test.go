@@ -379,6 +379,304 @@ func TestObjectPoolCloseOperations(t *testing.T) {
 	})
 }
 
+// TestObjectPoolHelperMethods tests the helper methods
+func TestObjectPoolHelperMethods(t *testing.T) {
+	t.Run("IsEmpty Method", func(t *testing.T) {
+		pool := NewObjectPoolDefault[string]()
+
+		// Initial state should be empty
+		if !pool.IsEmpty() {
+			t.Error("New pool should be empty")
+		}
+
+		// Add an item, should not be empty
+		pool.Add("test")
+		if pool.IsEmpty() {
+			t.Error("Pool with item should not be empty")
+		}
+
+		// Remove the item, should be empty again
+		pool.GetRandom(context.Background())
+		if !pool.IsEmpty() {
+			t.Error("Pool should be empty after removing all items")
+		}
+	})
+
+	t.Run("Len Method", func(t *testing.T) {
+		pool := NewObjectPoolDefault[int]()
+
+		// Initial length should be 0
+		if pool.Len() != 0 {
+			t.Errorf("New pool should have 0 items, got %d", pool.Len())
+		}
+
+		// Add items and check length
+		numItems := 10
+		for i := 0; i < numItems; i++ {
+			pool.Add(i)
+			if pool.Len() != i+1 {
+				t.Errorf("Pool should have %d items, got %d", i+1, pool.Len())
+			}
+		}
+
+		// Remove items and check length
+		for i := numItems; i > 0; i-- {
+			pool.GetRandom(context.Background())
+			if pool.Len() != i-1 {
+				t.Errorf("Pool should have %d items, got %d", i-1, pool.Len())
+			}
+		}
+	})
+
+	t.Run("IsClosed Method", func(t *testing.T) {
+		pool := NewObjectPoolDefault[int]()
+
+		// Initial state should not be closed
+		if pool.IsClosed() {
+			t.Error("New pool should not be closed")
+		}
+
+		// After closing, should be closed
+		pool.Close()
+		if !pool.IsClosed() {
+			t.Error("Pool should be closed after calling Close")
+		}
+	})
+
+	t.Run("Zero Capacity Pool", func(t *testing.T) {
+		pool := NewObjectPool[int](0)
+
+		// Should still work correctly with zero initial capacity
+		for i := 0; i < 10; i++ {
+			pool.Add(i)
+		}
+
+		if pool.Len() != 10 {
+			t.Errorf("Pool should have 10 items, got %d", pool.Len())
+		}
+
+		// Should be able to retrieve all items
+		for i := 0; i < 10; i++ {
+			_, ok := pool.GetRandom(context.Background())
+			if !ok {
+				t.Fatalf("Failed to get item %d from pool", i)
+			}
+		}
+
+		if pool.Len() != 0 {
+			t.Errorf("Pool should be empty, got %d items", pool.Len())
+		}
+	})
+}
+
+// TestObjectPoolThreadSafety tests the thread-safe operations of the pool
+// Note: IsEmpty(), Len(), and IsClosed() are intentionally non-locking methods
+// that provide point-in-time snapshots without acquiring mutex locks
+func TestObjectPoolThreadSafety(t *testing.T) {
+	t.Run("Concurrent Modifications", func(t *testing.T) {
+		pool := NewObjectPoolDefault[int]()
+
+		// Create goroutines that only use the thread-safe modification methods
+		const numGoroutines = 10
+		var wg sync.WaitGroup
+
+		for i := 0; i < numGoroutines; i++ {
+			wg.Add(1)
+			go func(id int) {
+				defer wg.Done()
+
+				for j := 0; j < 100; j++ {
+					if j%2 == 0 {
+						// Add an item
+						pool.Add(id*1000 + j)
+					} else {
+						// Try to get an item
+						ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+						pool.GetRandom(ctx)
+						cancel()
+					}
+				}
+			}(i)
+		}
+
+		// Wait for all goroutines to complete
+		wg.Wait()
+
+		// The test passes if there are no panics or deadlocks
+	})
+
+	t.Run("Concurrent Close", func(t *testing.T) {
+		pool := NewObjectPoolDefault[int]()
+
+		// Start some goroutines that add items
+		var wg sync.WaitGroup
+		const numProducers = 5
+
+		for i := 0; i < numProducers; i++ {
+			wg.Add(1)
+			go func(id int) {
+				defer wg.Done()
+				for j := 0; j < 100; j++ {
+					// Add items until the pool is closed
+					if !pool.Add(id*1000 + j) {
+						break
+					}
+					time.Sleep(time.Microsecond)
+				}
+			}(i)
+		}
+
+		// Wait a bit for some items to be added
+		time.Sleep(10 * time.Millisecond)
+
+		// Close the pool
+		pool.Close()
+
+		// Wait for all producers to finish
+		wg.Wait()
+
+		// The pool is now closed - read all the items
+		for {
+			_, ok := pool.GetRandom(context.Background())
+			if !ok {
+				break
+			}
+		}
+
+		// The test passes if there are no panics or deadlocks
+	})
+}
+
+// TestObjectPoolNilHandling tests handling of nil objects for pointer types
+func TestObjectPoolNilHandling(t *testing.T) {
+	t.Run("Nil Pointer Objects", func(t *testing.T) {
+		// Create a pool for pointer type
+		pool := NewObjectPoolDefault[*string]()
+
+		// Add a nil pointer
+		pool.Add(nil)
+
+		// Add a non-nil pointer
+		s := "test"
+		pool.Add(&s)
+
+		// The pool should have 2 items
+		if pool.Len() != 2 {
+			t.Errorf("Expected 2 items, got %d", pool.Len())
+		}
+
+		// Get both items back
+		item1, ok1 := pool.GetRandom(context.Background())
+		if !ok1 {
+			t.Fatal("Failed to get first item from pool")
+		}
+
+		item2, ok2 := pool.GetRandom(context.Background())
+		if !ok2 {
+			t.Fatal("Failed to get second item from pool")
+		}
+
+		// One should be nil and one should be non-nil
+		if (item1 == nil && item2 == nil) || (item1 != nil && item2 != nil) {
+			t.Error("Expected one nil and one non-nil item")
+		}
+
+		// Pool should be empty
+		if !pool.IsEmpty() {
+			t.Error("Pool should be empty after getting all items")
+		}
+	})
+}
+
+// TestObjectPoolBoundaryTests tests the pool at extreme boundaries
+func TestObjectPoolBoundaryTests(t *testing.T) {
+	t.Run("Maximum Capacity", func(t *testing.T) {
+		// Skip in short mode as this might be memory-intensive
+		if testing.Short() {
+			t.Skip("Skipping large memory test in short mode")
+		}
+
+		// Create a pool with a large initial capacity
+		const largeCapacity = 1_000_000
+		pool := NewObjectPool[int](largeCapacity)
+
+		// Add a large number of items
+		for i := 0; i < 100_000; i++ {
+			pool.Add(i)
+		}
+
+		if pool.Len() != 100_000 {
+			t.Errorf("Expected 100,000 items, got %d", pool.Len())
+		}
+
+		// Remove some items
+		for i := 0; i < 50_000; i++ {
+			pool.GetRandom(context.Background())
+		}
+
+		if pool.Len() != 50_000 {
+			t.Errorf("Expected 50,000 items after removal, got %d", pool.Len())
+		}
+
+		// Close the pool and drain remaining items
+		pool.Close()
+		for pool.Len() > 0 {
+			pool.GetRandom(context.Background())
+		}
+
+		// Pool should be empty
+		if !pool.IsEmpty() {
+			t.Error("Pool should be empty after draining all items")
+		}
+	})
+
+	t.Run("Empty Pool Close and Reuse", func(t *testing.T) {
+		pool := NewObjectPoolDefault[int]()
+
+		// Check initial state
+		if !pool.IsEmpty() || pool.IsClosed() {
+			t.Error("New pool should be empty and not closed")
+		}
+
+		// Close empty pool
+		pool.Close()
+
+		// Verify state after closing
+		if !pool.IsEmpty() || !pool.IsClosed() {
+			t.Error("Pool should be empty and closed after closing")
+		}
+
+		// Try to add to closed pool (should fail)
+		if pool.Add(1) {
+			t.Error("Should not be able to add to closed pool")
+		}
+
+		// Try to get from empty closed pool (should fail)
+		_, ok := pool.GetRandom(context.Background())
+		if ok {
+			t.Error("Should not be able to get from empty closed pool")
+		}
+
+		// Create a new pool (simulating reuse pattern)
+		pool = NewObjectPoolDefault[int]()
+
+		// Verify the new pool is in the correct initial state
+		if !pool.IsEmpty() || pool.IsClosed() {
+			t.Error("New replacement pool should be empty and not closed")
+		}
+
+		// Add an item to the new pool
+		if !pool.Add(1) {
+			t.Error("Should be able to add to new replacement pool")
+		}
+
+		// Check that the item was added
+		if pool.IsEmpty() || pool.Len() != 1 {
+			t.Errorf("Pool should have 1 item, got %d", pool.Len())
+		}
+	})
+}
+
 // TestObjectPoolEdgeCases tests various edge cases
 func TestObjectPoolEdgeCases(t *testing.T) {
 	t.Run("Different Object Types", func(t *testing.T) {
@@ -484,5 +782,169 @@ func TestObjectPoolEdgeCases(t *testing.T) {
 		// The pool should have some items but not be empty or full
 		// (exact count is non-deterministic due to concurrent access)
 		t.Logf("After high contention, pool has %d items", pool.Len())
+	})
+
+	t.Run("Context Cancellation During Wait", func(t *testing.T) {
+		pool := NewObjectPoolDefault[int]()
+
+		// Create a context we can cancel
+		ctx, cancel := context.WithCancel(context.Background())
+
+		// Start a goroutine that waits for an item
+		done := make(chan bool)
+		go func() {
+			// Wait for an item
+			_, ok := pool.GetRandom(ctx)
+			done <- ok
+		}()
+
+		// Give the goroutine time to start waiting
+		time.Sleep(50 * time.Millisecond)
+
+		// Cancel the context
+		cancel()
+
+		// Check the result
+		select {
+		case ok := <-done:
+			if ok {
+				t.Error("GetRandom should return false when context is cancelled")
+			}
+		case <-time.After(500 * time.Millisecond):
+			t.Fatal("Timeout waiting for GetRandom to return after context cancellation")
+		}
+	})
+
+	t.Run("Large Scale Test", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("Skipping large scale test in short mode")
+		}
+
+		pool := NewObjectPool[int](10000)
+		const numItems = 10000
+
+		// Add many items
+		for i := 0; i < numItems; i++ {
+			pool.Add(i)
+		}
+
+		if pool.Len() != numItems {
+			t.Errorf("Expected %d items, got %d", numItems, pool.Len())
+		}
+
+		// Get all items in parallel
+		var wg sync.WaitGroup
+		const numGoroutines = 10
+		itemsPerGoroutine := numItems / numGoroutines
+
+		// Create a map to track which items we got
+		retrieved := sync.Map{}
+
+		for i := 0; i < numGoroutines; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+
+				for j := 0; j < itemsPerGoroutine; j++ {
+					item, ok := pool.GetRandom(context.Background())
+					if !ok {
+						t.Error("Failed to get item from pool")
+						return
+					}
+
+					// Record that we got this item
+					retrieved.Store(item, true)
+				}
+			}()
+		}
+
+		wg.Wait()
+
+		// Check the pool is empty
+		if pool.Len() != 0 {
+			t.Errorf("Pool should be empty, got %d items", pool.Len())
+		}
+
+		// Count how many unique items we retrieved
+		count := 0
+		retrieved.Range(func(_, _ interface{}) bool {
+			count++
+			return true
+		})
+
+		// We should have retrieved all items
+		if count != numItems {
+			t.Errorf("Expected to retrieve %d unique items, got %d", numItems, count)
+		}
+	})
+
+	t.Run("Stress Test", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("Skipping stress test in short mode")
+		}
+
+		pool := NewObjectPoolDefault[int]()
+
+		// Start 10 producers and 10 consumers
+		var wg sync.WaitGroup
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
+		// Start producers
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+			go func(id int) {
+				defer wg.Done()
+
+				j := 0
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					default:
+						pool.Add(id*10000 + j)
+						j++
+						time.Sleep(time.Millisecond)
+					}
+				}
+			}(i)
+		}
+
+		// Start consumers
+		var getCount atomic.Int32
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					default:
+						getCtx, getCancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+						_, ok := pool.GetRandom(getCtx)
+						getCancel()
+
+						if ok {
+							getCount.Add(1)
+						}
+
+						time.Sleep(time.Millisecond)
+					}
+				}
+			}()
+		}
+
+		// Wait for the test to finish
+		wg.Wait()
+
+		// We should have been able to get a significant number of items
+		count := getCount.Load()
+		t.Logf("Stress test retrieved %d items", count)
+
+		if count < 100 {
+			t.Errorf("Expected to retrieve at least 100 items, got %d", count)
+		}
 	})
 }
