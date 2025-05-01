@@ -24,7 +24,6 @@ const (
 	// Concurrent processing settings
 	DefaultMaxConcurrentDownloads = 5    // Number of concurrent worker goroutines
 	DefaultResultsChannelSize     = 1000 // Size of the channel buffer for results
-	DefaultObjectChannelSize      = 100  // Size of the channel buffer for S3 objects
 	DefaultConcurrencyLimit       = 5    // Limit for concurrent S3 list operations
 
 	// Default time targeting settings
@@ -110,8 +109,8 @@ func NewS3FlowLogEventsRetriever(filters []string, itemStreamer ItemStreamer, s3
 func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extractionTime int) error {
 	r.logger.Debug("listS3FlowLogEvents", "message", "Starting S3 flow log retrieval operation")
 
-	// Setup channels for concurrent processing - create a pipeline
-	objChan := make(chan s3types.Object, DefaultObjectChannelSize)
+	// Create object pool and setup channels for concurrent processing
+	objectPool := NewObjectPool()
 	resultsChan := make(chan S3FlowLogEvent, DefaultResultsChannelSize)
 	errorChan := make(chan error, DefaultMaxConcurrentDownloads)
 	processingDoneChan := make(chan struct{}) // Signal that processing is complete
@@ -124,16 +123,16 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 	defer cancel()
 
 	// Start workers to process objects concurrently
-	// Workers begin processing immediately as objects become available from objChan
+	// Workers begin processing immediately as objects become available from the pool
 	r.logger.Debug("listS3FlowLogEvents", "workers", DefaultMaxConcurrentDownloads,
 		"message", "Starting worker goroutines")
 	var workersWg sync.WaitGroup
 	for i := 0; i < DefaultMaxConcurrentDownloads; i++ {
 		workersWg.Add(1)
-		go func() {
+		go func(workerID int) {
 			defer workersWg.Done()
-			r.processObjectsWorker(ctx, i, objChan, resultsChan, errorChan)
-		}()
+			r.processObjectsWorker(ctx, workerID, objectPool, resultsChan, errorChan)
+		}(i) // Pass worker ID to avoid closure issues
 	}
 
 	// Start a goroutine to close results channel when all workers finish
@@ -144,7 +143,7 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 	}()
 
 	r.logger.Debug("listS3FlowLogEvents", "message", "Starting progressive S3 object processing")
-	r.processS3Objects(ctx, objChan, errorChan, extractionTime)
+	r.processS3Objects(ctx, objectPool, errorChan, extractionTime)
 
 	// Stream results to output while checking for errors
 	// Prioritize context check before starting the streaming loop
@@ -234,21 +233,37 @@ func (r *S3FlowLogEventsRetriever) ListS3FlowLogEvents(ctx context.Context, extr
 	}
 }
 
-// processObjectsWorker processes S3 objects from the object channel and sends flow log events to the results channel
+// processObjectsWorker processes S3 objects from the object pool and sends flow log events to the results channel
 func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 	ctx context.Context,
 	workerID int,
-	objChan <-chan s3types.Object,
+	objectPool *ObjectPool,
 	resultsChan chan<- S3FlowLogEvent,
 	errorChan chan<- error,
 ) {
 	r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 		"message", "Worker started")
-	for obj := range objChan {
-		// Check if context is done before processing any object
+
+	// Continue processing objects until context is cancelled or pool is empty and closed
+	for {
+		// Check if context is done before getting the next object
 		if ctx.Err() != nil {
 			r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
 				"message", "Context done, worker exiting early")
+			return
+		}
+
+		// Get a random object from the pool - blocks until object available or pool closed
+		obj, ok := objectPool.GetRandom(ctx)
+		if !ok {
+			// Either pool is closed and empty, or context was cancelled
+			if ctx.Err() != nil {
+				r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+					"message", "Context cancelled while waiting for object")
+			} else {
+				r.logger.Trace("listS3FlowLogEvents", "worker_id", workerID,
+					"message", "Object pool empty and closed, worker finished")
+			}
 			return
 		}
 
@@ -369,11 +384,11 @@ func (r *S3FlowLogEventsRetriever) processObjectsWorker(
 		"message", "Worker finished")
 }
 
-// processTimeTarget processes a full day and sends matching objects to the object channel
+// processTimeTarget processes a full day and adds matching objects to the object pool
 func (r *S3FlowLogEventsRetriever) processTimeTarget(
 	ctx context.Context,
 	date time.Time,
-	objChan chan<- s3types.Object,
+	objectPool *ObjectPool,
 	errorChan chan<- error,
 	objectCount *int32,
 	processedCount *int32,
@@ -475,10 +490,8 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 			r.logger.Trace("listS3FlowLogEvents", "message", "Processing object from day",
 				"date", dateStr, "key", key)
 
-			// Send object to processing channel
-			if !sendWithContext(ctx, objChan, obj) {
-				return
-			}
+			// Add object to processing pool
+			objectPool.Add(obj)
 		}
 	}
 
@@ -486,18 +499,18 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 		"date", dateStr, "objects", dayObjectCount)
 }
 
-// processS3Objects handles S3 object discovery and sends objects to the worker pool
+// processS3Objects handles S3 object discovery and adds objects to the worker pool
 func (r *S3FlowLogEventsRetriever) processS3Objects(
 	ctx context.Context,
-	objChan chan<- s3types.Object,
+	objectPool *ObjectPool,
 	errorChan chan<- error,
 	extractionTime int,
 ) {
 	var objectCount int32 = 0
 	var processedCount int32 = 0
 	defer func() {
-		// Close channels to signal completion
-		close(objChan)
+		// Close the object pool to signal completion
+		objectPool.Close()
 		r.logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
 			"eligible_objects_found", atomic.LoadInt32(&objectCount), "processed_objects", atomic.LoadInt32(&processedCount))
 	}()
@@ -588,7 +601,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 			defer listWg.Done()
 			defer func() { <-throttle }() // Release throttle when done
 
-			r.processTimeTarget(ctx, date, objChan, errorChan, &objectCount, &processedCount)
+			r.processTimeTarget(ctx, date, objectPool, errorChan, &objectCount, &processedCount)
 		}(target.date)
 	}
 
