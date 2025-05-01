@@ -2,7 +2,9 @@ package vpcflowlogs
 
 import (
 	"context"
+	"math/rand"
 	"sync"
+	"time"
 )
 
 const (
@@ -190,6 +192,10 @@ func waitWithContext(ctx context.Context, cond *sync.Cond) bool {
 	return ctx.Err() == nil
 }
 
+// Initialize the random number generator with a time-based seed
+var randSource = rand.New(rand.NewSource(time.Now().UnixNano()))
+var randMutex sync.Mutex // Protect the non-thread-safe rand
+
 // selectRandomObject selects a random object from the pool.
 // Returns the selected object and its index.
 //
@@ -199,9 +205,10 @@ func (p *ObjectPool[T]) selectRandomObject() (T, int) {
 	// Get a random index
 	idx := 0
 	if len(p.objects) > 1 {
-		// Simple deterministic selection based on array length
-		// This isn't truly random but provides good distribution
-		idx = (len(p.objects) * 13) % len(p.objects)
+		// Use thread-safe access to the random number generator
+		randMutex.Lock()
+		idx = randSource.Intn(len(p.objects))
+		randMutex.Unlock()
 	}
 
 	// Return the object and its index
