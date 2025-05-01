@@ -1017,29 +1017,32 @@ func waitWithTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 }
 
 // TestProcessObjectsWorkerContextTimeout tests that processing actually stops
-// after context timeout, rather than continuing to process data
+// after context cancellation, rather than continuing to process data
 func TestProcessObjectsWorkerContextTimeout(t *testing.T) {
-	// =========================================================================
-	// Test setup
-	// =========================================================================
+	// Create test configuration
+	const (
+		totalLogLines    = 10000 // Number of sample log lines to generate
+		cancelThreshold  = 1000  // Cancel after processing this many items
+		maxPostCancel    = 200   // Maximum allowed items processed after cancellation
+		minItemsRequired = 100   // Minimum items that must be processed before cancellation
+		workerTimeout    = 2 * time.Second
+	)
 
-	// Create a silent logger for tests
+	// Basic test setup
 	logger := hclog.New(&hclog.LoggerOptions{Level: hclog.Off})
-
-	// Test data configuration
 	bucket := "test-bucket"
-	s3Key := "vpcflowlogs/us-east-1/2023/05/01/123456789012_vpcflowlogs_us-east-1_fl-1234_20230501T1200Z_abc123.log.gz"
+	s3Key := "vpcflowlogs/us-east-1/2023/05/01/123456789012_vpcflowlogs_test_file.log.gz"
 	lastModified := time.Now().Add(-1 * time.Hour)
 
-	// Generate a large dataset with 100,000 log entries (ensure processing takes time)
+	// Generate sample log data
 	sampleLogLines := []string{"version 2"}
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < totalLogLines; i++ {
 		sampleLogLines = append(sampleLogLines, fmt.Sprintf(
-			"2 123456789012 eni-abcdef%d 172.31.16.%d 172.31.16.%d %d 22 6 20 4249 1618346672 1618346732 ACCEPT OK",
-			i, i%256, (i+1)%256, 10000+i))
+			"2 123456789012 eni-abcdef%d 172.31.%d.%d 172.31.%d.%d %d 22 6 20 4249 1618346672 1618346732 ACCEPT OK",
+			i, i%256, (i+1)%256, (i+2)%256, (i+3)%256, 10000+i))
 	}
 
-	// Create mock S3 client that returns our large dataset
+	// Create mock S3 client
 	mockS3Client := &MockS3Client{
 		GetObjectFn: func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 			return &s3.GetObjectOutput{
@@ -1049,137 +1052,105 @@ func TestProcessObjectsWorkerContextTimeout(t *testing.T) {
 		},
 	}
 
-	// Create a retriever with our mock S3 client and a no-op item streamer
+	// Create S3FlowLogEventsRetriever with mock client
 	retriever := NewS3FlowLogEventsRetriever(
 		[]string{}, // no filters
-		func(ctx context.Context, args ...interface{}) {
-			// No-op streamer (we'll count the results ourselves)
-		},
+		func(ctx context.Context, args ...interface{}) {}, // no-op streamer
 		mockS3Client,
-		"us-east-1",
-		bucket,
-		"vpcflowlogs/",
-		nil,
-		nil,
-		logger,
+		"us-east-1", bucket, "vpcflowlogs/",
+		nil, nil, logger,
 	)
 
-	// Initialize channels and object pool
-	resultsChan := make(chan S3FlowLogEvent, 100000) // Buffered to avoid blocking
+	// Setup test channels and pool
+	resultsChan := make(chan S3FlowLogEvent, totalLogLines) // Buffered to avoid blocking
 	errorChan := make(chan error, 5)
 	objectPool := NewObjectPoolDefault[s3types.Object]()
-
-	// Add a test object to the pool and close it (no more objects will be added)
-	testObject := s3types.Object{
+	objectPool.Add(s3types.Object{
 		Key:          aws.String(s3Key),
 		LastModified: &lastModified,
 		Size:         aws.Int64(1024),
-	}
-	objectPool.Add(testObject)
-	objectPool.Close()
+	})
+	objectPool.Close() // No more objects will be added
 
-	// =========================================================================
-	// Synchronization channels and counters
-	// =========================================================================
-
-	// Counter and sync channels
-	resultCounter := atomic.Int32{}   // Tracks how many items we've processed
-	workerDone := make(chan struct{}) // Signals when worker is done
-
-	// Context that we'll cancel after processing half the items
+	// Synchronization primitives
+	processedCount := atomic.Int32{}  // Tracks items processed
+	cancelled := make(chan struct{})  // Signals when cancellation occurs
+	workerDone := make(chan struct{}) // Signals when worker completes
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// =========================================================================
-	// Start goroutines
-	// =========================================================================
-
-	// Drain and monitor the resultsChan
+	// Start result monitoring goroutine
 	go func() {
 		for {
 			select {
-			case item, ok := <-resultsChan:
+			case event, ok := <-resultsChan:
 				if !ok {
 					return // Channel closed
 				}
 
-				// Count each result and handle signaling
-				newCount := resultCounter.Add(1)
-
-				// After processing half the items, cancel the context
-				// This is the key part of the test - cancel while processing is ongoing
-				if int(newCount) >= len(sampleLogLines)/2 {
+				// Count each result and check for cancellation threshold
+				count := processedCount.Add(1)
+				if count == cancelThreshold {
+					t.Logf("Cancelling context after processing %d items", count)
 					cancel()
-					return
+					close(cancelled)
 				}
 
-				_ = item // Consume the item
+				_ = event // Use the item to avoid compiler warnings
 
 			case <-workerDone:
-				// Worker finished - exit
-				return
+				return // Worker completed
 
-			case <-time.After(2 * time.Second):
-				// Safety timeout (shouldn't normally happen)
-				t.Logf("Drain timeout - no results for 2 seconds")
+			case <-time.After(workerTimeout):
+				t.Logf("Monitor timeout after %v", workerTimeout)
 				return
 			}
 		}
 	}()
 
-	// Run the worker in a separate goroutine
+	// Start worker goroutine
 	go func() {
 		retriever.processObjectsWorker(ctx, 1, objectPool, resultsChan, errorChan)
 		close(workerDone)
 	}()
 
-	// =========================================================================
-	// Wait for processing stages and collect results
-	// =========================================================================
-
-	// Wait for context to be canceled
+	// Wait for cancellation to occur
 	select {
-	case <-ctx.Done():
-		// Good - context was canceled after half the items were processed
+	case <-cancelled:
+		// Good - cancellation triggered after threshold reached
 	case <-time.After(5 * time.Second):
-		t.Fatal("Context was not canceled as expected")
+		t.Fatal("Test timed out waiting for cancellation")
 	}
 
-	// Record how many items were processed before cancellation
-	countAtCancellation := int(resultCounter.Load())
-	t.Logf("Results processed at cancellation: %d", countAtCancellation)
+	// Record count at cancellation
+	countAtCancellation := int(processedCount.Load())
 
 	// Wait for worker to finish
 	select {
 	case <-workerDone:
-		// Worker completed normally
-	case <-time.After(2 * time.Second):
-		t.Fatal("Timed out waiting for worker to finish")
+		// Worker completed normally after cancellation
+	case <-time.After(workerTimeout):
+		t.Fatal("Worker did not exit within timeout period after cancellation")
 	}
 
-	// =========================================================================
-	// Verify test results
-	// =========================================================================
+	// Calculate final metrics
+	itemsProcessedAfterCancel := len(resultsChan)
+	totalProcessed := countAtCancellation + itemsProcessedAfterCancel
+	expectedLogLines := totalLogLines - 1 // Subtract version line
 
-	// Get final count of processed items
-	inResultsChan := len(resultsChan)
+	// Log metrics for debugging
+	t.Logf("Items at cancellation: %d", countAtCancellation)
+	t.Logf("Items after cancellation: %d", itemsProcessedAfterCancel)
+	t.Logf("Total processed: %d of %d available", totalProcessed, expectedLogLines)
 
-	// Log metrics for analysis
-	t.Logf("Total items processed: %d", inResultsChan+countAtCancellation)
-	t.Logf("Items processed after cancellation: %d", inResultsChan)
-	t.Logf("Total available log lines: %d", len(sampleLogLines)-1) // -1 for version header
+	// Verify results
+	assert.Greater(t, countAtCancellation, minItemsRequired,
+		"Should process a meaningful number of items before cancellation")
 
-	// Verify processing was stopped before completion
-	assert.Less(t, countAtCancellation, len(sampleLogLines)-1,
-		"Processing should stop before handling all log lines")
+	assert.Less(t, totalProcessed, expectedLogLines,
+		"Processing should stop before handling all available log lines")
 
-	// Verify we processed enough items to show progress before cancellation
-	assert.Greater(t, countAtCancellation, 100,
-		"Should have processed meaningful number of items before cancellation")
-
-	// Verify cancellation was effective (not too many items processed after)
-	// Allow for some items to be processed during the brief delay between check intervals
-	assert.LessOrEqual(t, inResultsChan, 500,
+	assert.LessOrEqual(t, itemsProcessedAfterCancel, maxPostCancel,
 		"Should not process too many items after context cancellation")
 
 	// Verify no errors were reported
