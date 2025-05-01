@@ -3,7 +3,6 @@ package vpcflowlogs
 import (
 	"context"
 	"strings"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -120,16 +119,12 @@ func TestProcessTimeTargetHappyPath(t *testing.T) {
 	errorChan := make(chan error, 5)
 	objectPool := NewObjectPoolDefault[s3types.Object]()
 
-	// Counter variables for the function
-	var objectCount int32
-	var processedCount int32
-
 	// Create a context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	// Call the function under test
-	retriever.processTimeTarget(ctx, targetDate, objectPool, errorChan, &objectCount, &processedCount)
+	retriever.processTimeTarget(ctx, targetDate, objectPool, errorChan)
 
 	// Verify that all expected prefixes were requested
 	for _, expectedPrefix := range expectedPrefixes {
@@ -138,10 +133,6 @@ func TestProcessTimeTargetHappyPath(t *testing.T) {
 
 	// Verify ListObjectsV2 was called the expected number of times (once for each prefix)
 	assert.Equal(t, len(expectedPrefixes), listObjectCalls, "ListObjectsV2 should be called once per prefix")
-
-	// Verify object counts
-	assert.Equal(t, int32(2), atomic.LoadInt32(&objectCount), "Expected 2 objects to be found")
-	assert.Equal(t, int32(2), atomic.LoadInt32(&processedCount), "Expected 2 objects to be processed")
 
 	// Verify objects were added to the pool
 	objectPool.Close() // Close the pool to retrieve all objects
@@ -301,16 +292,12 @@ func TestProcessTimeTargetWithPagination(t *testing.T) {
 	errorChan := make(chan error, 5)
 	objectPool := NewObjectPoolDefault[s3types.Object]()
 
-	// Counter variables for the function
-	var objectCount int32
-	var processedCount int32
-
 	// Create a context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	// Call the function under test
-	retriever.processTimeTarget(ctx, targetDate, objectPool, errorChan, &objectCount, &processedCount)
+	retriever.processTimeTarget(ctx, targetDate, objectPool, errorChan)
 
 	// Check that all expected prefixes were called
 	for _, prefix := range expectedPrefixes {
@@ -320,10 +307,6 @@ func TestProcessTimeTargetWithPagination(t *testing.T) {
 	// Verify ListObjectsV2 was called the expected number of times
 	// We expect at least 3 calls total: both prefixes (2 calls) plus at least one pagination call
 	assert.GreaterOrEqual(t, listObjectCalls, 3, "ListObjectsV2 should be called at least 3 times for pagination")
-
-	// Verify object counts
-	assert.Equal(t, int32(50), atomic.LoadInt32(&objectCount), "Expected 50 objects to be found")
-	assert.Equal(t, int32(50), atomic.LoadInt32(&processedCount), "Expected 50 objects to be processed")
 
 	// Verify objects were added to the pool
 	objectPool.Close() // Close the pool to retrieve all objects
@@ -461,21 +444,12 @@ func TestProcessTimeTargetWithTimeFilters(t *testing.T) {
 	errorChan := make(chan error, 5)
 	objectPool := NewObjectPoolDefault[s3types.Object]()
 
-	// Counter variables for the function
-	var objectCount int32
-	var processedCount int32
-
 	// Create a context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	// Call the function under test
-	retriever.processTimeTarget(ctx, targetDate, objectPool, errorChan, &objectCount, &processedCount)
-
-	// Verify object counts
-	// Note: The implementation counts only objects within time range for both objectCount and processedCount
-	assert.Equal(t, int32(len(filteredObjects)), atomic.LoadInt32(&objectCount), "Expected %d objects to be found", len(filteredObjects))
-	assert.Equal(t, int32(len(filteredObjects)), atomic.LoadInt32(&processedCount), "Expected %d objects to be processed (within time range)", len(filteredObjects))
+	retriever.processTimeTarget(ctx, targetDate, objectPool, errorChan)
 
 	// Verify objects were added to the pool
 	objectPool.Close() // Close the pool to retrieve all objects
@@ -929,20 +903,12 @@ func TestProcessTimeTargetWithRealWorldFileNames(t *testing.T) {
 	errorChan := make(chan error, 5)
 	objectPool := NewObjectPoolDefault[s3types.Object]()
 
-	// Counter variables for the function
-	var objectCount int32
-	var processedCount int32
-
 	// Create a context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	// Call the function under test
-	retriever.processTimeTarget(ctx, targetDate, objectPool, errorChan, &objectCount, &processedCount)
-
-	// Verify object counts
-	assert.Equal(t, int32(len(expectedMatches)), atomic.LoadInt32(&objectCount), "Expected %d matching objects", len(expectedMatches))
-	assert.Equal(t, int32(len(expectedMatches)), atomic.LoadInt32(&processedCount), "Expected %d objects processed", len(expectedMatches))
+	retriever.processTimeTarget(ctx, targetDate, objectPool, errorChan)
 
 	// Verify objects were added to the pool
 	objectPool.Close() // Close the pool to retrieve all objects

@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -453,8 +452,6 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 	date time.Time,
 	objectPool *ObjectPool[s3types.Object],
 	errorChan chan<- error,
-	objectCount *int32,
-	processedCount *int32,
 ) {
 	// Build pattern for direct day targeting
 	// Structure is typically: base_prefix/YYYY/MM/DD/AccountID_vpcflowlogs_region_*_YYYYMMDD*
@@ -569,10 +566,6 @@ func (r *S3FlowLogEventsRetriever) processTimeTarget(
 				obj := dayObjects[i]
 				key := aws.ToString(obj.Key)
 
-				// Atomically increment counts
-				atomic.AddInt32(objectCount, 1)
-				atomic.AddInt32(processedCount, 1)
-
 				r.logger.Trace("listS3FlowLogEvents", "message", "Processing object from day",
 					"date", dateStr, "key", key)
 
@@ -597,9 +590,6 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 	errorChan chan<- error,
 	extractionTime int,
 ) {
-	var objectCount int32 = 0
-	var processedCount int32 = 0
-
 	// Create a channel to signal early completion based on timeout
 	extractionDone := make(chan struct{})
 
@@ -612,9 +602,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 		select {
 		case <-extractionTimer.C:
 			r.logger.Info("listS3FlowLogEvents", "message", "Approaching extraction time limit, signaling early completion",
-				"extraction_time_seconds", extractionTime,
-				"processed_count", atomic.LoadInt32(&processedCount),
-				"found_count", atomic.LoadInt32(&objectCount))
+				"extraction_time_seconds", extractionTime)
 			close(extractionDone)
 		case <-ctx.Done():
 			// Context already done, no need to do anything
@@ -637,8 +625,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 
 		// Close the object pool to signal completion
 		objectPool.Close()
-		r.logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete",
-			"eligible_objects_found", atomic.LoadInt32(&objectCount), "processed_objects", atomic.LoadInt32(&processedCount))
+		r.logger.Debug("listS3FlowLogEvents", "message", "S3 object listing complete")
 	}()
 
 	// For time-bounded searches, use progressive processing with direct time slot targeting
@@ -735,8 +722,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 		select {
 		case <-mergedCtx.Done():
 			r.logger.Info("listS3FlowLogEvents", "message", "Stopping time target processing early",
-				"reason", mergedCtx.Err(), "completed", i, "total", len(timeTargets),
-				"processed_count", atomic.LoadInt32(&processedCount))
+				"reason", mergedCtx.Err(), "completed", i, "total", len(timeTargets))
 			goto WaitForCompletion // Skip to wait for already started goroutines
 		default:
 			// Context still valid, continue processing
@@ -761,7 +747,7 @@ func (r *S3FlowLogEventsRetriever) processS3Objects(
 			defer listWg.Done()
 			defer func() { <-throttle }() // Release throttle when done
 
-			r.processTimeTarget(mergedCtx, date, objectPool, errorChan, &objectCount, &processedCount)
+			r.processTimeTarget(mergedCtx, date, objectPool, errorChan)
 		}(target.date)
 	}
 
@@ -776,12 +762,11 @@ WaitForCompletion:
 	// Wait for either completion or cancellation
 	select {
 	case <-listingDone:
-		r.logger.Debug("listS3FlowLogEvents", "message", "All time slots processed",
-			"total_objects", atomic.LoadInt32(&objectCount))
+		r.logger.Debug("listS3FlowLogEvents", "message", "All time slots processed")
 	case <-extractionDone:
 		r.logger.Info("listS3FlowLogEvents", "message", "Extraction time approaching limit, returning partial results",
-			"extraction_time_seconds", extractionTime, "processed_objects", atomic.LoadInt32(&processedCount))
+			"extraction_time_seconds", extractionTime)
 	case <-ctx.Done():
-		logContextError(ctx, r.logger, extractionTime, int(atomic.LoadInt32(&processedCount)))
+		logContextError(ctx, r.logger, extractionTime, -1)
 	}
 }
