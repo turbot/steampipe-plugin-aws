@@ -48,6 +48,45 @@ func (p *ObjectPool[T]) Add(obj T) bool {
 	return true
 }
 
+// waitWithContext waits on a condition variable with context support
+// The mutex must be locked when calling this function
+// Returns true if the wait completed normally, false if context was cancelled
+func waitWithContext(ctx context.Context, cond *sync.Cond) bool {
+	// Check context first
+	if ctx.Err() != nil {
+		return false
+	}
+
+	// Set up context monitoring
+	done := make(chan struct{})
+	waiting := true
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			// Context cancelled, acquire lock and signal condition
+			cond.L.Lock()
+			// Only signal if the waiter is still waiting
+			if waiting {
+				cond.Signal()
+			}
+			cond.L.Unlock()
+		case <-done:
+			// Wait completed normally
+		}
+	}()
+
+	// Wait for the condition
+	cond.Wait()
+
+	// Mark that we're done waiting (to avoid unnecessary signal)
+	waiting = false
+	close(done)
+
+	// Check if context was cancelled during wait
+	return ctx.Err() == nil
+}
+
 // GetRandom gets and removes a random object from the pool
 // Blocks until an object is available or the pool is closed
 // Returns the object and a boolean indicating success
@@ -55,31 +94,9 @@ func (p *ObjectPool[T]) GetRandom(ctx context.Context) (T, bool) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
-	// Wait until there's an object or the pool is closed or context is done
+	// Wait until there's an object or the pool is closed
 	for len(p.objects) == 0 && !p.closed {
-		// Create a channel for context cancellation
-		done := make(chan struct{})
-
-		// Start a goroutine to signal the condition if context is cancelled
-		go func() {
-			select {
-			case <-ctx.Done():
-				p.mutex.Lock()
-				p.cond.Signal() // Wake up the waiting goroutine
-				p.mutex.Unlock()
-			case <-done:
-				// Condition was satisfied normally, cleanup
-			}
-		}()
-
-		// Wait for condition to be signaled
-		p.cond.Wait()
-
-		// Clean up the goroutine
-		close(done)
-
-		// Check if context was cancelled while waiting
-		if ctx.Err() != nil {
+		if !waitWithContext(ctx, p.cond) {
 			var zero T
 			return zero, false
 		}
