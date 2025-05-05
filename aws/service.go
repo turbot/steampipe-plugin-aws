@@ -34,6 +34,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/batch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
@@ -390,6 +391,16 @@ func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, err
 		return nil, nil
 	}
 	return backup.NewFromConfig(*cfg), nil
+}
+
+func BatchClient(ctx context.Context, d *plugin.QueryData) (*batch.Client, error) {
+	conf, err := getClientForQuerySupportedRegion(ctx, d, AWS_BATCH_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+
+	client := batch.NewFromConfig(*conf)
+	return client, nil
 }
 
 func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {
