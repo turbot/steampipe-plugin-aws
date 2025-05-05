@@ -102,7 +102,7 @@ func listCognitoUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Check if a specific user_pool_id has been provided in the query
-	if d.EqualsQualString("user_pool_id") != "" && userPoolID == d.EqualsQualString("user_pool_id") {
+	if d.EqualsQualString("user_pool_id") != "" && userPoolID != d.EqualsQualString("user_pool_id") {
 		return nil, nil
 	}
 
