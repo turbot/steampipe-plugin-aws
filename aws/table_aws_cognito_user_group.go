@@ -37,13 +37,11 @@ func tableAwsCognitoUserGroup(_ context.Context) *plugin.Table {
 				Name:        "group_name",
 				Description: "The name of the group.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("GroupName"),
 			},
 			{
 				Name:        "user_pool_id",
 				Description: "The user pool ID for the user pool.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("UserPoolId"),
 			},
 			{
 				Name:        "description",
@@ -59,6 +57,7 @@ func tableAwsCognitoUserGroup(_ context.Context) *plugin.Table {
 				Name:        "last_modified_date",
 				Description: "The date and time when the group was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("LastModifiedDate").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "precedence",

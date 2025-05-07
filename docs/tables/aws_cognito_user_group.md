@@ -14,8 +14,7 @@ The `aws_cognito_user_group` table provides insights into user groups within Ama
 
 ## Examples
 
-### Basic info for all Cognito user groups
-
+### Basic info
 This query helps you understand the basic structure and distribution of all Cognito user groups across your user pools.
 
 ```sql+postgresql
@@ -43,7 +42,6 @@ from
 ```
 
 ### List all user groups in a specific user pool
-
 This query retrieves all user groups that belong to a specific Cognito user pool, which is useful for auditing access controls within a particular user pool.
 
 ```sql+postgresql
@@ -73,7 +71,6 @@ where
 ```
 
 ### Find user groups with assigned IAM roles
-
 This example identifies all user groups that have IAM roles assigned to them, which helps in reviewing role-based access control configurations.
 
 ```sql+postgresql
@@ -103,7 +100,6 @@ where
 ```
 
 ### Groups created in the last 30 days
-
 This query identifies recently created user groups in your Cognito user pools, which can help track changes in your identity management infrastructure.
 
 ```sql+postgresql
@@ -133,7 +129,6 @@ where
 ```
 
 ### Count of user groups per user pool
-
 This query provides a count of how many user groups exist in each Cognito user pool, helping you understand the distribution and complexity of your group management.
 
 ```sql+postgresql
