@@ -179,7 +179,7 @@ Show all job queues that have tags assigned. This is useful for cost allocation,
 
 ```sql+postgres
 select
-  queue_name,
+  job_queue_name,
   state,
   tags
 from
@@ -190,7 +190,7 @@ where
 
 ```sql+sqlite
 select
-  queue_name,
+  job_queue_name,
   state,
   tags
 from
