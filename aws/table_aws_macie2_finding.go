@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
 	"github.com/aws/aws-sdk-go-v2/service/macie2/types"
 
-	macie2v1 "github.com/aws/aws-sdk-go/service/macie2"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -38,7 +36,7 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(macie2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_MACIE2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
