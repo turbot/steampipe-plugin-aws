@@ -119,7 +119,6 @@ func listCognitoUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	if svc == nil {
 		// Unsupported region check
-		plugin.Logger(ctx).Debug("aws_cognito_user_group.listCognitoUserGroups", "unsupported_region")
 		return nil, nil
 	}
 
@@ -198,7 +197,6 @@ func getCognitoUserGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	if svc == nil {
 		// Unsupported region check
-		plugin.Logger(ctx).Debug("aws_cognito_user_group.getCognitoUserGroup", "unsupported_region")
 		return nil, nil
 	}
 
