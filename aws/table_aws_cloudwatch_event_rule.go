@@ -160,6 +160,7 @@ func listAwsCloudWatchEventRules(ctx context.Context, d *plugin.QueryData, h *pl
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
+		// AWS API enforces a minimum limit of 1 and a default of 100, so adjust if a lower value is provided.
 		if limit < maxLimit {
 			if limit < 1 {
 				maxLimit = 1
@@ -226,9 +227,13 @@ func getAwsCloudWatchEventRule(ctx context.Context, d *plugin.QueryData, h *plug
 	var name, eventBusName string
 
 	if h.Item != nil {
-		name = *h.Item.(*eventbridge.DescribeRuleOutput).Name
-		if h.Item.(*eventbridge.DescribeRuleOutput).EventBusName != nil {
-			eventBusName = *h.Item.(*eventbridge.DescribeRuleOutput).EventBusName
+		item, ok := h.Item.(*eventbridge.DescribeRuleOutput)
+		if !ok {
+			return nil, nil
+		}
+		name = *item.Name
+		if item.EventBusName != nil {
+			eventBusName = *item.EventBusName
 		}
 	} else {
 		name = d.EqualsQuals["name"].GetStringValue()
@@ -268,6 +273,7 @@ func getAwsCloudWatchEventRule(ctx context.Context, d *plugin.QueryData, h *plug
 
 func getAwsCloudWatchEventTargetsByRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	rule := h.Item.(*eventbridge.DescribeRuleOutput)
+	
 	name := rule.Name
 	var eventBusName *string
 
@@ -306,7 +312,9 @@ func getAwsCloudWatchEventTargetsByRule(ctx context.Context, d *plugin.QueryData
 }
 
 func getAwsCloudWatchEventRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	arn := h.Item.(*eventbridge.DescribeRuleOutput).Arn
+	item := h.Item.(*eventbridge.DescribeRuleOutput)
+
+	arn := item.Arn
 
 	// Create Session
 	svc, err := EventBridgeClient(ctx, d)
@@ -344,12 +352,9 @@ func cloudWatchEventTagListToTurbotTags(ctx context.Context, d *transform.Transf
 	}
 
 	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tagList != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tagList.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
+	turbotTagsMap := map[string]string{}
+	for _, i := range tagList.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
 	}
 
 	return turbotTagsMap, nil
