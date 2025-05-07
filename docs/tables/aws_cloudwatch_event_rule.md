@@ -15,7 +15,6 @@ The `aws_cloudwatch_event_rule` table in Steampipe provides you with information
 ## Examples
 
 ### Basic info
-
 Gain insights into the status and origins of your AWS CloudWatch Events rules. This query is particularly useful for auditing and maintaining an overview of your event settings.
 
 ```sql+postgres
@@ -41,7 +40,6 @@ from
 ```
 
 ### List disabled rules
-
 Determine the areas in which AWS CloudWatch Events rules are not active. This is useful for identifying potential gaps in event-driven workflows or areas where automation may have been turned off.
 
 ```sql+postgres
@@ -69,7 +67,6 @@ where
 ```
 
 ### Get the target information for each rule
-
 This query allows you to identify the target details for each rule in your AWS CloudWatch Events service. It's useful for auditing and understanding the relationships and dependencies between different rules and their targets within your AWS infrastructure.
 
 ```sql+postgres
@@ -95,7 +92,6 @@ from
 ```
 
 ### List CloudWatch Event rules with schedule expressions
-
 Identify rules that are triggered on a schedule rather than by events, which is useful for understanding time-based automation in your environment.
 
 ```sql+postgres
@@ -123,7 +119,6 @@ where
 ```
 
 ### Find rules with Lambda function targets
-
 Discover which CloudWatch Event rules are triggering Lambda functions, helping to map out serverless event-driven architectures in your AWS environment.
 
 ```sql+postgres

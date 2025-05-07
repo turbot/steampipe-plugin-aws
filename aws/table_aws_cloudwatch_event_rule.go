@@ -80,13 +80,11 @@ func tableAwsCloudwatchEventRule(_ context.Context) *plugin.Table {
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) of the IAM role associated with the rule.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsCloudWatchEventRule,
 			},
 			{
 				Name:        "schedule_expression",
 				Description: "The scheduling expression. For example, 'cron(0 20 * * ? *)', 'rate(5 minutes)'.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsCloudWatchEventRule,
 			},
 			{
 				Name:        "managed_by",
@@ -97,7 +95,6 @@ func tableAwsCloudwatchEventRule(_ context.Context) *plugin.Table {
 				Name:        "event_pattern",
 				Description: "The event pattern of the rule.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsCloudWatchEventRule,
 			},
 			{
 				Name:        "name_prefix",
@@ -185,7 +182,6 @@ func listAwsCloudWatchEventRules(ctx context.Context, d *plugin.QueryData, h *pl
 	if equalQuals["name_prefix"] != nil {
 		params.NamePrefix = aws.String(equalQuals["name_prefix"].GetStringValue())
 	}
-
 	// API doesn't support aws-go-sdk-v2 paginator as of date
 	for pagesLeft {
 		// apply rate limiting
@@ -198,12 +194,14 @@ func listAwsCloudWatchEventRules(ctx context.Context, d *plugin.QueryData, h *pl
 		}
 		for _, rule := range output.Rules {
 			d.StreamListItem(ctx, &eventbridge.DescribeRuleOutput{
-				Name:         rule.Name,
-				Arn:          rule.Arn,
-				Description:  rule.Description,
-				State:        rule.State,
-				EventBusName: rule.EventBusName,
-				ManagedBy:    rule.ManagedBy,
+				Name:               rule.Name,
+				Arn:                rule.Arn,
+				Description:        rule.Description,
+				State:              rule.State,
+				EventBusName:       rule.EventBusName,
+				ManagedBy:          rule.ManagedBy,
+				ScheduleExpression: rule.ScheduleExpression,
+				RoleArn:            rule.RoleArn,
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
