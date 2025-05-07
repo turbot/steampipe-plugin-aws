@@ -399,6 +399,10 @@ func BatchClient(ctx context.Context, d *plugin.QueryData) (*batch.Client, error
 		return nil, err
 	}
 
+	if conf == nil {
+		return nil, nil
+	}
+
 	client := batch.NewFromConfig(*conf)
 	return client, nil
 }

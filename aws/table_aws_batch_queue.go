@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/batch"
-	"github.com/aws/aws-sdk-go-v2/service/batch/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -16,7 +15,7 @@ func tableAwsBatchQueue(_ context.Context) *plugin.Table {
 		Name:        "aws_batch_queue",
 		Description: "AWS Batch Queue",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("queue_name"),
+			KeyColumns: plugin.SingleColumn("job_queue_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"JobQueueNotFoundException"}),
 			},
@@ -30,15 +29,15 @@ func tableAwsBatchQueue(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BATCH_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "queue_name",
+				Name:        "job_queue_name",
 				Description: "The name of the job queue",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("JobQueueName"),
 			},
 			{
-				Name:        "job_queue_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the job queue",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("JobQueueArn"),
 			},
 			{
 				Name:        "state",
@@ -70,17 +69,12 @@ func tableAwsBatchQueue(_ context.Context) *plugin.Table {
 				Description: "A short, human-readable string to provide additional details about the current status of the job queue",
 				Type:        proto.ColumnType_STRING,
 			},
+			
+			// Standard columns for all tables
 			{
 				Name:        "tags",
 				Description: "The tags assigned to the job queue",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getBatchQueueTags),
-			},
-			{
-				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) of the job queue",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("JobQueueArn"),
 			},
 			{
 				Name:        "title",
@@ -104,6 +98,11 @@ func listBatchQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_batch_queue.listBatchQueues", "client_error", err)
 		return nil, err
+	}
+
+	// Unsupported region check
+	if svc == nil {
+		return nil, nil
 	}
 
 	input := &batch.DescribeJobQueuesInput{
@@ -132,7 +131,7 @@ func listBatchQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 }
 
 func getBatchQueue(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	queueName := d.EqualsQualString("queue_name")
+	queueName := d.EqualsQualString("job_queue_name")
 	if queueName == "" {
 		return nil, nil
 	}
@@ -142,6 +141,11 @@ func getBatchQueue(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_batch_queue.getBatchQueue", "client_error", err)
 		return nil, err
+	}
+
+	// Unsupported region check
+	if svc == nil {
+		return nil, nil
 	}
 
 	input := &batch.DescribeJobQueuesInput{
@@ -159,13 +163,4 @@ func getBatchQueue(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	}
 
 	return output.JobQueues[0], nil
-}
-
-func getBatchQueueTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	queue := d.HydrateItem.(types.JobQueueDetail)
-	if queue.Tags == nil {
-		return nil, nil
-	}
-
-	return queue.Tags, nil
 }

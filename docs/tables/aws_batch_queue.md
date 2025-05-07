@@ -15,10 +15,11 @@ The `aws_batch_queue` table provides insights into job queue configurations with
 ## Examples
 
 ### Basic info
+Get a quick overview of all AWS Batch job queues, including their name, state, status, and priority. This is useful for inventory and monitoring purposes.
 
 ```sql+postgres
 select
-  queue_name,
+  job_queue_name,
   state,
   status,
   priority
@@ -28,7 +29,7 @@ from
 
 ```sql+sqlite
 select
-  queue_name,
+  job_queue_name,
   state,
   status,
   priority
@@ -37,10 +38,11 @@ from
 ```
 
 ### List enabled job queues
+Identify all job queues that are currently enabled. This helps you focus on active queues that can accept jobs.
 
 ```sql+postgres
 select
-  queue_name,
+  job_queue_name,
   state,
   priority
 from
@@ -51,7 +53,7 @@ where
 
 ```sql+sqlite
 select
-  queue_name,
+  job_queue_name,
   state,
   priority
 from
@@ -61,6 +63,7 @@ where
 ```
 
 ### List job queues by state
+See how many job queues exist in each state (ENABLED, DISABLED, etc.). This is useful for capacity planning and operational audits.
 
 ```sql+postgres
 select
@@ -87,10 +90,11 @@ order by
 ```
 
 ### Get compute environments associated with each job queue
+List the compute environments attached to each job queue and their order of preference. This helps you understand job placement and compute resource allocation.
 
 ```sql+postgres
 select
-  queue_name,
+  job_queue_name,
   state,
   c->>'Order' as order_priority,
   c->>'ComputeEnvironment' as compute_environment
@@ -98,13 +102,13 @@ from
   aws_batch_queue,
   jsonb_array_elements(compute_environment_order) as c
 order by
-  queue_name,
+  job_queue_name,
   (c->>'Order')::int;
 ```
 
 ```sql+sqlite
 select
-  queue_name,
+  job_queue_name,
   state,
   json_extract(c.value, '$.Order') as order_priority,
   json_extract(c.value, '$.ComputeEnvironment') as compute_environment
@@ -112,15 +116,16 @@ from
   aws_batch_queue,
   json_each(compute_environment_order) as c
 order by
-  queue_name,
+  job_queue_name,
   CAST(json_extract(c.value, '$.Order') as integer);
 ```
 
 ### Find job queues with high priority (lower number means higher priority)
+Identify job queues with a high priority (lower number). This is useful for understanding which queues are preferred for job scheduling.
 
 ```sql+postgres
 select
-  queue_name,
+  job_queue_name,
   state,
   priority
 from
@@ -133,7 +138,7 @@ order by
 
 ```sql+sqlite
 select
-  queue_name,
+  job_queue_name,
   state,
   priority
 from
@@ -145,10 +150,11 @@ order by
 ```
 
 ### Find job queues with scheduling policies
+Find job queues that have a scheduling policy attached. This helps you identify queues with custom scheduling behavior.
 
 ```sql+postgres
 select
-  queue_name,
+  job_queue_name,
   state,
   scheduling_policy_arn
 from
@@ -159,7 +165,7 @@ where
 
 ```sql+sqlite
 select
-  queue_name,
+  job_queue_name,
   state,
   scheduling_policy_arn
 from
@@ -169,10 +175,11 @@ where
 ```
 
 ### List job queues with their tags
+Show all job queues that have tags assigned. This is useful for cost allocation, resource organization, and compliance.
 
 ```sql+postgres
 select
-  queue_name,
+  job_queue_name,
   state,
   tags
 from
@@ -183,7 +190,7 @@ where
 
 ```sql+sqlite
 select
-  queue_name,
+  job_queue_name,
   state,
   tags
 from
