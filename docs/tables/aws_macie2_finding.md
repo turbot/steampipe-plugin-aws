@@ -10,12 +10,11 @@ AWS Macie2 is a data security and data privacy service that uses machine learnin
 
 ## Table Usage Guide
 
-The `aws_macie2_finding` table in Steampipe provides you with information about security and data privacy findings within AWS Macie2. This table allows you, as a security analyst, compliance officer, or DevOps engineer, to query finding-specific details, including the finding type, severity, status, and associated metadata. You can utilize this table to gather insights on findings, such as identifying sensitive data exposure, monitoring policy violations, and tracking remediation efforts. The schema outlines the various attributes of the Macie2 finding for you, including the finding ID, ARN, type, severity, status, and associated tags.
+The `aws_macie2_finding` table in Steampipe provides you with information about security and data privacy findings within AWS Macie2. This table allows you, as a security analyst, compliance officer, or DevOps engineer, to query finding-specific details, including the finding type, severity, status, and associated metadata. You can utilize this table to gather insights on findings, such as identifying sensitive data exposure, monitoring policy violations, and tracking remediation efforts. The schema outlines the various attributes of the Macie2 finding for you, including the finding ID, type, severity, status, and associated tags.
 
 ## Examples
 
 ### List all findings
-
 Retrieve basic information about your AWS Macie2 findings, including their type, severity, and status. This can be useful for getting an overview of security and data privacy issues in your AWS account.
 
 ```sql+postgres
@@ -41,7 +40,6 @@ from
 ```
 
 ### Get details of a specific finding
-
 Query detailed information about a specific finding to understand its impact and required actions.
 
 ```sql+postgres
@@ -77,7 +75,6 @@ where
 ```
 
 ### List high severity findings
-
 Identify findings that require immediate attention based on their severity level.
 
 ```sql+postgres
@@ -109,7 +106,6 @@ where
 ```
 
 ### List findings by type
-
 Filter findings by their type to focus on specific categories of security or data privacy issues.
 
 ```sql+postgres
@@ -141,7 +137,6 @@ where
 ```
 
 ### List active findings
-
 Monitor currently active findings that require attention or remediation.
 
 ```sql+postgres
@@ -173,7 +168,6 @@ where
 ```
 
 ### List findings with remediation information
-
 Review findings that include specific remediation steps or recommendations.
 
 ```sql+postgres
@@ -203,7 +197,6 @@ where
 ```
 
 ### List findings with classification details
-
 Examine findings that include detailed classification information about the discovered data.
 
 ```sql+postgres
@@ -233,7 +226,6 @@ where
 ```
 
 ### List findings by date range
-
 Monitor findings generated within a specific time period.
 
 ```sql+postgres
@@ -263,7 +255,6 @@ where
 ```
 
 ### List findings with affected resources
-
 Identify findings that include information about affected AWS resources.
 
 ```sql+postgres
@@ -293,7 +284,6 @@ where
 ```
 
 ### List findings with sample data
-
 Review findings that include sample data to better understand the nature of the discovered sensitive information.
 
 ```sql+postgres
@@ -323,7 +313,6 @@ where
 ```
 
 ### List findings by account and region
-
 Filter findings by specific AWS account and region to focus on particular environments.
 
 ```sql+postgres
